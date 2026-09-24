@@ -734,6 +734,9 @@ ART = {
     "storm_art_24": "A steady ribbon of current humming between two posts, unbroken in the rain.",
     "storm_mastery_03": "A gale bending a field of grass flat, one runner sprinting with it at their back.",
     "storm_mastery_04": "A conductor's baton raised before rows of crackling coils, all lit at once.",
+    "freestyle_noncombat_19": "A spell unravelling in mid-air into loose threads of light, a calm hand closing on it.",
+    "freestyle_noncombat_20": "Two duellists frozen mid-stride under a vast reptilian eye opening in the sky.",
+    "freestyle_combat_21": "A fighter stooping to gather spent scraps and fallen weapons from the ground as they run.",
 }
 
 # Seals: one brief per set, the number added by the generator.
@@ -1057,6 +1060,10 @@ NEW_SOURCES = {
     "root_art_12": "Namekian Final Flash (World Games Saga 70)",
     "root_noncombat_05": "Namekian Blocking Stance (Androids Saga 21)",
     "root_strike_19": "Namekian Fist Dodge (Cell Games 11)",
+    "personality_14": "Broly, the Enraged Saiyan (Lv 2, BMovie M2)",
+    "freestyle_noncombat_19": "This Too Shall Pass (Frieza Saga 121)",
+    "freestyle_noncombat_20": "Dragon's Glare (Frieza Saga Promo 4)",
+    "freestyle_combat_21": "Feeding Frenzy (League promo L2-5)",
     "storm_drill_05": "Orange Spontaneous Drill (Saiyan Saga 137)",
     "storm_drill_06": "Orange Energy Dan Drill (Trunks Saga 138)",
     "storm_drill_07": "Orange Protection Drill (Fusion Saga 68)",

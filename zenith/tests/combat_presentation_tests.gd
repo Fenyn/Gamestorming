@@ -26,6 +26,8 @@ func _run() -> void:
 	_test_rail(hud, defender, attacker, prompt, engine)
 	_test_response(hud)
 	_test_links(defender)
+	_test_labels(hud, defender)
+	_test_seat_names()
 	await _test_legal_actions(hud)
 	await _test_strip_and_queue(hud, defender)
 	await _test_read_holds(hud, defender)
@@ -83,7 +85,8 @@ func _test_rail(hud: Node, defender: SeatView, attacker: SeatView, prompt: Promp
 	_check(hud.exchange_damage.visible and hud.exchange_damage.text == baseline, "Leaving a preview restores the actual baseline")
 	hud._show_attack(attacker, null)
 	_check(hud.exchange_response.text != own_response, "Acting and waiting seats get distinct response ownership")
-	_check(hud.exchange_damage.text == baseline, "Both seats see identical public incoming damage")
+	_check(hud.exchange_damage.text.get_slice(": ", 1) == baseline.get_slice(": ", 1), "Both seats see identical public incoming damage")
+	_check(baseline.begins_with("Incoming: ") and hud.exchange_damage.text.begins_with("Deals: "), "The defender reads the numbers as incoming and the attacker as what it deals")
 	var landed: SeatView = SeatView.from_dict(defender.to_dict().duplicate(true))
 	landed.attack.merge({"landed": true, "stages_dealt": 2, "life_dealt": 1, "life_remaining": 3, "damage": {"stages": 9, "wounds": 8}} , true)
 	hud._show_attack(landed, null)
@@ -152,7 +155,7 @@ func _test_receipt(hud: Node, receipt: SeatView, active: SeatView) -> void:
 	var landed: SeatView = SeatView.from_dict(receipt.to_dict().duplicate(true))
 	landed.last_attack.merge({"stopped": false, "stages_dealt": 4, "life_dealt": 2}, true)
 	hud._show_attack(landed, null)
-	_check(hud.exchange_damage.text.contains("4 Energy / 2 wounds") and hud.exchange_damage.text.to_lower().contains("dealt"), "Resolved receipt uses actual dealt totals")
+	_check(hud.exchange_damage.text.contains("4 Energy, 2 wounds") and hud.exchange_damage.text.to_lower().contains("dealt"), "Resolved receipt uses actual dealt totals")
 	landed.step = GameState.Step.NON_COMBAT
 	hud._show_attack(landed, null)
 	_check(not hud.exchange_rail.visible, "Last combat receipt disappears outside Combat")
@@ -160,6 +163,54 @@ func _test_receipt(hud: Node, receipt: SeatView, active: SeatView) -> void:
 	current.last_attack = receipt.last_attack.duplicate(true)
 	hud._show_attack(current, null)
 	_check(hud.exchange_state.text != "LAST EXCHANGE / RESOLVED" and not hud.exchange_damage.text.begins_with("Last:"), "Current attack supersedes the last receipt")
+
+
+## The defence question names the attack from public fields, and the tray widens and balances.
+func _test_labels(hud: Node, defender: SeatView) -> void:
+	var a: Dictionary = defender.attack
+	var name: String = hud.attack_name(a)
+	_check(name == str(a["source_title"]), "A card attack is named by its card")
+	_check(hud.attack_name({"performer_title": "Caedan Vale", "source_title": "Some discard", "is_final": true}) == "Caedan Vale's Final Strike", "A Final Strike is named by who makes it, not the card thrown away")
+	_check(hud.attack_name({"performer_title": "Enrys", "is_power": true}) == "Enrys' Power", "A name ending in s takes a bare apostrophe")
+	_check(hud.attack_name({}) == "the Strike", "An attack with no public names falls back to its kind")
+	var screen: Vector2 = Vector2(1920, 1080)
+	var seven: Dictionary = hud.tray_layout(7, screen)
+	_check(int(seven["columns"]) == 4, "Seven tray cards sit four and three, not six and one")
+	var three: Dictionary = hud.tray_layout(3, screen)
+	var face: Vector2 = three["face"]
+	_check(int(three["columns"]) == 3 and is_equal_approx(face.x, 340.0), "A short tray widens its faces up to the cap")
+	var many: Dictionary = hud.tray_layout(12, screen)
+	_check((many["face"] as Vector2).x >= 204.0 and int(many["columns"]) == 6, "A full tray keeps the smallest face and six across")
+
+
+func _test_seat_names() -> void:
+	var session: Node = root.get_node("Session")
+	if session.decks.size() < 2:
+		return
+	var saved_chosen: Array[DeckList] = session.chosen
+	var saved_names: Array[String] = session.player_names
+	var saved_ai: int = session.ai_seat
+	var pair: Array[DeckList] = [session.decks[0], session.decks[1]]
+	var stock: Array[String] = ["Player 1", "Player 2"]
+	var versus_ai: Array[String] = ["Player 1", "The AI"]
+	var typed: Array[String] = ["Midge", "The AI"]
+	session.chosen = pair
+	session.player_names = stock
+	session.ai_seat = -1
+	var hotseat: Array[String] = session.seat_names()
+	_check(hotseat == stock, "Hotseat keeps Player 1 and Player 2")
+	session.ai_seat = 1
+	session.player_names = versus_ai
+	var against_ai: Array[String] = session.seat_names()
+	var expected: Array[String] = [session.duelist_name(pair[0]), session.duelist_name(pair[1])]
+	if expected[0] != expected[1]:
+		_check(against_ai == expected, "Against the AI both seats go by their duelists' names")
+	session.player_names = typed
+	var kept: Array[String] = session.seat_names()
+	_check(kept[0] == "Midge", "A name the player typed is kept")
+	session.chosen = saved_chosen
+	session.player_names = saved_names
+	session.ai_seat = saved_ai
 
 
 func _test_response(hud: Node) -> void:
@@ -237,7 +288,7 @@ func _test_legal_actions(hud: Node) -> void:
 	hud.option_chosen.connect(func(option: OptionView) -> void: emitted.append(option.to_command(prompt.player).to_dict()))
 	await hud.show_prompt(prompt, view)
 	await process_frame
-	_check(hud.focus.visible and hud.prompt_title.visible and not hud.prompt_who.visible, "Announced card keeps the actionable decision question without repeated owner text")
+	_check(hud.focus.visible and hud.prompt_title.visible and hud.prompt_who.visible and hud.prompt_who.text == "YOUR MOVE", "Announced card keeps the actionable decision question and says whose move it is without the owner's name")
 	_check(not hud.exchange_state.visible and not hud.exchange_route.visible and not hud.exchange_response.visible, "Attached status does not repeat card identity, type and response prose")
 	_check(hud.prompt_panel.get_theme_stylebox("panel") is StyleBoxEmpty, "Attached actions have no separate boxed information panel")
 	for window_size in [Vector2i(1280, 720), Vector2i(1600, 900)]:
@@ -246,13 +297,16 @@ func _test_legal_actions(hud: Node) -> void:
 		hud._layout_prompt_column()
 		await process_frame
 		# DuelView hides the fallback 2D CardFace. Its camera-mounted 512x716 Sprite3D
-		# occupies the focus width below a 32px caption; test that displayed card footprint.
+		# occupies the focus width above the caption; test that displayed card footprint.
 		var focus_rect: Rect2 = hud.focus.get_global_rect()
-		var face: Rect2 = Rect2(focus_rect.position + Vector2(0, 32), Vector2(focus_rect.size.x, focus_rect.size.x * 716.0 / 512.0))
+		var face: Rect2 = hud.focus_face_rect()
 		var decision: Rect2 = hud.prompt_panel.get_global_rect()
 		var viewport: Rect2 = root.get_visible_rect()
-		_check(absf(face.position.x - decision.position.x) < 2.0 and absf(face.size.x - decision.size.x) < 2.0, "Decision shares the focused card's column at %dp" % window_size.y)
-		_check(decision.position.y >= face.end.y and decision.position.y - face.end.y <= 20.0, "Decision attaches immediately below the face at %dp" % window_size.y)
+		var constants: Dictionary = hud.get_script().get_script_constant_map()
+		_check(face.position.x >= decision.position.x - 1.0 and face.end.x <= decision.end.x + 1.0, "Decision shares the focused card's column at %dp" % window_size.y)
+		_check(decision.position.y >= focus_rect.end.y and decision.position.y - focus_rect.end.y <= 20.0, "The focused card stands directly on the decision at %dp" % window_size.y)
+		_check(absf(viewport.end.y - decision.end.y - float(constants["PROMPT_BOTTOM"])) < 2.0, "Decision is anchored above the hand at %dp" % window_size.y)
+		_check(focus_rect.position.y >= float(constants["RAIL_TOP"]) - 1.0, "The focused card stays under the corner toggles at %dp" % window_size.y)
 		_check(viewport.encloses(hud.prompt_title.get_global_rect()), "Decision question stays inside viewport at %dp" % window_size.y)
 		if hud.exchange_damage.is_visible_in_tree():
 			_check(viewport.encloses(hud.exchange_damage.get_global_rect()), "Incoming consequence stays inside viewport at %dp" % window_size.y)

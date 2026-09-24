@@ -23,10 +23,12 @@ const LATE_STOP: String = "successful_attack"
 const CRITICAL_THRESHOLD: int = 5   # life cards from one attack that make it critical damage
 const SEALS_PER_SET: int = 7
 const ALLY_CONTROL_MAX_ENERGY: int = 1
+## How often an adventure boss may use its special power in one duel.
+const BOSS_POWER_USES: int = 2
 const MAX_ADVANCE_ITERATIONS: int = 100000
 ## Every forbid `what` the rules consult; `restrictions` reports which are in force on a player.
 const FORBID_KINDS: Array[String] = [
-	"strike_attacks", "art_attacks", "strike_cards", "art_cards", "combat_cards", "non_combats",
+	"strike_attacks", "art_attacks", "strike_attack_cards", "art_attack_cards", "strike_cards", "art_cards", "combat_cards", "non_combats",
 	"drills", "seals", "mastery", "powers", "stop_all", "end_combat", "non_attack_actions", "skip_combat",
 	"allies", "lower_aspect", "lower_own_aspect", "relic",
 ]
@@ -122,6 +124,30 @@ func set_guest_ally(seat: int, card_id: String) -> bool:
 	_place(p, c)
 	_emit(&"guest_ally", {"player": seat, "card": c.uid})
 	return true
+
+
+## An adventure boss's special power: a banned card the seat holds outside its deck and off the
+## table, used from there up to BOSS_POWER_USES times a game. A Drill works as if it were in play
+## for the whole duel. Nothing can discard, remove or copy it.
+func set_boss_power(seat: int, card_id: String) -> bool:
+	assert(state.step == GameState.Step.SETUP and state.turn == 0, "set_boss_power() after start()")
+	var def: CardDef = library.get_def(card_id) if library.has(card_id) else null
+	if def == null or def.type == CardDef.Type.PERSONALITY or def.type == CardDef.Type.SEAL:
+		return false
+	var p: PlayerState = state.players[seat]
+	p.boss_power = _instance(def, seat, &"boss_power")
+	p.boss_power_uses = 0
+	_emit(&"boss_power", {"player": seat, "card": p.boss_power.uid, "id": def.id})
+	return true
+
+
+func _boss_power_ready(p: PlayerState) -> bool:
+	return p.boss_power != null and p.boss_power_uses < BOSS_POWER_USES
+
+
+func _spend_boss_power(p: PlayerState) -> void:
+	p.boss_power_uses += 1
+	_emit(&"boss_power_used", {"player": p.index, "card": p.boss_power.uid, "left": BOSS_POWER_USES - p.boss_power_uses})
 
 
 func start() -> void:
@@ -970,6 +996,9 @@ func _advance_discard() -> void:
 					continue
 				if c.def.has_trigger("discard_step"):
 					_enqueue(c.def.effects_for("discard_step"), "discard_step", index, {}, c)
+			# A boss power that is a Drill works as one in play for the whole duel.
+			if side.boss_power != null and side.boss_power.def.has_trigger("discard_step") and not _forbidden(side, "drills"):
+				_enqueue(side.boss_power.def.effects_for("discard_step"), "discard_step", index, {}, side.boss_power)
 		if not _queue.is_empty():
 			return
 	for index in [state.active, state.opposing()]:
@@ -1132,11 +1161,23 @@ func _non_combat_cap_reached(p: PlayerState) -> bool:
 	return false
 
 
+## "For the remainder of Combat, whenever you play a card from your hand, ...": the lines a floating
+## `on_hand_play` left, run once for each card played.
+func _played_from_hand(p: PlayerState, c: CardInstance) -> void:
+	for f in state.floating:
+		if int(f.get("owner", -1)) == p.index and str(f.get("op", "")) == "on_hand_play" and int(f.get("source", -1)) != c.uid:
+			var lines: Array[Dictionary] = []
+			lines.assign(f.get("effects", []))
+			_enqueue(lines, "secondary", p.index, {}, card(int(f.get("source", -1))))
+
+
 func _place(p: PlayerState, c: CardInstance) -> void:
 	# "Only 1 Non-Combat card in play from their hand": cards put into play by other effects do
 	# not count (CRD errata to Blue Holding Drill).
 	if (c.def.type == CardDef.Type.NON_COMBAT or c.def.type == CardDef.Type.DRILL) and state.active == p.index and c.zone == &"hand":
 		p.non_combats_placed += 1
+	if c.zone == &"hand":
+		_played_from_hand(p, c)
 	_erase_from_zone(c)
 	c.controller = p.index
 	match c.def.type:
@@ -1553,10 +1594,25 @@ func _end_combat() -> void:
 ## Whether `p` may put an Ally in control right now: the Duelist is spent (Energy 0 or 1) or a
 ## constant power allows it at any stage, an Ally is in play, and nothing forbids the takeover.
 func may_ally_control(p: PlayerState) -> bool:
-	if p.allies().is_empty() or _has_floating(p.index, "no_ally_control"):
+	if _has_floating(p.index, "no_ally_control"):
 		return false
-	return p.duelist.energy <= ALLY_CONTROL_MAX_ENERGY or bool(_constant(p).get("ally_control_any_stage", false)) \
-		or _has_floating(p.index, "ally_control_any_stage")
+	return not _control_allies(p).is_empty()
+
+
+## The Allies who may take control right now. A spent Duelist lets any of them; a constant that
+## names a keyword ("Personalities with the subset symbol can take control of Combat, even if this
+## personality is 2 stages above 0 or higher") lets only those Allies.
+func _control_allies(p: PlayerState) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	var constant: Dictionary = _constant(p)
+	var any_stage: bool = bool(constant.get("ally_control_any_stage", false))
+	var tag: String = str(constant.get("ally_control_tag", ""))
+	for al in p.allies():
+		if p.duelist.energy <= ALLY_CONTROL_MAX_ENERGY or _has_floating(p.index, "ally_control_any_stage"):
+			out.append(al)
+		elif any_stage and (tag == "" or has_tag(al, tag)):
+			out.append(al)
+	return out
 
 
 ## Who can absorb one attack's damage, the one in control first. The whole attack lands on a single
@@ -1575,7 +1631,7 @@ func _damage_targets(p: PlayerState) -> Array[CardInstance]:
 ## Options for the personality in control: the Duelist first, then each Ally.
 func _control_options(p: PlayerState) -> Array[Command]:
 	var opts: Array[Command] = [Command.new(p.index, &"control", p.duelist.uid)]
-	for al in p.allies():
+	for al in _control_allies(p):
 		opts.append(Command.new(p.index, &"control", al.uid))
 	return opts
 
@@ -1611,6 +1667,9 @@ func _prompt_attack_action(p: PlayerState) -> void:
 		# more time by an Ally".
 		if str(c.def.raw.get("remain_by", "")) == "ally" and ic == p.duelist:
 			continue
+		# "To be used 1 more time by an Ally with the subset symbol."
+		if c.def.raw.has("remain_by_tag") and not has_tag(ic, str(c.def.raw["remain_by_tag"])):
+			continue
 		if c.def.is_attack() and _attack_allowed(p, c.def) and _can_pay(ic, p, c.def.attack, c):
 			opts.append(Command.new(p.index, &"attack", c.uid))
 	var only_attacks: bool = _forbidden(p, "non_attack_actions")
@@ -1626,6 +1685,11 @@ func _prompt_attack_action(p: PlayerState) -> void:
 		opts.append(Command.new(p.index, &"use", p.mastery.uid))
 	if not only_attacks and _relic_usable_in(p, "combat"):
 		opts.append(Command.new(p.index, &"use", p.relic.uid))
+	# A boss's special power: a banned Non-Combat's "use" line or a banned Combat card's text.
+	if not only_attacks and _boss_power_ready(p):
+		var bp: CardDef = p.boss_power.def
+		if (bp.type == CardDef.Type.COMBAT and _has_trigger(bp.effects, "secondary")) or not bp.effects_for("use").is_empty():
+			opts.append(Command.new(p.index, &"use", p.boss_power.uid))
 	if _power_available(p, ic) and not _forbidden(p, "powers"):
 		# An Aspect may print two Powers, and the duelist picks one of them; both arrive as their
 		# own option so a client and the AI never have to know the shape.
@@ -1657,6 +1721,19 @@ func _prompt_attack_action(p: PlayerState) -> void:
 	_set_prompt(p.index, &"attack_action", opts, {"fight_back": p.index != state.active})
 
 
+func _perform_card_attack(c: CardInstance, empowered: bool) -> void:
+	if c.zone == &"hand":
+		_played_from_hand(state.players[c.owner], c)
+		_erase_from_zone(c)
+		c.zone = &"resolving"
+	elif c.remain > 0:
+		c.remain -= 1
+		if c.remain == 0:
+			_erase_from_zone(c)
+			c.zone = &"resolving"
+	_begin_attack(c, c.def.attack, c.def.effects, false, false, empowered)
+
+
 func _handle_attack_action(cmd: Command) -> void:
 	var p: PlayerState = state.players[cmd.player]
 	match cmd.type:
@@ -1669,15 +1746,12 @@ func _handle_attack_action(cmd: Command) -> void:
 		&"attack":
 			var c: CardInstance = card(cmd.card)
 			var empowered: bool = cmd.value != null and str(cmd.value) == "empower"
-			if c.zone == &"hand":
-				_erase_from_zone(c)
-				c.zone = &"resolving"
-			elif c.remain > 0:
-				c.remain -= 1
-				if c.remain == 0:
-					_erase_from_zone(c)
-					c.zone = &"resolving"
-			_begin_attack(c, c.def.attack, c.def.effects, false, false, empowered)
+			# "Stop the effect of any non-Dragon Ball card ... You may use this at any time": an
+			# attack card from hand can be answered before it is performed.
+			if c.zone == &"hand" and _open_counter_window(c, "attack"):
+				state.pending_play["empowered"] = empowered
+				return
+			_perform_card_attack(c, empowered)
 		&"use":
 			var c: CardInstance = card(cmd.card)
 			state.consecutive_passes = 0
@@ -1728,7 +1802,12 @@ func _use_card(p: PlayerState, c: CardInstance, advance: bool = true) -> void:
 		p.used_card_combat = true
 	if c.def.type == CardDef.Type.RELIC:
 		_use_relic(p)
+	elif c.zone == &"boss_power":
+		_emit(&"card_used", {"player": p.index, "card": c.uid, "id": c.def.id})
+		_spend_boss_power(p)
+		_enqueue(c.def.effects, "secondary" if c.def.type == CardDef.Type.COMBAT else "use", p.index, {}, c)
 	elif c.zone == &"hand":
+		_played_from_hand(p, c)
 		_erase_from_zone(c)
 		c.zone = &"resolving"
 		_emit(&"card_used", {"player": p.index, "card": c.uid, "id": c.def.id})
@@ -1904,7 +1983,9 @@ func _build_attack(att: int, source: CardInstance, spec: Dictionary, effects: Ar
 		used = moved
 	var focused: bool = bool(spec.get("focused", false))
 	var constant: Dictionary = _constant(attacker)
-	if bool(constant.get("attacks_focused", false)):
+	# "Any attacks performed by personalities with the subset symbol are focused": a keyword on the
+	# constant narrows it to those performers.
+	if bool(constant.get("attacks_focused", false)) and (not constant.has("attacks_focused_tag") or has_tag(performer, str(constant["attacks_focused_tag"]))):
 		focused = true
 	# "All Strikes you perform that are marked are focused attacks": narrower than the flag above,
 	# which focuses everything, and it reads the keyword on the card being played.
@@ -2122,6 +2203,14 @@ func _open_counter_window(c: CardInstance, mode: String, control_taken: bool = f
 		for k in opp.hand:
 			if k.def.counter == "combat" and _can_play(opp, k.def) and not _forbidden(opp, "combat_cards"):
 				opts.append(Command.new(opp.index, &"counter", k.uid))
+	# "Stop the effect of any non-Dragon Ball card ... This card does not affect personalities":
+	# a Non-Combat in play that answers any card at all but a Seal.
+	if c.def.type != CardDef.Type.SEAL and c.def.type != CardDef.Type.PERSONALITY and not _forbidden(opp, "non_combats"):
+		for k in _active(opp.non_combats()):
+			if k.def.counter == "any" and k.attached_to == null and _can_play(opp, k.def):
+				opts.append(Command.new(opp.index, &"counter", k.uid))
+		if _boss_power_ready(opp) and opp.boss_power.def.counter == "any":
+			opts.append(Command.new(opp.index, &"counter", opp.boss_power.uid))
 	# "Whenever your opponent plays or uses a card outside of their Defender Defends phase, you may
 	# have one Ally take control of Combat before any effects occur." One Ally, once per card.
 	var counters: int = opts.size()
@@ -2185,16 +2274,26 @@ func _handle_respond(cmd: Command) -> void:
 		return
 	if cmd.type == &"counter":
 		var k: CardInstance = card(cmd.card)
-		_erase_from_zone(k)
-		k.zone = &"resolving"
 		_emit(&"countered", {"player": cmd.player, "card": k.uid, "target": c.uid})
-		_finish_card(k, false)
-		if c.zone == &"hand":
-			_erase_from_zone(c)
-		c.zone = &"resolving"
-		_finish_card(c, false)
-		if mode == "use":
-			owner.combat_cards_used_combat = state.combat_count
+		# A boss power answers from outside the deck and stays held; any other counter is spent.
+		if k.zone == &"boss_power":
+			_spend_boss_power(state.players[cmd.player])
+		else:
+			_erase_from_zone(k)
+			k.zone = &"resolving"
+			_finish_card(k, false)
+		# "...and remove the card from the game."
+		if bool(k.def.raw.get("counter_removes", false)):
+			_remove_from_game(c)
+		else:
+			if c.zone == &"hand":
+				_erase_from_zone(c)
+			c.zone = &"resolving"
+			_finish_card(c, false)
+		if mode == "use" or mode == "attack":
+			if c.def.type == CardDef.Type.COMBAT:
+				owner.combat_cards_used_combat = state.combat_count
+			state.consecutive_passes = 0
 			_after_non_attack_action()
 		else:
 			# Countered defense: the attack goes on as if nothing was played.
@@ -2203,7 +2302,9 @@ func _handle_respond(cmd: Command) -> void:
 			state.phase = GameState.Phase.BATTLE
 		return
 	_emit(&"declined_counter", {"player": cmd.player})
-	if mode == "use":
+	if mode == "attack":
+		_perform_card_attack(c, bool(pending.get("empowered", false)))
+	elif mode == "use":
 		_use_card(owner, c)
 	else:
 		_play_defense(owner, c)
@@ -2821,7 +2922,7 @@ func _handle_defense(cmd: Command) -> void:
 	match cmd.type:
 		&"defend":
 			var c: CardInstance = card(cmd.card)
-			if c.zone == &"hand" and c.def.type == CardDef.Type.COMBAT and _open_counter_window(c, "defend"):
+			if c.zone == &"hand" and _open_counter_window(c, "defend"):
 				return
 			_play_defense(d, c)
 		&"power_defend":
@@ -2856,6 +2957,7 @@ func _play_defense(d: PlayerState, c: CardInstance) -> void:
 	var from_hand: bool = c.zone == &"hand"
 	d.used_card_combat = true
 	if from_hand:
+		_played_from_hand(d, c)
 		_erase_from_zone(c)
 		c.zone = &"resolving"
 		if def.type == CardDef.Type.COMBAT:
@@ -3123,7 +3225,16 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 		adds.append({"source": "Empower", "stages": 0, "life": src.def.empower})
 	if kind == "art" and _art_boost_part(attacker, _performer(a), src, a) in ["both", "life"]:
 		adds.append({"source": attacker.mastery.def.title, "stages": 0, "life": int(_art_boost(attacker, attacker.duelist).get("life", 1))})
-	if int(spec.get("life_per_ally", 0)) > 0 and not attacker.allies().is_empty():
+	if int(spec.get("life_per_ally", 0)) > 0 and spec.has("ally_tag"):
+		# "For each Ally in play with the subset symbol": no side is named, so both are counted.
+		var kin_allies: int = 0
+		for q in state.players:
+			for al in q.allies():
+				if has_tag(al, str(spec["ally_tag"])):
+					kin_allies += 1
+		if kin_allies > 0:
+			adds.append({"source": "%d %s Allies" % [kin_allies, str(spec["ally_tag"]).capitalize()], "stages": 0, "life": int(spec["life_per_ally"]) * kin_allies})
+	elif int(spec.get("life_per_ally", 0)) > 0 and not attacker.allies().is_empty():
 		adds.append({"source": "%d Allies" % attacker.allies().size(), "stages": 0, "life": int(spec["life_per_ally"]) * attacker.allies().size()})
 	if str(spec.get("life_per_tag", "")) != "":
 		# "for every Construct personality in play": the card does not say whose, so both sides count.
@@ -3250,7 +3361,15 @@ func _modifier_source(entry: Dictionary, p: PlayerState) -> String:
 
 func _modifier_amount(m: Dictionary, key: String, p: PlayerState) -> int:
 	var n: int = int(m.get(key, 0))
-	if bool(m.get("per_ally", false)):
+	if bool(m.get("per_ally", false)) and m.has("ally_tag"):
+		# "For each Ally in play with the subset symbol": no side is named, so both are counted.
+		var kin: int = 0
+		for q in state.players:
+			for al in q.allies():
+				if has_tag(al, str(m["ally_tag"])):
+					kin += 1
+		n *= kin
+	elif bool(m.get("per_ally", false)):
 		n *= p.allies().size()
 	if bool(m.get("per_personality", false)):
 		# "For each personality card you have in play": the duelist counts, so this is never 0.
@@ -4014,6 +4133,10 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		return
 	match op:
 		"fervor":
+			# "Raise your anger 1 level. If Goku is in play, raise your anger 2 levels instead."
+			var instead: Dictionary = e.get("instead", {})
+			if not instead.is_empty() and _cond(instead.get("when", {}), owner, ctx):
+				amount = int(instead.get("amount", amount))
 			_change_fervor(who, int(amount), owner)
 		"set_fervor":
 			_set_fervor(who, int(amount), owner)
@@ -4263,8 +4386,19 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			var wanted: int = int(CardDef.TYPE_NAMES.get(str(e.get("card_type", "")), -1))
 			var moved: Array[CardInstance] = []
 			for c in who.removed:
-				if wanted < 0 or c.def.type == wanted:
+				if (wanted < 0 or c.def.type == wanted) and (not e.has("tag") or (c.def.raw.get("tags", []) as Array).has(str(e["tag"]))):
 					moved.append(c)
+			# "You may shuffle any of your Allies that are removed from the game into your Life Deck":
+			# which of them, and how many, is the player's call.
+			if bool(e.get("choose", false)) and not moved.is_empty():
+				var back_opts: Array[Command] = []
+				for c in moved:
+					back_opts.append(Command.new(owner, &"pick_option", c.uid))
+				back_opts.append(Command.new(owner, &"pick_none"))
+				_choice = {"kind": "return_removed", "player": who_index}
+				_set_prompt(owner, &"pick_option", back_opts, _choice_context(source, "return_removed"))
+				prompt.set_batch(&"pick_option", 1, moved.size())
+				return
 			for c in moved:
 				_move_to_deck_bottom(c)
 			if not moved.is_empty() and shuffle_decks:
@@ -4646,7 +4780,11 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 		var v: Variant = when[key]
 		match str(key):
 			"character":
-				if me.in_control().def.character != str(v):
+				# "If used by Trunks or Kid Trunks": a list is either of them in control.
+				if v is Array:
+					if not (v as Array).has(me.in_control().def.character):
+						return false
+				elif me.in_control().def.character != str(v):
 					return false
 			"duelist_character":
 				# A list is "X or Y", which is how a card that names two personalities reads.
@@ -4703,8 +4841,28 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 			"allies_min":
 				if me.allies().size() < int(v):
 					return false
+			"allies_tag_min":
+				# "If you have at least 2 Allies in play with the subset symbol."
+				var tagged_allies: int = 0
+				for al in me.allies():
+					if has_tag(al, str((v as Dictionary).get("tag", ""))):
+						tagged_allies += 1
+				if tagged_allies < int((v as Dictionary).get("count", 1)):
+					return false
 			"ally_present":
 				if _ally_of_character(me, str(v)) == null:
+					return false
+			"first_power_use":
+				# "The first time you perform this attack each Combat": the Power is marked used as
+				# it is performed, so the first use reads a count of one.
+				var user: CardInstance = card(int(a.get("performer", -1))) if not a.is_empty() else me.in_control()
+				if user == null:
+					user = me.in_control()
+				if (user.power_uses_combat == 1 and user.power_used_combat == state.combat_count) != bool(v):
+					return false
+			"character_in_play":
+				# "If Goku is in play": on either side of the table.
+				if _character_in_play(me, str(v)) == null and _character_in_play(opp, str(v)) == null:
 					return false
 			"allies_present":
 				# "if Chi-Chi and Gohan are in play": every name on the list, not any of them.
@@ -4991,6 +5149,9 @@ func _attack_allowed(p: PlayerState, def: CardDef, kind_override: String = "") -
 	if _forbidden(p, kind + "_attacks"):
 		return false
 	if def != null:
+		# "May not perform physical attack cards": attacks from cards, a Power's attack untouched.
+		if _forbidden(p, kind + "_attack_cards"):
+			return false
 		if bool(def.attack.get("only_first_attack", false)) and p.attack_count_combat > 0:
 			return false
 		# "This must be the first card you use during Combat": any card, not only an attack.
@@ -5444,8 +5605,7 @@ func _purge_life_decks(type_name: String, remove: bool) -> void:
 				_move_to_discard(c)
 
 
-## `own_effect`: the cards are being taken by their own side's effect. "Your Allies cannot be
-## discarded or removed by your opponent's card effects" does not guard them from their own side.
+## `own_effect`: the cards are being taken by their own side's effect.
 func _in_play_candidates(p: PlayerState, type_name: String, own_effect: bool = false, removing: bool = false) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	for c in p.in_play:
@@ -5453,7 +5613,9 @@ func _in_play_candidates(p: PlayerState, type_name: String, own_effect: bool = f
 			continue
 		var t: CardDef.Type = c.def.type
 		var ok: bool = false
-		var guarded: bool = t == CardDef.Type.PERSONALITY and ((not own_effect and _ally_protected(p, c)) \
+		# "Your Allies with Saiyan Heritage cannot be discarded or removed from the game": by
+		# anyone's effect, their owner's included.
+		var guarded: bool = t == CardDef.Type.PERSONALITY and (_ally_protected(p, c) \
 			or (not removing and allies_undiscardable(p)))
 		match type_name:
 			"non_combat":
@@ -5496,9 +5658,9 @@ func _in_play_candidates(p: PlayerState, type_name: String, own_effect: bool = f
 	return out
 
 
-## "Your Allies cannot be discarded or removed by your opponent's card effects." A constant that
-## names a bloodline guards only the Allies carrying it, which is how the source card reads: the
-## duelist shields her kin, not every hireling she happens to lead.
+## "Your Allies with Saiyan Heritage cannot be discarded or removed from the game." A constant that
+## names a bloodline guards only the Allies carrying it: the duelist shields her kin, not every
+## hireling she happens to lead.
 func _ally_protected(p: PlayerState, ally: CardInstance) -> bool:
 	var guard: Variant = _constant(p).get("protect_allies", false)
 	if guard is String:
@@ -5817,6 +5979,13 @@ func _handle_choice(cmd: Command) -> void:
 			card(cmd.card).silenced = true
 		"art_boost":
 			state.attack["art_boost"] = str(cmd.value)
+		"return_removed":
+			if cmd.type != &"pick_none":
+				var returner: PlayerState = state.players[int(_choice["player"])]
+				for uid in Prompt.cards_of(cmd):
+					_move_to_deck_bottom(card(uid))
+				if shuffle_decks:
+					rng.shuffle(returner.life_deck)
 		"pay_cost":
 			if str(cmd.value) == "yes":
 				var cost_payer: CardInstance = card(int(_choice["payer"]))
@@ -6366,6 +6535,10 @@ func _power_available(p: PlayerState, ic: CardInstance) -> bool:
 	if pw.has("attack") and pw["attack"].has("only_first_attack") and p.attack_count_combat > 0:
 		return false
 	var uses: int = maxi(1, int(pw.get("uses", 1)))
+	# "Then this attack may be used a second time this Combat": earned by the first use.
+	for f in state.floating:
+		if int(f.get("owner", -1)) == p.index and str(f.get("op", "")) == "power_second_use" and int(f.get("source", -1)) == ic.uid:
+			uses = maxi(uses, 2)
 	# Ally and Duelist are one card type, so which one this is comes from the seat, not the type:
 	# anyone who is not the Main Personality is an Ally, and an Ally's Power refreshes each Combat.
 	if ic != p.duelist:
@@ -6671,9 +6844,13 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 		return false
 	if str(e.get("signature_of", "")) == "duelist" and c.def.character != p.duelist.def.character:
 		return false
-	# "A <Name> named card": that character's Signature cards, whoever is searching.
-	var named: String = str(e.get("character", ""))
-	if named != "" and c.def.character != named:
+	# "A <Name> named card": that character's Signature cards, whoever is searching. A list is
+	# "a Trunks or Kid Trunks Named card".
+	var named: Variant = e.get("character", "")
+	if named is Array:
+		if not (named as Array).has(c.def.character):
+			return false
+	elif str(named) != "" and c.def.character != str(named):
 		return false
 	if e.has("has_effect") and not _def_has_effect(c.def, e["has_effect"]):
 		return false

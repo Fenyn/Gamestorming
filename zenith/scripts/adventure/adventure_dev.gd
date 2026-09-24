@@ -94,6 +94,36 @@ static func use_scratch_saves() -> void:
 	Session.dissolve_report = {}
 
 
+## Fills the in-memory unlocks and XP with a mid-game spread, for journal and reward screenshots:
+## some achievements done, a hidden one revealed, XP across several characters and schools.
+static func sample_meta() -> void:
+	var u: AdventureUnlocks = Session.unlocks
+	AdventureAchievements.apply(u, [
+		{"event": "duel_won", "starter": "tide_deepwater_start", "node": "boss", "act": 2},
+		{"event": "duel_won", "main": "Sir Edric Rooke", "opponent": "Bram Ashmark", "act": 1},
+		{"event": "run_won", "main": "Gideon Mourne"},
+		{"event": "duel_won", "main": "Bram Ashmark", "opponent": "Siphon", "node": "boss", "act": 1, "blocks": 0},
+	] as Array[Dictionary])
+	var p: AdventureProgress = Session.progress
+	p.personality_xp = {"Sir Edric Rooke": 520, "Emrys Rooke": 130, "Dame Alder Rooke": 45,
+		"Gideon Mourne": 260, "Bram Ashmark": 90, "Caedan Vale": 20, "Siphon": 15}
+	p.school_xp = {"tide": 610, "shade": 230, "pyre": 95}
+	for key in p.personality_xp.keys():
+		p.paid["personality:%s" % key] = p.personality_level(str(key))
+	for key in p.school_xp.keys():
+		p.paid["school:%s" % key] = p.school_level(str(key))
+	Session.win_results = [
+		{"kind": "join", "tag": "JOINED", "title": "Emrys Rooke",
+			"details": ["In your deck for the rest of this run"]},
+		{"kind": "xp", "tag": "XP", "title": "Sir Edric Rooke +25 XP",
+			"details": ["155 XP to level 5", "Tide +25 XP, 165 XP to level 6", "Emrys Rooke +15 XP, 105 XP to level 3"]},
+		{"kind": "level", "tag": "LEVEL 4", "title": "Sir Edric Rooke",
+			"details": ["Signature card: Edric's Vow", "Signature card: Edric's Training"]},
+		{"kind": "achievement", "tag": "ACHIEVEMENT", "title": "The Vale test",
+			"details": ["Opens deck: Blade Legacy"]},
+	] as Array[Dictionary]
+
+
 ## Sets the scratch wallet's balance outright, with no ledger line: a starting balance is not
 ## something the run earned. `--dev-motes=N` names the amount; the caller's own default stands
 ## when the flag is absent.

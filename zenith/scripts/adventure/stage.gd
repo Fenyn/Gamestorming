@@ -114,6 +114,7 @@ func _ready() -> void:
 	duel_button.pressed.connect(_on_duel)
 	abandon_button.pressed.connect(_on_abandon)
 	title_button.pressed.connect(_on_title)
+	($Margin/Column/Footer/Journal as Button).pressed.connect(Session.go_to_journal)
 	new_run_button.pressed.connect(_on_new_run)
 	_refresh()
 	_enter()

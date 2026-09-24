@@ -12,10 +12,6 @@ const FLIP_DURATION: float = 0.25
 const FLASH_TIME: float = 0.35
 const SHAKE_TIME: float = 0.32
 const LUNGE_TIME: float = 0.18
-const BADGE_PIXELS: int = 128
-## A corner of the face. The z reach is a compromise: the two seats project the same local offset
-## at different rates, and this keeps the badge inside the card on both sides of the table.
-const BADGE_OFFSET: Vector3 = Vector3(-0.21, 0.012, -0.18)
 var uid: int = -1
 var face_up: bool = true
 @export var reduced_motion: bool = false:
@@ -43,17 +39,13 @@ var _hover_motion: Tween = null
 var _highlighted: bool = false
 var _hovering: bool = false
 var _role_color: Color = Color.TRANSPARENT
-var _badge: Sprite3D = null
-var _badge_viewport: SubViewport = null
-var _badge_icon: TypeIcon = null
-var _badge_type: int = -1
-var _badge_color: Color = Color.TRANSPARENT
 var _presence_color: Color = Color.TRANSPARENT   # the other online player's hover, in their seat colour
 
 
 func _ready() -> void:
 	for m in [_front_mat, _back_mat]:
 		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.disable_fog = true
 		m.cull_mode = BaseMaterial3D.CULL_BACK
 		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	for m in [_glow_mat, _role_mat]:
@@ -142,44 +134,6 @@ func _update_role() -> void:
 	var color: Color = _role_color if _role_color.a > 0.0 else _presence_color
 	role.visible = color.a > 0.0 and (face_up or _role_color.a > 0.0)
 	_role_mat.set_shader_parameter("tint", Color(color, 0.9))
-
-
-## Second cue for the same role: the type glyph the rest of the client already uses, drawn by
-## `TypeIcon` into a small transparent viewport and stood in a corner of the face. A Strike's
-## sword marks the attacker, a Combat card's shield the defender. `type` below zero clears it.
-func set_role_glyph(type: int, color: Color) -> void:
-	if type < 0:
-		if _badge != null:
-			_badge.visible = false
-		_badge_type = -1
-		return
-	if _badge == null:
-		_badge_viewport = SubViewport.new()
-		_badge_viewport.size = Vector2i(BADGE_PIXELS, BADGE_PIXELS)
-		_badge_viewport.transparent_bg = true
-		_badge_viewport.disable_3d = true
-		_badge_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
-		_badge_icon = TypeIcon.new()
-		_badge_icon.size = Vector2(BADGE_PIXELS, BADGE_PIXELS)
-		_badge_viewport.add_child(_badge_icon)
-		add_child(_badge_viewport)
-		_badge = Sprite3D.new()
-		_badge.name = "RoleBadge"
-		_badge.texture = _badge_viewport.get_texture()
-		_badge.axis = Vector3.AXIS_Y   # the card lies flat, so the badge faces the lens with it
-		_badge.pixel_size = 0.0018
-		_badge.no_depth_test = true
-		_badge.shaded = false
-		_badge.position = BADGE_OFFSET
-		surface.add_child(_badge)
-	_badge.visible = true
-	if _badge_type == type and _badge_color == color:
-		return
-	_badge_type = type
-	_badge_color = color
-	_badge_icon.color = color
-	_badge_icon.type = type as CardDef.Type
-	_badge_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 
 
 func _update_border() -> void:

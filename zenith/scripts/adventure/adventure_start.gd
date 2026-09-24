@@ -1,7 +1,6 @@
 extends Control
-## Adventure start: pick a character, then one of their unlocked starters when they have more than
-## one, and begin a run. A single-seat, filtered copy of the duelist select screen, reusing its
-## roster grid and detail panel.
+## Adventure start: pick a character, then one of their decks, and begin a run. A single-seat copy
+## of the duelist select screen.
 
 const ROSTER_TILE: PackedScene = preload("res://scenes/select/roster_tile.tscn")
 const ADVANCE_DELAY: float = 0.6
@@ -13,14 +12,13 @@ const ADVANCE_DELAY: float = 0.6
 @onready var motes_tile: StatTile = $Margin/Column/TitleRow/Motes
 @onready var vendor_button: Button = $Margin/Column/TitleRow/Vendor
 @onready var journal_button: Button = $Margin/Column/TitleRow/Journal
-@onready var decks_row: HBoxContainer = $Margin/Column/Footer/Decks
 @onready var back_button: Button = $Margin/Column/Footer/Back
 @onready var loadout_button: Button = $Margin/Column/Footer/Loadout
 @onready var begin_button: Button = $Margin/Column/Footer/Begin
 @onready var problems_label: Label = $Margin/Column/Footer/Problems
 
-## One entry per character: their unlocked starter ids and decks, in the order the unlocks list
-## them. A tile stands for a character and shows their first deck.
+## One entry per character: their unlocked starter ids and decks. A tile stands for a character.
+var _characters: Array[String] = []
 var _starter_ids: Array[Array] = []
 var _starters: Array[Array] = []
 var _tiles: Array[RosterTile] = []
@@ -38,7 +36,7 @@ func _ready() -> void:
 	# starter and no player name to type.
 	(seat_panel.get_node("Row/Header/Name") as LineEdit).visible = false
 	(seat_panel.get_node("Row/Lock") as Button).visible = false
-	(seat_panel.get_node("Row/Header/Tag") as Label).text = "STARTER"
+	(seat_panel.get_node("Row/Header/Tag") as Label).text = "CHARACTER"
 	seat_panel.faces = faces
 	motes_tile.set_stat("Motes", str(Session.wallet.motes), "", ZenithTheme.ACCENT)
 	vendor_button.pressed.connect(_on_vendor)
@@ -47,18 +45,17 @@ func _ready() -> void:
 	loadout_button.pressed.connect(_on_loadout)
 	begin_button.pressed.connect(_on_begin)
 	_dev_unlocks()
-	var characters: Array[String] = []
 	for id: String in Session.unlocks.available_starters():
 		var d: DeckList = DeckList.resolve(id)
 		if d == null:
 			continue
 		var character: String = AdventureDecks.character_of(AdventureDecks.family_of(id))
-		var index: int = characters.find(character)
+		var index: int = _characters.find(character)
 		if index < 0:
-			characters.append(character)
+			_characters.append(character)
 			_starter_ids.append([])
 			_starters.append([])
-			index = characters.size() - 1
+			index = _characters.size() - 1
 			var tile: RosterTile = ROSTER_TILE.instantiate()
 			roster.add_child(tile)
 			tile.setup(index, d)
@@ -66,6 +63,15 @@ func _ready() -> void:
 			_tiles.append(tile)
 		_starter_ids[index].append(id)
 		_starters[index].append(d)
+	for i in range(_tiles.size()):
+		_tiles[i].deck_label.text = _characters[i]
+		var count: int = _starters[i].size()
+		var sub: Label = _tiles[i].duelist_label
+		sub.theme_type_variation = &"CaptionLabel"
+		sub.remove_theme_font_size_override("font_size")
+		sub.text = "%d decks" % count if count > 1 else (_starters[i][0] as DeckList).name.trim_suffix(" (Starter)")
+		if count > 1:
+			sub.add_theme_color_override("font_color", ZenithTheme.ACCENT)
 	roster_scroll.resized.connect(_resize_grid)
 	_resize_grid()
 	if not _starters.is_empty():
@@ -81,28 +87,67 @@ func _pick(index: int) -> void:
 	_deck_index = 0
 	for i in range(_tiles.size()):
 		_tiles[i].set_badge(1 if i == index else 0, "", ZenithTheme.ACCENT)
-	_fill_decks_row()
 	_show_deck()
 
 
-## One toggle per deck of the picked character, shown only when there is a choice to make.
-func _fill_decks_row() -> void:
-	for child in decks_row.get_children():
-		decks_row.remove_child(child)
+## The picked character's decks, open ones selectable, locked ones named with what opens them.
+## Hidden when the character has a single deck and nothing locked.
+func _fill_deck_choice() -> void:
+	var box: VBoxContainer = seat_panel.get_node("Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/DeckChoice")
+	var choices: HFlowContainer = box.get_node("Choices")
+	var locked_label: Label = box.get_node("Locked")
+	for child in choices.get_children():
+		if child.name == "Caption":
+			continue
+		choices.remove_child(child)
 		child.queue_free()
-	var decks: Array = _starters[_picked]
-	decks_row.visible = decks.size() > 1
-	if decks.size() <= 1:
-		return
-	for i in range(decks.size()):
-		var button: Button = Button.new()
-		button.toggle_mode = true
-		button.button_group = _deck_group
-		button.text = (decks[i] as DeckList).name
-		button.custom_minimum_size = Vector2(0, 44)
-		button.button_pressed = i == _deck_index
-		button.pressed.connect(_pick_deck.bind(i))
-		decks_row.add_child(button)
+	var locked: Array[String] = []
+	for id in AdventureDecks.playable_starters():
+		if not (_starter_ids[_picked] as Array).has(id) \
+				and AdventureDecks.character_of(AdventureDecks.family_of(id)) == _characters[_picked]:
+			locked.append(id)
+	var open: Array = _starters[_picked]
+	box.visible = open.size() > 1 or not locked.is_empty()
+	for i in range(open.size()):
+		choices.add_child(_deck_button((open[i] as DeckList).name.trim_suffix(" (Starter)"), i == _deck_index, false, i))
+	var lines: PackedStringArray = PackedStringArray()
+	for id in locked:
+		var name: String = AdventureProgress.deck_name(id)
+		var sources: Array[String] = AdventureAchievements.unlock_sources(id)
+		var how: String = ", or ".join(sources) if not sources.is_empty() else "a hidden route"
+		var button: Button = _deck_button(name, false, true, -1)
+		button.tooltip_text = "%s is locked. It opens with %s." % [name, how]
+		choices.add_child(button)
+		lines.append("%s opens with %s" % [name, how])
+	locked_label.visible = not lines.is_empty()
+	locked_label.text = "; ".join(lines)
+	locked_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	locked_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	locked_label.tooltip_text = locked_label.text
+	locked_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	_update_fade.call_deferred()
+
+
+func _update_fade() -> void:
+	var scroll: ScrollContainer = seat_panel.get_node("Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll")
+	var fade: Control = seat_panel.get_node("Row/Scroll/Content/Tabs/Overview/Summary/MoreFade")
+	fade.visible = scroll.get_v_scroll_bar().max_value > scroll.size.y + 1.0
+
+
+func _deck_button(text: String, pressed: bool, locked: bool, index: int) -> Button:
+	var button: Button = Button.new()
+	button.text = text
+	button.toggle_mode = true
+	button.button_group = _deck_group
+	button.custom_minimum_size = Vector2(0, 48)
+	button.add_theme_font_size_override("font_size", 20)
+	button.add_theme_stylebox_override("pressed", ZenithTheme.box(ZenithTheme.ACCENT_SOFT, ZenithTheme.ACCENT, 4, 2, 18, 8))
+	button.add_theme_color_override("font_pressed_color", ZenithTheme.TEXT)
+	button.disabled = locked
+	button.button_pressed = pressed
+	if index >= 0:
+		button.pressed.connect(_pick_deck.bind(index))
+	return button
 
 
 func _pick_deck(index: int) -> void:
@@ -116,6 +161,8 @@ func _show_deck() -> void:
 	var d: DeckList = _starters[_picked][_deck_index]
 	$Background.set_school(Palette.school_ui(d.style))
 	seat_panel.show_deck(d)
+	seat_panel.deck_label.text = d.name.trim_suffix(" (Starter)")
+	_fill_deck_choice()
 	var problems: Array[String] = Session.deck_problems(d)
 	problems_label.text = "\n".join(problems)
 	begin_button.disabled = not problems.is_empty()
@@ -217,6 +264,4 @@ func _dev_args() -> void:
 	if deck_arg != "" and _picked >= 0:
 		var index: int = clampi(int(deck_arg), 0, _starters[_picked].size() - 1)
 		_pick_deck(index)
-		if index < decks_row.get_child_count():
-			(decks_row.get_child(index) as Button).button_pressed = true
 	AdventureDev.screenshot(self)

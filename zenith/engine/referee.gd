@@ -39,6 +39,7 @@ const ANIMATED: Dictionary = {
 	&"entering_combat": ["role"], &"pass": ["forced", "consecutive"], &"fight_back": ["next"],
 	&"attack_phase_skipped": [], &"no_defense": ["auto", "reason"], &"declined_counter": [],
 	&"control": ["card"], &"power_used": ["card", "aspect"], &"relic_used": ["card"],
+	&"boss_power": ["card", "id"], &"boss_power_used": ["card", "left"],
 	&"window_skipped": ["window"],
 }
 

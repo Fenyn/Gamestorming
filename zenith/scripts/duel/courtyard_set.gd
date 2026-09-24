@@ -13,7 +13,9 @@ const TABLE_SIZE: Vector2 = Vector2(10.4, 7.4)
 const YARD_Y: float = -0.62
 ## Light shafts: pale warm daylight, faint.
 const RAY_TINT: Color = Color(1.0, 0.95, 0.82)
-const RAY_ALPHA: float = 0.16
+const RAY_ALPHA: float = 0.065
+## The set sits darker than the lit table so the play area holds the eye.
+const SET_DIM: float = 0.65
 ## The enclosure, pulled in close enough that the camera sees its walls and columns.
 const WALL_X: float = 11.5
 const WALL_BACK_Z: float = -10.5
@@ -45,23 +47,29 @@ func apply_environment(env: Environment, sun: DirectionalLight3D) -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.55
+	env.ambient_light_energy = 0.25
+	env.ambient_light_sky_contribution = 0.6
+	env.ambient_light_color = Color(0.62, 0.63, 0.62)
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	# Linear, so unshaded card faces show exactly the colours they are authored in.
+	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	env.tonemap_exposure = 1.0
 	env.glow_enabled = true
-	env.glow_intensity = 0.3
+	env.glow_intensity = 0.35
 	env.glow_bloom = 0.0
-	env.glow_hdr_threshold = 1.3
+	env.glow_hdr_threshold = 1.0
+	# Depth fog begins past the far table edge (about 11.9 m from the camera): only the yard recedes.
 	env.fog_enabled = true
-	# Neutral stone-grey haze; a green one turned the whole yard murky.
-	env.fog_light_color = Color(0.56, 0.56, 0.54)
+	env.fog_mode = Environment.FOG_MODE_DEPTH
+	env.fog_depth_begin = 13.0
+	env.fog_depth_end = 45.0
+	env.fog_depth_curve = 1.5
+	env.fog_light_color = Color(0.42, 0.43, 0.41)
 	env.fog_light_energy = 0.85
-	env.fog_density = 0.01
 	env.fog_sky_affect = 0.25
 	if sun != null:
-		sun.light_color = Color(1.0, 0.96, 0.9)
-		sun.light_energy = 1.3
+		sun.light_color = Color(1.0, 0.97, 0.92)
+		sun.light_energy = 0.55
 		sun.shadow_enabled = true
 		sun.rotation_degrees = Vector3(-52.0, 32.0, 0.0)
 
@@ -70,20 +78,20 @@ func apply_environment(env: Environment, sun: DirectionalLight3D) -> void:
 ## the same stone as the border around the mat.
 static func table_material() -> StandardMaterial3D:
 	var m: StandardMaterial3D = stone_material("dais", Vector3.ONE * 0.25, true)
-	m.albedo_color = Color(0.86, 0.85, 0.82)
+	m.albedo_color = Color(0.55, 0.52, 0.48)
 	return m
 
 
 func _build_ground() -> void:
 	# A plinth one step below the table, the yard's flagstones around it, and grass beyond.
 	var plinth: StandardMaterial3D = stone_material("brick", Vector3.ONE * 0.8, true)
-	plinth.albedo_color = Color(0.7, 0.68, 0.64)
+	plinth.albedo_color = Color(0.7, 0.68, 0.64) * SET_DIM
 	_box(Vector3(TABLE_SIZE.x + 1.2, 0.5, TABLE_SIZE.y + 1.2), Vector3(0, YARD_Y + 0.25, 0), plinth)
 	var yard: StandardMaterial3D = stone_material("flagstone", Vector3(9.0, 9.0, 1.0))
-	yard.albedo_color = Color(0.72, 0.72, 0.68)
+	yard.albedo_color = Color(0.72, 0.72, 0.68) * SET_DIM
 	_plane(Vector2(30, 26), Vector3(0, YARD_Y, -2), yard)
 	var grass: StandardMaterial3D = stone_material("grass", Vector3(40.0, 40.0, 1.0))
-	grass.albedo_color = Color(0.62, 0.66, 0.55)
+	grass.albedo_color = Color(0.62, 0.66, 0.55) * SET_DIM
 	_plane(Vector2(160, 160), Vector3(0, YARD_Y - 0.02, 0), grass)
 	# Worn earth where the flagstones have broken up.
 	var dirt: StandardMaterial3D = stone_material("dirt", Vector3(3.0, 3.0, 1.0))
@@ -96,7 +104,7 @@ func _build_walls() -> void:
 	# stones of varying height with gaps where it has fallen.
 	var wall: StandardMaterial3D = stone_material("wall", Vector3.ONE * 0.55, true)
 	var coping: StandardMaterial3D = stone_material("brick", Vector3.ONE * 0.9, true)
-	coping.albedo_color = Color(0.66, 0.64, 0.6)
+	coping.albedo_color = Color(0.66, 0.64, 0.6) * SET_DIM
 	_wall_run(Vector3(-WALL_X, 0, WALL_BACK_Z), Vector3(WALL_X, 0, WALL_BACK_Z), wall, coping)
 	_wall_run(Vector3(-WALL_X, 0, WALL_BACK_Z), Vector3(-WALL_X, 0, WALL_FRONT_Z), wall, coping)
 	_wall_run(Vector3(WALL_X, 0, WALL_BACK_Z), Vector3(WALL_X, 0, WALL_FRONT_Z), wall, coping)
@@ -127,7 +135,7 @@ func _wall_run(from: Vector3, to: Vector3, wall: Material, coping: Material) -> 
 func _build_columns() -> void:
 	# The yard's old colonnade: a few columns still standing, one broken short, one fallen.
 	var stone: StandardMaterial3D = stone_material("brick", Vector3.ONE * 0.7, true)
-	stone.albedo_color = Color(0.74, 0.72, 0.68)
+	stone.albedo_color = Color(0.74, 0.72, 0.68) * SET_DIM
 	var spots: Array[Vector3] = [Vector3(-8.2, 0, -7.6), Vector3(8.2, 0, -7.6), Vector3(-8.2, 0, -1.8), Vector3(8.2, 0, -1.8), Vector3(-8.2, 0, 3.6)]
 	var heights: Array[float] = [5.2, 2.1, 4.4, 5.6, 1.4]
 	for i in range(spots.size()):
@@ -227,6 +235,7 @@ static func stone_material(role: String, scale: Vector3, triplanar: bool = false
 	m.normal_enabled = true
 	m.normal_texture = load("%s/textures/%s_normal.png" % [DIR, role])
 	m.roughness = 0.92
+	m.albedo_color = Color(SET_DIM, SET_DIM, SET_DIM)
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
 	m.uv1_scale = scale
 	m.uv1_triplanar = triplanar

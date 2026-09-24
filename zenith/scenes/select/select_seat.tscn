@@ -1,8 +1,17 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/select/select_seat.gd" id="1_seat"]
 [ext_resource type="PackedScene" path="res://scenes/adventure/run_deck_list.tscn" id="2_list"]
 [ext_resource type="Script" path="res://scripts/ui/arcane_backdrop.gd" id="3_atmosphere"]
+
+[sub_resource type="Gradient" id="Gradient_fade"]
+colors = PackedColorArray(0.07, 0.07, 0.08, 0, 0.07, 0.07, 0.08, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_fade"]
+gradient = SubResource("Gradient_fade")
+width = 8
+height = 32
+fill_to = Vector2(0, 1)
 
 [node name="SelectSeat" type="PanelContainer"]
 offset_right = 1550.0
@@ -137,6 +146,20 @@ grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
 
+[node name="MoreFade" type="TextureRect" parent="Row/Scroll/Content/Tabs/Overview/Summary"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -428.0
+offset_bottom = -400.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_fade")
+expand_mode = 1
+
 [node name="Identity" type="VBoxContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll"]
 custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
@@ -161,6 +184,27 @@ theme_type_variation = &"MutedLabel"
 theme_override_font_sizes/font_size = 18
 text = "Choose a duelist"
 autowrap_mode = 2
+
+[node name="DeckChoice" type="VBoxContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Choices" type="HFlowContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/DeckChoice"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="Caption" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/DeckChoice/Choices"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"CaptionLabel"
+text = "DECK"
+
+[node name="Locked" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/DeckChoice"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+autowrap_mode = 3
 
 [node name="Chips" type="HFlowContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity"]
 layout_mode = 2

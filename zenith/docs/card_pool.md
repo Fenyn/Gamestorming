@@ -14,7 +14,7 @@ Counts leave out Masteries and signature cards and include gated cards. Rows are
 | Storm | 50 | 0 | 14 | 24 | 2 | 2 | 8 |
 | Shade | 50 | 0 | 23 | 13 | 5 | 2 | 7 |
 | Root | 50 | 0 | 19 | 12 | 8 | 5 | 6 |
-| Freestyle | 63 | 0 | 7 | 11 | 20 | 18 | 7 |
+| Freestyle | 66 | 0 | 7 | 11 | 21 | 20 | 7 |
 
 Not listed below: 7 Grounds, 62 Personality, 4 Relic, 28 Seal.
 
@@ -283,9 +283,9 @@ Subthemes: Whisper 13, Life Deck attack 6, Hexes 3, Hand attack 16, Paying Energ
 Masteries:
 
 - **Shade Nightfall Mastery** (`shade_mastery_01`): Your attacks do +1 Energy and +1 wound. Your Shade attacks do +2 Energy and +2 wounds instead. Limit 1 per deck.
-- **Shade Tithe Mastery** (`shade_mastery_02`): Use this card only if you have a card in hand. Use in Combat: Discard a card from your hand. If you do, if the top card of your discard pile is Shade, your opponent discards a card from hand at random. if the top card of your discard pile is not Shade, your opponent discards a card from hand. Once per Combat. Limit 1 per deck.
+- **Shade Tithe Mastery** (`shade_mastery_02`): Use this card only if you have a card in hand. Use in Combat: Discard a card from your hand. If you do, if the top card of your discard pile is Shade, your opponent discards a card from hand at random. If the top card of your discard pile is not Shade, your opponent discards a card from hand. Once per Combat. Limit 1 per deck.
 - **Shade Blight Mastery** (`shade_mastery_03`): Your attacks gain "Hit: Discard a Drill in play." Your Shade attacks gain "Hit: You may discard a Non-Combat card in play." instead. Limit 1 per deck.
-- **Shade Eclipse Mastery** (`shade_mastery_04`): Use this card only if 1 or more cards in your hand are Shade cards. Use in Combat: Discard a Shade card from your hand. If you do, raise your Fervor 1. gain 6 Energy. Your Shade cards that are not Drills and can stop attacks can also stop Focused attacks. Limit 1 per deck.
+- **Shade Eclipse Mastery** (`shade_mastery_04`): Use this card only if 1 or more cards in your hand are Shade cards. Use in Combat: Discard a Shade card from your hand. If you do, raise your Fervor 1. Gain 6 Energy. Your Shade cards that are not Drills and can stop attacks can also stop Focused attacks. Limit 1 per deck.
 
 | Title | Type | What it does | Subthemes | New | id |
 |---|---|---|---|---|---|
@@ -318,7 +318,7 @@ Masteries:
 | Shade Rebounding Hex | Art | Stops an Art. You may discard a card from your hand. If you do, your opponent discards a card from hand at random. | Hand attack, Answers |  | `shade_art_11` |
 | Shade Stolen Secret | Combat | Endurance 2. Look at your opponent's hand. Your opponent skips their next attack phase. Your next attack does +2 wounds. | Hand attack |  | `shade_combat_04` |
 | Shade Clouded Mind Drill | Drill | After a successful attack, choose a card at random from your opponent's hand and shuffle it into their Life Deck and your opponent draws a card. | Hand attack |  | `shade_drill_04` |
-| Shade Forgetting Drill | Drill | At the beginning of each Discard step, if your duelist has 1 or more Energy, you may lose 1 Energy. If you do, your opponent discards their whole hand. | Hand attack |  | `shade_drill_03` |
+| Shade Forgetting Drill | Drill | Adventure only: banned from tournament and online decks. At the beginning of each Discard step, if your duelist has 1 or more Energy, you may lose 1 Energy. If you do, your opponent discards their whole hand. Limit 1 per deck. | Hand attack |  | `shade_drill_03` |
 | Shade Hoarded Secrets Drill | Drill | You may now keep up to 2 cards in your hand at the end of each turn. | Hand attack |  | `shade_drill_02` |
 | Shade Gathering Dark | Strike | Strike. You may pay any amount of your duelist's Energy; each 1 paid adds 1 Energy of damage. | Paying Energy |  | `shade_strike_07` |
 | Shade Hungering Gloom | Art | Art dealing 4 Energy. Costs 2 Energy to perform. Hit: Gain 4 Energy. | Paying Energy |  | `shade_art_07` |
@@ -404,7 +404,7 @@ Masteries:
 | Root Grove Kin | Non-Combat | Use in Combat: Raise every one of your Allies' Energy to full. For the remainder of Combat, your Allies may take control of Combat and use their Powers at any Energy. Take a wound for each Ally you have in play. | Root attacks |  | `root_noncombat_04` |
 | Root Thorn Hedge | Non-Combat | Whenever you take damage from an attack, you may put this card into play from your hand. Use in Combat: Your opponent takes 3 wounds. | Root attacks |  | `root_noncombat_02` |
 
-## Freestyle (shared, mundane): 63 cards
+## Freestyle (shared, mundane): 66 cards
 
 Legal in every deck. Grouped by what the card is for rather than by subtheme.
 
@@ -412,26 +412,26 @@ Mastery: **Freestyle Discipline Mastery** (`freestyle_mastery_01`): When enterin
 
 | Title | Type | What it does | Subthemes | New | id |
 |---|---|---|---|---|---|
-| Old Habit | Strike | Strike. Draw the bottom card of your discard pile. Remove from the game after use. Limit 1 per deck. | Search, Recursion, Other |  | `freestyle_strike_01` |
+| PLACEHOLDER's Old Habit | Strike | Strike. Draw the bottom card of your discard pile. Remove from the game after use. Limit 1 per deck. | Search, Recursion, Other |  | `freestyle_strike_01` |
 | Marked Lightning | Art | Marked only. Use this card immediately after a Strike you perform succeeds. Your opponent discards up to 3 Non-Combat cards in play of your choice. Draw a card. | Search, Board removal, Other |  | `freestyle_art_10` |
 | Closing Ranks | Combat | Draconic only. Use when performing an attack. That attack does +2 wounds for each Draconic personality you have in play. Draw a card. Remove from the game after use. | Search, Board removal, Other |  | `freestyle_combat_11` |
 | Hired Blades | Combat | Search your Life Deck or discard pile for an Ally and put it into play at Energy 10. | Search, Recursion, Allies, Other |  | `freestyle_combat_13` |
-| Keen Eye | Combat | Draw a card. If it is a Signature card, show it to your opponent and draw a card. Remove from the game after use. Limit 1 per deck. | Search, Other |  | `freestyle_combat_16` |
+| PLACEHOLDER's Keen Eye | Combat | Draw a card. If it is a Signature card, show it to your opponent and draw a card. Remove from the game after use. Limit 1 per deck. | Search, Other |  | `freestyle_combat_16` |
 | Rallying Call | Combat | Raise your duelist's and every Ally's Energy to full. Search your Life Deck or discard pile for an Ally and put it into play at Energy 3. Remove from the game after use. | Search, Recursion, Allies, Other |  | `freestyle_combat_12` |
 | Respite | Combat | Draw the top 2 cards of your discard pile. Your opponent's duelist gains 5 Energy. Remove from the game after use. Limit 1 per deck. | Search, Recursion, Other |  | `freestyle_combat_05` |
 | Warding Call | Combat | Search your Life Deck or discard pile for an Ally and put it into play at Energy 3. Shuffle every Seal your opponent owns in play into their Life Deck, whoever controls it. Limit 1 per deck. | Search, Board removal, Recursion, Seals, Allies, Other |  | `freestyle_combat_08` |
-| Clear Mind | Non-Combat | Use in Combat: Search your Life Deck for a Combat card and put it into your hand. Limit 1 per deck. | Search, Other |  | `freestyle_noncombat_03` |
 | Lucky Find | Non-Combat | Use in Combat: Search your Life Deck for a Non-Combat card and put it into play. Limit 1 per deck. | Search, Other |  | `freestyle_noncombat_06` |
+| PLACEHOLDER's Clear Mind | Non-Combat | Use in Combat: Search your Life Deck for a Combat card and put it into your hand. Limit 1 per deck. | Search, Other |  | `freestyle_noncombat_03` |
+| PLACEHOLDER's Measure | Non-Combat | Use in Combat: Search your Life Deck for a Seal and put it into play. Remove from the game after use. Limit 1 per deck. | Search, Seals, Other |  | `freestyle_noncombat_14` |
 | Recalled Lesson | Non-Combat | Use in Combat: Search your Life Deck or discard pile for a Strike, Art, or Combat card and put it into your hand. Limit 1 per deck. | Search, Recursion, Other |  | `freestyle_noncombat_02` |
-| Warden's Measure | Non-Combat | Use in Combat: Search your Life Deck for a Seal and put it into play. Remove from the game after use. Limit 1 per deck. | Search, Seals, Other |  | `freestyle_noncombat_14` |
 | Revision Drill | Drill | Use in Combat: Discard a card from your hand. Draw 2 cards. Once per Combat. Limit 1 per deck. | Search, Other |  | `freestyle_drill_02` |
 | Clean Sweep | Strike | Strike doing +6 Energy. Costs 6 Energy to perform. Hit: Discard up to 6 Non-Combat cards in play. Remove from the game after use. | Board removal, Other |  | `freestyle_strike_02` |
-| Headlong Plunge | Strike | Endurance 2. Focused Strike doing +3 Energy. Empower 3. Raise your Fervor 1. Lower your opponent's Fervor 1. Discard an Ally in play. Gain 3 Energy. Place at the bottom of your Life Deck after use. | Board removal, Allies, Fervor, Other |  | `freestyle_strike_03` |
-| Knife Volley | Art | Endurance 2. Art, plus 2 wounds for each Ally you have in play. Raise your Fervor 1. Remain 1. The extra uses are an Ally's. Remove from the game after use. | Board removal, Allies, Fervor, Other |  | `freestyle_art_05` |
+| PLACEHOLDER's Headlong Plunge | Strike | Endurance 2. Focused Strike doing +3 Energy. Empower 3. Raise your Fervor 1. Lower your opponent's Fervor 1. Discard an Ally in play. Gain 3 Energy. Place at the bottom of your Life Deck after use. | Board removal, Allies, Fervor, Other |  | `freestyle_strike_03` |
+| Knife Volley | Art | Endurance 2. Art, plus 2 wounds for each Draik Ally in play. Raise your Fervor 1. Remain 1. The extra uses are a Draik Ally's. Remove from the game after use. | Board removal, Allies, Fervor, Other |  | `freestyle_art_05` |
 | Lobbed Bolt | Art | Endurance 1. Art. If you have a Non-Combat card in play, you may discard one of your Non-Combat cards in play. If you do, search your Life Deck for a Non-Combat card and put it into play. Remove from the game after use. Limit 1 per deck. | Board removal, Other |  | `freestyle_art_03` |
 | Marked Demise | Art | Marked only. Art. You may reduce the wounds this attack deals by any amount, to a minimum of 0, and remove one of your opponent's Drills in play for every wound given up. Empower 2. Limit 2 per deck. | Board removal, Other |  | `freestyle_art_11` |
 | Riftcry | Art | Discard the Grounds in play. If Bram Ashmark is your duelist, raise your Fervor 1. | Board removal, Fervor, Other |  | `freestyle_art_09` |
-| Dismissal | Combat | All Allies in play are removed from the game. Remove from the game after use. Limit 2 per deck. | Board removal, Allies, Other |  | `freestyle_combat_17` |
+| PLACEHOLDER's Dismissal | Combat | All Allies in play are removed from the game. Remove from the game after use. Limit 2 per deck. | Board removal, Allies, Other |  | `freestyle_combat_17` |
 | Spent to the Last | Combat | Your duelist must have 5 Energy to use this. Discard all Non-Combat cards and Allies in play. Set your duelist's Energy to 0. Raise your Fervor 1. Limit 1 per deck. | Board removal, Allies, Fervor, Other |  | `freestyle_combat_20` |
 | An Open Challenge | Non-Combat | Use at the beginning of your opponent's Power Up step: Discard a card from your hand. Your opponent must declare Combat this turn. Begins the game in play. Remove from the game after use. Limit 1 per deck. | Board removal, Other |  | `freestyle_noncombat_09` |
 | Defacement | Non-Combat | Reserve only. Use in Combat: Remove a Seal in play from the game. Remove from the game after use. Limit 1 per deck. | Board removal, Seals, Other |  | `freestyle_noncombat_10` |
@@ -442,35 +442,38 @@ Mastery: **Freestyle Discipline Mastery** (`freestyle_mastery_01`): When enterin
 | The Watch Goes Dark | Non-Combat | Use in Combat: Remove all Seals in play and in both Life Decks from the game. | Board removal, Seals, Other |  | `freestyle_noncombat_18` |
 | Counterplay Drill | Drill | When placed, name a card. Neither player may play or use it while this is in play. Limit 2 per deck. | Board removal, Other |  | `freestyle_drill_04` |
 | Lone Blade Drill | Drill | Your Strikes do +5 Energy. Discard this Drill if you have any other Non-Combat card in play. | Board removal, Other |  | `freestyle_drill_03` |
-| Second Wind | Strike | Stops a Strike. Raise your duelist's Energy to full. Shuffle 3 cards from the bottom of your discard pile into your Life Deck. | Recursion, Stops, Other |  | `freestyle_strike_06` |
+| PLACEHOLDER's Second Wind | Strike | Stops a Strike. Raise your duelist's Energy to full. Shuffle 3 cards from the bottom of your discard pile into your Life Deck. | Recursion, Stops, Other |  | `freestyle_strike_06` |
 | Last Gasp | Combat | Set your duelist's Energy to 0. Remove all of your discard pile from the game. Your opponent takes 5 wounds. Remove from the game after use. Limit 1 per deck. | Recursion, Other |  | `freestyle_combat_09` |
+| Nothing Goes to Waste | Combat | Adventure only: banned from tournament and online decks. For the remainder of Combat, whenever you play a card from your hand: If your discard pile has 2 or more cards, you may place the bottom 2 cards of your discard pile at the bottom of your Life Deck. If you do, gain 2 Energy. Remove from the game after use. Limit 1 per deck. | Recursion, Other |  | `freestyle_combat_21` |
 | Parley | Combat | End Combat. Place the bottom card of your discard pile at the bottom of your Life Deck. Remove from the game after use. | Recursion, Other |  | `freestyle_combat_18` |
 | Foresight | Non-Combat | When entering Combat, search your discard pile for a Strike, Art, or Combat card and put it into your hand. Show it to your opponent. Limit 1 per deck. | Recursion, Other |  | `freestyle_noncombat_04` |
 | Provocation | Non-Combat | Raise your Fervor 2. Choose 2 cards from your discard pile and place them on the bottom of your Life Deck. Remove from the game after use. | Recursion, Fervor, Other |  | `freestyle_noncombat_07` |
 | The Gate's Boon | Non-Combat | Use in Combat: End Combat. Choose 3 cards from your discard pile and shuffle them into your Life Deck. Remove from the game after use. Limit 1 per deck. | Recursion, Other |  | `freestyle_noncombat_13` |
 | Seal Seizure | Combat | Capture a Seal. | Seals, Other |  | `freestyle_combat_19` |
 | Eyes Beyond the Gate | Non-Combat | After a successful attack, if the attack is an Art, you may search your Life Deck for a Seal and put it into play. If you do, capture a Seal. Limit 1 per deck. | Seals, Other |  | `freestyle_noncombat_17` |
-| Sleight | Non-Combat | Use in Combat: Capture a Seal. Remove from the game after use. | Seals, Other |  | `freestyle_noncombat_15` |
+| PLACEHOLDER's Sleight | Non-Combat | Use in Combat: Capture a Seal. Remove from the game after use. | Seals, Other |  | `freestyle_noncombat_15` |
+| Undone Before It Lands | Non-Combat | You may use this at any time. Stop the effect of any card other than a Seal and remove that card from the game. This card does not affect personalities. Adventure only: banned from tournament and online decks. Limit 1 per deck. | Seals, Other |  | `freestyle_noncombat_19` |
 | Warding Drill | Drill | Neither player may place Seals. Limit 1 per deck. | Seals, Other |  | `freestyle_drill_06` |
 | Bonding Rite | Non-Combat | Use in Combat: Bond the two named Allies: they leave play under their Bond card, which fights as one Ally at full Energy. | Allies, Other |  | `freestyle_noncombat_08` |
 | Sword Lunge | Strike | Focused Strike doing +3 Energy. Hit: Lower your opponent's Fervor 3. Remove from the game after use. | Fervor, Other |  | `freestyle_strike_04` |
-| Captain's Barrage | Art | Art. Costs 3 Energy to perform. Raise your Fervor 2. Remove from the game after use. | Fervor, Other |  | `freestyle_art_06` |
+| PLACEHOLDER's Barrage | Art | Art. Costs 3 Energy to perform. Raise your Fervor 2. Remove from the game after use. | Fervor, Other |  | `freestyle_art_06` |
 | Sharp Rebuke | Art | Art dealing 8 wounds. Lower your opponent's Fervor 3. Remove from the game after use. Limit 1 per deck. | Fervor, Other |  | `freestyle_art_07` |
 | Braced Guard | Combat | Stops a Strike or an Art. Lower your opponent's Fervor 1. Remove from the game after use. | Fervor, Stops, Other |  | `freestyle_combat_02` |
 | Raised Stakes | Combat | Raise your Fervor 6. Raise your opponent's Fervor 6. You cannot win by Ascension for the rest of the game. | Fervor, Other |  | `freestyle_combat_14` |
 | Reckless Ascent | Combat | Use at the end of Combat. You cannot win by Ascension for the rest of the game. Move your duelist to the aspect equal to your Fervor. | Fervor, Other |  | `freestyle_combat_15` |
+| Tempers Leveled | Non-Combat | Adventure only: banned from tournament and online decks. Use in Combat: Set your Fervor to 3. Set your opponent's Fervor to 3. Limit 1 per deck. | Fervor, Other |  | `freestyle_noncombat_20` |
 | Bravado Drill | Drill | When entering Combat, lower your opponent's Fervor 2 and gain 2 Energy. Before the first turn begins, you may search your Life Deck for this card and place it into play. Limit 1 per deck. | Fervor, Other |  | `freestyle_drill_01` |
 | Last Ward | Strike | (When a card effect other than damage would take cards off the top of your Life Deck, you may discard this card from your hand to take 10 fewer, to a minimum of 0.) Stops a Strike or an Art. You may discard a card from your hand to stop a Focused attack. | Stops, Other |  | `freestyle_strike_05` |
-| Dead Air | Art | Stops an Art. Stops all Arts performed against you for the remainder of Combat. Limit 1 per deck. | Stops, Other |  | `freestyle_art_01` |
+| PLACEHOLDER's Dead Air | Art | Stops an Art. Stops all Arts performed against you for the remainder of Combat. Limit 1 per deck. | Stops, Other |  | `freestyle_art_01` |
+| PLACEHOLDER's Terms of the Pact | Combat | Stops a Strike or an Art. Stops all attacks of that kind performed against you for the remainder of Combat. Remove from the game after use. Limit 1 per deck. | Stops, Other |  | `freestyle_combat_03` |
 | Stillness | Combat | Stops a Strike or an Art. Stops all attacks performed against you for the remainder of Combat. Limit 1 per deck. | Stops, Other |  | `freestyle_combat_01` |
-| Terms of the Pact | Combat | Stops a Strike or an Art. Stops all attacks of that kind performed against you for the remainder of Combat. Remove from the game after use. Limit 1 per deck. | Stops, Other |  | `freestyle_combat_03` |
 | Marked Strength | Strike | Marked only. Strike doing +2 Energy. Hit: Your opponent's duelist loses 4 Energy and your opponent may not use Combat cards for the remainder of Combat. | Other |  | `freestyle_strike_07` |
-| Blinding Flare | Art | Art. Hit: Your opponent may not use Strike cards for the remainder of Combat. | Other |  | `freestyle_art_08` |
-| Overreach | Art | Focused Art. If your duelist is aspect 2 or higher, you may lose one Aspect. If you do, this attack does +7 wounds. Remove from the game after use. | Other |  | `freestyle_art_04` |
-| Unerring Bolt | Art | Art. Cannot be stopped. Damage cannot be prevented. Remove from the game after use. | Other |  | `freestyle_art_02` |
-| Kept at Bay | Combat | Your opponent may not perform Strikes for the remainder of Combat. Limit 1 per deck. | Other |  | `freestyle_combat_07` |
-| Old Trick | Combat | Search your Reserve for an attack card and perform it during this attack phase. Remove from the game after use. Limit 1 per deck. | Other |  | `freestyle_combat_10` |
-| Sever the Leyline | Combat | Set your opponent's duelist to aspect 1. Remove from the game after use. Limit 1 per deck. | Other |  | `freestyle_combat_04` |
+| PLACEHOLDER's Blinding Flare | Art | Art. Hit: Your opponent may not use Strike cards for the remainder of Combat. | Other |  | `freestyle_art_08` |
+| PLACEHOLDER's Overreach | Art | Focused Art. If your duelist is aspect 2 or higher, you may lose one Aspect. If you do, this attack does +7 wounds. Remove from the game after use. | Other |  | `freestyle_art_04` |
+| PLACEHOLDER's Unerring Bolt | Art | Art. Cannot be stopped. Damage cannot be prevented. Remove from the game after use. | Other |  | `freestyle_art_02` |
+| Kept at Bay | Combat | Your opponent may not perform Strikes from cards for the remainder of Combat. Limit 1 per deck. | Other |  | `freestyle_combat_07` |
+| PLACEHOLDER's Old Trick | Combat | Search your Reserve for an attack card and perform it during this attack phase. Remove from the game after use. Limit 1 per deck. | Other |  | `freestyle_combat_10` |
+| PLACEHOLDER's Sever the Leyline | Combat | Set your opponent's duelist to aspect 1. Remove from the game after use. Limit 1 per deck. | Other |  | `freestyle_combat_04` |
 | Watchful Eye | Combat | Look at your opponent's hand and shuffle a card of your choice into their Life Deck. | Other |  | `freestyle_combat_06` |
 | The Long Year | Non-Combat | Use in Combat: For the rest of the game, your attacks do +1 Energy. Remove from the game after use. | Other |  | `freestyle_noncombat_05` |
 | Assembly Drill | Drill | Your attacks do +1 wound. If the attack is performed by a Construct personality, your attacks do +2 wounds instead. | Other |  | `freestyle_drill_07` |
@@ -483,24 +486,24 @@ Tied to a named character, schoolless unless noted. Listed by character, largest
 | Character | Title | Type | What it does | id |
 |---|---|---|---|---|
 | Caedan Vale | Caedan's Pommel Bash | Strike | Endurance 2. Strike doing +4 Energy. Raise your Fervor 1. Hit: If Caedan Vale is in control, your opponent must pass during their next attack phase. | `signature_strike_15` |
-| Caedan Vale | Caedan's Quickstep | Strike | Strike doing +4 Energy. Empower 2. Lower your opponent's Fervor 2. If Caedan Vale is your duelist, search your discard pile for a Signature card and put it into your hand. Remove from the game after use. | `signature_strike_14` |
+| Caedan Vale | Caedan's Quickstep | Strike | Strike doing +4 Energy. Empower 2. Lower your opponent's Fervor 2. If Caedan Vale or Tavin Vale is in control, search your discard pile for a Caedan Vale or Tavin Vale Signature card and put it into your hand. Remove from the game after use. | `signature_strike_14` |
 | Caedan Vale | Caedan's Riposte | Strike | Stops a Strike. In your next attack phase you may repeat the attack it stopped. | `signature_strike_21` |
 | Caedan Vale | Caedan's Sword Draw | Strike | Strike doing +4 Energy. Raise your Fervor 1. Hit: Search your Life Deck for a "Sword" card other than "Caedan's Sword Draw" and put it into your hand. | `signature_strike_13` |
 | Caedan Vale | Caedan's Declaration | Art | Art. Raise your Fervor 2. Lower your opponent's Fervor 2. Remove from the game after use. Limit 1 per deck. | `signature_art_09` |
 | Caedan Vale | Caedan Cuts It Short | Combat | Use when needed. Stops the effects of any Combat card. | `signature_combat_03` |
 | Caedan Vale | Caedan's Quiet Study | Combat | Draw a card. If it is one of your duelist's Signature cards, draw a card. Limit 1 per deck. | `signature_combat_08` |
-| Caedan Vale | Caedan's Heirloom Blade | Non-Combat | Use in Combat: Attach this card to your duelist. While attached to your duelist: Your "Sword" attacks do +3 wounds. Wounds from those attacks are removed from the game. | `signature_noncombat_06` |
+| Caedan Vale | Caedan's Heirloom Blade | Non-Combat | Use in Combat: Attach this card to your duelist. While attached to your duelist: Your "Sword" attacks do +3 wounds. Wounds from those attacks are removed from the game. Limit 1 attached. | `signature_noncombat_06` |
 | Caedan Vale | Caedan's Insight | Non-Combat | Use in Combat: Search your Life Deck for up to 2 Signature cards and put them into your hand. Remove from the game after use. | `signature_noncombat_03` |
 | Caedan Vale | Caedan's Guardian Drill | Drill | Use in Combat: Place a Non-Combat card, Drill, or Seal from your hand into play. Once per Combat. | `signature_drill_06` |
-| Bram Ashmark | Ashmark Scatters the Ashes | Strike | Endurance 1. Strike doing +4 Energy. Remove the top 5 cards of your opponent's discard pile from the game. Gain 3 Energy. | `signature_strike_19` |
+| Bram Ashmark | Ashmark Scatters the Ashes | Strike | Endurance 1. Strike doing +4 Energy. Remove 5 cards of your opponent's discard pile from the game. Gain 3 Energy. | `signature_strike_19` |
 | Bram Ashmark | Ashmark's Choke Hold | Strike | Strike doing +4 Energy. Empower 2. For the remainder of Combat, your opponent's duelist loses 1 Energy at the beginning of each of their attack phases. Hit: Search your Life Deck for a "Sweep" card and put it into your hand. | `signature_strike_30` |
 | Bram Ashmark | Ashmark's Relentless Fury | Strike | Strike doing +4 Energy. Empower 2. Neither player may do anything but attack or pass in their attack phase for the remainder of Combat. Raise your Fervor 1. | `signature_strike_02` |
 | Bram Ashmark | Ashmark's Unmaking Whisper | Strike | Strike doing +5 Energy. Hit: Lower your opponent's Fervor 2. Hit: If your opponent's Fervor is 0, your opponent loses one Aspect. | `signature_strike_31` |
 | Bram Ashmark | Ashmark's Wall of Flame | Strike | Marked only. Stops a Strike or an Art. Can stop a Focused attack. Remove from the game after use. | `signature_strike_08` |
-| Bram Ashmark | Ashmark Leaves Nothing | Art | Focused Art. Empower 2. Hit: Remove all of your opponent's discard pile from the game. Raise your Fervor 1. | `signature_art_02` |
+| Bram Ashmark | Ashmark Leaves Nothing | Art | Focused Art. Empower 2. Hit: Choose a player and remove their whole discard pile from the game. Raise your Fervor 1. | `signature_art_02` |
 | Bram Ashmark | Ashmark's Ember Spray | Art | Marked only. Art dealing 5 wounds. Raise your Fervor 2. Hit: Search your discard pile for a Marked Art card and put it into your hand. Remove from the game after use. | `signature_art_14` |
-| Bram Ashmark | Ashmark Will Not Break | Combat | Bram Ashmark only. Stops a Strike or an Art. For the remainder of Combat, all damage from attacks against you is prevented. Limit 1 per deck. | `signature_combat_02` |
-| Bram Ashmark | Ashmark Stokes the Coals | Non-Combat | Bram Ashmark only. Use in Combat: Raise your duelist's Energy to full. Shuffle the top 5 cards of your discard pile into your Life Deck. Raise your Fervor 1. | `signature_noncombat_04` |
+| Bram Ashmark | Ashmark Will Not Break | Combat | Bram Ashmark only. Use during your attack phase or against an attack. Stops nothing. For the remainder of Combat, all damage from attacks against you is prevented. Limit 1 per deck. | `signature_combat_02` |
+| Bram Ashmark | Ashmark Stokes the Coals | Non-Combat | Bram Ashmark only. Use in Combat: Raise your duelist's Energy to full. Choose 5 cards from your discard pile and shuffle them into your Life Deck. Raise your Fervor 1. | `signature_noncombat_04` |
 | Emrys Rooke | Emrys Gives No Quarter | Strike | Strike doing +3 Energy. Neither player may use cards that end Combat or use cards that stop all attacks for the remainder of Combat. | `signature_strike_01` |
 | Emrys Rooke | Emrys Risks It All | Strike | Focused Strike doing +4 Energy. Cannot be stopped by Strike cards. Raise your Fervor 1. Remove from the game after use. | `signature_strike_09` |
 | Emrys Rooke | Emrys' Hilt Guard | Strike | Stops a Strike. Search your discard pile for an Emrys Rooke Signature card and put it into your hand. Remove from the game after use. | `signature_strike_22` |
@@ -528,15 +531,15 @@ Tied to a named character, schoolless unless noted. Listed by character, largest
 | Gideon Mourne | Mourne's Quickness Drill | Drill | When entering Combat, draw the bottom card of your discard pile. | `signature_drill_03` |
 | Corin Thrace | Corin's Practiced Guard | Strike | Stops a Strike. Raise your Fervor 1. Search your discard pile for a Drill and put it into play. | `signature_strike_26` |
 | Corin Thrace | Corin Throws Smoke | Art | Art. Hit: End Combat. | `signature_art_13` |
-| Corin Thrace | Corin's Suppressing Shot | Art | Art. Hit: Your opponent may not perform Arts for the remainder of Combat. | `signature_art_12` |
+| Corin Thrace | Corin's Suppressing Shot | Art | Art. Hit: Your opponent may not perform Arts from cards for the remainder of Combat. | `signature_art_12` |
 | Corin Thrace | Corin's Threefold Bolt | Art | Art dealing 2 wounds. Remain 2. Remove from the game after use. | `signature_art_08` |
 | Corin Thrace | Corin's Conditioning | Non-Combat | When entering Combat, raise your Fervor 1, raise your duelist's Energy to full, and draw the bottom card of your discard pile. Remove from the game after use. | `signature_noncombat_02` |
 | Halden Quarr | Quarr Shrugs It Off (Steel) | Strike | Halden Quarr only. Stops a Strike or an Art. Remain 1. If used only once this Combat, shuffle it into your Life Deck at the end of Combat. Remove from the game after use. Limit 2 per deck. | `signature_strike_25` |
 | Halden Quarr | Quarr's Crushing Blow (Steel) | Strike | Endurance X. X = 6 if Halden Quarr is your duelist, otherwise 3. Strike doing +2 wounds. If Halden Quarr is in control, +3 Energy and your opponent discards a Non-Combat card in play of your choice. | `signature_strike_28` |
 | Halden Quarr | Quarr's Roar (Steel) | Strike | Art dealing 6 wounds. If Halden Quarr is in control, your opponent may not use Combat cards for the remainder of Combat. Remove from the game after use. | `signature_strike_27` |
-| Sable Draik | Sable's Black Hands | Art | Sable Draik only. Art dealing 6 wounds. For the remainder of Combat, damage from your attacks cannot be prevented. If you have 2 or more Allies in play, Remain 1. Remove from the game after use. | `signature_art_06` |
-| Sable Draik | Sable's Lingering Curse | Art | Art dealing 5 wounds. Hit: Attach this card to the personality in control. While attached to the personality in control: Your Arts do +2 wounds. | `signature_art_10` |
-| Sable Draik | Sable's Reckoning | Art | Focused Art dealing 5 wounds. Set your Fervor to 2. Set your opponent's Fervor to 2. Hit: You may shuffle your removed Allies into your Life Deck. Remove from the game after use. | `signature_art_05` |
+| Sable Draik | Sable's Black Hands | Art | Sable Draik only. Art dealing 6 wounds. For the remainder of Combat, damage from your attacks cannot be prevented. If you have 2 or more Draik Allies in play, Remain 1. Remove from the game after use. | `signature_art_06` |
+| Sable Draik | Sable's Lingering Curse | Art | Art dealing 5 wounds. Hit: Attach this card to one of your personalities. While attached, the attached personality's Arts do +2 wounds. | `signature_art_10` |
+| Sable Draik | Sable's Reckoning | Art | Focused Art dealing 5 wounds. Set your Fervor to 2. Set your opponent's Fervor to 2. Hit: Shuffle any of your Draik Allies that are removed from the game into your Life Deck. Remove from the game after use. | `signature_art_05` |
 | Marrow | Marrow's Appraisal | Combat | Look at your opponent's hand and choose a card. They discard it. | `signature_combat_04` |
 | Marrow | Marrow's Retinue | Combat | Marrow only. Search your Life Deck for up to 2 Allies and put them into play at full Energy. | `signature_combat_09` |
 | Siphon | Siphon's Sidestep | Strike | Siphon only. Stops a Strike. Search your Life Deck for a Storm card and put it into your hand. Remove from the game after use. | `signature_strike_24` |
@@ -549,6 +552,6 @@ Tied to a named character, schoolless unless noted. Listed by character, largest
 | Halvard Draik | Halvard's Twin Cut | Strike | Focused Strike doing +4 Energy. If Halvard Draik is in control, your opponent discards a card from hand. If Halvard Draik is in control, stops a Strike. Hit: Search your Life Deck for an Ally and put it into play at Energy 4. | `signature_strike_17` |
 | Mercy | Mercy Smiles | Non-Combat | Stops a Strike. If a Construct personality is in control, search your discard pile for a Construct card and put it into your hand. Remove from the game after use. | `signature_noncombat_01` |
 | Scorn | Scorn Smirks | Combat | Your opponent removes all Drills in play from the game. Remove from the game after use. Limit 1 per deck. | `signature_combat_07` |
-| Sledge | Sledge's Set Stance | Art | Art. If your duelist is a Construct personality, search your Life Deck for a Construct card other than "Sledge's Set Stance" and put it into your hand. Remove from the game after use. | `signature_art_11` |
+| Sledge | Sledge's Set Stance | Art | Art. If performed by your duelist and your duelist is a Construct personality, search your Life Deck for a Construct card other than "Sledge's Set Stance" and put it into your hand. Remove from the game after use. | `signature_art_11` |
 | Torvan Hask | Hask's Flying Kick | Strike | Strike doing triple the Base Damage. | `signature_strike_07` |
 | Vesna Draik | Vesna's Ambush | Strike | Focused Strike doing +4 Energy. If Vesna Draik is in control, for the remainder of Combat, your opponent's Allies cannot take control or take damage. Hit: Search your Life Deck for an Ally and put it into play at Energy 4. | `signature_strike_18` |

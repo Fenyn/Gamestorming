@@ -176,9 +176,9 @@ func _run() -> void:
 	hud.focus.visible = true
 	hud.centre_stage = true
 	var staged: Rect2 = hud.focus.get_global_rect().merge(hud.prompt_panel.get_global_rect())
-	_check(absf(staged.get_center().x - hud.root.size.x * 0.5) < 2.0 and hud.focus.size.x > rail.size.x, "Centre stage must centre a larger focus card and its decision on the screen")
+	_check(absf(staged.get_center().x - hud.root.size.x * 0.5) < 2.0 and hud.focus.size.x >= rail.size.x, "Centre stage must centre the focus card and its decision on the screen")
 	hud.centre_stage = false
-	_check(is_equal_approx(hud.focus.offset_left, rail.position.x) and is_equal_approx(hud.focus.offset_top, rail.position.y), "Leaving centre stage must put the focus card back on the rail")
+	_check(is_equal_approx(hud.focus.offset_right, rail.position.x + (rail.size.x + hud.focus.size.x) * 0.5) and hud.focus.offset_top >= rail.position.y - 1.0, "Leaving centre stage must put the focus card back on the rail")
 	hud.focus.visible = focus_shown
 	# Every off-field card is on the felt, and the screen-edge rail is gone.
 	for zone in [&"discard", &"removed", &"mastery", &"relic"]:

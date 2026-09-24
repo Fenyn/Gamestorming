@@ -257,6 +257,11 @@ crew take control of Combat at any Energy.
 | Quill Draik | Thin young man, spectacles, ink-stained fingers, satchel of pages | The hexer proper | Art 6, hit locks a card type out |
 | Pim | Small quick youth, patched clothes, sack over one shoulder | The scavenger, no surname. Came out of the retained guard and does not talk about it. Also runs with Marrow's crew and the Collegium | Strike, hit draws 2 from the bottom of the discard |
 
+**The `draik` keyword** (2026-09-24) marks the blood company: Sable and the four crew who carry the
+name. Cards that count "the company" read it, so Pim, who runs with them but came out of the retained
+guard, is not counted, and neither is anyone who only fights alongside them. His own home is the
+retained guard, still to be developed.
+
 ---
 
 ## The Rooke Coven

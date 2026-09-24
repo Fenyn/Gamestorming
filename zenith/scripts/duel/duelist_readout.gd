@@ -30,6 +30,11 @@ const ASPECT_GAP: float = 34.0
 const FLAG_WIDTH: float = 690.0
 const NEAR_FLAG_WIDTH: float = 300.0   # stops short of the Relic's outline
 const NEAR_FLAG_GAP: float = 24.0
+## Status flags are chips on 36-pixel rows.
+const CHIP_FONT: int = 28
+const CHIP_HEIGHT: float = 34.0
+const CHIP_PAD: float = 12.0
+const CHIP_GAP: float = 10.0
 ## ALL draws everything on one canvas; PRINT leaves the tracker to the plate; PLATE draws only
 ## the tracker and its lives tab.
 @export var part: Part = Part.ALL
@@ -199,7 +204,7 @@ func update_layout() -> Dictionary:
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
 		stat_hit_rects.append(Rect2(flag_left, first_row - 34, text_width, 42))
-	var lines: PackedStringArray = _wrap_flags(text_width, 34)
+	var lines: Array[PackedStringArray] = _flag_rows(text_width)
 	for i in range(mini(lines.size(), flag_rows)):
 		stat_hit_rects.append(Rect2(flag_left, first_row + (i + 2 - flag_rows) * 36.0 - 34, text_width, 42))
 	return {"tracker": tracker, "flags": first_row, "middle": middle_x, "flag_left": flag_left, "flag_width": text_width}
@@ -230,15 +235,23 @@ func _draw() -> void:
 			_draw_lives(tracker)
 	# The Aspect, printed on the felt just under the duelist card on the viewer's side.
 	_text("ASPECT %d" % _aspect, Vector2(duelist_bounds.get_center().x - 110.0, duelist_bounds.end.y + ASPECT_GAP), 220, 30, IVORY, true)
-	var lines: PackedStringArray = _wrap_flags(text_width, 34)
+	var rows: Array[PackedStringArray] = _flag_rows(text_width)
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
 		_draw_seals(first_row, flag_left + text_width * 0.5, text_width)
-	for i in range(mini(lines.size(), flag_rows)):
-		var value: String = lines[i]
-		if i == flag_rows - 1 and lines.size() > flag_rows:
-			value = "%s · +%d more" % [lines[i].left(26 if centred else 10), lines.size() - flag_rows]
-		_text(value, Vector2(flag_left, first_row + (i + 2 - flag_rows) * 36.0), text_width, 34, FERVOR, centred)
+	var hidden: int = 0
+	for i in range(flag_rows, rows.size()):
+		hidden += rows[i].size()
+	for i in range(mini(rows.size(), flag_rows)):
+		var row: PackedStringArray = rows[i].duplicate()
+		if i == flag_rows - 1 and hidden > 0:
+			# The last row shown gives up chips from its end until the count of the rest fits.
+			var rest: int = hidden
+			while row.size() > 1 and _row_width(row) + CHIP_GAP + _chip_width("+%d more" % (rest + 1)) > text_width:
+				row.remove_at(row.size() - 1)
+				rest += 1
+			row.append("+%d more" % rest)
+		_draw_chip_row(row, flag_left, first_row + (i + 2 - flag_rows) * 36.0, text_width, centred)
 
 
 ## The stat tracker: name, Aspect and seat along the top, then Energy, Might and Fervor. A
@@ -250,8 +263,8 @@ func _draw_tracker(tracker: Rect2) -> void:
 	draw_rect(tracker.grow(-4), INK)
 	draw_style_box(MapArt.panel_box(0, rule), tracker)
 	# The fighter's name centred along the top; the Aspect is printed under the card instead.
-	_text(_title, origin + Vector2(110, 31), 320, 25, TEXT, true)
-	_text(_control, origin + Vector2(424, 31), 106, 20, MapArt.muted(_accent).lerp(Color.WHITE, 0.45), true)
+	_text(_title, origin + Vector2(96, 33), 300, 29, TEXT, true)
+	_text(_control, origin + Vector2(402, 32), 132, 24, MapArt.muted(_accent).lerp(Color.WHITE, 0.45), true)
 	for x in [180.0, 360.0]:
 		draw_line(origin + Vector2(x, 48), origin + Vector2(x, 140), Color(MUTED, 0.25), 1, true)
 	_text("ENERGY", origin + Vector2(10, 65), 160, 34, ENERGY, true)
@@ -261,7 +274,7 @@ func _draw_tracker(tracker: Rect2) -> void:
 	_text(CardText.short_number(_might), origin + Vector2(190, 111), 160, 44, _stat_color(might_delta()), true)
 	# Might has no printed maximum on the strip, so a moved ladder says what it moved from.
 	if might_delta() != 0:
-		_text("base %s" % CardText.short_number(_might_printed), origin + Vector2(190, 139), 160, 20, MUTED, true)
+		_text("base %s" % CardText.short_number(_might_printed), origin + Vector2(190, 142), 160, 24, MUTED, true)
 	_text("%d / %d" % [_fervor, _threshold], origin + Vector2(370, 111), 160, 40, TEXT, true)
 	for i in range(10):
 		var on: bool = i < _energy
@@ -392,7 +405,7 @@ func _draw_opponent_hand(origin: Vector2) -> void:
 	if shown == 0:
 		_text("EMPTY", origin + Vector2(0, 69), 205, 27, MUTED, true)
 	_text(str(_hand), origin + Vector2(0, 132), 205, 42, TEXT, true)
-	_text("IN HAND", origin + Vector2(0, 160), 205, 23, MUTED, true)
+	_text("IN HAND", origin + Vector2(0, 162), 205, 27, MUTED, true)
 
 
 func _draw_seals(baseline: float, middle_x: float = 0.0, width: float = 690.0) -> void:
@@ -461,19 +474,44 @@ func _text(value: String, origin: Vector2, width: float, font_size: int, color: 
 	draw_string(_font, Vector2(x, origin.y), fitted, HORIZONTAL_ALIGNMENT_LEFT, width, font_size, color)
 
 
-func _wrap_flags(width: float, font_size: int) -> PackedStringArray:
-	var lines: PackedStringArray = PackedStringArray()
-	var line: String = ""
+## The status flags as rows of chips, each row no wider than `width`.
+func _flag_rows(width: float) -> Array[PackedStringArray]:
+	var rows: Array[PackedStringArray] = []
+	var row: PackedStringArray = PackedStringArray()
 	for flag in _flags:
-		var candidate: String = flag if line.is_empty() else line + " · " + flag
-		if not line.is_empty() and _font.get_string_size(candidate, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > width:
-			lines.append(line)
-			line = flag
+		var candidate: PackedStringArray = row.duplicate()
+		candidate.append(flag)
+		if not row.is_empty() and _row_width(candidate) > width:
+			rows.append(row)
+			row = PackedStringArray([flag])
 		else:
-			line = candidate
-	if not line.is_empty():
-		lines.append(line)
-	return lines
+			row = candidate
+	if not row.is_empty():
+		rows.append(row)
+	return rows
+
+
+func _chip_width(flag: String) -> float:
+	return _font.get_string_size(flag, HORIZONTAL_ALIGNMENT_LEFT, -1, CHIP_FONT).x + CHIP_PAD * 2.0
+
+
+func _row_width(row: PackedStringArray) -> float:
+	var total: float = CHIP_GAP * maxf(0.0, row.size() - 1)
+	for flag in row:
+		total += _chip_width(flag)
+	return total
+
+
+## One row of status chips on `baseline`: dark fill, a Fervor-coloured rule, the flag inside.
+func _draw_chip_row(row: PackedStringArray, left: float, baseline: float, width: float, centred: bool) -> void:
+	var x: float = left + (width - _row_width(row)) * 0.5 if centred else left
+	for flag in row:
+		var chip: float = minf(_chip_width(flag), width)
+		var box: Rect2 = Rect2(x, baseline - CHIP_FONT + 1.0, chip, CHIP_HEIGHT)
+		draw_rect(box, INK)
+		draw_rect(box, Color(FERVOR, 0.75), false, 2.0)
+		_text(flag, Vector2(x + CHIP_PAD, baseline), chip - CHIP_PAD * 2.0, CHIP_FONT, FERVOR)
+		x += chip + CHIP_GAP
 
 
 func request_redraw() -> void:

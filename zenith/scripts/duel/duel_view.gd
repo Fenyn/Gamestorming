@@ -257,16 +257,19 @@ func _process(_delta: float) -> void:
 		var shown_def: CardDef = _replay_focus_def
 		var aspect: int = 1
 		var backdrop: Color = hud._uid_backdrop(hud._focus_card_uid)
+		var focus_seat_card: SeatCard = view.card(hud._focus_card_uid)
+		var seat_of: int = focus_seat_card.owner if focus_seat_card != null else -1
 		if shown_def == null:
 			var card: SeatCard = view.card(hud._focus_uid(prompt))
 			if card != null and not card.hidden():
 				shown_def = _def(card)
 				aspect = card.aspect
 				backdrop = hud.seat_backdrop(card.owner)
+				seat_of = card.owner
 		if shown_def != null:
-			var key: String = CardFaceCache.key_for(shown_def, aspect, backdrop)
+			var key: String = faces.key_of(shown_def, aspect, backdrop, seat_of)
 			if _focus_key != key:
-				focus_card.texture = faces.face(shown_def, aspect, backdrop)
+				focus_card.texture = faces.face(shown_def, aspect, backdrop, seat_of)
 				_focus_key = key
 		else:
 			focus_card.visible = false
@@ -342,8 +345,17 @@ func _layout_fixtures() -> void:
 		var life_x: float = camera.unproject_position(near_duelist.life_transform.origin).x
 		var fighter_screen: Vector2 = camera.unproject_position(near_card.global_position)
 		near_duelist.readout.update_layout()
-		var hero_bottom: float = maxf(fighter_screen.y, near_duelist.screen_rect(camera).end.y)
+		var crest: Rect2 = near_duelist.screen_rect(camera)
+		var hero_bottom: float = maxf(fighter_screen.y, crest.end.y)
 		hand_3d.set_hero_bounds(life_x - size.x * 0.035, fighter_screen.x + size.x * 0.09, hero_bottom)
+		hand_3d.set_crest_rect(crest)
+	var rival_life: Rect2 = Rect2()
+	if far_duelist.visible and not camera.is_position_behind(far_duelist.life_transform.origin):
+		rival_life = Rect2(camera.unproject_position(far_duelist.life_transform.origin), Vector2.ZERO)
+		for x: float in [-0.315, 0.315]:
+			for z: float in [-0.44, 0.44]:
+				rival_life = rival_life.expand(camera.unproject_position(far_duelist.life_transform * Vector3(x, 0, z)))
+	hud.avoid_rect = rival_life
 	var decision_rect: Rect2 = Rect2()
 	if hud.prompt_panel.visible:
 		decision_rect = hud.prompt_panel.get_global_rect()
@@ -354,10 +366,9 @@ func _layout_fixtures() -> void:
 	hand_3d.set_decision_rect(decision_rect)
 	if not hud.focus.visible:
 		return
-	var focus_rect: Rect2 = hud.focus.get_global_rect()
-	var focus_width: float = focus_rect.size.x
-	focus_card.position = camera.to_local(camera.project_position(Vector2(focus_rect.get_center().x, focus_rect.position.y + 32.0 + focus_width * 716.0 / 512.0 * 0.5), depth))
-	focus_card.pixel_size = focus_width / 512.0 * units
+	var face_rect: Rect2 = hud.focus_face_rect()
+	focus_card.position = camera.to_local(camera.project_position(face_rect.get_center(), depth))
+	focus_card.pixel_size = face_rect.size.x / 512.0 * units
 
 
 func _refresh_displays() -> void:
@@ -555,6 +566,9 @@ func _on_handoff_confirmed() -> void:
 	viewer = view.deciding
 	view = duel_host.view_for(viewer)
 	prompt = duel_host.prompt_for(viewer)
+	faces.set_matchups(view, Session.library, Session.strike_table)
+	var seat_backdrops: Array[Color] = [hud.seat_backdrop(0), hud.seat_backdrop(1)]
+	await faces.render_missing(view, Session.library, seat_backdrops)
 	# Replace private textures before uncovering the new seat, including during camera motion.
 	_set_hand({})
 	hud.hide_handoff()
@@ -666,6 +680,7 @@ func _apply(seat: int, wire: Dictionary) -> void:
 ## layout; the sync at the end catches whatever the beats did not move.
 func _play_update(up: SeatUpdate) -> void:
 	view = up.view
+	faces.set_matchups(view, Session.library, Session.strike_table)
 	$Atmosphere.set_schools(Palette.school_ui(view.player(0).style), Palette.school_ui(view.player(1).style))
 	prompt = up.prompt
 	var seat_backdrops: Array[Color] = [hud.seat_backdrop(0), hud.seat_backdrop(1)]
@@ -860,7 +875,6 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			var stages: int = int(data.get("stages", 0))
 			var life: int = int(data.get("life", 0))
 			hud.toast("Hits for %s" % CardText.short_damage(stages, life), ZenithTheme.ATTACK)
-			_pin_caption("Hits for %s" % CardText.short_damage(stages, life), ZenithTheme.ATTACK)
 			await _beat(TOAST_BEAT)
 		&"damage_stages":
 			var stages: int = int(data.get("stages", 0))
@@ -1379,8 +1393,8 @@ func _answer_card_beat(uid: int, player: int, targets: Dictionary, caption: Stri
 	# A held card already waits in the Play slot and leaves when the attack is settled.
 	var spent: bool = card != null and not card.hidden() and v != null and card.zone in [&"discard", &"removed"] and targets.has(uid) and not _held.has(uid)
 	var def: CardDef = _def(card) if card != null and not card.hidden() else Session.library.defs.get(public_id)
-	if def != null and not faces.has_face(def, card.aspect if card != null and not card.hidden() else 1, hud.seat_backdrop(player)):
-		await faces.render_def(def, hud.seat_backdrop(player))
+	if def != null and not faces.has_face(def, card.aspect if card != null and not card.hidden() else 1, hud.seat_backdrop(player), player):
+		await faces.render_def(def, hud.seat_backdrop(player), player)
 	await _sync_layout(true, uid if spent and player != viewer else -1)
 	if spent and player != viewer:
 		# The opponent's answer visits their resolving slot before the pile, so it is seen leaving
@@ -1441,8 +1455,8 @@ func _opponent_card_beat(uid: int, player: int, targets: Dictionary, caption: St
 	if def == null or player < 0 or player >= view.players.size():
 		await _sync_layout(true)
 		return
-	if not faces.has_face(def, c.aspect if c != null and not c.hidden() else 1, hud.seat_backdrop(player)):
-		await faces.render_def(def, hud.seat_backdrop(player))
+	if not faces.has_face(def, c.aspect if c != null and not c.hidden() else 1, hud.seat_backdrop(player), player):
+		await faces.render_def(def, hud.seat_backdrop(player), player)
 	var spent: bool = c != null and not c.hidden() and v != null and c.zone in [&"discard", &"removed"] and targets.has(uid) and not _held.has(uid)
 	await _sync_layout(true, uid if spent else -1)
 	if spent:
@@ -1546,11 +1560,11 @@ func _hold(uid: int, seat: int, until: StringName, public_id: String = "") -> bo
 	if card.hidden():
 		var public_def: CardDef = Session.library.defs.get(public_id)
 		if public_def != null:
-			if not faces.has_face(public_def):
-				await faces.render_def(public_def)
-			var key: String = CardFaceCache.key_for(public_def)
+			if not faces.has_face(public_def, 0, CardFace.NO_BACKDROP, card.owner):
+				await faces.render_def(public_def, CardFace.NO_BACKDROP, card.owner)
+			var key: String = faces.key_of(public_def, 0, CardFace.NO_BACKDROP, card.owner)
 			if str(_face_keys.get(uid, "")) != key:
-				v.set_face_texture(faces.face(public_def))
+				v.set_face_texture(faces.face(public_def, 0, CardFace.NO_BACKDROP, card.owner))
 				_face_keys[uid] = key
 		elif not _face_keys.has(uid):
 			return false
@@ -1640,9 +1654,9 @@ func _fly_life_loss(uid: int, player: int, targets: Dictionary, label: String, p
 	if returning and card.hidden() and public_id != "":
 		var public_def: CardDef = Session.library.defs.get(public_id)
 		if public_def != null:
-			if not faces.has_face(public_def):
-				await faces.render_def(public_def)
-			v.set_face_texture(faces.face(public_def))
+			if not faces.has_face(public_def, 0, CardFace.NO_BACKDROP, card.owner):
+				await faces.render_def(public_def, CardFace.NO_BACKDROP, card.owner)
+			v.set_face_texture(faces.face(public_def, 0, CardFace.NO_BACKDROP, card.owner))
 	var remaining: int = int(seat_counts[0]) if not seat_counts.is_empty() else view.player(player).life_deck.size()
 	var source: Transform3D = zones.slot(player, &"life_deck", maxi(0, remaining), 1, viewer if viewer >= 0 else view.active)
 	source.basis = source.basis * Basis(Vector3.RIGHT, PI)
@@ -1752,10 +1766,8 @@ func _refresh_roles() -> void:
 	var deciding: int = view.deciding if view.deciding_kind == &"respond" else -1
 	for p in view.players:
 		var color: Color = Color(0, 0, 0, 0)
-		var glyph: int = -1
 		if attacker >= 0:
 			color = ZenithTheme.ATTACK if p.index == attacker else ZenithTheme.DEFEND
-			glyph = CardDef.Type.STRIKE if p.index == attacker else CardDef.Type.COMBAT
 		# The act-here gold outranks the role colour while this seat owes a response.
 		if p.index == deciding:
 			color = ZenithTheme.ACCENT
@@ -1767,7 +1779,6 @@ func _refresh_roles() -> void:
 				continue
 			var carries: bool = uid == p.controlling
 			v.set_role(color if carries else Color(0, 0, 0, 0))
-			v.set_role_glyph(glyph if carries else -1, color)
 
 
 ## Endpoints come only from visible public cards; an unavailable source falls back
@@ -2216,9 +2227,9 @@ func _adopt_cards() -> void:
 		if def == null:
 			continue
 		var backdrop: Color = hud.seat_backdrop(c.owner)
-		var key: String = CardFaceCache.key_for(def, c.aspect, backdrop)
+		var key: String = faces.key_of(def, c.aspect, backdrop, c.owner)
 		if str(_face_keys.get(uid, "")) != key:
-			v.set_face_texture(faces.face(def, c.aspect, backdrop))
+			v.set_face_texture(faces.face(def, c.aspect, backdrop, c.owner))
 			_face_keys[uid] = key
 
 
@@ -2270,8 +2281,12 @@ func _targets() -> Dictionary:
 		for i in range(p.remain.size()):
 			out[p.remain[i]] = [zones.slot(p.index, &"remain", i, p.remain.size(), vw), true, true]
 		out[p.duelist] = [zones.slot(p.index, &"duelist", 0, 1, vw), true, true]
+		# An adventure boss's special power stands beside its Mastery, face up and clickable.
+		var mastery_n: int = int(p.mastery >= 0) + int(p.boss_power >= 0)
 		if p.mastery >= 0:
-			out[p.mastery] = [zones.slot(p.index, &"mastery", 0, 1, vw), true, true]
+			out[p.mastery] = [zones.slot(p.index, &"mastery", 0, mastery_n, vw), true, true]
+		if p.boss_power >= 0:
+			out[p.boss_power] = [zones.slot(p.index, &"mastery", mastery_n - 1, mastery_n, vw), true, true]
 		var reserve_n: int = p.reserve.size()
 		if p.relic >= 0:
 			out[p.relic] = [zones.slot(p.index, &"relic", 0, reserve_n + 1, vw), true, true]

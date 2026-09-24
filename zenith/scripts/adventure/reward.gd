@@ -73,7 +73,8 @@ func _ready() -> void:
 	cut_deck_list.card_selected.connect(_on_cut_row_selected)
 	inspect.gui_input.connect(_on_inspect_input)
 	cut_dialog.add_theme_stylebox_override("panel", ZenithTheme.modal_panel())
-	status_label.text = "\n".join(Session.take_story_lines())
+	status_label.text = ""
+	_fill_results()
 	cut_status_label.visible = false
 	cut_panel.visible = false
 	inspect.visible = false
@@ -83,6 +84,19 @@ func _ready() -> void:
 	_enter()
 	_dev_after_layout()
 	AdventureDev.screenshot(self)
+
+
+func _fill_results() -> void:
+	var results: Control = $Margin/Column/Results
+	var grid: GridContainer = $Margin/Column/Results/Grid
+	results.visible = not Session.win_results.is_empty()
+	grid.columns = 1 if Session.win_results.size() == 1 else 2
+	for i in range(Session.win_results.size()):
+		var entry: PanelContainer = ProgressUI.result_card(Session.win_results[i])
+		entry.custom_minimum_size.x = 1200 if grid.columns == 1 else 593
+		grid.add_child(entry)
+		if not _reduced_motion:
+			SanctumUI.enter(entry, 0.15 + 0.1 * i)
 
 
 func _fill_header() -> void:
@@ -688,6 +702,9 @@ func _dev_setup() -> void:
 	if starter_id == "" or not AdventureDev.begin_run(starter_id):
 		return
 	_dev = true
+	if AdventureDev.has_flag("--dev-sample"):
+		AdventureDev.use_scratch_saves()
+		AdventureDev.sample_meta()
 	var stage_arg: String = AdventureDev.flag("--dev-stage=")
 	if stage_arg != "":
 		AdventureDev.walk(maxi(0, int(stage_arg)))

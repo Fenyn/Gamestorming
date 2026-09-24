@@ -17,9 +17,18 @@ signal select_requested
 const HAND_CARD_SIZE: Vector2 = Vector2(126, 176)
 const HAND_LIFT: float = 26.0
 const MAX_LOG_LINES: int = 300
+## The smallest tray face; a short tray widens its faces up to TRAY_CARD_MAX_WIDTH.
 const TRAY_CARD_SIZE: Vector2 = Vector2(204, 285)
-const LOG_COLLAPSED_BOTTOM: float = 132.0
+const TRAY_CARD_MAX_WIDTH: float = 340.0
+const TRAY_GAP: float = 12.0          # the tray flow's h_separation in hud.tscn
+const TRAY_SIDE_ROOM: float = 180.0   # screen width the tray panel leaves beside it
+const TRAY_FRAME: Vector2 = Vector2(6.0, 32.0)   # a face's frame across; frame, gap and caption down
+const TRAY_HEIGHT_SHARE: float = 0.57 # of the screen height, for the rows shown before scrolling
+const CHOICE_HEIGHT: float = 100.0    # a tray tile that is a wording rather than a card
+const LOG_COLLAPSED_BOTTOM: float = 306.0
 const LOG_EXPANDED_FRACTION: float = 0.72
+## Iron-grey frames: white ones out-contrasted the cards they sit beside.
+const FRAME_TINT: Color = Color(0.56, 0.57, 0.58)
 const TRAY_COLUMNS: int = 6          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
 const PILE_ROWS_SHOWN: int = 3       # a browsed pile is only read, so it may be taller
@@ -50,11 +59,17 @@ const CARD_FACE: PackedScene = preload("res://scenes/duel/card_face.tscn")
 const CARD_ASPECT: float = 716.0 / 512.0
 const DECISION_GAP: float = 12.0
 const DECISION_BOTTOM_MARGIN: float = 24.0
-## The focus slot on the rail: its offsets from the top-right corner and its width and height, as
-## `hud.tscn` authors them.
-const RAIL_FOCUS: Rect2 = Rect2(-374, 130, 320, 480)
+## The decision column on the rail: its left offset from the right edge and its width. The panel
+## sits on the bottom-right corner PROMPT_BOTTOM above the screen edge, clear of the tucked hand,
+## and grows upward; a focus card on the rail stands on top of it and shrinks before it would
+## reach RAIL_TOP, the line under the corner toggles.
+const RAIL_FOCUS: Rect2 = Rect2(-414, 120, 360, 0)
+const PROMPT_BOTTOM: float = 250.0
+const RAIL_TOP: float = 120.0
+const RAIL_MIN_CARD_WIDTH: float = 180.0
 ## The focus slot on centre stage (`centre_stage`): the card's width and the gap to the decision
-## beside it. The pair is centred on the screen both ways.
+## beside it. The pair is centred on the screen across; the decision sits level with the card's
+## lower edge, below the rival's half, and drops under `avoid_rect` when it would cover it.
 const STAGE_CARD_WIDTH: float = 360.0
 const STAGE_GAP: float = 20.0
 const DECISION_RESULT_HEIGHT: float = 54.0
@@ -67,6 +82,8 @@ const TRAY_VERBS: Dictionary = {
 	&"pick_option": "Choose", &"pick_in_play": "Choose", &"name_card": "Name", &"capture": "Capture", &"discard_ally": "Discard",
 	&"final_strike": "Discard",
 }
+## The tray only ever opens for the seat at the table, so its header needs no name.
+const TRAY_WHO: String = "YOUR DECISION"
 ## How long the newly lit Combat sub-chip takes to come up, when Reduced Motion is off.
 const CHIP_FADE: float = 0.15
 const TOAST_HOLD: float = 1.1
@@ -96,7 +113,7 @@ const SUB_END: int = 4
 ## 14-character duelist name has to sit under Attack or Defend without touching the next chip.
 const SUB_WIDTH: float = 76.0
 const SUB_NAME_WIDTH: float = 112.0
-const SUB_GAP: int = 16
+const SUB_GAP: int = 10
 ## The battle sequence in six readable groups: pay, defend, shields, damage, wounds, after.
 ## Each entry is the first and last `SeatView.battle_step` inside that group.
 const BATTLE_GROUPS: Array[Vector2i] = [
@@ -255,20 +272,32 @@ var centre_stage: bool = false:
 			return
 		centre_stage = value
 		_layout_prompt_column()
+## The rival's Life Deck on screen, in HUD coordinates, set by the table each frame. The centre
+## stage decision never covers it. Empty when the table cannot say.
+var avoid_rect: Rect2 = Rect2():
+	set(value):
+		if avoid_rect.position.distance_to(value.position) < 1.0 and avoid_rect.size.distance_to(value.size) < 1.0:
+			return
+		avoid_rect = value
+		if centre_stage and focus != null and focus.visible:
+			_layout_prompt_column()
 var _staging: bool = false             # guards `_on_prompt_resized` against its own layout
+var _who_color: Color = ZenithTheme.TEXT   # the deciding seat's accent, for the tray header
+var _tray_face: Vector2 = TRAY_CARD_SIZE   # the face size of the tray being filled
 
 
 func _ready() -> void:
 	root.theme = SanctumUI.theme()
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
 	# The decision column is a framed plate too, so its text never sits bare on the courtyard.
-	prompt_panel.add_theme_stylebox_override("panel", MapArt.panel_box(16, Color.WHITE))
+	prompt_panel.add_theme_stylebox_override("panel", MapArt.panel_box(16, FRAME_TINT))
 	prompt_panel.resized.connect(_on_prompt_resized)
+	prompt_hint.add_theme_color_override("font_color", ZenithTheme.TEXT_SOFT)
 	# The log wears the same framed panel as the phase bar beside it, with tighter padding.
-	log_panel.add_theme_stylebox_override("panel", MapArt.panel_box(14, Color.WHITE))
+	log_panel.add_theme_stylebox_override("panel", MapArt.panel_box(14, FRAME_TINT))
 	# The inspect hint sits on a small framed panel instead of floating over the table.
 	var inspect_hint: Label = $Root/Inspect/Center/Column/Hint
-	inspect_hint.add_theme_stylebox_override("normal", MapArt.panel_box(14, Color.WHITE))
+	inspect_hint.add_theme_stylebox_override("normal", MapArt.panel_box(14, FRAME_TINT))
 	inspect_hint.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	for name in STEP_LABELS:
 		# Each step is a chip with a rule under it, so the strip reads as a progress bar across
@@ -316,7 +345,7 @@ func _build_combat_strip() -> void:
 	_combat_strip.alignment = BoxContainer.ALIGNMENT_CENTER
 	_combat_strip.visible = false
 	_exchange_chip = Label.new()
-	_exchange_chip.add_theme_font_size_override("font_size", 13)
+	_exchange_chip.add_theme_font_size_override("font_size", 18)
 	_exchange_chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_exchange_chip.add_theme_color_override("font_color", ZenithTheme.MUTED)
 	_combat_strip.add_child(_exchange_chip)
@@ -344,8 +373,10 @@ func _build_combat_strip() -> void:
 		head.add_child(l)
 		chip.add_child(head)
 		var note: Label = Label.new()
-		note.add_theme_font_size_override("font_size", 13)
+		note.add_theme_font_size_override("font_size", 18)
 		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		note.clip_text = true
+		note.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		note.visible = false
 		chip.add_child(note)
 		if SUB_PHASES[i].has(GameState.Phase.BATTLE):
@@ -372,7 +403,8 @@ func _build_combat_strip() -> void:
 ## Printed identity and rules remain on the face. The question and terse instruction stay visible
 ## because a readable card is not enough to say what input the game is waiting for.
 func _compact_prompt() -> void:
-	prompt_who.hide()
+	# The owner line is only ever "YOUR MOVE": a waiting panel's title already names who decides.
+	prompt_who.visible = _current_prompt != null and not prompt_who.text.is_empty()
 	prompt_title.visible = _current_prompt != null or not focus.visible
 	prompt_hint.visible = _current_prompt != null and not prompt_hint.text.is_empty()
 	exchange_state.hide()
@@ -384,37 +416,51 @@ func _compact_prompt() -> void:
 func _layout_prompt_column() -> void:
 	if focus == null or prompt_panel == null:
 		return
-	# Both panels are anchored to the right edge, so their offsets count from there.
+	# Both panels hang off the right edge. The focus counts down from the top and the decision up
+	# from the bottom, so the decision grows upward as its buttons come in.
 	var stage: bool = centre_stage and focus.visible
-	var card_width: float = STAGE_CARD_WIDTH if stage else RAIL_FOCUS.size.x
+	var panel_height: float = prompt_panel.get_combined_minimum_size().y if prompt_panel.visible else 0.0
+	var panel_bottom: float = root.size.y - PROMPT_BOTTOM
+	var card_width: float = STAGE_CARD_WIDTH
 	var left: float = RAIL_FOCUS.position.x
+	var panel_left: float = RAIL_FOCUS.position.x
 	if stage:
 		left = root.size.x * 0.5 - (card_width + STAGE_GAP + RAIL_FOCUS.size.x) * 0.5 - root.size.x
+		focus.offset_top = (root.size.y - FOCUS_CAPTION_HEIGHT - card_width * CARD_ASPECT) * 0.5
+		panel_left = left + card_width + STAGE_GAP
+		# Level with the face's lower edge, which keeps it in the near half of the table.
+		panel_bottom = focus.offset_top + card_width * CARD_ASPECT
+		var panel: Rect2 = Rect2(root.size.x + panel_left, panel_bottom - panel_height, RAIL_FOCUS.size.x, panel_height)
+		if avoid_rect.has_area() and panel.intersects(avoid_rect.grow(DECISION_GAP)):
+			panel_bottom = minf(avoid_rect.end.y + DECISION_GAP + panel_height, root.size.y - DECISION_BOTTOM_MARGIN)
+	else:
+		var stand: float = panel_bottom - panel_height - DECISION_GAP if prompt_panel.visible else panel_bottom
+		card_width = clampf((stand - RAIL_TOP - FOCUS_CAPTION_HEIGHT) / CARD_ASPECT, RAIL_MIN_CARD_WIDTH, RAIL_FOCUS.size.x)
+		left = RAIL_FOCUS.position.x + (RAIL_FOCUS.size.x - card_width) * 0.5
+		focus.offset_top = stand - FOCUS_CAPTION_HEIGHT - card_width * CARD_ASPECT
 	focus.offset_left = left
 	focus.offset_right = left + card_width
-	var card_height: float = FOCUS_CAPTION_HEIGHT + card_width * CARD_ASPECT
-	focus.offset_top = (root.size.y - card_height) * 0.5 if stage else RAIL_FOCUS.position.y
-	focus.offset_bottom = focus.offset_top + card_height
-	# On the rail the decision sits under the card; on centre stage, beside it, level with its face.
-	prompt_panel.offset_left = focus.offset_right + STAGE_GAP if stage else focus.offset_left
-	prompt_panel.offset_right = prompt_panel.offset_left + RAIL_FOCUS.size.x
-	var focus_bottom: float = focus.offset_bottom
+	focus.offset_bottom = focus.offset_top + FOCUS_CAPTION_HEIGHT + card_width * CARD_ASPECT
+	focus_face.scale = Vector2.ONE * card_width / 512.0
+	prompt_panel.offset_left = panel_left
+	prompt_panel.offset_right = panel_left + RAIL_FOCUS.size.x
+	# The panel is anchored to the bottom edge and grows upward from its bottom offset to fit.
+	prompt_panel.offset_bottom = panel_bottom - root.size.y
+	prompt_panel.offset_top = prompt_panel.offset_bottom
 	# The response stack lives inside the Focus rect, so it costs the decision column nothing.
 	_layout_stack()
-	var top: float = focus_bottom + DECISION_GAP if focus.visible else 210.0
-	if stage:
-		# Centred on the card's face; the panel's height is the one it last settled at, and a change
-		# lays the column out again (`_on_prompt_resized`).
-		top = focus.offset_top + FOCUS_CAPTION_HEIGHT + (card_width * CARD_ASPECT - prompt_panel.size.y) * 0.5
-	prompt_panel.offset_top = top
-	# Let the VBox determine height again after a larger prior decision.
-	prompt_panel.offset_bottom = prompt_panel.offset_top
 	_fit_actions()
 
 
-## On centre stage the decision is centred on the card, so it follows its own height.
+## The card face in the Focus slot, in global coordinates, with the caption strip under it left out.
+func focus_face_rect() -> Rect2:
+	var rect: Rect2 = focus.get_global_rect()
+	return Rect2(rect.position, Vector2(rect.size.x, rect.size.x * CARD_ASPECT))
+
+
+## The focus card stands on the decision, so a decision that changes height moves it.
 func _on_prompt_resized() -> void:
-	if centre_stage and focus.visible and not _fitting_actions and not _staging:
+	if focus.visible and not _fitting_actions and not _staging:
 		_staging = true
 		_layout_prompt_column()
 		_staging = false
@@ -424,8 +470,11 @@ func _fit_actions() -> void:
 	if _fitting_actions or actions_scroll == null:
 		return
 	_fitting_actions = true
-	var outside: float = maxf(0.0, prompt_column.get_combined_minimum_size().y - actions_scroll.get_combined_minimum_size().y)
-	var available: float = maxf(0.0, root.size.y - prompt_panel.offset_top - outside - DECISION_BOTTOM_MARGIN)
+	var outside: float = maxf(0.0, prompt_panel.get_combined_minimum_size().y - actions_scroll.get_combined_minimum_size().y)
+	var ceiling: float = RAIL_TOP
+	if focus.visible and not centre_stage:
+		ceiling += FOCUS_CAPTION_HEIGHT + RAIL_MIN_CARD_WIDTH * CARD_ASPECT + DECISION_GAP
+	var available: float = maxf(0.0, root.size.y + prompt_panel.offset_bottom - ceiling - outside)
 	var desired: float = minf(primary_box.get_combined_minimum_size().y, minf(260.0, available))
 	actions_scroll.custom_minimum_size.y = desired
 	actions_scroll.visible = primary_box.get_child_count() > 0
@@ -728,9 +777,8 @@ func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
 		var on: bool = i == current and not over
 		var done: bool = current >= 0 and i < current and not over
 		l.add_theme_color_override("font_color", ZenithTheme.ACCENT if on else ZenithTheme.MUTED)
-		# The sub-chips need the middle of the strip while Combat runs, so the surrounding steps
-		# give up size rather than their words.
-		l.add_theme_font_size_override("font_size", 14 if in_combat else (20 if on else 18))
+		# 18 is the floor that still reads at 720p; only the step we are in goes above it.
+		l.add_theme_font_size_override("font_size", 18 if in_combat else (20 if on else 18))
 		var bar: ColorRect = _step_bars[i]
 		if on:
 			bar.color = ZenithTheme.ACCENT
@@ -744,7 +792,7 @@ func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
 	if over:
 		turn_who.text = "DUEL OVER"
 		turn_who.add_theme_color_override("font_color", ZenithTheme.TEXT)
-		phase_panel.add_theme_stylebox_override("panel", SanctumUI.panel())
+		phase_panel.add_theme_stylebox_override("panel", MapArt.panel_box(22, FRAME_TINT))
 		return
 
 	var mine: bool = active == me
@@ -753,8 +801,7 @@ func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
 		turn_counter.text = "PREPARE"
 		turn_who.text = "RESERVE"
 	turn_who.add_theme_color_override("font_color", ZenithTheme.ACCENT if mine else ZenithTheme.MUTED)
-	# A gold left edge while the viewer acts, so the banner itself says whether to reach for a card.
-	phase_panel.add_theme_stylebox_override("panel", SanctumUI.panel())
+	phase_panel.add_theme_stylebox_override("panel", MapArt.panel_box(22, FRAME_TINT))
 
 
 ## While the turn is in Combat, the Combat chip becomes the whole sequence: which sub-step we are
@@ -971,14 +1018,13 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	_view = view
 	_current_prompt = p
 	_owner_marks = CardText.option_side_marks(p, _viewer_seat)
-	var who: SeatPlayer = view.player(p.player)
-	prompt_who.text = "%s  ·  YOUR DECISION" % who.name.to_upper()
-	prompt_who.add_theme_color_override("font_color", SeatColors.accent(view, p.player, Session.color_seed))
-	prompt_title.text = p.title
+	prompt_who.text = "YOUR MOVE"
+	prompt_who.add_theme_color_override("font_color", ZenithTheme.TEXT)
+	_who_color = SeatColors.accent(view, p.player, Session.color_seed)
+	prompt_title.text = _prompt_title(p, view)
 	# The response stack stays up. It is laid over the pinned attack inside the same rect, so it
 	# takes no room from the decision column and the player sees the state they are answering.
 	_show_attack(view, p)
-	prompt_who.visible = not exchange_rail.visible
 	show_focus(_focus_uid(p), _focus_caption(p))
 	prompt_hint.text = _hint_for(p)
 	prompt_hint.visible = prompt_hint.text != ""
@@ -995,7 +1041,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	if not library.is_empty():
 		# A search of the Life Deck: the matches to pick from, then the rest of the deck to read.
 		_fill_buttons([], primary_box, true)
-		await _show_tray(prompt_who.text, p.title, prompt_hint.text, browse, primaries, false, p if p.has_batch() else null)
+		await _show_tray(TRAY_WHO, prompt_title.text, prompt_hint.text, browse, primaries, false, p if p.has_batch() else null, true, library.size())
 		await _add_library(library, browse)
 	elif browse.is_empty():
 		_hide_tray()
@@ -1012,7 +1058,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 			_fit_actions()
 	else:
 		_fill_buttons([], primary_box, true)
-		_show_tray(prompt_who.text, p.title, prompt_hint.text, browse, primaries, false, p if p.has_batch() else null)
+		_show_tray(TRAY_WHO, prompt_title.text, prompt_hint.text, browse, primaries, false, p if p.has_batch() else null)
 
 
 ## One lone action is the whole decision, so it is offered as one large button that says what
@@ -1121,13 +1167,14 @@ func _show_attack(view: SeatView, p: PromptView = null) -> void:
 		var stopper: String = str(a.get("stopped_by_title", ""))
 		exchange_damage.text = "Stopped" + (" by " + stopper if not stopper.is_empty() else "")
 	elif landed:
-		exchange_damage.text = "Dealt %d Energy / %s" % [int(a.get("stages_dealt", 0)), _wounds(int(a.get("life_dealt", 0)))]
+		exchange_damage.text = "Dealt: " + _amount(int(a.get("stages_dealt", 0)), int(a.get("life_dealt", 0)))
 		var remaining: int = int(a.get("life_remaining", 0))
 		if remaining > 0:
 			exchange_damage.text += "\n%s still to resolve" % _wounds(remaining)
 	else:
 		var damage: Dictionary = a.get("damage", {})
-		exchange_damage.text = "%d Energy / %s" % [int(damage.get("stages", 0)), _wounds(int(damage.get("wounds", damage.get("life", 0))))]
+		var label: String = "Incoming: " if int(a.get("defender", -1)) == view.seat else "Deals: "
+		exchange_damage.text = label + _amount(int(damage.get("stages", 0)), int(damage.get("wounds", damage.get("life", 0))))
 	exchange_damage.add_theme_color_override("font_color", ZenithTheme.DEFEND if stopped else ZenithTheme.TEXT)
 	var details: PackedStringArray = PackedStringArray()
 	if not a.is_empty() and not stopped and not landed:
@@ -1163,6 +1210,33 @@ func _wounds(amount: int) -> String:
 	return tr_n("%d wound", "%d wounds", amount) % amount
 
 
+func _amount(stages: int, wounds: int) -> String:
+	return "%d Energy, %s" % [stages, _wounds(wounds)]
+
+
+## The question the panel asks. A defence names the attack it answers, from the public attack.
+func _prompt_title(p: PromptView, view: SeatView) -> String:
+	if p.kind == &"defense" and view != null and not view.attack.is_empty():
+		return "Defend against %s?" % attack_name(view.attack)
+	return p.title
+
+
+## "Enrys' Sword Thrust", "Caedan Vale's Final Strike", "Dame Alder's Power", from public fields.
+static func attack_name(a: Dictionary) -> String:
+	var performer: String = str(a.get("performer_title", ""))
+	var source: String = str(a.get("source_title", ""))
+	var kind: String = "Art" if str(a.get("kind", "strike")) == "art" else "Strike"
+	if bool(a.get("is_final", false)):
+		kind = "Final Strike"
+	elif bool(a.get("is_power", false)):
+		kind = "Power"
+	elif not source.is_empty():
+		return source
+	if performer.is_empty():
+		return "the " + kind
+	return "%s%s %s" % [performer, "'" if performer.ends_with("s") else "'s", kind]
+
+
 func _show_last_exchange(result: Dictionary) -> void:
 	exchange_rail.show()
 	exchange_state.text = "LAST EXCHANGE / RESOLVED"
@@ -1181,7 +1255,7 @@ func _show_last_exchange(result: Dictionary) -> void:
 		exchange_damage.tooltip_text = "Stopped by " + stopper if not stopper.is_empty() else ""
 		exchange_damage.add_theme_color_override("font_color", ZenithTheme.DEFEND)
 	else:
-		exchange_damage.text = "Last: %d Energy / %s dealt" % [int(result.get("stages_dealt", 0)), _wounds(int(result.get("life_dealt", 0)))]
+		exchange_damage.text = "Last: dealt " + _amount(int(result.get("stages_dealt", 0)), int(result.get("life_dealt", 0)))
 		exchange_damage.add_theme_color_override("font_color", ZenithTheme.MUTED)
 	_compact_prompt()
 
@@ -1210,7 +1284,7 @@ func _preview_outcome(outcome: Dictionary) -> void:
 	if stopped:
 		prompt_outcome.text = "Preview: attack stopped"
 	elif outcome.has("stages"):
-		prompt_outcome.text = "Preview: %d Energy / %s" % [int(outcome.get("stages", 0)), _wounds(int(outcome.get("life", 0)))]
+		prompt_outcome.text = "Preview: " + _amount(int(outcome.get("stages", 0)), int(outcome.get("life", 0)))
 	else:
 		prompt_outcome.text = "Preview: %s" % _wounds(int(outcome.get("life", 0)))
 	prompt_outcome.add_theme_color_override("font_color", ZenithTheme.DEFEND)
@@ -1384,7 +1458,7 @@ func show_card_choice(options: Array[OptionView]) -> void:
 	var hint: String = ""
 	if only_final:
 		hint = "This card cannot be played right now. A Final Strike discards it for a bare Strike from the Strike Table, and you pass for the rest of this Combat."
-	await _show_tray(prompt_who.text, c.title if c != null else "Choose an action", hint, single, options, true, null, not only_final)
+	await _show_tray(TRAY_WHO, c.title if c != null else "Choose an action", hint, single, options, true, null, not only_final)
 	if only_final:
 		tray_hint.add_theme_color_override("font_color", ZenithTheme.WARN)
 	else:
@@ -1405,7 +1479,7 @@ func show_card_choice(options: Array[OptionView]) -> void:
 
 ## Every hand card as Final Strike fodder, with Back. Reached only through its button.
 func _show_final_strike(finals: Array[OptionView]) -> void:
-	await _show_tray(prompt_who.text, "Final Strike: discard a card", "A bare Strike from the Strike Table, plus your Drills and modifiers. Afterwards you pass for the rest of this Combat.", finals, [], false)
+	await _show_tray(TRAY_WHO, "Final Strike: discard a card", "A bare Strike from the Strike Table, plus your Drills and modifiers. Afterwards you pass for the rest of this Combat.", finals, [], false)
 	var back: Button = Button.new()
 	back.text = "Back"
 	back.custom_minimum_size = Vector2(140, 60)
@@ -1472,7 +1546,7 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 ## the no-card options as a button row beneath, and Back when this is a sub-choice. `actions`
 ## become the buttons; with `sub_choice` they act on the single card shown. With `batch`, clicks
 ## toggle cards and one confirm button sends them all at once.
-func _show_tray(who: String, title: String, hint: String, cards: Array[OptionView], actions: Array[OptionView], sub_choice: bool, batch: PromptView = null, accent_first: bool = true) -> void:
+func _show_tray(who: String, title: String, hint: String, cards: Array[OptionView], actions: Array[OptionView], sub_choice: bool, batch: PromptView = null, accent_first: bool = true, extra: int = 0) -> void:
 	_batch = batch
 	_selected.clear()
 	_entries.clear()
@@ -1480,7 +1554,7 @@ func _show_tray(who: String, title: String, hint: String, cards: Array[OptionVie
 	hide_peek()
 	hide_focus()   # the tray is the middle of the screen while it is open
 	tray_who.text = who
-	tray_who.add_theme_color_override("font_color", prompt_who.get_theme_color("font_color"))
+	tray_who.add_theme_color_override("font_color", _who_color)
 	tray_title.text = title
 	if batch != null:
 		var rule: String = "Pick %d." % batch.batch_max if batch.batch_min == batch.batch_max else "Pick up to %d." % batch.batch_max
@@ -1490,17 +1564,15 @@ func _show_tray(who: String, title: String, hint: String, cards: Array[OptionVie
 	for child in tray_cards.get_children():
 		tray_cards.remove_child(child)
 		child.queue_free()
+	_tray_face = tray_layout(cards.size() + extra, root.size)["face"]
 	for opt in cards:
 		var entry: Control = await _tray_entry(opt, sub_choice)
 		if entry != null:
 			tray_cards.add_child(entry)
-	# Wide enough for a full row, tall enough for two; anything past that scrolls down.
-	var shown: int = tray_cards.get_child_count()
-	var columns: int = maxi(1, mini(TRAY_COLUMNS, int((root.size.x - 180.0) / (TRAY_CARD_SIZE.x + 18.0))))
-	var cols: int = mini(shown, columns)
-	var rows: int = mini(ceili(float(shown) / columns), TRAY_ROWS_SHOWN)
-	var cell: Vector2 = TRAY_CARD_SIZE + Vector2(6.0, 6.0 + 6.0 + 20.0)   # frame pad, caption
-	tray_scroll.custom_minimum_size = Vector2(maxf(720.0, cols * (cell.x + 12.0) + 12.0), minf(rows * (cell.y + 12.0), root.size.y * 0.57))
+	var wordings: bool = not cards.is_empty()
+	for opt in cards:
+		wordings = wordings and opt.type == &"pick_option" and opt.card < 0
+	_size_tray_scroll(cards.size() + extra, CHOICE_HEIGHT + TRAY_FRAME.x if wordings else -1.0)
 	_fill_buttons(actions, tray_buttons, false, sub_choice and accent_first)
 	if batch != null:
 		_confirm = Button.new()
@@ -1551,10 +1623,10 @@ func _add_library(library: Array, matches: Array[OptionView]) -> void:
 		var column: VBoxContainer = VBoxContainer.new()
 		column.add_theme_constant_override("separation", 6)
 		var face: TextureRect = TextureRect.new()
-		face.texture = await _faces.render_face(def, c.aspect, seat_backdrop(c.owner)) if def != null and _faces != null else null
+		face.texture = await _faces.render_face(def, c.aspect, seat_backdrop(c.owner), c.owner) if def != null and _faces != null else null
 		face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		face.stretch_mode = TextureRect.STRETCH_SCALE
-		face.custom_minimum_size = TRAY_CARD_SIZE
+		face.custom_minimum_size = _tray_face
 		face.modulate = Color(1, 1, 1, 0.45)
 		face.mouse_filter = Control.MOUSE_FILTER_STOP
 		face.mouse_entered.connect(func() -> void: show_peek(def, c.aspect, c.uid))
@@ -1566,12 +1638,36 @@ func _add_library(library: Array, matches: Array[OptionView]) -> void:
 		caption.add_theme_color_override("font_color", ZenithTheme.MUTED)
 		column.add_child(caption)
 		tray_cards.add_child(column)
-	var shown: int = tray_cards.get_child_count()
-	var columns: int = maxi(1, mini(TRAY_COLUMNS, int((root.size.x - 180.0) / (TRAY_CARD_SIZE.x + 18.0))))
-	var cols: int = mini(shown, columns)
-	var rows: int = mini(ceili(float(shown) / columns), TRAY_ROWS_SHOWN)
-	var cell: Vector2 = TRAY_CARD_SIZE + Vector2(6.0, 6.0 + 6.0 + 20.0)
-	tray_scroll.custom_minimum_size = Vector2(maxf(720.0, cols * (cell.x + 12.0) + 12.0), minf(rows * (cell.y + 12.0), root.size.y * 0.57))
+	_size_tray_scroll(tray_cards.get_child_count())
+
+
+## How a tray of `count` faces is laid out on a `screen` of that size: the face size, the columns
+## and the rows shown before it scrolls. A short tray widens its faces to share the room one row
+## has, from TRAY_CARD_SIZE up to TRAY_CARD_MAX_WIDTH and never taller than the rows shown allow.
+## Rows are balanced, so seven cards sit four and three rather than six and one.
+static func tray_layout(count: int, screen: Vector2) -> Dictionary:
+	var room: float = screen.x - TRAY_SIDE_ROOM
+	var n: int = maxi(1, count)
+	var fit: int = clampi(int((room + TRAY_GAP) / (TRAY_CARD_SIZE.x + TRAY_FRAME.x + TRAY_GAP)), 1, TRAY_COLUMNS)
+	var rows: int = ceili(float(n) / fit)
+	var columns: int = ceili(float(n) / rows)
+	var shown_rows: int = mini(rows, TRAY_ROWS_SHOWN)
+	var across: float = (room - TRAY_GAP * (columns - 1)) / columns - TRAY_FRAME.x
+	var down: float = (screen.y * TRAY_HEIGHT_SHARE / shown_rows - TRAY_GAP - TRAY_FRAME.y) / CARD_ASPECT
+	var width: float = clampf(minf(across, down), TRAY_CARD_SIZE.x, TRAY_CARD_MAX_WIDTH)
+	return {"face": Vector2(width, width * CARD_ASPECT), "columns": columns, "rows": shown_rows}
+
+
+## The tray's scroll area: exactly the balanced columns across, so the flow wraps where the layout
+## says, and the rows shown down. `cell_height` replaces a face's height for a tray of wordings.
+func _size_tray_scroll(count: int, cell_height: float = -1.0) -> void:
+	var grid: Dictionary = tray_layout(count, root.size)
+	var cell: Vector2 = (grid["face"] as Vector2) + TRAY_FRAME
+	if cell_height > 0.0:
+		cell.y = cell_height
+	var columns: int = int(grid["columns"])
+	var rows: int = int(grid["rows"])
+	tray_scroll.custom_minimum_size = Vector2(maxf(720.0, columns * (cell.x + TRAY_GAP) + TRAY_GAP), minf(rows * (cell.y + TRAY_GAP), root.size.y * TRAY_HEIGHT_SHARE))
 
 
 ## Toggles a card in a batch tray. Full trays ignore further picks until one is removed.
@@ -1623,10 +1719,10 @@ func _tray_choice_entry(opt: OptionView) -> Control:
 	column.add_theme_constant_override("separation", 6)
 	var frame: PanelContainer = PanelContainer.new()
 	frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, 10, 3, 3, 3))
-	frame.pivot_offset = Vector2(TRAY_CARD_SIZE.x * 0.5 + 3.0, TRAY_CARD_SIZE.y * 0.5 + 3.0)
+	frame.pivot_offset = _tray_face * 0.5 + Vector2(3.0, 3.0)
 	var b: Button = Button.new()
 	b.flat = true
-	b.custom_minimum_size = Vector2(TRAY_CARD_SIZE.x, 100)
+	b.custom_minimum_size = Vector2(_tray_face.x, CHOICE_HEIGHT)
 	b.text = opt.label
 	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	b.clip_text = false
@@ -1659,19 +1755,19 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 			aspect = c.aspect
 	var tex: Texture2D = null
 	if def != null and _faces != null:
-		tex = await _faces.render_face(def, aspect, _uid_backdrop(uid))
+		tex = await _faces.render_face(def, aspect, _uid_backdrop(uid), _uid_owner(uid))
 	elif _faces != null:
 		tex = _faces.back()
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
 	var frame: PanelContainer = PanelContainer.new()
 	frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 10, 3, 3, 3))
-	frame.pivot_offset = Vector2(TRAY_CARD_SIZE.x * 0.5 + 3.0, TRAY_CARD_SIZE.y * 0.5 + 3.0)
+	frame.pivot_offset = _tray_face * 0.5 + Vector2(3.0, 3.0)
 	var b: TextureButton = TextureButton.new()
 	b.texture_normal = tex
 	b.ignore_texture_size = true
 	b.stretch_mode = TextureButton.STRETCH_SCALE
-	b.custom_minimum_size = TRAY_CARD_SIZE
+	b.custom_minimum_size = _tray_face
 	var batch: bool = _batch != null
 	if batch:
 		b.pressed.connect(func() -> void: tray_toggle(uid))
@@ -1804,7 +1900,7 @@ func _relic_pile_hint(view: SeatView, p: SeatPlayer) -> String:
 func show_relic_choice(options: Array[OptionView], player: int) -> void:
 	var c: SeatCard = _view.card(options[0].card)
 	var single: Array[OptionView] = [options[0]]
-	await _show_tray(prompt_who.text, c.title if c != null else "Relic", "", single, options, true)
+	await _show_tray(TRAY_WHO, c.title if c != null else "Relic", "", single, options, true)
 	tray_hint.remove_theme_color_override("font_color")
 	if options.size() == 1 and tray_buttons.get_child_count() > 0:
 		var use: Button = tray_buttons.get_child(0) as Button
@@ -1860,7 +1956,7 @@ func _pile_entry(c: SeatCard, is_top: bool) -> Control:
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
 	var face: TextureRect = TextureRect.new()
-	face.texture = await _faces.render_face(def, aspect, seat_backdrop(c.owner)) if def != null and _faces != null else null
+	face.texture = await _faces.render_face(def, aspect, seat_backdrop(c.owner), c.owner) if def != null and _faces != null else null
 	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	face.stretch_mode = TextureRect.STRETCH_SCALE
 	face.custom_minimum_size = TRAY_CARD_SIZE
@@ -1899,7 +1995,7 @@ func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -
 		frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), border, 10, 3, 3, 3))
 		frame.pivot_offset = Vector2(HAND_CARD_SIZE.x * 0.5 + 3.0, HAND_CARD_SIZE.y + 6.0)
 		var b: TextureButton = TextureButton.new()
-		b.texture_normal = faces.face(def, c.aspect, seat_backdrop(c.owner))
+		b.texture_normal = faces.face(def, c.aspect, seat_backdrop(c.owner), c.owner)
 		b.ignore_texture_size = true
 		b.stretch_mode = TextureButton.STRETCH_SCALE
 		b.custom_minimum_size = HAND_CARD_SIZE
@@ -1989,6 +2085,16 @@ func _uid_backdrop(uid: int) -> Color:
 	return seat_backdrop(c.owner) if c != null else CardFace.NO_BACKDROP
 
 
+## The seat a card belongs to, for its Strike's numbered base; -1 when the view does not know it.
+func _uid_owner(uid: int) -> int:
+	var c: SeatCard = _view.card(uid) if _view != null and uid >= 0 else null
+	return c.owner if c != null else -1
+
+
+func _uid_table(def: CardDef, uid: int) -> int:
+	return _faces.table_base(def, _uid_owner(uid)) if _faces != null else -1
+
+
 ## Full-size live face over a dimmed table, so keyword hover works. Right-click or Inspect opens
 ## it; Esc or a click outside closes it.
 func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
@@ -1996,7 +2102,7 @@ func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 		return
 	hide_peek()
 	hide_focus()
-	inspect_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid))
+	inspect_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid), _uid_table(def, uid))
 	var standing: SeatPlayer = _standing(uid)
 	if standing == null and _view != null:
 		for player in _view.players:
@@ -2038,7 +2144,7 @@ func show_focus(uid: int, caption: String) -> void:
 	_replay_focus = false
 	_focus_card_uid = uid
 	_pending_anchor = ""
-	focus_face.show_def(def, c.aspect, _live_energy(uid), _standing(uid), seat_backdrop(c.owner))
+	focus_face.show_def(def, c.aspect, _live_energy(uid), _standing(uid), seat_backdrop(c.owner), _uid_table(def, uid))
 	focus.visible = true
 	_compact_prompt()
 
@@ -2055,7 +2161,7 @@ func show_replay_card(def: CardDef, caption: String, color: Color, uid: int = -1
 	_replay_focus = true
 	_focus_card_uid = uid
 	_pending_anchor = ""
-	focus_face.show_def(def, 0, -1, null, _uid_backdrop(uid))
+	focus_face.show_def(def, 0, -1, null, _uid_backdrop(uid), _uid_table(def, uid))
 	set_focus_caption(caption, color)
 	focus.visible = true
 	_compact_prompt()
@@ -2078,13 +2184,9 @@ func _apply_caption() -> void:
 	if not _wounds_note.is_empty() and focus.visible:
 		text += " · %s to resolve" % _wounds_note
 	focus_caption.text = text.to_upper()
-	# The slot is one card wide and the caption is one clipped line, so a long one steps down a
-	# size rather than losing its end to an ellipsis.
-	var size: int = 22
-	if text.length() > 34:
-		size = 15
-	elif text.length() > 26:
-		size = 18
+	# The slot is one card wide and the caption is one clipped line, so a long one steps down to
+	# the 18 floor before it loses its end to an ellipsis.
+	var size: int = 22 if text.length() <= 26 else 18
 	focus_caption.add_theme_font_size_override("font_size", size)
 
 
@@ -2131,7 +2233,7 @@ func _push_face(def: CardDef, caption: String, tint: Color, uid: int) -> Control
 	entry.move_child(face, 0)
 	stack.add_child(entry)
 	# CardFace builds itself from its own @onready children, so it is filled once it is in the tree.
-	face.show_def(def, 0, -1, null, _uid_backdrop(uid))
+	face.show_def(def, 0, -1, null, _uid_backdrop(uid), _uid_table(def, uid))
 	_stack.append(entry)
 	_layout_stack()
 	return entry
@@ -2186,7 +2288,7 @@ func _stack_entry(caption: String, tint: Color, uid: int) -> Control:
 	strip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	strip.clip_text = true
 	strip.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	strip.add_theme_font_size_override("font_size", 17)
+	strip.add_theme_font_size_override("font_size", 18)
 	strip.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
 	strip.add_theme_stylebox_override("normal", ZenithTheme.box(tint, Color(0, 0, 0, 0), 6, 0, 8, 2))
 	entry.add_child(strip)
@@ -2205,15 +2307,14 @@ func _layout_stack() -> void:
 	var face_width: float = width * STACK_SCALE
 	var face_height: float = face_width * CARD_ASPECT
 	var attack_height: float = width * CARD_ASPECT
-	var base: Vector2 = Vector2((width - face_width) * 0.5 + 16.0,
-		FOCUS_CAPTION_HEIGHT + attack_height - face_height - 6.0)
+	var base: Vector2 = Vector2((width - face_width) * 0.5 + 16.0, attack_height - face_height - 6.0)
 	for i in range(_stack.size()):
 		var entry: Control = _stack[i]
 		var level: int = mini(i, STACK_MAX - 1)
 		var spot: Vector2 = base + STACK_STEP * float(level)
 		entry.size = Vector2(face_width, face_height)
 		entry.pivot_offset = entry.size * 0.5
-		entry.position = Vector2(maxf(2.0, spot.x), maxf(FOCUS_CAPTION_HEIGHT - 2.0, spot.y))
+		entry.position = Vector2(maxf(2.0, spot.x), maxf(2.0, spot.y))
 		entry.rotation_degrees = STACK_TILT if i % 2 == 0 else -STACK_TILT
 		var art: Control = entry.get_child(0)
 		if art is CardFace:
@@ -2385,9 +2486,7 @@ func _chevron(tip: Vector2, direction: Vector2, side: Vector2, base: Vector2) ->
 ## The left edge of the card the line comes from: the pinned attack, or the response on top of the
 ## stack when the job resolving now is that response rather than the attack under it.
 func _filament_origin() -> Vector2:
-	var rect: Rect2 = focus.get_global_rect()
-	var face: Rect2 = Rect2(Vector2(rect.position.x, rect.position.y + FOCUS_CAPTION_HEIGHT),
-		Vector2(rect.size.x, rect.size.x * CARD_ASPECT))
+	var face: Rect2 = focus_face_rect()
 	if _filament_uid >= 0 and not _stack.is_empty():
 		var top_entry: Control = _stack.back()
 		if is_instance_valid(top_entry) and int(top_entry.get_meta("uid", -1)) == _filament_uid:
@@ -2480,7 +2579,7 @@ func set_log_expanded(on: bool) -> void:
 func show_peek(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	if def == null or inspect.visible:
 		return
-	peek_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid))
+	peek_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid), _uid_table(def, uid))
 	var forecast: String = _forecast_text(uid)
 	peek_forecast.visible = forecast != ""
 	peek_forecast_text.text = forecast

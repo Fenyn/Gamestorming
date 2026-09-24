@@ -95,8 +95,8 @@ anchor_left = 0.0
 anchor_right = 0.0
 offset_left = 18.0
 offset_top = 16.0
-offset_right = 338.0
-offset_bottom = 132.0
+offset_right = 418.0
+offset_bottom = 306.0
 grow_horizontal = 0
 
 [node name="Column" type="VBoxContainer" parent="Root/Log"]
@@ -154,17 +154,17 @@ alignment = 1
 
 [node name="PromptPanel" type="PanelContainer" parent="Root"]
 layout_mode = 1
-anchors_preset = 1
+anchors_preset = 3
 anchor_left = 1.0
-anchor_top = 0.0
+anchor_top = 1.0
 anchor_right = 1.0
-anchor_bottom = 0.0
-offset_left = -342.0
-offset_top = 210.0
-offset_right = -22.0
-offset_bottom = 260.0
+anchor_bottom = 1.0
+offset_left = -414.0
+offset_top = -250.0
+offset_right = -54.0
+offset_bottom = -250.0
 grow_horizontal = 0
-grow_vertical = 1
+grow_vertical = 0
 
 [node name="Column" type="VBoxContainer" parent="Root/PromptPanel"]
 layout_mode = 2
@@ -173,8 +173,8 @@ theme_override_constants/separation = 8
 [node name="Who" type="Label" parent="Root/PromptPanel/Column"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "PLAYER 1"
-theme_override_font_sizes/font_size = 21
+text = "YOUR MOVE"
+theme_override_font_sizes/font_size = 22
 autowrap_mode = 3
 
 [node name="Title" type="Label" parent="Root/PromptPanel/Column"]
@@ -264,9 +264,9 @@ visible = false
 modulate = Color(1, 1, 1, 0.9)
 layout_mode = 1
 offset_left = 22.0
-offset_top = 142.0
+offset_top = 318.0
 offset_right = 470.0
-offset_bottom = 172.0
+offset_bottom = 348.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 20
 text = "Player 2 is viewing your Discard"
@@ -295,7 +295,7 @@ offset_top = 18.0
 offset_right = -18.0
 offset_bottom = 64.0
 grow_horizontal = 0
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 18
 text = "Reduced motion"
 flat = true
 tooltip_text = "Keep resource changes readable with less movement and fewer impact effects."
@@ -329,7 +329,7 @@ theme_override_constants/separation = 8
 [node name="Who" type="Label" parent="Root/Tray/Center/Panel/Column"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "PLAYER 1  ·  YOUR DECISION"
+text = "YOUR DECISION"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 21
 
@@ -454,9 +454,9 @@ visible = false
 layout_mode = 1
 anchors_preset = 0
 offset_left = 16.0
-offset_top = 282.0
+offset_top = 318.0
 offset_right = 356.0
-offset_bottom = 482.0
+offset_bottom = 518.0
 
 [node name="Peek" type="Control" parent="Root"]
 visible = false
@@ -533,31 +533,33 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -374.0
-offset_top = 130.0
+offset_left = -414.0
+offset_top = 120.0
 offset_right = -54.0
-offset_bottom = 610.0
+offset_bottom = 655.0
 grow_horizontal = 2
 mouse_filter = 2
 
 [node name="Caption" type="Label" parent="Root/Focus"]
 layout_mode = 1
+anchor_top = 1.0
 anchor_right = 1.0
-offset_bottom = 24.0
+anchor_bottom = 1.0
+offset_top = -28.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 22
 text = "INCOMING"
 horizontal_alignment = 1
+vertical_alignment = 2
 clip_text = true
 text_overrun_behavior = 3
 
 [node name="Face" parent="Root/Focus" instance=ExtResource("3_face")]
 layout_mode = 1
 anchors_preset = 0
-offset_top = 32.0
 offset_right = 512.0
-offset_bottom = 746.0
-scale = Vector2(0.625, 0.625)
+offset_bottom = 716.0
+scale = Vector2(0.703125, 0.703125)
 mouse_filter = 2
 
 [node name="Stack" type="Control" parent="Root/Focus"]

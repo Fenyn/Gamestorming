@@ -93,12 +93,15 @@ One per-duel options block passed from `Session` to the engine at setup, each wi
 | 6.1 | Unlock save file (`user://adventure/unlocks.json`) and `playable_starters()` filtered by it | done | 2026-09-23, `AdventureUnlocks`. The start screen lists `Session.unlocks.available_starters()`; `playable_starters()` still lists every file, for tests and tools. Dev flags `--dev-unlock-all`, `--dev-unlock-reset` on the start screen |
 | 6.2 | Starting three open: `tide_deepwater`, `shade_mind_siege`, `pyre_beatdown` | done | 2026-09-23, `open` in `storylines.json` |
 | 6.3 | Remove the dead `"unlock"` field from the five setup starters | todo | |
-| 6.4 | Finish-a-run unlock: next character | done | 2026-09-23, replaced by quests (`data/adventure/quests.json`, `AdventureQuests`): act 2 bosses open Caedan, Sable and Ember Ascendant; act 1 boss then a finished run opens Steel Inheritance, Scrap Requiem and Last Standing. The second steps are placeholders |
-| 6.4a | Storyline act bosses and act 1 joins | done | 2026-09-23, `AdventureStory`: set act 1 and 2 bosses for the three starters; beating Edric's act 1 boss adds Emrys to the run deck, Mourne's adds Kell. The reward screen's footer names who joined and what unlocked |
-| 6.5 | Second-deck unlocks for Edric, Bram and Siphon | todo | |
-| 6.6 | Quarr unlock | blocked | Rule pending the user |
+| 6.4 | Finish-a-run unlock: next character | done | 2026-09-24, replaced by personality XP and achievements (design doc 8). The 2026-09-23 quests (`quests.json`, `AdventureQuests`) are deleted |
+| 6.4a | Storyline act bosses and act 1 joins | done | 2026-09-23, `AdventureStory`: set act 1 and 2 bosses for the three starters; beating Edric's act 1 boss adds Emrys to the run deck, Mourne's adds Kell |
+| 6.4b | School and personality XP | done | 2026-09-24, `AdventureProgress` (`user://adventure/progress.json`), numbers and authored tracks in `data/adventure/progression.json`. School levels bank the school's cards three at a time and dust past the cap; mastery levels add a Mastery to the collection (the loadout cannot swap a Mastery yet). Tracks authored for Edric, Mourne, Ashmark, Emrys, Alder and Marrow; everyone else gets two signatures a level. Deck abilities (a starting Relic and Reserve from the character's precon) are applied by `AdventureProgress.prepare_run` |
+| 6.4c | Owned Aspects only | done | 2026-09-24. No first-duel grant; boss grants offer only owned cards (`AdventureRun.owned_aspects`, run save version 6). Aspect tiers are no longer bought: removed from `AdventureUpgrades` (save version 2), `economy.json` and the loadout screen |
+| 6.4d | Character select, then deck | done | 2026-09-24, start screen: one tile per character, a deck toggle row when there is more than one. `--dev-deck=N` |
+| 6.5 | Second-deck unlocks for Edric, Bram and Siphon | doing | Edric's Ember Ascendant: achievements and Edric level 5. Ashmark's Last Standing: Ashmark level 3. Siphon waits on hidden chains |
+| 6.6 | Quarr unlock | doing | Secret achievement `quarr_unbroken`: after the Heart, one more won run. Working, the user keeps achievements open |
 | 6.7 | Quarr's own run: final boss | blocked | Pending the user |
-| 6.8 | Mission data model and tracking during runs | doing | 2026-09-23: quests track `boss_won` and `run_won` only. More conditions wait on the quest design with the user |
+| 6.8 | Achievement data model, tracking and journal | done | 2026-09-24, `AdventureAchievements`, `data/adventure/achievements.json`, journal scene `scenes/adventure/journal.tscn`. Steps read a won duel's result (main, starter, node, act, opponent, allies in play at the end, blocks played, peak Aspect) from `DuelEngine.tallies`, kept only on a Referee's engine. Hidden-node chains (Osric, Siphon) are not built: the map has no hidden node yet |
 | 6.9 | Pool unlocks: Relics, Resonances, Grounds | todo | |
 | 6.10 | Personality variant unlocks from encounters and quest nodes | todo | Each variant needs a printed source card first |
 | 6.11 | Harder difficulty after a first clear | todo | |

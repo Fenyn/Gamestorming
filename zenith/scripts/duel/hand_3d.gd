@@ -21,6 +21,8 @@ const BORDER_FX: PackedScene = preload("res://scenes/duel/card_border_fx.tscn")
 const HOVER_TINT: Color = Color(0.48, 0.88, 1.0, 1.0)
 const DULL_FACE: Color = Color(0.42, 0.43, 0.47)   # clearly out of play, still readable up close
 const LEFT_CLEAR: float = 24.0                     # margin the preview keeps from the left screen edge
+const LEGAL_LIFT: float = 24.0                     # design pixels a card the decision takes stands up
+const LEGAL_GLOW: float = 1.6                      # the aura's `highlight` on such a card; 1.0 is a plain legal card
 const PREVIEW_MARGIN: float = 18.0
 
 @export var reduced_motion: bool = false:
@@ -58,6 +60,7 @@ var _hero_left: float = -1.0
 var _hero_right: float = -1.0
 var _hero_bottom: float = -1.0
 var _decision_rect: Rect2 = Rect2()
+var _crest_rect: Rect2 = Rect2()
 
 
 func _ready() -> void:
@@ -169,7 +172,7 @@ func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dic
 	var holder: Node3D = Node3D.new()
 	add_child(holder)
 	var face: Sprite3D = Sprite3D.new()
-	face.texture = cache.face(def, card.aspect)
+	face.texture = cache.face(def, card.aspect, CardFace.NO_BACKDROP, card.owner)
 	face.shaded = false
 	face.no_depth_test = true
 	face.double_sided = false
@@ -209,7 +212,7 @@ func _refresh_item(item: Dictionary, card: SeatCard, def: CardDef, cache: CardFa
 				break
 			if option.type in [&"attack", &"final_strike"]:
 				item["effect_tint"] = ZenithTheme.ATTACK
-	(item["face"] as Sprite3D).texture = cache.face(def, card.aspect)
+	(item["face"] as Sprite3D).texture = cache.face(def, card.aspect, CardFace.NO_BACKDROP, card.owner)
 	(item["title"] as Label3D).text = card.title
 	item["title_text"] = card.title
 	item["hover_title"] = "%s · %s" % [CardText.TYPE_LABELS[def.type], card.title]
@@ -364,6 +367,11 @@ func _layout(snap: bool = false) -> void:
 	if _decision_rect.has_area() and _decision_rect.position.y < _size.y - 58.0 and _decision_rect.end.y > fan_top:
 		fan_shift = minf(0.0, _decision_rect.position.x - PREVIEW_MARGIN - fan_right)
 	var units: float = _units_per_pixel()
+	# While the decision takes a hand card, the cards it takes stand up out of the fan.
+	var asks_hand: bool = false
+	for item in _items:
+		asks_hand = asks_hand or (enabled and bool(item["legal"]))
+	var lift: float = LEGAL_LIFT * _size.y / 1080.0
 	for i in range(_items.size()):
 		var item: Dictionary = _items[i]
 		var node: Node3D = item["node"]
@@ -380,7 +388,7 @@ func _layout(snap: bool = false) -> void:
 		aura.set_shader_parameter("motion", 0.0 if reduced_motion else 1.0)
 		aura.set_shader_parameter("selected", 1.0 if over else 0.0)
 		aura.set_shader_parameter("tint", Color(effect_tint, 1.0) if lit else Color(0.15, 0.20, 0.26, 0.16))
-		aura.set_shader_parameter("highlight", 1.0 if enabled and bool(item["legal"]) else 0.0)
+		aura.set_shader_parameter("highlight", LEGAL_GLOW if enabled and bool(item["legal"]) else 0.0)
 		if not node.visible:
 			item["rect"] = Rect2()
 			continue
@@ -390,6 +398,10 @@ func _layout(snap: bool = false) -> void:
 		if not revealed:
 			# A shallow strip of real card tops advertises the tucked hand.
 			center.y = _size.y + height * (0.5 - RESTING_VISIBLE_FRACTION) + absf(offset) * 5.0
+		if asks_hand and bool(item["legal"]) and not over:
+			center.y -= _legal_lift(center, width, height, lift)
+			if revealed:
+				item["rect"] = Rect2(center - Vector2(width, height) * 0.5, Vector2(width, height))
 		var depth: float = DEPTH - (0.2 if over else 0.001 * i)
 		item["target"] = _camera.to_local(_camera.project_position(center, depth))
 		item["scale"] = depth / DEPTH
@@ -497,6 +509,26 @@ func _layout_preview(item: Dictionary, width: float, height: float, units: float
 	_preview_summary.pixel_size = units * 0.5 / scale_factor
 	_preview_summary.position = Vector3(0, -height * units * 0.5 - 19.0 * units / scale_factor, 0.005)
 	_preview.show()
+
+
+## How far a card the decision takes stands up. The open fan already rises over the readout, but
+## a tucked card stops short of the stat crest rather than cover its bottom row.
+func _legal_lift(center: Vector2, width: float, height: float, lift: float) -> float:
+	if revealed or not _crest_rect.has_area():
+		return lift
+	if center.x + width * 0.5 <= _crest_rect.position.x or center.x - width * 0.5 >= _crest_rect.end.x:
+		return lift
+	var top: float = center.y - height * 0.5
+	return clampf(top - _crest_rect.end.y - 2.0, 0.0, lift)
+
+
+## The near seat's stat crest on screen, so a raised tucked card stays clear of it.
+func set_crest_rect(rect: Rect2) -> void:
+	if _crest_rect.position.distance_to(rect.position) < 1.0 and _crest_rect.size.distance_to(rect.size) < 1.0:
+		return
+	_crest_rect = rect
+	if not revealed:
+		_layout()
 
 
 func _units_per_pixel() -> float:

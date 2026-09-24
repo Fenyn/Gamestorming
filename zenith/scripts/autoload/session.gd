@@ -43,9 +43,11 @@ var upgrades: AdventureUpgrades = AdventureUpgrades.new()
 var unlocks: AdventureUnlocks = AdventureUnlocks.new()
 ## School and personality XP. Outlives a run.
 var progress: AdventureProgress = AdventureProgress.new()
-## What the last recorded duel gave (a join, levels, achievements), one line each; the next screen
-## that shows them clears them.
-var story_lines: Array[String] = []
+## What the last won duel gave, as AdventureProgress.record_win entries. Kept until the reward
+## screen is left, so both its Aspect step and its bundle step show them.
+var win_results: Array[Dictionary] = []
+## The scene the journal's Back returns to.
+var journal_return: String = ADVENTURE_START_SCENE
 ## The referee of the duel in progress, read once it ends for what the achievements track.
 var last_referee: Referee = null
 ## What the load-time trim dissolved, in AdventureCollection's report shape. The first screen that
@@ -114,8 +116,7 @@ func build_referee() -> Referee:
 		# A dev run that opens the duel scene directly never passed a select screen.
 		roll_colors()
 	var pair: Array[DeckList] = [chosen[0], chosen[1]]
-	var names: Array[String] = [player_names[0], player_names[1]]
-	referee.setup(pair, library, strike_table, last_seed, names)
+	referee.setup(pair, library, strike_table, last_seed, seat_names())
 	# Adventure duels run on lives: the player has two, an ordinary opponent one, a boss two
 	# (2026-09-22). Every other mode is the printed game.
 	if in_adventure():
@@ -125,8 +126,44 @@ func build_referee() -> Referee:
 		var guest: String = str(map.duel_for(run.node_id).get("guest", "")) if map != null else ""
 		if guest != "":
 			referee.engine.set_guest_ally(0, guest)
+		# A boss holds one banned card as a special power, outside its deck.
+		var power: String = AdventureRules.boss_power_for(map.duel_for(run.node_id) if map != null else {}, run.run_seed, run.node_id, library)
+		if power != "":
+			referee.engine.set_boss_power(1, power)
+	# `--dev-boss-power=<card id>` hands seat 2 a boss power in any duel, for a screenshot check.
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--dev-boss-power="):
+			referee.engine.set_boss_power(1, arg.substr("--dev-boss-power=".length()))
 	last_referee = referee
 	return referee
+
+
+## The names the rules use for the two seats, in the log and on every panel. At a hotseat table the
+## two people are "Player 1" and "Player 2". Against the AI, online or in an adventure the crests
+## name the duelists, so a seat still on a stock name takes its duelist's instead; a name a player
+## typed is kept, and a mirror match keeps the stock names so the two seats still read apart.
+func seat_names() -> Array[String]:
+	var names: Array[String] = [player_names[0], player_names[1]]
+	if ai_seat < 0 and Net.mode == "" and not in_adventure():
+		return names
+	var duelists: Array[String] = [duelist_name(chosen[0]), duelist_name(chosen[1])]
+	if duelists[0] == duelists[1]:
+		return names
+	for seat in range(2):
+		if duelists[seat] != "" and is_stock_name(names[seat], seat):
+			names[seat] = duelists[seat]
+	return names
+
+
+static func is_stock_name(value: String, seat: int) -> bool:
+	return value == "Player %d" % (seat + 1) or value == "The AI"
+
+
+func duelist_name(deck: DeckList) -> String:
+	if deck == null:
+		return ""
+	var face: CardDef = library.defs.get(deck.duelist_face_id())
+	return face.title if face != null else ""
 
 
 ## A fresh roll of the seat colours, for a new battle. Offline the select screen does it; online
@@ -275,8 +312,8 @@ func begin_stage() -> void:
 func record_stage(won: bool) -> void:
 	if won:
 		var engine: DuelEngine = last_referee.engine if last_referee != null else null
-		story_lines.append_array(AdventureProgress.record_win(run, map, engine, library, collection,
-			unlocks, progress, wallet))
+		win_results = AdventureProgress.record_win(run, map, engine, library, collection,
+			unlocks, progress, wallet)
 		unlocks.save()
 		progress.save()
 		collection.save()
@@ -329,6 +366,7 @@ func finish_aspect(card_id: String) -> void:
 ## Leaves the reward screen for the map, or the run's end. Beating the final boss pays the
 ## completion bonus and opens the settlement, where the run deck is on offer at a discount.
 func finish_reward() -> void:
+	win_results.clear()
 	var bonus: int = AdventureRewards.finish_reward(run, map)
 	if bonus > 0:
 		wallet.earn(bonus, AdventureWallet.REASON_COMPLETION, run.run_id)
@@ -403,13 +441,6 @@ func dissolve_card(id: String) -> int:
 	return paid
 
 
-## What the last won duel gave, one line each, handed over once. Empty when it gave nothing.
-func take_story_lines() -> Array[String]:
-	var out: Array[String] = story_lines.duplicate()
-	story_lines.clear()
-	return out
-
-
 ## The pending auto-dissolve line, handed over once. "" when there is nothing to show.
 func take_dissolve_report() -> String:
 	var line: String = AdventureCollection.report_line(dissolve_report)
@@ -434,7 +465,13 @@ func go_to_vendor() -> void:
 
 
 func go_to_journal() -> void:
+	journal_return = get_tree().current_scene.scene_file_path if get_tree().current_scene != null \
+		else ADVENTURE_START_SCENE
 	get_tree().change_scene_to_file(_scene_or_start(ADVENTURE_JOURNAL_SCENE))
+
+
+func leave_journal() -> void:
+	get_tree().change_scene_to_file(_scene_or_start(journal_return))
 
 
 func go_to_loadout() -> void:

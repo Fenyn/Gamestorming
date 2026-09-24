@@ -53,7 +53,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"HeaderLabel"
 theme_override_font_sizes/font_size = 24
-text = "Choose your champion"
+text = "Choose your character"
 
 [node name="Journal" type="Button" parent="Margin/Column/TitleRow"]
 custom_minimum_size = Vector2(130, 44)
@@ -84,7 +84,7 @@ theme_override_constants/separation = 16
 [node name="Header" type="Label" parent="Margin/Column/Body/Library"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "STARTERS"
+text = "CHARACTERS"
 
 [node name="Scroll" type="ScrollContainer" parent="Margin/Column/Body/Library"]
 layout_mode = 2
@@ -120,11 +120,6 @@ theme_type_variation = &"WarnLabel"
 text = ""
 horizontal_alignment = 2
 autowrap_mode = 3
-
-[node name="Decks" type="HBoxContainer" parent="Margin/Column/Footer"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/separation = 8
 
 [node name="Loadout" type="Button" parent="Margin/Column/Footer"]
 custom_minimum_size = Vector2(140, 52)

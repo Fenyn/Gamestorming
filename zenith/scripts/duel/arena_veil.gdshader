@@ -6,7 +6,7 @@ render_mode unshaded, cull_disabled, depth_draw_never, shadows_disabled;
 // while the rest of the table recedes. `amount` fades it in and out.
 
 uniform float amount : hint_range(0.0, 1.0) = 0.0;
-uniform float darkness : hint_range(0.0, 1.0) = 0.88;
+uniform float darkness : hint_range(0.0, 1.0) = 0.5;
 uniform vec2 plane_size = vec2(40.0, 40.0);
 uniform float hole_radius = 0.9;
 uniform float feather = 0.45;

@@ -1,8 +1,7 @@
 class_name AdventureAchievements
 extends RefCounted
-## Achievements from data/adventure/achievements.json: steps tracked in the background from duel
-## results, listed in the journal. A completed achievement fires an event of its own, so one
-## achievement can be a step of another.
+## Achievements from data/adventure/achievements.json. A completed achievement fires an event of
+## its own, so one achievement can be a step of another.
 
 const DATA: String = "res://data/adventure/achievements.json"
 
@@ -20,9 +19,7 @@ static func all() -> Array[Dictionary]:
 	return out
 
 
-## Advances every achievement by `events`, in order. Completing one records it in `unlocks` and
-## queues its own event. Returns the achievements completed, in the order they completed; their
-## rewards are the caller's to grant (AdventureProgress.grant).
+## Returns the achievements completed, in order; granting their rewards is the caller's job.
 static func apply(unlocks: AdventureUnlocks, events: Array[Dictionary]) -> Array[Dictionary]:
 	var done_now: Array[Dictionary] = []
 	var list: Array[Dictionary] = all()
@@ -33,9 +30,7 @@ static func apply(unlocks: AdventureUnlocks, events: Array[Dictionary]) -> Array
 		i += 1
 		for a in list:
 			var id: String = str(a.get("id", ""))
-			if unlocks.is_complete(id):
-				continue
-			if not _advance(unlocks, a, event):
+			if unlocks.is_complete(id) or not _advance(unlocks, a, event):
 				continue
 			if unlocks.steps_done(id).size() >= (a.get("steps", []) as Array).size():
 				unlocks.completed.append(id)
@@ -44,8 +39,8 @@ static func apply(unlocks: AdventureUnlocks, events: Array[Dictionary]) -> Array
 	return done_now
 
 
-## Marks the step `event` finishes, if any. An ordered achievement only takes its next step; an
-## unordered one takes the first unfinished step that matches. True when a step was marked.
+## An ordered achievement only takes its next step; an unordered one takes the first unfinished
+## step that matches.
 static func _advance(unlocks: AdventureUnlocks, a: Dictionary, event: Dictionary) -> bool:
 	var id: String = str(a.get("id", ""))
 	var steps: Array = a.get("steps", [])
@@ -87,29 +82,61 @@ static func matches(step: Dictionary, event: Dictionary) -> bool:
 	return true
 
 
-## The journal's rows, in data order: {id, character, title, hint, state, done, total}. `state` is
-## "complete", "open" (public, or hidden with a step done) or "unknown" (hidden, no step yet).
-## Secret achievements appear only once complete.
-static func journal(unlocks: AdventureUnlocks) -> Array[Dictionary]:
+## The journal's rows, in data order: {id, group, title, hint, reward, state, done, total, secret}.
+## `state` is "complete", "progress" (a step done), "open" or "unknown" (hidden, no step yet).
+## A secret achievement appears only once complete.
+static func journal(unlocks: AdventureUnlocks, library: CardLibrary) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for a in all():
 		var id: String = str(a.get("id", ""))
 		var visibility: String = str(a.get("visibility", "public"))
 		var done: int = unlocks.steps_done(id).size()
-		var complete: bool = unlocks.is_complete(id)
-		var state: String = "complete" if complete else "open"
-		if not complete:
-			if visibility == "secret":
-				continue
-			if visibility == "hidden" and done == 0:
-				state = "unknown"
+		var state: String = "open"
+		if unlocks.is_complete(id):
+			state = "complete"
+		elif visibility == "secret":
+			continue
+		elif visibility == "hidden" and done == 0:
+			state = "unknown"
+		elif done > 0:
+			state = "progress"
+		var hint: String = str(a.get("hint", ""))
+		if visibility == "hidden" and done > 0 and a.has("hint_revealed"):
+			hint = str(a["hint_revealed"])
 		out.append({
 			"id": id,
-			"character": str(a.get("character", "")),
-			"title": str(a.get("title", id)) if state != "unknown" else "???",
-			"hint": str(a.get("hint", "")) if state != "unknown" else "",
+			"group": str(a.get("group", a.get("character", ""))),
+			"title": str(a.get("title", id)) if state != "unknown" else "Undiscovered",
+			"hint": hint if state != "unknown" else str(a.get("teaser", "")),
+			"reward": AdventureProgress.reward_text(a, library) if state != "unknown" else "",
 			"state": state,
 			"done": done,
 			"total": (a.get("steps", []) as Array).size(),
+			"secret": visibility == "secret",
 		})
+	return out
+
+
+## "Sir Edric Rooke" -> "Edric".
+static func short_name(character: String) -> String:
+	var words: PackedStringArray = character.split(" ")
+	if words.size() > 1 and (words[0] == "Sir" or words[0] == "Dame"):
+		return words[1]
+	return words[0]
+
+
+## What opens `starter_id`, in words: achievement titles (or "a hidden achievement") and "<name>
+## level N". Empty for a starter nothing opens.
+static func unlock_sources(starter_id: String) -> Array[String]:
+	var out: Array[String] = []
+	for a in all():
+		if str(a.get("starter", "")) != starter_id:
+			continue
+		var visibility: String = str(a.get("visibility", "public"))
+		out.append(str(a.get("title", "")) if visibility == "public" else "a hidden achievement")
+	var tracks: Dictionary = AdventureProgress.data().get("tracks", {})
+	for character in tracks.keys():
+		for level in (tracks[character] as Dictionary).keys():
+			if str((tracks[character][level] as Dictionary).get("starter", "")) == starter_id:
+				out.append("%s level %s" % [short_name(str(character)), str(level)])
 	return out

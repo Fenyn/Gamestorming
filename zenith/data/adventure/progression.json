@@ -22,8 +22,8 @@
 		"Sir Edric Rooke": {
 			"2": { "cards": ["signature_art_04", "signature_drill_05"] },
 			"3": { "abilities": ["start_relic", "start_reserve"] },
-			"4": { "cards": ["personality_33"] },
-			"5": { "cards": ["signature_combat_06", "signature_strike_06"], "starter": "pyre_ascent_start" },
+			"4": { "cards": ["signature_combat_06", "signature_strike_06"] },
+			"5": { "starter": "pyre_ascent_start" },
 			"7": { "cards": ["personality_34"] }
 		},
 		"Gideon Mourne": {

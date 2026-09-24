@@ -12,7 +12,7 @@ extends Control
 
 const ART_DIR: String = "res://assets/card_art/"
 const INK: Color = Color(0.10, 0.08, 0.06)
-const CREAM: Color = Color(0.93, 0.90, 0.84)
+const CREAM: Color = Color(0.88, 0.84, 0.75)
 const CONTENT_WIDTH: float = 452.0        # face width less the margins
 const CONTENT_HEIGHT: float = 664.0
 const TEXT_SIZES: Array[int] = [24, 22, 20, 18, 17, 16, 15, 14, 13, 12]
@@ -140,8 +140,9 @@ func _ready() -> void:
 ## `energy` is live Energy for a personality in play (-1 for none): the rung for the current stage
 ## lights up. `standing` is the owning player when the card is a duelist in play: Fervor pips
 ## appear under the name, one per point needed, and the Surge badge shows the live Recover gain.
-## `backdrop` is the deck colour behind a personality portrait (see NO_BACKDROP).
-func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPlayer = null, backdrop: Color = NO_BACKDROP) -> void:
+## `backdrop` is the deck colour behind a personality portrait (see NO_BACKDROP). `table_base` is
+## the Strike Table result for the matchup the card is shown in, -1 outside a duel.
+func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPlayer = null, backdrop: Color = NO_BACKDROP, table_base: int = -1) -> void:
 	inner.visible = true
 	var color: Color = Palette.frame_color(def)
 	_style(frame, color, FRAME_RADIUS, Palette.frame_edge(def))
@@ -155,10 +156,10 @@ func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPla
 	else:
 		person.visible = false
 		margin.visible = true
-		_show_standard(def, color, picture)
+		_show_standard(def, color, picture, table_base)
 
 
-func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
+func _show_standard(def: CardDef, color: Color, picture: Texture2D, table_base: int = -1) -> void:
 	var art_height: float = float(ART_HEIGHTS.get(def.type, 280))
 	art.custom_minimum_size = Vector2(0, art_height)
 	_style(art, color.darkened(0.35), FRAME_RADIUS)
@@ -178,7 +179,7 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 	cost_badge.visible = cost > 0
 	cost_num.text = str(cost)
 	# The base attack in the other corner: what the card adds before the table and the modifiers.
-	var badge: Dictionary = CardText.attack_badge(def)
+	var badge: Dictionary = CardText.attack_badge(def, table_base)
 	attack_badge.visible = not badge.is_empty()
 	if not badge.is_empty():
 		attack_kind.text = str(badge["kind"]).to_upper()

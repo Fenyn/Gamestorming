@@ -95,7 +95,9 @@ sit is already settled in `cast.md`; only the names are missing.
 ## 3. Named cards with no mirror character yet
 
 Each row needs a character invented and placed before its cards can be retitled. The card types
-say what kind of person the cards imply.
+say what kind of person the cards imply. Since 2026-09-24 every card below is titled
+"PLACEHOLDER's <title>" (user ruling), so the missing name shows on the card; replace the word
+with the character's title name once it is approved. Ids are unchanged.
 
 | source character | n | cards | card types |
 |---|---|---|---|

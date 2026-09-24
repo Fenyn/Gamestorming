@@ -9,16 +9,16 @@ uniform sampler2D fabric : source_color, filter_linear_mipmap_anisotropic, repea
 uniform sampler2D rim_fabric : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform vec2 plane_size = vec2(10.4, 7.4);
 uniform float tile = 3.07;
-uniform vec2 lobe_half = vec2(4.15, 1.52);
+uniform vec2 lobe_half = vec2(4.4, 1.62);
 uniform float lobe_centre = 2.08;
 uniform vec2 waist_half = vec2(2.4, 0.75);
 uniform float ring_radius = 1.2;
 uniform float corner = 0.3;
 uniform float fillet = 0.35;
 uniform float rim = 0.12;
-uniform vec4 fabric_tint : source_color = vec4(0.8, 0.8, 0.82, 1.0);
-uniform vec4 rim_tint : source_color = vec4(0.85, 0.8, 0.8, 1.0);
-uniform vec4 ink : source_color = vec4(0.86, 0.82, 0.74, 0.32);
+uniform vec4 fabric_tint : source_color = vec4(0.50, 0.20, 0.20, 1.0);
+uniform vec4 rim_tint : source_color = vec4(0.18, 0.14, 0.13, 1.0);
+uniform vec4 ink : source_color = vec4(0.90, 0.86, 0.80, 0.45);
 
 float round_box(vec2 p, vec2 half_size, float r) {
 	vec2 q = abs(p) - half_size + r;
@@ -49,10 +49,12 @@ void fragment() {
 		discard;
 	}
 	vec2 uv = p / tile;
-	vec3 col = texture(fabric, uv).rgb * fabric_tint.rgb;
+	// The fabric texture is khaki; its hue is dropped so the tint alone sets the mat's colour.
+	vec3 weave = vec3(dot(texture(fabric, uv).rgb, vec3(0.3, 0.59, 0.11)));
+	vec3 col = weave * fabric_tint.rgb * 1.4;
 	col = mix(col, texture(rim_fabric, uv).rgb * rim_tint.rgb, smoothstep(-rim - 0.012, -rim + 0.012, d));
-	// Printed rules: one inset along the outline, one round the arena.
-	float ink_mask = max(rule(d + rim + 0.08, 0.02), rule(length(p) - ring_radius + 0.1, 0.024));
+	// One printed rule round the arena. The rim alone marks the edge, so captions near it stay clear.
+	float ink_mask = rule(length(p) - ring_radius + 0.1, 0.024);
 	col = mix(col, ink.rgb, ink_mask * ink.a);
 	ALBEDO = col;
 	ROUGHNESS = 1.0;

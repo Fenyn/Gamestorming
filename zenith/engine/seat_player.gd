@@ -32,6 +32,8 @@ var restrictions: Array[String] = []   # forbid `what` words in force; CardText.
 var duelist: int = -1
 var mastery: int = -1
 var relic: int = -1
+var boss_power: int = -1         # an adventure boss's special power card, -1 for none
+var boss_power_left: int = 0     # uses it has left this duel
 var controlling: int = -1
 var reserve: Array[int] = []
 var life_deck: Array[int] = []   # top first
@@ -60,7 +62,7 @@ func to_dict() -> Dictionary:
 		"energy": energy, "energy_printed": energy_printed, "energy_delta": energy_delta,
 		"might": might, "might_printed": might_printed, "might_delta": might_delta,
 		"restrictions": restrictions, "duelist": duelist, "mastery": mastery,
-		"relic": relic, "controlling": controlling, "reserve": reserve, "life_deck": life_deck,
+		"relic": relic, "boss_power": boss_power, "boss_power_left": boss_power_left, "controlling": controlling, "reserve": reserve, "life_deck": life_deck,
 		"hand": hand, "discard": discard, "removed": removed, "allies": allies, "drills": drills,
 		"non_combats": non_combats, "seals": seals, "remain": remain, "attachments": attachments,
 		"must_pass": must_pass,
@@ -95,6 +97,8 @@ static func from_dict(d: Dictionary) -> SeatPlayer:
 	p.duelist = int(d.get("duelist", -1))
 	p.mastery = int(d.get("mastery", -1))
 	p.relic = int(d.get("relic", -1))
+	p.boss_power = int(d.get("boss_power", -1))
+	p.boss_power_left = int(d.get("boss_power_left", 0))
 	p.controlling = int(d.get("controlling", -1))
 	p.reserve = ints(d.get("reserve", []))
 	p.life_deck = ints(d.get("life_deck", []))
@@ -169,6 +173,8 @@ static func of(p: PlayerState, engine: DuelEngine) -> SeatPlayer:
 	v.duelist = p.duelist.uid
 	v.mastery = p.mastery.uid if p.mastery != null else -1
 	v.relic = p.relic.uid if p.relic != null else -1
+	v.boss_power = p.boss_power.uid if p.boss_power != null else -1
+	v.boss_power_left = DuelEngine.BOSS_POWER_USES - p.boss_power_uses if p.boss_power != null else 0
 	v.controlling = p.in_control().uid
 	v.reserve = _uids(p.reserve)
 	v.life_deck = _uids(p.life_deck)

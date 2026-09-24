@@ -334,6 +334,9 @@
   },
   {
    "id": "personality_10",
+   "tags": [
+	"draik"
+   ],
    "title": "Sable Draik",
    "type": "personality",
    "school": "",
@@ -357,18 +360,23 @@
    "constant": {
 	"allies_share": true,
 	"ally_control_any_stage": true,
+	"ally_control_tag": "draik",
 	"modifiers": [
 	 {
 	  "scope": "own",
 	  "kind": "any",
 	  "stages": 1,
-	  "per_ally": true
+	  "per_ally": true,
+	  "ally_tag": "draik"
 	 }
 	]
    }
   },
   {
    "id": "personality_11",
+   "tags": [
+	"draik"
+   ],
    "title": "Sable Draik",
    "type": "personality",
    "school": "",
@@ -392,6 +400,7 @@
    "constant": {
 	"allies_share": true,
 	"ally_control_any_stage": true,
+	"ally_control_tag": "draik",
 	"damage_removes": true,
 	"modifiers": [
 	 {
@@ -404,6 +413,9 @@
   },
   {
    "id": "personality_12",
+   "tags": [
+	"draik"
+   ],
    "title": "Sable Draik",
    "type": "personality",
    "school": "",
@@ -427,7 +439,9 @@
    "constant": {
 	"allies_share": true,
 	"ally_control_any_stage": true,
-	"attacks_focused": true
+	"ally_control_tag": "draik",
+	"attacks_focused": true,
+	"attacks_focused_tag": "draik"
    }
   },
   {
@@ -456,7 +470,13 @@
 	"on_attack": [
 	 {
 	  "op": "fervor",
-	  "amount": 1
+	  "amount": 1,
+	  "instead": {
+	   "amount": 2,
+	   "when": {
+		"character_in_play": "Sir Edric Rooke"
+	   }
+	  }
 	 }
 	]
    },
@@ -470,7 +490,7 @@
    "character": "Halden Quarr",
    "aspect": 2,
    "aspect_title": "Tempered",
-   "surge": 3,
+   "surge": 2,
    "might": [
 	0,
 	21,
@@ -487,31 +507,28 @@
    "constant": {
 	"entering_combat": [
 	 {
+	  "may": true,
 	  "op": "remove_discard",
 	  "amount": 1,
 	  "when": {
 	   "discard_top_school": "steel"
-	  }
-	 },
-	 {
-	  "op": "fervor",
-	  "amount": 2,
-	  "when": {
-	   "discard_top_school": "steel"
-	  }
-	 },
-	 {
-	  "op": "float",
-	  "what": "modifier",
-	  "duration": "combat",
-	  "params": {
-	   "scope": "own",
-	   "kind": "strike",
-	   "stages": 2
 	  },
-	  "when": {
-	   "discard_top_school": "steel"
-	  }
+	  "then": [
+	   {
+		"op": "fervor",
+		"amount": 2
+	   },
+	   {
+		"op": "float",
+		"what": "modifier",
+		"duration": "combat",
+		"params": {
+		 "scope": "own",
+		 "kind": "strike",
+		 "stages": 2
+		}
+	   }
+	  ]
 	 }
 	]
    },
@@ -544,8 +561,16 @@
 	 "kind": "strike",
 	 "stages": 4
 	},
-	"uses": 2,
 	"effects": [
+	 {
+	  "op": "float",
+	  "what": "power_second_use",
+	  "duration": "combat",
+	  "when": {
+	   "discard_top_school": "steel",
+	   "first_power_use": true
+	  }
+	 },
 	 {
 	  "op": "float",
 	  "what": "modifier",
@@ -556,7 +581,8 @@
 	   "life": 2
 	  },
 	  "when": {
-	   "discard_top_school": "steel"
+	   "discard_top_school": "steel",
+	   "first_power_use": true
 	  }
 	 }
 	]
@@ -732,6 +758,7 @@
 	  "trigger": "entering_combat",
 	  "op": "draw",
 	  "amount": 3,
+	  "up_to": true,
 	  "role": "attacker"
 	 }
 	]
@@ -1319,7 +1346,8 @@
 	  "trigger": "entering_combat",
 	  "op": "search",
 	  "card_type": "strike_or_art",
-	  "to": "hand"
+	  "to": "hand",
+	  "show": true
 	 }
 	]
    },
@@ -1431,6 +1459,9 @@
   },
   {
    "id": "personality_40",
+   "tags": [
+	"draik"
+   ],
    "title": "Vesna Draik",
    "type": "personality",
    "school": "",
@@ -1471,6 +1502,9 @@
   },
   {
    "id": "personality_41",
+   "tags": [
+	"draik"
+   ],
    "title": "Brann Draik",
    "type": "personality",
    "school": "",
@@ -1511,6 +1545,9 @@
   },
   {
    "id": "personality_42",
+   "tags": [
+	"draik"
+   ],
    "title": "Quill Draik",
    "type": "personality",
    "school": "",
@@ -1560,6 +1597,9 @@
   },
   {
    "id": "personality_43",
+   "tags": [
+	"draik"
+   ],
    "title": "Halvard Draik",
    "type": "personality",
    "school": "",
@@ -1627,6 +1667,7 @@
 	"effects": [
 	 {
 	  "trigger": "if_successful",
+	  "may": true,
 	  "op": "draw_discard",
 	  "amount": 2,
 	  "from": "bottom"
@@ -1799,7 +1840,7 @@
 	 {
 	  "op": "shuffle_discard",
 	  "amount": 1,
-	  "per_personality": true
+	  "per_bloodline": "draconic"
 	 }
 	]
    },
@@ -2552,7 +2593,7 @@
   },
   {
    "id": "grounds_03",
-   "title": "Tollgate Yard",
+   "title": "PLACEHOLDER's Tollgate Yard",
    "type": "grounds",
    "school": "",
    "limit_per_deck": 3,
@@ -2576,7 +2617,7 @@
   },
   {
    "id": "grounds_06",
-   "title": "The High Watch",
+   "title": "PLACEHOLDER's High Watch",
    "type": "grounds",
    "school": "",
    "limit_per_deck": 3,
@@ -2975,7 +3016,7 @@
   {
    "id": "freestyle_art_01",
    "limit_per_deck": 1,
-   "title": "Dead Air",
+   "title": "PLACEHOLDER's Dead Air",
    "type": "art",
    "school": "",
    "defense": {
@@ -3080,7 +3121,7 @@
    "limit_per_deck": 1,
    "use_in_attack": true,
    "defense": {
-	"stops": "any"
+	"stops": "none"
    },
    "effects": [
 	{
@@ -3092,7 +3133,7 @@
   },
   {
    "id": "freestyle_combat_03",
-   "title": "Terms of the Pact",
+   "title": "PLACEHOLDER's Terms of the Pact",
    "type": "combat",
    "school": "",
    "defense": {
@@ -3151,7 +3192,7 @@
   },
   {
    "id": "freestyle_combat_04",
-   "title": "Sever the Leyline",
+   "title": "PLACEHOLDER's Sever the Leyline",
    "type": "combat",
    "school": "",
    "effects": [
@@ -3213,7 +3254,7 @@
 	{
 	 "op": "forbid",
 	 "who": "opponent",
-	 "what": "strike_attacks",
+	 "what": "strike_attack_cards",
 	 "duration": "combat"
 	}
    ]
@@ -3317,7 +3358,7 @@
   {
    "id": "freestyle_combat_10",
    "limit_per_deck": 1,
-   "title": "Old Trick",
+   "title": "PLACEHOLDER's Old Trick",
    "type": "combat",
    "school": "",
    "effects": [
@@ -3473,7 +3514,7 @@
   {
    "id": "freestyle_combat_16",
    "limit_per_deck": 1,
-   "title": "Keen Eye",
+   "title": "PLACEHOLDER's Keen Eye",
    "type": "combat",
    "school": "",
    "effects": [
@@ -3515,7 +3556,7 @@
   },
   {
    "id": "freestyle_combat_17",
-   "title": "Dismissal",
+   "title": "PLACEHOLDER's Dismissal",
    "type": "combat",
    "school": "",
    "effects": [
@@ -3574,7 +3615,7 @@
   },
   {
    "id": "freestyle_art_02",
-   "title": "Unerring Bolt",
+   "title": "PLACEHOLDER's Unerring Bolt",
    "type": "art",
    "school": "",
    "attack": {
@@ -3599,7 +3640,7 @@
 	{
 	 "trigger": "if_successful",
 	 "op": "remove_discard",
-	 "who": "opponent",
+	 "choose_player": true,
 	 "all": true,
 	 "after_empower": true
 	},
@@ -3657,7 +3698,7 @@
   {
    "id": "freestyle_strike_01",
    "limit_per_deck": 1,
-   "title": "Old Habit",
+   "title": "PLACEHOLDER's Old Habit",
    "type": "strike",
    "school": "",
    "attack": {
@@ -3757,7 +3798,7 @@
   },
   {
    "id": "freestyle_art_04",
-   "title": "Overreach",
+   "title": "PLACEHOLDER's Overreach",
    "type": "art",
    "school": "",
    "attack": {
@@ -3804,9 +3845,10 @@
 	},
 	{
 	 "trigger": "if_successful",
-	 "may": true,
 	 "op": "return_removed",
-	 "card_type": "ally"
+	 "card_type": "ally",
+	 "tag": "draik",
+	 "choose": true
 	}
    ],
    "remove_after_use": true
@@ -3833,7 +3875,10 @@
    ],
    "remain_when": {
 	"when": {
-	 "allies_min": 2
+	 "allies_tag_min": {
+	  "tag": "draik",
+	  "count": 2
+	 }
 	},
 	"remain": 1
    },
@@ -3846,7 +3891,8 @@
    "school": "",
    "attack": {
 	"kind": "art",
-	"life_per_ally": 2
+	"life_per_ally": 2,
+	"ally_tag": "draik"
    },
    "endurance": 2,
    "effects": [
@@ -3857,6 +3903,7 @@
    ],
    "remain": 1,
    "remain_by": "ally",
+   "remain_by_tag": "draik",
    "remove_after_use": true
   },
   {
@@ -3897,7 +3944,7 @@
   },
   {
    "id": "freestyle_art_06",
-   "title": "Captain's Barrage",
+   "title": "PLACEHOLDER's Barrage",
    "type": "art",
    "school": "",
    "attack": {
@@ -3949,7 +3996,7 @@
 	{
 	 "trigger": "if_successful",
 	 "op": "attach",
-	 "to": "in_control"
+	 "to": "choose"
 	}
    ],
    "attachment": {
@@ -3979,6 +4026,7 @@
 	 "exclude_title": "Sledge's Set Stance",
 	 "to": "hand",
 	 "when": {
+	  "performed_by": "duelist",
 	  "duelist_tag": "construct"
 	 }
 	}
@@ -3990,7 +4038,7 @@
   },
   {
    "id": "freestyle_strike_03",
-   "title": "Headlong Plunge",
+   "title": "PLACEHOLDER's Headlong Plunge",
    "type": "strike",
    "school": "",
    "attack": {
@@ -4155,11 +4203,17 @@
 	},
 	{
 	 "op": "search",
-	 "signature_of": "duelist",
+	 "character": [
+	  "Caedan Vale",
+	  "Tavin Vale"
+	 ],
 	 "source": "discard",
 	 "to": "hand",
 	 "when": {
-	  "duelist_character": "Caedan Vale"
+	  "character": [
+	   "Caedan Vale",
+	   "Tavin Vale"
+	  ]
 	 },
 	 "after_empower": true
 	}
@@ -4327,7 +4381,8 @@
 	{
 	 "op": "remove_discard",
 	 "who": "opponent",
-	 "amount": 5
+	 "amount": 5,
+	 "choose": true
 	},
 	{
 	 "op": "energy",
@@ -4423,7 +4478,7 @@
   },
   {
    "id": "freestyle_strike_06",
-   "title": "Second Wind",
+   "title": "PLACEHOLDER's Second Wind",
    "type": "strike",
    "school": "",
    "defense": {
@@ -4552,7 +4607,7 @@
   {
    "id": "freestyle_noncombat_03",
    "limit_per_deck": 1,
-   "title": "Clear Mind",
+   "title": "PLACEHOLDER's Clear Mind",
    "type": "non_combat",
    "school": "",
    "effects": [
@@ -4764,8 +4819,11 @@
 	},
 	{
 	 "trigger": "use",
-	 "op": "shuffle_discard",
-	 "amount": 5
+	 "op": "search",
+	 "source": "discard",
+	 "amount": 5,
+	 "must": true,
+	 "to": "deck_shuffle"
 	},
 	{
 	 "trigger": "use",
@@ -4880,6 +4938,7 @@
    ],
    "attachment": {
 	"target": "duelist",
+	"limit_attached": 1,
 	"title_contains": "Sword",
 	"damage_removes": true,
 	"modifiers": [
@@ -5154,14 +5213,14 @@
 	 "trigger": "if_successful",
 	 "op": "forbid",
 	 "who": "opponent",
-	 "what": "art_attacks",
+	 "what": "art_attack_cards",
 	 "duration": "combat"
 	}
    ]
   },
   {
    "id": "freestyle_art_08",
-   "title": "Blinding Flare",
+   "title": "PLACEHOLDER's Blinding Flare",
    "type": "art",
    "school": "",
    "attack": {
@@ -5288,7 +5347,7 @@
   },
   {
    "id": "freestyle_noncombat_14",
-   "title": "Warden's Measure",
+   "title": "PLACEHOLDER's Measure",
    "type": "non_combat",
    "school": "",
    "alignment_only": "vigil",
@@ -5305,7 +5364,7 @@
   },
   {
    "id": "freestyle_noncombat_15",
-   "title": "Sleight",
+   "title": "PLACEHOLDER's Sleight",
    "type": "non_combat",
    "school": "",
    "remove_after_use": true,
@@ -12611,6 +12670,73 @@
 	 }
 	}
    ]
+  },
+  {
+   "id": "freestyle_noncombat_19",
+   "title": "Undone Before It Lands",
+   "type": "non_combat",
+   "school": "",
+   "counter": "any",
+   "counter_removes": true,
+   "banned": true,
+   "limit_per_deck": 1
+  },
+  {
+   "id": "freestyle_noncombat_20",
+   "title": "Tempers Leveled",
+   "type": "non_combat",
+   "school": "",
+   "banned": true,
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "set_fervor",
+	 "amount": 3
+	},
+	{
+	 "trigger": "use",
+	 "op": "set_fervor",
+	 "who": "opponent",
+	 "amount": 3
+	}
+   ]
+  },
+  {
+   "id": "freestyle_combat_21",
+   "title": "Nothing Goes to Waste",
+   "type": "combat",
+   "school": "",
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "on_hand_play",
+	 "duration": "combat",
+	 "params": {
+	  "effects": [
+	   {
+		"may": true,
+		"op": "recover",
+		"amount": 2,
+		"from": "bottom",
+		"when": {
+		 "discard_min": 2
+		},
+		"then": [
+		 {
+		  "op": "energy",
+		  "amount": 2,
+		  "target": "duelist"
+		 }
+		]
+	   }
+	  ]
+	 }
+	}
+   ],
+   "remove_after_use": true,
+   "banned": true,
+   "limit_per_deck": 1
   }
  ]
 }

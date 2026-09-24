@@ -1,11 +1,11 @@
 {
-	"_note": "Achievements, design doc section 8.5. `visibility`: public (listed from the start), hidden (\"???\" until the first step, then the hint), secret (invisible until done). Steps complete in order unless `ordered` is false. A step matches a won duel's result when every field it names agrees: `event` (duel_won or run_won), `main`, `starter`, `node`, `act`, `act_min`, `opponent`, `allies_all`, `blocks_max`, `aspect_min`; `achievement` matches the event fired when that achievement completes. Rewards: `cards` into the collection, `starter` to open. The specific set is still a working list.",
+	"_note": "Design doc section 8.5. visibility: public, hidden (teaser until the first step, then hint_revealed), secret (invisible until done). Steps complete in order unless ordered is false. Step fields: event (duel_won, run_won), main, starter, node, act, act_min, opponent, allies_all, blocks_max, aspect_min, or achievement. Rewards: cards, starter. group sets the journal heading; it defaults to character.",
 	"achievements": [
 		{
 			"id": "edric_line_holds",
 			"character": "Sir Edric Rooke",
 			"title": "The line holds",
-			"hint": "Win beside your wife and your eldest.",
+			"hint": "As Sir Edric Rooke, win a duel with Dame Alder Rooke and Emrys Rooke both in play at the end.",
 			"visibility": "public",
 			"steps": [{ "event": "duel_won", "main": "Sir Edric Rooke", "allies_all": ["Dame Alder Rooke", "Emrys Rooke"] }],
 			"cards": ["personality_32"]
@@ -14,7 +14,7 @@
 			"id": "edric_vale_test",
 			"character": "Sir Edric Rooke",
 			"title": "The Vale test",
-			"hint": "Beat Caedan Vale at the end of Edric's act 2.",
+			"hint": "Beat Caedan Vale, the act 2 boss of a Crushing Depths run.",
 			"visibility": "public",
 			"steps": [{ "event": "duel_won", "starter": "tide_deepwater_start", "node": "boss", "act": 2 }],
 			"starter": "freestyle_swords_start"
@@ -23,19 +23,21 @@
 			"id": "edric_fire_in_the_knight",
 			"character": "Sir Edric Rooke",
 			"title": "Fire in the knight",
-			"hint": "Meet the monster again, deeper in, and hold.",
+			"teaser": "Edric has a score to settle.",
+			"hint_revealed": "As Sir Edric Rooke, beat Bram Ashmark again in act 2 or later, standing at Aspect 3 or higher.",
 			"visibility": "hidden",
 			"steps": [
 				{ "event": "duel_won", "main": "Sir Edric Rooke", "opponent": "Bram Ashmark" },
 				{ "event": "duel_won", "main": "Sir Edric Rooke", "opponent": "Bram Ashmark", "act_min": 2, "aspect_min": 3 }
 			],
-			"starter": "pyre_ascent_start"
+			"cards": ["personality_33"]
 		},
 		{
 			"id": "mourne_crest_comes_off",
 			"character": "Gideon Mourne",
 			"title": "The crest comes off",
-			"hint": "Break the man who kneels, where it counts.",
+			"teaser": "Mourne holds a grudge against a man who kneels.",
+			"hint_revealed": "As Gideon Mourne, beat Sir Edric Rooke again in act 2 or later.",
 			"visibility": "hidden",
 			"steps": [
 				{ "event": "duel_won", "main": "Gideon Mourne", "opponent": "Sir Edric Rooke" },
@@ -47,7 +49,7 @@
 			"id": "mourne_draik_offer",
 			"character": "Gideon Mourne",
 			"title": "The Draik offer",
-			"hint": "Beat Sable Draik at the end of Mourne's act 2.",
+			"hint": "Beat Sable Draik, the act 2 boss of a Mind Siege run.",
 			"visibility": "public",
 			"steps": [{ "event": "duel_won", "starter": "shade_mind_siege_start", "node": "boss", "act": 2 }],
 			"starter": "shade_henchmen_start"
@@ -56,7 +58,7 @@
 			"id": "ashmark_head_on",
 			"character": "Bram Ashmark",
 			"title": "Head-on",
-			"hint": "Beat Siphon at the end of act 1 without a single block.",
+			"hint": "As Bram Ashmark, beat Siphon, the act 1 boss, without playing a block.",
 			"visibility": "public",
 			"steps": [{ "event": "duel_won", "main": "Bram Ashmark", "opponent": "Siphon", "node": "boss", "act": 1, "blocks_max": 0 }],
 			"cards": ["personality_03"]
@@ -65,7 +67,7 @@
 			"id": "ashmark_the_hero_falls",
 			"character": "Bram Ashmark",
 			"title": "The hero falls",
-			"hint": "Beat Sir Edric Rooke at the end of Ashmark's act 2.",
+			"hint": "Beat Sir Edric Rooke, the act 2 boss of a Wildfire Rush run.",
 			"visibility": "public",
 			"steps": [{ "event": "duel_won", "starter": "pyre_beatdown_start", "node": "boss", "act": 2 }],
 			"starter": "pyre_ascent_start"
@@ -73,8 +75,9 @@
 		{
 			"id": "the_heart",
 			"character": "Halden Quarr",
+			"group": "The Lodestone Heart",
 			"title": "The Lodestone Heart",
-			"hint": "Take the Heart from Quarr with Edric, Mourne and Ashmark.",
+			"hint": "Beat Halden Quarr at the end of a run with each of Edric, Mourne and Ashmark.",
 			"visibility": "public",
 			"ordered": false,
 			"steps": [
@@ -87,8 +90,9 @@
 		{
 			"id": "quarr_unbroken",
 			"character": "Halden Quarr",
+			"group": "The Lodestone Heart",
 			"title": "Unbroken",
-			"hint": "",
+			"hint": "Holding the Heart, finish one more run.",
 			"visibility": "secret",
 			"steps": [
 				{ "achievement": "the_heart" },

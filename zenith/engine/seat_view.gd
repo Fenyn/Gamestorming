@@ -77,6 +77,23 @@ func card(uid: int) -> SeatCard:
 	return cards.get(uid)
 
 
+## The Might `seat` would strike at and the Might it would strike into, read off the two
+## personalities in control: (-1, -1) when either is unknown or wild, since a wild matchup never
+## reads the Strike Table.
+func strike_mights(seat: int, library: CardLibrary) -> Vector2i:
+	if seat < 0 or seat >= players.size() or players.size() < 2:
+		return Vector2i(-1, -1)
+	var other: int = 1 - seat
+	for i: int in [seat, other]:
+		var c: SeatCard = card(players[i].controlling)
+		if c == null or c.hidden():
+			return Vector2i(-1, -1)
+		var def: CardDef = library.defs.get(c.def_id) if library != null else null
+		if def == null or bool(def.aspect_data(c.aspect).get("wild", false)):
+			return Vector2i(-1, -1)
+	return Vector2i(players[seat].might, players[other].might)
+
+
 ## Every card the seat may see the face of.
 func visible_cards() -> Array[SeatCard]:
 	var out: Array[SeatCard] = []

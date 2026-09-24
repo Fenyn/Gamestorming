@@ -553,6 +553,13 @@ Decided 2026-09-24. Three routes, kept apart:
 Nothing earned through XP or achievements is ever for sale, and a milestone printing never shows
 up on the vendor.
 
+**Built 2026-09-24:** `AdventureProgress` (XP, levels, granting, a new run's owned Aspects and
+starting Relic), `AdventureAchievements` and the journal screen, owned-only Aspect grants,
+character-then-deck select. Data in `data/adventure/progression.json` and `achievements.json`.
+Not built: hidden map nodes for achievement chains, a Mastery swap in the loadout, unique
+personality printings (each needs a printed source), gallery and epilogues. See
+`zenith/docs/adventure_build_plan.md` phase 6.
+
 ### 8.1 The collection
 
 `adventure/adventure_collection.gd`, `user://adventure/collection.json`. Built.

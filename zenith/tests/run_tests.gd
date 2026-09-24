@@ -125,6 +125,7 @@ func _init() -> void:
 		test_effective_values_in_seat_view,
 		test_damage_breakdown_in_view,
 		test_attack_forecasts_in_view,
+		test_attack_badge_table_base,
 		test_attach_to_named_character,
 		test_multiplier_cap_and_no_reduce,
 		test_seals_immune_unless_named,
@@ -405,6 +406,10 @@ func _init() -> void:
 		test_storm_gale_and_conductor_masteries,
 		test_freestyle_cards_match_their_printed_text,
 		test_a_banned_card_is_an_adventure_bomb_only,
+		test_signature_cards_match_their_printed_text,
+		test_personalities_match_their_printed_cards,
+		test_banned_bombs_counter_level_and_feed,
+		test_a_boss_power_is_used_from_outside_the_deck,
 		test_the_card_group_tells_signature_from_freestyle,
 		test_every_shipped_card_lands_in_one_group,
 		test_a_duelist_stack_is_one_character_consecutive_from_aspect_one,
@@ -2277,6 +2282,36 @@ func test_attack_forecasts_in_view() -> void:
 	eq(str(badge["num"]), "Table", "a bare Strike badge points at the table")
 	badge = CardText.attack_badge(lib.get_def("t_art"))
 	eq(str(badge["num"]) + " " + str(badge["word"]), "4 wounds", "Art badge shows the base wounds")
+
+
+## Inside a duel a table Strike's badge reads the Strike Table number for the matchup it is shown
+## in, its printed modifier added; an unknown or wild matchup keeps the "Table" wording.
+func test_attack_badge_table_base() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_strike", "t_strike_plus2"])), deck(filler(), "pact"))
+	var v: SeatView = SeatView.of(e, 0)
+	var mine: int = e.player(0).in_control().might()
+	var theirs: int = e.player(1).in_control().might()
+	eq(v.strike_mights(0, lib), Vector2i(mine, theirs), "seat 0 strikes at its own Might into the rival's")
+	eq(v.strike_mights(1, lib), Vector2i(theirs, mine), "the rival's Strikes read the other way round")
+	var base: int = CardText.strike_table_base(lib.get_def("t_strike"), table, mine, theirs)
+	eq(base, table.base_damage(mine, theirs), "a bare Strike's base is the table result")
+	eq(CardText.strike_table_base(lib.get_def("t_art"), table, mine, theirs), -1, "an Art has no table base")
+	eq(CardText.strike_table_base(lib.get_def("t_strike"), table, -1, -1), -1, "an unknown matchup has no table base")
+	eq(str(CardText.attack_badge(lib.get_def("t_strike"), 3)["num"]), "3", "a bare Strike shows the table number")
+	var plus: Dictionary = CardText.attack_badge(lib.get_def("t_strike_plus2"), 3)
+	eq(str(plus["num"]) + " " + str(plus["word"]), "5 Energy", "a +2 Strike shows table plus 2")
+	eq(str(CardText.attack_badge(lib.get_def("t_strike"), -1)["num"]), "Table", "no table base keeps the Table wording")
+	eq(str(CardText.attack_badge(lib.get_def("t_art"), 3)["num"]), "4", "an Art ignores the table base")
+	var hidden: SeatView = SeatView.from_dict(v.to_dict())
+	hidden.card(hidden.player(1).controlling).def_id = ""
+	eq(hidden.strike_mights(0, lib), Vector2i(-1, -1), "an unseen personality in control leaves the matchup unknown")
+	var wild_lib: CardLibrary = CardLibrary.new()
+	wild_lib.defs = lib.defs.duplicate()
+	var rival: SeatCard = v.card(v.player(1).controlling)
+	var raw: Dictionary = (lib.get_def(rival.def_id).raw as Dictionary).duplicate(true)
+	raw["wild"] = true
+	wild_lib.defs[rival.def_id] = CardDef.from_dict(raw)
+	eq(v.strike_mights(0, wild_lib), Vector2i(-1, -1), "a wild personality in control never reads the table")
 
 
 ## "X only" on a card that attaches to X: playable while X is on the table, and it lands on X.
@@ -5846,14 +5881,18 @@ func test_adventure_achievements_track_steps() -> void:
 	eq(done.size(), 1, "Edric's act 2 boss completes the Vale test")
 	eq(str(done[0].get("starter", "")), "freestyle_swords_start", "which opens Caedan's starter")
 	eq(AdventureAchievements.apply(u, [edric_act2] as Array[Dictionary]).size(), 0, "and only once")
-	# Hidden: "???" until its first step, then named.
+	# Hidden: undiscovered until its first step, then named.
 	var row: Dictionary = _journal_row(u, "edric_fire_in_the_knight")
 	eq(str(row.get("state", "")), "unknown", "a hidden achievement starts unknown")
-	eq(str(row.get("title", "")), "???", "and unnamed")
+	eq(str(row.get("title", "")), "Undiscovered", "and unnamed")
+	eq(str(row.get("reward", "")), "", "with its reward hidden")
 	var beat_bram: Dictionary = {"event": "duel_won", "main": "Sir Edric Rooke", "opponent": "Bram Ashmark",
 		"node": "duel", "act": 1, "allies": [], "blocks": 0, "aspect": 2}
 	eq(AdventureAchievements.apply(u, [beat_bram] as Array[Dictionary]).size(), 0, "one early win is only a first step")
-	eq(str(_journal_row(u, "edric_fire_in_the_knight").get("state", "")), "open", "which reveals it")
+	var revealed: Dictionary = _journal_row(u, "edric_fire_in_the_knight")
+	eq(str(revealed.get("state", "")), "progress", "which reveals it")
+	check(str(revealed.get("hint", "")).contains("Aspect 3"), "with the plain hint: %s" % str(revealed.get("hint", "")))
+	check(str(revealed.get("reward", "")) != "", "and its reward named")
 	var shallow: Dictionary = beat_bram.duplicate()
 	shallow["act"] = 2
 	eq(AdventureAchievements.apply(u, [shallow] as Array[Dictionary]).size(), 0, "the second step wants Aspect 3")
@@ -5887,7 +5926,7 @@ func test_adventure_achievements_track_steps() -> void:
 
 
 func _journal_row(u: AdventureUnlocks, id: String) -> Dictionary:
-	for row in AdventureAchievements.journal(u):
+	for row in AdventureAchievements.journal(u, shipped_library()):
 		if str(row["id"]) == id:
 			return row
 	return {}
@@ -5954,9 +5993,13 @@ func test_adventure_xp_levels_pay_milestones() -> void:
 	var edric_map: AdventureMap = AdventureMap.generate("tide_deepwater_start", 5)
 	edric.node_id = AdventureMap.boss_id_of(1)
 	var fresh: AdventureProgress = AdventureProgress.new()
-	var lines: Array[String] = AdventureProgress.record_win(edric, edric_map, null, shipped,
+	var lines: Array[Dictionary] = AdventureProgress.record_win(edric, edric_map, null, shipped,
 		AdventureCollection.new(), AdventureUnlocks.new(), fresh, AdventureWallet.new())
-	check(lines.size() > 0 and lines[0].contains("joins your deck"), "the act 1 boss win reports Emrys joining: %s" % str(lines))
+	check(lines.size() > 1 and str(lines[0]["kind"]) == "join" and str(lines[0]["title"]) == "Emrys Rooke",
+		"the act 1 boss win reports Emrys joining: %s" % str(lines))
+	eq(str(lines[1]["kind"]), "xp", "then the XP it paid")
+	check(AdventureAchievements.unlock_sources("steel_heir_start").has("Emrys level 2"),
+		"a locked deck names what opens it")
 	eq(int(fresh.personality_xp.get("Sir Edric Rooke", 0)), 25, "Edric gains boss XP")
 	eq(int(fresh.personality_xp.get("Emrys Rooke", 0)), 15, "Emrys gains XP for being beaten at a boss")
 	eq(int(fresh.school_xp.get("tide", 0)), 25, "and Tide gains school XP")
@@ -6933,8 +6976,9 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 			eq(def.type, int(CardDef.TYPE_NAMES[str(wanted[id])]), "%s is a %s card" % [id, wanted[id]])
 			check(CardText.rules_text(def) != "" or def.type == CardDef.Type.DRILL, "%s prints something" % id)
 	# 397 before the personality split; the 27 stack cards became 62 one-Aspect cards. The Pyre
-	# expansion added 27, Steel 23, Tide 24, Shade 23, the second Root batch 15 and Storm 9.
-	eq(shipped().defs.size(), 559, "and the set is 497 other cards plus 62 Aspect cards")
+	# expansion added 27, Steel 23, Tide 24, Shade 23, the second Root batch 15, Storm 9, and three
+	# banned cards came in as adventure bombs.
+	eq(shipped().defs.size(), 562, "and the set is 500 other cards plus 62 Aspect cards")
 
 
 ## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
@@ -11042,6 +11086,218 @@ func test_storm_gale_and_conductor_masteries() -> void:
 # --- The Freestyle review, 2026-09-24 ---------------------------------------
 
 ## The Freestyle cards, each against the clause the review found it missing.
+## A boss's special power sits outside its deck and off the table, and spends one of its uses each
+## time: a Non-Combat's use from the attack phase, a counter in the respond window, a Drill always on.
+func test_a_boss_power_is_used_from_outside_the_deck() -> void:
+	if _shipped_table == null:
+		_shipped_table = StrikeTable.load_from("res://data/strike_table.json")
+	var f: DuelEngine = DuelEngine.new()
+	f.shuffle_decks = false
+	var decks: Array[DeckList] = [real_deck([], "pact"), real_deck([], "vigil")]
+	f.setup(decks, shipped(), _shipped_table, 7)
+	check(f.set_boss_power(0, "freestyle_noncombat_20"), "a banned Non-Combat is taken as a boss power")
+	check(not f.set_boss_power(1, "personality_01"), "a personality is not")
+	f.start()
+	var boss: PlayerState = f.player(0)
+	eq(boss.boss_power.zone, &"boss_power", "the power sits outside the deck and the table")
+	check(not boss.in_play.has(boss.boss_power) and not boss.life_deck.has(boss.boss_power), "in neither")
+	eq(SeatPlayer.of(boss, f).boss_power, boss.boss_power.uid, "and both seats are shown it")
+	to_attack(f, 0)
+	check(f.prompt.find(&"use", boss.boss_power.uid) != null, "the attack phase offers it")
+	f.player(1).fervor = 0
+	answer(f, &"use", boss.boss_power.uid)
+	settle(f, 4, [&"decline"])
+	eq(f.player(1).fervor, 3, "Tempers Leveled set the rival's Fervor to 3")
+	eq(boss.boss_power_uses, 1, "one use spent")
+	eq(boss.boss_power.zone, &"boss_power", "and the power is still held")
+	boss.boss_power_uses = DuelEngine.BOSS_POWER_USES
+	f._prompt_attack_action(boss)
+	check(f.prompt.find(&"use", boss.boss_power.uid) == null, "spent out, it is no longer offered")
+	# The counter works from outside the deck too, and stays held after it is spent once.
+	var g: DuelEngine = DuelEngine.new()
+	g.shuffle_decks = false
+	var g_decks: Array[DeckList] = [real_deck(["storm_art_07"], "pact", "storm"), real_deck([], "vigil")]
+	g.setup(g_decks, shipped(), _shipped_table, 7)
+	g.set_boss_power(1, "freestyle_noncombat_19")
+	g.start()
+	var guard: PlayerState = g.player(1)
+	to_attack(g, 0)
+	var bolt: int = uid_in_hand(g, 0, "storm_art_07")
+	answer(g, &"attack", bolt)
+	check(g.prompt.find(&"counter", guard.boss_power.uid) != null, "the boss may answer the attack with its power")
+	answer(g, &"counter", guard.boss_power.uid)
+	eq(g.card(bolt).zone, &"removed", "the attack card left the game")
+	eq(guard.boss_power_uses, 1, "one use spent")
+	eq(guard.boss_power.zone, &"boss_power", "and the power is still held")
+
+
+## Three cards on the CRD's banned list, built as adventure bombs: "Stop the effect of any
+## non-Dragon Ball card and remove the card from the game. You may use this at any time", "All
+## player's anger is set to 3", and "whenever you play a card from your hand, place the bottom 2
+## cards of your discard pile on the bottom of your Life Deck to have your Main Personality gain 2".
+func test_banned_bombs_counter_level_and_feed() -> void:
+	for id in ["freestyle_noncombat_19", "freestyle_noncombat_20", "freestyle_combat_21"]:
+		check(bool(shipped().get_def(id).raw.get("banned", false)), "%s is adventure-only" % id)
+		eq(shipped().get_def(id).limit_per_deck, 1, "%s runs one copy" % id)
+	# The counter answers an attack card before it is performed and takes it out of the game.
+	var e: DuelEngine = real_engine(real_deck(["storm_art_07"], "pact", "storm"), real_deck([], "vigil"))
+	var undone: CardInstance = real_inject(e, 1, "freestyle_noncombat_19")
+	to_attack(e, 0)
+	var bolt: int = uid_in_hand(e, 0, "storm_art_07")
+	answer(e, &"attack", bolt)
+	eq(prompt_kind(e), &"respond", "the defender is asked before the attack is performed")
+	check(e.prompt.find(&"counter", undone.uid) != null, "and may answer with the card in play")
+	answer(e, &"counter", undone.uid)
+	eq(e.card(bolt).zone, &"removed", "the attack card left the game")
+	check(not has_event(e, &"attack_declared"), "and was never performed")
+	eq(undone.zone, &"discard", "the counter was spent")
+	# Every player's Fervor is set to 3.
+	var f: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	f.player(0).fervor = 0
+	f.player(1).fervor = 5
+	for line in shipped().get_def("freestyle_noncombat_20").effects:
+		f._apply_effect(line, 0, {}, null)
+	eq(f.player(0).fervor, 3, "the user's Fervor is 3")
+	eq(f.player(1).fervor, 3, "and so is the opponent's")
+	# Each card played from hand afterwards offers the trade.
+	var g: DuelEngine = real_engine(real_deck(["freestyle_combat_21", "storm_art_07"], "pact"), real_deck([], "vigil"))
+	var gp: PlayerState = g.player(0)
+	to_attack(g, 0)
+	var low: CardInstance = real_to_discard(g, 0, "tide_drill_05")
+	g.player(0).discard.erase(low)
+	g.player(0).discard.insert(0, low)
+	real_to_discard(g, 0, "tide_drill_06")
+	answer(g, &"use", uid_in_hand(g, 0, "freestyle_combat_21"))
+	settle(g, 4, [&"decline"])
+	check(g._has_floating(0, "on_hand_play"), "the rest of Combat is set up")
+	gp.duelist.energy = 2
+	var played: CardInstance = g.card(uid_in_hand(g, 0, "root_strike_04"))
+	g.prompts.clear()
+	g._played_from_hand(gp, played)
+	g._drain()
+	eq(prompt_kind(g), &"pick_option", "playing a card offers the trade")
+	answer(g, &"pick_option", -1, "yes")
+	g._drain()
+	eq(low.zone, &"life_deck", "the bottom discards went under the deck")
+	eq(gp.duelist.energy, 4, "and the duelist gained 2")
+
+
+## The personality cards, each against the clause or PUR the review found it missing.
+func test_personalities_match_their_printed_cards() -> void:
+	# Bojack: "Personalities with the Bojack Unbound Subset Symbol can take control of Combat, even
+	# if this personality is 2 stages above 0 or higher", and +1 per such Ally in play.
+	var sable_deck: DeckList = real_deck([], "pact", "", "Sable Draik")
+	var e: DuelEngine = real_engine(sable_deck, real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	me.duelist.energy = 6
+	var crew: CardInstance = real_inject(e, 0, "personality_40")
+	var hireling: CardInstance = real_inject(e, 0, "personality_44")
+	var allowed: Array[CardInstance] = e._control_allies(me)
+	check(allowed.has(crew), "a Draik Ally may take control while Sable is above 1 Energy")
+	check(not allowed.has(hireling), "Pim may not")
+	real_inject(e, 1, "personality_43")
+	var total: int = 0
+	for entry in e._modifiers_for(me, "own", "strike", null, {}):
+		total += e._modifier_amount(entry["m"], "stages", me)
+	eq(total, 2, "Sable's +1 counts every Draik Ally in play, the rival's included, and not Pim")
+	# "When you perform an attack, raise your anger 1 level. If Goku is in play, raise your anger 2 levels instead."
+	var quarr: CardDef = shipped().get_def("personality_13")
+	var rage: Dictionary = quarr.aspect_data(1)["constant"]["on_attack"][0]
+	var q: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	q.player(0).fervor = 0
+	q._apply_effect(rage, 0, {}, null)
+	eq(q.player(0).fervor, 1, "Quarr raises Fervor 1")
+	real_inject(q, 1, "personality_50")
+	q._apply_effect(rage, 0, {}, null)
+	eq(q.player(0).fervor, 3, "and 2 with Edric in play on either side")
+	eq(int(shipped().get_def("personality_14").aspect_data(2)["surge"]), 2, "Quarr's Enraged Aspect has the printed PUR 2")
+	check(not shipped().get_def("personality_15").aspect_data(3)["power"].has("uses"), "Quarr's second use is earned, not printed")
+	var g: DuelEngine = real_engine(real_deck([], "pact", "", "Halden Quarr"), real_deck([], "vigil"))
+	var gp: PlayerState = g.player(0)
+	gp.duelist.go_to_aspect(3)
+	g._mark_power_used(gp.duelist)
+	check(not g._power_available(gp, gp.duelist), "used once, Ironheart is spent")
+	g._float(0, "power_second_use", "combat", {"source": gp.duelist.uid})
+	check(g._power_available(gp, gp.duelist), "a first use off a Steel discard earns the second")
+	# "You may draw up to 3 cards", "show it to your opponent", "you also may take the 2 bottom cards".
+	check(bool(shipped().get_def("personality_20").aspect_data(5)["power"]["effects"][0].get("up_to", false)), "Caedan draws up to 3")
+	check(bool(shipped().get_def("personality_36").aspect_data(2)["power"]["effects"][0].get("show", false)), "Emrys shows what he finds")
+	check(bool(shipped().get_def("personality_44").aspect_data(1)["power"]["effects"][0].get("may", false)), "Pim may take the two")
+	eq(str(shipped().get_def("personality_49").aspect_data(1)["power"]["effects"][0].get("per_bloodline", "")), "draconic", "Wren counts Draconic personalities only")
+	# "Your Allies with Saiyan Heritage cannot be discarded or removed from the game": by anyone.
+	var alder_deck: DeckList = real_deck([], "vigil", "", "Dame Alder Rooke")
+	var f: DuelEngine = real_engine(alder_deck, real_deck([], "pact"))
+	var kin: CardInstance = real_inject(f, 0, "personality_35")
+	check(not f._in_play_candidates(f.player(0), "ally", true).has(kin), "Alder's Draconic Ally is safe from her own side's effects too")
+
+
+## The signature cards, each against the clause the review found it missing.
+func test_signature_cards_match_their_printed_text() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	var them: PlayerState = e.player(1)
+	# "Choose a player and remove his discard pile from the game."
+	eq(str(shipped().get_def("signature_art_02").effects[0].get("choose_player", false)), "true", "Ashmark Leaves Nothing lets the user pick whose pile")
+	# "You may shuffle any of your Allies that are removed from the game into your Life Deck."
+	# The subset symbol is the Draik keyword: Pim and every other Ally are left out.
+	var gone_a: CardInstance = e._instance(shipped().get_def("personality_40"), 0, &"removed")
+	me.removed.append(gone_a)
+	var gone_b: CardInstance = e._instance(shipped().get_def("personality_41"), 0, &"removed")
+	me.removed.append(gone_b)
+	var outsider: CardInstance = e._instance(shipped().get_def("personality_44"), 0, &"removed")
+	me.removed.append(outsider)
+	e.prompts.clear()
+	e._apply_effect(shipped().get_def("signature_art_05").effects[2], 0, {}, null)
+	eq(prompt_kind(e), &"pick_option", "Sable's Reckoning asks which")
+	check(e.prompt.find(&"pick_none") != null, "and none is an answer")
+	check(e.prompt.find(&"pick_option", outsider.uid) == null, "Pim is not a Draik and is not offered")
+	answer(e, &"pick_option", gone_a.uid)
+	eq(gone_a.zone, &"life_deck", "the chosen Ally went back")
+	eq(gone_b.zone, &"removed", "the other stayed out")
+	e.prompts.clear()
+	e._choice = {}
+	# "+2 life cards for each Ally in play with the subset symbol" names no side; "if you have at
+	# least 2 Allies in play with the subset symbol" names yours.
+	real_inject(e, 0, "personality_42")
+	real_inject(e, 1, "personality_43")
+	real_inject(e, 0, "personality_44")
+	var volley: CardInstance = real_to_hand(e, 0, "freestyle_art_05")
+	var built: Dictionary = e._build_attack(0, volley, volley.def.attack, volley.def.effects, false, false, false, null, true)
+	var kin_life: int = 0
+	for add in e._damage_calc(built)["adds"]:
+		if str((add as Dictionary).get("source", "")).contains("Draik"):
+			kin_life += int((add as Dictionary).get("life", 0))
+	eq(kin_life, 4, "Knife Volley adds 2 per Draik Ally on either side, Pim not counted")
+	check(not e._cond({"allies_tag_min": {"tag": "draik", "count": 2}}, 0, {}), "one Draik Ally of your own is short of two")
+	real_inject(e, 0, "personality_41")
+	check(e._cond({"allies_tag_min": {"tag": "draik", "count": 2}}, 0, {}), "two of them let Sable's Black Hands stay out")
+	# "Attach this card to one of your personalities."
+	eq(str(shipped().get_def("signature_art_10").effects[0].get("to", "")), "choose", "Sable's Lingering Curse picks its host")
+	# "Stops the opponent from playing any other energy attack cards": a Power's Art is not a card.
+	e._float(1, "forbid", "combat", {"what": "art_attack_cards"})
+	check(not e._attack_allowed(them, shipped().get_def("storm_art_07")), "no Art from a card")
+	check(e._attack_allowed(them, null, "art"), "a Power may still perform an Art")
+	# "Prevent all damage from all attacks performed against you this Combat": no stop.
+	eq(str(shipped().get_def("signature_combat_02").defense.get("stops", "")), "none", "Ashmark Will Not Break prevents, it does not stop")
+	# "Shuffle 5 cards in your discard pile into your Life Deck": the user picks which.
+	var coals: Dictionary = shipped().get_def("signature_noncombat_04").effects[1]
+	check(str(coals.get("op", "")) == "search" and bool(coals.get("must", false)) and int(coals.get("amount", 0)) == 5, "Ashmark Stokes the Coals picks 5")
+	# "You can only have one 'The Sword of Trunks' attached at a time."
+	eq(int(shipped().get_def("signature_noncombat_06").attachment.get("limit_attached", 0)), 1, "one Heirloom Blade at a time")
+	# "If used by Trunks or Kid Trunks, place a Trunks or Kid Trunks Named card from your discard."
+	var quick: Dictionary = shipped().get_def("signature_strike_14").effects[1]
+	check((quick["when"]["character"] as Array).has("Tavin Vale"), "Quickstep counts Tavin as well as Caedan")
+	var tavin_card: CardInstance = e._instance(shipped().get_def("signature_strike_14"), 0, &"discard")
+	check(e._search_matches(me, tavin_card, {"character": ["Caedan Vale", "Tavin Vale"]}, "hand"), "and finds either one's card")
+	# "Remove 5 cards in your opponent's discard pile from the game": the user picks them.
+	check(bool(shipped().get_def("signature_strike_19").effects[0].get("choose", false)), "Ashmark Scatters the Ashes picks its 5")
+	# "If performed by a Main Personality with 'Android' in the title."
+	eq(str(shipped().get_def("signature_art_11").effects[0]["when"].get("performed_by", "")), "duelist", "Sledge's Set Stance needs the duelist to perform it")
+	# Named printed cards whose character has no name yet carry the placeholder.
+	for id in ["freestyle_art_02", "freestyle_combat_17", "freestyle_noncombat_14", "grounds_03", "grounds_06"]:
+		check(shipped().get_def(id).title.begins_with("PLACEHOLDER's "), "%s waits on a name" % id)
+
+
 ## A card on the CRD's banned list (Black Weakness Drill) is legal in adventure decks as a bomb and
 ## nowhere else, so no tournament or online deck may hold it.
 func test_a_banned_card_is_an_adventure_bomb_only() -> void:
@@ -11055,10 +11311,24 @@ func test_a_banned_card_is_an_adventure_bomb_only() -> void:
 	check(DeckValidator.validate(siege, shipped()).has("'shade_drill_03' is banned outside adventure mode"), "adding it makes a tournament deck illegal")
 	siege.mode = "adventure"
 	check(not DeckValidator.validate(siege, shipped()).has("'shade_drill_03' is banned outside adventure mode"), "an adventure deck may run it")
-	var boss: DeckList = DeckList.load_from("res://data/adventure/opponents/shade_mind_siege_boss.json")
-	eq(boss.cards.count("shade_drill_03"), 1, "the adventure boss carries it as a bomb")
-	var early: DeckList = DeckList.load_from("res://data/adventure/opponents/shade_mind_siege_t1.json")
-	check(not early.cards.has("shade_drill_03"), "an early tier does not")
+	# A boss holds one banned card as a special power outside its deck, picked from the run seed
+	# and the node (user, 2026-09-24); an ordinary fight holds none.
+	var banned_ids: Array[String] = []
+	for id in shipped().all_ids():
+		if bool(shipped().defs[id].raw.get("banned", false)):
+			banned_ids.append(id)
+	var boss_row: Dictionary = {"node": "boss", "tier": "boss"}
+	var picked: String = AdventureRules.boss_power_for(boss_row, 1234, "a1_boss", shipped())
+	check(banned_ids.has(picked), "a boss gets a banned card: %s" % picked)
+	eq(AdventureRules.boss_power_for(boss_row, 1234, "a1_boss", shipped()), picked, "the same run and node give the same power")
+	var seen: Dictionary = {}
+	for s in range(40):
+		seen[AdventureRules.boss_power_for(boss_row, s, "a1_boss", shipped())] = true
+	check(seen.size() > 1, "runs differ in the power they face")
+	eq(AdventureRules.boss_power_for({"node": "duel", "tier": "t3"}, 1234, "a1_n3", shipped()), "", "an ordinary fight has none")
+	for id in banned_ids:
+		var none: DeckList = DeckList.load_from("res://data/adventure/opponents/shade_mind_siege_boss.json")
+		check(not none.cards.has(id), "%s is not shuffled into a boss deck" % id)
 
 
 func test_freestyle_cards_match_their_printed_text() -> void:

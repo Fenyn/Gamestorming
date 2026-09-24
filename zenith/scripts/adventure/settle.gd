@@ -51,6 +51,7 @@ func _ready() -> void:
 	theme = SanctumUI.themed(MapArt.tint)
 	SanctumUI.dress(self, $Margin/Column/Header/TitleRow/Title as Label)
 	continue_button.pressed.connect(_on_continue)
+	($Margin/Column/Footer/Journal as Button).pressed.connect(Session.go_to_journal)
 	inspect.gui_input.connect(_on_inspect_input)
 	inspect.visible = false
 	status_label.text = Session.take_dissolve_report()

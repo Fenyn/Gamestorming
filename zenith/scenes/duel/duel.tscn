@@ -90,6 +90,18 @@ transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0
 light_energy = 1.0
 shadow_enabled = true
 
+[node name="TableKey" type="SpotLight3D" parent="."]
+position = Vector3(0, 9, 1.5)
+rotation_degrees = Vector3(-80.54, 0, 0)
+light_color = Color(1, 0.98, 0.94, 1)
+light_energy = 8.0
+shadow_enabled = true
+shadow_opacity = 0.6
+spot_range = 18.0
+spot_attenuation = 0.5
+spot_angle = 34.0
+spot_angle_attenuation = 0.6
+
 [node name="Floor" type="MeshInstance3D" parent="."]
 visible = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
@@ -139,10 +151,10 @@ position = Vector3(0, 0, 1.65)
 position = Vector3(-2.2, 0, 2.15)
 
 [node name="SealStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(1.35, 0, 2.22)
+position = Vector3(2.0, 0, 2.215)
 
 [node name="RemainStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-3.35, 0, 3.18)
+position = Vector3(-3.35, 0, 3.07)
 
 [node name="LifeDeck" type="Marker3D" parent="Zones/P0"]
 position = Vector3(-1.35, 0, 1.05)
@@ -151,19 +163,19 @@ position = Vector3(-1.35, 0, 1.05)
 position = Vector3(-1.35, 0, 2.1)
 
 [node name="Removed" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-2.75, 0, 3.25)
+position = Vector3(-2.75, 0, 3.07)
 
 [node name="Mastery" type="Marker3D" parent="Zones/P0"]
-position = Vector3(1.45, 0, 1.12)
+position = Vector3(1.27, 0, 1.65)
 
 [node name="DrillStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-2.2, 0, 1.05)
+position = Vector3(-2.2, 0, 1.15)
 
 [node name="Resolving" type="Marker3D" parent="Zones/P0"]
 position = Vector3(0.72, 0, 0)
 
 [node name="NonCombatStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(2.4, 0, 1.05)
+position = Vector3(2.4, 0, 1.15)
 
 [node name="HandStart" type="Marker3D" parent="Zones/P0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.02, 3.35)

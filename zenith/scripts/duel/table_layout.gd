@@ -23,18 +23,19 @@ const ZONE_PAD: float = 0.06          # felt outline sits this far outside the c
 const LABEL_STRIP: float = 0.14       # room under the cards for the zone name
 const LINE_HEIGHT: float = 0.004
 const LABEL_HEIGHT: float = 0.003
+const FAR_LABEL_SCALE: float = 1.5
 ## Ivory ink printed on the charcoal playmat, like a real mat's zone marks.
-const LABEL_COLOR: Color = Color(0.86, 0.82, 0.74, 0.72)
+const LABEL_COLOR: Color = Color(0.88, 0.87, 0.82, 0.85)
 const LINE_COLOR: Color = Color(0.86, 0.82, 0.74, 0.32)
 
 ## Row zones: marker, slots before cards start overlapping, and per-card scale.
 const ROWS: Dictionary = {
-	&"ally": {"marker": "AllyStart", "slots": 3, "step": 0.6, "direction": -1, "scale": 0.95, "label": "Allies"},
-	&"drill": {"marker": "DrillStart", "slots": 3, "step": 0.6, "direction": -1, "scale": 0.95, "label": "Drills"},
-	&"non_combat": {"marker": "NonCombatStart", "slots": 3, "step": 0.6, "scale": 0.95, "label": "Non-Combat"},
-	&"seal": {"marker": "SealStart", "slots": 6, "step": 0.45, "scale": SEAL_SCALE, "label": "Seals"},
+	&"ally": {"marker": "AllyStart", "slots": 3, "step": 0.6, "direction": -1, "scale": 0.9, "label": "Allies"},
+	&"drill": {"marker": "DrillStart", "slots": 3, "step": 0.6, "direction": -1, "scale": 0.9, "label": "Drills"},
+	&"non_combat": {"marker": "NonCombatStart", "slots": 3, "step": 0.6, "scale": 0.9, "label": "Non-Combat"},
+	&"seal": {"marker": "SealStart", "slots": 6, "step": 0.36, "scale": SEAL_SCALE, "label": "Seals"},
 	# Cards kept out by Remain, on the owner's edge beside Out.
-	&"remain": {"marker": "RemainStart", "slots": 2, "step": 0.45, "direction": -1, "scale": 0.75, "label": "Remain"},
+	&"remain": {"marker": "RemainStart", "slots": 2, "step": 0.45, "direction": -1, "scale": 0.7, "label": "Remain"},
 }
 ## Single-card zones: marker and label. Discard and Removed are stacks like the Life Deck; the
 ## Relic is one card with its Reserve face down under it.
@@ -50,14 +51,13 @@ const SINGLES: Dictionary = {
 ## Piles: their felt is outlined and clickable even when empty, and a click opens the browser.
 ## The Relic with its Reserve under it is one pile.
 const PILES: Array[StringName] = [&"discard", &"removed", &"relic"]
-## Zones whose caption sits on the inner (table-centre) edge. Out and the Relic sit on the owner's
-## edge of the mat, where a caption below them would fall off it.
-const TOP_CAPTIONS: Array[StringName] = [&"discard", &"removed", &"relic"]
+## Zones whose caption sits on the inner (table-centre) edge.
+const TOP_CAPTIONS: Array[StringName] = [&"discard"]
 const DUELIST_SCALE: float = 2.6
 const MASTERY_SCALE: float = 1.3
 const RESOLVING_SCALE: float = 1.3
 const LIFE_SCALE: float = 1.0
-const PILE_SCALE: float = 0.75        # Out, and the Relic with its Reserve
+const PILE_SCALE: float = 0.7         # Out, and the Relic with its Reserve
 const DISCARD_SCALE: float = 0.8
 const DISCARD_PAD: float = 0.02
 const DISCARD_STRIP: float = 0.12
@@ -142,6 +142,10 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 			_:
 				assert(SINGLES.has(zone), "TableLayout has no zone %s" % zone)
 				pos = marker(str(SINGLES[zone]["marker"]))
+				# A boss power shares the Mastery's spot: it peeks out below the Mastery toward the
+				# owner's edge, the way the Reserve fans under the Relic.
+				if zone == &"mastery" and index > 0:
+					pos += Vector3(0, -STACK_STEP * index, CARD_SIZE.y * MASTERY_SCALE * 0.35 * index)
 	if player == 1 and zone != &"grounds":
 		pos = Vector3(-pos.x, pos.y, -pos.z)
 	if viewer == 1:
@@ -150,10 +154,13 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 	return Transform3D(basis, pos + Vector3(0, CARD_LIFT, 0))
 
 
-## Turns the zone labels to read upright for whoever holds the table.
+## Turns the zone labels to read upright for whoever holds the table. The far half's captions are
+## drawn half again as large, because distance shrinks them below reading size at 720p.
 func set_viewer(viewer: int) -> void:
 	for l in _labels:
 		l.rotation.y = PI if viewer == 1 else 0.0
+		var far: bool = int(l.get_meta("player")) != viewer and l.get_meta("zone") != &"grounds"
+		l.pixel_size = float(l.get_meta("pixel_size")) * (FAR_LABEL_SCALE if far else 1.0)
 
 
 ## Empty zones do not compete with playable objects. Counts stay with their physical piles.
@@ -175,7 +182,7 @@ func refresh_occupancy(view: SeatView) -> void:
 			&"grounds": count = int(view.grounds >= 0)
 			&"discard": count = p.discard.size()
 			&"removed": count = p.removed.size()
-			&"mastery": count = int(p.mastery >= 0)
+			&"mastery": count = int(p.mastery >= 0) + int(p.boss_power >= 0)
 			&"relic": count = int(p.relic >= 0) + p.reserve.size()
 		label.visible = count > 0 and zone not in [&"duelist", &"resolving", &"life_deck"]
 		label.text = str(label.get_meta("title"))
@@ -297,15 +304,48 @@ func _add_tick(mesh: ImmediateMesh, r: Rect2, mirror: bool) -> void:
 	mesh.surface_add_vertex(Vector3((center.x + 0.08) * s, 0, r.end.y * s))
 
 
+## The playmat's outline, matching playmat.gdshader's `shape()` and its default uniforms: negative
+## inside, in table units.
+const MAT_LOBE_HALF: Vector2 = Vector2(4.4, 1.62)
+const MAT_LOBE_CENTRE: float = 2.08
+const MAT_WAIST_HALF: Vector2 = Vector2(2.4, 0.75)
+const MAT_RING: float = 1.2
+const MAT_CORNER: float = 0.3
+const MAT_FILLET: float = 0.35
+const MAT_RIM: float = 0.12
+const MAT_CLEARANCE: float = 0.02
+
+
+static func mat_distance(p: Vector2) -> float:
+	var lobes: float = minf(_round_box(p - Vector2(0, MAT_LOBE_CENTRE), MAT_LOBE_HALF, MAT_CORNER),
+		_round_box(p + Vector2(0, MAT_LOBE_CENTRE), MAT_LOBE_HALF, MAT_CORNER))
+	var waist: float = _round_box(p, MAT_WAIST_HALF, MAT_CORNER)
+	var h: float = clampf(0.5 + 0.5 * (waist - lobes) / MAT_FILLET, 0.0, 1.0)
+	var joined: float = lerpf(waist, lobes, h) - MAT_FILLET * h * (1.0 - h)
+	return minf(joined, p.length() - MAT_RING)
+
+
+static func _round_box(p: Vector2, half_size: Vector2, r: float) -> float:
+	var q: Vector2 = Vector2(absf(p.x), absf(p.y)) - half_size + Vector2(r, r)
+	return Vector2(maxf(q.x, 0.0), maxf(q.y, 0.0)).length() + minf(maxf(q.x, q.y), 0.0) - r
+
+
+## True when the whole rect lies on the fabric, clear of the rim by a caption's breathing room.
+static func on_mat(r: Rect2) -> bool:
+	for corner in [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]:
+		if mat_distance(corner) > -(MAT_RIM + MAT_CLEARANCE):
+			return false
+	return true
+
+
 func _mirrored(r: Rect2) -> Rect2:
 	return Rect2(-r.end, r.size)
 
 
-## Every outline must stay clear of every other one and inside the table top.
+## Every outline must stay clear of every other one and on the fabric of the mat.
 func _assert_no_overlap(rects: Array[Rect2]) -> void:
-	var table: Rect2 = Rect2(-5.2, -3.7, 10.4, 7.4)
 	for i in range(rects.size()):
-		assert(table.encloses(rects[i]), "TableLayout: zone %d leaves the table (%s)" % [i, rects[i]])
+		assert(on_mat(rects[i]), "TableLayout: zone %d leaves the mat (%s)" % [i, rects[i]])
 		for j in range(i + 1, rects.size()):
 			assert(not rects[i].intersects(rects[j]), "TableLayout: zones overlap (%s and %s)" % [rects[i], rects[j]])
 
@@ -365,8 +405,9 @@ func _add_label(zone: StringName, r: Rect2, mirror: bool) -> void:
 	l.set_meta("zone", zone)
 	l.set_meta("player", 1 if mirror else 0)
 	l.set_meta("title", l.text)
-	l.font_size = 24 if ROWS.has(zone) else 32
+	l.font_size = 32
 	l.pixel_size = 0.0032 if zone == &"life_deck" or zone == &"discard" else 0.004
+	l.set_meta("pixel_size", l.pixel_size)
 	l.modulate = LABEL_COLOR
 	l.outline_size = 0   # printed ink has no halo
 	l.shaded = false

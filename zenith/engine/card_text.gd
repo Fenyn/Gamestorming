@@ -21,6 +21,7 @@ const TYPE_LABELS: Dictionary = {
 }
 const FORBID_TEXT: Dictionary = {
 	"strike_attacks": "perform Strikes", "art_attacks": "perform Arts", "combat_cards": "use Combat cards",
+	"strike_attack_cards": "perform Strikes from cards", "art_attack_cards": "perform Arts from cards",
 	"strike_cards": "use Strike cards", "art_cards": "use Art cards", "powers": "use Powers",
 	"mastery": "use a Mastery", "drills": "use Drills", "non_combats": "use Non-Combat cards",
 	"end_combat": "use cards that end Combat", "stop_all": "use cards that stop all attacks",
@@ -233,6 +234,7 @@ static func option_side_marks(p: PromptView, viewer: int) -> Dictionary:
 ## Short HUD wording for a standing forbid, keyed by the engine's forbid `what` word.
 const RESTRICTION_NAMES: Dictionary = {
 	"strike_attacks": "No Strike attacks", "art_attacks": "No Art attacks", "strike_cards": "No Strike cards",
+	"strike_attack_cards": "No Strike cards to attack", "art_attack_cards": "No Art cards to attack",
 	"art_cards": "No Art cards", "combat_cards": "No Combat cards", "non_combats": "No Non-Combats",
 	"drills": "No Drills", "seals": "No Seals", "mastery": "Mastery silenced", "powers": "Powers silenced",
 	"stop_all": "Cannot stop every attack", "end_combat": "Cannot end Combat",
@@ -458,6 +460,9 @@ static func rules_text(def: CardDef) -> String:
 		lines.append("(When a card effect other than damage would take cards off the top of your Life Deck, you may discard this card from your hand to take %d fewer, to a minimum of 0.)" % int((def.raw["deck_loss_guard"] as Dictionary).get("amount", 0)))
 	if def.counter == "combat":
 		lines.append("Use when needed. Stops the effects of any Combat card.")
+	elif def.counter == "any":
+		lines.append("You may use this at any time. Stop the effect of any card other than a Seal%s. This card does not affect personalities." % (
+			" and remove that card from the game" if bool(def.raw.get("counter_removes", false)) else ""))
 	if str(def.raw.get("use_at", "")) == "end_of_combat":
 		lines.append("Use at the end of Combat.")
 	if str(def.raw.get("use_at", "")) == "ascension_win":
@@ -602,7 +607,12 @@ static func rules_text(def: CardDef) -> String:
 	if def.remain >= 99:
 		lines.append("Stays on the table to be used any number of times this Combat.")
 	elif def.remain > 0:
-		lines.append("Remain %d.%s" % [def.remain, (" The extra uses are an Ally's." if str(def.raw.get("remain_by", "")) == "ally" else "")])
+		var remain_note: String = ""
+		if def.raw.has("remain_by_tag"):
+			remain_note = " The extra uses are a %s Ally's." % keyword_name(str(def.raw["remain_by_tag"]))
+		elif str(def.raw.get("remain_by", "")) == "ally":
+			remain_note = " The extra uses are an Ally's."
+		lines.append("Remain %d.%s" % [def.remain, remain_note])
 	if not def.remain_when.is_empty():
 		var extra: Variant = def.remain_when.get("remain", 1)
 		var how_many: String = "Remain X, where X is your duelist's Aspect." if extra is String and str(extra) == "aspect" else "Remain %d." % int(extra)
@@ -801,7 +811,9 @@ static func attack_text(a: Dictionary) -> String:
 			("wound" if each == 1 else "%d wounds" % each)]
 	if bool(a.get("stages_from_table", false)):
 		s += ", plus the Strike Table result in Energy"
-	if int(a.get("life_per_ally", 0)) > 0:
+	if int(a.get("life_per_ally", 0)) > 0 and a.has("ally_tag"):
+		s += ", plus %d wounds for each %s Ally in play" % [int(a["life_per_ally"]), keyword_name(str(a["ally_tag"]))]
+	elif int(a.get("life_per_ally", 0)) > 0:
 		s += ", plus %d wounds for each Ally you have in play" % int(a["life_per_ally"])
 	if bool(a.get("life_from_surge", false)):
 		s += ", plus wounds equal to your Surge Rate"
@@ -881,6 +893,11 @@ static func variant_text(v: Dictionary) -> String:
 		parts.append("%+d Energy" % int(v["stages"]))
 	if int(v.get("life", 0)) != 0:
 		parts.append("%+d %s" % [int(v["life"]), "wound" if absi(int(v["life"])) == 1 else "wounds"])
+	# "This attack also does 3 power stages of damage": printed damage the attack gains outright.
+	if int(v.get("printed_stages", 0)) > 0:
+		parts.append("this attack also deals %d Energy" % int(v["printed_stages"]))
+	if int(v.get("printed_life", 0)) > 0:
+		parts.append("this attack also deals %s" % _plural(int(v["printed_life"]), "wound", "wounds"))
 	if int(v.get("life_per_opponent_seal", 0)) > 0:
 		parts.append("+%d wounds for each Seal your opponent controls" % int(v["life_per_opponent_seal"]))
 	if bool(v.get("focused", false)):
@@ -940,7 +957,7 @@ static func cond_text(when: Dictionary) -> String:
 		var v: Variant = when[k]
 		match str(k):
 			"character":
-				parts.append("%s is in control" % str(v))
+				parts.append("%s is in control" % _or_names(v))
 			"duelist_character":
 				if v is Array:
 					var names: PackedStringArray = PackedStringArray()
@@ -963,12 +980,20 @@ static func cond_text(when: Dictionary) -> String:
 				parts.append("your Fervor is %d or higher" % int(v))
 			"allies_min":
 				parts.append("you have an Ally in play" if int(v) <= 1 else "you have %d or more Allies in play" % int(v))
+			"allies_tag_min":
+				var kin_tag: String = keyword_name(str((v as Dictionary).get("tag", "")))
+				var kin_n: int = int((v as Dictionary).get("count", 1))
+				parts.append("you have a %s Ally in play" % kin_tag if kin_n <= 1 else "you have %d or more %s Allies in play" % [kin_n, kin_tag])
 			"seals_min":
 				parts.append("you hold a Seal" if int(v) <= 1 else "you hold %d or more Seals" % int(v))
 			"opponent_seals_min":
 				parts.append("your opponent holds a Seal" if int(v) <= 1 else "your opponent holds %d or more Seals" % int(v))
 			"ally_present":
 				parts.append("%s is in play" % str(v))
+			"character_in_play":
+				parts.append("%s is in play" % str(v))
+			"first_power_use":
+				parts.append("this is the first time you perform this attack this Combat")
 			"opponent_non_combats_min":
 				parts.append("your opponent has %d or more Non-Combat cards in play" % int(v))
 			"discard_top_school":
@@ -994,7 +1019,7 @@ static func cond_text(when: Dictionary) -> String:
 			"role":
 				parts.append("entering Combat as the %s" % role_name(str(v)))
 			"discard_min":
-				parts.append("your discard pile has a card")
+				parts.append("your discard pile has a card" if int(v) <= 1 else "your discard pile has %d or more cards" % int(v))
 			"own_non_combats_min":
 				parts.append("you have a Non-Combat card in play")
 			"discard_has_type":
@@ -1075,6 +1100,10 @@ static func _effect_body(e: Dictionary) -> String:
 			body = "%s your or your opponent's Fervor %d." % [("Raise" if n >= 0 else "Lower"), absi(n)]
 		"fervor":
 			body = "%s %s Fervor %d." % [("Raise" if n >= 0 else "Lower"), owner, absi(n)]
+			var instead: Dictionary = e.get("instead", {})
+			if not instead.is_empty():
+				body = "%s %s Fervor %d, or %d instead if %s." % [("Raise" if n >= 0 else "Lower"), owner, absi(n),
+					absi(int(instead.get("amount", n))), cond_text(instead.get("when", {}))]
 		"set_fervor":
 			body = "Set %s Fervor to %d." % [owner, n]
 		"fervor_needed":
@@ -1380,6 +1409,10 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "For the remainder of Combat, your opponent cannot use Defense Shields."
 			elif what == "ally_control_any_stage":
 				body = "For the remainder of Combat, your Allies may take control of Combat and use their Powers at any Energy."
+			elif what == "on_hand_play":
+				body = "For the remainder of Combat, whenever you play a card from your hand: %s" % " ".join(PackedStringArray(_texts(params.get("effects", []))))
+			elif what == "power_second_use":
+				body = "This Power may be used a second time this Combat."
 			elif what == "keep_drills":
 				body = "For the remainder of Combat, you do not discard your Drills in play when your duelist advances or loses an Aspect."
 			elif what == "at_combat_end":
@@ -1568,7 +1601,13 @@ static func _effect_body(e: Dictionary) -> String:
 				body += " unless their duelist has %d or more Energy" % int(e["unless_energy_min"])
 			body += "."
 		"return_removed":
-			body = "Shuffle your removed %s into your Life Deck." % ("Allies" if str(e.get("card_type", "")) == "ally" else "cards")
+			var gone: String = "Allies" if str(e.get("card_type", "")) == "ally" else "cards"
+			if e.has("tag"):
+				gone = "%s %s" % [keyword_name(str(e["tag"])), gone]
+			if bool(e.get("choose", false)):
+				body = "Shuffle any of your %s that are removed from the game into your Life Deck." % gone
+			else:
+				body = "Shuffle your removed %s into your Life Deck." % gone
 		"focus_attack":
 			body = "This attack is Focused."
 		"end_turn":
@@ -1611,7 +1650,8 @@ static func _effect_body(e: Dictionary) -> String:
 		for t in e["then"]:
 			var tt: String = effect_text(t)
 			if tt != "":
-				follow.append(_lc(tt))
+				# Only the sentence the join runs into starts lower case.
+				follow.append(_lc(tt) if follow.is_empty() else tt)
 		if not follow.is_empty():
 			# "If you do" is the usual join, but a card whose halves both happen on one yes needs
 			# "and" instead, or its text tells the player the second half is conditional.
@@ -1627,7 +1667,7 @@ static func _effect_body(e: Dictionary) -> String:
 		for t in e["otherwise"]:
 			var tt: String = effect_text(t)
 			if tt != "":
-				other.append(_lc(tt))
+				other.append(_lc(tt) if other.is_empty() else tt)
 		if not other.is_empty():
 			body += (" If they do not, " if str(e.get("asks", "")) == "opponent" else " If you do not, ") + " ".join(other)
 	return body
@@ -1915,6 +1955,16 @@ static func search_text(e: Dictionary) -> String:
 	return body
 
 
+## "Caedan Vale or Tavin Vale" from a list, or the one name as it is.
+static func _or_names(v: Variant) -> String:
+	if v is Array:
+		var names: PackedStringArray = PackedStringArray()
+		for n in v:
+			names.append(str(n))
+		return " or ".join(names)
+	return str(v)
+
+
 static func _search_text_body(e: Dictionary) -> String:
 	var source: String = str(e.get("source", "deck"))
 	var from: String = "your Life Deck"
@@ -1947,7 +1997,7 @@ static func _search_text_body(e: Dictionary) -> String:
 	if str(e.get("signature_of", "")) == "duelist":
 		qual.append("Signature")
 	if str(e.get("character", "")) != "":
-		qual.append("%s Signature" % str(e["character"]))
+		qual.append("%s Signature" % _or_names(e["character"]))
 	if e.has("aspect"):
 		qual.append("aspect %d" % int(e["aspect"]))
 	var n: int = int(e.get("amount", 1))
@@ -2039,7 +2089,9 @@ static func modifier_text(m: Dictionary) -> String:
 	if int(m.get("life", 0)) != 0:
 		parts.append("%+d %s" % [int(m["life"]), "wound" if absi(int(m["life"])) == 1 else "wounds"])
 	var amount: String = " and ".join(parts)
-	if bool(m.get("per_ally", false)):
+	if bool(m.get("per_ally", false)) and m.has("ally_tag"):
+		amount += " for each %s Ally in play" % keyword_name(str(m["ally_tag"]))
+	elif bool(m.get("per_ally", false)):
 		amount += " for each Ally you have in play"
 	if bool(m.get("per_personality", false)):
 		amount += " for each personality you have in play"
@@ -2137,7 +2189,9 @@ static func constant_text(c: Dictionary) -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
 	if bool(c.get("first_styled_unstoppable", false)):
 		lines.append("Your first attack each Combat with a school card cannot be stopped.")
-	if bool(c.get("attacks_focused", false)):
+	if bool(c.get("attacks_focused", false)) and c.has("attacks_focused_tag"):
+		lines.append("Attacks performed by %s personalities are Focused." % keyword_name(str(c["attacks_focused_tag"])))
+	elif bool(c.get("attacks_focused", false)):
 		lines.append("All of your attacks are Focused.")
 	var focus_tag: String = str(c.get("focus_tag", ""))
 	if focus_tag != "":
@@ -2157,10 +2211,12 @@ static func constant_text(c: Dictionary) -> PackedStringArray:
 		lines.append("Wounds from your attacks are removed from the game.")
 	var guard: Variant = c.get("protect_allies", false)
 	if guard is String and str(guard) != "":
-		lines.append("Your %s Allies cannot be discarded or removed by your opponent's card effects." % bloodline_name(str(guard)))
+		lines.append("Your %s Allies cannot be discarded or removed from the game." % bloodline_name(str(guard)))
 	elif bool(guard):
-		lines.append("Your Allies cannot be discarded or removed by your opponent's card effects.")
-	if bool(c.get("ally_control_any_stage", false)):
+		lines.append("Your Allies cannot be discarded or removed from the game.")
+	if bool(c.get("ally_control_any_stage", false)) and c.has("ally_control_tag"):
+		lines.append("Your %s Allies may take control of Combat at any Energy." % keyword_name(str(c["ally_control_tag"])))
+	elif bool(c.get("ally_control_any_stage", false)):
 		lines.append("Your Allies may take control of Combat at any Energy.")
 	var blind: String = str(c.get("no_modifiers_against", ""))
 	if blind != "":
@@ -2514,6 +2570,10 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 			return "%s uses %s's Power." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"relic_used":
 			return "%s calls on %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
+		&"boss_power":
+			return "%s holds a boss power: %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
+		&"boss_power_used":
+			return "%s spends the boss power %s (%d left)." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor), int(d.get("left", 0))]
 		&"cost_paid":
 			return "%s pays %d Energy." % [pname, int(d.get("stages", 0))]
 		&"countered":
@@ -2851,10 +2911,27 @@ static func short_damage(stages: int, life: int) -> String:
 	return ", ".join(parts) if not parts.is_empty() else "nothing"
 
 
+## The Strike Table part of a card's base damage for a known matchup, doubled where the card
+## doubles its table result; -1 for a card whose base does not come from the table.
+static func strike_table_base(def: CardDef, table: StrikeTable, attacker_might: int, defender_might: int) -> int:
+	var a: Dictionary = def.attack
+	if a.is_empty() or table == null or attacker_might < 0 or defender_might < 0:
+		return -1
+	if str(a.get("kind", "strike")) != "strike" or a.has("printed_stages") or a.has("printed_life"):
+		return -1
+	var base: int = table.base_damage(attacker_might, defender_might)
+	var times: Dictionary = a.get("table_multiply", {})
+	if not times.is_empty() and (not bool(times.get("higher_might", false)) or attacker_might > defender_might):
+		base *= maxi(1, int(times.get("by", 2)))
+	return base
+
+
 ## The base attack as a face badge: {kind, num, word}. A plain Strike reads "Table Energy", a
 ## modified one "+3 Energy", a printed one "7 Energy"; an Art reads "4 wounds" from its base or
 ## printed number. A card with both Energy and wound lines shows the Energy and notes the wounds.
-static func attack_badge(def: CardDef) -> Dictionary:
+## `table_base` is the Strike Table result for the matchup the card is shown in (see
+## `strike_table_base`); when known, a table Strike reads that number with its modifier added.
+static func attack_badge(def: CardDef, table_base: int = -1) -> Dictionary:
 	var a: Dictionary = def.attack
 	if a.is_empty():
 		return {}
@@ -2870,7 +2947,10 @@ static func attack_badge(def: CardDef) -> Dictionary:
 			out["num"] = str(int(a.get("printed_life", 0)))
 			out["word"] = "wounds"
 	elif kind == "strike":
-		out["num"] = "%+d" % int(a["stages"]) if int(a.get("stages", 0)) != 0 else "Table"
+		if table_base >= 0:
+			out["num"] = str(maxi(0, table_base + int(a.get("stages", 0))))
+		else:
+			out["num"] = "%+d" % int(a["stages"]) if int(a.get("stages", 0)) != 0 else "Table"
 		out["word"] = "Energy"
 		if int(a.get("life", 0)) != 0:
 			out["extra"] = "%+d wounds" % int(a["life"])

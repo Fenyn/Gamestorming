@@ -30,7 +30,7 @@
     {"id": "steel_lockouts", "name": "Steel lockouts", "group": "steel", "tier": "late", "cards": [{"id": "steel_strike_12", "count": 1}, {"id": "steel_art_02", "count": 1}, {"id": "steel_art_06", "count": 1}]},
     {"id": "tide_fervor_blows", "name": "Fervor blows", "group": "tide", "tier": "early", "cards": [{"id": "tide_strike_09", "count": 2}, {"id": "tide_strike_10", "count": 1}]},
     {"id": "tide_fervor_guards", "name": "Fervor guards", "group": "tide", "tier": "early", "cards": [{"id": "tide_strike_13", "count": 2}, {"id": "tide_strike_11", "count": 1}]},
-    {"id": "tide_strike_floor", "name": "Strike floor", "group": "tide", "tier": "early", "cards": [{"id": "tide_noncombat_01", "count": 2}, {"id": "tide_strike_14", "count": 1}]},
+    {"id": "tide_strike_floor", "name": "Strike floor", "group": "tide", "tier": "early", "cards": [{"id": "tide_drill_07", "count": 2}, {"id": "tide_strike_14", "count": 1}]},
     {"id": "tide_tempo_guard", "name": "Tempo guards", "group": "tide", "tier": "early", "cards": [{"id": "tide_strike_12", "count": 2}, {"id": "tide_strike_01", "count": 1}]},
     {"id": "tide_fervor_arts", "name": "Fervor Arts", "group": "tide", "tier": "mid", "cards": [{"id": "tide_art_11", "count": 1}, {"id": "tide_art_12", "count": 1}]},
     {"id": "tide_two_way", "name": "Two-way cards", "group": "tide", "tier": "mid", "cards": [{"id": "tide_art_02", "count": 1}, {"id": "tide_strike_02", "count": 1}]},

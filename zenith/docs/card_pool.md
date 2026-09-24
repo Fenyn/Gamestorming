@@ -10,7 +10,7 @@ Counts leave out Masteries and signature cards and include gated cards. Rows are
 |---|---|---|---|---|---|---|---|
 | Pyre | 50 | 0 | 28 | 11 | 3 | 0 | 8 |
 | Steel | 50 | 0 | 28 | 14 | 2 | 2 | 4 |
-| Tide | 50 | 22 | 21 | 15 | 4 | 4 | 6 |
+| Tide | 50 | 0 | 21 | 15 | 4 | 3 | 7 |
 | Storm | 50 | 7 | 14 | 24 | 2 | 2 | 8 |
 | Shade | 50 | 20 | 23 | 13 | 5 | 2 | 7 |
 | Root | 50 | 12 | 19 | 12 | 8 | 5 | 6 |
@@ -148,69 +148,69 @@ Masteries:
 
 ## Tide (water): 50 cards
 
-Subthemes: Drowning 7, Allies 10, Guard 12, Digging 9, Board strip 6, Tide attacks 15.
+Subthemes: Drowning 7, Allies 10, Guard 13, Digging 8, Board strip 4, Tide attacks 14.
 
-Fervor denial is a trait here, not a subtheme: 19 cards carry it as a rider. It stops a climb; Drowning is what turns low Fervor into a win.
+Fervor denial is a trait here, not a subtheme: 18 cards carry it as a rider. It stops a climb; Drowning is what turns low Fervor into a win.
 
 Masteries:
 
 - **Tide Undertow Mastery** (`tide_mastery_01`): After a successful attack, if the attack is Tide, lower your opponent's Fervor 1. Your opponent needs 6 Fervor to rise an aspect. Limit 1 per deck.
 - **Tide Fathom Mastery** (`tide_mastery_02`): Your Tide Strikes do +2 wounds. Instead of defending, you may remove any number of Tide cards in your discard pile from the game. Prevent 2 wounds from the attack for each one removed. Limit 1 per deck.
-- **Tide Eddy Mastery** (new): Once per Combat, discard a card from hand to stop a Strike or an Art. If it was a Tide card, their Fervor -2
-- **Tide Floodtide Mastery** (new): Your Arts do +1 wound. Your Tide Arts gain "Hit: raise your Fervor 1"
+- **Tide Eddy Mastery** (`tide_mastery_03`): Discard a card from your hand to stop a Strike or an Art. If the top card of your discard pile is Tide, lower your opponent's Fervor 2. Once per Combat. Limit 1 per deck.
+- **Tide Floodtide Mastery** (`tide_mastery_04`): Your Arts do +1 wound. Your Tide Arts gain "Hit: Raise your Fervor 1." Limit 1 per deck.
 
 | Title | Type | What it does | Subthemes | New | id |
 |---|---|---|---|---|---|
-| Tide Dead Calm | Strike | Costs 2 Energy. +2 Energy. Hit: they discard X cards from the top of their Life Deck, X = 5 minus their Fervor | Drowning | new |  |
-| Tide Frozen Over | Strike | +2 Energy. Their Fervor to 0, and it cannot rise until their next turn | Drowning | new |  |
-| Tide Pounding Surf | Strike | Endurance 3. +3 Energy. Fervor +1. Hit: this Combat your Strikes read the table as if the base were 4 minus their Fervor | Drowning | new |  |
-| Tide Sinking Blow | Strike | 1 wound. Hit: if the top card of their discard pile is not a Strike, they discard their top 5 | Drowning | new |  |
-| Tide Leeching Brine | Art | Art. Hit: attaches to their duelist; they discard their top 2 at each turn start until they reach full Energy | Drowning | new |  |
-| Tide Riptide | Non-Combat | Their Fervor to 0. Their duelist drops one Aspect. Removed after use | Drowning | new |  |
-| Tide Salt Burn Drill | Drill | Your attacks do +2 Energy. Lowering Fervor they do not have takes that many cards off their Life Deck | Drowning | new |  |
+| Tide Dead Calm | Strike | Strike doing +2 Energy. Costs 2 Energy to perform. Hit: Your opponent takes X wounds, X = 5 minus their Fervor. | Drowning |  | `tide_strike_18` |
+| Tide Frozen Over | Strike | Strike doing +2 Energy. Set your opponent's Fervor to 0. Your opponent cannot gain Fervor until the beginning of their next turn. | Drowning |  | `tide_strike_15` |
+| Tide Pounding Surf | Strike | Endurance 3. Strike doing +3 Energy. Raise your Fervor 1. Hit: For the remainder of Combat, your Strikes that use the Strike Table have a Base Damage of X. X = 4 minus your opponent's Fervor. | Drowning |  | `tide_strike_20` |
+| Tide Sinking Blow | Strike | Strike dealing a wound. Hit: If the top card of your opponent's discard pile is not a Strike card, your opponent takes 5 wounds. | Drowning |  | `tide_strike_21` |
+| Tide Leeching Brine | Art | Art. Hit: Attach this card to your opponent's duelist. At the start of your opponent's turn, your opponent takes 2 wounds. Discard this card when the personality it is attached to is at full Energy. | Drowning |  | `tide_art_15` |
+| Tide Riptide | Non-Combat | Use in Combat: Set your opponent's Fervor to 0. Your opponent loses one Aspect. Remove from the game after use. | Drowning |  | `tide_noncombat_03` |
+| Tide Salt Burn Drill | Drill | Your attacks do +2 Energy. When you lower your opponent's Fervor while it is 0, they discard the top card of their Life Deck for each point lowered. This Drill does not count towards or against the one school of Drills you may have in play. | Drowning |  | `tide_drill_03` |
 | Tide Drowning | Strike | Strike. Your opponent removes a Non-Combat card or Ally in play of your choice from the game. | Allies, Board strip |  | `tide_strike_03` |
-| Tide Pull Under | Strike | Strike. Hit: Your opponent discards a Non-Combat card or Ally in play of your choice. If Moth Seal 3 or Moth Seal 4 is in play, Remain X, where X is your duelist's Aspect. Remove from the game after use. | Allies, Board strip |  | `tide_strike_04` |
-| Tide Confluence | Art | Art dealing 5 wounds. If performed by an Ally, focused. Empower 3. If you have an Ally in play, your opponent discards a Drill in play of your choice. | Allies, Board strip |  | `tide_art_08` |
-| Tide Springwater | Art | Art. Search your discard pile for an Ally and put it into play at Energy 3. Hit: Raise its Energy to full. Remove from the game after use. | Allies, Digging |  | `tide_art_05` |
+| Tide Pull Under | Strike | Strike. Hit: Discard a Non-Combat card or Ally in play. If Moth Seal 3 or Moth Seal 4 is in play, Remain X, where X is your duelist's Aspect. Remove from the game after use. | Allies |  | `tide_strike_04` |
+| Tide Confluence | Art | Art dealing 5 wounds. Empower 3. If performed by an Ally, focused. If you have an Ally in play, your opponent discards a Drill in play of your choice. | Allies, Board strip |  | `tide_art_08` |
+| Tide Springwater | Art | Art. You may search your discard pile for an aspect 1 Ally and put it into play at Energy 3. Hit: Raise its Energy to full. Remove from the game after use. | Allies, Digging |  | `tide_art_05` |
 | Tide Twin Breaker | Art | Art dealing 5 wounds. If Sir Edric Rooke is in play, +4 wounds and Focused. Lower your opponent's Fervor 2. Raise your Fervor 1. If this card is discarded from your Life Deck, at the start of the next fight-back phase this turn, you may search your Life Deck for an Ally and put it into play. | Allies |  | `tide_art_09` |
-| Tide Washout | Combat | Endurance 1. A Drill in play leaves the game. Your duelist and Allies gain 2 Energy. Fervor +1. Removed after use | Allies, Board strip | new |  |
-| Tide Answering Current | Non-Combat | Put an Ally into play from your deck and one from your discard pile. Removed after use | Allies, Digging | new |  |
-| Tide Following Current Drill | Drill | Attacks your Allies perform do +2 Energy | Allies | new |  |
-| Tide Mooring Drill | Drill | Your Allies cannot be discarded. Limit 1 | Allies | new |  |
-| Tide Shoal Drill | Drill | A landed Strike fetches a tier 1 Ally to hand | Allies | new |  |
+| Tide Washout | Combat | Endurance 1. Remove a Drill in play from the game. Your duelist and each of your Allies gain 2 Energy. Raise your Fervor 1. Remove from the game after use. | Allies |  | `tide_combat_02` |
+| Tide Answering Current | Non-Combat | Use in Combat: Search your Life Deck for an Ally and put it into play at Energy 3. Choose an Ally from your discard pile and put it into play at Energy 3. Remove from the game after use. | Allies, Digging |  | `tide_noncombat_02` |
+| Tide Following Current Drill | Drill | If performed by an Ally, your attacks do +2 Energy. | Allies |  | `tide_drill_04` |
+| Tide Mooring Drill | Drill | Your Allies in play cannot be discarded. Limit 1 per deck. | Allies |  | `tide_drill_02` |
+| Tide Shoal Drill | Drill | After a successful attack, if the attack is a Strike, search your Life Deck for an aspect 1 Ally and put it into your hand. | Allies |  | `tide_drill_01` |
 | Tide Deep Guard | Strike | Stops an Art. Lower your opponent's Fervor 2. | Guard |  | `tide_strike_11` |
-| Tide Ebb | Strike | Stops a Strike. Lose any amount of Energy. For each Energy lost, lower your opponent's Fervor 1. | Guard |  | `tide_strike_01` |
-| Tide Flotsam | Strike | Endurance 3. Stops an Art. Fervor +1. Put 2 Non-Combats from your discard pile on top of your deck. Removed after use | Guard, Digging | new |  |
-| Tide Sounding | Strike | Stops a Strike. Look at your top 3 and take one. Below Aspect 3 the opponent picks which | Guard, Digging | new |  |
+| Tide Ebb | Strike | Stops a Strike. Your duelist loses any amount of Energy. For each Energy lost, lower your opponent's Fervor 1. | Guard |  | `tide_strike_01` |
+| Tide Flotsam | Strike | Endurance 3. Stops an Art. Raise your Fervor 1. Choose 2 Non-Combat cards and Drills from your discard pile and place them on top of your Life Deck. Remove from the game after use. | Guard, Digging |  | `tide_strike_19` |
+| Tide Sounding | Strike | Stops a Strike. Show the top 3 cards of your Life Deck to both players. Your opponent chooses 1 of them and it goes into your hand. Put the others back on top in any order. If your duelist is aspect 3 or higher, you choose instead. | Guard |  | `tide_strike_17` |
 | Tide Sweep Aside | Strike | Stops a Strike. Lower your opponent's Fervor 1. | Guard |  | `tide_strike_13` |
-| Tide Undersweep | Strike | Strike doing +2 Energy. The next attack performed against you this Combat is stopped. Lower your opponent's Fervor 1. | Guard |  | `tide_strike_12` |
+| Tide Undersweep | Strike | Strike doing +2 Energy. The next Strike performed against you during your opponent's next attack phase is stopped. Lower your opponent's Fervor 1. | Guard |  | `tide_strike_12` |
+| Tide Waterlogged | Strike | Strike. Hit: Stops all Strikes performed against you for the remainder of Combat. Lower your opponent's Fervor 1. Remove from the game after use. | Guard |  | `tide_strike_08` |
 | Tide Wide Sweep | Strike | Strike doing +5 Energy. Stops an Art. Lower your opponent's Fervor 1. | Guard |  | `tide_strike_02` |
-| Tide Backwash | Art | Focused, 5 wounds, or stops an Art. Returns cards from your discard pile equal to your Fervor. Removed after use | Guard, Digging | new |  |
+| Tide Backwash | Art | Focused Art dealing 5 wounds. Stops an Art. Choose a card for each point of your Fervor from your discard pile and shuffle them into your Life Deck. If every card taken is a Non-Combat card or Drill, gain 3 Energy. Remove from the game after use. | Guard, Digging |  | `tide_art_13` |
 | Tide Breakwater | Art | Stops an Art. For the remainder of Combat, Arts against you deal no wounds. Remove from the game after use. Limit 1 per deck. | Guard |  | `tide_art_01` |
 | Tide Surge | Art | Art dealing 5 wounds. Stops a Strike. | Guard |  | `tide_art_02` |
-| Tide Parting Waters | Combat | Endurance X, X = your Fervor. Stops a Strike or an Art. Removed after use, or discarded at Aspect 3+ | Guard | new |  |
-| Tide Seawall Drill | Drill | Defense Shield: stops the first unstopped Strike each Combat | Guard | new |  |
-| Tide Dredge | Strike | Endurance 2. Strike doing +5 Energy. Look at the top 5 cards of your Life Deck. You may put a Non-Combat card from among them into play. Put the rest on the bottom of your Life Deck in any order. Remove from the game after use. | Digging |  | `tide_strike_07` |
+| Tide Parting Waters | Combat | Endurance X. X = your Fervor. Stops a Strike or an Art. Remove from the game after use. If your duelist is aspect 3 or higher, discard it after use instead. | Guard |  | `tide_combat_04` |
+| Tide Seawall Drill | Drill | Defense Shield: stops the first unstopped Strike each Combat. | Guard |  | `tide_drill_05` |
+| Tide Dredge | Strike | Endurance 2. Strike doing +5 Energy. Look at the top 5 cards of your Life Deck. You may put a Non-Combat card or Drill from among them into play. Put the rest on the bottom of your Life Deck in any order. | Digging |  | `tide_strike_07` |
 | Tide Depths | Art | Art dealing 3 wounds. Search your Life Deck for a card and put it into your hand. Remove from the game after use. | Digging |  | `tide_art_06` |
 | Tide High Water | Art | Art dealing 5 wounds. Raise your Fervor 1. Hit: Search your Life Deck for a Grounds card and put it into play. | Digging |  | `tide_art_07` |
-| Tide Returning Tide | Combat | Their Fervor -2. Put your top 3 discards under your deck | Digging | new |  |
-| Tide Erosion | Non-Combat | Discard one of their Drills | Board strip | new |  |
-| Tide Narrow Channel Drill | Drill | They may place only 1 Non-Combat a turn | Board strip | new |  |
-| Tide Breaking Sea | Strike | +6 Energy. Their Fervor -4 | Tide attacks | new |  |
-| Tide Deep Anchor | Strike | Strike doing +1 Energy. Your opponent may not use cards that lower an Aspect for the remainder of Combat. Remain 1. | Tide attacks |  | `tide_strike_06` |
+| Tide Returning Tide | Combat | Lower your opponent's Fervor 2. Place the top 3 cards of your discard pile at the bottom of your Life Deck. | Digging |  | `tide_combat_03` |
+| Tide Erosion | Non-Combat | Use in Combat: Your opponent discards a Drill in play of your choice. | Board strip |  | `tide_noncombat_04` |
+| Tide Narrow Channel Drill | Drill | Your opponent may place only 1 Non-Combat card in play during their turn. | Board strip |  | `tide_drill_06` |
+| Tide Breaking Sea | Strike | Strike doing +6 Energy. Lower your opponent's Fervor 4. | Tide attacks |  | `tide_strike_16` |
+| Tide Deep Anchor | Strike | Strike doing +1 Energy. Your opponent may not use cards that lower an Aspect for the remainder of Combat. You may not use cards that lower your own Aspect for the remainder of Combat. Remain 1. | Tide attacks |  | `tide_strike_06` |
 | Tide Deep Sweep | Strike | Strike doing +4 Energy. Lower your opponent's Fervor 1. | Tide attacks |  | `tide_strike_14` |
 | Tide Heavy Swell | Strike | Strike doing +3 Energy. Lower your opponent's Fervor 2. | Tide attacks |  | `tide_strike_09` |
 | Tide Pressure Wave | Strike | Strike doing +4 Energy. Lower your opponent's Fervor 2. | Tide attacks |  | `tide_strike_10` |
-| Tide Waterlogged | Strike | Strike. Hit: Your opponent may not perform Strikes for the remainder of Combat. Lower your opponent's Fervor 1. Remove from the game after use. | Tide attacks |  | `tide_strike_08` |
 | Tide Welling Deep | Strike | Strike doing +5 Energy. Raise your duelist's Energy to full. Place at the bottom of your Life Deck after use. | Tide attacks |  | `tide_strike_05` |
 | Tide Black Water | Art | Art. Lower your opponent's Fervor 3. | Tide attacks |  | `tide_art_11` |
 | Tide Cresting Wave | Art | Art dealing 5 wounds. Raise your Fervor 1. Lower your opponent's Fervor 2. | Tide attacks |  | `tide_art_12` |
-| Tide Crushing Depth | Art | Art dealing 6 wounds. Hit: Discard all of your attached cards in play. Remove from the game after use. | Tide attacks |  | `tide_art_10` |
-| Tide Spring Tide | Art | 5 wounds. Fervor +2. Their Fervor -1 | Tide attacks | new |  |
+| Tide Crushing Depth | Art | Art dealing 6 wounds. Hit: Discard every card attached to your duelist. Remove from the game after use. | Tide attacks |  | `tide_art_10` |
+| Tide Spring Tide | Art | Art dealing 5 wounds. Raise your Fervor 2. Lower your opponent's Fervor 1. | Tide attacks |  | `tide_art_14` |
 | Tide Torrent | Art | Art. Costs 0 Energy to perform. You may pay any amount of Energy; each 2 paid adds a wound. | Tide attacks |  | `tide_art_04` |
 | Tide Twin Swell | Art | Art dealing 3 wounds, plus wounds equal to your Surge Rate. Remain 1. | Tide attacks |  | `tide_art_03` |
 | Tide Held Under | Combat | Lower your opponent's Fervor 2. Your opponent loses 2 Energy. | Tide attacks |  | `tide_combat_01` |
-| Tide Heavy Water | Non-Combat | Your Strikes do +1 Energy. | Tide attacks |  | `tide_noncombat_01` |
+| Tide Heavy Water Drill | Drill | Your Strikes do +1 Energy. | Tide attacks |  | `tide_drill_07` |
 
 ## Storm (lightning and wind): 50 cards
 

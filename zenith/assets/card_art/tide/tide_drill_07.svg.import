@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://f81bfy34fekv"
-path="res://.godot/imported/tide_noncombat_01.svg-c243d9ca0a692ccc1534c21165796a65.ctex"
+uid="uid://bxdd2q81gmss6"
+path="res://.godot/imported/tide_drill_07.svg-512d3916285152d9ddd5cdd1d5d8f347.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/tide/tide_noncombat_01.svg"
-dest_files=["res://.godot/imported/tide_noncombat_01.svg-c243d9ca0a692ccc1534c21165796a65.ctex"]
+source_file="res://assets/card_art/tide/tide_drill_07.svg"
+dest_files=["res://.godot/imported/tide_drill_07.svg-512d3916285152d9ddd5cdd1d5d8f347.ctex"]
 
 [params]
 

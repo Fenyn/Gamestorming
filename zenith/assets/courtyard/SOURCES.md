@@ -4,14 +4,14 @@ Written by `tools/import_courtyard_art.py` from `F:/UnityNVME/Art/`. Nothing her
 
 Licences:
 
-- PSX Textures v3.0 and PSX Nature v1.7.1 (Pizza Doggy): use in any game, modification allowed, no attribution required; do not resell or redistribute the assets on their own.
+- PSX Textures v3.0, PSX Mega Pack 3.1.2 and PSX Nature v1.7.1 (Pizza Doggy): use in any game, modification allowed, no attribution required; do not resell or redistribute the assets on their own.
 - Screaming Brain Studios cloudy skyboxes: CC0.
 - EffectBlocks v4 (falling leaves, god rays) are added to `PolyBlocks/EffectBlocks/`; see its SOURCES.md.
 
 | Project file | Source under `F:/UnityNVME/Art/` |
 |---|---|
-| `textures/dais.png` | `PSX/PSX Textures v3.0/PSX Textures/256/Color Maps/tiles_floor_6.png` |
-| `textures/dais_normal.png` | `PSX/PSX Textures v3.0/PSX Textures/256/Normal Maps/tiles_floor_6_normal.png` |
+| `textures/dais.png` | `PSX/PSX Textures v3.0/PSX Textures/256/Color Maps/tiles_floor_6_1.png` |
+| `textures/dais_normal.png` | `PSX/PSX Textures v3.0/PSX Textures/256/Normal Maps/tiles_floor_6_1_normal.png` |
 | `textures/flagstone.png` | `PSX/PSX Textures v3.0/PSX Textures/256/Color Maps/stone_3.png` |
 | `textures/flagstone_normal.png` | `PSX/PSX Textures v3.0/PSX Textures/256/Normal Maps/stone_3_normal.png` |
 | `textures/wall.png` | `PSX/PSX Textures v3.0/PSX Textures/256/Color Maps/stone_3_1.png` |
@@ -22,6 +22,8 @@ Licences:
 | `textures/grass_normal.png` | `PSX/PSX Textures v3.0/PSX Textures/256/Normal Maps/grass_5_normal.png` |
 | `textures/dirt.png` | `PSX/PSX Textures v3.0/PSX Textures/256/Color Maps/dirt_3.png` |
 | `textures/dirt_normal.png` | `PSX/PSX Textures v3.0/PSX Textures/256/Normal Maps/dirt_3_normal.png` |
+| `textures/playmat.png` | `PSX/PSX Mega Pack 3.1.2/PSX Mega Pack/Textures/fabric_5.png` |
+| `textures/playmat_edge.png` | `PSX/PSX Mega Pack 3.1.2/PSX Mega Pack/Textures/fabric_1.png` |
 | `sky_overcast.png` | `Skybox/Cubemap/Cubemap_Sky_10-512x512.png (cross cubemap converted to a panorama)` |
 | `models/stone_1.glb` | `PSX/PSX Nature v1.7.1/PSX Nature/Models/GLB/stone_1.glb` |
 | `models/stone_3.glb` | `PSX/PSX Nature v1.7.1/PSX Nature/Models/GLB/stone_3.glb` |

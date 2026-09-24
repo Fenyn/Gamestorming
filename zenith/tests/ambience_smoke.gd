@@ -18,13 +18,13 @@ func _check(ok: bool, message: String) -> void:
 
 func _run() -> void:
 	var world: Node3D = Node3D.new()
-	var table: Node3D = Node3D.new()
+	var table: MeshInstance3D = MeshInstance3D.new()
 	table.name = "Table"
+	table.mesh = BoxMesh.new()
 	world.add_child(table)
 	var inlay: MeshInstance3D = MeshInstance3D.new()
 	inlay.name = "Inlay"
-	var surface: ShaderMaterial = ShaderMaterial.new()
-	surface.shader = load("res://assets/arena_surface.gdshader")
+	var surface: StandardMaterial3D = StandardMaterial3D.new()
 	inlay.material_override = surface
 	table.add_child(inlay)
 	var atmosphere: ArenaAtmosphere = ArenaAtmosphere.new()
@@ -33,8 +33,8 @@ func _run() -> void:
 	world.add_child(fx)
 	root.add_child(world)
 	atmosphere.set_schools(Palette.school_ui("root"), Palette.school_ui("pyre"))
-	_check(inlay.material_override != surface, "The table top must take the courtyard's own stone, not the old shared shader")
-	_check(inlay.material_override is StandardMaterial3D, "The table top must be lit stone")
+	_check(inlay.material_override == surface, "The playmat is the scene's own and the atmosphere must leave it alone")
+	_check(table.get_surface_override_material(0) is StandardMaterial3D, "The table under the mat must be lit courtyard stone")
 	# The courtyard set itself: its drifting leaves stop the moment motion is reduced.
 	var courtyard: CourtyardSet = CourtyardSet.new()
 	world.add_child(courtyard)
@@ -67,6 +67,8 @@ func _run() -> void:
 	_check(first.get_script() == null, "Pack demo keyboard triggers must be detached")
 	first.free()
 	second.free()
+	_check(DuelFx.tone(ZenithTheme.DEFEND) == DuelFx.WARD_TONE and DuelFx.tone(ZenithTheme.ACCENT) == DuelFx.RISE_TONE, "Table effects must draw defence and accent in the courtyard tones")
+	_check(DuelFx.tone(ZenithTheme.ATTACK) == ZenithTheme.ATTACK, "Other role colours must pass through unchanged")
 	fx.impact(Vector3.ZERO, ZenithTheme.ATTACK)
 	fx.ward(Vector3.RIGHT, ZenithTheme.DEFEND)
 	fx.ascend(Vector3.LEFT, ZenithTheme.ACCENT)

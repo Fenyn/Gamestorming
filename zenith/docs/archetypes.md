@@ -146,7 +146,7 @@ and are counted in 2.8, not here.
 - Ranked themes: Fervor denial 13, Strike attack 11, Art attack 11, Energy damage 8, life damage 8,
   stop by kind 6, draw and search 4, board removal 4.
 - What it lacks: Fervor gain (3 cards), Drills (none), and any large single hit. Its only static
-  modifier is `tide_noncombat_01` at +1 stage.
+  modifier is `tide_drill_07` at +1 stage.
 - Precons: `tide_companions` (Dame Alder, Allies and the Bond), `tide_deepwater` (Sir Edric Rooke,
   hold Fervor at 0 and strip).
 
@@ -460,7 +460,7 @@ are always late.
 |---|---|---|---|---|---|---|
 | `tide_fervor_blows` | Fervor blows | `tide_strike_09` x2, `tide_strike_10` | Fervor denial | control | early | -2 Fervor a hit is how Tide polices the Ascension clock |
 | `tide_fervor_guards` | Fervor guards | `tide_strike_13` x2, `tide_strike_11` | stop by kind, Fervor denial | control | early | One stop per attack kind, and both strip Fervor |
-| `tide_strike_floor` | Strike floor | `tide_noncombat_01` x2, `tide_strike_14` | static modifier | strike_beatdown | early | Tide's only standing damage bonus |
+| `tide_strike_floor` | Strike floor | `tide_drill_07` x2, `tide_strike_14` | static modifier | strike_beatdown | early | Tide's only standing damage bonus |
 | `tide_tempo_guard` | Tempo guards | `tide_strike_12` x2, `tide_strike_01` | floating effect, Fervor denial | control | early | Undersweep stops the next attack after it; Ebb converts spare Energy into Fervor denial |
 | `tide_fervor_arts` | Fervor Arts | `tide_art_11`, `tide_art_12` | Fervor denial, life damage | art_beatdown, control | mid | -3 and -2 Fervor from range |
 | `tide_two_way` | Two-way cards | `tide_art_02`, `tide_strike_02` | stop by kind | all Tide | mid | Each is an attack on your turn and a stop on theirs, one per kind |

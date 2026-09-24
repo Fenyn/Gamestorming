@@ -2,8 +2,12 @@ class_name DuelFx
 extends Node3D
 ## Table feedback: transient impacts and one reusable attack filament. Transient meshes
 ## free themselves after their tweens; the filament holds the public response state.
-## Colours come from ZenithTheme roles.
+## Colours come from ZenithTheme roles, passed through `tone`.
 
+## On the courtyard stone the HUD's saturated defence blue and accent gold glow like neon, so the
+## table effects draw those two roles in weathered tones. The HUD keeps its own colours.
+const WARD_TONE: Color = Color(0.72, 0.78, 0.82)   # pale slate
+const RISE_TONE: Color = Color(0.93, 0.87, 0.72)   # old ivory
 const TEXT_RISE: float = 0.5
 const TEXT_TIME: float = 1.2
 const TEXT_LIFT: float = 0.3
@@ -52,9 +56,9 @@ func show_attack_link(from: Vector3, to: Vector3, state: StringName = &"pending"
 	var middle: Vector3 = (start + end) * 0.5 + side * 0.28 + Vector3.UP * 0.14
 	var color: Color = ZenithTheme.ATTACK.lightened(0.25)
 	if state == &"stopped":
-		color = ZenithTheme.DEFEND
+		color = WARD_TONE
 	elif state == &"landed":
-		color = ZenithTheme.ACCENT
+		color = RISE_TONE
 	var mesh: ImmediateMesh = ImmediateMesh.new()
 	mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 	var previous: Vector3 = start
@@ -93,7 +97,18 @@ func _link_segment(mesh: ImmediateMesh, from: Vector3, to: Vector3, width: float
 
 
 ## A number or word that pops in over `pos`, drifts up and fades.
+## The table's version of a HUD role colour: defence and accent become WARD_TONE and RISE_TONE,
+## everything else passes through.
+static func tone(color: Color) -> Color:
+	if color == ZenithTheme.DEFEND:
+		return WARD_TONE
+	if color == ZenithTheme.ACCENT:
+		return RISE_TONE
+	return color
+
+
 func float_text(pos: Vector3, text: String, color: Color, size: int = 64) -> void:
+	color = tone(color)
 	# A new beat replaces lingering text at this source instead of printing over it.
 	for child in get_children():
 		if child is Label3D and child.has_meta("float_anchor"):
@@ -124,6 +139,7 @@ func float_text(pos: Vector3, text: String, color: Color, size: int = 64) -> voi
 
 ## Authored EffectBlocks sparks radiate from `pos` and fade.
 func burst(pos: Vector3, color: Color, count: int = 28, speed: float = 2.2) -> void:
+	color = tone(color)
 	if reduced_motion:
 		return
 	var particles: GPUParticles3D = EffectBlocks.play(self, "impacts/impact_4", pos, color, 1.0, 0.8) as GPUParticles3D
@@ -136,6 +152,7 @@ func burst(pos: Vector3, color: Color, count: int = 28, speed: float = 2.2) -> v
 
 ## A bright streak from one card to another, lying just above the table, that fades.
 func slash(from: Vector3, to: Vector3, color: Color) -> void:
+	color = tone(color)
 	var dir: Vector3 = to - from
 	dir.y = 0.0
 	var length: float = dir.length()
@@ -172,6 +189,7 @@ func slash(from: Vector3, to: Vector3, color: Color) -> void:
 
 ## A ring that spreads out from `pos` and fades: a shield going up, a seal changing hands.
 func ring(pos: Vector3, color: Color, size: float = 1.0) -> void:
+	color = tone(color)
 	var torus: TorusMesh = TorusMesh.new()
 	torus.inner_radius = 0.30
 	torus.outer_radius = 0.36
@@ -193,6 +211,7 @@ func ring(pos: Vector3, color: Color, size: float = 1.0) -> void:
 
 ## Successful protection closes inward, distinct from an outward damage shock.
 func ward(pos: Vector3, color: Color, size: float = 1.0) -> void:
+	color = tone(color)
 	if not reduced_motion:
 		var ward_effect: Node3D = EffectBlocks.play(self, "ground_effects/ground_effect_1", pos, color, size * 1.2, 0.65)
 		var close: Tween = create_tween()
@@ -221,6 +240,7 @@ func impact(pos: Vector3, color: Color, strength: float = 1.0) -> void:
 
 ## A rising power-up effect distinguishes ascension from routine resource feedback.
 func ascend(pos: Vector3, color: Color, rising: bool = true) -> void:
+	color = tone(color)
 	if reduced_motion:
 		ring(pos, color, 1.2)
 		return
@@ -243,6 +263,7 @@ func ascend(pos: Vector3, color: Color, rising: bool = true) -> void:
 
 ## Gains gather inward; spending releases an outward pulse. Exact values belong to UI.
 func resource_pulse(pos: Vector3, color: Color, gain: bool = true) -> void:
+	color = tone(color)
 	var halo: MeshInstance3D = _halo(pos, color, 0.42, 0.018)
 	var mat: StandardMaterial3D = halo.material_override as StandardMaterial3D
 	halo.scale = Vector3.ONE * (1.0 if reduced_motion else (1.3 if gain else 0.8))
@@ -255,6 +276,7 @@ func resource_pulse(pos: Vector3, color: Color, gain: bool = true) -> void:
 
 ## A small travelling mote connects the public source to the affected personality.
 func resource_transfer(from: Vector3, to: Vector3, color: Color) -> void:
+	color = tone(color)
 	if reduced_motion or from.distance_squared_to(to) < 0.02:
 		resource_pulse(to, color)
 		return

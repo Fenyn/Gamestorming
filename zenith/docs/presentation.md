@@ -168,18 +168,24 @@ demo keyboard scripts are detached, and combat effects clean up after their anim
   completed rounds, a current-round marker, the Aspect grant and a distinct final node. Selecting
   any round previews its opponent without touching the run; only the current round can enter.
 - **Sanctum**: menus and the matchup share a live 3D hall (tiled stone, columns, bronze inlays,
-  braziers, dust, a school-tinted portal) in a capped-resolution SubViewport. The same architecture
-  surrounds Combat without a second camera or WorldEnvironment.
-- **Arena**: teal slate surface with bronze inlays, school-tinted edges, mist beyond the table and
-  four crystal posts. School colours come from the public `SeatView` and stay with the physical
-  seats when the hotseat camera swings.
+  braziers, dust, a school-tinted portal) in a capped-resolution SubViewport.
+- **Arena** (2026-09-23): a ruined courtyard under an overcast sky. The cards lie on a plain
+  charcoal felt playmat with an oxblood bound edge (`Table/Inlay` and `Table/MatEdge` in
+  `duel.tscn`), inset on a grey flagstone table so a band of stone shows round it; the stone
+  alone was too busy under the cards. The table stands on a brick plinth, in a cobbled yard walled on three sides by broken, mossy stone, with a
+  few standing columns, one fallen, ferns and rubble along the walls and trees past them. Leaves
+  drift across and two faint shafts of daylight fall into the yard. Every texture and model is
+  PSX library art copied in by `tools/import_courtyard_art.py` (sources and licences in
+  `../assets/courtyard/SOURCES.md`). The courtyard is the same for every matchup; school colour
+  lives on the cards and the HUD. Table effects draw the HUD's defence blue and accent gold in
+  pale slate and old ivory (`DuelFx.tone`), because the saturated pair glowed like neon on stone.
 
 Tuning files:
 
 - `assets/arcane_backdrop.gdshader`: selection stone, sigils, mist, motes.
-- `assets/arena_surface.gdshader`, `assets/arena_mist.gdshader`: combat surface and atmosphere.
 - `scripts/ui/effect_blocks.gd`, `scripts/duel/duel_fx.gd`: pack integration, impact, ward and ascension.
-- `scripts/duel/arena_atmosphere.gd`: posts, crystals, perimeter particles.
+- `scripts/duel/arena_atmosphere.gd`: dresses the table in courtyard stone and adds the set.
+- `scripts/duel/courtyard_set.gd`: the courtyard's geometry, sky, fog, sun, leaves and light shafts.
 - `scripts/ui/sanctum_set.gd` (geometry, lights, particles), `scripts/ui/sanctum_ui.gd` (theme and
   menu feedback), `scripts/adventure/tournament_route.gd` (route).
 - `scenes/duel/hud.tscn`, `scripts/duel/duel_hud.gd`: phase strip and its Combat sub-chips,

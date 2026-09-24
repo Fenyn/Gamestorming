@@ -360,6 +360,15 @@ func _init() -> void:
 		test_steel_constricting_grip_holds_their_surge_at_zero,
 		test_steel_drawn_breath_banks_the_gain_for_the_next_attack,
 		test_steel_cornered_blood_and_awakened_blood_read_empower_and_damage,
+		test_tide_shipped_cards_match_their_printed_text,
+		test_tide_mooring_and_salt_burn_drills,
+		test_tide_frozen_over_holds_fervor_until_their_turn,
+		test_tide_sounding_lets_the_opponent_pick_below_aspect_three,
+		test_tide_backwash_returns_a_card_per_fervor,
+		test_tide_drowning_numbers_read_their_fervor,
+		test_tide_narrow_channel_and_parting_waters,
+		test_tide_leeching_brine_rides_their_duelist,
+		test_tide_masteries_stop_with_a_discard_and_grant_arts_a_line,
 		test_the_card_group_tells_signature_from_freestyle,
 		test_every_shipped_card_lands_in_one_group,
 		test_a_duelist_stack_is_one_character_consecutive_from_aspect_one,
@@ -6615,7 +6624,20 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 		steel_types[id] = "non_combat"
 	steel_types["steel_combat_02"] = "combat"
 	eq(steel_types.size(), 23, "20 Steel cards and 3 Steel Masteries were approved")
-	var by_school: Dictionary = {"storm": storm_types, "root": root_types, "pyre": pyre_types, "steel": steel_types}
+	var tide_types: Dictionary = {}
+	for n in range(15, 22):
+		tide_types["tide_strike_%d" % n] = "strike"
+	for n in range(13, 16):
+		tide_types["tide_art_%02d" % n] = "art"
+	for n in range(1, 7):
+		tide_types["tide_drill_%02d" % n] = "drill"
+	for n in range(2, 5):
+		tide_types["tide_noncombat_%02d" % n] = "non_combat"
+		tide_types["tide_combat_%02d" % n] = "combat"
+	for id in ["tide_mastery_03", "tide_mastery_04"]:
+		tide_types[id] = "mastery"
+	eq(tide_types.size(), 24, "22 Tide cards and 2 Tide Masteries were approved")
+	var by_school: Dictionary = {"storm": storm_types, "root": root_types, "pyre": pyre_types, "steel": steel_types, "tide": tide_types}
 	for school in by_school.keys():
 		var wanted: Dictionary = by_school[school]
 		for id in wanted.keys():
@@ -6627,8 +6649,8 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 			eq(def.type, int(CardDef.TYPE_NAMES[str(wanted[id])]), "%s is a %s card" % [id, wanted[id]])
 			check(CardText.rules_text(def) != "" or def.type == CardDef.Type.DRILL, "%s prints something" % id)
 	# 397 before the personality split; the 27 stack cards became 62 one-Aspect cards. The Pyre
-	# expansion added 27 and the Steel expansion 23.
-	eq(shipped().defs.size(), 488, "and the set is 426 other cards plus 62 Aspect cards")
+	# expansion added 27, the Steel expansion 23 and the Tide expansion 24.
+	eq(shipped().defs.size(), 512, "and the set is 450 other cards plus 62 Aspect cards")
 
 
 ## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
@@ -9697,7 +9719,7 @@ func test_steel_masteries_show_the_drawn_card() -> void:
 		eq(prompt_kind(e), &"pick_option", "%s asks whether to show the Steel card" % mastery)
 		var their_energy: int = e.player(1).in_control().energy
 		answer(e, &"pick_option", -1, "yes")
-		check(has_event(e, &"hand_revealed"), "the card was shown")
+		check(has_event(e, &"cards_revealed"), "the card was shown")
 		if mastery == "steel_mastery_02":
 			eq(e.player(1).in_control().energy, maxi(0, their_energy - 4), "and they lost 4 Energy")
 		else:
@@ -9794,3 +9816,222 @@ func test_steel_cornered_blood_and_awakened_blood_read_empower_and_damage() -> v
 		ids.append(c.def.id)
 	check(ids.has("steel_drill_01"), "the Drill that adds damage is found")
 	check(not ids.has("steel_drill_04"), "the shield Drill is not")
+
+
+# --- The Tide expansion and review, 2026-09-23 -----------------------------
+
+## Any Aspect-1 personality card that is not the test duelist's own character, to stand as an Ally.
+func _an_ally_id() -> String:
+	var ids: Array = shipped().defs.keys()
+	ids.sort()
+	for id in ids:
+		var def: CardDef = shipped().defs[id]
+		if def.is_personality() and def.aspect == 1 and def.character != "Osric Thornwald" and (def.raw.get("bond_of", []) as Array).is_empty():
+			return str(id)
+	return ""
+
+
+## The shipped Tide cards, each against the clause the review found it missing.
+func test_tide_shipped_cards_match_their_printed_text() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "tide"), real_deck([], "vigil"))
+	# "Discard any cards attached to your Main Personality": the opponent's rider goes too.
+	var hex: CardInstance = real_inject(e, 1, "tide_art_15")
+	hex.attached_to = e.player(0).duelist
+	e._apply_effect({"op": "discard_in_play", "card_type": "attached_to_duelist", "all": true}, 0, {}, null)
+	eq(hex.zone, &"discard", "the opponent's card riding the duelist was discarded")
+	# Printed as a Drill, so its "+1 to physical attacks" is a standing Drill modifier.
+	real_inject(e, 0, "tide_drill_07")
+	eq(e._modifiers_for(e.player(0), "own", "strike", null, {}).size(), 1, "Heavy Water adds to Strikes")
+	# "Cards that can lower your Main Personality any amount of levels cannot be played or used."
+	e._float(1, "forbid", "combat", {"what": "lower_aspect"})
+	e._float(0, "forbid", "combat", {"what": "lower_own_aspect"})
+	check(not e._can_play(e.player(1), shipped().get_def("pyre_art_10")), "their card that lowers an Aspect cannot be played")
+	check(not e._can_play(e.player(0), shipped().get_def("freestyle_art_04")), "nor can the user's own that lowers their own")
+	check(e._can_play(e.player(0), shipped().get_def("pyre_art_10")), "the user's card aimed at the other side is untouched")
+	# "You may choose to have your Main Personality lose any number of power stages."
+	e._apply_effect({"op": "pay_energy", "per": 1, "payer": "duelist", "then": []}, 0, {}, null)
+	eq(int(e._choice.get("payer", -1)), e.player(0).duelist.uid, "Ebb's payment is the duelist's")
+	e._choice = {}
+	e.prompts.clear()
+	var spring: Dictionary = shipped().get_def("tide_art_05").effects[0]
+	check(bool(spring.get("may", false)) and int(spring.get("aspect", 0)) == 1, "Springwater may fetch a level-1 Ally")
+	var confluence: Dictionary = shipped().get_def("tide_art_08").attack["variants"][0]
+	check(bool(confluence.get("after_empower", false)), "Confluence's Ally Focus is printed after Empower")
+	eq(str(shipped().get_def("tide_strike_04").effects[0].get("who", "")), "any", "Pull Under reaches either side")
+	check(not shipped().get_def("tide_strike_07").remove_after_use, "Dredge is not removed after use")
+	eq(str(shipped().get_def("tide_strike_08").effects[0].get("op", "")), "stop_all", "Waterlogged stops Strikes, it does not forbid them")
+	eq(str(shipped().get_def("tide_strike_12").effects[0].get("duration", "")), "next_attack_phase", "Undersweep waits for their next phase")
+
+
+## "Your Allies in play cannot be discarded" and "when you lower your opponent's anger but his anger
+## level is 0, your opponent discards the top card of his Life Deck for each anger level lowered".
+func test_tide_mooring_and_salt_burn_drills() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil", "tide"))
+	var ally: CardInstance = real_inject(e, 1, _an_ally_id())
+	check(not e._in_play_candidates(e.player(1), "ally").is_empty(), "the Ally can be discarded to start with")
+	real_inject(e, 1, "tide_drill_02")
+	check(e._in_play_candidates(e.player(1), "ally").is_empty(), "the Mooring Drill guards it from a discard")
+	check(e._in_play_candidates(e.player(1), "ally", true).is_empty(), "even the owner's own")
+	check(e._in_play_candidates(e.player(1), "ally", false, true).has(ally), "but not from being removed from the game")
+	var f: DuelEngine = real_engine(real_deck([], "pact", "tide"), real_deck([], "vigil"))
+	real_inject(f, 0, "tide_drill_03")
+	var them: PlayerState = f.player(1)
+	them.fervor = 0
+	var deck: int = them.life_deck.size()
+	f._change_fervor(them, -2, 0)
+	eq(deck - them.life_deck.size(), 2, "lowering an empty Fervor 2 costs them 2 cards")
+	them.fervor = 1
+	deck = them.life_deck.size()
+	f._change_fervor(them, -2, 0)
+	eq(them.life_deck.size(), deck, "with Fervor to lower, nothing is milled")
+
+
+## "Lower your opponent's anger to 0. Your opponent cannot gain any anger until the beginning of his
+## next turn."
+func test_tide_frozen_over_holds_fervor_until_their_turn() -> void:
+	var e: DuelEngine = real_engine(real_deck(["tide_strike_15"], "pact", "tide"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	them.fervor = 3
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "tide_strike_15"))
+	settle(e, 8)
+	eq(them.fervor, 0, "their Fervor went to 0")
+	e._change_fervor(them, 2, 1)
+	eq(them.fervor, 0, "and it cannot rise")
+	skip_to_turn(e, 3)
+	eq(e.state.active, 1, "their next turn has begun")
+	check(not e._has_floating(1, "no_fervor_gain"), "and the lock is gone with its start")
+
+
+## "Your opponent chooses 1 of those cards ... If your Main Personality's level is 3 or higher, you
+## get to choose the card instead."
+func test_tide_sounding_lets_the_opponent_pick_below_aspect_three() -> void:
+	for climb in [0, 2]:
+		var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil", "tide"))
+		var them: PlayerState = e.player(1)
+		for i in range(climb):
+			e._aspect_up(them)
+		var sounding: CardInstance = real_to_hand(e, 1, "tide_strike_17")
+		to_attack(e, 0)
+		answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+		answer(e, &"defend", sounding.uid)
+		settle(e, 2, [&"decline"])
+		eq(prompt_kind(e), &"pick_option", "the three are laid out to pick from")
+		eq(e.prompt.player, 0 if climb == 0 else 1, "picked by %s" % ("the opponent" if climb == 0 else "the owner at Aspect 3"))
+		check(has_event(e, &"cards_revealed"), "the cards were shown")
+		var taken: int = e.prompt.options[0].card
+		e.submit(e.prompt.options[0])
+		eq(e.card(taken).zone, &"hand", "the chosen card went to the owner's hand")
+		eq(e.card(taken).owner, 1, "their own card")
+
+
+## "Shuffle 1 card in your discard pile into your Life Deck for each level of your anger. If all the
+## cards you shuffled in were Non-Combat cards, gain 3 power stages."
+func test_tide_backwash_returns_a_card_per_fervor() -> void:
+	var e: DuelEngine = real_engine(real_deck(["tide_art_13"], "pact", "tide"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	to_attack(e, 0)
+	var a: CardInstance = real_to_discard(e, 0, "tide_drill_05")
+	var b: CardInstance = real_to_discard(e, 0, "tide_drill_06")
+	me.fervor = 2
+	me.duelist.energy = 5
+	answer(e, &"attack", uid_in_hand(e, 0, "tide_art_13"))
+	eq(prompt_kind(e), &"pick_option", "the pick is the user's")
+	check(e.prompt.find(&"pick_none") == null, "and not optional")
+	check(e.submit(Command.new(0, &"pick_option", -1, [a.uid, b.uid])), "two cards for Fervor 2")
+	eq(a.zone, &"life_deck", "the first went back")
+	eq(b.zone, &"life_deck", "and the second")
+	eq(me.duelist.energy, 5 - 2 + 3, "both were Non-Combat cards, so the Art's cost came back with 1 to spare")
+
+
+## "X = 5 minus his anger level" and "a Base Damage of X, X = 4 minus your opponent's current anger".
+func test_tide_drowning_numbers_read_their_fervor() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "tide"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	them.fervor = 2
+	var deck: int = them.life_deck.size()
+	e._apply_effect({"op": "discard_life", "who": "opponent", "amount": "five_minus_fervor"}, 0, {}, null)
+	eq(deck - them.life_deck.size(), 3, "5 minus Fervor 2 is 3 cards")
+	to_attack(e, 0)
+	var plain: CardInstance = e.card(uid_in_hand(e, 0, "root_strike_04"))
+	e._float(0, "table_base_fervor", "combat", {})
+	them.fervor = 1
+	var built: Dictionary = e._build_attack(0, plain, plain.def.attack, plain.def.effects, false, false, false, null, true)
+	eq(int(e._damage_calc(built)["table"]), 3, "the table reads 4 minus Fervor 1")
+	# "If the top card of your opponent's discard pile is not a physical attack."
+	real_to_discard(e, 1, "root_strike_04")
+	check(not e._cond({"opponent_discard_top_not_attack": "strike"}, 0, {}), "a Strike on top blocks Sinking Blow")
+	real_to_discard(e, 1, "tide_drill_05")
+	check(e._cond({"opponent_discard_top_not_attack": "strike"}, 0, {}), "a Drill on top does not")
+
+
+## "Your opponents may only place 1 Non-Combat card in play during their turn" and "remove from the
+## game after use; if your Main Personality's level is 3 or higher, discard after use instead".
+func test_tide_narrow_channel_and_parting_waters() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "tide"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	eq(e.state.active, 1, "it is their turn")
+	var drill_card: CardInstance = e._instance(shipped().get_def("storm_drill_03"), 1, &"hand")
+	check(e._can_place(them, drill_card), "they may place a Drill")
+	real_inject(e, 0, "tide_drill_06")
+	them.non_combats_placed = 1
+	check(not e._can_place(them, drill_card), "but not a second Non-Combat card this turn")
+	var me: PlayerState = e.player(0)
+	var waters: CardInstance = e._instance(shipped().get_def("tide_combat_04"), 0, &"resolving")
+	e._finish_card(waters, false)
+	eq(waters.zone, &"removed", "below Aspect 3 it leaves the game")
+	e._aspect_up(me)
+	e._aspect_up(me)
+	var again: CardInstance = e._instance(shipped().get_def("tide_combat_04"), 0, &"resolving")
+	e._finish_card(again, false)
+	eq(again.zone, &"discard", "at Aspect 3 it is discarded instead")
+
+
+## "If successful attach this card to your opponent's Main Personality. While attached, your
+## opponent discards the top 2 cards of his Life Deck at the beginning of his turn. Discard this card
+## when your opponent's Main Personality is at their highest power stage."
+func test_tide_leeching_brine_rides_their_duelist() -> void:
+	var e: DuelEngine = real_engine(real_deck(["tide_art_15"], "pact", "tide"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	to_attack(e, 0)
+	var brine: int = uid_in_hand(e, 0, "tide_art_15")
+	answer(e, &"attack", brine)
+	settle(e, 8)
+	eq(e.card(brine).attached_to, them.duelist, "the hit attached it to their duelist")
+	var lines: Array = e.card(brine).def.effects_for("turn_start")
+	eq(e._turn_start_lines(lines, false).size(), 1, "it fires on their turn")
+	eq(e._turn_start_lines(lines, true).size(), 0, "not on its owner's")
+	them.duelist.energy = CardInstance.MAX_STAGE
+	e._sweep_full_energy_riders()
+	eq(e.card(brine).zone, &"discard", "a full duelist shakes it off")
+
+
+## "Once per Combat, you may discard a card from your hand to stop a physical or energy attack. If
+## that card is a Blue Style card, lower your opponent's anger 2 levels." and "All Blue Style energy
+## attacks gain 'If successful, raise your anger 1 level.'"
+func test_tide_masteries_stop_with_a_discard_and_grant_arts_a_line() -> void:
+	var d: DeckList = real_deck([], "vigil", "tide")
+	d.mastery_id = "tide_mastery_03"
+	var e: DuelEngine = real_engine(real_deck([], "pact"), d)
+	var them: PlayerState = e.player(1)
+	var tide_card: CardInstance = real_to_hand(e, 1, "tide_strike_16")
+	e.player(0).fervor = 3
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	eq(prompt_kind(e), &"defense", "the defender may answer")
+	check(e.prompt.find(&"defend", them.mastery.uid) != null, "the Mastery is offered as a stop")
+	answer(e, &"defend", them.mastery.uid)
+	if prompt_kind(e) == &"discard_choice":
+		answer(e, &"discard_choice", tide_card.uid)
+	settle(e, 4)
+	check(has_event(e, &"attack_stopped"), "the discard stopped the Strike")
+	eq(e.player(0).fervor, 1, "a Tide card discarded lowered their Fervor 2")
+	var f_deck: DeckList = real_deck([], "pact", "tide")
+	f_deck.mastery_id = "tide_mastery_04"
+	var f: DuelEngine = real_engine(f_deck, real_deck([], "vigil"))
+	var spring: CardInstance = real_to_hand(f, 0, "tide_art_14")
+	var built: Dictionary = f._build_attack(0, spring, spring.def.attack, spring.def.effects, false, false, false, null, true)
+	eq((built["effects"] as Array).size(), 3, "a Tide Art carries its two lines and the Mastery's Hit")
+	var strike_card: CardInstance = real_to_hand(f, 0, "tide_strike_16")
+	var plain: Dictionary = f._build_attack(0, strike_card, strike_card.def.attack, strike_card.def.effects, false, false, false, null, true)
+	eq((plain["effects"] as Array).size(), 1, "a Tide Strike gains nothing")

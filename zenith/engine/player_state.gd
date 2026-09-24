@@ -36,6 +36,8 @@ var skip_next_attack_phase: bool = false
 var worst_wound_combat: int = 0        # most life cards this player lost to one attack this Combat
 var entering_combat_done: bool = false # their "use when entering Combat" window is closed
 var endurance_uses: int = 0            # Endurance this player has used, all game; floats mark it
+var non_combats_placed: int = 0        # Non-Combat cards and Drills placed during their own turn
+var search_taken: Array[int] = []      # what the search now resolving has taken, for "if all of them"
 # Cross-turn flags
 var seal_victory_pending: bool = false
 var no_ascension_win: bool = false          # a card effect forbade the Ascension win for the game
@@ -82,6 +84,8 @@ func copy(cards: Dictionary) -> PlayerState:
 	p.worst_wound_combat = worst_wound_combat
 	p.entering_combat_done = entering_combat_done
 	p.endurance_uses = endurance_uses
+	p.non_combats_placed = non_combats_placed
+	p.search_taken = search_taken.duplicate()
 	p.seal_victory_pending = seal_victory_pending
 	p.no_ascension_win = no_ascension_win
 	p.relic_uses = relic_uses
@@ -154,6 +158,7 @@ func reset_turn_flags() -> void:
 	combat_declared = false
 	placed_grounds = false
 	cannot_declare_combat = false
+	non_combats_placed = 0
 
 
 func reset_combat_flags() -> void:

@@ -6749,6 +6749,7 @@
 	{
 	 "op": "pay_energy",
 	 "per": 1,
+	 "payer": "duelist",
 	 "then": [
 	  {
 	   "op": "fervor",
@@ -6847,8 +6848,10 @@
    },
    "effects": [
 	{
+	 "may": true,
 	 "op": "search",
 	 "card_type": "ally",
+	 "aspect": 1,
 	 "source": "discard",
 	 "to": "play",
 	 "stages": 3
@@ -6914,7 +6917,8 @@
 	  "when": {
 	   "performed_by": "ally"
 	  },
-	  "focused": true
+	  "focused": true,
+	  "after_empower": true
 	 }
 	]
    },
@@ -7787,7 +7791,7 @@
 	{
 	 "trigger": "if_successful",
 	 "op": "discard_in_play",
-	 "who": "opponent",
+	 "who": "any",
 	 "card_type": "non_combat_or_ally",
 	 "amount": 1,
 	 "choose": true
@@ -7838,6 +7842,11 @@
 	 "who": "opponent",
 	 "what": "lower_aspect",
 	 "duration": "combat"
+	},
+	{
+	 "op": "forbid",
+	 "what": "lower_own_aspect",
+	 "duration": "combat"
 	}
    ]
   },
@@ -7856,15 +7865,14 @@
 	 "op": "look_at",
 	 "amount": 5,
 	 "pick": {
-	  "card_type": "non_combat"
+	  "card_type": "non_combat_or_drill"
 	 },
 	 "to": "play",
 	 "rest": "bottom",
 	 "rearrange": true,
 	 "from": "top"
 	}
-   ],
-   "remove_after_use": true
+   ]
   },
   {
    "id": "tide_strike_08",
@@ -7877,10 +7885,8 @@
    "effects": [
 	{
 	 "trigger": "if_successful",
-	 "op": "forbid",
-	 "who": "opponent",
-	 "what": "strike_attacks",
-	 "duration": "combat"
+	 "op": "stop_all",
+	 "kind": "strike"
 	},
 	{
 	 "op": "fervor",
@@ -7903,7 +7909,7 @@
 	{
 	 "trigger": "if_successful",
 	 "op": "discard_in_play",
-	 "card_type": "attached",
+	 "card_type": "attached_to_duelist",
 	 "all": true
 	}
    ],
@@ -8065,9 +8071,9 @@
    ]
   },
   {
-   "id": "tide_noncombat_01",
-   "title": "Tide Heavy Water",
-   "type": "non_combat",
+   "id": "tide_drill_07",
+   "title": "Tide Heavy Water Drill",
+   "type": "drill",
    "school": "tide",
    "modifiers": [
 	{
@@ -8090,7 +8096,10 @@
 	{
 	 "op": "float",
 	 "what": "stop_next",
-	 "duration": "combat"
+	 "duration": "next_attack_phase",
+	 "params": {
+	  "kind": "strike"
+	 }
 	},
 	{
 	 "op": "fervor",
@@ -10994,6 +11003,470 @@
 	  "op": "energy",
 	  "amount": 4,
 	  "target": "duelist"
+	 }
+	]
+   }
+  },
+  {
+   "id": "tide_strike_15",
+   "title": "Tide Frozen Over",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"stages": 2
+   },
+   "effects": [
+	{
+	 "op": "set_fervor",
+	 "who": "opponent",
+	 "amount": 0
+	},
+	{
+	 "op": "float",
+	 "who": "opponent",
+	 "what": "no_fervor_gain",
+	 "duration": "own_turn_start"
+	}
+   ]
+  },
+  {
+   "id": "tide_strike_18",
+   "title": "Tide Dead Calm",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"stages": 2,
+	"cost_stages": 2
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": "five_minus_fervor"
+	}
+   ]
+  },
+  {
+   "id": "tide_strike_20",
+   "title": "Tide Pounding Surf",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "endurance": 3,
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "float",
+	 "what": "table_base_fervor",
+	 "duration": "combat"
+	}
+   ]
+  },
+  {
+   "id": "tide_strike_21",
+   "title": "Tide Sinking Blow",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"printed_life": 1
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": 5,
+	 "when": {
+	  "opponent_discard_top_not_attack": "strike"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "tide_art_15",
+   "title": "Tide Leeching Brine",
+   "type": "art",
+   "school": "tide",
+   "attack": {
+	"kind": "art"
+   },
+   "attachment": {
+	"target": "opponent_duelist",
+	"discard_at_full": true
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "attach",
+	 "to": "opponent_duelist"
+	},
+	{
+	 "trigger": "turn_start",
+	 "on_turn": "opponent",
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": 2
+	}
+   ]
+  },
+  {
+   "id": "tide_noncombat_03",
+   "title": "Tide Riptide",
+   "type": "non_combat",
+   "school": "tide",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "set_fervor",
+	 "who": "opponent",
+	 "amount": 0
+	},
+	{
+	 "trigger": "use",
+	 "op": "lose_aspect",
+	 "who": "opponent"
+	}
+   ]
+  },
+  {
+   "id": "tide_drill_03",
+   "title": "Tide Salt Burn Drill",
+   "type": "drill",
+   "school": "tide",
+   "drill_lock_exempt": true,
+   "mill_on_empty_fervor": true,
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 2
+	}
+   ]
+  },
+  {
+   "id": "tide_combat_02",
+   "title": "Tide Washout",
+   "type": "combat",
+   "school": "tide",
+   "effects": [
+	{
+	 "op": "discard_in_play",
+	 "who": "any",
+	 "card_type": "drill",
+	 "amount": 1,
+	 "choose": true,
+	 "remove": true
+	},
+	{
+	 "op": "energy",
+	 "amount": 2,
+	 "target": "all"
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ],
+   "endurance": 1,
+   "remove_after_use": true
+  },
+  {
+   "id": "tide_noncombat_02",
+   "title": "Tide Answering Current",
+   "type": "non_combat",
+   "school": "tide",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "card_type": "ally",
+	 "to": "play",
+	 "stages": 3
+	},
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "card_type": "ally",
+	 "source": "discard",
+	 "to": "play",
+	 "stages": 3,
+	 "must": true
+	}
+   ]
+  },
+  {
+   "id": "tide_drill_04",
+   "title": "Tide Following Current Drill",
+   "type": "drill",
+   "school": "tide",
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 2,
+	 "when": {
+	  "performed_by": "ally"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "tide_drill_02",
+   "title": "Tide Mooring Drill",
+   "type": "drill",
+   "school": "tide",
+   "allies_undiscardable": true,
+   "limit_per_deck": 1
+  },
+  {
+   "id": "tide_drill_01",
+   "title": "Tide Shoal Drill",
+   "type": "drill",
+   "school": "tide",
+   "effects": [
+	{
+	 "trigger": "on_success",
+	 "op": "search",
+	 "card_type": "ally",
+	 "aspect": 1,
+	 "to": "hand",
+	 "when": {
+	  "attack_kind": "strike"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "tide_strike_19",
+   "title": "Tide Flotsam",
+   "type": "strike",
+   "school": "tide",
+   "defense": {
+	"stops": "art"
+   },
+   "endurance": 3,
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "search",
+	 "source": "discard",
+	 "card_type": "non_combat_or_drill",
+	 "amount": 2,
+	 "to": "deck_top",
+	 "must": true
+	}
+   ]
+  },
+  {
+   "id": "tide_strike_17",
+   "title": "Tide Sounding",
+   "type": "strike",
+   "school": "tide",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "reveal_pick",
+	 "amount": 3,
+	 "self_picks_when": {
+	  "aspect_min": 3
+	 }
+	}
+   ]
+  },
+  {
+   "id": "tide_art_13",
+   "title": "Tide Backwash",
+   "type": "art",
+   "school": "tide",
+   "attack": {
+	"kind": "art",
+	"focused": true,
+	"printed_life": 5
+   },
+   "defense": {
+	"stops": "art"
+   },
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "search",
+	 "source": "discard",
+	 "amount_from": "fervor",
+	 "to": "deck_shuffle",
+	 "must": true,
+	 "if_all": {
+	  "card_type": "non_combat_or_drill",
+	  "effects": [
+	   {
+		"op": "energy",
+		"amount": 3
+	   }
+	  ]
+	 }
+	}
+   ]
+  },
+  {
+   "id": "tide_combat_04",
+   "title": "Tide Parting Waters",
+   "type": "combat",
+   "school": "tide",
+   "defense": {
+	"stops": "any"
+   },
+   "endurance_from": "fervor",
+   "remove_after_use": true,
+   "discard_instead_when": {
+	"aspect_min": 3
+   }
+  },
+  {
+   "id": "tide_drill_05",
+   "title": "Tide Seawall Drill",
+   "type": "drill",
+   "school": "tide",
+   "shield": "strike"
+  },
+  {
+   "id": "tide_combat_03",
+   "title": "Tide Returning Tide",
+   "type": "combat",
+   "school": "tide",
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	},
+	{
+	 "op": "recover",
+	 "amount": 3
+	}
+   ]
+  },
+  {
+   "id": "tide_noncombat_04",
+   "title": "Tide Erosion",
+   "type": "non_combat",
+   "school": "tide",
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "drill",
+	 "amount": 1,
+	 "choose": true
+	}
+   ]
+  },
+  {
+   "id": "tide_drill_06",
+   "title": "Tide Narrow Channel Drill",
+   "type": "drill",
+   "school": "tide",
+   "opponent_one_non_combat": true
+  },
+  {
+   "id": "tide_strike_16",
+   "title": "Tide Breaking Sea",
+   "type": "strike",
+   "school": "tide",
+   "attack": {
+	"kind": "strike",
+	"stages": 6
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -4
+	}
+   ]
+  },
+  {
+   "id": "tide_art_14",
+   "title": "Tide Spring Tide",
+   "type": "art",
+   "school": "tide",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 2
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "tide_mastery_03",
+   "title": "Tide Eddy Mastery",
+   "type": "mastery",
+   "school": "tide",
+   "limit_per_deck": 1,
+   "once_per_combat": true,
+   "defense": {
+	"stops": "any",
+	"cost_hand": 1
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2,
+	 "when": {
+	  "discard_top_school": "tide"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "tide_mastery_04",
+   "title": "Tide Floodtide Mastery",
+   "type": "mastery",
+   "school": "tide",
+   "limit_per_deck": 1,
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "art",
+	 "life": 1
+	}
+   ],
+   "grant_attack_lines": {
+	"school": "tide",
+	"kind": "art",
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "fervor",
+	  "amount": 1
 	 }
 	]
    }

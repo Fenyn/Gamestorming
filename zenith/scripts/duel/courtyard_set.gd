@@ -54,22 +54,23 @@ func apply_environment(env: Environment, sun: DirectionalLight3D) -> void:
 	env.glow_bloom = 0.0
 	env.glow_hdr_threshold = 1.3
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.47, 0.5, 0.47)
-	env.fog_light_energy = 0.8
-	env.fog_density = 0.012
+	# Neutral stone-grey haze; a green one turned the whole yard murky.
+	env.fog_light_color = Color(0.56, 0.56, 0.54)
+	env.fog_light_energy = 0.85
+	env.fog_density = 0.01
 	env.fog_sky_affect = 0.25
 	if sun != null:
-		sun.light_color = Color(1.0, 0.95, 0.86)
-		sun.light_energy = 1.05
+		sun.light_color = Color(1.0, 0.96, 0.9)
+		sun.light_energy = 1.3
 		sun.shadow_enabled = true
 		sun.rotation_degrees = Vector3(-52.0, 32.0, 0.0)
 
 
-## The dais the table stands on, reused for the table's own top by ArenaAtmosphere.
-static func dais_material() -> StandardMaterial3D:
-	# Large slabs, a little darker than the yard, so the cards stand off the stone.
-	var m: StandardMaterial3D = stone_material("dais", Vector3(1.3, 0.93, 1.0))
-	m.albedo_color = Color(0.66, 0.64, 0.6)
+## The stone table under the playmat, top and sides: large grey slabs, wrapped so the rim shows
+## the same stone as the border around the mat.
+static func table_material() -> StandardMaterial3D:
+	var m: StandardMaterial3D = stone_material("dais", Vector3.ONE * 0.25, true)
+	m.albedo_color = Color(0.86, 0.85, 0.82)
 	return m
 
 
@@ -163,8 +164,9 @@ func _scatter_nature() -> void:
 			_model(["stone_1", "stone_3"][_rng.randi_range(0, 1)], Vector3(spot.x + _rng.randf_range(-1, 1), YARD_Y, spot.z + _rng.randf_range(-1, 1)), _rng.randf_range(0.25, 0.55))
 	_model("tree_stump_1", Vector3(-9.8, YARD_Y, -5.0), 1.2)
 	_model("tree_log_1", Vector3(9.9, YARD_Y, 2.0), 1.1)
-	for spot: Vector3 in [Vector3(-15, 0, -16), Vector3(-5, 0, -17), Vector3(5, 0, -18), Vector3(14, 0, -15), Vector3(17, 0, -6), Vector3(-17, 0, -5), Vector3(18, 0, 3), Vector3(-18, 0, 4)]:
-		_model(["tree_1", "tree_5"][_rng.randi_range(0, 1)], Vector3(spot.x, YARD_Y, spot.z), _rng.randf_range(2.2, 3.2))
+	# Trees stay behind the far wall and well out on the flanks, so no canopy hangs over the camera.
+	for spot: Vector3 in [Vector3(-16, 0, -17), Vector3(-6, 0, -19), Vector3(4, 0, -20), Vector3(14, 0, -17), Vector3(21, 0, -10), Vector3(-21, 0, -9)]:
+		_model(["tree_1", "tree_5"][_rng.randi_range(0, 1)], Vector3(spot.x, YARD_Y, spot.z), _rng.randf_range(1.8, 2.4))
 
 
 func _build_air() -> void:
@@ -196,9 +198,8 @@ func _build_air() -> void:
 func _soften_rays(node: Node) -> void:
 	if node is MeshInstance3D:
 		var mesh_node: MeshInstance3D = node
-		var source: Material = mesh_node.material_override
-		if source == null and mesh_node.mesh != null and mesh_node.mesh.get_surface_count() > 0:
-			source = mesh_node.mesh.surface_get_material(0)
+		# The pack sets it as a per-surface override, so read whichever material is in use.
+		var source: Material = mesh_node.get_active_material(0) if mesh_node.mesh != null else null
 		if source is ShaderMaterial:
 			var material: ShaderMaterial = (source as ShaderMaterial).duplicate()
 			material.set_shader_parameter("tint_color", RAY_TINT)

@@ -11,15 +11,11 @@ var _courtyard: CourtyardSet
 
 func _ready() -> void:
 	var duel: Node = get_parent()
-	# The table top and its sides are the courtyard's own stone, lit by the sun like everything else.
-	var inlay: MeshInstance3D = duel.get_node_or_null("Table/Inlay") as MeshInstance3D
-	if inlay != null:
-		inlay.material_override = CourtyardSet.dais_material()
+	# The table is a block of the courtyard's stone, lit by the sun like everything else. The
+	# playmat on top of it (Table/Inlay and Table/MatEdge) is the scene's own.
 	var table: MeshInstance3D = duel.get_node_or_null("Table") as MeshInstance3D
 	if table != null and table.mesh != null:
-		var sides: StandardMaterial3D = CourtyardSet.stone_material("brick", Vector3.ONE * 0.8, true)
-		sides.albedo_color = Color(0.62, 0.6, 0.56)
-		table.set_surface_override_material(0, sides)
+		table.set_surface_override_material(0, CourtyardSet.table_material())
 	if DisplayServer.get_name() == "headless":
 		return
 	_courtyard = CourtyardSet.new()

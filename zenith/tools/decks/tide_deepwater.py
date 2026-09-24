@@ -14,7 +14,7 @@ card is named for him and reads off his patience instead of the element.
 Titles are approved. See docs/tournament_import.md for the sheet, the fan prints swapped out for
 Score cards, and the approximations noted below.
 """
-from cardlib import (add, strike, art, block, combat, noncombat, seal, retire,
+from cardlib import (add, strike, art, block, combat, noncombat, drill, seal, retire,
                      E, OPP, ACC, OPP_ACC, VIG, FORBID, FLOAT, SEARCH, IFS, USE,
                      DISCARD_IN_PLAY, IOTA)
 
@@ -81,5 +81,6 @@ art("tide_art_11", "Tide Black Water", "tide", atk={}, effects=[OPP_ACC(-3)])
 art("tide_art_12", "Tide Full Weight", "tide", atk={"printed_life": 5},
     effects=[ACC(1), OPP_ACC(-2)])
 combat("tide_combat_01", "Tide Held Under", [OPP_ACC(-2), OPP("energy", amount=-2)], school="tide")
-noncombat("tide_noncombat_01", "Tide Heavy Water", school="tide",
-          modifiers=[{"scope": "own", "kind": "strike", "stages": 1}])
+# Printed as a Drill (Blue Off-Balancing Opponent Drill); was `tide_noncombat_01` until 2026-09-23.
+drill("tide_drill_07", "Tide Heavy Water Drill", "tide",
+      modifiers=[{"scope": "own", "kind": "strike", "stages": 1}])

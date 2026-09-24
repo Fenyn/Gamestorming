@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_view.gd" id="1_view"]
 [ext_resource type="Script" path="res://scripts/duel/table_camera.gd" id="5_camera"]
@@ -8,7 +8,8 @@
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="4_cache"]
 [ext_resource type="PackedScene" path="res://scenes/duel/hand_3d.tscn" id="7_hand"]
 [ext_resource type="PackedScene" path="res://scenes/duel/duelist_display.tscn" id="8_display"]
-[ext_resource type="Shader" path="res://assets/arena_surface.gdshader" id="9_surface"]
+[ext_resource type="Texture2D" path="res://assets/courtyard/textures/playmat.png" id="9_playmat"]
+[ext_resource type="Texture2D" path="res://assets/courtyard/textures/playmat_edge.png" id="12_playmat_edge"]
 [ext_resource type="Script" path="res://scripts/duel/arena_atmosphere.gd" id="10_atmosphere"]
 [ext_resource type="Script" path="res://scripts/duel/duel_presence.gd" id="11_presence"]
 
@@ -32,10 +33,24 @@ albedo_color = Color(0.085, 0.13, 0.16, 1)
 roughness = 0.9
 
 [sub_resource type="PlaneMesh" id="Plane_surface"]
-size = Vector2(10.4, 7.4)
+size = Vector2(9.2, 6.4)
 
-[sub_resource type="ShaderMaterial" id="Material_surface"]
-shader = ExtResource("9_surface")
+[sub_resource type="StandardMaterial3D" id="Material_surface"]
+albedo_color = Color(0.8, 0.8, 0.82, 1)
+albedo_texture = ExtResource("9_playmat")
+roughness = 1.0
+uv1_scale = Vector3(3, 2, 1)
+texture_filter = 5
+
+[sub_resource type="PlaneMesh" id="Plane_mat_edge"]
+size = Vector2(9.5, 6.7)
+
+[sub_resource type="StandardMaterial3D" id="Material_mat_edge"]
+albedo_color = Color(0.85, 0.8, 0.8, 1)
+albedo_texture = ExtResource("12_playmat_edge")
+roughness = 1.0
+uv1_scale = Vector3(3, 2, 1)
+texture_filter = 5
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.1, 40)
@@ -89,8 +104,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 mesh = SubResource("BoxMesh_table")
 surface_material_override/0 = SubResource("StandardMaterial3D_table")
 
+[node name="MatEdge" type="MeshInstance3D" parent="Table"]
+position = Vector3(0, 0.101, 0)
+cast_shadow = 0
+mesh = SubResource("Plane_mat_edge")
+material_override = SubResource("Material_mat_edge")
+
 [node name="Inlay" type="MeshInstance3D" parent="Table"]
 position = Vector3(0, 0.102, 0)
+cast_shadow = 0
 mesh = SubResource("Plane_surface")
 material_override = SubResource("Material_surface")
 

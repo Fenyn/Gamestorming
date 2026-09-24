@@ -540,7 +540,7 @@ ART = {
     "tide_strike_07": "A dredge chain hauling silt and objects up out of black water.",
     "tide_mastery_02": "A sounding line run out into deep water, the marks on it counting down.",
     "tide_art_12": "The full weight of a wave landing at once, spray driven flat.",
-    "tide_noncombat_01": "A vessel of water too heavy for its size, the table under it bowing.",
+    "tide_drill_07": "A vessel of water too heavy for its size, the table under it bowing.",
     "tide_combat_01": "A shape held under the surface, hands flat on it from above.",
     "tide_strike_10": "A pressure wave running out under water, the surface lifting in a ring.",
     "tide_strike_04": "Water closing over something and taking it down, one arm still showing.",
@@ -661,6 +661,31 @@ ART = {
     "steel_mastery_02": "A shadow on a wall behind a fighter, horned and far bigger than the fighter casting it.",
     "steel_mastery_03": "A scaled back turned to a strike, the blade breaking on it.",
     "steel_mastery_04": "A fighter mid-roar with blood in the eyes, scale and horn tearing through the skin.",
+    # Tide expansion, 2026-09-23. Water that drags, drowns and carries.
+    "tide_strike_15": "A wave frozen solid mid-break, a fighter's raised fist locked in the ice.",
+    "tide_strike_16": "A wall of sea coming down on a jetty, planks and posts splintering under it.",
+    "tide_strike_17": "A weighted line dropped into dark water, three shapes rising on it to the surface.",
+    "tide_strike_18": "Flat grey water under a windless sky, a figure sinking without a ripple.",
+    "tide_strike_19": "Wreckage washing back up onto a beach, spars and crates tumbling in the foam.",
+    "tide_strike_20": "Surf hammering a rock again and again, the rock worn to a stump.",
+    "tide_strike_21": "A blow driving a figure down through the surface, bubbles streaming up around them.",
+    "tide_art_13": "A wave running back down a beach, dragging stones and shells back into the sea.",
+    "tide_art_14": "A high spring tide flooding over a sea wall, the water glittering in low sun.",
+    "tide_art_15": "A thin film of brine creeping up a figure's legs, the skin under it greying.",
+    "tide_combat_02": "A flood sweeping through a yard, braziers and posts carried off in it.",
+    "tide_combat_03": "The tide coming back in over sand, filling footprints one by one.",
+    "tide_combat_04": "A sea parting around a figure standing in a dry channel, walls of water either side.",
+    "tide_drill_01": "A shoal of small silver fish turning together around a swimmer.",
+    "tide_drill_02": "Boats moored to a stone quay with heavy ropes, the storm pulling at them.",
+    "tide_drill_03": "Salt crusting white on a wound, the skin around it raw.",
+    "tide_drill_04": "A current carrying a line of small boats behind a larger one.",
+    "tide_drill_05": "A sea wall taking a wave full on, spray bursting high over it.",
+    "tide_drill_06": "A narrow channel between two rocks, only one small boat able to pass.",
+    "tide_noncombat_02": "Figures rising out of shallow water at a call, dripping, ready.",
+    "tide_noncombat_03": "A rip current dragging a swimmer out past the breakers.",
+    "tide_noncombat_04": "A cliff foot hollowed by the sea, the stone above it slumping in.",
+    "tide_mastery_03": "An eddy turning in a river pool, a leaf held circling in it.",
+    "tide_mastery_04": "A flood tide rising over a causeway, the path under it gone.",
 }
 
 # Seals: one brief per set, the number added by the generator.
@@ -885,6 +910,51 @@ NEW_SOURCES = {
     "steel_mastery_02": "Saiyan Style Mastery (Trunks Saga)",
     "steel_mastery_03": "Saiyan Style Mastery (World Games)",
     "steel_mastery_04": "Saiyan Style Mastery (Buu Saga)",
+    # Tide review 2026-09-23: shipped Tide cards matched by their text, and two Mastery labels that
+    # named the wrong printing.
+    "tide_mastery_01": "Blue Style Mastery (Trunks Saga)",
+    "tide_mastery_02": "Blue Style Mastery (Buu Saga)",
+    "tide_art_10": "Blue Energy Blast (Cell Games)",
+    "tide_art_11": "Blue Glare Attack (Androids Saga)",
+    "tide_art_12": "Blue Energy Outburst (Frieza Saga)",
+    "tide_combat_01": "Blue Softening Stance (Trunks Saga)",
+    "tide_drill_07": "Blue Off-Balancing Opponent Drill (Saiyan Saga)",
+    "tide_strike_04": "Blue Trapped Strike (Babidi Saga)",
+    "tide_strike_05": "Blue Knockdown (Fusion Saga)",
+    "tide_strike_06": "Blue Multi-Jab (Fusion Saga)",
+    "tide_strike_07": "Blue Lunge (Fusion Saga)",
+    "tide_strike_08": "Blue Stomach Eruption (Trunks Saga)",
+    "tide_strike_09": "Blue Fist Strike (Cell Saga)",
+    "tide_strike_10": "Blue Smirk (Androids Saga)",
+    "tide_strike_11": "Blue Sidestep (Androids Saga)",
+    "tide_strike_12": "Blue Hip Spring Throw (Saiyan Saga)",
+    "tide_strike_13": "Blue Backflip (Cell Saga)",
+    "tide_strike_14": "Blue Flight (Cell Saga)",
+    # The Tide expansion, read off tools/source_candidates.tsv 2026-09-23.
+    "tide_drill_01": "Blue Allies Drill (Frieza Saga)",
+    "tide_drill_02": "Blue Saving Catch Drill (Irwin IR8)",
+    "tide_drill_03": "Blue Biting Drill (Kid Buu Saga)",
+    "tide_drill_04": "Blue Assistance Drill (Cell Saga)",
+    "tide_drill_05": "Blue Stamina Drill (Cell Games)",
+    "tide_drill_06": "Blue Holding Drill (Androids Saga)",
+    "tide_noncombat_02": "Blue Battle Readiness (Androids Saga)",
+    "tide_noncombat_03": "Blue Happiness (Capsule Corp Power Pack GB2)",
+    "tide_noncombat_04": "Blue Idea (Androids Saga)",
+    "tide_combat_02": "Blue Total Resistance (Cell Games)",
+    "tide_combat_03": "Blue Awakening (Trunks Saga)",
+    "tide_combat_04": "Blue Shifting Maneuver (Babidi Saga)",
+    "tide_strike_15": "Blue Head Charge (Cell Saga)",
+    "tide_strike_16": "Blue Sledgehammer (Kid Buu Saga)",
+    "tide_strike_17": "Blue Leverage (Babidi Saga)",
+    "tide_strike_18": "Blue Left Cross Punch (Cell Saga)",
+    "tide_strike_19": "Blue Stopping Technique (Fusion Saga)",
+    "tide_strike_20": "Blue Beatdown (Fusion Saga)",
+    "tide_strike_21": "Blue Elbow Drop (Cell Saga)",
+    "tide_art_13": "Blue Impulse (Kid Buu Saga)",
+    "tide_art_14": "Blue Stance (Frieza Saga)",
+    "tide_art_15": "Blue Electrical Gunk (Buu Saga)",
+    "tide_mastery_03": "Blue Style Mastery (Cell Saga)",
+    "tide_mastery_04": "Blue Style Mastery (World Games)",
 }
 
 
@@ -904,7 +974,8 @@ def load_sources(path):
                 cid = new + cid[len(old):]
         # A roster written before the generic ids of 2026-09-23 is keyed by the old ids.
         cid = CARD_RENAMES.get(cid, cid)
-        if r.get("Source card", ""):
+        # A source written into NEW_SOURCES is a correction or an addition and wins over the roster.
+        if r.get("Source card", "") and cid not in NEW_SOURCES:
             out[cid] = r["Source card"]
     return out
 

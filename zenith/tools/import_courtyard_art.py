@@ -1,5 +1,6 @@
 """Copies the duel's ruined-courtyard set out of the local art library into assets/courtyard/:
-PSX stone, brick, grass and dirt textures with their normal maps, an overcast sky converted from a
+PSX stone, brick, grass and dirt textures with their normal maps, two cloth textures for the
+playmat the cards lie on, an overcast sky converted from a
 cross-layout cubemap to an equirectangular panorama, and PSX Nature models (rocks, stumps, ferns,
 grass tufts, trees). Also copies two more EffectBlocks effects (falling leaves, god rays) into
 PolyBlocks/ at their original res:// paths. Writes SOURCES.md.
@@ -26,13 +27,21 @@ EFFECTS = "GodotVFX/EffectBlocks v4/PolyBlocks/EffectBlocks"
 
 ## Role in the set -> PSX texture name (colour map and its _normal).
 TEXTURES = {
-    "dais": "tiles_floor_6",       # the duelling slab the cards lie on
+    "dais": "tiles_floor_6_1",     # the duelling slab the cards lie on (the grey cut; the brown
+                                   # one read as mud under the cards)
     "flagstone": "stone_3",        # the courtyard floor around it: irregular cobbles (the square
                                    # tiles read as a chessboard at yard scale)
     "wall": "stone_3_1",           # mossy ruined walls
     "brick": "brick_wall_tx_4",    # weathered brick for pillars and coping
     "grass": "grass_5",            # ground beyond the walls
     "dirt": "dirt_3",              # worn patches
+}
+
+## The playmat the cards lie on: plain woven cloth, no normal maps in this pack.
+PSX_MEGA_TEX = "PSX/PSX Mega Pack 3.1.2/PSX Mega Pack/Textures"
+PLAYMAT = {
+    "playmat": "fabric_5",         # charcoal felt, the mat's body
+    "playmat_edge": "fabric_1",    # oxblood cloth, its bound edge
 }
 
 MODELS = ["stone_1", "stone_3", "tree_stump_1", "tree_log_1", "fern_1", "fern_2", "grass_2",
@@ -104,6 +113,11 @@ def main():
             shutil.copyfile(src, os.path.join(OUT, dest))
             rows.append((dest, "%s/%s/%s%s.png" % (PSX_TEX, folder, name, suffix)))
 
+    for role, name in PLAYMAT.items():
+        dest = "textures/%s.png" % role
+        shutil.copyfile(os.path.join(art, PSX_MEGA_TEX, name + ".png"), os.path.join(OUT, dest))
+        rows.append((dest, "%s/%s.png" % (PSX_MEGA_TEX, name)))
+
     pano = cross_to_equirect(Image.open(os.path.join(art, SKY)))
     pano.save(os.path.join(OUT, "sky_overcast.png"))
     rows.append(("sky_overcast.png", SKY + " (cross cubemap converted to a panorama)"))
@@ -121,7 +135,7 @@ def main():
         f.write("# Courtyard set sources\n\n")
         f.write("Written by `tools/import_courtyard_art.py` from `F:/UnityNVME/Art/`. Nothing here is generated.\n\n")
         f.write("Licences:\n\n")
-        f.write("- PSX Textures v3.0 and PSX Nature v1.7.1 (Pizza Doggy): use in any game, modification allowed, ")
+        f.write("- PSX Textures v3.0, PSX Mega Pack 3.1.2 and PSX Nature v1.7.1 (Pizza Doggy): use in any game, modification allowed, ")
         f.write("no attribution required; do not resell or redistribute the assets on their own.\n")
         f.write("- Screaming Brain Studios cloudy skyboxes: CC0.\n")
         f.write("- EffectBlocks v4 (falling leaves, god rays) are added to `PolyBlocks/EffectBlocks/`; see its SOURCES.md.\n\n")

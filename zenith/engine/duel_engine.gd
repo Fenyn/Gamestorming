@@ -106,6 +106,21 @@ func set_points_options(seal_scores_point: bool, second_life_returns_used: bool)
 	state.second_life_returns_used = second_life_returns_used
 
 
+## Puts a personality card in play as an Ally on `seat`'s side before the duel starts, from outside
+## that seat's deck: the adventure's Encounter guest. It follows the Ally rules from there on. Call
+## between `setup()` and `start()`. False when the card is unknown or is not a personality.
+func set_guest_ally(seat: int, card_id: String) -> bool:
+	assert(state.step == GameState.Step.SETUP and state.turn == 0, "set_guest_ally() after start()")
+	var def: CardDef = library.get_def(card_id) if library.has(card_id) else null
+	if def == null or def.type != CardDef.Type.PERSONALITY:
+		return false
+	var p: PlayerState = state.players[seat]
+	var c: CardInstance = _instance(def, seat, &"none")
+	_place(p, c)
+	_emit(&"guest_ally", {"player": seat, "card": c.uid})
+	return true
+
+
 func start() -> void:
 	assert(state.step == GameState.Step.SETUP and state.turn == 0, "start() called twice")
 	state.reserve_index = 0

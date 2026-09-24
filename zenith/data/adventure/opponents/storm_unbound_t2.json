@@ -23,7 +23,7 @@
   "cards": [
     {
       "id": "freestyle_art_06",
-      "count": 3
+      "count": 2
     },
     {
       "id": "signature_art_03",
@@ -62,12 +62,12 @@
       "count": 3
     },
     {
-      "id": "freestyle_combat_02",
-      "count": 3
+      "id": "storm_art_10",
+      "count": 2
     },
     {
-      "id": "freestyle_combat_04",
-      "count": 1
+      "id": "freestyle_combat_02",
+      "count": 3
     },
     {
       "id": "freestyle_combat_12",

@@ -73,7 +73,7 @@ func _ready() -> void:
 	cut_deck_list.card_selected.connect(_on_cut_row_selected)
 	inspect.gui_input.connect(_on_inspect_input)
 	cut_dialog.add_theme_stylebox_override("panel", ZenithTheme.modal_panel())
-	status_label.text = ""
+	status_label.text = Session.take_story_report()
 	cut_status_label.visible = false
 	cut_panel.visible = false
 	inspect.visible = false

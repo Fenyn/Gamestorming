@@ -38,7 +38,7 @@ var settled: bool = false
 ## id -> copies already bought at the run-end settlement, so a card cannot be kept twice.
 var kept: Dictionary = {}
 ## {stage, kind, id} for every kind, plus "cards" on a bundle pick.
-## kind: bundle | aspect | aspect_skipped | skip | cut
+## kind: bundle | aspect | aspect_skipped | skip | cut | joined (a storyline boss's card)
 var picks: Array[Dictionary] = []
 
 

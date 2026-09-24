@@ -274,6 +274,11 @@ func _init() -> void:
 		test_adventure_map_is_three_acts_of_connected_tiers,
 		test_adventure_map_paths_hold_two_to_five_fights,
 		test_adventure_map_fields_legal_opponents,
+		test_adventure_storylines_set_act_bosses,
+		test_adventure_encounters_bring_a_guest_from_the_storyline,
+		test_a_guest_ally_starts_in_play,
+		test_adventure_boss_win_joins_the_run,
+		test_adventure_quests_open_starters,
 		test_every_reward_bundle_is_well_formed,
 		test_an_adventure_offer_is_three_legal_bundles_the_deck_can_run,
 		test_the_first_duel_grant_offers_an_aspect_choice,
@@ -5725,7 +5730,11 @@ func test_adventure_map_fields_legal_opponents() -> void:
 				if not resolved.has(opponent):
 					resolved[opponent] = DeckList.resolve(opponent) != null
 				check(bool(resolved[opponent]), "%s: %s opponent '%s' resolves" % [tag, id, opponent])
-				check(AdventureDecks.family_of(opponent) != own, "%s: %s is not a mirror" % [tag, id])
+				var set_boss: bool = str(n["type"]) == "boss" \
+					and not AdventureStory.boss_for(starter_id, int(n["act"])).is_empty()
+				if not set_boss:
+					check(not AdventureDecks.same_character_families(own).has(AdventureDecks.family_of(opponent)),
+						"%s: %s does not meet the run's own character" % [tag, id])
 				check(FileAccess.file_exists("res://data/ai/profiles/%s.json" % str(duel.get("ai_level", ""))),
 					"%s: %s ai_level has a profile" % [tag, id])
 				eq(str(duel.get("story", "x")), "", "%s: %s has no story text yet" % [tag, id])
@@ -5745,6 +5754,112 @@ func test_adventure_map_fields_legal_opponents() -> void:
 			grants.sort()
 			expected.sort()
 			eq(grants, expected, "%s: Aspect grants on the first duel and the act 1 and 2 bosses" % tag)
+
+
+## The three storyline starters meet their set act 1 and act 2 bosses at the act's boss tier, and
+## Quarr at the end. Edric's two decks are one character, so a random draw never pairs them.
+func test_adventure_storylines_set_act_bosses() -> void:
+	var expected: Dictionary = {
+		"tide_deepwater_start": ["steel_heir_t3", "freestyle_swords_t5"],
+		"shade_mind_siege_start": ["shade_salvage_t3", "shade_henchmen_t5"],
+		"pyre_beatdown_start": ["storm_volley_t3", "pyre_ascent_t5"],
+	}
+	eq(AdventureStory.open_starters().size(), 3, "three starters are open on a new save")
+	for starter_id in expected.keys():
+		for run_seed in ADVENTURE_MAP_SEEDS:
+			var map: AdventureMap = AdventureMap.generate(starter_id, run_seed)
+			var tag: String = "%s seed %d" % [starter_id, run_seed]
+			eq(str(map.duel_for(AdventureMap.boss_id_of(1)).get("opponent", "")), expected[starter_id][0], "%s act 1 boss" % tag)
+			eq(str(map.duel_for(AdventureMap.boss_id_of(2)).get("opponent", "")), expected[starter_id][1], "%s act 2 boss" % tag)
+			eq(str(map.duel_for(AdventureMap.boss_id_of(3)).get("opponent", "")), "steel_beatdown_boss", "%s final boss" % tag)
+	var edric: Array[String] = AdventureDecks.same_character_families("tide_deepwater")
+	check(edric.has("pyre_ascent"), "Edric's decks are one character: %s" % str(edric))
+
+
+## An Encounter carries a guest from the run's storyline; a run with no guests has no Encounters.
+func test_adventure_encounters_bring_a_guest_from_the_storyline() -> void:
+	var met: int = 0
+	for run_seed in range(1, 31):
+		var edric: AdventureMap = AdventureMap.generate("tide_deepwater_start", run_seed)
+		for id in edric.nodes.keys():
+			if str(edric.node(id)["type"]) == "encounter":
+				met += 1
+				check(AdventureStory.guests_for("tide_deepwater_start").has(str(edric.duel_for(id).get("guest", ""))),
+					"seed %d: %s brings a storyline guest" % [run_seed, id])
+		var bram: AdventureMap = AdventureMap.generate("pyre_beatdown_start", run_seed)
+		for id in bram.nodes.keys():
+			check(str(bram.node(id)["type"]) != "encounter", "seed %d: Ashmark fields no guests (%s)" % [run_seed, id])
+	check(met > 0, "Edric's runs meet encounters: %d" % met)
+
+
+func test_a_guest_ally_starts_in_play() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var e: DuelEngine = DuelEngine.new()
+	var decks: Array[DeckList] = [DeckList.resolve("tide_deepwater_start"), DeckList.resolve("steel_heir_t3")]
+	e.setup(decks, shipped, StrikeTable.load_from("res://data/strike_table.json"), 5)
+	check(e.set_guest_ally(0, "personality_35"), "a personality can join as a guest")
+	check(not e.set_guest_ally(0, "no_such_card"), "an unknown card cannot")
+	var found: bool = false
+	for c in e.state.players[0].in_play:
+		if c.def.id == "personality_35":
+			found = true
+			eq(c.controller, 0, "the guest fights for the player")
+	check(found, "the guest is in play before the duel starts")
+	e.start()
+	check(not e.state.is_over(), "the duel starts with a guest in play")
+
+
+## Beating Edric's act 1 boss adds Emrys to the run deck once; beating an ordinary duel adds nothing.
+func test_adventure_boss_win_joins_the_run() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var run: AdventureRun = AdventureRun.begin("tide_deepwater_start", 5)
+	var map: AdventureMap = AdventureMap.generate("tide_deepwater_start", 5)
+	run.node_id = map.start_ids()[0]
+	eq(AdventureStory.apply_boss_win(run, map, shipped), "", "an ordinary duel adds nobody")
+	run.node_id = AdventureMap.boss_id_of(1)
+	var before: int = run.cards.size()
+	eq(AdventureStory.apply_boss_win(run, map, shipped), "personality_35", "Emrys joins after the act 1 boss")
+	eq(run.cards.size(), before + 1, "his card is in the run deck")
+	check(DeckValidator.validate(run.deck(), shipped).is_empty(), "the deck is still legal")
+	eq(AdventureStory.apply_boss_win(run, map, shipped), "", "he joins only once")
+	run.node_id = AdventureMap.boss_id_of(2)
+	eq(AdventureStory.apply_boss_win(run, map, shipped), "", "the act 2 boss adds nobody")
+	var mourne: AdventureRun = AdventureRun.begin("shade_mind_siege_start", 5)
+	var mourne_map: AdventureMap = AdventureMap.generate("shade_mind_siege_start", 5)
+	mourne.node_id = AdventureMap.boss_id_of(1)
+	eq(AdventureStory.apply_boss_win(mourne, mourne_map, shipped), "personality_47", "Kell joins Mourne after the act 1 boss")
+
+
+## Act 2 bosses open a starter at once; two-step quests need the act 1 boss and then a finished run,
+## in that order.
+func test_adventure_quests_open_starters() -> void:
+	AdventureUnlocks.path_override = "user://adventure/test_unlocks.json"
+	AdventureUnlocks.clear()
+	var u: AdventureUnlocks = AdventureUnlocks.load_unlocks()
+	eq(u.available_starters(), ["tide_deepwater_start", "shade_mind_siege_start", "pyre_beatdown_start"] as Array[String],
+		"a new save opens the three storyline starters")
+	var run_won: Array[Dictionary] = [{"event": "run_won", "starter": "tide_deepwater_start"}]
+	eq(AdventureQuests.apply(u, run_won), [] as Array[String], "a finished run before the act 1 step opens nothing")
+	var act2: Array[Dictionary] = [{"event": "boss_won", "starter": "tide_deepwater_start", "act": 2}]
+	eq(AdventureQuests.apply(u, act2), ["freestyle_swords_start"] as Array[String], "Edric's act 2 boss opens Caedan")
+	eq(AdventureQuests.apply(u, act2), [] as Array[String], "and only once")
+	var act1: Array[Dictionary] = [{"event": "boss_won", "starter": "tide_deepwater_start", "act": 1}]
+	eq(AdventureQuests.apply(u, act1), [] as Array[String], "Emrys's quest takes its first step")
+	eq(u.steps_done("edric_the_heir"), 1, "one step done")
+	eq(AdventureQuests.apply(u, run_won), ["steel_heir_start"] as Array[String], "a finished Edric run opens Emrys")
+	check(not u.is_open("shade_henchmen_start"), "Edric's act 2 does not open Sable")
+	check(u.save(), "unlocks save")
+	var loaded: AdventureUnlocks = AdventureUnlocks.load_unlocks()
+	check(loaded.available_starters().has("freestyle_swords_start") and loaded.available_starters().has("steel_heir_start"),
+		"the unlocks survive a reload: %s" % str(loaded.available_starters()))
+	eq(loaded.available_starters().size(), 5, "three open and two unlocked")
+	var map: AdventureMap = AdventureMap.generate("shade_mind_siege_start", 3)
+	var run: AdventureRun = AdventureRun.begin("shade_mind_siege_start", 3)
+	run.node_id = map.final_id()
+	var events: Array[Dictionary] = AdventureQuests.events_for_win(run, map)
+	eq(events.size(), 2, "beating the final boss fires boss_won and run_won")
+	AdventureUnlocks.clear()
+	AdventureUnlocks.path_override = ""
 
 
 ## The reward screen never shows a bundle the validator would refuse, and never someone else's.

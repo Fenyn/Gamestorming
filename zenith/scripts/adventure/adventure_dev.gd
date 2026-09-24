@@ -21,6 +21,10 @@ static func flag(prefix: String) -> String:
 	return out
 
 
+static func has_flag(name: String) -> bool:
+	return args().has(name)
+
+
 static func reduced_motion() -> bool:
 	return ArcaneBackdrop.motion_reduced()
 
@@ -79,6 +83,8 @@ static func use_scratch_saves() -> void:
 	AdventureCollection.path_override = dir.path_join("collection.json")
 	AdventureUpgrades.path_override = dir.path_join("upgrades.json")
 	AdventureSave.path_override = dir.path_join("run.json")
+	AdventureUnlocks.path_override = dir.path_join("unlocks.json")
+	Session.unlocks = AdventureUnlocks.new()
 	Session.wallet = AdventureWallet.new()
 	Session.collection = AdventureCollection.new()
 	Session.upgrades = AdventureUpgrades.new()

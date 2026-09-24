@@ -5,8 +5,8 @@
 	"_fights_note": "Every path through tiers 1 to 7 of an act holds this many fighting nodes, boss not counted. fight_chance per act tunes how rare the low end is.",
 	"fights_per_path": [2, 5],
 	"sensei": { "act": 1, "tier": 3 },
-	"_weights_note": "twist and encounter stay at 0 until their duel setup is built (build plan phase 3). shop and shrine are placeholders until phases 2 and 5.",
-	"fight_weights": { "duel": 70, "elite": 15, "key": 10, "twist": 0, "encounter": 0 },
+	"_weights_note": "twist stays at 0 until its duel setup is built (build plan phase 3). An encounter becomes a plain duel for a starter with no guests in storylines.json. shop and shrine are placeholders until phases 2 and 5.",
+	"fight_weights": { "duel": 70, "elite": 15, "key": 10, "twist": 0, "encounter": 10 },
 	"rest_weights": { "shop": 1, "shrine": 1, "forge": 1 },
 	"final_boss": { "family": "steel_beatdown", "tier": "boss" },
 	"acts": [

@@ -33,7 +33,7 @@ The spine. Everything else hangs off it.
 | 1.5 | Map screen replacing `TournamentRoute`: nodes, paths, the next opponent visible, node icons | done | 2026-09-23. The map fills the screen: a scrolling board of all three acts beside a full-height side panel holding the run's standing (deck, act, duels won, Motes) over the picked node's preview; the run's Duelist portrait stands on the map as the player's token. Redone in Kenney the same day (user): a dark Kenney-framed board, nodes as Kenney Board Game Icons on dark stepped-corner tiles (the boss on the Double-style rule), a Kenney double rule between acts, framed act tags, Kenney corner brackets for here and scouted, dashed roads (trim tint where walked, red where open), and one badge left for an Aspect grant. The parchment board, the Isle of Lore hex terrain backdrop and its markers and flairs are gone. Art comes in through `tools/import_map_art.py`; sources and licences are in `assets/adventure_map/SOURCES.md` |
 | 1.6 | `Session` flow: map, then node, then back to the map; settle on a win or a loss | done | 2026-09-23, `Session.enter_node`. Non-fighting nodes are passed through until phases 2, 4 and 5 |
 | 1.7 | `tests/adventure_lab.gd` walks the map, picking paths at random | done | 2026-09-23. Adds a table per act and node type |
-| 1.9 | Opponents never share the run's own character | todo | Found 2026-09-23: a `tide_deepwater` run (Edric) met `pyre_ascent` (also Edric) at a Key node. The draw excludes the starter's family, not its character |
+| 1.9 | Opponents never share the run's own character | done | 2026-09-23. Random draws skip every family whose Duelist is the run's character (`AdventureDecks.same_character_families`). A storyline's set boss may still be the same character |
 | 1.10 | The bundle pool runs dry on long runs | todo | Found 2026-09-23: in an all-wins run, most starters have no eligible bundle from about the 11th to 13th duel on, because copy limits and taken bundles use up the pool. Runs now reach 18 duels. Ties in with 2.6 and 2.7 and with pool expansion (design doc 4.6) |
 | 1.8 | Tests for the generator (fixed rows present, every path reaches the boss, same seed gives the same map) | done | 2026-09-23, three `test_adventure_map_*` tests. After 1.3 to 1.7 the suite is at 61157 checks, 0 failures; `sanctum_ui_smoke.gd` 38 checks, 0 failures |
 
@@ -57,8 +57,8 @@ One per-duel options block passed from `Session` to the engine at setup, each wi
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 3.1 | Setup options plumbing: `Session.build_referee` to `DuelEngine`, like `set_lives` | todo | |
-| 3.2 | Guest Ally: a personality card placed in play on the player's side at setup, not part of the run deck | todo | Whether it skips the alignment rule is pending the user; default to skipping and flag it |
-| 3.3 | Ally encounter node using 3.2 | todo | Ally picked at random from Aspect 1 to 3 personalities (placeholder rule) |
+| 3.2 | Guest Ally: a personality card placed in play on the player's side at setup, not part of the run deck | done | 2026-09-23, `DuelEngine.set_guest_ally`, called from `Session.build_referee`. Skips the alignment rule; every guest listed today matches its main's side |
+| 3.3 | Ally encounter node using 3.2 | done | 2026-09-23. Encounter weight 10. The guest is drawn from the starter's `guests` in `data/adventure/storylines.json`; a starter with none (Ashmark, and every starter without a storyline) gets a plain duel instead |
 | 3.4 | Twist: opponent starts with a Drill or Grounds in play | todo | |
 | 3.5 | Twist: opponent opens at Fervor 3 | todo | |
 | 3.6 | Twist: survival-only duel, `set_points_options` with Ascension and Seal points off | todo | Needs a real name from the user |
@@ -90,14 +90,15 @@ One per-duel options block passed from `Session` to the engine at setup, each wi
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 6.1 | Unlock save file (`user://adventure/unlocks.json`) and `playable_starters()` filtered by it | todo | |
-| 6.2 | Starting three open: `tide_deepwater`, `shade_mind_siege`, `pyre_beatdown` | todo | |
+| 6.1 | Unlock save file (`user://adventure/unlocks.json`) and `playable_starters()` filtered by it | done | 2026-09-23, `AdventureUnlocks`. The start screen lists `Session.unlocks.available_starters()`; `playable_starters()` still lists every file, for tests and tools. Dev flags `--dev-unlock-all`, `--dev-unlock-reset` on the start screen |
+| 6.2 | Starting three open: `tide_deepwater`, `shade_mind_siege`, `pyre_beatdown` | done | 2026-09-23, `open` in `storylines.json` |
 | 6.3 | Remove the dead `"unlock"` field from the five setup starters | todo | |
-| 6.4 | Finish-a-run unlock: next character | todo | Random pick per the placeholder rule |
+| 6.4 | Finish-a-run unlock: next character | done | 2026-09-23, replaced by quests (`data/adventure/quests.json`, `AdventureQuests`): act 2 bosses open Caedan, Sable and Ember Ascendant; act 1 boss then a finished run opens Steel Inheritance, Scrap Requiem and Last Standing. The second steps are placeholders |
+| 6.4a | Storyline act bosses and act 1 joins | done | 2026-09-23, `AdventureStory`: set act 1 and 2 bosses for the three starters; beating Edric's act 1 boss adds Emrys to the run deck, Mourne's adds Kell. The reward screen's footer names who joined and what unlocked |
 | 6.5 | Second-deck unlocks for Edric, Bram and Siphon | todo | |
 | 6.6 | Quarr unlock | blocked | Rule pending the user |
 | 6.7 | Quarr's own run: final boss | blocked | Pending the user |
-| 6.8 | Mission data model and tracking during runs | todo | Whether missions are also a separate mode is pending the user |
+| 6.8 | Mission data model and tracking during runs | doing | 2026-09-23: quests track `boss_won` and `run_won` only. More conditions wait on the quest design with the user |
 | 6.9 | Pool unlocks: Relics, Resonances, Grounds | todo | |
 | 6.10 | Personality variant unlocks from encounters and quest nodes | todo | Each variant needs a printed source card first |
 | 6.11 | Harder difficulty after a first clear | todo | |

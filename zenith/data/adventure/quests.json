@@ -1,0 +1,56 @@
+{
+	"_note": "Quests, design doc section 8.5. Steps complete in order, across runs. `boss_won` fires on beating that act's boss with that starter; `run_won` on beating the final boss. Finishing the last step opens `unlock` for play. `lore: placeholder` marks a step still to be designed with the user.",
+	"quests": [
+		{
+			"id": "edric_vale_test",
+			"title": "Beat Caedan Vale in Edric's act 2",
+			"visible": true,
+			"steps": [{ "event": "boss_won", "starter": "tide_deepwater_start", "act": 2 }],
+			"unlock": "freestyle_swords_start"
+		},
+		{
+			"id": "mourne_draik_offer",
+			"title": "Beat Sable Draik in Mourne's act 2",
+			"visible": true,
+			"steps": [{ "event": "boss_won", "starter": "shade_mind_siege_start", "act": 2 }],
+			"unlock": "shade_henchmen_start"
+		},
+		{
+			"id": "ashmark_the_hero",
+			"title": "Beat Sir Edric Rooke in Ashmark's act 2",
+			"visible": true,
+			"steps": [{ "event": "boss_won", "starter": "pyre_beatdown_start", "act": 2 }],
+			"unlock": "pyre_ascent_start"
+		},
+		{
+			"id": "edric_the_heir",
+			"title": "Beat Emrys Rooke in Edric's act 1, then finish an Edric run",
+			"visible": true,
+			"steps": [
+				{ "event": "boss_won", "starter": "tide_deepwater_start", "act": 1 },
+				{ "event": "run_won", "starter": "tide_deepwater_start", "lore": "placeholder" }
+			],
+			"unlock": "steel_heir_start"
+		},
+		{
+			"id": "mourne_marrows_price",
+			"title": "Beat Marrow in Mourne's act 1, then finish a Mourne run",
+			"visible": true,
+			"steps": [
+				{ "event": "boss_won", "starter": "shade_mind_siege_start", "act": 1 },
+				{ "event": "run_won", "starter": "shade_mind_siege_start", "lore": "placeholder" }
+			],
+			"unlock": "shade_salvage_start"
+		},
+		{
+			"id": "ashmark_first_meal",
+			"title": "Beat Siphon in Ashmark's act 1, then finish an Ashmark run",
+			"visible": true,
+			"steps": [
+				{ "event": "boss_won", "starter": "pyre_beatdown_start", "act": 1 },
+				{ "event": "run_won", "starter": "pyre_beatdown_start", "lore": "placeholder" }
+			],
+			"unlock": "pyre_attrition_start"
+		}
+	]
+}

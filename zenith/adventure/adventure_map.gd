@@ -19,7 +19,8 @@ const LAYOUT_ATTEMPTS: int = 40
 var starter_id: String = ""
 var run_seed: int = 0
 ## id -> node: {id, act, tier, lane, type, next: Array[String]}. A fighting node also carries
-## `duel`, the row a ladder stage used to be: {opponent, tier, band, ai_level, grant, story, node}.
+## `duel`, the row a ladder stage used to be: {opponent, tier, band, ai_level, grant, story, node},
+## plus `guest` on an Encounter: the personality card that starts in play on the player's side.
 ## Inside `duel`, `tier` is the opponent deck's tier (t1..t5, boss), not the map tier.
 var nodes: Dictionary = {}
 var acts: int = 0
@@ -38,8 +39,15 @@ static func generate(starter_id_value: String, run_seed_value: int) -> Adventure
 	map.run_seed = run_seed_value
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = hash("%s:%d:map" % [starter_id_value, run_seed_value])
-	var own: String = AdventureDecks.family_of(starter_id_value)
+	# Random draws never meet the run's own character; a storyline's set boss may.
+	var own: Array[String] = AdventureDecks.same_character_families(AdventureDecks.family_of(starter_id_value))
+	var guests: Array[String] = AdventureStory.guests_for(starter_id_value)
+	var story_bosses: Array[String] = []
 	var specs: Array = data.get("acts", [])
+	for a in range(specs.size()):
+		var set_boss: String = str(AdventureStory.boss_for(starter_id_value, a + 1).get("family", ""))
+		if set_boss != "":
+			story_bosses.append(set_boss)
 	map.acts = specs.size()
 	map.lanes = int(data.get("lanes", 4))
 	var bosses: Array[String] = []
@@ -64,7 +72,7 @@ static func generate(starter_id_value: String, run_seed_value: int) -> Adventure
 			push_error("AdventureMap: no boss for act %d of %s" % [act, starter_id_value])
 			return null
 		map._fill_duels(act, spec, bands, own, previous_boss, boss_family,
-			str((data.get("final_boss", {}) as Dictionary).get("family", "")), rng)
+			str((data.get("final_boss", {}) as Dictionary).get("family", "")), story_bosses, guests, rng)
 		bosses.append(boss_family)
 		previous_boss = boss_id_of(act)
 	return map
@@ -398,11 +406,14 @@ static func _parents_in(act_nodes: Dictionary, id: String) -> Array[String]:
 # --- Opponents ----------------------------------------------------------------
 
 ## Gives every fighting node of tiers 1 to 7 its duel. A family is drawn from the node type's band,
-## never the starter's own, and never one already met on a path into this node while the band
-## still has another; failing that, never one met on the fight just before or just after (the
-## boss, for tier 7). The final boss's family is kept for the final boss while the band allows.
-func _fill_duels(act: int, spec: Dictionary, bands: Dictionary, own: String, previous_boss: String,
-		boss_family_here: String, final_family: String, rng: RandomNumberGenerator) -> void:
+## never one of `own` (the run's own character), and never one already met on a path into this node
+## while the band still has another; failing that, never one met on the fight just before or just
+## after (the boss, for tier 7). The final boss's family and the storyline's set bosses are kept for
+## their own nodes while the band allows. An Encounter brings in one of `guests`, and becomes a
+## plain duel for a run with none.
+func _fill_duels(act: int, spec: Dictionary, bands: Dictionary, own: Array[String], previous_boss: String,
+		boss_family_here: String, final_family: String, story_bosses: Array[String], guests: Array[String],
+		rng: RandomNumberGenerator) -> void:
 	var act_nodes: Dictionary = _act_nodes(act)
 	var seen: Dictionary = {}  # id -> families met on some path up to and including this node
 	var tiers: Array = spec.get("tiers", [])
@@ -428,10 +439,14 @@ func _fill_duels(act: int, spec: Dictionary, bands: Dictionary, own: String, pre
 			if not is_fight(type):
 				seen[id] = before
 				continue
+			if type == "encounter" and guests.is_empty():
+				type = "duel"
+				nodes[id]["type"] = type
 			if tier == PATH_TIERS and not parent_families.has(boss_family_here):
 				parent_families.append(boss_family_here)
 			var neighbours_and_final: Array[String] = parent_families.duplicate()
 			neighbours_and_final.append(final_family)
+			neighbours_and_final.append_array(story_bosses)
 			var everything: Array[String] = neighbours_and_final.duplicate()
 			everything.append_array(before)
 			var band: String = str(spec.get("elite_band" if type == "elite" else "band", "weaker"))
@@ -439,40 +454,58 @@ func _fill_duels(act: int, spec: Dictionary, bands: Dictionary, own: String, pre
 			# the character links name who the player is meant to meet here.
 			var family: String = _draw(bands.get(band, []), own,
 				[everything, neighbours_and_final, parent_families], rng)
+			if parent_families.has(family):
+				# The band has nothing but the neighbours left; a neighbouring band does.
+				var excluded: Array[String] = own.duplicate()
+				excluded.append_array(parent_families)
+				for other in ["medium", "stronger", "weaker"]:
+					var swap: String = _draw(bands.get(other, []), excluded, [everything], rng) \
+						if other != band else ""
+					if swap != "":
+						family = swap
+						band = other
+						break
 			var deck_tier: String = str(tiers[tier - 1]) if tier - 1 < tiers.size() else "t1"
 			var ai: String = str(spec.get("elite_ai_level" if type == "elite" else "ai_level", "default"))
 			var grant: String = "aspect" if tier == 1 and bool(spec.get("grant_first_tier", false)) else ""
 			nodes[id]["duel"] = _duel_row(family, deck_tier, band, ai, grant, type)
+			if type == "encounter":
+				nodes[id]["duel"]["guest"] = guests[rng.randi_range(0, guests.size() - 1)]
 			var after: Array[String] = before.duplicate()
 			if not after.has(family):
 				after.append(family)
 			seen[id] = after
 
 
-## The act's boss. The last act's boss is the final boss from map.json, unless that is the
-## starter's own family. Every other boss is drawn from `boss_bands` in order, never the
-## starter's own family, the final boss or an earlier boss while any other remains.
+## The act's boss. The last act's boss is the final boss from map.json, unless that is the run's
+## own character. A storyline's set boss comes next (AdventureStory). Every other boss is drawn
+## from `boss_bands` in order, never the run's own character, the final boss or an earlier boss
+## while any other remains.
 func _draw_boss(act: int, last: bool, spec: Dictionary, data: Dictionary, bands: Dictionary,
-		own: String, earlier: Array[String], rng: RandomNumberGenerator) -> String:
+		own: Array[String], earlier: Array[String], rng: RandomNumberGenerator) -> String:
 	var final: Dictionary = data.get("final_boss", {})
 	var final_family: String = str(final.get("family", ""))
 	var deck_tier: String = str(spec.get("boss_tier", "boss"))
 	var family: String = ""
 	var band: String = ""
-	if last and final_family != "" and final_family != own:
+	var set_boss: String = str(AdventureStory.boss_for(starter_id, act).get("family", ""))
+	if last and final_family != "" and not own.has(final_family):
 		family = final_family
 		deck_tier = str(final.get("tier", "boss"))
 		band = _band_of(bands, family)
+	elif set_boss != "":
+		family = set_boss
+		band = _band_of(bands, family)
 	else:
-		# LORE: placeholder, make lore-relevant. Act bosses are random until the character links
-		# exist. A run of the final boss's own deck has no final boss yet (build plan 6.7).
+		# LORE: placeholder, make lore-relevant. Act bosses of a starter without a storyline are
+		# random. A run of the final boss's own deck has no final boss yet (build plan 6.7).
 		var avoid: Array[String] = earlier.duplicate()
 		if final_family != "":
 			avoid.append(final_family)
 		for b in spec.get("boss_bands", ["stronger"]):
 			var pool: Array[String] = []
 			for f in bands.get(str(b), []):
-				if str(f) != own and not avoid.has(str(f)):
+				if not own.has(str(f)) and not avoid.has(str(f)):
 					pool.append(str(f))
 			if not pool.is_empty():
 				family = pool[rng.randi_range(0, pool.size() - 1)]
@@ -502,12 +535,13 @@ static func _duel_row(family: String, deck_tier: String, band: String, ai: Strin
 	}
 
 
-## A family from `members`, never `own`. Each list in `avoid_levels` is tried in turn as the set to
-## avoid; the first level that leaves a choice wins, and with none left any non-own member will do.
-static func _draw(members: Array, own: String, avoid_levels: Array, rng: RandomNumberGenerator) -> String:
+## A family from `members`, never one of `own`. Each list in `avoid_levels` is tried in turn as the
+## set to avoid; the first level that leaves a choice wins, and with none left any non-own member
+## will do.
+static func _draw(members: Array, own: Array[String], avoid_levels: Array, rng: RandomNumberGenerator) -> String:
 	var legal: Array[String] = []
 	for f in members:
-		if str(f) != own:
+		if not own.has(str(f)):
 			legal.append(str(f))
 	if legal.is_empty():
 		return ""

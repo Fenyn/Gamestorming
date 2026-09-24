@@ -38,6 +38,12 @@ var wallet: AdventureWallet = AdventureWallet.new()
 var collection: AdventureCollection = AdventureCollection.new()
 ## Deck slots and Aspect tiers bought per starter. Outlives a run like the other two.
 var upgrades: AdventureUpgrades = AdventureUpgrades.new()
+## Open starters and quest progress. Outlives a run.
+var unlocks: AdventureUnlocks = AdventureUnlocks.new()
+## Starters the last recorded duel opened, and the card that joined the run; the next screen that
+## shows them clears them.
+var unlock_report: Array[String] = []
+var joined_report: String = ""
 ## What the load-time trim dissolved, in AdventureCollection's report shape. The first screen that
 ## can show it calls `take_dissolve_report()`, which hands it over and clears it, so the line is
 ## shown once and not on every screen after.
@@ -51,6 +57,7 @@ func _ready() -> void:
 	wallet = AdventureWallet.load_wallet()
 	collection = AdventureCollection.load_collection()
 	upgrades = AdventureUpgrades.load_upgrades()
+	unlocks = AdventureUnlocks.load_unlocks()
 	# A collection saved under the old caps can hold rows the new ones do not. Trimming pays the
 	# overflow back as Motes rather than leaving copies that nothing can use.
 	var trimmed: Dictionary = collection.trim_to_cap(library, wallet)
@@ -110,6 +117,9 @@ func build_referee() -> Referee:
 		referee.engine.set_lives(stage_lives())
 		# A full Seal set is one of the two points, not the whole duel (2026-09-21).
 		referee.engine.set_points_options(true, false)
+		var guest: String = str(map.duel_for(run.node_id).get("guest", "")) if map != null else ""
+		if guest != "":
+			referee.engine.set_guest_ally(0, guest)
 	return referee
 
 
@@ -256,6 +266,11 @@ func begin_stage() -> void:
 ## run and goes straight to the run-end settlement, which is where the run's cards are bought.
 ## The save is kept until the settlement closes, so quitting on that screen does not lose it.
 func record_stage(won: bool) -> void:
+	if won:
+		joined_report = AdventureStory.apply_boss_win(run, map, library)
+		var opened: Array[String] = AdventureQuests.apply(unlocks, AdventureQuests.events_for_win(run, map))
+		unlock_report.append_array(opened)
+		unlocks.save()
 	var payout: int = AdventureRewards.finish_stage(run, map, library, won)
 	if payout > 0:
 		wallet.earn(payout, AdventureWallet.REASON_STAGE, run.run_id, run.stage)
@@ -379,6 +394,20 @@ func dissolve_card(id: String) -> int:
 
 
 ## The pending auto-dissolve line, handed over once. "" when there is nothing to show.
+## "Emrys Rooke joins your deck. Unlocked: Blade Legacy." for the screen after a won duel, then
+## cleared. "" when the duel gave neither.
+func take_story_report() -> String:
+	var lines: PackedStringArray = PackedStringArray()
+	if joined_report != "" and library.has(joined_report):
+		lines.append("%s joins your deck." % library.get_def(joined_report).title)
+	for id in unlock_report:
+		var deck: DeckList = DeckList.resolve(id)
+		lines.append("Unlocked: %s." % (deck.name if deck != null else id))
+	joined_report = ""
+	unlock_report.clear()
+	return " ".join(lines)
+
+
 func take_dissolve_report() -> String:
 	var line: String = AdventureCollection.report_line(dissolve_report)
 	dissolve_report = {}

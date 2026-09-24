@@ -43,6 +43,42 @@ static func playable_starters() -> Array[String]:
 	return out
 
 
+static var _characters: Dictionary = {}   # family -> Duelist character
+static var _library: CardLibrary = null
+
+
+## The character a family's Duelist is, read off its precon. "" when the precon or its Duelist
+## card cannot be found.
+static func character_of(family: String) -> String:
+	if _characters.has(family):
+		return str(_characters[family])
+	if _library == null:
+		_library = CardLibrary.new()
+		_library.load_dir("res://data/cards")
+	var character: String = ""
+	var path: String = "res://data/decks/%s.json" % family
+	if FileAccess.file_exists(path):
+		var face: String = DeckList.load_from(path).duelist_face_id()
+		if _library.has(face):
+			var def: CardDef = _library.defs[face]
+			character = def.character
+	_characters[family] = character
+	return character
+
+
+## Every banded family whose Duelist is the same character as `family`'s, `family` included. Edric
+## runs two decks, so a run of one of them must not meet the other as a random opponent.
+static func same_character_families(family: String) -> Array[String]:
+	var out: Array[String] = [family]
+	var character: String = character_of(family)
+	if character == "":
+		return out
+	for f in banded_families():
+		if f != family and character_of(f) == character:
+			out.append(f)
+	return out
+
+
 ## The deck family a starter or opponent id belongs to: the id without its tier suffix.
 static func family_of(deck_id: String) -> String:
 	for suffix in SUFFIXES:

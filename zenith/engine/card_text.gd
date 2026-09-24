@@ -2648,6 +2648,8 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 			return "Double Power: the stronger duelist starts at Energy %d; the weaker starts at full Energy and goes first." % int(d.get("energy", 2))
 		&"reserve_swap":
 			return "%s brings %s in from the Reserve." % [pname, _cname(engine, int(d.get("in", -1)), seat, actor)]
+		&"guest_ally":
+			return "%s fights beside %s." % [_cname(engine, int(d.get("card", -1)), seat, actor), pname]
 		&"search":
 			return "%s searches out %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"deck_shuffled":

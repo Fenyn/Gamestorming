@@ -11,7 +11,7 @@ Counts leave out Masteries and signature cards and include gated cards. Rows are
 | Pyre | 50 | 0 | 28 | 11 | 3 | 0 | 8 |
 | Steel | 50 | 0 | 28 | 14 | 2 | 2 | 4 |
 | Tide | 50 | 0 | 21 | 15 | 4 | 3 | 7 |
-| Storm | 50 | 7 | 14 | 24 | 2 | 2 | 8 |
+| Storm | 50 | 0 | 14 | 24 | 2 | 2 | 8 |
 | Shade | 50 | 0 | 23 | 13 | 5 | 2 | 7 |
 | Root | 50 | 0 | 19 | 12 | 8 | 5 | 6 |
 | Freestyle | 63 | 0 | 7 | 11 | 20 | 18 | 7 |
@@ -214,36 +214,35 @@ Masteries:
 
 ## Storm (lightning and wind): 50 cards
 
-Subthemes: Art cost engine 5, Art boosts 4, Table defense 3, Drills 11, Endurance 12, Energy refill 4, Strike answers 6, Art answers 4, Storm Arts 14.
+Subthemes: Art cost engine 5, Art boosts 3, Table defense 3, Drills 11, Endurance 12, Energy refill 4, Strike answers 6, Art answers 4, Storm Arts 15.
 
 Masteries:
 
-- **Storm Brewing Mastery** (`storm_mastery_01`): Your Arts do +1 wound. Your Arts cost 1 less Energy, to a minimum of 1. Limit 1 per deck.
+- **Storm Brewing Mastery** (`storm_mastery_01`): Arts your duelist performs do +1 wound or cost 1 less Energy to perform, to a minimum of 1, your choice. Your Storm Arts do both instead. Limit 1 per deck.
 - **Storm Squall Mastery** (`storm_mastery_02`): Hit: If the attack is Storm and the attack is an Art, your opponent may not use Strike cards during their next attack phase. Your Arts do +1 wound. Limit 1 per deck.
-- **Storm Gale Mastery** (new): Your Strikes do +2 Energy. After a Storm Strike lands, your other Strikes do +1 wound this Combat
-- **Storm Conductor Mastery** (new): Once per Combat, discard one of your Storm Drills to put 2 different Drills from your deck into play. In the Recover step you may put the top Drill of your discard pile under your deck
+- **Storm Gale Mastery** (`storm_mastery_03`): After a successful attack, if the attack is Storm and the attack is a Strike, for the remainder of Combat, your other Strikes do +1 wound. Your Strikes do +2 Energy. Limit 1 per deck.
+- **Storm Conductor Mastery** (`storm_mastery_04`): Use this card only if you have a Storm Drill in play. Use in Combat: Discard one of your Storm Drills in play. If you do, search your Life Deck for up to 2 different Drills and put them into play. During your Recover step, if your discard pile has a Drill, you may place the top Drill in your discard pile at the bottom of your Life Deck. Once per Combat. Limit 1 per deck.
 
 | Title | Type | What it does | Subthemes | New | id |
 |---|---|---|---|---|---|
 | Storm Idle Spark | Art | Art dealing 3 wounds. Costs 0 Energy to perform. | Art cost engine |  | `storm_art_14` |
 | Storm Narrow Arc | Art | Art dealing 5 Energy. Costs 1 Energy to perform. | Art cost engine |  | `storm_art_20` |
 | Storm Pent Discharge | Art | Endurance 2. Art. Costs 3 Energy to perform. Hit: Your opponent discards a card from hand. | Art cost engine, Endurance |  | `storm_art_15` |
-| Storm Free Current | Combat | Use when entering Combat. Show your hand to your opponent. If 3 or more cards in your hand are Storm cards, attach this card to your duelist. While attached to your duelist: Your attacks cost no Energy to perform. Discard this card at the end of Combat. | Art cost engine |  | `storm_combat_02` |
-| Storm Conduit Drill | Drill | Your Arts cost 1 less Energy to perform, to a minimum of 1. | Art cost engine, Drills |  | `storm_drill_04` |
-| Storm Opened Channel | Strike | Focused Strike doing +2 Energy. Hit: For the remainder of Combat, your Arts do +2 wounds. | Art boosts |  | `storm_strike_09` |
+| Storm Free Current | Combat | Use when entering Combat. Show your hand to your opponent. If 3 or more cards in your hand are Storm cards, attach this card to your duelist. While attached to your duelist: Your duelist does not have to pay costs for any card effects. | Art cost engine |  | `storm_combat_02` |
+| Storm Conduit Drill | Drill | Your Arts that cost 2 Energy to perform cost 1 instead. | Art cost engine, Drills |  | `storm_drill_04` |
 | Storm Rolling Peal | Art | Art. Empower 3. For the remainder of Combat, your other Arts do +1 wound. Lower your opponent's Fervor 2. | Art boosts |  | `storm_art_13` |
-| Storm Seeking Spark Drill | Drill | Once a Combat, after your Art lands, search their deck for a card and discard it | Art boosts, Drills | new |  |
+| Storm Seeking Spark Drill | Drill | After a successful attack, if the attack is an Art, search your opponent's Life Deck for a card and discard it. Once per Combat. | Art boosts, Drills |  | `storm_drill_06` |
 | Storm Tight Coil Drill | Drill | Your Arts do +2 wounds. | Art boosts, Drills |  | `storm_drill_03` |
 | Storm Dispersal Drill | Drill | Defense Shield: stops the first unstopped Art each Combat. | Table defense, Drills |  | `storm_drill_02` |
 | Storm Mantle Drill | Drill | Defense Shield: stops the first unstopped Strike each Combat. | Table defense, Drills |  | `storm_drill_01` |
-| Storm Stormwall Drill | Drill | Your Surge +1. Your Defense Shields can stop Focused attacks | Table defense, Drills | new |  |
-| Storm Gathering Front | Strike | +3 Energy. Empower 2. Look at your top 4 and put a Drill from them into play; the rest back in any order | Drills | new |  |
-| Storm Lightning Rod | Strike | Strike. At the end of this Combat, put a Storm Drill from your deck into play | Drills | new |  |
-| Storm Steady Current | Art | Endurance 1. 6 wounds. This Combat your Drills survive an Aspect change | Drills, Storm Arts | new |  |
-| Storm Backflash Drill | Drill | When a Strike damages you, draw the bottom card of your discard pile | Drills | new |  |
-| Storm Grounding Drill | Drill | When you stop an attack, you may remove this Drill to stop every attack of that kind this Combat. Limit 2 | Drills, Strike answers, Art answers | new |  |
+| Storm Stormwall Drill | Drill | Your duelist's Surge Rate is +1 while this is in play. Your Defense Shields can stop Focused attacks. | Table defense, Drills |  | `storm_drill_08` |
+| Storm Gathering Front | Strike | Strike doing +3 Energy. Empower 2. Look at the top 4 cards of your Life Deck. You may put a Drill from among them into play. Put the rest back in any order. | Drills |  | `storm_strike_13` |
+| Storm Lightning Rod | Strike | Strike. At the end of Combat: Search your Life Deck for a Freestyle or Storm Drill and put it into play. | Drills |  | `storm_strike_14` |
+| Storm Steady Current | Art | Endurance 1. Art dealing 5 wounds. For the remainder of Combat, you do not discard your Drills in play when your duelist advances or loses an Aspect. | Drills, Storm Arts |  | `storm_art_24` |
+| Storm Backflash Drill | Drill | When you take damage from an attack, if the attack is a Strike and your discard pile has a card, you may draw the bottom card of your discard pile. | Drills |  | `storm_drill_05` |
+| Storm Grounding Drill | Drill | Whenever you stop an attack, you may remove this card from the game. If you do, stop all of your opponent's attacks of the same kind for the remainder of Combat. Limit 2 per deck. | Drills, Strike answers, Art answers |  | `storm_drill_07` |
 | Storm Levelling Wind | Strike | Endurance 2. Focused Strike doing +3 Energy. Hit: Your opponent discards up to 4 Allies in play of your choice. Lower your opponent's Fervor 2. | Endurance |  | `storm_strike_11` |
-| Storm Maelstrom | Strike | Endurance 2. Strike doing +4 Energy. Empower 2. For the remainder of Combat, damage from your attacks cannot be prevented. Hit: All Freestyle Drills in play are removed from the game. | Endurance |  | `storm_strike_01` |
+| Storm Maelstrom | Strike | Endurance 2. Strike doing +4 Energy. For the remainder of Combat, damage from your attacks cannot be prevented. Empower 2. Hit: All Freestyle Drills in play are removed from the game. | Endurance |  | `storm_strike_01` |
 | Storm Recharge | Strike | Endurance 2. Strike doing +2 Energy. Raise your duelist's Energy to full. | Endurance, Energy refill |  | `storm_strike_03` |
 | Storm Tailwind | Strike | Endurance 3. Strike doing +4 Energy. For the remainder of Combat, your other attacks do +1 Energy. Lower your opponent's Fervor 2. | Endurance |  | `storm_strike_12` |
 | Storm Wringing Squall | Strike | Endurance 3. Strike. Hit: Look at your opponent's hand and choose a Strike card. They discard it. | Endurance |  | `storm_strike_08` |
@@ -251,7 +250,7 @@ Masteries:
 | Storm Charged Ward | Art | Endurance 3. Stops an Art. For the remainder of Combat, your attacks do +2 Energy. Raise your Fervor 1. | Endurance, Art answers |  | `storm_art_01` |
 | Storm Ricochet Bolt | Art | Endurance 3. Art dealing 5 wounds. For the remainder of Combat, your attacks gain "Hit: your duelist gains 2 Energy." Lower your opponent's Fervor 2. | Endurance |  | `storm_art_19` |
 | Storm Thunderhead | Art | Art. Empower 3. Your opponent discards up to 3 Drills in play of your choice. For the remainder of Combat, your next Endurance prevents all remaining damage. | Endurance |  | `storm_art_05` |
-| Storm Scattering Gale | Combat | Endurance 3. Place up to 2 of your opponent's Seals in play at the bottom of their Life Deck. | Endurance |  | `storm_combat_01` |
+| Storm Scattering Gale | Combat | Endurance 3. Place 1 or 2 of your opponent's Seals in play at the bottom of their Life Deck. | Endurance |  | `storm_combat_01` |
 | Storm Mustering Peal | Non-Combat | Use this card only if you have taken 5 or more wounds from a single attack this Combat. Endurance 2. Use in Combat: Search your discard pile for up to 3 Allies and put them into play at full Energy. | Endurance |  | `storm_noncombat_02` |
 | Storm Feeding Arc | Strike | Strike. Gain 3 Energy. Remove the top card of your opponent's discard pile from the game. | Energy refill |  | `storm_strike_06` |
 | Storm Return Stroke | Strike | Strike doing +3 Energy. Hit: Raise your duelist's Energy to full. Raise your Fervor 1. | Energy refill |  | `storm_strike_07` |
@@ -263,7 +262,8 @@ Masteries:
 | Storm Returning Front | Non-Combat | Stops a Strike. Place at the bottom of your Life Deck after use. | Strike answers |  | `storm_noncombat_01` |
 | Storm Earthing Rod | Art | Stops an Art. Raise your Fervor 1. | Art answers |  | `storm_art_09` |
 | Storm Felling Gust | Strike | Strike doing +4 Energy. Hit: Your opponent discards an Ally in play of your choice. | Storm Arts |  | `storm_strike_10` |
-| Storm Overcharge | Strike | Strike doing +4 Energy. If your duelist has 2 or more Energy, you may lose 2 Energy. If you do, search your Life Deck for an Art card and put it into your hand. Remove from the game after use. | Storm Arts |  | `storm_strike_02` |
+| Storm Opened Channel | Strike | Focused Strike doing +2 Energy. Hit: For the remainder of Combat, all Arts this personality performs do +2 wounds. | Storm Arts |  | `storm_strike_09` |
+| Storm Overcharge | Strike | Strike doing +4 Energy. If your duelist has 2 or more Energy, you may lose 2 Energy. If you do, search your Life Deck for an Art card and put it into your hand. Show it to your opponent. Remove from the game after use. | Storm Arts |  | `storm_strike_02` |
 | Storm Arc Bolt | Art | Art dealing 5 wounds. Raise your Fervor 2. | Storm Arts |  | `storm_art_06` |
 | Storm Chain Lightning | Art | Art dealing 5 wounds. Remain 1. Remove from the game after use. | Storm Arts |  | `storm_art_03` |
 | Storm Cold Front | Art | Art. Lower your opponent's Fervor 2. | Storm Arts |  | `storm_art_22` |
@@ -273,7 +273,7 @@ Masteries:
 | Storm Residual Shock | Art | Art dealing 6 wounds. If stopped, your opponent takes 2 wounds. | Storm Arts |  | `storm_art_21` |
 | Storm Silencing Static | Art | Art dealing 5 wounds. Name a card that can perform a Strike. Search your opponent's Life Deck for every copy of it and discard them. Shuffle their Life Deck. | Storm Arts |  | `storm_art_23` |
 | Storm Smiting Bolt | Art | Art. Your opponent removes a Non-Combat card or Ally in play of your choice from the game. | Storm Arts |  | `storm_art_04` |
-| Storm Stunning Bolt | Art | Art. Hit: Your opponent skips their next attack phase. Remove from the game after use. | Storm Arts |  | `storm_art_10` |
+| Storm Stunning Bolt | Art | Art. Hit: Your opponent must pass during their next attack phase. Remove from the game after use. | Storm Arts |  | `storm_art_10` |
 | Storm Ungrounded Flash | Art | Art dealing 6 wounds. Cannot be stopped by Art cards. | Storm Arts |  | `storm_art_16` |
 
 ## Shade (shadow and hexes): 50 cards

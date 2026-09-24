@@ -38,7 +38,8 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back)
 	loadout_button.pressed.connect(_on_loadout)
 	begin_button.pressed.connect(_on_begin)
-	for id: String in AdventureDecks.playable_starters():
+	_dev_unlocks()
+	for id: String in Session.unlocks.available_starters():
 		var d: DeckList = DeckList.resolve(id)
 		if d == null:
 			continue
@@ -132,6 +133,18 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	_pick(index)
 	roster_scroll.ensure_control_visible(_tiles[index])
 	accept_event()
+
+
+## `--dev-unlock-all` opens every starter file and saves it; `--dev-unlock-reset` deletes the
+## unlocks save so only the storylines' open starters remain.
+func _dev_unlocks() -> void:
+	if AdventureDev.has_flag("--dev-unlock-reset"):
+		AdventureUnlocks.clear()
+		Session.unlocks = AdventureUnlocks.new()
+	if AdventureDev.has_flag("--dev-unlock-all"):
+		for id in AdventureDecks.playable_starters():
+			Session.unlocks.unlock(id)
+		Session.unlocks.save()
 
 
 ## `--dev-pick=N` highlights the Nth starter. `--dev-screenshot=<png>` saves the screen once laid

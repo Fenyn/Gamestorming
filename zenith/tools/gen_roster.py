@@ -725,6 +725,15 @@ ART = {
     "root_art_12": "A spray of hard thorns flung from an outstretched palm.",
     "root_noncombat_05": "Thick vines coiling round an iron gear, locking it still.",
     "root_strike_19": "A fighter braced behind an oak's broad trunk as a blow glances off the bark.",
+    "storm_drill_05": "A bolt striking a figure and arcing back out of them into the ground behind.",
+    "storm_drill_06": "A thin spark threading through a stack of papers, burning one sheet away.",
+    "storm_drill_07": "A copper rod driven into wet earth, lightning pouring down it and vanishing.",
+    "storm_drill_08": "Two hands clasped, a crackling wall of charge rising between them and a coming blow.",
+    "storm_strike_13": "A shoulder driving forward into a gust, storm clouds massing behind the charge.",
+    "storm_strike_14": "A lone iron rod on a hilltop as the first lightning of a storm finds it.",
+    "storm_art_24": "A steady ribbon of current humming between two posts, unbroken in the rain.",
+    "storm_mastery_03": "A gale bending a field of grass flat, one runner sprinting with it at their back.",
+    "storm_mastery_04": "A conductor's baton raised before rows of crackling coils, all lit at once.",
 }
 
 # Seals: one brief per set, the number added by the generator.
@@ -1048,6 +1057,15 @@ NEW_SOURCES = {
     "root_art_12": "Namekian Final Flash (World Games Saga 70)",
     "root_noncombat_05": "Namekian Blocking Stance (Androids Saga 21)",
     "root_strike_19": "Namekian Fist Dodge (Cell Games 11)",
+    "storm_drill_05": "Orange Spontaneous Drill (Saiyan Saga 137)",
+    "storm_drill_06": "Orange Energy Dan Drill (Trunks Saga 138)",
+    "storm_drill_07": "Orange Protection Drill (Fusion Saga 68)",
+    "storm_drill_08": "Orange Hand-Clasp Drill (Kid Buu Saga 21)",
+    "storm_strike_13": "Orange Car Push (Buu Saga 81)",
+    "storm_strike_14": "Orange Searching Maneuver (Androids Saga 106)",
+    "storm_art_24": "Orange Energy Break (Fusion Saga 65)",
+    "storm_mastery_03": "Orange Style Mastery (World Games)",
+    "storm_mastery_04": "Orange Style Mastery (Buu Saga)",
 }
 
 

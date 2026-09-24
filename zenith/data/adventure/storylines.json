@@ -1,0 +1,27 @@
+{
+	"_note": "Story runs, design doc section 8.5. `open` are the starters a new save can play; everything else is unlocked by quests.json. A starter without an entry here plays with random act bosses and no guests. `bosses` sets an act's boss family (its tier comes from map.json); `on_win.joins` adds that personality card to the run deck. `guests` are the personalities an Encounter node can bring in, drawn from the main's connections in zenith/docs/cast.md.",
+	"open": ["tide_deepwater_start", "shade_mind_siege_start", "pyre_beatdown_start"],
+	"starters": {
+		"tide_deepwater_start": {
+			"bosses": {
+				"1": { "family": "steel_heir", "on_win": { "joins": "personality_35" } },
+				"2": { "family": "freestyle_swords" }
+			},
+			"guests": ["personality_53", "personality_52", "personality_51", "personality_49", "personality_35", "personality_16"]
+		},
+		"shade_mind_siege_start": {
+			"bosses": {
+				"1": { "family": "shade_salvage", "on_win": { "joins": "personality_47" } },
+				"2": { "family": "shade_henchmen" }
+			},
+			"guests": ["personality_47", "personality_44", "personality_46", "personality_10", "personality_26"]
+		},
+		"pyre_beatdown_start": {
+			"bosses": {
+				"1": { "family": "storm_volley" },
+				"2": { "family": "pyre_ascent" }
+			},
+			"guests": []
+		}
+	}
+}

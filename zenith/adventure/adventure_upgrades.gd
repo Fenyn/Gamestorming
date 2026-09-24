@@ -133,7 +133,7 @@ static func load_upgrades() -> AdventureUpgrades:
 	if not (parsed is Dictionary):
 		push_error("AdventureUpgrades: %s is not a JSON object" % file)
 		return AdventureUpgrades.new()
-	return AdventureUpgrades.from_dict(parsed)
+	return AdventureUpgrades.from_dict(CardRenames.migrate(parsed) as Dictionary)
 
 
 func save() -> bool:

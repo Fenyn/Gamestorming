@@ -1,8 +1,8 @@
 # Aspect portrait guide
 
 How to turn one hand-drawn duelist portrait into a set of Aspect portraits. Worked out on Bram
-Ashmark, 2026-09-22 (his seven files in `assets/card_art/personality_bram_ashmark_*.png` are the
-reference result). Read the character's entry in `cast.md` first: its Aspect table gives the look
+Ashmark, 2026-09-22 (his seven files in `assets/card_art/personality/` are the reference result; `docs/card_roster.csv`
+says which `personality_NN` is which). Read the character's entry in `cast.md` first: its Aspect table gives the look
 of each rung.
 
 ## Inputs and outputs
@@ -10,7 +10,8 @@ of each rung.
 - **Input:** the user's tier 1 bust, an `.aseprite` file with a transparent background. Never edit it.
 - **Output per Aspect:** a layered `.aseprite` next to the base (`<Name>_T<n>_<Aspect>.aseprite`)
   plus a flat PNG at the base's size.
-- **In game:** copy each PNG to `assets/card_art/<card id>.png`. The card id is in `card_roster.md`.
+- **In game:** copy each PNG to `assets/card_art/personality/<card id>.png`, for example
+  `personality_03.png`. The card id is in `card_roster.md`.
   A PNG takes priority over an SVG crest with the same name, so leave the crests in place. Run
   `--headless --path zenith --import` afterwards.
 - **Background stays transparent.** The card face paints the deck's Mastery colour behind the

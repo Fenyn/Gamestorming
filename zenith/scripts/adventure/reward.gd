@@ -82,10 +82,10 @@ func _ready() -> void:
 
 func _fill_header() -> void:
 	var run: AdventureRun = Session.run
-	var row: Dictionary = Session.ladder.stage(run.stage)
+	var row: Dictionary = Session.map.duel_for(run.node_id)
 	var is_aspect_step: bool = run.status == "aspect"
-	stage_label.text = "Stage %d cleared" % (run.stage + 1)
-	opponent_label.text = "Beat %s" % AdventureLadder.opponent_name(str(row.get("opponent", "")), Session.library)
+	stage_label.text = "Duel %d won, %s" % [run.stage + 1, Session.map.place_of(run.node_id)]
+	opponent_label.text = "Beat %s" % AdventureDecks.opponent_name(str(row.get("opponent", "")), Session.library)
 	step_line.visible = is_aspect_step
 	stack_row.visible = is_aspect_step
 	stats_row.visible = not is_aspect_step
@@ -634,7 +634,7 @@ func _take_aspect(card_id: String) -> void:
 	if not AdventureRewards.apply_aspect(Session.run, Session.library, card_id):
 		status_label.text = "That Aspect is no longer available."
 		return
-	AdventureRewards.finish_aspect(Session.run, Session.ladder, Session.library)
+	AdventureRewards.finish_aspect(Session.run, Session.map, Session.library)
 	_selected_index = -1
 	_fill_header()
 	await _fill_offer()
@@ -672,8 +672,8 @@ func _enter() -> void:
 # --- Dev flags -----------------------------------------------------------------
 
 ## Builds an in-memory run when the scene is opened directly, without touching the save.
-## `--dev-reward=<starter_id>` begins the run, `--dev-stage=N` picks the stage just won (before
-## the offer is drawn), `--dev-after-aspect` takes the first Aspect option so an Aspect-granting
+## `--dev-reward=<starter_id>` begins the run, `--dev-stage=N` wins N duels along the map's first
+## choices before the one whose reward is shown, `--dev-after-aspect` takes the first Aspect option so an Aspect-granting
 ## stage still lands on its bundle offer, `--dev-offer=a,b,c` forces specific bundle ids into that
 ## offer, and `--dev-empty` clears it to show the zero-offer state.
 func _dev_setup() -> void:
@@ -685,12 +685,14 @@ func _dev_setup() -> void:
 	_dev = true
 	var stage_arg: String = AdventureDev.flag("--dev-stage=")
 	if stage_arg != "":
-		Session.run.stage = clampi(int(stage_arg), 0, Session.ladder.size() - 1)
-	AdventureRewards.finish_stage(Session.run, Session.ladder, Session.library, true)
+		AdventureDev.walk(maxi(0, int(stage_arg)))
+	if not Session.run.walk_to_next_duel(Session.map):
+		return
+	AdventureRewards.finish_stage(Session.run, Session.map, Session.library, true)
 	if AdventureDev.args().has("--dev-after-aspect") and Session.run.status == "aspect":
 		var first: String = Session.run.pending_aspects[0] if not Session.run.pending_aspects.is_empty() else ""
 		if first != "" and AdventureRewards.apply_aspect(Session.run, Session.library, first):
-			AdventureRewards.finish_aspect(Session.run, Session.ladder, Session.library)
+			AdventureRewards.finish_aspect(Session.run, Session.map, Session.library)
 	if Session.run.status != "reward":
 		return
 	var offer_arg: String = AdventureDev.flag("--dev-offer=")

@@ -4,14 +4,14 @@
   "tier": "boss",
   "mode": "adventure",
   "duelist": [
-    "personality_marrow_1_patchwork",
-    "personality_marrow_2_rebuilt",
-    "personality_marrow_3_overwrought",
-    "personality_marrow_4_fury_amalgam"
+    "personality_26",
+    "personality_27",
+    "personality_28",
+    "personality_29"
   ],
   "style": "shade",
   "alignment": "pact",
-  "mastery": "shade_mastery",
+  "mastery": "shade_mastery_01",
   "relic": "",
   "reserve": [],
   "archetype": "art_beatdown",
@@ -24,167 +24,167 @@
   "tagline": "Assemble a crew of constructs that strengthen one another, then unleash powerful Arts to overwhelm your rival.",
   "cards": [
     {
-      "id": "grounding_step",
+      "id": "freestyle_art_02",
+      "count": 3
+    },
+    {
+      "id": "shade_art_01",
+      "count": 3
+    },
+    {
+      "id": "shade_art_03",
+      "count": 3
+    },
+    {
+      "id": "shade_art_04",
+      "count": 3
+    },
+    {
+      "id": "shade_art_05",
+      "count": 3
+    },
+    {
+      "id": "signature_art_01",
       "count": 1
     },
     {
-      "id": "mournes_jolting_arc",
-      "count": 3
-    },
-    {
-      "id": "sabotage",
+      "id": "signature_art_03",
       "count": 2
     },
     {
-      "id": "shade_cutting_hand",
+      "id": "signature_art_07",
       "count": 3
     },
     {
-      "id": "shade_rending_palm",
+      "id": "signature_art_08",
       "count": 3
     },
     {
-      "id": "shade_snaring_web",
+      "id": "freestyle_combat_01",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_03",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_04",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_05",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_07",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_12",
+      "count": 2
+    },
+    {
+      "id": "freestyle_combat_17",
+      "count": 2
+    },
+    {
+      "id": "signature_combat_03",
       "count": 3
     },
     {
-      "id": "shade_umbral_lash",
-      "count": 3
-    },
-    {
-      "id": "threefold_bolt",
-      "count": 3
-    },
-    {
-      "id": "unerring_bolt",
-      "count": 3
-    },
-    {
-      "id": "cold_appraisal",
+      "id": "signature_combat_04",
       "count": 4
     },
     {
-      "id": "cut_short",
-      "count": 3
+      "id": "signature_combat_07",
+      "count": 1
     },
     {
-      "id": "dismissal",
+      "id": "signature_combat_09",
       "count": 2
     },
     {
-      "id": "kept_at_bay",
+      "id": "freestyle_drill_07",
+      "count": 3
+    },
+    {
+      "id": "shade_drill_01",
       "count": 1
     },
     {
-      "id": "marrows_retinue",
+      "id": "shade_drill_02",
+      "count": 1
+    },
+    {
+      "id": "signature_drill_02",
       "count": 2
     },
     {
-      "id": "rallying_call",
-      "count": 2
-    },
-    {
-      "id": "respite",
+      "id": "signature_drill_03",
       "count": 1
     },
     {
-      "id": "scorn_smirks",
+      "id": "signature_drill_04",
       "count": 1
     },
     {
-      "id": "sever_the_leyline",
+      "id": "freestyle_noncombat_01",
       "count": 1
     },
     {
-      "id": "stillness",
+      "id": "freestyle_noncombat_04",
       "count": 1
     },
     {
-      "id": "terms_of_the_pact",
+      "id": "freestyle_noncombat_06",
       "count": 1
     },
     {
-      "id": "absorbing_drill",
-      "count": 2
+      "id": "freestyle_noncombat_11",
+      "count": 1
     },
     {
-      "id": "assembly_drill",
+      "id": "freestyle_noncombat_12",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_01",
       "count": 3
     },
     {
-      "id": "locked_gate_drill",
+      "id": "signature_noncombat_05",
       "count": 1
     },
     {
-      "id": "mournes_quickness_drill",
+      "id": "personality_46",
       "count": 1
     },
     {
-      "id": "shade_composure_drill",
+      "id": "personality_47",
       "count": 1
     },
     {
-      "id": "shade_takedown_drill",
+      "id": "seal_04",
       "count": 1
     },
     {
-      "id": "breakers_yard",
-      "count": 1
-    },
-    {
-      "id": "foresight",
-      "count": 1
-    },
-    {
-      "id": "lucky_find",
-      "count": 1
-    },
-    {
-      "id": "mercy_smiles",
+      "id": "freestyle_strike_06",
       "count": 3
     },
     {
-      "id": "mourne_takes_measure",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
-      "count": 1
-    },
-    {
-      "id": "spoiled_rite",
-      "count": 1
-    },
-    {
-      "id": "personality_cull_1",
-      "count": 1
-    },
-    {
-      "id": "personality_orvath_kell_1",
-      "count": 1
-    },
-    {
-      "id": "salt_seal_4",
-      "count": 1
-    },
-    {
-      "id": "mournes_stance",
-      "count": 1
-    },
-    {
-      "id": "second_wind",
+      "id": "shade_strike_06",
       "count": 3
     },
     {
-      "id": "shade_gathering_dark",
+      "id": "shade_strike_07",
       "count": 3
     },
     {
-      "id": "shade_warding_burst",
-      "count": 3
+      "id": "signature_strike_03",
+      "count": 1
     },
     {
-      "id": "unyielding_guard",
+      "id": "signature_strike_04",
       "count": 1
     }
   ]

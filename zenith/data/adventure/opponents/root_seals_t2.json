@@ -4,12 +4,12 @@
   "tier": "t2",
   "mode": "adventure",
   "duelist": [
-    "personality_osric_thornwald_1_greybeard",
-    "personality_osric_thornwald_2_overgrown"
+    "personality_21",
+    "personality_22"
   ],
   "style": "root",
   "alignment": "vigil",
-  "mastery": "root_mastery",
+  "mastery": "root_mastery_01",
   "relic": "",
   "reserve": [],
   "archetype": "seals",
@@ -21,151 +21,151 @@
   "tagline": "Recycle your spent spells and outlast your rival while gathering all seven Seals to claim victory.",
   "cards": [
     {
-      "id": "root_destruction_blast",
+      "id": "freestyle_art_07",
       "count": 1
     },
     {
-      "id": "root_dragon_blast",
-      "count": 2
-    },
-    {
-      "id": "root_energy_catch",
+      "id": "root_art_01",
       "count": 3
     },
     {
-      "id": "root_energy_deflection",
+      "id": "root_art_02",
       "count": 3
     },
     {
-      "id": "sharp_rebuke",
+      "id": "root_art_03",
       "count": 1
     },
     {
-      "id": "smoke_screen",
+      "id": "root_art_04",
       "count": 2
     },
     {
-      "id": "cut_short",
-      "count": 1
-    },
-    {
-      "id": "dismissal",
-      "count": 1
-    },
-    {
-      "id": "parley",
-      "count": 1
-    },
-    {
-      "id": "respite",
-      "count": 1
-    },
-    {
-      "id": "root_bolt",
+      "id": "signature_art_13",
       "count": 2
     },
     {
-      "id": "root_energy_focus",
+      "id": "freestyle_combat_05",
       "count": 1
     },
     {
-      "id": "seal_seizure",
+      "id": "freestyle_combat_06",
       "count": 1
     },
     {
-      "id": "watchful_eye",
+      "id": "freestyle_combat_17",
       "count": 1
     },
     {
-      "id": "absorbing_drill",
+      "id": "freestyle_combat_18",
       "count": 1
     },
     {
-      "id": "guardian_drill",
+      "id": "freestyle_combat_19",
       "count": 1
     },
     {
-      "id": "keepers_drill",
-      "count": 1
-    },
-    {
-      "id": "mournes_quickness_drill",
-      "count": 1
-    },
-    {
-      "id": "root_preparation_drill",
-      "count": 1
-    },
-    {
-      "id": "first_cut",
-      "count": 1
-    },
-    {
-      "id": "foresight",
-      "count": 1
-    },
-    {
-      "id": "kins_rescue",
-      "count": 1
-    },
-    {
-      "id": "mournes_plans",
-      "count": 1
-    },
-    {
-      "id": "mournes_smirk",
-      "count": 1
-    },
-    {
-      "id": "sleight",
-      "count": 1
-    },
-    {
-      "id": "spoiled_rite",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_1",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_2",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_3",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_4",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_5",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_6",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_7",
-      "count": 1
-    },
-    {
-      "id": "practiced_guard",
+      "id": "root_combat_01",
       "count": 2
     },
     {
-      "id": "root_dash",
+      "id": "root_combat_02",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_03",
+      "count": 1
+    },
+    {
+      "id": "root_drill_01",
+      "count": 1
+    },
+    {
+      "id": "signature_drill_02",
+      "count": 1
+    },
+    {
+      "id": "signature_drill_03",
+      "count": 1
+    },
+    {
+      "id": "signature_drill_05",
+      "count": 1
+    },
+    {
+      "id": "signature_drill_06",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_04",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_12",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_15",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_16",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_07",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_08",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_09",
+      "count": 1
+    },
+    {
+      "id": "seal_08",
+      "count": 1
+    },
+    {
+      "id": "seal_09",
+      "count": 1
+    },
+    {
+      "id": "seal_10",
+      "count": 1
+    },
+    {
+      "id": "seal_11",
+      "count": 1
+    },
+    {
+      "id": "seal_12",
+      "count": 1
+    },
+    {
+      "id": "seal_13",
+      "count": 1
+    },
+    {
+      "id": "seal_14",
+      "count": 1
+    },
+    {
+      "id": "freestyle_strike_06",
       "count": 2
     },
     {
-      "id": "root_firm_stance",
+      "id": "root_strike_01",
       "count": 2
     },
     {
-      "id": "second_wind",
+      "id": "root_strike_02",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_26",
       "count": 2
     }
   ]

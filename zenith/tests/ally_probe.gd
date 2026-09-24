@@ -217,12 +217,12 @@ func _init() -> void:
 	print("  games the Bonding card reached play  %4.0f%%" % (100.0 * per(n, "rite_in_play", games)))
 	print("  games both gates were open at once   %4.0f%%   (%.1f attack phases to take it)" % [100.0 * per(n, "both_ready", games), per(n, "chance_offered", games)])
 	print("  Bonding cards spent for nothing      %5.2f per game" % per(n, "rite_wasted", games))
-	for id in ["old_trick", "lobbed_bolt", "lucky_find", "bonding_rite", "rallying_call", "warding_call", "open_challenge",
-			"marrows_retinue", "dismissal", "breakers_yard", "locked_gate_drill", "assembly_drill"]:
+	for id in ["freestyle_combat_10", "freestyle_art_03", "freestyle_noncombat_06", "freestyle_noncombat_08", "freestyle_combat_12", "freestyle_combat_08", "freestyle_noncombat_09",
+			"signature_combat_09", "freestyle_combat_17", "freestyle_noncombat_11", "signature_drill_04", "freestyle_drill_07"]:
 		if n.has("played_%s" % id):
 			print("    played %-18s %5.2f per game" % [id, per(n, "played_%s" % id, games)])
-	for id in ["personality_wren_rooke_1", "personality_edric_rooke_1", "personality_tavin_vale_1", "personality_ansel_rooke_1", "personality_ansel_and_tavin_1_back_to_back",
-			"personality_cull_1", "personality_orvath_kell_1", "personality_gideon_mourne_1_mercenary", "personality_pim_1"]:
+	for id in ["personality_49", "personality_50", "personality_51", "personality_52", "personality_54",
+			"personality_46", "personality_47", "personality_48", "personality_44"]:
 		if n.has("ally_%s" % id):
 			print("    %-18s reached play in %3.0f%% of games" % [id, 100.0 * per(n, "ally_%s" % id, games)])
 	print("  Allies lost off the table            %5.2f per game (critical %.2f, in an attack %.2f, elsewhere %.2f)" % [

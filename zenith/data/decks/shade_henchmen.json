@@ -1,19 +1,19 @@
 {
   "name": "Hexbound Company",
   "duelist": [
-    "personality_sable_draik_1_captain",
-    "personality_sable_draik_2_shrouded",
-    "personality_sable_draik_3_lightless"
+    "personality_10",
+    "personality_11",
+    "personality_12"
   ],
   "style": "shade",
   "alignment": "pact",
-  "mastery": "shade_mastery",
-  "relic": "debtors_ring",
+  "mastery": "shade_mastery_01",
+  "relic": "relic_02",
   "reserve": [
-    "defacement",
-    "shade_unraveling",
-    "shade_unraveling",
-    "shade_unraveling"
+    "freestyle_noncombat_10",
+    "shade_strike_01",
+    "shade_strike_01",
+    "shade_strike_01"
   ],
   "archetype": "allies",
   "difficulty": "easy",
@@ -25,139 +25,139 @@
   "blurb": "Sable Draik fights with her company beside her. Every hex is aimed at the rival's mind: their hand, their focus, the spells they were counting on. Modest damage, but the rival plays with less and less.",
   "cards": [
     {
-      "id": "trampled_crossroads",
+      "id": "signature_art_06",
       "count": 3
     },
     {
-      "id": "personality_vesna_draik_1",
+      "id": "signature_strike_16",
+      "count": 3
+    },
+    {
+      "id": "freestyle_art_06",
       "count": 1
     },
     {
-      "id": "personality_brann_draik_1",
+      "id": "signature_combat_04",
+      "count": 3
+    },
+    {
+      "id": "signature_combat_03",
+      "count": 3
+    },
+    {
+      "id": "signature_art_05",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_17",
+      "count": 3
+    },
+    {
+      "id": "freestyle_combat_13",
+      "count": 3
+    },
+    {
+      "id": "freestyle_art_05",
+      "count": 3
+    },
+    {
+      "id": "signature_art_10",
       "count": 1
     },
     {
-      "id": "personality_quill_draik_1",
+      "id": "signature_strike_01",
+      "count": 3
+    },
+    {
+      "id": "personality_41",
       "count": 1
     },
     {
-      "id": "personality_halvard_draik_1",
+      "id": "personality_43",
       "count": 1
     },
     {
-      "id": "personality_pim_1",
+      "id": "personality_44",
       "count": 1
     },
     {
-      "id": "sun_seal_3",
+      "id": "personality_42",
       "count": 1
     },
     {
-      "id": "sun_seal_5",
+      "id": "personality_40",
       "count": 1
     },
     {
-      "id": "cold_appraisal",
+      "id": "freestyle_combat_12",
       "count": 3
     },
     {
-      "id": "cut_short",
+      "id": "signature_strike_02",
       "count": 3
     },
     {
-      "id": "scorn_smirks",
+      "id": "signature_art_03",
+      "count": 3
+    },
+    {
+      "id": "signature_art_02",
+      "count": 3
+    },
+    {
+      "id": "signature_combat_07",
       "count": 1
     },
     {
-      "id": "rallying_call",
+      "id": "shade_strike_03",
       "count": 3
     },
     {
-      "id": "hired_blades",
+      "id": "shade_strike_02",
       "count": 3
     },
     {
-      "id": "stillness",
+      "id": "shade_art_02",
+      "count": 3
+    },
+    {
+      "id": "shade_strike_05",
+      "count": 3
+    },
+    {
+      "id": "shade_strike_04",
+      "count": 3
+    },
+    {
+      "id": "shade_art_01",
+      "count": 3
+    },
+    {
+      "id": "shade_combat_01",
+      "count": 3
+    },
+    {
+      "id": "freestyle_combat_01",
       "count": 1
     },
     {
-      "id": "shade_veil",
-      "count": 3
-    },
-    {
-      "id": "shade_hex_recall",
-      "count": 3
-    },
-    {
-      "id": "shade_umbral_lash",
-      "count": 3
-    },
-    {
-      "id": "shade_mind_rot",
-      "count": 3
-    },
-    {
-      "id": "draiks_reckoning",
-      "count": 3
-    },
-    {
-      "id": "lingering_curse",
+      "id": "seal_17",
       "count": 1
     },
     {
-      "id": "black_hands",
-      "count": 3
-    },
-    {
-      "id": "knife_volley",
-      "count": 3
-    },
-    {
-      "id": "sabotage",
-      "count": 3
-    },
-    {
-      "id": "unerring_bolt",
-      "count": 3
-    },
-    {
-      "id": "scattered_ashes",
-      "count": 3
-    },
-    {
-      "id": "captains_barrage",
+      "id": "seal_19",
       "count": 1
     },
     {
-      "id": "no_quarter",
+      "id": "grounds_01",
       "count": 3
     },
     {
-      "id": "relentless_fury",
+      "id": "freestyle_art_02",
       "count": 3
     },
     {
-      "id": "shade_dread_grip",
-      "count": 3
-    },
-    {
-      "id": "shade_oblivion_touch",
-      "count": 3
-    },
-    {
-      "id": "shade_nightmare_hold",
-      "count": 3
-    },
-    {
-      "id": "branns_shakedown",
-      "count": 3
-    },
-    {
-      "id": "halvards_twin_cut",
-      "count": 3
-    },
-    {
-      "id": "vesnas_ambush",
+      "id": "signature_strike_18",
       "count": 3
     }
   ]

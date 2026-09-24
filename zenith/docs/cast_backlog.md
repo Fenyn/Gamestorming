@@ -40,19 +40,19 @@ sit is already settled in `cast.md`; only the names are missing.
 ## Done
 
 - **Marrow** (the eighth duelist) and her crew: Cull, Orvath Kell, **Gideon Mourne**. Marrow's own
-  card is `cold_appraisal`, now "Marrow's Appraisal".
+  card is `signature_combat_04`, now "Marrow's Appraisal".
 - **Gideon Mourne**, a stripped lord who still signs the title, clears the whole Vegeta row: seven
   cards across five decks, ids and titles both.
 - **Siphon, Tithe, Sledge, Mercy, Scorn** retired the Collegium's numbering.
 - **2026-09-19, ten titles.** Every card whose character already existed now leads with the name,
-  which cleared Rules 1 and 2 outright. `relentless_fury` Ashmark's Relentless Fury,
-  `scattered_ashes` Ashmark Leaves Nothing, `cut_short` Vale Cuts It Short, `heirloom_blade` Vale's
-  Heirloom Blade, `committed_cut` Edric's Committed Cut, `quick_retreat` Edric Gives Ground,
-  `first_cut` Edric Carves First, `keepers_drill` Edric's Retaining Drill, `sabotage` Siphon's
-  Drain, `absorbing_drill` Cull's Absorbing Drill. Ids were left alone and attribution went in
+  which cleared Rules 1 and 2 outright. `signature_strike_02` Ashmark's Relentless Fury,
+  `signature_art_02` Ashmark Leaves Nothing, `signature_combat_03` Vale Cuts It Short, `signature_noncombat_06` Vale's
+  Heirloom Blade, `signature_art_04` Edric's Committed Cut, `signature_strike_23` Edric Gives Ground,
+  `signature_noncombat_07` Edric Carves First, `signature_drill_05` Edric's Retaining Drill, `signature_art_03` Siphon's
+  Drain, `signature_drill_02` Cull's Absorbing Drill. Ids were left alone and attribution went in
   `SHOWS` rather than the data's `character` field, so nothing changed mechanically.
 - **The Goku row is closed.** Sir Edric Rooke was already that mirror, through
-  `personality_edric_rooke_1`. Four of the five cards are his now and the fifth, `lodestone_heart`, is the
+  `personality_50`. Four of the five cards are his now and the fifth, `relic_03`, is the
   Relic exemption.
 - **2026-09-19, the Red sheet.** Sir Edric Rooke became the ninth duelist (`pyre_ascent`), which
   is the first case of one character fielding two schools: Pyre in his own list, Tide as his
@@ -60,34 +60,34 @@ sit is already settled in `cast.md`; only the names are missing.
   like comes from that card, not from a fixed element on the person.
 - **2026-09-20, the Black sheet.** **Gideon Mourne** becomes the tenth duelist,
   `personality_gideon_mourne_*`, four Aspects, Shade, Pact, Draconic and `marked`. Two printed
-  lines now: `personality_gideon_mourne_1_mercenary` is "Gideon Mourne, Mercenary", pre-mark and
-  fielded as an Ally in somebody else's crew, and the Lord Mourne line runs the Marked Lord /
+  lines now: `personality_48` is "Gideon Mourne, Mercenary", pre-mark and
+  fielded in Marrow's `shade_salvage` deck, and the Lord Mourne line runs the Marked Lord /
   Unflinching / Unfettered / Unrepentant. Its Might was pasted in on the printed million scale
   and was converted to the compact scale on 2026-09-21, tops 20 / 26 / 32 / 38.
   **The Fortress** (approved 2026-09-20) is the broken company's third survivor, the slot
   `cast.md` already had agreed. His real name is never given, which is the one exception to the
   two-part-name rule; the article keeps it from reading as a construct's one-word label. His two
-  cards are `unyielding_guard` "The Fortress' Iron Bulwark" and `grounding_step` "The Fortress'
+  cards are `signature_strike_04` "The Fortress' Iron Bulwark" and `signature_art_01` "The Fortress'
   Arcane Aegis", the widest retitle so far at ten and eight decks, ids unchanged. Foundation /
   Fortified / Unbreachable is held for whenever he gets a personality card.
   **Two card keywords** were added rather than title families: `marked` for the bargain's cards and
   `whisper` for the Shade working. Three shipped Shade cards were retitled into the Whisper family,
-  ids unchanged: `shade_unraveling`, `shade_nightmare_hold`, `shade_umbral_lash`.
+  ids unchanged: `shade_strike_01`, `shade_strike_05`, `shade_art_01`.
 
 - **Torvan Hask** (approved 2026-09-19), Edric's elder brother from the line he left, closes the
-  Raditz row: one card, `hasks_flying_kick`.
+  Raditz row: one card, `signature_strike_07`.
 - **Emrys Rooke** (approved 2026-09-19), the eldest son, a swordsman where his parents are
-  casters, closes the Gohan row: eight cards. `no_quarter` Emrys Gives No Quarter,
-  `all_or_nothing` Emrys Risks It All, `hilt_guard` Emrys' Hilt Guard, `sword_flourish`,
-  `sword_sweep` and `sword_thrust` Emrys' Sword Flourish / Sweep / Thrust, `swordplay_drill`
-  Emrys' Swordplay Drill, `locked_gate_drill` Emrys Spots the Fraud Drill. His name is now on
+  casters, closes the Gohan row: eight cards. `signature_strike_01` Emrys Gives No Quarter,
+  `signature_strike_09` Emrys Risks It All, `signature_strike_22` Emrys' Hilt Guard, `signature_strike_10`,
+  `signature_strike_11` and `signature_strike_12` Emrys' Sword Flourish / Sweep / Thrust, `signature_drill_01`
+  Emrys' Swordplay Drill, `signature_drill_04` Emrys Spots the Fraud Drill. His name is now on
   a card in six decks, which is the rule working as intended. **The sword titles are
-  load-bearing**: Vale's Aspect 1, `vales_sword_draw`, `swordplay_drill` and the Vale Heirloom
+  load-bearing**: Vale's Aspect 1, `signature_strike_13`, `signature_drill_01` and the Vale Heirloom
   all match on the substrings "Sword" and "Swordplay", so any future retitle has to keep them.
 - **Corin Thrace** (approved 2026-09-19), an ascetic of no house who teaches a discipline rather
-  than a school, closes the Tien row: five cards. `practiced_guard` Corin's Practiced Guard,
-  `smoke_screen` Corin Throws Smoke, `suppressing_shot` Corin's Suppressing Shot, `threefold_bolt`
-  Corin's Threefold Bolt, and the new `corins_conditioning` Corin's Conditioning. He pilots no deck,
+  than a school, closes the Tien row: five cards. `signature_strike_26` Corin's Practiced Guard,
+  `signature_art_13` Corin Throws Smoke, `signature_art_12` Corin's Suppressing Shot, `signature_art_08`
+  Corin's Threefold Bolt, and the new `signature_noncombat_02` Corin's Conditioning. He pilots no deck,
   which is why his forms turn up in other people's hands across the field. Checked before
   retitling: nothing in the generator matches any of those titles as a substring, unlike the sword
   cards.
@@ -99,24 +99,24 @@ say what kind of person the cards imply.
 
 | source character | n | cards | card types |
 |---|---|---|---|
-| **Krillin** | 5 | `blinding_flare`, `unerring_bolt`, `keen_eye`, `clear_mind`, `sleight` | Art, Combat, Non-Combat |
-| **Cell** | 4 | `old_habit`, `dismissal`, `sever_the_leyline`, `terms_of_the_pact` | Combat, Pacts only, Strike |
-| **Nappa** | 2 | `grounding_step`, `unyielding_guard` | Art, Strike |
-| **Bulma** | 1 | `wardens_measure` | Vigils only |
-| **Captain Ginyu** | 1 | `captains_barrage` | Art |
-| **Frieza** | 1 | `dead_air` | Art |
-| **Hercule** | 1 | `old_trick` | Combat |
-| **Majin Babidi** | 1 | `tollgate_yard` | Grounds |
-| **Pikkon** | 1 | `second_wind` | Strike |
-| **Supreme Kai** | 1 | `overreach` | Art |
-| **Uub** | 1 | `headlong_plunge` | Strike |
-| **Kami** | 1 | `the_high_watch` | Grounds |
+| **Krillin** | 5 | `freestyle_art_08`, `freestyle_art_02`, `freestyle_combat_16`, `freestyle_noncombat_03`, `freestyle_noncombat_15` | Art, Combat, Non-Combat |
+| **Cell** | 4 | `freestyle_strike_01`, `freestyle_combat_17`, `freestyle_combat_04`, `freestyle_combat_03` | Combat, Pacts only, Strike |
+| **Nappa** | 2 | `signature_art_01`, `signature_strike_04` | Art, Strike |
+| **Bulma** | 1 | `freestyle_noncombat_14` | Vigils only |
+| **Captain Ginyu** | 1 | `freestyle_art_06` | Art |
+| **Frieza** | 1 | `freestyle_art_01` | Art |
+| **Hercule** | 1 | `freestyle_combat_10` | Combat |
+| **Majin Babidi** | 1 | `grounds_03` | Grounds |
+| **Pikkon** | 1 | `freestyle_strike_06` | Strike |
+| **Supreme Kai** | 1 | `freestyle_art_04` | Art |
+| **Uub** | 1 | `freestyle_strike_03` | Strike |
+| **Kami** | 1 | `grounds_06` | Grounds |
 
 ### Notes on the ones with the most to say
 
 - **Kami is invisible to `audit_mirrors.py`** and has to be tracked by hand. The tool builds its
   list of source people from the card database's personality cards, and Kami is never printed as
-  one; his name only appears inside other cards' titles. Added 2026-09-19 with `the_high_watch`
+  one; his name only appears inside other cards' titles. Added 2026-09-19 with `grounds_06`
   (Kami's Floating Island), a watchpost above the cloud line where you see what is coming. Whoever
   holds that office in our world is unplaced; the Vigil's highest office, already reserved for the
   Supreme Kai row, is the obvious neighbour but not the same person.
@@ -135,7 +135,7 @@ Rooke by blood, Vale-trained in the sword and Thornwald-taught in the rest; that
 and it is done.) Krillin is the Kingsguard's form at
 contact; Corin Thrace, who is done, was its form at distance. Bulma is a Vale and Caedan's mother. Nappa is the
 broken company's third survivor. Ginyu captains the retained guard. Babidi lays the demons' mark
-and works the toll gate. Supreme Kai holds the Vigil's highest office, which is what `overreach`
+and works the toll gate. Supreme Kai holds the Vigil's highest office, which is what `freestyle_art_04`
 reaches past. Uub ties back to Bram Ashmark. Hercule claims a Kingsguard form he was never taught.
 Cell, Pikkon and Frieza have no placement yet.
 

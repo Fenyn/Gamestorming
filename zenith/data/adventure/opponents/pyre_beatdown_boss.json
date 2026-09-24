@@ -4,27 +4,27 @@
   "tier": "boss",
   "mode": "adventure",
   "duelist": [
-    "personality_bram_ashmark_1_starved",
-    "personality_bram_ashmark_2_leeching",
-    "personality_bram_ashmark_3_unstoppable"
+    "personality_01",
+    "personality_02",
+    "personality_03"
   ],
   "style": "pyre",
   "alignment": "pact",
-  "mastery": "pyre_mastery",
-  "relic": "blank_mask",
+  "mastery": "pyre_mastery_01",
+  "relic": "relic_01",
   "reserve": [
-    "open_challenge",
-    "pyre_ashfall",
-    "pyre_ashfall",
-    "pyre_ashfall",
-    "revision_drill",
-    "scatters_the_ashes",
-    "scatters_the_ashes",
-    "scatters_the_ashes",
-    "tollgate_yard",
-    "pyre_searing_guard",
-    "pyre_searing_guard",
-    "pyre_searing_guard"
+    "freestyle_noncombat_09",
+    "pyre_art_02",
+    "pyre_art_02",
+    "pyre_art_02",
+    "freestyle_drill_02",
+    "signature_strike_19",
+    "signature_strike_19",
+    "signature_strike_19",
+    "grounds_03",
+    "pyre_strike_02",
+    "pyre_strike_02",
+    "pyre_strike_02"
   ],
   "archetype": "strike_beatdown",
   "subthemes": [
@@ -34,131 +34,131 @@
   "tagline": "Keep attacking to fuel your Fervor, climb through fiery Aspects, and overwhelm your rival before your defenses give out.",
   "cards": [
     {
-      "id": "dead_air",
+      "id": "freestyle_art_01",
       "count": 1
     },
     {
-      "id": "grounding_step",
+      "id": "pyre_art_01",
+      "count": 3
+    },
+    {
+      "id": "signature_art_01",
       "count": 1
     },
     {
-      "id": "pyre_immolation",
-      "count": 3
-    },
-    {
-      "id": "cold_appraisal",
-      "count": 3
-    },
-    {
-      "id": "cut_short",
-      "count": 3
-    },
-    {
-      "id": "pyre_twin_flames",
-      "count": 3
-    },
-    {
-      "id": "sever_the_leyline",
+      "id": "freestyle_combat_01",
       "count": 1
     },
     {
-      "id": "stillness",
+      "id": "freestyle_combat_03",
       "count": 1
     },
     {
-      "id": "terms_of_the_pact",
+      "id": "freestyle_combat_04",
       "count": 1
     },
     {
-      "id": "will_not_break",
+      "id": "pyre_combat_01",
+      "count": 3
+    },
+    {
+      "id": "signature_combat_02",
       "count": 1
     },
     {
-      "id": "bravado_drill",
+      "id": "signature_combat_03",
+      "count": 3
+    },
+    {
+      "id": "signature_combat_04",
+      "count": 3
+    },
+    {
+      "id": "freestyle_drill_01",
       "count": 1
     },
     {
-      "id": "recalled_lesson",
+      "id": "freestyle_noncombat_02",
       "count": 1
     },
     {
-      "id": "stokes_the_coals",
+      "id": "signature_noncombat_04",
       "count": 3
     },
     {
-      "id": "all_or_nothing",
+      "id": "pyre_strike_01",
       "count": 3
     },
     {
-      "id": "mournes_frantic_rush",
+      "id": "pyre_strike_03",
       "count": 3
     },
     {
-      "id": "mournes_stance",
-      "count": 1
-    },
-    {
-      "id": "no_quarter",
+      "id": "pyre_strike_04",
       "count": 3
     },
     {
-      "id": "pyre_backdraft",
+      "id": "pyre_strike_05",
       "count": 3
     },
     {
-      "id": "pyre_blazing_charge",
+      "id": "pyre_strike_06",
       "count": 3
     },
     {
-      "id": "pyre_cinder_guard",
+      "id": "pyre_strike_07",
       "count": 3
     },
     {
-      "id": "pyre_comet_fall",
+      "id": "pyre_strike_08",
       "count": 3
     },
     {
-      "id": "pyre_firestorm",
+      "id": "pyre_strike_09",
       "count": 3
     },
     {
-      "id": "pyre_flame_lash",
+      "id": "pyre_strike_10",
       "count": 3
     },
     {
-      "id": "pyre_flashover",
+      "id": "pyre_strike_11",
       "count": 3
     },
     {
-      "id": "pyre_furnace_breath",
+      "id": "pyre_strike_12",
       "count": 3
     },
     {
-      "id": "pyre_kindling",
+      "id": "pyre_strike_13",
       "count": 3
     },
     {
-      "id": "pyre_rekindling",
+      "id": "signature_strike_01",
       "count": 3
     },
     {
-      "id": "pyre_scouring_flame",
-      "count": 3
-    },
-    {
-      "id": "pyre_snuffing",
-      "count": 3
-    },
-    {
-      "id": "relentless_fury",
+      "id": "signature_strike_02",
       "count": 4
     },
     {
-      "id": "unyielding_guard",
+      "id": "signature_strike_03",
       "count": 1
     },
     {
-      "id": "wall_of_flame",
+      "id": "signature_strike_04",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_08",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_09",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_20",
       "count": 3
     }
   ]

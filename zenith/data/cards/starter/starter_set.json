@@ -2,7 +2,7 @@
  "_note": "Starter set. Generated; mechanics follow the reference sample decks, names are original.",
  "cards": [
   {
-   "id": "personality_bram_ashmark_1_starved",
+   "id": "personality_01",
    "title": "Bram Ashmark",
    "type": "personality",
    "school": "",
@@ -45,7 +45,7 @@
    ]
   },
   {
-   "id": "personality_bram_ashmark_2_leeching",
+   "id": "personality_02",
    "title": "Bram Ashmark",
    "type": "personality",
    "school": "",
@@ -87,7 +87,7 @@
    ]
   },
   {
-   "id": "personality_bram_ashmark_3_unstoppable",
+   "id": "personality_03",
    "title": "Bram Ashmark",
    "type": "personality",
    "school": "",
@@ -117,7 +117,7 @@
    ]
   },
   {
-   "id": "personality_alder_rooke_1_matriarch",
+   "id": "personality_04",
    "title": "Dame Alder Rooke",
    "type": "personality",
    "school": "",
@@ -151,7 +151,7 @@
    }
   },
   {
-   "id": "personality_alder_rooke_2_rising_water",
+   "id": "personality_05",
    "title": "Dame Alder Rooke",
    "type": "personality",
    "school": "",
@@ -187,7 +187,7 @@
    }
   },
   {
-   "id": "personality_alder_rooke_3_the_flood",
+   "id": "personality_06",
    "title": "Dame Alder Rooke",
    "type": "personality",
    "school": "",
@@ -222,7 +222,7 @@
    }
   },
   {
-   "id": "personality_siphon_1_dormant",
+   "id": "personality_07",
    "title": "Siphon",
    "type": "personality",
    "school": "",
@@ -259,7 +259,7 @@
    ]
   },
   {
-   "id": "personality_siphon_2_charged",
+   "id": "personality_08",
    "title": "Siphon",
    "type": "personality",
    "school": "",
@@ -295,7 +295,7 @@
    ]
   },
   {
-   "id": "personality_siphon_3_unbound",
+   "id": "personality_09",
    "title": "Siphon",
    "type": "personality",
    "school": "",
@@ -333,7 +333,7 @@
    ]
   },
   {
-   "id": "personality_sable_draik_1_captain",
+   "id": "personality_10",
    "title": "Sable Draik",
    "type": "personality",
    "school": "",
@@ -368,7 +368,7 @@
    }
   },
   {
-   "id": "personality_sable_draik_2_shrouded",
+   "id": "personality_11",
    "title": "Sable Draik",
    "type": "personality",
    "school": "",
@@ -403,7 +403,7 @@
    }
   },
   {
-   "id": "personality_sable_draik_3_lightless",
+   "id": "personality_12",
    "title": "Sable Draik",
    "type": "personality",
    "school": "",
@@ -431,7 +431,7 @@
    }
   },
   {
-   "id": "personality_halden_quarr_1_the_grinder",
+   "id": "personality_13",
    "title": "Halden Quarr",
    "type": "personality",
    "school": "",
@@ -463,7 +463,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_halden_quarr_2_tempered",
+   "id": "personality_14",
    "title": "Halden Quarr",
    "type": "personality",
    "school": "",
@@ -518,7 +518,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_halden_quarr_3_ironheart",
+   "id": "personality_15",
    "title": "Halden Quarr",
    "type": "personality",
    "school": "",
@@ -564,7 +564,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_caedan_vale_1_last_heir",
+   "id": "personality_16",
    "title": "Caedan Vale",
    "type": "personality",
    "school": "",
@@ -606,7 +606,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_caedan_vale_2_unparried",
+   "id": "personality_17",
    "title": "Caedan Vale",
    "type": "personality",
    "school": "",
@@ -637,7 +637,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_caedan_vale_3_spellcutter",
+   "id": "personality_18",
    "title": "Caedan Vale",
    "type": "personality",
    "school": "",
@@ -676,7 +676,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_caedan_vale_4_the_quiet_blade",
+   "id": "personality_19",
    "title": "Caedan Vale",
    "type": "personality",
    "school": "",
@@ -705,7 +705,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_caedan_vale_5_peerless",
+   "id": "personality_20",
    "title": "Caedan Vale",
    "type": "personality",
    "school": "",
@@ -739,7 +739,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_osric_thornwald_1_greybeard",
+   "id": "personality_21",
    "title": "Osric Thornwald",
    "type": "personality",
    "school": "",
@@ -774,7 +774,7 @@
    "bloodline": "verdant"
   },
   {
-   "id": "personality_osric_thornwald_2_overgrown",
+   "id": "personality_22",
    "title": "Osric Thornwald",
    "type": "personality",
    "school": "",
@@ -804,7 +804,7 @@
    "bloodline": "verdant"
   },
   {
-   "id": "personality_osric_thornwald_3_deep_rooted",
+   "id": "personality_23",
    "title": "Osric Thornwald",
    "type": "personality",
    "school": "",
@@ -842,7 +842,7 @@
    "bloodline": "verdant"
   },
   {
-   "id": "personality_osric_thornwald_4_heartwood",
+   "id": "personality_24",
    "title": "Osric Thornwald",
    "type": "personality",
    "school": "",
@@ -878,7 +878,7 @@
    "bloodline": "verdant"
   },
   {
-   "id": "personality_osric_thornwald_5_grovelord",
+   "id": "personality_25",
    "title": "Osric Thornwald",
    "type": "personality",
    "school": "",
@@ -911,7 +911,7 @@
    "bloodline": "verdant"
   },
   {
-   "id": "personality_marrow_1_patchwork",
+   "id": "personality_26",
    "title": "Marrow",
    "type": "personality",
    "school": "",
@@ -955,7 +955,7 @@
    ]
   },
   {
-   "id": "personality_marrow_2_rebuilt",
+   "id": "personality_27",
    "title": "Marrow",
    "type": "personality",
    "school": "",
@@ -984,7 +984,7 @@
    ]
   },
   {
-   "id": "personality_marrow_3_overwrought",
+   "id": "personality_28",
    "title": "Marrow",
    "type": "personality",
    "school": "",
@@ -1024,7 +1024,7 @@
    ]
   },
   {
-   "id": "personality_marrow_4_fury_amalgam",
+   "id": "personality_29",
    "title": "Marrow",
    "type": "personality",
    "school": "",
@@ -1071,7 +1071,7 @@
    ]
   },
   {
-   "id": "personality_edric_rooke_1_the_hero",
+   "id": "personality_30",
    "title": "Sir Edric Rooke",
    "type": "personality",
    "school": "",
@@ -1116,7 +1116,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_edric_rooke_2_the_stranger",
+   "id": "personality_31",
    "title": "Sir Edric Rooke",
    "type": "personality",
    "school": "",
@@ -1154,7 +1154,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_edric_rooke_3_the_realms_hero",
+   "id": "personality_32",
    "title": "Sir Edric Rooke",
    "type": "personality",
    "school": "",
@@ -1195,7 +1195,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_edric_rooke_4_kindled_through",
+   "id": "personality_33",
    "title": "Sir Edric Rooke",
    "type": "personality",
    "school": "",
@@ -1226,7 +1226,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_edric_rooke_5_the_all_powerful",
+   "id": "personality_34",
    "title": "Sir Edric Rooke",
    "type": "personality",
    "school": "",
@@ -1257,7 +1257,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_emrys_rooke_1_the_eldest",
+   "id": "personality_35",
    "title": "Emrys Rooke",
    "type": "personality",
    "school": "",
@@ -1292,7 +1292,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_emrys_rooke_2_first_plate",
+   "id": "personality_36",
    "title": "Emrys Rooke",
    "type": "personality",
    "school": "",
@@ -1326,7 +1326,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_emrys_rooke_3_edged",
+   "id": "personality_37",
    "title": "Emrys Rooke",
    "type": "personality",
    "school": "",
@@ -1367,7 +1367,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_emrys_rooke_4_shaped",
+   "id": "personality_38",
    "title": "Emrys Rooke",
    "type": "personality",
    "school": "",
@@ -1399,7 +1399,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_emrys_rooke_5_scaleclad",
+   "id": "personality_39",
    "title": "Emrys Rooke",
    "type": "personality",
    "school": "",
@@ -1430,7 +1430,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_vesna_draik_1",
+   "id": "personality_40",
    "title": "Vesna Draik",
    "type": "personality",
    "school": "",
@@ -1470,7 +1470,7 @@
    }
   },
   {
-   "id": "personality_brann_draik_1",
+   "id": "personality_41",
    "title": "Brann Draik",
    "type": "personality",
    "school": "",
@@ -1510,7 +1510,7 @@
    }
   },
   {
-   "id": "personality_quill_draik_1",
+   "id": "personality_42",
    "title": "Quill Draik",
    "type": "personality",
    "school": "",
@@ -1559,7 +1559,7 @@
    }
   },
   {
-   "id": "personality_halvard_draik_1",
+   "id": "personality_43",
    "title": "Halvard Draik",
    "type": "personality",
    "school": "",
@@ -1598,7 +1598,7 @@
    }
   },
   {
-   "id": "personality_pim_1",
+   "id": "personality_44",
    "title": "Pim",
    "type": "personality",
    "school": "",
@@ -1635,7 +1635,7 @@
    }
   },
   {
-   "id": "personality_tithe_1",
+   "id": "personality_45",
    "title": "Tithe",
    "type": "personality",
    "school": "",
@@ -1676,7 +1676,7 @@
    ]
   },
   {
-   "id": "personality_cull_1",
+   "id": "personality_46",
    "title": "Cull",
    "type": "personality",
    "school": "",
@@ -1709,7 +1709,7 @@
    ]
   },
   {
-   "id": "personality_orvath_kell_1",
+   "id": "personality_47",
    "title": "Orvath Kell",
    "type": "personality",
    "school": "",
@@ -1740,7 +1740,7 @@
    "bloodline": "verdant"
   },
   {
-   "id": "personality_gideon_mourne_1_mercenary",
+   "id": "personality_48",
    "title": "Gideon Mourne",
    "type": "personality",
    "school": "",
@@ -1772,7 +1772,7 @@
    }
   },
   {
-   "id": "personality_wren_rooke_1",
+   "id": "personality_49",
    "title": "Wren Rooke",
    "type": "personality",
    "school": "",
@@ -1806,7 +1806,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_edric_rooke_1",
+   "id": "personality_50",
    "title": "Sir Edric Rooke",
    "type": "personality",
    "school": "",
@@ -1839,7 +1839,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_tavin_vale_1",
+   "id": "personality_51",
    "title": "Tavin Vale",
    "type": "personality",
    "school": "",
@@ -1877,7 +1877,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_ansel_rooke_1",
+   "id": "personality_52",
    "title": "Ansel Rooke",
    "type": "personality",
    "school": "",
@@ -1915,7 +1915,7 @@
    "bloodline": "draconic"
   },
   {
-   "id": "personality_alder_rooke_1",
+   "id": "personality_53",
    "title": "Dame Alder Rooke",
    "type": "personality",
    "school": "",
@@ -1951,7 +1951,7 @@
    }
   },
   {
-   "id": "salt_seal_1",
+   "id": "seal_01",
    "title": "Salt Seal 1",
    "type": "seal",
    "school": "",
@@ -1972,7 +1972,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "salt_seal_2",
+   "id": "seal_02",
    "title": "Salt Seal 2",
    "type": "seal",
    "school": "",
@@ -1997,7 +1997,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "salt_seal_3",
+   "id": "seal_03",
    "title": "Salt Seal 3",
    "type": "seal",
    "school": "",
@@ -2018,7 +2018,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "salt_seal_4",
+   "id": "seal_04",
    "title": "Salt Seal 4",
    "type": "seal",
    "school": "",
@@ -2042,7 +2042,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "salt_seal_5",
+   "id": "seal_05",
    "title": "Salt Seal 5",
    "type": "seal",
    "school": "",
@@ -2064,7 +2064,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "salt_seal_6",
+   "id": "seal_06",
    "title": "Salt Seal 6",
    "type": "seal",
    "school": "",
@@ -2086,7 +2086,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "salt_seal_7",
+   "id": "seal_07",
    "title": "Salt Seal 7",
    "type": "seal",
    "school": "",
@@ -2108,7 +2108,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "marble_seal_1",
+   "id": "seal_08",
    "title": "Marble Seal 1",
    "type": "seal",
    "school": "",
@@ -2127,7 +2127,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "marble_seal_2",
+   "id": "seal_09",
    "title": "Marble Seal 2",
    "type": "seal",
    "school": "",
@@ -2142,7 +2142,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "marble_seal_3",
+   "id": "seal_10",
    "title": "Marble Seal 3",
    "type": "seal",
    "school": "",
@@ -2158,7 +2158,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "marble_seal_4",
+   "id": "seal_11",
    "title": "Marble Seal 4",
    "type": "seal",
    "school": "",
@@ -2175,7 +2175,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "marble_seal_5",
+   "id": "seal_12",
    "title": "Marble Seal 5",
    "type": "seal",
    "school": "",
@@ -2199,7 +2199,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "marble_seal_6",
+   "id": "seal_13",
    "title": "Marble Seal 6",
    "type": "seal",
    "school": "",
@@ -2222,7 +2222,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "marble_seal_7",
+   "id": "seal_14",
    "title": "Marble Seal 7",
    "type": "seal",
    "school": "",
@@ -2236,7 +2236,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "sun_seal_1",
+   "id": "seal_15",
    "title": "Sun Seal 1",
    "type": "seal",
    "school": "",
@@ -2256,7 +2256,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "sun_seal_2",
+   "id": "seal_16",
    "title": "Sun Seal 2",
    "type": "seal",
    "school": "",
@@ -2275,7 +2275,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "sun_seal_3",
+   "id": "seal_17",
    "title": "Sun Seal 3",
    "type": "seal",
    "school": "",
@@ -2294,7 +2294,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "sun_seal_4",
+   "id": "seal_18",
    "title": "Sun Seal 4",
    "type": "seal",
    "school": "",
@@ -2311,7 +2311,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "sun_seal_5",
+   "id": "seal_19",
    "title": "Sun Seal 5",
    "type": "seal",
    "school": "",
@@ -2339,7 +2339,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "sun_seal_6",
+   "id": "seal_20",
    "title": "Sun Seal 6",
    "type": "seal",
    "school": "",
@@ -2359,7 +2359,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "sun_seal_7",
+   "id": "seal_21",
    "title": "Sun Seal 7",
    "type": "seal",
    "school": "",
@@ -2378,7 +2378,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "moth_seal_1",
+   "id": "seal_22",
    "title": "Moth Seal 1",
    "type": "seal",
    "school": "",
@@ -2402,7 +2402,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "moth_seal_2",
+   "id": "seal_23",
    "title": "Moth Seal 2",
    "type": "seal",
    "school": "",
@@ -2421,7 +2421,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "moth_seal_3",
+   "id": "seal_24",
    "title": "Moth Seal 3",
    "type": "seal",
    "school": "",
@@ -2446,7 +2446,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "moth_seal_4",
+   "id": "seal_25",
    "title": "Moth Seal 4",
    "type": "seal",
    "school": "",
@@ -2464,7 +2464,7 @@
    "protect_from_removal": true
   },
   {
-   "id": "moth_seal_5",
+   "id": "seal_26",
    "title": "Moth Seal 5",
    "type": "seal",
    "school": "",
@@ -2483,7 +2483,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "moth_seal_6",
+   "id": "seal_27",
    "title": "Moth Seal 6",
    "type": "seal",
    "school": "",
@@ -2499,7 +2499,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "moth_seal_7",
+   "id": "seal_28",
    "title": "Moth Seal 7",
    "type": "seal",
    "school": "",
@@ -2515,7 +2515,7 @@
    ]
   },
   {
-   "id": "trampled_crossroads",
+   "id": "grounds_01",
    "title": "Trampled Crossroads",
    "type": "grounds",
    "school": "",
@@ -2528,7 +2528,7 @@
    ]
   },
   {
-   "id": "ancient_grove",
+   "id": "grounds_02",
    "title": "Ancient Grove",
    "type": "grounds",
    "school": "",
@@ -2551,7 +2551,7 @@
    ]
   },
   {
-   "id": "tollgate_yard",
+   "id": "grounds_03",
    "title": "Tollgate Yard",
    "type": "grounds",
    "school": "",
@@ -2559,7 +2559,7 @@
    "double_costs": true
   },
   {
-   "id": "frostbound_moor",
+   "id": "grounds_04",
    "title": "Frostbound Moor",
    "type": "grounds",
    "school": "",
@@ -2567,7 +2567,7 @@
    "fervor_gain_cap": 1
   },
   {
-   "id": "weighted_hollow",
+   "id": "grounds_05",
    "title": "Weighted Hollow",
    "type": "grounds",
    "school": "",
@@ -2575,7 +2575,7 @@
    "strike_cost_delta": 2
   },
   {
-   "id": "the_high_watch",
+   "id": "grounds_06",
    "title": "The High Watch",
    "type": "grounds",
    "school": "",
@@ -2589,7 +2589,7 @@
    ]
   },
   {
-   "id": "blank_mask",
+   "id": "relic_01",
    "title": "The Blank Mask",
    "type": "relic",
    "school": "",
@@ -2607,7 +2607,7 @@
    ]
   },
   {
-   "id": "debtors_ring",
+   "id": "relic_02",
    "title": "The Debtor's Ring",
    "type": "relic",
    "school": "",
@@ -2625,7 +2625,7 @@
    ]
   },
   {
-   "id": "lodestone_heart",
+   "id": "relic_03",
    "title": "The Lodestone Heart",
    "type": "relic",
    "school": "",
@@ -2638,8 +2638,8 @@
    }
   },
   {
-   "id": "pyre_mastery",
-   "title": "Pyre Mastery",
+   "id": "pyre_mastery_01",
+   "title": "Pyre Crucible Mastery",
    "type": "mastery",
    "school": "pyre",
    "limit_per_deck": 1,
@@ -2663,7 +2663,7 @@
    ]
   },
   {
-   "id": "pyre_ember_mastery",
+   "id": "pyre_mastery_02",
    "title": "Pyre Ember Mastery",
    "type": "mastery",
    "school": "pyre",
@@ -2692,10 +2692,11 @@
    ]
   },
   {
-   "id": "steel_mastery",
-   "title": "Steel Mastery",
+   "id": "steel_mastery_01",
+   "title": "Steel Hoard Mastery",
    "type": "mastery",
    "school": "steel",
+   "duelist_bloodline": "draconic",
    "limit_per_deck": 1,
    "effects": [
 	{
@@ -2719,8 +2720,8 @@
    ]
   },
   {
-   "id": "shade_mastery",
-   "title": "Shade Mastery",
+   "id": "shade_mastery_01",
+   "title": "Shade Nightfall Mastery",
    "type": "mastery",
    "school": "shade",
    "limit_per_deck": 1,
@@ -2741,8 +2742,8 @@
    ]
   },
   {
-   "id": "tide_mastery",
-   "title": "Tide Mastery",
+   "id": "tide_mastery_01",
+   "title": "Tide Undertow Mastery",
    "type": "mastery",
    "school": "tide",
    "limit_per_deck": 1,
@@ -2760,8 +2761,8 @@
    ]
   },
   {
-   "id": "freestyle_mastery",
-   "title": "Freestyle Mastery",
+   "id": "freestyle_mastery_01",
+   "title": "Freestyle Discipline Mastery",
    "type": "mastery",
    "school": "",
    "limit_per_deck": 1,
@@ -2788,10 +2789,11 @@
    ]
   },
   {
-   "id": "root_mastery",
-   "title": "Root Mastery",
+   "id": "root_mastery_01",
+   "title": "Root Regrowth Mastery",
    "type": "mastery",
    "school": "root",
+   "duelist_bloodline": "verdant",
    "limit_per_deck": 1,
    "effects": [
 	{
@@ -2812,8 +2814,8 @@
    ]
   },
   {
-   "id": "storm_mastery",
-   "title": "Storm Mastery",
+   "id": "storm_mastery_01",
+   "title": "Storm Brewing Mastery",
    "type": "mastery",
    "school": "storm",
    "limit_per_deck": 1,
@@ -2827,7 +2829,7 @@
    ]
   },
   {
-   "id": "storm_squall_mastery",
+   "id": "storm_mastery_02",
    "title": "Storm Squall Mastery",
    "type": "mastery",
    "school": "storm",
@@ -2854,7 +2856,7 @@
    ]
   },
   {
-   "id": "no_quarter",
+   "id": "signature_strike_01",
    "character": "Emrys Rooke",
    "title": "Emrys Gives No Quarter",
    "type": "strike",
@@ -2889,7 +2891,7 @@
    ]
   },
   {
-   "id": "relentless_fury",
+   "id": "signature_strike_02",
    "title": "Ashmark's Relentless Fury",
    "type": "strike",
    "school": "",
@@ -2924,7 +2926,7 @@
    ]
   },
   {
-   "id": "stillness",
+   "id": "freestyle_combat_01",
    "title": "Stillness",
    "type": "combat",
    "school": "",
@@ -2942,7 +2944,7 @@
    ]
   },
   {
-   "id": "mournes_stance",
+   "id": "signature_strike_03",
    "character": "Gideon Mourne",
    "title": "Mourne's Stance",
    "type": "strike",
@@ -2954,7 +2956,7 @@
    "remove_after_use": true
   },
   {
-   "id": "unyielding_guard",
+   "id": "signature_strike_04",
    "title": "The Fortress' Iron Bulwark",
    "type": "strike",
    "school": "",
@@ -2966,7 +2968,7 @@
    "remove_after_use": true
   },
   {
-   "id": "grounding_step",
+   "id": "signature_art_01",
    "title": "The Fortress' Arcane Aegis",
    "type": "art",
    "school": "",
@@ -2978,7 +2980,7 @@
    "remove_after_use": true
   },
   {
-   "id": "dead_air",
+   "id": "freestyle_art_01",
    "title": "Dead Air",
    "type": "art",
    "school": "",
@@ -2995,7 +2997,7 @@
    ]
   },
   {
-   "id": "braced_guard",
+   "id": "freestyle_combat_02",
    "title": "Braced Guard",
    "type": "combat",
    "school": "",
@@ -3012,7 +3014,7 @@
    "remove_after_use": true
   },
   {
-   "id": "edrics_truce",
+   "id": "signature_combat_01",
    "title": "Edric's Truce",
    "type": "combat",
    "school": "",
@@ -3023,7 +3025,7 @@
    "use_at": "successful_attack"
   },
   {
-   "id": "edrics_opening_strike",
+   "id": "signature_strike_05",
    "title": "Edric's Opening Strike",
    "type": "strike",
    "school": "",
@@ -3049,7 +3051,7 @@
    "remove_after_use": true
   },
   {
-   "id": "edrics_training",
+   "id": "signature_strike_06",
    "title": "Edric's Training",
    "type": "strike",
    "school": "",
@@ -3069,7 +3071,7 @@
    "remove_after_use": true
   },
   {
-   "id": "hasks_flying_kick",
+   "id": "signature_strike_07",
    "title": "Hask's Flying Kick",
    "type": "strike",
    "school": "",
@@ -3080,7 +3082,7 @@
    "character": "Torvan Hask"
   },
   {
-   "id": "will_not_break",
+   "id": "signature_combat_02",
    "character": "Bram Ashmark",
    "title": "Ashmark Will Not Break",
    "type": "combat",
@@ -3102,7 +3104,7 @@
    ]
   },
   {
-   "id": "terms_of_the_pact",
+   "id": "freestyle_combat_03",
    "title": "Terms of the Pact",
    "type": "combat",
    "school": "",
@@ -3116,7 +3118,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "wall_of_flame",
+   "id": "signature_strike_08",
    "character": "Bram Ashmark",
    "title": "Ashmark's Wall of Flame",
    "type": "strike",
@@ -3134,15 +3136,15 @@
    "remove_after_use": true
   },
   {
-   "id": "cut_short",
-   "title": "Vale Cuts It Short",
+   "id": "signature_combat_03",
+   "title": "Caedan Cuts It Short",
    "type": "combat",
    "school": "",
    "counter": "combat",
    "character": "Caedan Vale"
   },
   {
-   "id": "cold_appraisal",
+   "id": "signature_combat_04",
    "title": "Marrow's Appraisal",
    "type": "combat",
    "school": "",
@@ -3162,7 +3164,7 @@
    ]
   },
   {
-   "id": "sever_the_leyline",
+   "id": "freestyle_combat_04",
    "title": "Sever the Leyline",
    "type": "combat",
    "school": "",
@@ -3178,7 +3180,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "respite",
+   "id": "freestyle_combat_05",
    "title": "Respite",
    "type": "combat",
    "school": "",
@@ -3198,7 +3200,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "watchful_eye",
+   "id": "freestyle_combat_06",
    "title": "Watchful Eye",
    "type": "combat",
    "school": "",
@@ -3215,7 +3217,7 @@
    "alignment_only": "vigil"
   },
   {
-   "id": "kept_at_bay",
+   "id": "freestyle_combat_07",
    "title": "Kept at Bay",
    "type": "combat",
    "school": "",
@@ -3229,7 +3231,7 @@
    ]
   },
   {
-   "id": "warding_call",
+   "id": "freestyle_combat_08",
    "title": "Warding Call",
    "type": "combat",
    "school": "",
@@ -3251,9 +3253,9 @@
    "limit_per_deck": 1
   },
   {
-   "id": "rookes_deluge",
+   "id": "signature_combat_05",
    "character": "Dame Alder Rooke",
-   "title": "Rooke's Deluge",
+   "title": "Alder's Deluge",
    "type": "combat",
    "school": "",
    "effects": [
@@ -3270,7 +3272,7 @@
    "remove_after_use": true
   },
   {
-   "id": "last_gasp",
+   "id": "freestyle_combat_09",
    "title": "Last Gasp",
    "type": "combat",
    "school": "",
@@ -3293,7 +3295,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "edrics_vow",
+   "id": "signature_combat_06",
    "character": "Sir Edric Rooke",
    "title": "Edric's Vow",
    "type": "combat",
@@ -3323,7 +3325,7 @@
    }
   },
   {
-   "id": "old_trick",
+   "id": "freestyle_combat_10",
    "title": "Old Trick",
    "type": "combat",
    "school": "",
@@ -3338,7 +3340,7 @@
    "remove_after_use": true
   },
   {
-   "id": "closing_ranks",
+   "id": "freestyle_combat_11",
    "title": "Closing Ranks",
    "type": "combat",
    "school": "",
@@ -3368,7 +3370,7 @@
    }
   },
   {
-   "id": "rallying_call",
+   "id": "freestyle_combat_12",
    "title": "Rallying Call",
    "type": "combat",
    "school": "",
@@ -3389,7 +3391,7 @@
    "remove_after_use": true
   },
   {
-   "id": "hired_blades",
+   "id": "freestyle_combat_13",
    "title": "Hired Blades",
    "type": "combat",
    "school": "",
@@ -3404,7 +3406,7 @@
    ]
   },
   {
-   "id": "scorn_smirks",
+   "id": "signature_combat_07",
    "character": "Scorn",
    "title": "Scorn Smirks",
    "type": "combat",
@@ -3426,8 +3428,8 @@
    ]
   },
   {
-   "id": "steel_standoff",
-   "title": "Steel Standoff",
+   "id": "steel_combat_01",
+   "title": "Steel Kindred Standoff",
    "type": "combat",
    "school": "steel",
    "effects": [
@@ -3443,8 +3445,8 @@
    "remove_after_use": true
   },
   {
-   "id": "mutual_escalation",
-   "title": "Mutual Escalation",
+   "id": "freestyle_combat_14",
+   "title": "Raised Stakes",
    "type": "combat",
    "school": "",
    "effects": [
@@ -3463,7 +3465,7 @@
    ]
   },
   {
-   "id": "reckless_ascent",
+   "id": "freestyle_combat_15",
    "title": "Reckless Ascent",
    "type": "combat",
    "school": "",
@@ -3478,7 +3480,7 @@
    ]
   },
   {
-   "id": "keen_eye",
+   "id": "freestyle_combat_16",
    "title": "Keen Eye",
    "type": "combat",
    "school": "",
@@ -3497,8 +3499,8 @@
    "remove_after_use": true
   },
   {
-   "id": "quiet_study",
-   "title": "Quiet Study",
+   "id": "signature_combat_08",
+   "title": "Caedan's Quiet Study",
    "type": "combat",
    "school": "",
    "effects": [
@@ -3512,10 +3514,11 @@
 	  }
 	 ]
 	}
-   ]
+   ],
+   "character": "Caedan Vale"
   },
   {
-   "id": "dismissal",
+   "id": "freestyle_combat_17",
    "title": "Dismissal",
    "type": "combat",
    "school": "",
@@ -3538,7 +3541,7 @@
    "limit_per_deck": 2
   },
   {
-   "id": "rites_unmade",
+   "id": "freestyle_noncombat_01",
    "title": "Rites Unmade",
    "type": "non_combat",
    "school": "",
@@ -3555,7 +3558,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "marrows_retinue",
+   "id": "signature_combat_09",
    "title": "Marrow's Retinue",
    "type": "combat",
    "school": "",
@@ -3574,7 +3577,7 @@
    "character": "Marrow"
   },
   {
-   "id": "unerring_bolt",
+   "id": "freestyle_art_02",
    "title": "Unerring Bolt",
    "type": "art",
    "school": "",
@@ -3586,7 +3589,7 @@
    "remove_after_use": true
   },
   {
-   "id": "scattered_ashes",
+   "id": "signature_art_02",
    "character": "Bram Ashmark",
    "title": "Ashmark Leaves Nothing",
    "type": "art",
@@ -3612,7 +3615,7 @@
    ]
   },
   {
-   "id": "sabotage",
+   "id": "signature_art_03",
    "character": "Siphon",
    "title": "Siphon's Drain",
    "type": "art",
@@ -3636,7 +3639,7 @@
    ]
   },
   {
-   "id": "all_or_nothing",
+   "id": "signature_strike_09",
    "character": "Emrys Rooke",
    "title": "Emrys Risks It All",
    "type": "strike",
@@ -3656,7 +3659,7 @@
    "remove_after_use": true
   },
   {
-   "id": "old_habit",
+   "id": "freestyle_strike_01",
    "title": "Old Habit",
    "type": "strike",
    "school": "",
@@ -3673,7 +3676,7 @@
    "remove_after_use": true
   },
   {
-   "id": "committed_cut",
+   "id": "signature_art_04",
    "character": "Sir Edric Rooke",
    "title": "Edric's Committed Cut",
    "type": "art",
@@ -3702,7 +3705,7 @@
    ]
   },
   {
-   "id": "lobbed_bolt",
+   "id": "freestyle_art_03",
    "title": "Lobbed Bolt",
    "type": "art",
    "school": "",
@@ -3727,7 +3730,7 @@
    "remove_after_use": true
   },
   {
-   "id": "clean_sweep",
+   "id": "freestyle_strike_02",
    "title": "Clean Sweep",
    "type": "strike",
    "school": "",
@@ -3750,7 +3753,7 @@
    "remove_after_use": true
   },
   {
-   "id": "overreach",
+   "id": "freestyle_art_04",
    "title": "Overreach",
    "type": "art",
    "school": "",
@@ -3783,9 +3786,9 @@
    "remove_after_use": true
   },
   {
-   "id": "draiks_reckoning",
+   "id": "signature_art_05",
    "character": "Sable Draik",
-   "title": "Draik's Reckoning",
+   "title": "Sable's Reckoning",
    "type": "art",
    "school": "",
    "attack": {
@@ -3813,9 +3816,9 @@
    "remove_after_use": true
   },
   {
-   "id": "black_hands",
+   "id": "signature_art_06",
    "character": "Sable Draik",
-   "title": "Draik's Black Hands",
+   "title": "Sable's Black Hands",
    "type": "art",
    "school": "",
    "attack": {
@@ -3841,7 +3844,7 @@
    "remove_after_use": true
   },
   {
-   "id": "knife_volley",
+   "id": "freestyle_art_05",
    "title": "Knife Volley",
    "type": "art",
    "school": "",
@@ -3860,7 +3863,7 @@
    "remove_after_use": true
   },
   {
-   "id": "mournes_jolting_arc",
+   "id": "signature_art_07",
    "character": "Gideon Mourne",
    "title": "Mourne's Jolting Arc",
    "type": "art",
@@ -3885,7 +3888,7 @@
    "remove_after_use": true
   },
   {
-   "id": "threefold_bolt",
+   "id": "signature_art_08",
    "character": "Corin Thrace",
    "title": "Corin's Threefold Bolt",
    "type": "art",
@@ -3898,7 +3901,7 @@
    "remove_after_use": true
   },
   {
-   "id": "captains_barrage",
+   "id": "freestyle_art_06",
    "title": "Captain's Barrage",
    "type": "art",
    "school": "",
@@ -3915,8 +3918,8 @@
    "remove_after_use": true
   },
   {
-   "id": "declaration",
-   "title": "Declaration",
+   "id": "signature_art_09",
+   "title": "Caedan's Declaration",
    "type": "art",
    "school": "",
    "attack": {
@@ -3934,12 +3937,13 @@
 	}
    ],
    "remove_after_use": true,
-   "limit_per_deck": 1
+   "limit_per_deck": 1,
+   "character": "Caedan Vale"
   },
   {
-   "id": "lingering_curse",
+   "id": "signature_art_10",
    "character": "Sable Draik",
-   "title": "Draik's Lingering Curse",
+   "title": "Sable's Lingering Curse",
    "type": "art",
    "school": "",
    "attack": {
@@ -3965,7 +3969,7 @@
    }
   },
   {
-   "id": "sledges_stance",
+   "id": "signature_art_11",
    "character": "Sledge",
    "title": "Sledge's Set Stance",
    "type": "art",
@@ -3990,7 +3994,7 @@
    ]
   },
   {
-   "id": "headlong_plunge",
+   "id": "freestyle_strike_03",
    "title": "Headlong Plunge",
    "type": "strike",
    "school": "",
@@ -4030,7 +4034,7 @@
    "bottom_after_use": true
   },
   {
-   "id": "sword_lunge",
+   "id": "freestyle_strike_04",
    "title": "Sword Lunge",
    "type": "strike",
    "school": "",
@@ -4050,7 +4054,7 @@
    "remove_after_use": true
   },
   {
-   "id": "sword_flourish",
+   "id": "signature_strike_10",
    "character": "Emrys Rooke",
    "title": "Emrys' Sword Flourish",
    "type": "strike",
@@ -4070,7 +4074,7 @@
    "remove_after_use": true
   },
   {
-   "id": "sword_sweep",
+   "id": "signature_strike_11",
    "character": "Emrys Rooke",
    "title": "Emrys' Sword Sweep",
    "type": "strike",
@@ -4092,7 +4096,7 @@
    ]
   },
   {
-   "id": "sword_thrust",
+   "id": "signature_strike_12",
    "character": "Emrys Rooke",
    "title": "Emrys' Sword Thrust",
    "type": "strike",
@@ -4113,8 +4117,8 @@
    ]
   },
   {
-   "id": "vales_sword_draw",
-   "title": "Vale's Sword Draw",
+   "id": "signature_strike_13",
+   "title": "Caedan's Sword Draw",
    "type": "strike",
    "school": "",
    "attack": {
@@ -4131,14 +4135,14 @@
 	 "trigger": "if_successful",
 	 "op": "search",
 	 "title_contains": "Sword",
-	 "exclude_title": "Vale's Sword Draw",
+	 "exclude_title": "Caedan's Sword Draw",
 	 "to": "hand"
 	}
    ]
   },
   {
-   "id": "vales_quickstep",
-   "title": "Vale's Quickstep",
+   "id": "signature_strike_14",
+   "title": "Caedan's Quickstep",
    "type": "strike",
    "school": "",
    "attack": {
@@ -4168,8 +4172,8 @@
    "remove_after_use": true
   },
   {
-   "id": "vales_pommel_bash",
-   "title": "Vale's Pommel Bash",
+   "id": "signature_strike_15",
+   "title": "Caedan's Pommel Bash",
    "type": "strike",
    "school": "",
    "attack": {
@@ -4200,7 +4204,7 @@
    ]
   },
   {
-   "id": "branns_shakedown",
+   "id": "signature_strike_16",
    "character": "Brann Draik",
    "title": "Brann's Shakedown",
    "type": "strike",
@@ -4239,7 +4243,7 @@
    ]
   },
   {
-   "id": "halvards_twin_cut",
+   "id": "signature_strike_17",
    "character": "Halvard Draik",
    "title": "Halvard's Twin Cut",
    "type": "strike",
@@ -4281,7 +4285,7 @@
    ]
   },
   {
-   "id": "vesnas_ambush",
+   "id": "signature_strike_18",
    "character": "Vesna Draik",
    "title": "Vesna's Ambush",
    "type": "strike",
@@ -4317,7 +4321,7 @@
    ]
   },
   {
-   "id": "scatters_the_ashes",
+   "id": "signature_strike_19",
    "character": "Bram Ashmark",
    "title": "Ashmark Scatters the Ashes",
    "type": "strike",
@@ -4343,7 +4347,7 @@
    ]
   },
   {
-   "id": "mournes_frantic_rush",
+   "id": "signature_strike_20",
    "character": "Gideon Mourne",
    "title": "Mourne's Frantic Rush",
    "type": "strike",
@@ -4363,8 +4367,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_skull_crack",
-   "title": "Steel Skull Crack",
+   "id": "steel_strike_01",
+   "title": "Steel Locking Jaws",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -4385,7 +4389,7 @@
    "reserve_only": true
   },
   {
-   "id": "last_ward",
+   "id": "freestyle_strike_05",
    "title": "Last Ward",
    "type": "strike",
    "school": "",
@@ -4395,8 +4399,8 @@
    }
   },
   {
-   "id": "vales_riposte",
-   "title": "Vale's Riposte",
+   "id": "signature_strike_21",
+   "title": "Caedan's Riposte",
    "type": "strike",
    "school": "",
    "defense": {
@@ -4406,7 +4410,7 @@
    "character": "Caedan Vale"
   },
   {
-   "id": "hilt_guard",
+   "id": "signature_strike_22",
    "character": "Emrys Rooke",
    "title": "Emrys' Hilt Guard",
    "type": "strike",
@@ -4425,7 +4429,7 @@
    "remove_after_use": true
   },
   {
-   "id": "second_wind",
+   "id": "freestyle_strike_06",
    "title": "Second Wind",
    "type": "strike",
    "school": "",
@@ -4446,7 +4450,7 @@
    ]
   },
   {
-   "id": "quick_retreat",
+   "id": "signature_strike_23",
    "character": "Sir Edric Rooke",
    "title": "Edric Gives Ground",
    "type": "strike",
@@ -4471,7 +4475,7 @@
    }
   },
   {
-   "id": "siphons_sidestep",
+   "id": "signature_strike_24",
    "title": "Siphon's Sidestep",
    "type": "strike",
    "school": "",
@@ -4495,7 +4499,7 @@
    ]
   },
   {
-   "id": "mercy_smiles",
+   "id": "signature_noncombat_01",
    "character": "Mercy",
    "title": "Mercy Smiles",
    "type": "non_combat",
@@ -4520,7 +4524,7 @@
    ]
   },
   {
-   "id": "shrugs_it_off",
+   "id": "signature_strike_25",
    "character": "Halden Quarr",
    "title": "Quarr Shrugs It Off",
    "type": "strike",
@@ -4537,7 +4541,7 @@
    "unused_return": "shuffle"
   },
   {
-   "id": "recalled_lesson",
+   "id": "freestyle_noncombat_02",
    "title": "Recalled Lesson",
    "type": "non_combat",
    "school": "",
@@ -4553,7 +4557,7 @@
    ]
   },
   {
-   "id": "clear_mind",
+   "id": "freestyle_noncombat_03",
    "title": "Clear Mind",
    "type": "non_combat",
    "school": "",
@@ -4567,7 +4571,7 @@
    ]
   },
   {
-   "id": "foresight",
+   "id": "freestyle_noncombat_04",
    "title": "Foresight",
    "type": "non_combat",
    "school": "",
@@ -4582,7 +4586,7 @@
    ]
   },
   {
-   "id": "the_long_year",
+   "id": "freestyle_noncombat_05",
    "title": "The Long Year",
    "type": "non_combat",
    "school": "",
@@ -4602,7 +4606,7 @@
    ]
   },
   {
-   "id": "lucky_find",
+   "id": "freestyle_noncombat_06",
    "title": "Lucky Find",
    "type": "non_combat",
    "school": "",
@@ -4617,7 +4621,7 @@
    ]
   },
   {
-   "id": "corins_conditioning",
+   "id": "signature_noncombat_02",
    "character": "Corin Thrace",
    "title": "Corin's Conditioning",
    "type": "non_combat",
@@ -4644,7 +4648,7 @@
    ]
   },
   {
-   "id": "provocation",
+   "id": "freestyle_noncombat_07",
    "title": "Provocation",
    "type": "non_combat",
    "school": "",
@@ -4663,7 +4667,7 @@
    ]
   },
   {
-   "id": "bonding_rite",
+   "id": "freestyle_noncombat_08",
    "title": "Bonding Rite",
    "type": "non_combat",
    "school": "",
@@ -4671,12 +4675,12 @@
 	{
 	 "trigger": "use",
 	 "op": "bond",
-	 "card": "personality_ansel_and_tavin_1_back_to_back"
+	 "card": "personality_54"
 	}
    ]
   },
   {
-   "id": "personality_ansel_and_tavin_1_back_to_back",
+   "id": "personality_54",
    "title": "Ansel and Tavin, Back to Back",
    "type": "personality",
    "school": "",
@@ -4729,9 +4733,9 @@
    "bloodline": "draconic"
   },
   {
-   "id": "vales_insight",
+   "id": "signature_noncombat_03",
    "character": "Caedan Vale",
-   "title": "Vale's Insight",
+   "title": "Caedan's Insight",
    "type": "non_combat",
    "school": "",
    "remove_after_use": true,
@@ -4746,7 +4750,7 @@
    ]
   },
   {
-   "id": "stokes_the_coals",
+   "id": "signature_noncombat_04",
    "character": "Bram Ashmark",
    "title": "Ashmark Stokes the Coals",
    "type": "non_combat",
@@ -4774,7 +4778,7 @@
    ]
   },
   {
-   "id": "open_challenge",
+   "id": "freestyle_noncombat_09",
    "title": "An Open Challenge",
    "type": "non_combat",
    "school": "",
@@ -4796,7 +4800,7 @@
    ]
   },
   {
-   "id": "defacement",
+   "id": "freestyle_noncombat_10",
    "title": "Defacement",
    "type": "non_combat",
    "school": "",
@@ -4815,7 +4819,7 @@
    ]
   },
   {
-   "id": "mourne_takes_measure",
+   "id": "signature_noncombat_05",
    "character": "Gideon Mourne",
    "title": "Mourne Takes the Measure",
    "type": "non_combat",
@@ -4832,7 +4836,7 @@
    ]
   },
   {
-   "id": "breakers_yard",
+   "id": "freestyle_noncombat_11",
    "title": "The Breaker's Yard",
    "type": "non_combat",
    "school": "",
@@ -4864,9 +4868,9 @@
    ]
   },
   {
-   "id": "heirloom_blade",
+   "id": "signature_noncombat_06",
    "character": "Caedan Vale",
-   "title": "Vale's Heirloom Blade",
+   "title": "Caedan's Heirloom Blade",
    "type": "non_combat",
    "school": "",
    "effects": [
@@ -4891,7 +4895,7 @@
    }
   },
   {
-   "id": "bravado_drill",
+   "id": "freestyle_drill_01",
    "title": "Bravado Drill",
    "type": "drill",
    "school": "",
@@ -4913,7 +4917,7 @@
    ]
   },
   {
-   "id": "revision_drill",
+   "id": "freestyle_drill_02",
    "title": "Revision Drill",
    "type": "drill",
    "school": "",
@@ -4934,7 +4938,7 @@
    ]
   },
   {
-   "id": "swordplay_drill",
+   "id": "signature_drill_01",
    "character": "Emrys Rooke",
    "title": "Emrys' Swordplay Drill",
    "type": "drill",
@@ -4950,7 +4954,7 @@
    "promote_if_successful": "Sword"
   },
   {
-   "id": "lone_blade_drill",
+   "id": "freestyle_drill_03",
    "title": "Lone Blade Drill",
    "type": "drill",
    "school": "",
@@ -4964,7 +4968,7 @@
    "discard_if_other_non_combats": true
   },
   {
-   "id": "counterplay_drill",
+   "id": "freestyle_drill_04",
    "title": "Counterplay Drill",
    "type": "drill",
    "school": "",
@@ -4978,7 +4982,7 @@
    ]
   },
   {
-   "id": "no_retreat_drill",
+   "id": "freestyle_drill_05",
    "title": "No Retreat Drill",
    "type": "drill",
    "school": "",
@@ -4990,7 +4994,7 @@
    ]
   },
   {
-   "id": "absorbing_drill",
+   "id": "signature_drill_02",
    "character": "Cull",
    "title": "Cull's Absorbing Drill",
    "type": "drill",
@@ -5004,7 +5008,7 @@
    ]
   },
   {
-   "id": "mournes_quickness_drill",
+   "id": "signature_drill_03",
    "character": "Gideon Mourne",
    "title": "Mourne's Quickness Drill",
    "type": "drill",
@@ -5019,7 +5023,7 @@
    ]
   },
   {
-   "id": "warding_drill",
+   "id": "freestyle_drill_06",
    "title": "Warding Drill",
    "type": "drill",
    "school": "",
@@ -5032,7 +5036,7 @@
    ]
   },
   {
-   "id": "locked_gate_drill",
+   "id": "signature_drill_04",
    "character": "Emrys Rooke",
    "title": "Emrys Spots the Fraud Drill",
    "type": "drill",
@@ -5046,7 +5050,7 @@
    ]
   },
   {
-   "id": "assembly_drill",
+   "id": "freestyle_drill_07",
    "title": "Assembly Drill",
    "type": "drill",
    "school": "",
@@ -5070,7 +5074,7 @@
    ]
   },
   {
-   "id": "practiced_guard",
+   "id": "signature_strike_26",
    "character": "Corin Thrace",
    "title": "Corin's Practiced Guard",
    "type": "strike",
@@ -5092,7 +5096,7 @@
    ]
   },
   {
-   "id": "parley",
+   "id": "freestyle_combat_18",
    "title": "Parley",
    "type": "combat",
    "school": "",
@@ -5109,7 +5113,7 @@
    "remove_after_use": true
   },
   {
-   "id": "seal_seizure",
+   "id": "freestyle_combat_19",
    "title": "Seal Seizure",
    "type": "combat",
    "school": "",
@@ -5120,7 +5124,7 @@
    ]
   },
   {
-   "id": "sharp_rebuke",
+   "id": "freestyle_art_07",
    "title": "Sharp Rebuke",
    "type": "art",
    "school": "",
@@ -5139,7 +5143,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "suppressing_shot",
+   "id": "signature_art_12",
    "character": "Corin Thrace",
    "title": "Corin's Suppressing Shot",
    "type": "art",
@@ -5158,7 +5162,7 @@
    ]
   },
   {
-   "id": "blinding_flare",
+   "id": "freestyle_art_08",
    "title": "Blinding Flare",
    "type": "art",
    "school": "",
@@ -5176,7 +5180,7 @@
    ]
   },
   {
-   "id": "smoke_screen",
+   "id": "signature_art_13",
    "character": "Corin Thrace",
    "title": "Corin Throws Smoke",
    "type": "art",
@@ -5192,7 +5196,7 @@
    ]
   },
   {
-   "id": "spoiled_rite",
+   "id": "freestyle_noncombat_12",
    "title": "Spoiled Rite",
    "type": "non_combat",
    "school": "",
@@ -5210,7 +5214,7 @@
    ]
   },
   {
-   "id": "gates_boon",
+   "id": "freestyle_noncombat_13",
    "title": "The Gate's Boon",
    "type": "non_combat",
    "school": "",
@@ -5231,7 +5235,7 @@
    ]
   },
   {
-   "id": "first_cut",
+   "id": "signature_noncombat_07",
    "character": "Sir Edric Rooke",
    "title": "Edric Carves First",
    "type": "non_combat",
@@ -5246,7 +5250,7 @@
    ]
   },
   {
-   "id": "mournes_plans",
+   "id": "signature_noncombat_08",
    "character": "Gideon Mourne",
    "title": "Mourne's Plans",
    "type": "non_combat",
@@ -5262,7 +5266,7 @@
    ]
   },
   {
-   "id": "mournes_smirk",
+   "id": "signature_noncombat_09",
    "character": "Gideon Mourne",
    "title": "Mourne's Smirk",
    "type": "non_combat",
@@ -5277,7 +5281,7 @@
    ]
   },
   {
-   "id": "wardens_measure",
+   "id": "freestyle_noncombat_14",
    "title": "Warden's Measure",
    "type": "non_combat",
    "school": "",
@@ -5294,7 +5298,7 @@
    ]
   },
   {
-   "id": "sleight",
+   "id": "freestyle_noncombat_15",
    "title": "Sleight",
    "type": "non_combat",
    "school": "",
@@ -5307,14 +5311,14 @@
    ]
   },
   {
-   "id": "kins_rescue",
+   "id": "freestyle_noncombat_16",
    "title": "Kin's Rescue",
    "type": "non_combat",
    "school": "",
    "alignment_only": "vigil",
    "remove_after_use": true,
    "limit_per_deck": 1,
-   "discard_if_seal": "marble_seal_7",
+   "discard_if_seal": "seal_14",
    "discard_if_seal_title": "Marble Seal 7",
    "effects": [
 	{
@@ -5326,7 +5330,7 @@
    ]
   },
   {
-   "id": "eyes_beyond_the_gate",
+   "id": "freestyle_noncombat_17",
    "title": "Eyes Beyond the Gate",
    "type": "non_combat",
    "school": "",
@@ -5353,7 +5357,7 @@
    ]
   },
   {
-   "id": "keepers_drill",
+   "id": "signature_drill_05",
    "character": "Sir Edric Rooke",
    "title": "Edric's Retaining Drill",
    "type": "drill",
@@ -5361,8 +5365,8 @@
    "protect_seals": true
   },
   {
-   "id": "guardian_drill",
-   "title": "Guardian Drill",
+   "id": "signature_drill_06",
+   "title": "Caedan's Guardian Drill",
    "type": "drill",
    "school": "",
    "alignment_only": "vigil",
@@ -5375,10 +5379,11 @@
 	 "card_type": "non_combat_any",
 	 "to": "play"
 	}
-   ]
+   ],
+   "character": "Caedan Vale"
   },
   {
-   "id": "pyre_cinder_guard",
+   "id": "pyre_strike_01",
    "title": "Pyre Cinder Guard",
    "type": "strike",
    "school": "pyre",
@@ -5397,7 +5402,7 @@
    ]
   },
   {
-   "id": "pyre_searing_guard",
+   "id": "pyre_strike_02",
    "title": "Pyre Searing Guard",
    "type": "strike",
    "school": "pyre",
@@ -5422,7 +5427,7 @@
    ]
   },
   {
-   "id": "pyre_immolation",
+   "id": "pyre_art_01",
    "title": "Pyre Immolation",
    "type": "art",
    "school": "pyre",
@@ -5445,7 +5450,7 @@
    ]
   },
   {
-   "id": "pyre_ashfall",
+   "id": "pyre_art_02",
    "title": "Pyre Ashfall",
    "type": "art",
    "school": "pyre",
@@ -5473,7 +5478,7 @@
    ]
   },
   {
-   "id": "pyre_backdraft",
+   "id": "pyre_strike_03",
    "title": "Pyre Backdraft",
    "type": "strike",
    "school": "pyre",
@@ -5499,7 +5504,7 @@
    ]
   },
   {
-   "id": "pyre_comet_fall",
+   "id": "pyre_strike_04",
    "title": "Pyre Comet Fall",
    "type": "strike",
    "school": "pyre",
@@ -5511,7 +5516,7 @@
    "remove_after_use": true
   },
   {
-   "id": "pyre_scouring_flame",
+   "id": "pyre_strike_05",
    "title": "Pyre Scouring Flame",
    "type": "strike",
    "school": "pyre",
@@ -5535,7 +5540,7 @@
    ]
   },
   {
-   "id": "pyre_firestorm",
+   "id": "pyre_strike_06",
    "title": "Pyre Firestorm",
    "type": "strike",
    "school": "pyre",
@@ -5559,7 +5564,7 @@
    ]
   },
   {
-   "id": "pyre_blazing_charge",
+   "id": "pyre_strike_07",
    "title": "Pyre Blazing Charge",
    "type": "strike",
    "school": "pyre",
@@ -5577,7 +5582,7 @@
    "remove_after_use": true
   },
   {
-   "id": "pyre_furnace_breath",
+   "id": "pyre_strike_08",
    "title": "Pyre Furnace Breath",
    "type": "strike",
    "school": "pyre",
@@ -5594,7 +5599,7 @@
    "remove_after_use": true
   },
   {
-   "id": "pyre_twin_flames",
+   "id": "pyre_combat_01",
    "title": "Pyre Twin Flames",
    "type": "combat",
    "school": "pyre",
@@ -5610,7 +5615,7 @@
    "remain": 1
   },
   {
-   "id": "pyre_snuffing",
+   "id": "pyre_strike_09",
    "title": "Pyre Snuffing",
    "type": "strike",
    "school": "pyre",
@@ -5642,7 +5647,7 @@
    ]
   },
   {
-   "id": "pyre_flashover",
+   "id": "pyre_strike_10",
    "title": "Pyre Flashover",
    "type": "strike",
    "school": "pyre",
@@ -5659,7 +5664,7 @@
    "remove_after_use": true
   },
   {
-   "id": "pyre_flame_lash",
+   "id": "pyre_strike_11",
    "title": "Pyre Flame Lash",
    "type": "strike",
    "school": "pyre",
@@ -5689,7 +5694,7 @@
    ]
   },
   {
-   "id": "pyre_kindling",
+   "id": "pyre_strike_12",
    "title": "Pyre Kindling",
    "type": "strike",
    "school": "pyre",
@@ -5713,7 +5718,7 @@
    ]
   },
   {
-   "id": "pyre_rekindling",
+   "id": "pyre_strike_13",
    "title": "Pyre Rekindling",
    "type": "strike",
    "school": "pyre",
@@ -5738,7 +5743,7 @@
    "remove_after_use": true
   },
   {
-   "id": "pyre_bellows_guard",
+   "id": "pyre_strike_14",
    "title": "Pyre Bellows Guard",
    "type": "strike",
    "school": "pyre",
@@ -5757,7 +5762,7 @@
    ]
   },
   {
-   "id": "pyre_ashen_veil",
+   "id": "pyre_strike_15",
    "title": "Pyre Ashen Veil",
    "type": "strike",
    "school": "pyre",
@@ -5777,7 +5782,7 @@
    ]
   },
   {
-   "id": "pyre_hearthguard",
+   "id": "pyre_art_03",
    "title": "Pyre Hearthguard",
    "type": "art",
    "school": "pyre",
@@ -5794,7 +5799,7 @@
    "remove_after_use": true
   },
   {
-   "id": "pyre_flashpoint",
+   "id": "pyre_strike_16",
    "title": "Pyre Flashpoint",
    "type": "strike",
    "school": "pyre",
@@ -5811,7 +5816,7 @@
    ]
   },
   {
-   "id": "pyre_updraft",
+   "id": "pyre_strike_17",
    "title": "Pyre Updraft",
    "type": "strike",
    "school": "pyre",
@@ -5827,7 +5832,7 @@
    ]
   },
   {
-   "id": "pyre_ember_strike",
+   "id": "pyre_strike_18",
    "title": "Pyre Ember Strike",
    "type": "strike",
    "school": "pyre",
@@ -5843,8 +5848,8 @@
    ]
   },
   {
-   "id": "steel_immovable_guard",
-   "title": "Steel Immovable Guard",
+   "id": "steel_strike_02",
+   "title": "Steel Unyielding Scales",
    "type": "strike",
    "school": "steel",
    "defense": {
@@ -5858,8 +5863,8 @@
    "limit_per_deck": 1
   },
   {
-   "id": "steel_ironhide",
-   "title": "Steel Ironhide",
+   "id": "steel_strike_03",
+   "title": "Steel Ironscale Hide",
    "type": "strike",
    "school": "steel",
    "defense": {
@@ -5873,8 +5878,8 @@
    ]
   },
   {
-   "id": "steel_bracing",
-   "title": "Steel Bracing",
+   "id": "steel_art_01",
+   "title": "Steel Raised Scales",
    "type": "art",
    "school": "steel",
    "defense": {
@@ -5887,15 +5892,15 @@
 	},
 	{
 	 "op": "search",
-	 "title_contains": "Steel Standoff",
+	 "title_contains": "Steel Kindred Standoff",
 	 "to": "hand"
 	}
    ],
    "remove_after_use": true
   },
   {
-   "id": "steel_forearm_guard",
-   "title": "Steel Forearm Guard",
+   "id": "steel_strike_04",
+   "title": "Steel Scaled Forearm",
    "type": "strike",
    "school": "steel",
    "defense": {
@@ -5911,8 +5916,8 @@
    ]
   },
   {
-   "id": "steel_shockwave",
-   "title": "Steel Shockwave",
+   "id": "steel_art_02",
+   "title": "Steel Deafening Roar",
    "type": "art",
    "school": "steel",
    "attack": {
@@ -5941,7 +5946,7 @@
    }
   },
   {
-   "id": "quarrs_roar",
+   "id": "signature_strike_27",
    "character": "Halden Quarr",
    "title": "Quarr's Roar",
    "type": "strike",
@@ -5964,7 +5969,7 @@
    "remove_after_use": true
   },
   {
-   "id": "quarrs_crushing_blow",
+   "id": "signature_strike_28",
    "title": "Quarr's Crushing Blow",
    "type": "strike",
    "school": "steel",
@@ -5999,8 +6004,8 @@
    }
   },
   {
-   "id": "steel_iron_knee",
-   "title": "Steel Iron Knee",
+   "id": "steel_strike_05",
+   "title": "Steel Hoarding Claw",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6024,8 +6029,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_battering_ram",
-   "title": "Steel Battering Ram",
+   "id": "steel_strike_06",
+   "title": "Steel Horned Charge",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6040,8 +6045,8 @@
    ]
   },
   {
-   "id": "steel_tempering",
-   "title": "Steel Tempering",
+   "id": "steel_strike_07",
+   "title": "Steel Twin Claws",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6052,8 +6057,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_dead_weight",
-   "title": "Steel Dead Weight",
+   "id": "steel_strike_08",
+   "title": "Steel Pinning Claw",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6073,8 +6078,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_iron_jab",
-   "title": "Steel Iron Jab",
+   "id": "steel_strike_09",
+   "title": "Steel Fanged Snap",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6091,8 +6096,8 @@
    ]
   },
   {
-   "id": "steel_scar_tissue",
-   "title": "Steel Scar Tissue",
+   "id": "steel_art_03",
+   "title": "Steel Shed Skin",
    "type": "art",
    "school": "steel",
    "endurance": 2,
@@ -6109,8 +6114,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_piston_slam",
-   "title": "Steel Piston Slam",
+   "id": "steel_strike_10",
+   "title": "Steel Recoiling Lunge",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6130,8 +6135,8 @@
    ]
   },
   {
-   "id": "steel_triple_shock",
-   "title": "Steel Triple Shock",
+   "id": "steel_art_04",
+   "title": "Steel Searing Breath",
    "type": "art",
    "school": "steel",
    "attack": {
@@ -6148,8 +6153,8 @@
    ]
   },
   {
-   "id": "steel_headbutt",
-   "title": "Steel Headbutt",
+   "id": "steel_strike_11",
+   "title": "Steel Horn Gore",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6168,8 +6173,8 @@
    ]
   },
   {
-   "id": "steel_bull_charge",
-   "title": "Steel Bull Charge",
+   "id": "steel_strike_12",
+   "title": "Steel Dragonblood Charge",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6193,8 +6198,8 @@
    }
   },
   {
-   "id": "steel_iron_fist",
-   "title": "Steel Iron Fist",
+   "id": "steel_strike_13",
+   "title": "Steel Taloned Fist",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6204,8 +6209,8 @@
    "endurance": 3
   },
   {
-   "id": "steel_hammer_blow",
-   "title": "Steel Hammer Blow",
+   "id": "steel_strike_14",
+   "title": "Steel Scalebound Blow",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6216,8 +6221,8 @@
    "endurance": 4
   },
   {
-   "id": "steel_crushing_weight",
-   "title": "Steel Crushing Weight",
+   "id": "steel_strike_15",
+   "title": "Steel Dragonweight Blow",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6242,8 +6247,8 @@
    }
   },
   {
-   "id": "steel_cross",
-   "title": "Steel Cross",
+   "id": "steel_strike_16",
+   "title": "Steel Talon Cleave",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6253,8 +6258,8 @@
    "remove_after_use": true
   },
   {
-   "id": "steel_rake",
-   "title": "Steel Rake",
+   "id": "steel_strike_17",
+   "title": "Steel Raking Talons",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6266,8 +6271,8 @@
    }
   },
   {
-   "id": "steel_talon",
-   "title": "Steel Talon",
+   "id": "steel_strike_18",
+   "title": "Steel Rending Talon",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6287,8 +6292,8 @@
    ]
   },
   {
-   "id": "steel_slip",
-   "title": "Steel Slip",
+   "id": "steel_strike_19",
+   "title": "Steel Serpentine Twist",
    "type": "strike",
    "school": "steel",
    "defense": {
@@ -6304,8 +6309,8 @@
    ]
   },
   {
-   "id": "steel_stamp",
-   "title": "Steel Stamp",
+   "id": "steel_strike_20",
+   "title": "Steel Clawed Heel",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6317,8 +6322,8 @@
    }
   },
   {
-   "id": "steel_reverse",
-   "title": "Steel Reverse",
+   "id": "steel_strike_21",
+   "title": "Steel Lashing Tail",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6334,8 +6339,8 @@
    ]
   },
   {
-   "id": "steel_tackle",
-   "title": "Steel Tackle",
+   "id": "steel_strike_22",
+   "title": "Steel Clawed Pounce",
    "type": "strike",
    "school": "steel",
    "attack": {
@@ -6347,8 +6352,8 @@
    }
   },
   {
-   "id": "steel_sink",
-   "title": "Steel Sink",
+   "id": "steel_art_05",
+   "title": "Steel Swallowed Flame",
    "type": "art",
    "school": "steel",
    "defense": {
@@ -6368,8 +6373,8 @@
    ]
   },
   {
-   "id": "steel_plating",
-   "title": "Steel Plating",
+   "id": "steel_art_06",
+   "title": "Steel Dragonscale Mantle",
    "type": "art",
    "school": "steel",
    "defense": {
@@ -6381,8 +6386,8 @@
    }
   },
   {
-   "id": "steel_conditioning_drill",
-   "title": "Steel Conditioning Drill",
+   "id": "steel_drill_01",
+   "title": "Steel Clawed Hands Drill",
    "type": "drill",
    "school": "steel",
    "modifiers": [
@@ -6394,7 +6399,7 @@
    ]
   },
   {
-   "id": "shade_unraveling",
+   "id": "shade_strike_01",
    "title": "Shade Prying Whisper",
    "type": "strike",
    "school": "shade",
@@ -6422,7 +6427,7 @@
    ]
   },
   {
-   "id": "shade_veil",
+   "id": "shade_combat_01",
    "title": "Shade Veil",
    "type": "combat",
    "school": "shade",
@@ -6432,7 +6437,7 @@
    }
   },
   {
-   "id": "shade_hex_recall",
+   "id": "shade_strike_02",
    "title": "Shade Hex Recall",
    "type": "strike",
    "school": "shade",
@@ -6453,7 +6458,7 @@
    "remove_after_use": true
   },
   {
-   "id": "shade_umbral_lash",
+   "id": "shade_art_01",
    "title": "Shade Answering Whisper",
    "type": "art",
    "school": "shade",
@@ -6475,7 +6480,7 @@
    ]
   },
   {
-   "id": "shade_mind_rot",
+   "id": "shade_art_02",
    "title": "Shade Mind Rot",
    "type": "art",
    "school": "shade",
@@ -6494,7 +6499,7 @@
    ]
   },
   {
-   "id": "shade_dread_grip",
+   "id": "shade_strike_03",
    "title": "Shade Dread Grip",
    "type": "strike",
    "school": "shade",
@@ -6515,7 +6520,7 @@
    "remove_after_use": true
   },
   {
-   "id": "shade_oblivion_touch",
+   "id": "shade_strike_04",
    "title": "Shade Oblivion Touch",
    "type": "strike",
    "school": "shade",
@@ -6532,7 +6537,7 @@
    ]
   },
   {
-   "id": "shade_nightmare_hold",
+   "id": "shade_strike_05",
    "title": "Shade Insistent Whisper",
    "type": "strike",
    "school": "shade",
@@ -6558,8 +6563,8 @@
    ]
   },
   {
-   "id": "shade_rending_palm",
-   "title": "Shade Rending Palm",
+   "id": "shade_art_03",
+   "title": "Shade Night Rend",
    "type": "art",
    "school": "shade",
    "attack": {
@@ -6575,8 +6580,8 @@
    ]
   },
   {
-   "id": "shade_cutting_hand",
-   "title": "Shade Cutting Hand",
+   "id": "shade_art_04",
+   "title": "Shade Severing Shadow",
    "type": "art",
    "school": "shade",
    "attack": {
@@ -6588,8 +6593,8 @@
    }
   },
   {
-   "id": "shade_snaring_web",
-   "title": "Shade Snaring Web",
+   "id": "shade_art_05",
+   "title": "Shade Shadow Snare",
    "type": "art",
    "school": "shade",
    "attack": {
@@ -6607,8 +6612,8 @@
    ]
   },
   {
-   "id": "shade_preparation",
-   "title": "Shade Preparation",
+   "id": "shade_art_06",
+   "title": "Shade Dusk Bolt",
    "type": "art",
    "school": "shade",
    "attack": {
@@ -6624,8 +6629,8 @@
    ]
   },
   {
-   "id": "shade_draining_blast",
-   "title": "Shade Draining Blast",
+   "id": "shade_art_07",
+   "title": "Shade Hungering Gloom",
    "type": "art",
    "school": "shade",
    "attack": {
@@ -6642,8 +6647,8 @@
    ]
   },
   {
-   "id": "shade_warding_burst",
-   "title": "Shade Warding Burst",
+   "id": "shade_strike_06",
+   "title": "Shade Binding Murk",
    "type": "strike",
    "school": "shade",
    "attack": {
@@ -6661,7 +6666,7 @@
    ]
   },
   {
-   "id": "shade_gathering_dark",
+   "id": "shade_strike_07",
    "title": "Shade Gathering Dark",
    "type": "strike",
    "school": "shade",
@@ -6674,8 +6679,8 @@
    }
   },
   {
-   "id": "shade_takedown_drill",
-   "title": "Shade Takedown Drill",
+   "id": "shade_drill_01",
+   "title": "Shade Gleaning Drill",
    "type": "drill",
    "school": "shade",
    "once_per_combat": true,
@@ -6694,14 +6699,14 @@
    ]
   },
   {
-   "id": "shade_composure_drill",
-   "title": "Shade Composure Drill",
+   "id": "shade_drill_02",
+   "title": "Shade Hoarded Secrets Drill",
    "type": "drill",
    "school": "shade",
    "hand_keep": 2
   },
   {
-   "id": "tide_breakwater",
+   "id": "tide_art_01",
    "title": "Tide Breakwater",
    "type": "art",
    "school": "tide",
@@ -6719,7 +6724,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "tide_ebb",
+   "id": "tide_strike_01",
    "title": "Tide Ebb",
    "type": "strike",
    "school": "tide",
@@ -6741,7 +6746,7 @@
    ]
   },
   {
-   "id": "tide_undertow",
+   "id": "tide_strike_02",
    "title": "Tide Wide Sweep",
    "type": "strike",
    "school": "tide",
@@ -6761,7 +6766,7 @@
    ]
   },
   {
-   "id": "tide_drowning",
+   "id": "tide_strike_03",
    "title": "Tide Drowning",
    "type": "strike",
    "school": "tide",
@@ -6780,7 +6785,7 @@
    ]
   },
   {
-   "id": "tide_surge",
+   "id": "tide_art_02",
    "title": "Tide Surge",
    "type": "art",
    "school": "tide",
@@ -6793,7 +6798,7 @@
    }
   },
   {
-   "id": "tide_twin_swell",
+   "id": "tide_art_03",
    "title": "Tide Twin Swell",
    "type": "art",
    "school": "tide",
@@ -6805,7 +6810,7 @@
    "remain": 1
   },
   {
-   "id": "tide_torrent",
+   "id": "tide_art_04",
    "title": "Tide Torrent",
    "type": "art",
    "school": "tide",
@@ -6819,7 +6824,7 @@
    }
   },
   {
-   "id": "tide_springwater",
+   "id": "tide_art_05",
    "title": "Tide Springwater",
    "type": "art",
    "school": "tide",
@@ -6844,7 +6849,7 @@
    "remove_after_use": true
   },
   {
-   "id": "tide_depths",
+   "id": "tide_art_06",
    "title": "Tide Depths",
    "type": "art",
    "school": "tide",
@@ -6861,7 +6866,7 @@
    "remove_after_use": true
   },
   {
-   "id": "tide_high_water",
+   "id": "tide_art_07",
    "title": "Tide High Water",
    "type": "art",
    "school": "tide",
@@ -6883,7 +6888,7 @@
    ]
   },
   {
-   "id": "tide_confluence",
+   "id": "tide_art_08",
    "title": "Tide Confluence",
    "type": "art",
    "school": "tide",
@@ -6915,7 +6920,7 @@
    ]
   },
   {
-   "id": "tide_twin_breaker",
+   "id": "tide_art_09",
    "title": "Tide Twin Breaker",
    "type": "art",
    "school": "tide",
@@ -6953,7 +6958,7 @@
    ]
   },
   {
-   "id": "storm_charged_ward",
+   "id": "storm_art_01",
    "title": "Storm Charged Ward",
    "type": "art",
    "school": "storm",
@@ -6979,7 +6984,7 @@
    ]
   },
   {
-   "id": "storm_static_field",
+   "id": "storm_art_02",
    "title": "Storm Static Field",
    "type": "art",
    "school": "storm",
@@ -6992,7 +6997,7 @@
    "remove_after_use": true
   },
   {
-   "id": "storm_chain_lightning",
+   "id": "storm_art_03",
    "title": "Storm Chain Lightning",
    "type": "art",
    "school": "storm",
@@ -7004,7 +7009,7 @@
    "remove_after_use": true
   },
   {
-   "id": "storm_smiting_bolt",
+   "id": "storm_art_04",
    "title": "Storm Smiting Bolt",
    "type": "art",
    "school": "storm",
@@ -7023,7 +7028,7 @@
    ]
   },
   {
-   "id": "storm_thunderhead",
+   "id": "storm_art_05",
    "title": "Storm Thunderhead",
    "type": "art",
    "school": "storm",
@@ -7050,7 +7055,7 @@
    ]
   },
   {
-   "id": "storm_arc_bolt",
+   "id": "storm_art_06",
    "title": "Storm Arc Bolt",
    "type": "art",
    "school": "storm",
@@ -7066,7 +7071,7 @@
    ]
   },
   {
-   "id": "storm_maelstrom",
+   "id": "storm_strike_01",
    "title": "Storm Maelstrom",
    "type": "strike",
    "school": "storm",
@@ -7103,7 +7108,7 @@
    ]
   },
   {
-   "id": "storm_overcharge",
+   "id": "storm_strike_02",
    "title": "Storm Overcharge",
    "type": "strike",
    "school": "storm",
@@ -7131,7 +7136,7 @@
    "remove_after_use": true
   },
   {
-   "id": "storm_recharge",
+   "id": "storm_strike_03",
    "title": "Storm Recharge",
    "type": "strike",
    "school": "storm",
@@ -7149,7 +7154,7 @@
    ]
   },
   {
-   "id": "storm_lash",
+   "id": "storm_art_07",
    "title": "Storm Lash",
    "type": "art",
    "school": "storm",
@@ -7165,8 +7170,8 @@
    ]
   },
   {
-   "id": "storm_palm_surge",
-   "title": "Storm Palm Surge",
+   "id": "storm_art_08",
+   "title": "Storm Jolt",
    "type": "art",
    "school": "storm",
    "attack": {
@@ -7181,7 +7186,7 @@
    ]
   },
   {
-   "id": "storm_earthing_rod",
+   "id": "storm_art_09",
    "title": "Storm Earthing Rod",
    "type": "art",
    "school": "storm",
@@ -7196,8 +7201,8 @@
    ]
   },
   {
-   "id": "storm_plasma_beam",
-   "title": "Storm Plasma Beam",
+   "id": "storm_art_10",
+   "title": "Storm Stunning Bolt",
    "type": "art",
    "school": "storm",
    "attack": {
@@ -7213,7 +7218,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_bolt",
+   "id": "root_combat_01",
    "title": "Root Thorn Volley",
    "type": "combat",
    "school": "root",
@@ -7230,7 +7235,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_dash",
+   "id": "root_strike_01",
    "title": "Root Boar Rush",
    "type": "strike",
    "school": "root",
@@ -7252,7 +7257,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_energy_deflection",
+   "id": "root_art_01",
    "title": "Root Barkskin Deflection",
    "type": "art",
    "school": "root",
@@ -7271,8 +7276,8 @@
    }
   },
   {
-   "id": "root_energy_catch",
-   "title": "Root Rain Catch",
+   "id": "root_art_02",
+   "title": "Root Drinking Leaves",
    "type": "art",
    "school": "root",
    "defense": {
@@ -7286,7 +7291,7 @@
    ]
   },
   {
-   "id": "root_firm_stance",
+   "id": "root_strike_02",
    "title": "Root Oaken Stance",
    "type": "strike",
    "school": "root",
@@ -7302,7 +7307,7 @@
    ]
   },
   {
-   "id": "root_energy_focus",
+   "id": "root_combat_02",
    "title": "Root Grove Focus",
    "type": "combat",
    "school": "root",
@@ -7324,7 +7329,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_preparation_drill",
+   "id": "root_drill_01",
    "title": "Root Tracker's Drill",
    "type": "drill",
    "school": "root",
@@ -7340,7 +7345,7 @@
    ]
   },
   {
-   "id": "root_destruction_blast",
+   "id": "root_art_03",
    "title": "Root Uprooting Blast",
    "type": "art",
    "school": "root",
@@ -7351,7 +7356,7 @@
    }
   },
   {
-   "id": "root_dragon_blast",
+   "id": "root_art_04",
    "title": "Root Wyrmwood Blast",
    "type": "art",
    "school": "root",
@@ -7372,7 +7377,7 @@
    }
   },
   {
-   "id": "personality_bram_ashmark_2_gnawing",
+   "id": "personality_55",
    "title": "Bram Ashmark",
    "type": "personality",
    "school": "",
@@ -7420,7 +7425,7 @@
    ]
   },
   {
-   "id": "personality_bram_ashmark_3_gorging",
+   "id": "personality_56",
    "title": "Bram Ashmark",
    "type": "personality",
    "school": "",
@@ -7458,7 +7463,7 @@
    ]
   },
   {
-   "id": "personality_bram_ashmark_4_consuming",
+   "id": "personality_57",
    "title": "Bram Ashmark",
    "type": "personality",
    "school": "",
@@ -7493,7 +7498,7 @@
    ]
   },
   {
-   "id": "personality_bram_ashmark_5_insatiable",
+   "id": "personality_58",
    "title": "Bram Ashmark",
    "type": "personality",
    "school": "",
@@ -7535,7 +7540,7 @@
    ]
   },
   {
-   "id": "severing_clasp",
+   "id": "relic_04",
    "title": "The Severing Clasp",
    "type": "relic",
    "school": "",
@@ -7557,8 +7562,8 @@
    ]
   },
   {
-   "id": "pyre_knee_bash",
-   "title": "Pyre Knee Bash",
+   "id": "pyre_strike_19",
+   "title": "Pyre Scorching Blow",
    "type": "strike",
    "school": "pyre",
    "attack": {
@@ -7573,8 +7578,8 @@
    ]
   },
   {
-   "id": "pyre_warding_stance",
-   "title": "Pyre Warding Stance",
+   "id": "pyre_strike_20",
+   "title": "Pyre Ember Ward",
    "type": "strike",
    "school": "pyre",
    "defense": {
@@ -7589,8 +7594,8 @@
    ]
   },
   {
-   "id": "pyre_sword_cleave",
-   "title": "Pyre Sword Cleave",
+   "id": "pyre_strike_21",
+   "title": "Pyre Burning Sword Cleave",
    "type": "strike",
    "school": "pyre",
    "attack": {
@@ -7620,7 +7625,7 @@
    ]
   },
   {
-   "id": "emrys_rising_blow",
+   "id": "signature_strike_29",
    "title": "Emrys' Rising Blow",
    "type": "strike",
    "school": "",
@@ -7644,7 +7649,7 @@
    "remove_after_use": true
   },
   {
-   "id": "ashmarks_ember_spray",
+   "id": "signature_art_14",
    "title": "Ashmark's Ember Spray",
    "type": "art",
    "school": "",
@@ -7676,7 +7681,7 @@
    ]
   },
   {
-   "id": "the_watch_goes_dark",
+   "id": "freestyle_noncombat_18",
    "title": "The Watch Goes Dark",
    "type": "non_combat",
    "school": "",
@@ -7693,7 +7698,7 @@
    ]
   },
   {
-   "id": "spent_to_the_last",
+   "id": "freestyle_combat_20",
    "title": "Spent to the Last",
    "type": "combat",
    "school": "",
@@ -7719,7 +7724,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "riftcry",
+   "id": "freestyle_art_09",
    "title": "Riftcry",
    "type": "art",
    "school": "",
@@ -7737,7 +7742,7 @@
    ]
   },
   {
-   "id": "tide_fathom_mastery",
+   "id": "tide_mastery_02",
    "title": "Tide Fathom Mastery",
    "type": "mastery",
    "school": "tide",
@@ -7756,7 +7761,7 @@
    ]
   },
   {
-   "id": "tide_pull_under",
+   "id": "tide_strike_04",
    "title": "Tide Pull Under",
    "type": "strike",
    "school": "tide",
@@ -7785,7 +7790,7 @@
    "remove_after_use": true
   },
   {
-   "id": "tide_welling_deep",
+   "id": "tide_strike_05",
    "title": "Tide Welling Deep",
    "type": "strike",
    "school": "tide",
@@ -7803,7 +7808,7 @@
    "bottom_after_use": true
   },
   {
-   "id": "tide_deep_anchor",
+   "id": "tide_strike_06",
    "title": "Tide Deep Anchor",
    "type": "strike",
    "school": "tide",
@@ -7822,7 +7827,7 @@
    ]
   },
   {
-   "id": "tide_dredge",
+   "id": "tide_strike_07",
    "title": "Tide Dredge",
    "type": "strike",
    "school": "tide",
@@ -7847,8 +7852,8 @@
    "remove_after_use": true
   },
   {
-   "id": "tide_deadweight",
-   "title": "Tide Deadweight",
+   "id": "tide_strike_08",
+   "title": "Tide Waterlogged",
    "type": "strike",
    "school": "tide",
    "attack": {
@@ -7871,7 +7876,7 @@
    "remove_after_use": true
   },
   {
-   "id": "tide_crushing_depth",
+   "id": "tide_art_10",
    "title": "Tide Crushing Depth",
    "type": "art",
    "school": "tide",
@@ -7890,7 +7895,7 @@
    "remove_after_use": true
   },
   {
-   "id": "ashmarks_choke_hold",
+   "id": "signature_strike_30",
    "title": "Ashmark's Choke Hold",
    "type": "strike",
    "school": "",
@@ -7915,10 +7920,11 @@
 	 "title_contains": "Sweep",
 	 "to": "hand"
 	}
-   ]
+   ],
+   "character": "Bram Ashmark"
   },
   {
-   "id": "edrics_low_water",
+   "id": "signature_noncombat_10",
    "title": "Edric Waits for Low Water",
    "type": "non_combat",
    "school": "",
@@ -7939,8 +7945,8 @@
    ]
   },
   {
-   "id": "tide_bearing_down",
-   "title": "Tide Bearing Down",
+   "id": "tide_strike_09",
+   "title": "Tide Heavy Swell",
    "type": "strike",
    "school": "tide",
    "attack": {
@@ -7956,7 +7962,7 @@
    ]
   },
   {
-   "id": "tide_pressure_wave",
+   "id": "tide_strike_10",
    "title": "Tide Pressure Wave",
    "type": "strike",
    "school": "tide",
@@ -7973,7 +7979,7 @@
    ]
   },
   {
-   "id": "tide_deep_guard",
+   "id": "tide_strike_11",
    "title": "Tide Deep Guard",
    "type": "strike",
    "school": "tide",
@@ -7989,7 +7995,7 @@
    ]
   },
   {
-   "id": "tide_black_water",
+   "id": "tide_art_11",
    "title": "Tide Black Water",
    "type": "art",
    "school": "tide",
@@ -8005,8 +8011,8 @@
    ]
   },
   {
-   "id": "tide_full_weight",
-   "title": "Tide Full Weight",
+   "id": "tide_art_12",
+   "title": "Tide Cresting Wave",
    "type": "art",
    "school": "tide",
    "attack": {
@@ -8026,7 +8032,7 @@
    ]
   },
   {
-   "id": "tide_held_under",
+   "id": "tide_combat_01",
    "title": "Tide Held Under",
    "type": "combat",
    "school": "tide",
@@ -8044,7 +8050,7 @@
    ]
   },
   {
-   "id": "tide_heavy_water",
+   "id": "tide_noncombat_01",
    "title": "Tide Heavy Water",
    "type": "non_combat",
    "school": "tide",
@@ -8057,7 +8063,7 @@
    ]
   },
   {
-   "id": "tide_undersweep",
+   "id": "tide_strike_12",
    "title": "Tide Undersweep",
    "type": "strike",
    "school": "tide",
@@ -8079,7 +8085,7 @@
    ]
   },
   {
-   "id": "tide_sweep_aside",
+   "id": "tide_strike_13",
    "title": "Tide Sweep Aside",
    "type": "strike",
    "school": "tide",
@@ -8095,7 +8101,7 @@
    ]
   },
   {
-   "id": "tide_deep_sweep",
+   "id": "tide_strike_14",
    "title": "Tide Deep Sweep",
    "type": "strike",
    "school": "tide",
@@ -8112,7 +8118,7 @@
    ]
   },
   {
-   "id": "personality_gideon_mourne_1_the_marked_lord",
+   "id": "personality_59",
    "title": "Gideon Mourne",
    "type": "personality",
    "school": "",
@@ -8156,7 +8162,7 @@
    ]
   },
   {
-   "id": "personality_gideon_mourne_2_unflinching",
+   "id": "personality_60",
    "title": "Gideon Mourne",
    "type": "personality",
    "school": "",
@@ -8188,7 +8194,7 @@
    ]
   },
   {
-   "id": "personality_gideon_mourne_3_unfettered",
+   "id": "personality_61",
    "title": "Gideon Mourne",
    "type": "personality",
    "school": "",
@@ -8226,7 +8232,7 @@
    ]
   },
   {
-   "id": "personality_gideon_mourne_4_unrepentant",
+   "id": "personality_62",
    "title": "Gideon Mourne",
    "type": "personality",
    "school": "",
@@ -8266,7 +8272,7 @@
    ]
   },
   {
-   "id": "marked_lightning",
+   "id": "freestyle_art_10",
    "title": "Marked Lightning",
    "type": "art",
    "school": "",
@@ -8294,7 +8300,7 @@
    ]
   },
   {
-   "id": "marked_strength",
+   "id": "freestyle_strike_07",
    "title": "Marked Strength",
    "type": "strike",
    "school": "",
@@ -8326,7 +8332,7 @@
    ]
   },
   {
-   "id": "marked_demise",
+   "id": "freestyle_art_11",
    "title": "Marked Demise",
    "type": "art",
    "school": "",
@@ -8347,7 +8353,7 @@
    "limit_per_deck": 2
   },
   {
-   "id": "shade_lingering_whisper",
+   "id": "shade_strike_08",
    "title": "Shade Lingering Whisper",
    "type": "strike",
    "school": "shade",
@@ -8376,7 +8382,7 @@
    ]
   },
   {
-   "id": "shade_returning_whisper",
+   "id": "shade_strike_09",
    "title": "Shade Returning Whisper",
    "type": "strike",
    "school": "shade",
@@ -8406,7 +8412,7 @@
    ]
   },
   {
-   "id": "shade_silenced_whisper",
+   "id": "shade_strike_10",
    "title": "Shade Silenced Whisper",
    "type": "strike",
    "school": "shade",
@@ -8429,7 +8435,7 @@
    ]
   },
   {
-   "id": "shade_turned_whisper",
+   "id": "shade_art_08",
    "title": "Shade Turned Whisper",
    "type": "art",
    "school": "shade",
@@ -8447,7 +8453,7 @@
    ]
   },
   {
-   "id": "shade_swelling_whisper",
+   "id": "shade_art_09",
    "title": "Shade Swelling Whisper",
    "type": "art",
    "school": "shade",
@@ -8467,7 +8473,7 @@
    ]
   },
   {
-   "id": "shade_emptying_whisper",
+   "id": "shade_strike_11",
    "title": "Shade Emptying Whisper",
    "type": "strike",
    "school": "shade",
@@ -8490,7 +8496,7 @@
    ]
   },
   {
-   "id": "shade_sifting_whisper",
+   "id": "shade_strike_12",
    "title": "Shade Sifting Whisper",
    "type": "strike",
    "school": "shade",
@@ -8515,7 +8521,7 @@
    ]
   },
   {
-   "id": "ashmarks_unmaking_whisper",
+   "id": "signature_strike_31",
    "title": "Ashmark's Unmaking Whisper",
    "type": "strike",
    "school": "",
@@ -8546,7 +8552,7 @@
    ]
   },
   {
-   "id": "shade_ransoming_hand",
+   "id": "shade_strike_13",
    "title": "Shade Ransoming Hand",
    "type": "strike",
    "school": "shade",
@@ -8569,7 +8575,7 @@
    ]
   },
   {
-   "id": "shade_bitter_trade",
+   "id": "shade_strike_14",
    "title": "Shade Bitter Trade",
    "type": "strike",
    "school": "shade",
@@ -8600,8 +8606,8 @@
    ]
   },
   {
-   "id": "shade_faltering_drill",
-   "title": "Shade Faltering Drill",
+   "id": "shade_drill_03",
+   "title": "Shade Forgetting Drill",
    "type": "drill",
    "school": "shade",
    "effects": [
@@ -8626,7 +8632,7 @@
    ]
   },
   {
-   "id": "shade_fixed_gaze",
+   "id": "shade_art_10",
    "title": "Shade Fixed Gaze",
    "type": "art",
    "school": "shade",
@@ -8647,8 +8653,8 @@
    ]
   },
   {
-   "id": "shade_stinging_palm",
-   "title": "Shade Stinging Palm",
+   "id": "shade_strike_15",
+   "title": "Shade Picking Shadow",
    "type": "strike",
    "school": "shade",
    "attack": {
@@ -8668,8 +8674,8 @@
    ]
   },
   {
-   "id": "shade_recoil",
-   "title": "Shade Recoil",
+   "id": "shade_art_11",
+   "title": "Shade Rebounding Hex",
    "type": "art",
    "school": "shade",
    "defense": {
@@ -8693,7 +8699,7 @@
    ]
   },
   {
-   "id": "the_marked_ring",
+   "id": "grounds_07",
    "title": "The Marked Ring",
    "type": "grounds",
    "school": "",
@@ -8730,7 +8736,7 @@
    ]
   },
   {
-   "id": "storm_rising_gust",
+   "id": "storm_strike_04",
    "title": "Storm Rising Gust",
    "type": "strike",
    "school": "storm",
@@ -8745,7 +8751,7 @@
    ]
   },
   {
-   "id": "storm_twin_earthing",
+   "id": "storm_strike_05",
    "title": "Storm Twin Earthing",
    "type": "strike",
    "school": "storm",
@@ -8764,7 +8770,7 @@
    ]
   },
   {
-   "id": "storm_damping_guard",
+   "id": "storm_art_11",
    "title": "Storm Damping Guard",
    "type": "art",
    "school": "storm",
@@ -8780,7 +8786,7 @@
    ]
   },
   {
-   "id": "storm_returning_front",
+   "id": "storm_noncombat_01",
    "title": "Storm Returning Front",
    "type": "non_combat",
    "school": "storm",
@@ -8790,21 +8796,21 @@
    "bottom_after_use": true
   },
   {
-   "id": "storm_mantle_drill",
+   "id": "storm_drill_01",
    "title": "Storm Mantle Drill",
    "type": "drill",
    "school": "storm",
    "shield": "strike"
   },
   {
-   "id": "storm_dispersal_drill",
+   "id": "storm_drill_02",
    "title": "Storm Dispersal Drill",
    "type": "drill",
    "school": "storm",
    "shield": "art"
   },
   {
-   "id": "storm_tight_coil_drill",
+   "id": "storm_drill_03",
    "title": "Storm Tight Coil Drill",
    "type": "drill",
    "school": "storm",
@@ -8817,7 +8823,7 @@
    ]
   },
   {
-   "id": "storm_conduit_drill",
+   "id": "storm_drill_04",
    "title": "Storm Conduit Drill",
    "type": "drill",
    "school": "storm",
@@ -8831,7 +8837,7 @@
    ]
   },
   {
-   "id": "storm_mustering_peal",
+   "id": "storm_noncombat_02",
    "title": "Storm Mustering Peal",
    "type": "non_combat",
    "school": "storm",
@@ -8854,7 +8860,7 @@
    ]
   },
   {
-   "id": "storm_scattering_gale",
+   "id": "storm_combat_01",
    "title": "Storm Scattering Gale",
    "type": "combat",
    "school": "storm",
@@ -8872,7 +8878,7 @@
    "endurance": 3
   },
   {
-   "id": "storm_free_current",
+   "id": "storm_combat_02",
    "title": "Storm Free Current",
    "type": "combat",
    "school": "storm",
@@ -8905,8 +8911,8 @@
    ]
   },
   {
-   "id": "storm_catching_stance",
-   "title": "Storm Catching Stance",
+   "id": "storm_art_12",
+   "title": "Storm Drawn Charge",
    "type": "art",
    "school": "storm",
    "defense": {
@@ -8925,7 +8931,7 @@
    ]
   },
   {
-   "id": "storm_feeding_arc",
+   "id": "storm_strike_06",
    "title": "Storm Feeding Arc",
    "type": "strike",
    "school": "storm",
@@ -8946,7 +8952,7 @@
    ]
   },
   {
-   "id": "storm_return_stroke",
+   "id": "storm_strike_07",
    "title": "Storm Return Stroke",
    "type": "strike",
    "school": "storm",
@@ -8968,7 +8974,7 @@
    ]
   },
   {
-   "id": "storm_wringing_squall",
+   "id": "storm_strike_08",
    "title": "Storm Wringing Squall",
    "type": "strike",
    "school": "storm",
@@ -8992,7 +8998,7 @@
    ]
   },
   {
-   "id": "storm_rolling_peal",
+   "id": "storm_art_13",
    "title": "Storm Rolling Peal",
    "type": "art",
    "school": "storm",
@@ -9022,7 +9028,7 @@
    ]
   },
   {
-   "id": "storm_idle_spark",
+   "id": "storm_art_14",
    "title": "Storm Idle Spark",
    "type": "art",
    "school": "storm",
@@ -9033,7 +9039,7 @@
    }
   },
   {
-   "id": "storm_pent_discharge",
+   "id": "storm_art_15",
    "title": "Storm Pent Discharge",
    "type": "art",
    "school": "storm",
@@ -9053,7 +9059,7 @@
    ]
   },
   {
-   "id": "storm_opened_channel",
+   "id": "storm_strike_09",
    "title": "Storm Opened Channel",
    "type": "strike",
    "school": "storm",
@@ -9077,7 +9083,7 @@
    ]
   },
   {
-   "id": "storm_ungrounded_flash",
+   "id": "storm_art_16",
    "title": "Storm Ungrounded Flash",
    "type": "art",
    "school": "storm",
@@ -9088,7 +9094,7 @@
    }
   },
   {
-   "id": "storm_focused_bolt",
+   "id": "storm_art_17",
    "title": "Storm Focused Bolt",
    "type": "art",
    "school": "storm",
@@ -9107,7 +9113,7 @@
    ]
   },
   {
-   "id": "storm_assailing_arc",
+   "id": "storm_art_18",
    "title": "Storm Assailing Arc",
    "type": "art",
    "school": "storm",
@@ -9127,8 +9133,8 @@
    ]
   },
   {
-   "id": "storm_trick_shot",
-   "title": "Storm Trick Shot",
+   "id": "storm_art_19",
+   "title": "Storm Ricochet Bolt",
    "type": "art",
    "school": "storm",
    "endurance": 3,
@@ -9153,8 +9159,8 @@
    ]
   },
   {
-   "id": "storm_narrow_focus",
-   "title": "Storm Narrow Focus",
+   "id": "storm_art_20",
+   "title": "Storm Narrow Arc",
    "type": "art",
    "school": "storm",
    "attack": {
@@ -9164,7 +9170,7 @@
    }
   },
   {
-   "id": "storm_felling_gust",
+   "id": "storm_strike_10",
    "title": "Storm Felling Gust",
    "type": "strike",
    "school": "storm",
@@ -9184,7 +9190,7 @@
    ]
   },
   {
-   "id": "storm_residual_shock",
+   "id": "storm_art_21",
    "title": "Storm Residual Shock",
    "type": "art",
    "school": "storm",
@@ -9202,7 +9208,7 @@
    ]
   },
   {
-   "id": "storm_levelling_wind",
+   "id": "storm_strike_11",
    "title": "Storm Levelling Wind",
    "type": "strike",
    "school": "storm",
@@ -9230,7 +9236,7 @@
    ]
   },
   {
-   "id": "storm_tailwind",
+   "id": "storm_strike_12",
    "title": "Storm Tailwind",
    "type": "strike",
    "school": "storm",
@@ -9259,7 +9265,7 @@
    ]
   },
   {
-   "id": "storm_cold_front",
+   "id": "storm_art_22",
    "title": "Storm Cold Front",
    "type": "art",
    "school": "storm",
@@ -9275,7 +9281,7 @@
    ]
   },
   {
-   "id": "storm_silencing_static",
+   "id": "storm_art_23",
    "title": "Storm Silencing Static",
    "type": "art",
    "school": "storm",
@@ -9297,21 +9303,21 @@
    ]
   },
   {
-   "id": "root_windbreak_drill",
+   "id": "root_drill_02",
    "title": "Root Windbreak Drill",
    "type": "drill",
    "school": "root",
    "shield": "strike"
   },
   {
-   "id": "root_canopy_drill",
+   "id": "root_drill_03",
    "title": "Root Canopy Drill",
    "type": "drill",
    "school": "root",
    "shield": "art"
   },
   {
-   "id": "root_sightline_drill",
+   "id": "root_drill_04",
    "title": "Root Sightline Drill",
    "type": "drill",
    "school": "root",
@@ -9327,7 +9333,7 @@
    ]
   },
   {
-   "id": "root_deep_draught",
+   "id": "root_noncombat_01",
    "title": "Root Deep Draught",
    "type": "non_combat",
    "school": "root",
@@ -9355,7 +9361,7 @@
    ]
   },
   {
-   "id": "root_thorn_hedge",
+   "id": "root_noncombat_02",
    "title": "Root Thorn Hedge",
    "type": "non_combat",
    "school": "root",
@@ -9369,7 +9375,7 @@
    ]
   },
   {
-   "id": "root_carvers_reach",
+   "id": "root_strike_03",
    "title": "Root Carver's Reach",
    "type": "strike",
    "school": "root",
@@ -9391,7 +9397,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_timber_blow",
+   "id": "root_strike_04",
    "title": "Root Timber Blow",
    "type": "strike",
    "school": "root",
@@ -9401,7 +9407,7 @@
    }
   },
   {
-   "id": "root_millstone",
+   "id": "root_strike_05",
    "title": "Root Millstone",
    "type": "strike",
    "school": "root",
@@ -9412,7 +9418,7 @@
    }
   },
   {
-   "id": "root_rising_sap",
+   "id": "root_strike_06",
    "title": "Root Rising Sap",
    "type": "strike",
    "school": "root",
@@ -9429,7 +9435,7 @@
    ]
   },
   {
-   "id": "root_pruning_cut",
+   "id": "root_strike_07",
    "title": "Root Pruning Cut",
    "type": "strike",
    "school": "root",
@@ -9453,7 +9459,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_deadfall",
+   "id": "root_strike_08",
    "title": "Root Deadfall",
    "type": "strike",
    "school": "root",
@@ -9471,7 +9477,7 @@
    ]
   },
   {
-   "id": "root_briar_tangle",
+   "id": "root_strike_09",
    "title": "Root Briar Tangle",
    "type": "strike",
    "school": "root",
@@ -9483,7 +9489,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_quickening",
+   "id": "root_strike_10",
    "title": "Root Quickening",
    "type": "strike",
    "school": "root",
@@ -9507,7 +9513,7 @@
    ]
   },
   {
-   "id": "root_snare",
+   "id": "root_strike_11",
    "title": "Root Snare",
    "type": "strike",
    "school": "root",
@@ -9528,7 +9534,7 @@
    ]
   },
   {
-   "id": "root_splitting_wedge",
+   "id": "root_strike_12",
    "title": "Root Splitting Wedge",
    "type": "strike",
    "school": "root",
@@ -9555,7 +9561,7 @@
    ]
   },
   {
-   "id": "root_grove_fury",
+   "id": "root_strike_13",
    "title": "Root Grove Fury",
    "type": "strike",
    "school": "root",
@@ -9572,7 +9578,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_bindweed",
+   "id": "root_strike_14",
    "title": "Root Bindweed",
    "type": "strike",
    "school": "root",
@@ -9590,7 +9596,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_sapwood_guard",
+   "id": "root_strike_15",
    "title": "Root Sapwood Guard",
    "type": "strike",
    "school": "root",
@@ -9605,7 +9611,7 @@
    ]
   },
   {
-   "id": "root_taproot_brace",
+   "id": "root_strike_16",
    "title": "Root Taproot Brace",
    "type": "strike",
    "school": "root",
@@ -9626,8 +9632,8 @@
    ]
   },
   {
-   "id": "root_barred_path",
-   "title": "Root Barred Path",
+   "id": "root_combat_03",
+   "title": "Root Bramble Wall",
    "type": "combat",
    "school": "root",
    "defense": {
@@ -9636,7 +9642,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_closing_bark",
+   "id": "root_combat_04",
    "title": "Root Closing Bark",
    "type": "combat",
    "school": "root",
@@ -9650,7 +9656,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_trail_cut",
+   "id": "root_combat_05",
    "title": "Root Trail Cut",
    "type": "combat",
    "school": "root",
@@ -9669,7 +9675,7 @@
    "endurance": 4
   },
   {
-   "id": "root_kin_clearing",
+   "id": "root_combat_06",
    "title": "Root Kin Clearing",
    "type": "combat",
    "school": "root",
@@ -9688,7 +9694,7 @@
    "limit_per_deck": 1
   },
   {
-   "id": "root_first_frost",
+   "id": "root_art_05",
    "title": "Root First Frost",
    "type": "art",
    "school": "root",
@@ -9704,7 +9710,7 @@
    ]
   },
   {
-   "id": "root_auger_splinter",
+   "id": "root_art_06",
    "title": "Root Auger Splinter",
    "type": "art",
    "school": "root",
@@ -9722,7 +9728,7 @@
    ]
   },
   {
-   "id": "root_flung_stone",
+   "id": "root_art_07",
    "title": "Root Flung Stone",
    "type": "art",
    "school": "root",
@@ -9743,7 +9749,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_scattered_seed",
+   "id": "root_art_08",
    "title": "Root Scattered Seed",
    "type": "art",
    "school": "root",
@@ -9768,7 +9774,7 @@
    ]
   },
   {
-   "id": "root_old_growth",
+   "id": "root_art_09",
    "title": "Root Old Growth",
    "type": "art",
    "school": "root",
@@ -9794,7 +9800,7 @@
    "remove_after_use": true
   },
   {
-   "id": "root_culling_frost",
+   "id": "root_art_10",
    "title": "Root Culling Frost",
    "type": "art",
    "school": "root",
@@ -9815,6 +9821,555 @@
 	 "op": "fervor",
 	 "who": "opponent",
 	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "pyre_drill_01",
+   "title": "Pyre Rising Heat Drill",
+   "type": "drill",
+   "school": "pyre",
+   "limit_per_deck": 1,
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 1,
+	 "per_fervor": true
+	}
+   ]
+  },
+  {
+   "id": "pyre_strike_22",
+   "title": "Pyre Blazing Hide",
+   "type": "strike",
+   "school": "pyre",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "endurance_from": "fervor"
+  },
+  {
+   "id": "pyre_strike_23",
+   "title": "Pyre Choking Smoke",
+   "type": "strike",
+   "school": "pyre",
+   "defense": {
+	"stops": "art"
+   },
+   "endurance_from": "fervor",
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	},
+	{
+	 "op": "remove_discard",
+	 "who": "opponent",
+	 "amount": 10,
+	 "from": "bottom",
+	 "when": {
+	  "opponent_fervor_max": 1
+	 }
+	}
+   ]
+  },
+  {
+   "id": "pyre_art_04",
+   "title": "Pyre Drawing Flue",
+   "type": "art",
+   "school": "pyre",
+   "attack": {
+	"kind": "art",
+	"printed_life": 1,
+	"life_per_fervor": 1
+   },
+   "endurance": 4,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "shuffle_source"
+	}
+   ]
+  },
+  {
+   "id": "pyre_drill_02",
+   "title": "Pyre Banked Coals Drill",
+   "type": "drill",
+   "school": "pyre",
+   "fervor_lock": true
+  },
+  {
+   "id": "pyre_drill_03",
+   "title": "Pyre Burnt Offering Drill",
+   "type": "drill",
+   "school": "pyre",
+   "defense": {
+	"stops": "any"
+   },
+   "only": {
+	"when": {
+	 "hand_min": 1
+	}
+   },
+   "effects": [
+	{
+	 "op": "discard_hand",
+	 "all": true
+	}
+   ]
+  },
+  {
+   "id": "pyre_drill_04",
+   "title": "Pyre Cinder Sift Drill",
+   "type": "drill",
+   "school": "pyre",
+   "once_per_combat": true,
+   "effects": [
+	{
+	 "trigger": "on_success",
+	 "may": true,
+	 "op": "search",
+	 "source": "discard",
+	 "to": "deck_shuffle",
+	 "when": {
+	  "attack_kind": "strike",
+	  "discard_min": 1
+	 },
+	 "then": [
+	  {
+	   "op": "mark_used"
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "pyre_drill_05",
+   "title": "Pyre Flame Screen Drill",
+   "type": "drill",
+   "school": "pyre",
+   "shield": "art"
+  },
+  {
+   "id": "pyre_drill_06",
+   "title": "Pyre Hearthstone Drill",
+   "type": "drill",
+   "school": "pyre",
+   "keeps_drills_on_advance": {
+	"self_when": {
+	 "opponent_fervor": 0
+	}
+   }
+  },
+  {
+   "id": "pyre_drill_07",
+   "title": "Pyre Kiln Drill",
+   "type": "drill",
+   "school": "pyre",
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "art",
+	 "life": 2
+	}
+   ]
+  },
+  {
+   "id": "pyre_drill_08",
+   "title": "Pyre Smoldering Drill",
+   "type": "drill",
+   "school": "pyre",
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 2
+	}
+   ],
+   "effects": [
+	{
+	 "trigger": "turn_start",
+	 "op": "remove_discard",
+	 "who": "opponent",
+	 "amount": 3,
+	 "from": "bottom"
+	}
+   ]
+  },
+  {
+   "id": "pyre_strike_25",
+   "title": "Pyre Laying Fire",
+   "type": "strike",
+   "school": "pyre",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "endurance": 2,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "card_type": "drill",
+	 "school": "pyre",
+	 "to": "play"
+	}
+   ]
+  },
+  {
+   "id": "pyre_strike_24",
+   "title": "Pyre Bonfire",
+   "type": "strike",
+   "school": "pyre",
+   "attack": {
+	"kind": "strike"
+   },
+   "empower": 4,
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "search",
+	 "card_type": "drill",
+	 "school": "pyre",
+	 "amount": 5,
+	 "to": "play",
+	 "after_empower": true
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1,
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "pyre_strike_26",
+   "title": "Pyre Cremation",
+   "type": "strike",
+   "school": "pyre",
+   "attack": {
+	"kind": "strike"
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "remove_discard",
+	 "who": "opponent",
+	 "all": true
+	}
+   ]
+  },
+  {
+   "id": "pyre_combat_02",
+   "title": "Pyre Conflagration",
+   "type": "combat",
+   "school": "pyre",
+   "effects": [
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat_or_ally",
+	 "all": true
+	},
+	{
+	 "op": "discard_in_play",
+	 "card_type": "non_combat_or_ally",
+	 "all": true
+	},
+	{
+	 "op": "set_energy",
+	 "amount": 0,
+	 "target": "duelist"
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ],
+   "only": {
+	"energy_min": 5
+   },
+   "limit_per_deck": 1
+  },
+  {
+   "id": "pyre_art_05",
+   "title": "Pyre Burned Through",
+   "type": "art",
+   "school": "pyre",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "effects": [
+	{
+	 "op": "float",
+	 "who": "opponent",
+	 "what": "no_endurance",
+	 "duration": "combat",
+	 "params": {
+	  "school": "pyre"
+	 }
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "fervor",
+	 "amount": 2
+	}
+   ]
+  },
+  {
+   "id": "pyre_art_06",
+   "title": "Pyre Flare Volley",
+   "type": "art",
+   "school": "pyre",
+   "attack": {
+	"kind": "art",
+	"printed_life": 2,
+	"pay_hand": {
+	 "life": 3
+	}
+   },
+   "endurance": 2,
+   "remain": 2,
+   "remove_after_use": true
+  },
+  {
+   "id": "pyre_art_07",
+   "title": "Pyre Phoenix Flame",
+   "type": "art",
+   "school": "pyre",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "shuffle_discard",
+	 "amount": 5,
+	 "school": "pyre"
+	}
+   ]
+  },
+  {
+   "id": "pyre_art_08",
+   "title": "Pyre Struck Spark",
+   "type": "art",
+   "school": "pyre",
+   "attack": {
+	"kind": "art",
+	"printed_life": 3,
+	"cost_stages": 1
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "pyre_art_09",
+   "title": "Pyre Sudden Flare",
+   "type": "art",
+   "school": "pyre",
+   "attack": {
+	"kind": "art",
+	"focused": true,
+	"printed_life": 3
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "fervor",
+	 "amount": 2
+	}
+   ]
+  },
+  {
+   "id": "pyre_art_10",
+   "title": "Pyre Unmaking Blaze",
+   "type": "art",
+   "school": "pyre",
+   "attack": {
+	"kind": "art",
+	"printed_life": 6
+   },
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "before_damage",
+	 "may": true,
+	 "skip_damage": true,
+	 "op": "lose_aspect",
+	 "who": "opponent"
+	}
+   ]
+  },
+  {
+   "id": "pyre_art_11",
+   "title": "Pyre White Flame",
+   "type": "art",
+   "school": "pyre",
+   "attack": {
+	"kind": "art",
+	"printed_life": 6,
+	"damage_removes": true
+   },
+   "endurance": 2,
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "draw",
+	 "amount": 1,
+	 "from": "bottom"
+	}
+   ]
+  },
+  {
+   "id": "pyre_combat_03",
+   "title": "Pyre Stoked Blaze",
+   "type": "combat",
+   "school": "pyre",
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "cost",
+	  "kind": "art",
+	  "stages": -1,
+	  "min": 1
+	 }
+	},
+	{
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "own",
+	  "kind": "art",
+	  "life": 2
+	 }
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "pyre_strike_27",
+   "title": "Pyre Heat Haze",
+   "type": "strike",
+   "school": "pyre",
+   "defense": {
+	"stops": "art"
+   },
+   "remove_after_use": true,
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "op": "stop_all",
+	 "kind": "art",
+	 "when": {
+	  "fervor_min": 1
+	 }
+	}
+   ]
+  },
+  {
+   "id": "pyre_strike_28",
+   "title": "Pyre Backfire",
+   "type": "strike",
+   "school": "pyre",
+   "defense": {
+	"stops": "strike"
+   },
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": 3
+	}
+   ]
+  },
+  {
+   "id": "pyre_mastery_03",
+   "title": "Pyre Tinder Mastery",
+   "type": "mastery",
+   "school": "pyre",
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "may": true,
+	 "op": "remove_discard",
+	 "amount": 1,
+	 "check": "school",
+	 "school": "pyre",
+	 "when": {
+	  "discard_min": 1
+	 },
+	 "effects": [
+	  {
+	   "op": "float",
+	   "what": "modifier",
+	   "duration": "combat",
+	   "params": {
+		"scope": "own",
+		"kind": "strike",
+		"stages": 3
+	   }
+	  }
+	 ],
+	 "else_effects": [
+	  {
+	   "op": "float",
+	   "what": "modifier",
+	   "duration": "combat",
+	   "params": {
+		"scope": "own",
+		"kind": "strike",
+		"stages": 1
+	   }
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "pyre_mastery_04",
+   "title": "Pyre Cinder Mastery",
+   "type": "mastery",
+   "school": "pyre",
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "on_attack",
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1,
+	 "when": {
+	  "attack_kind": "art"
+	 }
+	},
+	{
+	 "trigger": "on_stopped",
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": 2,
+	 "when": {
+	  "attack_kind": "art",
+	  "source_school": "pyre"
+	 }
 	}
    ]
   }

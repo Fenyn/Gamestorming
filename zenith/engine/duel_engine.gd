@@ -1787,7 +1787,7 @@ func _build_attack(att: int, source: CardInstance, spec: Dictionary, effects: Ar
 		"life_dealt": 0,
 		"target": -1,
 		"no_prevent": bool(spec.get("no_prevent", false)) or _has_floating(att, "no_prevent") or _attachment_no_prevent(state.players[att]),
-		"damage_removes": bool(constant.get("damage_removes", false)) or _has_floating(att, "damage_removes") or _attachment_removes(attacker, source),
+		"damage_removes": bool(spec.get("damage_removes", false)) or bool(constant.get("damage_removes", false)) or _has_floating(att, "damage_removes") or _attachment_removes(attacker, source),
 	}
 
 
@@ -2128,7 +2128,7 @@ func _advance_battle() -> void:
 				for al in defender.allies():
 					if not _ally_protected(defender, al):
 						opts.append(Command.new(attacker.index, &"discard_ally", al.uid))
-				if defender.fervor > 0 and not fervor_shielded(defender):
+				if defender.fervor > 0 and not fervor_shielded(defender) and not fervor_locked(defender):
 					opts.append(Command.new(attacker.index, &"lower_fervor"))
 				if not opts.is_empty():
 					opts.append(Command.new(attacker.index, &"no_critical"))
@@ -2218,6 +2218,15 @@ func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
 		_set_prompt(attacker.index, &"pay", life_opts, {"per": 1, "life_cost": true,
 				"source": life_src.uid if life_src != null else -1,
 				"card_title": life_src.def.title if life_src != null else ""})
+	elif spec.has("pay_hand") and not attacker.hand.is_empty():
+		# "You may discard a card from your hand when you perform this attack to do more damage":
+		# yes or no first, and on a yes the attacker picks which card goes.
+		var hand_src: CardInstance = _attack_source()
+		var hand_opts: Array[Command] = [Command.new(attacker.index, &"pay_hand", -1, 0), Command.new(attacker.index, &"pay_hand", -1, 1)]
+		_choice["kind"] = "pay_hand"
+		_set_prompt(attacker.index, &"pay", hand_opts, {"per": 1, "hand_cost": true,
+				"source": hand_src.uid if hand_src != null else -1,
+				"card_title": hand_src.def.title if hand_src != null else ""})
 
 
 func _handle_pay(cmd: Command) -> void:
@@ -2226,6 +2235,9 @@ func _handle_pay(cmd: Command) -> void:
 		return
 	if str(_choice.get("kind", "")) == "pay_life":
 		_handle_pay_life(cmd)
+		return
+	if str(_choice.get("kind", "")) == "pay_hand":
+		_handle_pay_hand(cmd)
 		return
 	var a: Dictionary = state.attack
 	var attacker: PlayerState = state.players[int(a["attacker"])]
@@ -2254,6 +2266,28 @@ func _handle_pay_life(cmd: Command) -> void:
 		a["extra_source"] = "Life card paid"
 		_emit(&"cost_paid", {"player": attacker.index, "stages": 0, "life": 1, "energy": _performer(a).energy})
 	state.battle_step = 3
+
+
+## "Discard a card from your hand to do more damage." The answer is 0 or 1; on a 1 the bonus is
+## booked and the card to discard is the attacker's own pick, which moves the battle on after.
+func _handle_pay_hand(cmd: Command) -> void:
+	var a: Dictionary = state.attack
+	var attacker: PlayerState = state.players[int(a["attacker"])]
+	var spec: Dictionary = a["spec"]
+	_choice = {}
+	state.battle_step = 3
+	if int(cmd.value) <= 0 or attacker.hand.is_empty():
+		return
+	a["extra_life"] = int(a["extra_life"]) + int(spec["pay_hand"].get("life", 0))
+	a["extra_stages"] = int(a["extra_stages"]) + int(spec["pay_hand"].get("stages", 0))
+	a["extra_source"] = "Card discarded"
+	if attacker.hand.size() == 1:
+		_emit(&"hand_discarded", {"player": attacker.index, "card": attacker.hand[0].uid, "random": false})
+		_move_to_discard(attacker.hand[0])
+		return
+	state.battle_step = 2
+	_prompt_discard_choice(attacker, 1)
+	_choice["battle_step"] = 3
 
 
 ## "Lose any number of Energy; for each N lost, do X."
@@ -2771,6 +2805,9 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 		var kin: int = tag_count(str(spec["life_per_tag"]))
 		if kin > 0:
 			adds.append({"source": "%d %s" % [kin, str(spec["life_per_tag"]).capitalize()], "stages": 0, "life": kin})
+	# "+X wounds, X = your current Fervor": the attacker's Fervor as the attack is worked out.
+	if int(spec.get("life_per_fervor", 0)) > 0 and attacker.fervor > 0:
+		adds.append({"source": "Fervor %d" % attacker.fervor, "stages": 0, "life": int(spec["life_per_fervor"]) * attacker.fervor})
 	if bool(spec.get("life_from_surge", false)) and attacker.duelist.surge() > 0:
 		adds.append({"source": "Surge", "stages": 0, "life": attacker.duelist.surge()})
 	if int(spec.get("life_per_opponent_seal", 0)) > 0 and not defender.seals().is_empty():
@@ -2886,6 +2923,9 @@ func _modifier_amount(m: Dictionary, key: String, p: PlayerState) -> int:
 		n *= p.allies().size() + 1
 	if str(m.get("per_bloodline", "")) != "":
 		n *= bloodline_count(p, str(m["per_bloodline"]))
+	# "+X, X = your current Fervor": read as the attack is worked out, so it rises with the climb.
+	if bool(m.get("per_fervor", false)):
+		n *= p.fervor
 	return n
 
 
@@ -3076,14 +3116,24 @@ func _deal_life_damage(defender: PlayerState, a: Dictionary) -> void:
 		a["life_dealt"] = int(a["life_dealt"]) + 1
 		_emit(&"life_card_flipped", {"player": defender.index, "card": c.uid, "id": c.def.id, "remaining": a["life_remaining"]})
 		var endurance: int = _endurance_value(c, defender)
-		if endurance > 0 and int(a["life_remaining"]) > 0 and not bool(a["no_prevent"]) and not _has_floating(defender.index, "no_endurance"):
+		if endurance > 0 and int(a["life_remaining"]) > 0 and not bool(a["no_prevent"]) and not _endurance_barred(defender, a):
 			var opts: Array[Command] = [Command.new(defender.index, &"endure", c.uid), Command.new(defender.index, &"no_endure", c.uid)]
 			_set_prompt(defender.index, &"endurance", opts, {"card": c.uid, "endurance": endurance, "remaining": a["life_remaining"]})
 			return
 	state.battle_step = 14
 
 
+## A standing "your opponent cannot use Endurance" sits on the defender. One that names a school
+## ("against your Pyre attacks") only bars it when the attack comes off a card of that school.
+func _endurance_barred(defender: PlayerState, a: Dictionary) -> bool:
+	var src: CardInstance = card(int(a.get("source", -1)))
+	return _has_floating_school(defender.index, "no_endurance", src.def.school if src != null else "")
+
+
 func _endurance_value(c: CardInstance, p: PlayerState) -> int:
+	# "Endurance X, X = your current Fervor": the owner's, read as the card is turned over.
+	if str(c.def.raw.get("endurance_from", "")) == "fervor":
+		return p.fervor
 	if not c.def.endurance_when.is_empty():
 		var ew: Dictionary = c.def.endurance_when
 		if _cond(ew.get("value_if", {}), p.index, {}):
@@ -3281,6 +3331,10 @@ func _handle_trade_damage(cmd: Command) -> void:
 func _finish_attack(attacker: PlayerState, a: Dictionary) -> void:
 	if bool(a["stopped"]):
 		_enqueue(a["effects"], "if_stopped", attacker.index, {"attack": a}, _attack_source())
+		# "If your opponent stops one of your Pyre Arts, they discard the top 2 cards of their Life
+		# Deck." The Mastery answers the stop, whichever card was blocked.
+		if attacker.mastery != null and not _forbidden(attacker, "mastery"):
+			_enqueue(attacker.mastery.def.effects, "on_stopped", attacker.index, {"attack": a}, attacker.mastery)
 	var src: CardInstance = _attack_source()
 	if src != null and not bool(a["is_power"]):
 		_enqueue([{"trigger": "secondary", "op": "finish_source", "empowered": bool(a["empowered"])}], "secondary", attacker.index, {"attack": a}, src)
@@ -3575,6 +3629,18 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				counts.append(Command.new(who_index, &"pick_none"))
 				_choice = {"kind": "draw_deck_count", "player": who_index}
 				_set_prompt(who_index, &"pick_option", counts, _choice_context(source, "draw_count"))
+				return
+			if str(e.get("from", "top")) == "bottom":
+				# "Draw the bottom card of your Life Deck." Nothing is revealed that the draw would not.
+				for i in range(int(amount)):
+					if who.life_deck.is_empty():
+						_lose(who_index, "survival")
+						if state.is_over():
+							return
+					var low: CardInstance = who.life_deck.pop_back()
+					low.zone = &"hand"
+					who.hand.append(low)
+					_emit(&"draw", {"player": who_index, "card": low.uid, "from": "deck_bottom"})
 				return
 			_draw(who_index, int(amount))
 		"draw_until":
@@ -3877,6 +3943,15 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		"spend_source":
 			if source != null and source.zone == &"in_play" and source.def.type == CardDef.Type.NON_COMBAT:
 				_finish_card(source, false)
+		"shuffle_source":
+			# "If successful, shuffle this card into your Life Deck." Only a card still in the air
+			# goes, so the finish that follows finds it gone and leaves it where it is.
+			if source != null and source.zone == &"resolving":
+				var home: PlayerState = state.players[source.owner]
+				_move_to_deck_bottom(source)
+				if shuffle_decks:
+					rng.shuffle(home.life_deck)
+					_emit(&"deck_shuffled", {"player": home.index})
 		"mark_used":
 			# A "once per Combat" that is spent by taking it, not by being offered it. Put this in
 			# a `then` so a declined "may" leaves the card still available this Combat.
@@ -3958,6 +4033,12 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 					return false
 			"opponent_fervor":
 				if opp.fervor != int(v):
+					return false
+			"opponent_fervor_max":
+				if opp.fervor > int(v):
+					return false
+			"fervor_min":
+				if me.fervor < int(v):
 					return false
 			"allies_min":
 				if me.allies().size() < int(v):
@@ -5142,7 +5223,7 @@ func _change_fervor_needed(p: PlayerState, value: int) -> void:
 
 
 func _change_fervor(p: PlayerState, delta: int, source_owner: int) -> void:
-	if delta < 0 and source_owner != p.index and fervor_shielded(p):
+	if delta < 0 and (fervor_locked(p) or (source_owner != p.index and fervor_shielded(p))):
 		_emit(&"fervor_shielded", {"player": p.index})
 		return
 	if delta > 0:
@@ -5162,7 +5243,7 @@ func _change_fervor(p: PlayerState, delta: int, source_owner: int) -> void:
 
 
 func _set_fervor(p: PlayerState, value: int, source_owner: int) -> void:
-	if value < p.fervor and source_owner != p.index and fervor_shielded(p):
+	if value < p.fervor and (fervor_locked(p) or (source_owner != p.index and fervor_shielded(p))):
 		_emit(&"fervor_shielded", {"player": p.index})
 		return
 	var before: int = p.fervor
@@ -5173,6 +5254,17 @@ func _set_fervor(p: PlayerState, value: int, source_owner: int) -> void:
 
 func fervor_shielded(p: PlayerState) -> bool:
 	return p.relic != null and bool(p.relic.def.relic_flags.get("fervor_shield", false))
+
+
+## "Your Fervor may not be lowered while this Drill is in play." Wider than the Relic's shield: it
+## names no opponent, so it holds against every lowering, a critical hit's and the player's own.
+func fervor_locked(p: PlayerState) -> bool:
+	if _forbidden(p, "drills"):
+		return false
+	for d in p.drills():
+		if bool(d.def.raw.get("fervor_lock", false)):
+			return true
+	return false
 
 
 ## Full Fervor raises the duelist an aspect. At the duelist's own top aspect it is the Ascension win;
@@ -5224,7 +5316,7 @@ func _check_aspect_up(p: PlayerState) -> void:
 func _aspect_up(p: PlayerState) -> void:
 	p.duelist.go_to_aspect(p.duelist.aspect + 1)
 	p.duelist.energy = CardInstance.MAX_STAGE
-	_discard_drills(p)
+	_discard_drills(p, true)
 	_emit(&"aspect_up", {"player": p.index, "aspect": p.duelist.aspect})
 	# Entering the Aspect is itself the Most Powerful Personality win, however the climb was paid for.
 	_try_ascension_win(p)
@@ -5265,10 +5357,23 @@ func _set_aspect(p: PlayerState, e: Dictionary, source_owner: int) -> void:
 
 ## Changing aspect clears the Drills. A Mastery that guards Drills stops this too: the guard is
 ## "cannot be discarded for any reason", not "cannot be discarded by the opponent".
-func _discard_drills(p: PlayerState) -> void:
+func _discard_drills(p: PlayerState, advancing: bool = false) -> void:
 	if _drills_protected(p):
 		return
+	# "Whenever your duelist advances an Aspect, none of your other Drills are discarded. If your
+	# opponent's Fervor is 0 when they advance, this Drill is not discarded either." A climb only;
+	# losing an Aspect clears the Drills as it always did.
+	var keeper: CardInstance = null
+	if advancing and not _forbidden(p, "drills"):
+		for d in p.drills():
+			if d.def.raw.has("keeps_drills_on_advance"):
+				keeper = d
+				break
 	for d in p.drills():
+		if keeper != null and d != keeper:
+			continue
+		if d == keeper and _cond((keeper.def.raw["keeps_drills_on_advance"] as Dictionary).get("self_when", {}), p.index, {}):
+			continue
 		_move_to_discard(d)
 
 

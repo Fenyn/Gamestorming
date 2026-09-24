@@ -4,7 +4,7 @@ extends SceneTree
 ## use is hidden in the update's final view, and the pin used to fall back to the personality.
 ## Run: godot --headless --path zenith -s tests/attack_pin_presentation.gd
 
-const HALDEN: String = "personality_halden_quarr_1_the_grinder"
+const HALDEN: String = "personality_13"
 
 var checks: int = 0
 var failures: int = 0

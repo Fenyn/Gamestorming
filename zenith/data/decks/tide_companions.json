@@ -1,20 +1,20 @@
 {
   "name": "Tidesworn Coven",
   "duelist": [
-    "personality_alder_rooke_1_matriarch",
-    "personality_alder_rooke_2_rising_water",
-    "personality_alder_rooke_3_the_flood"
+    "personality_04",
+    "personality_05",
+    "personality_06"
   ],
   "style": "tide",
   "alignment": "vigil",
-  "mastery": "tide_mastery",
-  "relic": "debtors_ring",
+  "mastery": "tide_mastery_01",
+  "relic": "relic_02",
   "reserve": [
-    "open_challenge",
-    "overreach",
-    "lobbed_bolt",
-    "clean_sweep",
-    "personality_ansel_and_tavin_1_back_to_back"
+    "freestyle_noncombat_09",
+    "freestyle_art_04",
+    "freestyle_art_03",
+    "freestyle_strike_02",
+    "personality_54"
   ],
   "archetype": "allies",
   "difficulty": "medium",
@@ -27,160 +27,160 @@
   "blurb": "Dame Alder Rooke ebbs and floods. Her coven takes the wounds, her blocks turn the exchange, and her Arts pull the rival's Energy out and pour it back into hers. Slow to kill, hard to outlast.",
   "cards": [
     {
-      "id": "personality_wren_rooke_1",
-      "count": 1
-    },
-    {
-      "id": "personality_edric_rooke_1",
-      "count": 1
-    },
-    {
-      "id": "personality_tavin_vale_1",
-      "count": 1
-    },
-    {
-      "id": "personality_ansel_rooke_1",
-      "count": 1
-    },
-    {
-      "id": "trampled_crossroads",
-      "count": 3
-    },
-    {
-      "id": "watchful_eye",
-      "count": 3
-    },
-    {
-      "id": "cut_short",
-      "count": 3
-    },
-    {
-      "id": "kept_at_bay",
-      "count": 1
-    },
-    {
-      "id": "warding_call",
-      "count": 1
-    },
-    {
-      "id": "rallying_call",
-      "count": 3
-    },
-    {
-      "id": "rookes_deluge",
-      "count": 3
-    },
-    {
-      "id": "last_gasp",
-      "count": 1
-    },
-    {
-      "id": "edrics_vow",
+      "id": "freestyle_noncombat_08",
       "count": 2
     },
     {
-      "id": "old_trick",
+      "id": "freestyle_strike_02",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_03",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_11",
+      "count": 3
+    },
+    {
+      "id": "signature_combat_03",
+      "count": 3
+    },
+    {
+      "id": "signature_combat_06",
       "count": 2
     },
     {
-      "id": "closing_ranks",
-      "count": 3
-    },
-    {
-      "id": "stillness",
+      "id": "signature_art_01",
       "count": 1
     },
     {
-      "id": "unyielding_guard",
+      "id": "freestyle_combat_07",
       "count": 1
     },
     {
-      "id": "mournes_stance",
+      "id": "freestyle_combat_09",
       "count": 1
     },
     {
-      "id": "grounding_step",
-      "count": 1
-    },
-    {
-      "id": "tide_breakwater",
-      "count": 1
-    },
-    {
-      "id": "tide_ebb",
-      "count": 3
-    },
-    {
-      "id": "last_ward",
+      "id": "freestyle_strike_05",
       "count": 2
     },
     {
-      "id": "no_quarter",
-      "count": 3
-    },
-    {
-      "id": "tide_undertow",
-      "count": 3
-    },
-    {
-      "id": "tide_drowning",
-      "count": 3
-    },
-    {
-      "id": "clean_sweep",
+      "id": "freestyle_noncombat_06",
       "count": 1
     },
     {
-      "id": "tide_surge",
-      "count": 3
-    },
-    {
-      "id": "unerring_bolt",
-      "count": 3
-    },
-    {
-      "id": "tide_twin_swell",
-      "count": 3
-    },
-    {
-      "id": "tide_torrent",
-      "count": 3
-    },
-    {
-      "id": "tide_springwater",
-      "count": 3
-    },
-    {
-      "id": "tide_depths",
+      "id": "signature_strike_03",
       "count": 1
     },
     {
-      "id": "tide_twin_breaker",
+      "id": "signature_strike_01",
       "count": 3
     },
     {
-      "id": "tide_high_water",
-      "count": 3
-    },
-    {
-      "id": "tide_confluence",
-      "count": 3
-    },
-    {
-      "id": "recalled_lesson",
-      "count": 1
-    },
-    {
-      "id": "lucky_find",
-      "count": 1
-    },
-    {
-      "id": "clear_mind",
-      "count": 1
-    },
-    {
-      "id": "bonding_rite",
+      "id": "freestyle_combat_10",
       "count": 2
+    },
+    {
+      "id": "personality_52",
+      "count": 1
+    },
+    {
+      "id": "personality_50",
+      "count": 1
+    },
+    {
+      "id": "personality_51",
+      "count": 1
+    },
+    {
+      "id": "personality_49",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_12",
+      "count": 3
+    },
+    {
+      "id": "freestyle_noncombat_02",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_05",
+      "count": 3
+    },
+    {
+      "id": "freestyle_combat_01",
+      "count": 1
+    },
+    {
+      "id": "tide_art_01",
+      "count": 1
+    },
+    {
+      "id": "tide_art_08",
+      "count": 3
+    },
+    {
+      "id": "tide_art_06",
+      "count": 1
+    },
+    {
+      "id": "tide_strike_03",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_01",
+      "count": 3
+    },
+    {
+      "id": "tide_art_07",
+      "count": 3
+    },
+    {
+      "id": "tide_art_05",
+      "count": 3
+    },
+    {
+      "id": "tide_art_02",
+      "count": 3
+    },
+    {
+      "id": "tide_art_04",
+      "count": 3
+    },
+    {
+      "id": "tide_art_09",
+      "count": 3
+    },
+    {
+      "id": "tide_art_03",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_02",
+      "count": 3
+    },
+    {
+      "id": "grounds_01",
+      "count": 3
+    },
+    {
+      "id": "freestyle_art_02",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_04",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_08",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_06",
+      "count": 3
     }
   ]
 }

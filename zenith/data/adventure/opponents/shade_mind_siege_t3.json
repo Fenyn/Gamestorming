@@ -4,13 +4,13 @@
   "tier": "t3",
   "mode": "adventure",
   "duelist": [
-    "personality_gideon_mourne_1_the_marked_lord",
-    "personality_gideon_mourne_2_unflinching",
-    "personality_gideon_mourne_3_unfettered"
+    "personality_59",
+    "personality_60",
+    "personality_61"
   ],
   "style": "shade",
   "alignment": "pact",
-  "mastery": "shade_mastery",
+  "mastery": "shade_mastery_01",
   "relic": "",
   "reserve": [],
   "archetype": "strike_beatdown",
@@ -23,135 +23,135 @@
   "tagline": "Take their hand, their table and their options, then finish with blows the mark makes focused.",
   "cards": [
     {
-      "id": "grounding_step",
+      "id": "freestyle_art_10",
       "count": 1
     },
     {
-      "id": "marked_demise",
+      "id": "freestyle_art_11",
       "count": 2
     },
     {
-      "id": "marked_lightning",
+      "id": "shade_art_01",
       "count": 1
     },
     {
-      "id": "shade_fixed_gaze",
+      "id": "shade_art_08",
+      "count": 1
+    },
+    {
+      "id": "shade_art_09",
+      "count": 2
+    },
+    {
+      "id": "shade_art_10",
       "count": 3
     },
     {
-      "id": "shade_recoil",
+      "id": "shade_art_11",
       "count": 1
     },
     {
-      "id": "shade_swelling_whisper",
+      "id": "signature_art_01",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_03",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_04",
       "count": 2
     },
     {
-      "id": "shade_turned_whisper",
+      "id": "freestyle_drill_01",
       "count": 1
     },
     {
-      "id": "shade_umbral_lash",
+      "id": "shade_drill_02",
       "count": 1
     },
     {
-      "id": "cold_appraisal",
+      "id": "shade_drill_03",
       "count": 2
     },
     {
-      "id": "cut_short",
+      "id": "freestyle_noncombat_02",
       "count": 1
     },
     {
-      "id": "bravado_drill",
+      "id": "freestyle_noncombat_04",
       "count": 1
     },
     {
-      "id": "shade_composure_drill",
-      "count": 1
-    },
-    {
-      "id": "shade_faltering_drill",
+      "id": "freestyle_strike_07",
       "count": 2
     },
     {
-      "id": "foresight",
-      "count": 1
-    },
-    {
-      "id": "recalled_lesson",
-      "count": 1
-    },
-    {
-      "id": "ashmarks_unmaking_whisper",
-      "count": 2
-    },
-    {
-      "id": "marked_strength",
-      "count": 2
-    },
-    {
-      "id": "mournes_stance",
-      "count": 1
-    },
-    {
-      "id": "no_quarter",
-      "count": 1
-    },
-    {
-      "id": "relentless_fury",
-      "count": 1
-    },
-    {
-      "id": "scatters_the_ashes",
-      "count": 2
-    },
-    {
-      "id": "shade_bitter_trade",
-      "count": 2
-    },
-    {
-      "id": "shade_dread_grip",
-      "count": 2
-    },
-    {
-      "id": "shade_emptying_whisper",
+      "id": "shade_strike_02",
       "count": 3
     },
     {
-      "id": "shade_hex_recall",
+      "id": "shade_strike_03",
+      "count": 2
+    },
+    {
+      "id": "shade_strike_05",
+      "count": 2
+    },
+    {
+      "id": "shade_strike_06",
+      "count": 2
+    },
+    {
+      "id": "shade_strike_08",
+      "count": 2
+    },
+    {
+      "id": "shade_strike_09",
+      "count": 2
+    },
+    {
+      "id": "shade_strike_10",
+      "count": 2
+    },
+    {
+      "id": "shade_strike_11",
       "count": 3
     },
     {
-      "id": "shade_lingering_whisper",
+      "id": "shade_strike_12",
       "count": 2
     },
     {
-      "id": "shade_nightmare_hold",
+      "id": "shade_strike_14",
       "count": 2
     },
     {
-      "id": "shade_returning_whisper",
+      "id": "shade_strike_15",
       "count": 2
     },
     {
-      "id": "shade_sifting_whisper",
+      "id": "signature_strike_01",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_02",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_03",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_08",
       "count": 2
     },
     {
-      "id": "shade_silenced_whisper",
+      "id": "signature_strike_19",
       "count": 2
     },
     {
-      "id": "shade_stinging_palm",
-      "count": 2
-    },
-    {
-      "id": "shade_warding_burst",
-      "count": 2
-    },
-    {
-      "id": "wall_of_flame",
+      "id": "signature_strike_31",
       "count": 2
     }
   ]

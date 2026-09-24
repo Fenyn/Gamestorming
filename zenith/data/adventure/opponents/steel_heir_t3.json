@@ -4,13 +4,13 @@
   "tier": "t3",
   "mode": "adventure",
   "duelist": [
-    "personality_emrys_rooke_1_the_eldest",
-    "personality_emrys_rooke_2_first_plate",
-    "personality_emrys_rooke_3_edged"
+    "personality_35",
+    "personality_36",
+    "personality_37"
   ],
   "style": "steel",
   "alignment": "vigil",
-  "mastery": "steel_mastery",
+  "mastery": "steel_mastery_01",
   "relic": "",
   "reserve": [],
   "archetype": "strike_beatdown",
@@ -22,148 +22,148 @@
   "tagline": "Draw deep and spend life cards to power crushing blows as Emrys ascends to even stronger Aspects.",
   "cards": [
     {
-      "id": "captains_barrage",
+      "id": "freestyle_art_06",
       "count": 3
     },
     {
-      "id": "declaration",
+      "id": "signature_art_01",
       "count": 1
     },
     {
-      "id": "grounding_step",
+      "id": "signature_art_09",
       "count": 1
     },
     {
-      "id": "steel_plating",
-      "count": 1
-    },
-    {
-      "id": "steel_sink",
+      "id": "steel_art_05",
       "count": 2
     },
     {
-      "id": "cut_short",
+      "id": "steel_art_06",
       "count": 1
     },
     {
-      "id": "dismissal",
+      "id": "freestyle_combat_01",
       "count": 1
     },
     {
-      "id": "kept_at_bay",
-      "count": 1
-    },
-    {
-      "id": "steel_standoff",
-      "count": 1
-    },
-    {
-      "id": "stillness",
-      "count": 1
-    },
-    {
-      "id": "watchful_eye",
+      "id": "freestyle_combat_06",
       "count": 2
     },
     {
-      "id": "locked_gate_drill",
+      "id": "freestyle_combat_07",
       "count": 1
     },
     {
-      "id": "mournes_quickness_drill",
+      "id": "freestyle_combat_17",
       "count": 1
     },
     {
-      "id": "steel_conditioning_drill",
+      "id": "signature_combat_03",
       "count": 1
     },
     {
-      "id": "foresight",
+      "id": "steel_combat_01",
       "count": 1
     },
     {
-      "id": "mourne_takes_measure",
+      "id": "signature_drill_03",
       "count": 1
     },
     {
-      "id": "rites_unmade",
+      "id": "signature_drill_04",
       "count": 1
     },
     {
-      "id": "spoiled_rite",
+      "id": "steel_drill_01",
       "count": 1
     },
     {
-      "id": "the_long_year",
+      "id": "freestyle_noncombat_01",
       "count": 1
     },
     {
-      "id": "personality_alder_rooke_1",
+      "id": "freestyle_noncombat_04",
       "count": 1
     },
     {
-      "id": "marble_seal_4",
+      "id": "freestyle_noncombat_05",
       "count": 1
     },
     {
-      "id": "edrics_training",
+      "id": "freestyle_noncombat_12",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_05",
+      "count": 1
+    },
+    {
+      "id": "personality_53",
+      "count": 1
+    },
+    {
+      "id": "seal_11",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_03",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_04",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_06",
       "count": 3
     },
     {
-      "id": "mournes_stance",
-      "count": 1
-    },
-    {
-      "id": "steel_battering_ram",
-      "count": 2
-    },
-    {
-      "id": "steel_cross",
-      "count": 2
-    },
-    {
-      "id": "steel_forearm_guard",
+      "id": "signature_strike_21",
       "count": 3
     },
     {
-      "id": "steel_headbutt",
-      "count": 2
-    },
-    {
-      "id": "steel_rake",
-      "count": 2
-    },
-    {
-      "id": "steel_reverse",
-      "count": 2
-    },
-    {
-      "id": "steel_slip",
-      "count": 2
-    },
-    {
-      "id": "steel_stamp",
-      "count": 2
-    },
-    {
-      "id": "steel_tackle",
-      "count": 2
-    },
-    {
-      "id": "steel_talon",
-      "count": 2
-    },
-    {
-      "id": "steel_tempering",
-      "count": 2
-    },
-    {
-      "id": "unyielding_guard",
-      "count": 1
-    },
-    {
-      "id": "vales_riposte",
+      "id": "steel_strike_04",
       "count": 3
+    },
+    {
+      "id": "steel_strike_06",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_07",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_11",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_16",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_17",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_18",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_19",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_20",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_21",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_22",
+      "count": 2
     }
   ]
 }

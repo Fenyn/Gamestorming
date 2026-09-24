@@ -108,29 +108,50 @@ def seal(id, title, seal_set, number, effects, **k):
         effects=effects, limit_per_deck=1, **k)
 
 
-HONORIFICS = {"sir", "dame", "lord", "lady", "master", "the"}
+DATA = "data/cards/starter/starter_set.json"
+_SHIPPED = None
 
 
-def _slug(s):
-    out = "".join(ch if ch.isalnum() else "_" for ch in s.replace("'", "").replace("’", ""))
-    while "__" in out:
-        out = out.replace("__", "_")
-    return out.strip("_").lower()
+def _shipped():
+    global _SHIPPED
+    if _SHIPPED is None:
+        import json
+        try:
+            _SHIPPED = json.load(open(DATA, encoding="utf-8"))["cards"]
+        except FileNotFoundError:
+            _SHIPPED = []
+    return _SHIPPED
+
+
+def generic_id(prefix, match=None):
+    """The id rule since 2026-09-23: ids are generic, `<group>_<type>_<nn>` or `<group>_<nn>`
+    (`pyre_strike_07`, `signature_art_03`, `personality_17`, `seal_05`), and never follow a
+    title, so a rename touches only the title. The art file shares the id, in the folder named by
+    its first word. `match` is a dict of fields; a shipped card with those fields keeps its id, so
+    running a spec twice does not add the card twice. Otherwise the next free number is taken."""
+    pattern = __import__("re").compile(r"^%s_(\d+)$" % prefix)
+    top = 0
+    for c in _shipped():
+        if match and all(c.get(k) == v for k, v in match.items()) and pattern.match(c["id"]):
+            return c["id"]
+        m = pattern.match(c["id"])
+        if m:
+            top = max(top, int(m.group(1)))
+    for i in IDS:
+        m = pattern.match(i)
+        if m:
+            top = max(top, int(m.group(1)))
+    return "%s_%02d" % (prefix, top + 1)
 
 
 def personality_id(character, aspect_n, title="", variant=""):
-    """The id rule, decided 2026-09-21: personality_<first>_<last>_<tier>_<title>.
-
-    Honorifics are left out, apostrophes are dropped, spaces and hyphens become underscores. A
-    card with no Aspect title uses its variant word, or nothing. A card two printed lines share
-    carries no variant and so needs an Aspect title to tell it apart.
-    """
-    words = [w for w in character.split(",")[0].split() if w]
-    if words and words[0].lower() in HONORIFICS and len(words) > 1:
-        words = words[1:]
-    tail = _slug(title or variant or (character.split(",", 1)[1] if "," in character else ""))
-    base = "personality_%s_%d" % (_slug(" ".join(words)), aspect_n)
-    return "%s_%s" % (base, tail) if tail else base
+    """A personality card's id: generic, see `generic_id`."""
+    match = {"type": "personality", "character": character, "aspect": aspect_n}
+    if title:
+        match["aspect_title"] = title
+    if variant:
+        match["variant"] = variant
+    return generic_id("personality", match)
 
 
 def personality(character, aspect_n, surge, top, step, power=None, title="", **k):

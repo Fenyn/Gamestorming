@@ -105,16 +105,16 @@ static func dissolve_value(def: CardDef) -> int:
 	return int(floor(float(price(def)) * float(data().get("dissolve_fraction", 0.0))))
 
 
-## Paid for clearing the stage at `stage_index` (0-based), so a later stage is worth more.
-static func stage_payout(stage_index: int) -> int:
-	if stage_index < 0:
+## Paid for winning a duel in `act` (1-based), from the per-act rows in economy.json: a later act
+## pays more, and a boss more than any other fight in its act. An act past the rows pays the last.
+static func duel_payout(act: int, boss: bool) -> int:
+	var rows: Array = data().get("boss_payout_by_act" if boss else "duel_payout_by_act", [])
+	if rows.is_empty() or act < 1:
 		return 0
-	var base: int = int(data().get("stage_payout_base", 0))
-	var step: int = int(data().get("stage_payout_step", 0))
-	return base + step * stage_index
+	return int(rows[mini(act, rows.size()) - 1])
 
 
-## Paid once for beating the whole ladder, on top of the last stage payout.
+## Paid once for beating the final boss, on top of that duel's payout.
 static func completion_bonus() -> int:
 	return int(data().get("completion_bonus", 0))
 

@@ -62,10 +62,10 @@ func _ready() -> void:
 func _fill_header() -> void:
 	var run: AdventureRun = Session.run
 	var won: bool = AdventureSettlement.won(run)
-	var size: int = Session.ladder.size() if Session.ladder != null else 0
+	var place: String = Session.map.place_of(run.node_id) if Session.map != null else "the start"
 	outcome_label.text = "Run complete" if won else "Run over"
-	reached_label.text = "Cleared all %d stages" % size if won else "Fell at stage %d of %d" % [
-		mini(run.stage + 1, size), size]
+	reached_label.text = "Won all %d duels" % run.stage if won else "Fell at %s after %d duels won" % [
+		place, run.stage]
 	var deck: DeckList = run.deck()
 	var duelist: CardDef = Session.library.defs.get(deck.duelist_face_id()) if deck != null else null
 	duelist_label.text = "%s   ·   %s" % [

@@ -10,8 +10,9 @@ const OPPONENT_LIVES: int = 1
 const BOSS_LIVES: int = 2
 
 
-## Lives for one ladder stage, player first. The player always has two; an opponent has one unless
-## the stage is the boss, who also has two. `row` is an `AdventureLadder` stage row; an empty row
-## is read as an ordinary stage.
+## Lives for one duel, player first. The player always has two; an opponent has one unless it is an
+## act boss, who also has two. `row` is an `AdventureMap.duel_for` row; an empty row is read as an
+## ordinary duel.
 static func lives_for(row: Dictionary) -> Array[int]:
-	return [PLAYER_LIVES, BOSS_LIVES if str(row.get("tier", "")) == "boss" else OPPONENT_LIVES]
+	var boss: bool = str(row.get("node", "")) == "boss" or str(row.get("tier", "")) == "boss"
+	return [PLAYER_LIVES, BOSS_LIVES if boss else OPPONENT_LIVES]

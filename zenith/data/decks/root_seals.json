@@ -1,15 +1,15 @@
 {
   "name": "Sevenfold Grove",
   "duelist": [
-    "personality_osric_thornwald_1_greybeard",
-    "personality_osric_thornwald_2_overgrown",
-    "personality_osric_thornwald_3_deep_rooted",
-    "personality_osric_thornwald_4_heartwood",
-    "personality_osric_thornwald_5_grovelord"
+    "personality_21",
+    "personality_22",
+    "personality_23",
+    "personality_24",
+    "personality_25"
   ],
   "style": "root",
   "alignment": "vigil",
-  "mastery": "root_mastery",
+  "mastery": "root_mastery_01",
   "relic": "",
   "reserve": [],
   "archetype": "seals",
@@ -23,200 +23,200 @@
   "blurb": "Osric Thornwald regrows what is cut away. Spent spells return to the bottom of his deck, foresight shows him what comes next, and while the rival tires he carves the seven seals. No burst; patience is the plan.",
   "cards": [
     {
-      "id": "frostbound_moor",
+      "id": "signature_drill_02",
+      "count": 1
+    },
+    {
+      "id": "freestyle_art_08",
       "count": 3
     },
     {
-      "id": "marble_seal_1",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_2",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_3",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_4",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_5",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_6",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_7",
-      "count": 1
-    },
-    {
-      "id": "first_cut",
-      "count": 1
-    },
-    {
-      "id": "mournes_plans",
-      "count": 1
-    },
-    {
-      "id": "mournes_smirk",
-      "count": 1
-    },
-    {
-      "id": "wardens_measure",
-      "count": 1
-    },
-    {
-      "id": "sleight",
-      "count": 1
-    },
-    {
-      "id": "eyes_beyond_the_gate",
-      "count": 1
-    },
-    {
-      "id": "seal_seizure",
+      "id": "signature_combat_03",
       "count": 3
     },
     {
-      "id": "lucky_find",
-      "count": 1
-    },
-    {
-      "id": "spoiled_rite",
-      "count": 1
-    },
-    {
-      "id": "gates_boon",
-      "count": 1
-    },
-    {
-      "id": "kins_rescue",
-      "count": 1
-    },
-    {
-      "id": "foresight",
-      "count": 1
-    },
-    {
-      "id": "keepers_drill",
-      "count": 3
-    },
-    {
-      "id": "guardian_drill",
-      "count": 1
-    },
-    {
-      "id": "absorbing_drill",
-      "count": 1
-    },
-    {
-      "id": "mournes_quickness_drill",
-      "count": 1
-    },
-    {
-      "id": "root_preparation_drill",
-      "count": 1
-    },
-    {
-      "id": "watchful_eye",
-      "count": 3
-    },
-    {
-      "id": "cut_short",
-      "count": 3
-    },
-    {
-      "id": "parley",
-      "count": 3
-    },
-    {
-      "id": "dismissal",
+      "id": "freestyle_combat_17",
       "count": 2
     },
     {
-      "id": "kept_at_bay",
+      "id": "freestyle_noncombat_17",
       "count": 1
     },
     {
-      "id": "respite",
+      "id": "signature_noncombat_07",
       "count": 1
     },
     {
-      "id": "root_energy_focus",
+      "id": "freestyle_noncombat_04",
       "count": 1
     },
     {
-      "id": "stillness",
+      "id": "grounds_04",
+      "count": 3
+    },
+    {
+      "id": "freestyle_noncombat_13",
       "count": 1
     },
     {
-      "id": "mournes_stance",
+      "id": "signature_art_01",
       "count": 1
     },
     {
-      "id": "unyielding_guard",
+      "id": "signature_drill_06",
       "count": 1
     },
     {
-      "id": "grounding_step",
+      "id": "signature_drill_05",
+      "count": 3
+    },
+    {
+      "id": "freestyle_combat_07",
       "count": 1
     },
     {
-      "id": "practiced_guard",
+      "id": "freestyle_noncombat_16",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_06",
+      "count": 1
+    },
+    {
+      "id": "seal_08",
+      "count": 1
+    },
+    {
+      "id": "seal_09",
+      "count": 1
+    },
+    {
+      "id": "seal_10",
+      "count": 1
+    },
+    {
+      "id": "seal_11",
+      "count": 1
+    },
+    {
+      "id": "seal_12",
+      "count": 1
+    },
+    {
+      "id": "seal_13",
+      "count": 1
+    },
+    {
+      "id": "seal_14",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_08",
+      "count": 1
+    },
+    {
+      "id": "signature_drill_03",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_09",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_03",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_18",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_26",
       "count": 2
     },
     {
-      "id": "second_wind",
+      "id": "freestyle_combat_05",
+      "count": 1
+    },
+    {
+      "id": "root_combat_01",
       "count": 3
     },
     {
-      "id": "root_energy_deflection",
+      "id": "root_strike_01",
       "count": 3
     },
     {
-      "id": "root_energy_catch",
+      "id": "root_art_03",
       "count": 3
     },
     {
-      "id": "root_firm_stance",
+      "id": "root_art_04",
+      "count": 3
+    },
+    {
+      "id": "root_art_02",
+      "count": 3
+    },
+    {
+      "id": "root_art_01",
+      "count": 3
+    },
+    {
+      "id": "root_combat_02",
+      "count": 1
+    },
+    {
+      "id": "root_strike_02",
       "count": 2
     },
     {
-      "id": "root_bolt",
-      "count": 3
-    },
-    {
-      "id": "root_dash",
-      "count": 3
-    },
-    {
-      "id": "root_destruction_blast",
-      "count": 3
-    },
-    {
-      "id": "root_dragon_blast",
-      "count": 3
-    },
-    {
-      "id": "suppressing_shot",
-      "count": 3
-    },
-    {
-      "id": "blinding_flare",
-      "count": 3
-    },
-    {
-      "id": "smoke_screen",
-      "count": 3
-    },
-    {
-      "id": "sharp_rebuke",
+      "id": "root_drill_01",
       "count": 1
+    },
+    {
+      "id": "freestyle_combat_19",
+      "count": 3
+    },
+    {
+      "id": "freestyle_strike_06",
+      "count": 3
+    },
+    {
+      "id": "freestyle_art_07",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_15",
+      "count": 1
+    },
+    {
+      "id": "signature_art_13",
+      "count": 3
+    },
+    {
+      "id": "freestyle_noncombat_12",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_01",
+      "count": 1
+    },
+    {
+      "id": "signature_art_12",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_04",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_14",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_06",
+      "count": 3
     }
   ]
 }

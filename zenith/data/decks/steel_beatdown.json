@@ -1,22 +1,22 @@
 {
   "name": "Ironblood Onslaught",
   "duelist": [
-    "personality_halden_quarr_1_the_grinder",
-    "personality_halden_quarr_2_tempered",
-    "personality_halden_quarr_3_ironheart"
+    "personality_13",
+    "personality_14",
+    "personality_15"
   ],
   "style": "steel",
   "alignment": "pact",
-  "mastery": "steel_mastery",
-  "relic": "blank_mask",
+  "mastery": "steel_mastery_01",
+  "relic": "relic_01",
   "reserve": [
-    "open_challenge",
-    "steel_skull_crack",
-    "mutual_escalation",
-    "mutual_escalation",
-    "mutual_escalation",
-    "defacement",
-    "scorn_smirks"
+    "freestyle_noncombat_09",
+    "steel_strike_01",
+    "freestyle_combat_14",
+    "freestyle_combat_14",
+    "freestyle_combat_14",
+    "freestyle_noncombat_10",
+    "signature_combat_07"
   ],
   "archetype": "strike_beatdown",
   "difficulty": "easy",
@@ -30,132 +30,132 @@
   "blurb": "Halden Quarr turns magic inward until the body is the spell. He hits harder than anyone at the same Energy and gains it back as he goes. Few tricks and no recovery, only weight.",
   "cards": [
     {
-      "id": "trampled_crossroads",
+      "id": "signature_combat_04",
       "count": 3
     },
     {
-      "id": "moth_seal_1",
+      "id": "signature_combat_03",
+      "count": 3
+    },
+    {
+      "id": "seal_22",
       "count": 1
     },
     {
-      "id": "moth_seal_3",
+      "id": "seal_24",
       "count": 1
     },
     {
-      "id": "moth_seal_4",
+      "id": "seal_25",
       "count": 1
     },
     {
-      "id": "cold_appraisal",
+      "id": "signature_strike_01",
       "count": 3
     },
     {
-      "id": "cut_short",
-      "count": 3
-    },
-    {
-      "id": "steel_standoff",
+      "id": "freestyle_strike_01",
       "count": 1
     },
     {
-      "id": "stillness",
-      "count": 1
-    },
-    {
-      "id": "steel_immovable_guard",
-      "count": 1
-    },
-    {
-      "id": "steel_ironhide",
-      "count": 3
-    },
-    {
-      "id": "steel_bracing",
-      "count": 3
-    },
-    {
-      "id": "shrugs_it_off",
-      "count": 2
-    },
-    {
-      "id": "steel_shockwave",
-      "count": 3
-    },
-    {
-      "id": "quarrs_roar",
-      "count": 3
-    },
-    {
-      "id": "no_quarter",
-      "count": 3
-    },
-    {
-      "id": "relentless_fury",
-      "count": 3
-    },
-    {
-      "id": "quarrs_crushing_blow",
+      "id": "signature_strike_28",
       "count": 4
     },
     {
-      "id": "steel_iron_knee",
+      "id": "signature_strike_27",
       "count": 3
     },
     {
-      "id": "old_habit",
+      "id": "signature_strike_02",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_25",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_06",
+      "count": 3
+    },
+    {
+      "id": "steel_art_01",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_12",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_15",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_08",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_04",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_14",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_11",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_02",
       "count": 1
     },
     {
-      "id": "steel_battering_ram",
+      "id": "steel_strike_13",
       "count": 3
     },
     {
-      "id": "steel_tempering",
+      "id": "steel_strike_09",
       "count": 3
     },
     {
-      "id": "steel_dead_weight",
+      "id": "steel_strike_05",
       "count": 3
     },
     {
-      "id": "steel_iron_jab",
+      "id": "steel_strike_03",
       "count": 3
     },
     {
-      "id": "steel_scar_tissue",
+      "id": "steel_strike_10",
       "count": 3
     },
     {
-      "id": "steel_piston_slam",
+      "id": "steel_art_03",
       "count": 3
     },
     {
-      "id": "steel_headbutt",
+      "id": "steel_art_02",
+      "count": 3
+    },
+    {
+      "id": "steel_combat_01",
+      "count": 1
+    },
+    {
+      "id": "steel_strike_07",
+      "count": 3
+    },
+    {
+      "id": "steel_art_04",
       "count": 2
     },
     {
-      "id": "steel_bull_charge",
-      "count": 3
+      "id": "freestyle_combat_01",
+      "count": 1
     },
     {
-      "id": "steel_iron_fist",
+      "id": "grounds_01",
       "count": 3
-    },
-    {
-      "id": "steel_hammer_blow",
-      "count": 3
-    },
-    {
-      "id": "steel_crushing_weight",
-      "count": 3
-    },
-    {
-      "id": "steel_forearm_guard",
-      "count": 3
-    },
-    {
-      "id": "steel_triple_shock",
-      "count": 2
     }
   ]
 }

@@ -1,15 +1,15 @@
 {
   "name": "Ember Ascendant",
   "duelist": [
-    "personality_edric_rooke_1_the_hero",
-    "personality_edric_rooke_2_the_stranger",
-    "personality_edric_rooke_3_the_realms_hero",
-    "personality_edric_rooke_4_kindled_through",
-    "personality_edric_rooke_5_the_all_powerful"
+    "personality_30",
+    "personality_31",
+    "personality_32",
+    "personality_33",
+    "personality_34"
   ],
   "style": "pyre",
   "alignment": "vigil",
-  "mastery": "pyre_ember_mastery",
+  "mastery": "pyre_mastery_02",
   "relic": "",
   "reserve": [],
   "archetype": "strike_beatdown",
@@ -23,144 +23,144 @@
   "blurb": "Sir Edric Rooke blocks and climbs. Almost everything in the list pays Fervor, so the defense is a rung rather than a pause, and the last two Aspects hit harder than anything else in the set. No Drills at all, and the early Aspects add nothing to the damage, so the first half is spent reading the deck and staying alive.",
   "cards": [
     {
-      "id": "trampled_crossroads",
+      "id": "freestyle_combat_02",
       "count": 3
     },
     {
-      "id": "personality_alder_rooke_1",
-      "count": 1
-    },
-    {
-      "id": "marble_seal_4",
-      "count": 1
-    },
-    {
-      "id": "braced_guard",
+      "id": "freestyle_art_06",
       "count": 3
     },
     {
-      "id": "pyre_bellows_guard",
+      "id": "signature_combat_03",
       "count": 3
     },
     {
-      "id": "pyre_ashen_veil",
-      "count": 3
-    },
-    {
-      "id": "pyre_hearthguard",
-      "count": 3
-    },
-    {
-      "id": "pyre_cinder_guard",
-      "count": 3
-    },
-    {
-      "id": "mournes_stance",
+      "id": "signature_art_09",
       "count": 1
     },
     {
-      "id": "unyielding_guard",
-      "count": 1
-    },
-    {
-      "id": "grounding_step",
-      "count": 1
-    },
-    {
-      "id": "stillness",
-      "count": 1
-    },
-    {
-      "id": "kept_at_bay",
-      "count": 1
-    },
-    {
-      "id": "edrics_truce",
+      "id": "freestyle_combat_17",
       "count": 2
     },
     {
-      "id": "pyre_furnace_breath",
-      "count": 3
+      "id": "signature_strike_05",
+      "count": 2
     },
     {
-      "id": "pyre_comet_fall",
-      "count": 3
-    },
-    {
-      "id": "pyre_blazing_charge",
-      "count": 3
-    },
-    {
-      "id": "pyre_flashpoint",
-      "count": 3
-    },
-    {
-      "id": "pyre_firestorm",
-      "count": 3
-    },
-    {
-      "id": "pyre_updraft",
-      "count": 3
-    },
-    {
-      "id": "pyre_ember_strike",
-      "count": 3
-    },
-    {
-      "id": "pyre_backdraft",
-      "count": 3
-    },
-    {
-      "id": "hasks_flying_kick",
-      "count": 3
-    },
-    {
-      "id": "edrics_training",
+      "id": "signature_strike_06",
       "count": 4
     },
     {
-      "id": "edrics_opening_strike",
+      "id": "signature_combat_01",
       "count": 2
     },
     {
-      "id": "pyre_immolation",
+      "id": "freestyle_noncombat_04",
+      "count": 1
+    },
+    {
+      "id": "signature_art_01",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_07",
       "count": 3
     },
     {
-      "id": "captains_barrage",
+      "id": "freestyle_combat_07",
+      "count": 1
+    },
+    {
+      "id": "seal_11",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_03",
+      "count": 1
+    },
+    {
+      "id": "personality_53",
+      "count": 1
+    },
+    {
+      "id": "pyre_strike_15",
       "count": 3
     },
     {
-      "id": "cut_short",
+      "id": "pyre_strike_03",
       "count": 3
     },
     {
-      "id": "watchful_eye",
+      "id": "pyre_strike_14",
       "count": 3
     },
     {
-      "id": "dismissal",
-      "count": 2
+      "id": "pyre_strike_07",
+      "count": 3
     },
     {
-      "id": "foresight",
+      "id": "pyre_strike_01",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_04",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_18",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_06",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_16",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_08",
+      "count": 3
+    },
+    {
+      "id": "pyre_art_03",
+      "count": 3
+    },
+    {
+      "id": "pyre_art_01",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_17",
+      "count": 3
+    },
+    {
+      "id": "freestyle_combat_05",
       "count": 1
     },
     {
-      "id": "respite",
+      "id": "freestyle_noncombat_01",
       "count": 1
     },
     {
-      "id": "declaration",
+      "id": "freestyle_noncombat_12",
       "count": 1
     },
     {
-      "id": "rites_unmade",
+      "id": "freestyle_combat_01",
       "count": 1
     },
     {
-      "id": "spoiled_rite",
+      "id": "grounds_01",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_04",
       "count": 1
+    },
+    {
+      "id": "freestyle_combat_06",
+      "count": 3
     }
   ]
 }

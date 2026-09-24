@@ -1,9 +1,11 @@
 class_name AdventureRun
 extends RefCounted
-## One adventure run: the starter it grew from, the deck as it stands, and where the ladder is.
-## Pure state. No Nodes and no autoloads, the same rule engine/ follows.
+## One adventure run: the starter it grew from, the deck as it stands, and where it stands on the
+## node map. Pure state. No Nodes and no autoloads, the same rule engine/ follows. The map itself is
+## never saved: `AdventureMap.generate(starter_id, run_seed)` rolls it again.
 
-## `stage` is the 0-based index of the stage still to fight.
+## `stage` counts the duels won so far, which is also the 0-based index of the next duel: it keys
+## the duel and offer seeds and the pick history.
 var starter_id: String = ""
 ## Names this run in the wallet's ledger, so a payout can be traced back to the run that paid it.
 var run_id: String = ""
@@ -18,11 +20,16 @@ var starter_duelist: Array[String] = []
 var duelist_ids: Array[String] = []
 var stage: int = 0
 var run_seed: int = 0
+## The map node the run stands on, "" before the first step.
+var node_id: String = ""
+## Every node entered, in order.
+var path: Array[String] = []
 ## The bundle ids on offer while `status` is "reward".
 var pending_offer: Array[String] = []
 ## The Aspect card ids on offer while `status` is "aspect".
 var pending_aspects: Array[String] = []
-var status: String = "stage"       # stage | aspect | reward | settle | won | lost
+## map: choosing the next node. stage: standing on a fight, the duel still to play.
+var status: String = "map"         # map | stage | aspect | reward | settle | won | lost
 ## Which way the run ended, kept while `status` is "settle" so the run-end screen knows whether it
 ## is showing a win or a loss. "" until the run ends.
 var outcome: String = ""
@@ -87,6 +94,39 @@ func added_duelist_cards() -> Array[String]:
 		if not starter_duelist.has(id):
 			out.append(id)
 	return out
+
+
+## The nodes the run may step to next: act 1's first tier at the start, else whatever the node it
+## stands on leads to. Empty unless the run is choosing.
+func choices(map: AdventureMap) -> Array[String]:
+	if status != "map" or map == null:
+		return []
+	return map.start_ids() if node_id == "" else map.next_of(node_id)
+
+
+## Steps onto a node. A fight leaves the run waiting on its duel; any other node is passed
+## through for now, since none of them does anything yet (build plan phases 2, 4 and 5).
+## False, and nothing moves, when `id` is not one of the choices.
+func enter(map: AdventureMap, id: String) -> bool:
+	if not choices(map).has(id):
+		return false
+	node_id = id
+	path.append(id)
+	if AdventureMap.is_fight(str(map.node(id).get("type", ""))):
+		status = "stage"
+	return true
+
+
+## Takes the first choice at every step until the run stands on a fight. For tests, tools and
+## dev screens; the player picks their own way. False when there is no fight left to reach.
+func walk_to_next_duel(map: AdventureMap) -> bool:
+	var guard: int = 0
+	while status == "map" and guard < 64:
+		guard += 1
+		var next: Array[String] = choices(map)
+		if next.is_empty() or not enter(map, next[0]):
+			return false
+	return status == "stage"
 
 
 ## The starter reloaded with this run's Life Deck and Aspect stack in place of the printed ones.
@@ -176,17 +216,10 @@ static func _mix(a: int, b: int) -> int:
 	return (h & 0x3FFFFFFF) + 1
 
 
-## Bumped to 2 when each Aspect became its own card (2026-09-21). Version 1 stored `aspects: N`
-## and read the Duelist off the starter deck; `from_dict` migrates one. Bumped to 3 when the
-## reward became a theme bundle: a version 2 `pending_offer` holds card ids, not bundle ids.
-## Bumped to 4 for Motes: a version 3 save carries no `run_id` and no `starter_cards`, so an
-## in-flight run would have nothing to settle. Both are rebuilt on load.
-const SAVE_VERSION: int = 4
-const MIGRATION_MAP: String = "res://data/migrations/personality_split.json"
-
-## Set by `from_dict` when an old save's offer was dropped and has to be drawn again. Not saved:
-## AdventureSave rebuilds the offer on load and clears it.
-var needs_offer_rebuild: bool = false
+## Bumped to 5 for the node map (2026-09-23). An older save is not migrated: `from_dict` refuses
+## it and the run is dropped, since a run in flight is not worth carrying across (user,
+## 2026-09-23).
+const SAVE_VERSION: int = 5
 
 
 func to_dict() -> Dictionary:
@@ -200,6 +233,8 @@ func to_dict() -> Dictionary:
 		"starter_duelist": starter_duelist.duplicate(),
 		"stage": stage,
 		"run_seed": run_seed,
+		"node_id": node_id,
+		"path": path.duplicate(),
 		"pending_offer": pending_offer.duplicate(),
 		"pending_aspects": pending_aspects.duplicate(),
 		"status": status,
@@ -210,44 +245,27 @@ func to_dict() -> Dictionary:
 	}
 
 
-## A version 1 save held `aspects: N` and named no cards at all: the Duelist came from the starter
-## deck, which then held one card for the whole ladder. The migration map records which stack each
-## shipped deck named and which tier cards it split into, so N becomes the first N of that line.
-static func _migrate_duelist(starter: String, aspects_count: int) -> Array[String]:
-	var out: Array[String] = []
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(MIGRATION_MAP))
-	if not (parsed is Dictionary):
-		push_error("AdventureRun: cannot read %s to migrate a version 1 save" % MIGRATION_MAP)
-		return out
-	var blob: Dictionary = parsed
-	var old_id: String = str((blob.get("deck_duelists", {}) as Dictionary).get(starter, ""))
-	var tiers: Array = (blob.get("personalities", {}) as Dictionary).get(old_id, [])
-	for i in range(mini(aspects_count, tiers.size())):
-		out.append(str(tiers[i]))
-	if out.is_empty():
-		push_error("AdventureRun: no Duelist cards for starter '%s' in the migration map" % starter)
-	return out
-
-
-## Tolerant of JSON, which hands every number back as a float.
+## Tolerant of JSON, which hands every number back as a float. Null for a save written before
+## SAVE_VERSION.
 static func from_dict(d: Dictionary) -> AdventureRun:
+	if int(d.get("version", 1)) < SAVE_VERSION:
+		return null
 	var run: AdventureRun = AdventureRun.new()
-	var version: int = int(d.get("version", 1))
 	run.starter_id = str(d.get("starter_id", ""))
 	for id in d.get("cards", []):
 		run.cards.append(str(id))
-	if version < 2 or not d.has("duelist"):
-		run.duelist_ids = AdventureRun._migrate_duelist(run.starter_id, int(d.get("aspects", 2)))
-	else:
-		for id in d.get("duelist", []):
-			run.duelist_ids.append(str(id))
+	for id in d.get("duelist", []):
+		run.duelist_ids.append(str(id))
 	run.stage = int(d.get("stage", 0))
 	run.run_seed = int(d.get("run_seed", 0))
+	run.node_id = str(d.get("node_id", ""))
+	for id in d.get("path", []):
+		run.path.append(str(id))
 	for id in d.get("pending_offer", []):
 		run.pending_offer.append(str(id))
 	for id in d.get("pending_aspects", []):
 		run.pending_aspects.append(str(id))
-	run.status = str(d.get("status", "stage"))
+	run.status = str(d.get("status", "map"))
 	run.outcome = str(d.get("outcome", ""))
 	run.settled = bool(d.get("settled", false))
 	var kept_rows: Dictionary = d.get("kept", {})
@@ -274,23 +292,4 @@ static func from_dict(d: Dictionary) -> AdventureRun:
 		run.starter_cards.append(str(id))
 	for id in d.get("starter_duelist", []):
 		run.starter_duelist.append(str(id))
-	# Version 3 and older named no starting deck, so a run in flight would settle as though it had
-	# added everything. The printed starter is what such a run began from: loadout swaps came in
-	# with the same version that started recording this.
-	if run.starter_cards.is_empty():
-		var printed: DeckList = DeckList.resolve(run.starter_id)
-		if printed != null:
-			run.starter_cards = printed.cards.duplicate()
-			if run.starter_duelist.is_empty():
-				run.starter_duelist = printed.duelist_ids.duplicate()
-	# A version 2 offer named single cards. The stage the run sits on has not moved, so the same
-	# offer seed draws the bundle offer that stage would have made.
-	if version < 3 and not run.pending_offer.is_empty():
-		var stale: bool = false
-		for id in run.pending_offer:
-			if AdventureBundles.by_id(id).is_empty():
-				stale = true
-		if stale:
-			run.pending_offer.clear()
-			run.needs_offer_rebuild = true
 	return run

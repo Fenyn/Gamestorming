@@ -202,7 +202,7 @@ static func load_collection() -> AdventureCollection:
 	if not (parsed is Dictionary):
 		push_error("AdventureCollection: %s is not a JSON object" % file)
 		return AdventureCollection.new()
-	return AdventureCollection.from_dict(parsed)
+	return AdventureCollection.from_dict(CardRenames.migrate(parsed) as Dictionary)
 
 
 func save() -> bool:

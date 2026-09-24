@@ -1,7 +1,9 @@
 extends SceneTree
-## The adventure bench: one starter, many whole runs, played stage by stage up the ladder until the
-## run is won or dies. Rewards are taken at random from what the run is offered, so the numbers say
-## what an average unguided run reaches rather than what a perfect one does.
+## The adventure bench: one starter, many whole runs, played duel by duel across the node map until
+## the run is won or dies. The path is picked at random at every fork and rewards are taken at
+## random from what the run is offered, so the numbers say what an average unguided run reaches
+## rather than what a perfect one does. "Stage" in the report is the duel number: stage 1 is the
+## run's first duel, whichever node it was.
 ##
 ## It answers "how far does this starter get", "which stage kills runs" and "which opponents beat
 ## it", which matchlab cannot: matchlab plays one duel at a time and never carries a deck forward.
@@ -13,6 +15,8 @@ extends SceneTree
 ## The player plays `--policy` (the scorer by default; the sequence planner is too slow for eight
 ## staged duels a run). Each opponent plays the profile its ladder row names unless
 ## `--opponent-policy` overrides it. Unknown flags are an error, as in matchlab.
+## The player plays `--policy` (the scorer by default); each opponent plays the ai_level its map
+## node names.
 
 const SPEC: Dictionary = {
 	"starter": {"type": "str", "default": ""},
@@ -50,10 +54,10 @@ func _init() -> void:
 		return
 
 	var starter: String = args.str_of("starter").strip_edges()
-	var starters: Array[String] = AdventureLadder.playable_starters()
+	var starters: Array[String] = AdventureDecks.playable_starters()
 	if starter.is_empty() or not starters.has(starter):
 		_fail("--starter must name a deck under %s. Known starters: %s" % [
-			AdventureLadder.STARTERS_DIR, ", ".join(PackedStringArray(starters))])
+			AdventureDecks.STARTERS_DIR, ", ".join(PackedStringArray(starters))])
 		return
 
 	player_side = SimSeat.from_legacy(args.str_of("policy"), {}, true)
@@ -77,18 +81,17 @@ func _init() -> void:
 	var runs: int = args.int_of("runs")
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = args.int_of("seed")
-	var ladder_size: int = _ladder_size(starter)
-	if ladder_size <= 0:
-		_fail("No ladder for starter '%s'" % starter)
+	if AdventureMap.generate(starter, 1) == null:
+		_fail("No map for starter '%s'" % starter)
 		return
 
 	print("adventure_lab: %s, %d runs" % [starter, runs])
 	print("  player   : %s" % player_side.describe())
-	print("  opponents: %s" % (opponent_policy if not opponent_policy.is_empty() else "the ai_level of each ladder row"))
+	print("  opponents: %s" % (opponent_policy if not opponent_policy.is_empty() else "the ai_level of each map node"))
 	print("  rule     : %s" % ("lives, player %d / opponent %d / boss %d" % [
 		AdventureRules.PLAYER_LIVES, AdventureRules.OPPONENT_LIVES, AdventureRules.BOSS_LIVES]
 		if use_lives else "symmetric first to 2"))
-	print("  ladder   : %d stages" % ladder_size)
+	print("  map      : random path at every fork")
 	print("  flags    : %s" % args.describe_given())
 
 	var started: int = Time.get_ticks_msec()
@@ -100,7 +103,7 @@ func _init() -> void:
 			var elapsed: float = float(Time.get_ticks_msec() - started) / 1000.0
 			print("  %d/%d runs, %.0fs elapsed" % [index + 1, runs, elapsed])
 
-	_report(starter, ladder_size, float(Time.get_ticks_msec() - started) / 1000.0)
+	_report(starter, float(Time.get_ticks_msec() - started) / 1000.0)
 
 	var wrote: bool = true
 	if not args.str_of("tsv").is_empty():
@@ -116,19 +119,14 @@ func _fail(message: String) -> void:
 	quit(2)
 
 
-func _ladder_size(starter: String) -> int:
-	var ladder: AdventureLadder = AdventureLadder.load_for(starter, 1)
-	return ladder.size() if ladder != null else 0
-
-
 # --- One run ----------------------------------------------------------------
 
 
 ## Plays one whole run and returns its summary row; the per-stage rows go into `stage_rows`.
 func _play_run(index: int, starter: String, run_seed: int, opponent_policy: String) -> Dictionary:
 	var run: AdventureRun = AdventureRun.begin(starter, run_seed)
-	var ladder: AdventureLadder = AdventureLadder.load_for(starter, run_seed)
-	if run == null or ladder == null:
+	var map: AdventureMap = AdventureMap.generate(starter, run_seed)
+	if run == null or map == null:
 		return {"run": index, "status": "broken", "cleared": 0, "motes": 0,
 			"error": "could not begin a run for %s" % starter, "deck": 0, "picks": []}
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -138,12 +136,18 @@ func _play_run(index: int, starter: String, run_seed: int, opponent_policy: Stri
 	var error: String = ""
 	var taken: Array[String] = []   # bundle ids taken so far, for the "did it help" credit
 	var guard: int = 0
-	while run.status in ["stage", "aspect", "reward"] and guard < MAX_STEPS_PER_RUN:
+	while run.status in ["map", "stage", "aspect", "reward"] and guard < MAX_STEPS_PER_RUN:
 		guard += 1
 		match run.status:
+			"map":
+				var next: Array[String] = run.choices(map)
+				if next.is_empty():
+					error = "no way on from %s" % run.node_id
+					break
+				run.enter(map, next[rng.randi_range(0, next.size() - 1)])
 			"stage":
-				var row: Dictionary = ladder.stage(run.stage)
-				var record: Dictionary = _play_stage(index, run, row, opponent_policy, taken.duplicate())
+				var row: Dictionary = map.duel_for(run.node_id)
+				var record: Dictionary = _play_stage(index, run, map, row, opponent_policy, taken.duplicate())
 				if not str(record["error"]).is_empty():
 					error = str(record["error"])
 					stage_rows.append(record)
@@ -152,7 +156,7 @@ func _play_run(index: int, starter: String, run_seed: int, opponent_policy: Stri
 					return {"run": index, "status": "broken", "cleared": cleared, "motes": motes,
 						"error": error, "deck": run.cards.size(), "picks": run.picks.duplicate(true)}
 				var won: bool = bool(record["won"])
-				var payout: int = AdventureRewards.finish_stage(run, ladder, library, won)
+				var payout: int = AdventureRewards.finish_stage(run, map, library, won)
 				motes += payout
 				record["motes"] = payout
 				if won:
@@ -167,7 +171,7 @@ func _play_run(index: int, starter: String, run_seed: int, opponent_policy: Stri
 				var aspects: Array[String] = run.pending_aspects
 				if not aspects.is_empty():
 					AdventureRewards.apply_aspect(run, library, aspects[rng.randi_range(0, aspects.size() - 1)])
-				AdventureRewards.finish_aspect(run, ladder, library)
+				AdventureRewards.finish_aspect(run, map, library)
 			"reward":
 				var offer: Array[String] = run.pending_offer
 				var took: String = ""
@@ -180,9 +184,10 @@ func _play_run(index: int, starter: String, run_seed: int, opponent_policy: Stri
 				else:
 					taken.append(took)
 				_credit_pick(index, took)
-				motes += AdventureRewards.finish_reward(run, ladder)
+				motes += AdventureRewards.finish_reward(run, map)
 	return {
-		"run": index, "status": run.status, "cleared": cleared, "motes": motes, "error": error,
+		"run": index, "status": run.status if error.is_empty() else "broken", "cleared": cleared,
+		"motes": motes, "error": error, "reached": map.place_of(run.node_id),
 		"deck": run.cards.size(), "aspects": run.aspects(), "picks": run.picks.duplicate(true),
 		"seed": run_seed,
 	}
@@ -198,15 +203,18 @@ func _credit_pick(index: int, bundle_id: String) -> void:
 			return
 
 
-## One ladder duel. The player is seat 0 and side a throughout, so `distance[0]` is always theirs.
-func _play_stage(index: int, run: AdventureRun, row: Dictionary, opponent_policy: String,
-		held: Array[String]) -> Dictionary:
+## One map duel. The player is seat 0 and side a throughout, so `distance[0]` is always theirs.
+func _play_stage(index: int, run: AdventureRun, map: AdventureMap, row: Dictionary,
+		opponent_policy: String, held: Array[String]) -> Dictionary:
 	var opponent_id: String = str(row.get("opponent", ""))
 	var player_deck: DeckList = run.deck()
 	var opponent_deck: DeckList = DeckList.resolve(opponent_id)
+	var here: Dictionary = map.node(run.node_id)
 	var record: Dictionary = {
 		"run": index, "stage": run.stage + 1, "opponent": opponent_id,
-		"family": AdventureLadder.family_of(opponent_id), "tier": str(row.get("tier", "")),
+		"act": int(here.get("act", 0)), "map_tier": int(here.get("tier", 0)),
+		"node": str(row.get("node", "")),
+		"family": AdventureDecks.family_of(opponent_id), "tier": str(row.get("tier", "")),
 		"band": str(row.get("band", "")), "ai_level": str(row.get("ai_level", "default")),
 		"won": false, "reason": "", "turn": 0, "steps": 0,
 		"player_points": 0, "rival_points": 0, "player_life": 0, "rival_life": 0,
@@ -260,21 +268,30 @@ func _opponent_side(policy: String) -> SimSeat:
 # --- Report -----------------------------------------------------------------
 
 
-func _report(starter: String, ladder_size: int, seconds: float) -> void:
+func _report(starter: String, seconds: float) -> void:
 	print("")
 	print("=== adventure_lab: %s, %.0fs ===" % [starter, seconds])
-	_survival_table(ladder_size)
-	_run_summary(ladder_size)
+	_survival_table()
+	_act_table()
+	_run_summary()
 	_reward_summary()
 	_opponent_summary()
 
 
-func _survival_table(ladder_size: int) -> void:
+## The highest duel number any run reached.
+func _longest() -> int:
+	var most: int = 0
+	for row in stage_rows:
+		most = maxi(most, int(row["stage"]))
+	return most
+
+
+func _survival_table() -> void:
 	print("")
-	print("Survival, one line per stage:")
+	print("Survival, one line per duel number:")
 	print("  %-5s %7s %5s %-22s %6s  %-28s %s" % [
 		"stage", "reached", "wins", "win rate (95% Wilson)", "turns", "losses by route", "lost to"])
-	for n in range(1, ladder_size + 1):
+	for n in range(1, _longest() + 1):
 		var reached: int = 0
 		var wins: int = 0
 		var turns: int = 0
@@ -300,7 +317,28 @@ func _survival_table(ladder_size: int) -> void:
 			float(turns) / float(reached), _counts(routes, 3), _counts(families, 3)])
 
 
-func _run_summary(ladder_size: int) -> void:
+## One line per act and node type: how often it was fought and won.
+func _act_table() -> void:
+	var tally: Dictionary = {}   # "act N node" -> [wins, played]
+	for row in stage_rows:
+		if not str(row["error"]).is_empty():
+			continue
+		var key: String = "act %d %s" % [int(row.get("act", 0)), str(row.get("node", ""))]
+		var entry: Array = tally.get(key, [0, 0])
+		entry[1] = int(entry[1]) + 1
+		if bool(row["won"]):
+			entry[0] = int(entry[0]) + 1
+		tally[key] = entry
+	var keys: Array = tally.keys()
+	keys.sort()
+	print("")
+	print("By act and node:")
+	for key in keys:
+		var entry: Array = tally[key]
+		print("  %-16s fought %4d   won %5.1f%%" % [str(key), int(entry[1]), 100.0 * _rate(entry)])
+
+
+func _run_summary() -> void:
 	var won: int = 0
 	var broken: int = 0
 	var first_error: String = ""
@@ -324,7 +362,13 @@ func _run_summary(ladder_size: int) -> void:
 	print("")
 	print("Runs: %d, won %d (%.0f%%), died %d, broken %d" % [
 		runs, won, 100.0 * float(won) / float(maxi(1, runs)), deaths.size(), broken])
-	print("  mean stages cleared : %.2f of %d" % [float(cleared_total) / float(maxi(1, runs)), ladder_size])
+	print("  mean duels won      : %.2f" % [float(cleared_total) / float(maxi(1, runs))])
+	var reached: Dictionary = {}
+	for row in run_rows:
+		var place: String = str(row.get("reached", ""))
+		var act_word: String = place.substr(0, place.find(",")) if place.find(",") > 0 else place
+		reached[act_word] = int(reached.get(act_word, 0)) + 1
+	print("  where runs ended    : %s" % _counts(reached, 8))
 	print("  median stage of death: %s" % (
 		"%d" % int(deaths[deaths.size() / 2]) if not deaths.is_empty() else "-"))
 	print("  mean Motes          : %.0f" % [float(motes_total) / float(maxi(1, runs))])
@@ -411,7 +455,7 @@ static func _counts(counts: Dictionary, limit: int) -> String:
 # --- Files ------------------------------------------------------------------
 
 
-const TSV_COLUMNS: Array[String] = ["run", "stage", "opponent", "family", "tier", "band",
+const TSV_COLUMNS: Array[String] = ["run", "stage", "act", "map_tier", "node", "opponent", "family", "tier", "band",
 	"ai_level", "won", "reason", "turn", "steps", "player_points", "rival_points",
 	"player_life", "rival_life", "deck", "aspects", "took", "motes", "error"]
 

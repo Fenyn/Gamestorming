@@ -1,15 +1,16 @@
 extends Control
-## The hub between duels: the ladder, the next opponent, the run deck, and the run-over states.
-## Opened by Session.go_to_adventure() whenever a run is live.
+## The hub between duels: the run's node map on the left, and on the right a side panel with the
+## run's standing (deck, act, duels won, Motes) over a preview of the node being scouted. Opened by
+## Session.go_to_adventure() whenever a run is live.
 
 @onready var faces: CardFaceCache = $CardFaceCache
-@onready var deck_name_label: Label = $Margin/Column/HeaderLine/DeckName
-@onready var duelist_label: Label = $Margin/Column/HeaderLine/Duelist
-@onready var motes_tile: StatTile = $Margin/Column/HeaderLine/Motes
-@onready var stage_status_label: Label = $Margin/Column/HeaderLine/StageStatus
-@onready var deck_size_label: Label = $Margin/Column/SubHeader/DeckSize
-@onready var aspects_label: Label = $Margin/Column/SubHeader/Aspects
+@onready var deck_name_label: Label = $Margin/Column/Body/Right/RunInfo/Row/Titles/DeckName
+@onready var stage_status_label: Label = $Margin/Column/Body/Right/RunInfo/Row/Titles/StageStatus
+@onready var mote_icon: TextureRect = $Margin/Column/Body/Right/RunInfo/Row/MotesBox/MoteIcon
+@onready var motes_label: Label = $Margin/Column/Body/Right/RunInfo/Row/MotesBox/MotesValue
+@onready var run_info: PanelContainer = $Margin/Column/Body/Right/RunInfo
 @onready var ladder_column: VBoxContainer = $Margin/Column/Body/Ladder
+@onready var ladder_scroll: ScrollContainer = $Margin/Column/Body/Ladder/Scroll
 @onready var ladder_list: VBoxContainer = $Margin/Column/Body/Ladder/Scroll/List
 @onready var right_column: VBoxContainer = $Margin/Column/Body/Right
 @onready var next_sheet: DeckSheet = $Margin/Column/Body/Right/NextOpponent
@@ -23,22 +24,100 @@ extends Control
 @onready var title_button: Button = $Margin/Column/Footer/TitleButton
 @onready var deck_panel: StageDeckPanel = $DeckPanel
 
+## Ink darkening at the map frame's edges, so the parchment reads as a sheet and not a fill.
+const VIGNETTE: Color = Color(0.24, 0.14, 0.07, 0.3)
+const VIGNETTE_DEPTH: float = 70.0
+
 var _abandon_armed: bool = false
+var _route: MapRoute = null
+## The scouted node's marker, over the note a non-fighting node shows.
+var _node_icon: TextureRect = null
+## A small warning line under that note, for what is not built yet.
+var _dev_note: Label = null
 
 
 func _ready() -> void:
-	theme = SanctumUI.theme()
 	if Session.run == null:
 		_dev_bootstrap()
 		if Session.run == null:
+			theme = SanctumUI.theme()
 			Session.go_to_adventure()
 			return
+	# The trim takes the run's Mastery school colour; everything built below reads it.
+	var run_deck: DeckList = Session.run.deck()
+	MapArt.tint_for_school(run_deck.style if run_deck != null else "")
+	theme = _screen_theme()
 	next_sheet.setup(1, faces)
-	# Keep room for the tournament header and footer around the card preview.
 	next_sheet.portrait.custom_minimum_size = Vector2(314, 440)
 	next_sheet.portrait_caption.custom_minimum_size.x = 314
 	next_sheet.mastery.custom_minimum_size = Vector2(240, 336)
 	next_sheet.mastery_caption.custom_minimum_size.x = 240
+	# The map is parchment under an inked inner rule; the side panel's pieces are dark panels under
+	# the same rule in the trim tint (Kenney border 012). Pixel frames keep hard edges; their
+	# contents stay smooth.
+	var frame: PanelContainer = PanelContainer.new()
+	frame.add_theme_stylebox_override("panel", MapArt.board_box(22))
+	frame.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var at: int = ladder_scroll.get_index()
+	ladder_column.add_child(frame)
+	ladder_column.move_child(frame, at)
+	ladder_scroll.reparent(frame)
+	ladder_scroll.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	var vignette: Control = Control.new()
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vignette.draw.connect(func() -> void: _draw_vignette(vignette))
+	vignette.resized.connect(vignette.queue_redraw)
+	frame.add_child(vignette)
+	# The legend sits on a long tan scroll under the map.
+	var scroll_banner: PanelContainer = PanelContainer.new()
+	scroll_banner.add_theme_stylebox_override("panel", MapArt.banner_box("banner_tan", 40))
+	scroll_banner.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	scroll_banner.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var legend: HBoxContainer = _legend()
+	legend.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	scroll_banner.add_child(legend)
+	ladder_column.add_child(scroll_banner)
+	# The preview's tag rides a cream scroll, and a filigree swirl divides the sheet's text from
+	# its cards. Only this screen's copy of the sheet is dressed; the matchup screen keeps its own.
+	next_sheet.tag.add_theme_stylebox_override("normal", MapArt.banner_box("banner", 40, 14, 18))
+	next_sheet.tag.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
+	next_sheet.tag.add_theme_font_size_override("font_size", 15)
+	next_sheet.tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	next_sheet.tag.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	# A faded rule between the chips and the stats line: a Kenney half-divider and its mirror,
+	# meeting at a knot in the middle, in the tint.
+	var fade_rule: Control = MapArt.fade_divider(260.0)
+	next_sheet.chips.get_parent().add_child(fade_rule)
+	next_sheet.chips.get_parent().move_child(fade_rule, next_sheet.note_label.get_index())
+	var sheet_swirl: TextureRect = MapArt.ornament("swirl", 26.0)
+	next_sheet.cards.get_parent().add_child(sheet_swirl)
+	next_sheet.cards.get_parent().move_child(sheet_swirl, next_sheet.cards.get_index())
+	# The placeholder panel fits its content instead of stretching down the side.
+	run_over_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_frame(run_info, 28)
+	_frame(run_over_panel, 30)
+	_frame(next_sheet, 26)
+	mote_icon.texture = MapArt.ui("mote")
+	_node_icon = TextureRect.new()
+	_node_icon.custom_minimum_size = Vector2(112, 112)
+	_node_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_node_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var note_column: VBoxContainer = run_over_panel.get_node("Center/Column")
+	note_column.add_child(_node_icon)
+	note_column.move_child(_node_icon, 0)
+	# A small crest over the heading and a swirl under it, from the same filigree set.
+	var crest: TextureRect = MapArt.ornament("crest_small", 22.0)
+	note_column.add_child(crest)
+	note_column.move_child(crest, run_over_heading.get_index())
+	var note_swirl: TextureRect = MapArt.ornament("swirl", 24.0)
+	note_column.add_child(note_swirl)
+	note_column.move_child(note_swirl, run_over_reached.get_index())
+	_dev_note = Label.new()
+	_dev_note.theme_type_variation = &"WarnLabel"
+	_dev_note.add_theme_font_size_override("font_size", 13)
+	_dev_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	note_column.add_child(_dev_note)
 	view_deck_button.pressed.connect(_on_view_deck)
 	duel_button.pressed.connect(_on_duel)
 	abandon_button.pressed.connect(_on_abandon)
@@ -52,16 +131,57 @@ func _ready() -> void:
 	SanctumUI.wire_buttons(self)
 
 
+## The shared theme with this screen's buttons swapped for the Ornate bevelled pieces: dark for
+## ordinary buttons, cream for the primary action.
+func _screen_theme() -> Theme:
+	var t: Theme = SanctumUI.theme().duplicate()
+	for kind in ["Button", "AccentButton"]:
+		var prefix: String = "accent" if kind == "AccentButton" else "button"
+		t.set_stylebox("normal", kind, MapArt.button_box(prefix + "_normal"))
+		t.set_stylebox("hover", kind, MapArt.button_box(prefix + "_hover"))
+		t.set_stylebox("pressed", kind, MapArt.button_box(prefix + "_pressed"))
+		t.set_stylebox("disabled", kind, MapArt.button_box("button_disabled"))
+		t.set_stylebox("focus", kind, StyleBoxEmpty.new())
+	# The hover piece of the dark button is tan, so its text turns dark to stay readable.
+	t.set_color("font_hover_color", "Button", ZenithTheme.TEXT_DARK)
+	t.set_color("font_pressed_color", "Button", ZenithTheme.TEXT)
+	t.set_color("font_disabled_color", "AccentButton", ZenithTheme.MUTED)
+	return t
+
+
+func _draw_vignette(layer: Control) -> void:
+	var w: float = layer.size.x
+	var h: float = layer.size.y
+	var d: float = VIGNETTE_DEPTH
+	var clear: Color = Color(VIGNETTE, 0.0)
+	var bands: Array[PackedVector2Array] = [
+		PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, d), Vector2(0, d)]),
+		PackedVector2Array([Vector2(0, h), Vector2(w, h), Vector2(w, h - d), Vector2(0, h - d)]),
+		PackedVector2Array([Vector2(0, 0), Vector2(0, h), Vector2(d, h), Vector2(d, 0)]),
+		PackedVector2Array([Vector2(w, 0), Vector2(w, h), Vector2(w - d, h), Vector2(w - d, 0)]),
+	]
+	for band in bands:
+		layer.draw_polygon(band, PackedColorArray([VIGNETTE, VIGNETTE, clear, clear]))
+
+
+## The tinted panel on one side-panel piece, with its first child kept smooth.
+func _frame(panel: PanelContainer, content: int) -> void:
+	panel.add_theme_stylebox_override("panel", MapArt.panel_box(content))
+	panel.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	if panel.get_child_count() > 0:
+		(panel.get_child(0) as CanvasItem).texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+
+
 ## Only when the stage scene is opened directly with no run in memory: `--dev-adventure=<id>`
-## builds an unsaved run, `--dev-stage=N` sets its stage, `--dev-status=lost|won` forces that state.
+## builds an unsaved run, `--dev-stage=N` wins N duels along the first choices,
+## `--dev-status=lost|won` forces that state.
 func _dev_bootstrap() -> void:
 	var starter_id: String = AdventureDev.flag("--dev-adventure=")
 	if starter_id == "" or not AdventureDev.begin_run(starter_id):
 		return
 	var stage_arg: String = AdventureDev.flag("--dev-stage=")
 	if stage_arg != "":
-		# ladder.size() itself is valid: it is where a real win leaves run.stage.
-		Session.run.stage = clampi(int(stage_arg), 0, Session.ladder.size())
+		AdventureDev.walk(maxi(0, int(stage_arg)))
 	var status_arg: String = AdventureDev.flag("--dev-status=")
 	if status_arg != "":
 		Session.run.status = status_arg
@@ -69,60 +189,117 @@ func _dev_bootstrap() -> void:
 
 func _refresh() -> void:
 	var run: AdventureRun = Session.run
-	var ladder: AdventureLadder = Session.ladder
+	var map: AdventureMap = Session.map
 	var deck: DeckList = run.deck()
-	var duelist: CardDef = Session.library.defs.get(deck.duelist_face_id())
 	$Background.set_school(Palette.school_ui(deck.style), true)
+	$Background.show_act(MapRoute.act_to_show(run, map), run.run_seed)
 
-	deck_name_label.text = deck.name
-	duelist_label.text = duelist.title if duelist != null else deck.duelist_face_id()
-	motes_tile.set_stat("Motes", str(Session.wallet.motes), "", ZenithTheme.ACCENT)
-	deck_size_label.text = "%d life cards" % deck.cards.size()
-	# The run's own Duelist, rung by rung, rather than a bare count. The opponents' sheets below
-	# keep the count, since the run does not get to read the other side's stack.
-	var rungs: String = ",  ".join(CardText.stack_rungs(deck.duelist_stack(Session.library)))
-	aspects_label.text = rungs if rungs != "" else "%d aspects" % deck.aspects
-
+	deck_name_label.text = deck.name.trim_suffix(" (Starter)")
+	motes_label.text = str(Session.wallet.motes)
+	motes_label.tooltip_text = "Motes"
+	mote_icon.tooltip_text = "Motes"
 	match run.status:
 		"won":
-			stage_status_label.text = "RUN COMPLETE"
+			stage_status_label.text = "Run complete"
 		"lost":
-			stage_status_label.text = "RUN OVER"
+			stage_status_label.text = "Run over"
 		_:
-			stage_status_label.text = "STAGE %d OF %d" % [run.stage + 1, ladder.size()]
+			stage_status_label.text = "Act %d   ·   %d won" % [MapRoute.act_to_show(run, map), run.stage]
 
-	_build_ladder(run, ladder)
+	_build_route(run, map)
 
-	var live: bool = run.status == "stage"
-	next_sheet.visible = live
-	run_over_panel.visible = not live
-	if live:
-		_show_next_opponent(ladder.stage(run.stage))
-	else:
-		_show_run_over(run, ladder)
-
+	var live: bool = run.status == "map" or run.status == "stage"
 	duel_button.visible = live
 	abandon_button.visible = live
 	new_run_button.visible = not live
 	_abandon_armed = false
 	abandon_button.text = "Abandon Run"
+	# A finished run's map steps back behind the result.
+	_route.modulate.a = 1.0 if live else 0.5
+	if live:
+		_show_node(_route.selected())
+	else:
+		next_sheet.visible = false
+		run_over_panel.visible = true
+		_show_run_over(run, map)
 
 
-func _build_ladder(run: AdventureRun, ladder: AdventureLadder) -> void:
+func _build_route(run: AdventureRun, map: AdventureMap) -> void:
 	for child in ladder_list.get_children():
 		child.queue_free()
-	var route: TournamentRoute = TournamentRoute.new()
-	ladder_list.add_child(route)
-	route.setup(run, ladder)
-	route.stage_selected.connect(func(index: int) -> void:
-		if Session.run.status != "stage":
+	_route = MapRoute.new()
+	ladder_list.add_child(_route)
+	_route.setup(run, map)
+	_scroll_to_focus.call_deferred()
+	_route.node_selected.connect(func(id: String) -> void:
+		var status: String = Session.run.status
+		if status != "map" and status != "stage":
 			return
-		_show_next_opponent(Session.ladder.stage(index))
-		next_sheet.tag.text = "NEXT CHALLENGER" if index == Session.run.stage else "ROUND %02d  /  SCOUTING" % (index + 1)
-		duel_button.disabled = index != Session.run.stage
-		duel_button.text = "Enter the arena" if index == Session.run.stage else "Select the current round to duel"
-		SanctumUI.enter(next_sheet)
+		_show_node(id)
+		SanctumUI.enter(next_sheet if next_sheet.visible else run_over_panel)
 	)
+
+
+## Brings the run's position into view, a little below the middle so the road ahead shows.
+func _scroll_to_focus() -> void:
+	await get_tree().process_frame
+	if _route == null or not is_instance_valid(_route):
+		return
+	ladder_scroll.scroll_vertical = int(_route.focus_y() - ladder_scroll.size.y * 0.6)
+
+
+## One marker and name per node type, so the map reads without hovering.
+func _legend() -> HBoxContainer:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	for type in ["duel", "elite", "key", "boss", "sensei", "shop", "shrine", "forge"]:
+		var cell: HBoxContainer = HBoxContainer.new()
+		cell.add_theme_constant_override("separation", 4)
+		var icon: TextureRect = TextureRect.new()
+		icon.texture = MapArt.marker(type)
+		icon.custom_minimum_size = Vector2(26, 26)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		cell.add_child(icon)
+		var name_label: Label = Label.new()
+		name_label.text = AdventureMap.type_name(type)
+		name_label.add_theme_font_size_override("font_size", 13)
+		name_label.add_theme_color_override("font_color", Color(0.24, 0.15, 0.08))
+		cell.add_child(name_label)
+		row.add_child(cell)
+	return row
+
+
+## Shows the node being scouted: the opponent's sheet for a fight, a short note for anything else.
+## The duel button commits only a node the run may take: the fight it stands on, or a choice.
+func _show_node(id: String) -> void:
+	var run: AdventureRun = Session.run
+	var map: AdventureMap = Session.map
+	var type: String = str(map.node(id).get("type", ""))
+	var duel: Dictionary = map.duel_for(id)
+	var standing: bool = run.status == "stage" and id == run.node_id
+	var choice: bool = run.choices(map).has(id)
+	next_sheet.visible = not duel.is_empty()
+	run_over_panel.visible = duel.is_empty()
+	if duel.is_empty():
+		_node_icon.texture = MapArt.marker(type)
+		_node_icon.visible = _node_icon.texture != null
+		run_over_heading.text = AdventureMap.type_name(type) if type != "" else "The road ahead"
+		run_over_reached.text = AdventureMap.type_blurb(type)
+		_dev_note.text = "Not built yet: passing through does nothing."
+		_dev_note.visible = type != ""
+	else:
+		_show_next_opponent(duel)
+		var tag: String = "NEXT CHALLENGER" if standing else ("%s  /  CHOOSE" if choice else "%s  /  SCOUTING") % AdventureMap.type_name(type).to_upper()
+		next_sheet.tag.text = tag
+	duel_button.disabled = not (standing or choice)
+	if standing or (choice and not duel.is_empty()):
+		duel_button.text = "Enter the arena"
+	elif choice:
+		duel_button.text = "Go here"
+	else:
+		duel_button.text = "Choose a lit node"
 
 
 func _show_next_opponent(row_data: Dictionary) -> void:
@@ -131,26 +308,35 @@ func _show_next_opponent(row_data: Dictionary) -> void:
 	if opp == null:
 		return
 	next_sheet.show_deck(opp, "NEXT CHALLENGER")
+	# show_deck sets its own panel every call; the stage screen frames it like the rest.
+	next_sheet.add_theme_stylebox_override("panel", MapArt.panel_box(26))
 	$Background.set_rival(Palette.school_ui(opp.style))
-	var tier: String = AdventureLadder.tier_of(opponent_id)
+	var tier: String = AdventureDecks.tier_of(opponent_id)
+	var boss: bool = str(row_data.get("node", "")) == "boss"
 	next_sheet.clear_extra_chips()
-	next_sheet.add_chip(tier, _tier_color(tier))
-	var lives: int = AdventureRules.BOSS_LIVES if tier == "BOSS" else AdventureRules.OPPONENT_LIVES
+	next_sheet.add_chip("BOSS" if boss else tier, _tier_color(boss))
+	var lives: int = AdventureRules.lives_for(row_data)[1]
 	next_sheet.set_note("%d life cards   ·   %d aspects   ·   %s" % [opp.cards.size(), opp.aspects, _lives_text(lives)])
 	next_sheet.set_story(str(row_data.get("story", "")))
 
 
-func _show_run_over(run: AdventureRun, ladder: AdventureLadder) -> void:
+func _show_run_over(run: AdventureRun, map: AdventureMap) -> void:
+	_dev_note.visible = false
+	_node_icon.texture = MapArt.marker("boss")
+	_node_icon.visible = _node_icon.texture != null
 	if run.status == "won":
 		run_over_heading.text = "Tournament conquered"
-		run_over_reached.text = "Cleared all %d stages." % ladder.size()
+		run_over_reached.text = "Cleared all %d acts." % map.acts
 	else:
 		run_over_heading.text = "Your ascent ends here"
-		run_over_reached.text = "Fell at stage %d of %d." % [mini(run.stage + 1, ladder.size()), ladder.size()]
+		run_over_reached.text = "Fell at %s." % map.place_of(run.node_id)
 
 
 func _on_duel() -> void:
-	Session.begin_stage()
+	if Session.run.status == "stage":
+		Session.begin_stage()
+	else:
+		Session.enter_node(_route.selected())
 
 
 ## Two-step: the first press only arms the button, the second commits.
@@ -182,13 +368,13 @@ static func _lives_text(lives: int) -> String:
 	return "%d %s (you have %d)" % [lives, "life" if lives == 1 else "lives", AdventureRules.PLAYER_LIVES]
 
 
-## A boss tier is called out in orange; every other tier is a quiet chip.
-static func _tier_color(tier: String) -> Color:
-	return ZenithTheme.WARN if tier == "BOSS" else ZenithTheme.MUTED
+## A boss is called out in orange; every other tier is a quiet chip.
+static func _tier_color(boss: bool) -> Color:
+	return ZenithTheme.WARN if boss else ZenithTheme.MUTED
 
 
-## The ladder and next-opponent panels settle in, matching the versus screen's entrance; skipped
-## under --reduced-motion.
+## The map and the side panel settle in, matching the versus screen's entrance; skipped under
+## --reduced-motion.
 func _enter() -> void:
 	if AdventureDev.reduced_motion():
 		return

@@ -19,8 +19,9 @@ func _check(ok: bool, message: String) -> void:
 func _run() -> void:
 	var session: Node = root.get_node("Session")
 	session.run = AdventureRun.begin("root_seals_start", 12345)
-	session.ladder = AdventureLadder.load_for("root_seals_start", 12345)
-	session.run.stage = 3
+	session.map = AdventureMap.generate("root_seals_start", 12345)
+	_check(session.run.walk_to_next_duel(session.map), "The run can step onto its first duel")
+	var standing: String = session.run.node_id
 	var stage: Control = load("res://scenes/adventure/stage.tscn").instantiate()
 	# Headless rendering never emits frame_post_draw. Cache fixture textures so the
 	# real sheet can render immediately without leaving pending card-face coroutines.
@@ -35,18 +36,19 @@ func _run() -> void:
 			cache._cache[CardFaceCache.key_for(def)] = placeholder
 	root.add_child(stage)
 	await create_timer(0.5).timeout
+	# Untyped: naming MapRoute here would compile it before the Session autoload exists.
 	var route: Variant = stage.ladder_list.get_child(0)
-	_check(route._buttons.size() == session.ladder.size(), "The route must show exactly the real ladder's rounds")
-	_check(not stage.duel_button.disabled and stage.duel_button.visible, "The current round must be ready to enter")
-	route._buttons[6].pressed.emit()
-	_check(stage.duel_button.disabled, "Scouting a future round must disable entering that round")
-	_check(session.run.stage == 3, "Scouting must not advance or change the run")
-	_check(stage.next_sheet.tag.text.contains("SCOUTING"), "Scouted rounds must be explicitly labeled")
-	route._buttons[3].pressed.emit()
-	_check(not stage.duel_button.disabled, "Returning to the current round must restore the duel action")
+	_check(route.buttons().size() == session.map.nodes.size(), "The board must show every node of every act")
+	_check(not stage.duel_button.disabled and stage.duel_button.visible, "The duel the run stands on must be ready to enter")
+	(route.buttons()[AdventureMap.boss_id_of(1)] as BaseButton).pressed.emit()
+	_check(stage.duel_button.disabled, "Scouting the boss must disable entering it")
+	_check(session.run.node_id == standing, "Scouting must not move the run")
+	_check(stage.next_sheet.tag.text.contains("SCOUTING"), "Scouted nodes must be explicitly labeled")
+	(route.buttons()[standing] as BaseButton).pressed.emit()
+	_check(not stage.duel_button.disabled, "Returning to the current node must restore the duel action")
 	_check(stage.next_sheet.tag.text == "NEXT CHALLENGER", "Current opponent must regain the next-challenger label")
-	for button: Button in route._buttons:
-		_check(Rect2(Vector2.ZERO, route.size).encloses(Rect2(button.position, button.size)), "Every round must fit inside the route")
+	for button: BaseButton in route.buttons().values():
+		_check(Rect2(Vector2.ZERO, route.size).encloses(Rect2(button.position, button.size)), "Every node must fit inside the route")
 	for status: String in ["won", "lost"]:
 		session.run.status = status
 		stage._refresh()

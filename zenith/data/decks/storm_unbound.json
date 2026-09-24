@@ -1,13 +1,13 @@
 {
   "name": "Stormlock",
   "duelist": [
-    "personality_siphon_1_dormant",
-    "personality_siphon_2_charged",
-    "personality_siphon_3_unbound"
+    "personality_07",
+    "personality_08",
+    "personality_09"
   ],
   "style": "storm",
   "alignment": "pact",
-  "mastery": "storm_squall_mastery",
+  "mastery": "storm_mastery_02",
   "relic": "",
   "reserve": [],
   "archetype": "art_beatdown",
@@ -22,160 +22,160 @@
   "blurb": "Siphon here is not built to charge and release; it is built to make swinging at it expensive. The ground is heavy, its Arts climb its own Fervor, and a landed Art shuts the rival's Strikes out of the exchange. Slow to threaten, and it folds to anything that fights back with spells.",
   "cards": [
     {
-      "id": "weighted_hollow",
+      "id": "freestyle_drill_07",
       "count": 3
     },
     {
-      "id": "personality_pim_1",
+      "id": "freestyle_combat_02",
+      "count": 3
+    },
+    {
+      "id": "freestyle_art_06",
+      "count": 3
+    },
+    {
+      "id": "signature_combat_04",
+      "count": 3
+    },
+    {
+      "id": "signature_noncombat_02",
+      "count": 3
+    },
+    {
+      "id": "signature_art_09",
       "count": 1
     },
     {
-      "id": "personality_cull_1",
+      "id": "freestyle_noncombat_04",
       "count": 1
     },
     {
-      "id": "personality_orvath_kell_1",
+      "id": "signature_art_01",
       "count": 1
     },
     {
-      "id": "sun_seal_5",
+      "id": "signature_noncombat_01",
+      "count": 3
+    },
+    {
+      "id": "signature_noncombat_05",
       "count": 1
     },
     {
-      "id": "braced_guard",
+      "id": "signature_art_07",
       "count": 3
     },
     {
-      "id": "storm_earthing_rod",
-      "count": 3
-    },
-    {
-      "id": "practiced_guard",
-      "count": 3
-    },
-    {
-      "id": "second_wind",
-      "count": 3
-    },
-    {
-      "id": "mercy_smiles",
-      "count": 3
-    },
-    {
-      "id": "mournes_stance",
+      "id": "signature_drill_03",
       "count": 1
     },
     {
-      "id": "unyielding_guard",
+      "id": "signature_strike_03",
       "count": 1
     },
     {
-      "id": "grounding_step",
+      "id": "personality_46",
       "count": 1
     },
     {
-      "id": "stillness",
+      "id": "personality_47",
       "count": 1
     },
     {
-      "id": "terms_of_the_pact",
+      "id": "personality_44",
       "count": 1
     },
     {
-      "id": "storm_lash",
+      "id": "signature_strike_26",
       "count": 3
     },
     {
-      "id": "storm_palm_surge",
+      "id": "freestyle_noncombat_07",
       "count": 3
     },
     {
-      "id": "storm_arc_bolt",
+      "id": "freestyle_combat_12",
       "count": 3
     },
     {
-      "id": "storm_plasma_beam",
-      "count": 3
-    },
-    {
-      "id": "storm_smiting_bolt",
-      "count": 3
-    },
-    {
-      "id": "storm_chain_lightning",
-      "count": 3
-    },
-    {
-      "id": "mournes_jolting_arc",
-      "count": 3
-    },
-    {
-      "id": "threefold_bolt",
-      "count": 3
-    },
-    {
-      "id": "captains_barrage",
-      "count": 3
-    },
-    {
-      "id": "sabotage",
-      "count": 3
-    },
-    {
-      "id": "assembly_drill",
-      "count": 3
-    },
-    {
-      "id": "mournes_quickness_drill",
+      "id": "freestyle_combat_05",
       "count": 1
     },
     {
-      "id": "corins_conditioning",
+      "id": "freestyle_noncombat_01",
+      "count": 1
+    },
+    {
+      "id": "signature_art_03",
       "count": 3
     },
     {
-      "id": "provocation",
+      "id": "signature_combat_07",
+      "count": 1
+    },
+    {
+      "id": "freestyle_strike_06",
       "count": 3
     },
     {
-      "id": "rallying_call",
+      "id": "freestyle_combat_04",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_12",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_01",
+      "count": 1
+    },
+    {
+      "id": "storm_art_06",
       "count": 3
     },
     {
-      "id": "cold_appraisal",
+      "id": "storm_art_03",
       "count": 3
     },
     {
-      "id": "scorn_smirks",
+      "id": "storm_art_09",
+      "count": 3
+    },
+    {
+      "id": "storm_art_07",
+      "count": 3
+    },
+    {
+      "id": "storm_art_08",
+      "count": 3
+    },
+    {
+      "id": "storm_art_10",
+      "count": 3
+    },
+    {
+      "id": "storm_art_04",
+      "count": 3
+    },
+    {
+      "id": "seal_19",
       "count": 1
     },
     {
-      "id": "sever_the_leyline",
+      "id": "freestyle_combat_03",
       "count": 1
     },
     {
-      "id": "respite",
+      "id": "signature_art_08",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_04",
       "count": 1
     },
     {
-      "id": "declaration",
-      "count": 1
-    },
-    {
-      "id": "rites_unmade",
-      "count": 1
-    },
-    {
-      "id": "mourne_takes_measure",
-      "count": 1
-    },
-    {
-      "id": "spoiled_rite",
-      "count": 1
-    },
-    {
-      "id": "foresight",
-      "count": 1
+      "id": "grounds_05",
+      "count": 3
     }
   ]
 }

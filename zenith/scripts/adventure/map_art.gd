@@ -1,0 +1,191 @@
+class_name MapArt
+extends RefCounted
+## The adventure map's textures, imported from the art library by tools/import_map_art.py.
+## Every lookup is cached; a missing file answers null so a screen still draws without it.
+##
+## The trim (panel rules, banners, buttons, filigree, brackets) is imported as neutral greys and
+## drawn through `tint`: white by default, and in the adventure the run's Mastery school colour,
+## set once by the screen with `tint_for_school`. The map board, markers and terrain keep their
+## own colours.
+
+const DIR: String = "res://assets/adventure_map"
+## The terrain canvas is square; the pointy hex ground inside it is 628 x 725 of 840, centred.
+const HEX_WIDTH_OF_CANVAS: float = 628.0 / 840.0
+const HEX_HEIGHT_OF_CANVAS: float = 725.0 / 840.0
+## A school colour is capped at this saturation and brightness before it tints the trim, so the
+## hot schools (Pyre, Shade, Storm) come out muted like Tide instead of loud.
+const TINT_MAX_SATURATION: float = 0.5
+const TINT_MAX_VALUE: float = 0.78
+## The panel texture's rule and corner squares, in its own pixels, kept whole when it stretches.
+const PANEL_MARGIN: int = 24
+## The Kenney half-divider that fades in towards a knot; `fade_divider` mirrors it.
+const FADE_DIVIDER: String = "res://assets/ui/borders/default/divider_fade/divider-fade-003.png"
+
+static var tint: Color = Color.WHITE
+## The same hue kept saturated, for thin or faint marks (the "here" brackets, the choice glow)
+## where the muted `tint` would read as white.
+static var tint_strong: Color = Color.WHITE
+static var _cache: Dictionary = {}
+static var _terrain: Dictionary = {}   # act -> Array[Texture2D]
+
+
+static func texture(path: String) -> Texture2D:
+	if _cache.has(path):
+		return _cache[path]
+	var tex: Texture2D = load(path) as Texture2D if ResourceLoader.exists(path) else null
+	_cache[path] = tex
+	return tex
+
+
+static func marker(node_type: String) -> Texture2D:
+	return texture("%s/markers/%s.png" % [DIR, node_type])
+
+
+static func flair(badge: String) -> Texture2D:
+	return texture("%s/flairs/%s.png" % [DIR, badge])
+
+
+static func ui(piece: String) -> Texture2D:
+	return texture("%s/ui/%s.png" % [DIR, piece])
+
+
+## Sets the trim colour from a school: the run's Mastery school in the adventure. An empty
+## school, or one Palette does not know, keeps the neutral white.
+static func tint_for_school(school: String) -> void:
+	if school == "":
+		tint = Color.WHITE
+		tint_strong = Color.WHITE
+		return
+	var c: Color = Palette.school_ui(school)
+	tint = Color.from_hsv(c.h, minf(c.s, TINT_MAX_SATURATION), minf(c.v, TINT_MAX_VALUE))
+	tint_strong = Color.from_hsv(c.h, clampf(c.s, 0.65, 0.85), minf(c.v, 0.85))
+
+
+## Every terrain tile for an act, in a stable order. Acts past the art on disk reuse the last.
+static func terrain(act: int) -> Array[Texture2D]:
+	var key: int = clampi(act, 1, 3)
+	if _terrain.has(key):
+		return _terrain[key]
+	var out: Array[Texture2D] = []
+	var dir: String = "%s/terrain/act%d" % [DIR, key]
+	var names: PackedStringArray = ResourceLoader.list_directory(dir) if DirAccess.dir_exists_absolute(dir) else PackedStringArray()
+	var sorted: Array[String] = []
+	for n in names:
+		if n.ends_with(".png"):
+			sorted.append(n)
+	sorted.sort()
+	for n in sorted:
+		var tex: Texture2D = texture("%s/%s" % [dir, n])
+		if tex != null:
+			out.append(tex)
+	_terrain[key] = out
+	return out
+
+
+## The default panel: a dark fill under the thin inner rule (Kenney border 012), both in the trim
+## tint.
+static func panel_box(content: int) -> StyleBox:
+	return _sliced("panel", PANEL_MARGIN, content, tint)
+
+
+## The map board: parchment under the same rule in ink. Never tinted.
+static func board_box(content: int) -> StyleBox:
+	return _sliced("board", PANEL_MARGIN, content, Color.WHITE)
+
+
+## A scroll banner as a StyleBox: the curled ends kept whole, the middle stretched to the text.
+static func banner_box(piece: String, pad_x: int = 30, pad_top: int = 8, pad_bottom: int = 12) -> StyleBox:
+	var tex: Texture2D = ui(piece)
+	if tex == null:
+		return StyleBoxEmpty.new()
+	var box: StyleBoxTexture = StyleBoxTexture.new()
+	box.texture = tex
+	box.modulate_color = tint
+	box.texture_margin_left = 26
+	box.texture_margin_right = 26
+	box.texture_margin_top = 12
+	box.texture_margin_bottom = 16
+	box.content_margin_left = pad_x
+	box.content_margin_right = pad_x
+	box.content_margin_top = pad_top
+	box.content_margin_bottom = pad_bottom
+	return box
+
+
+## One of the filigree pieces as a centred, hard-edged TextureRect, `height` pixels tall.
+static func ornament(piece: String, height: float) -> TextureRect:
+	var rect: TextureRect = TextureRect.new()
+	rect.texture = ui(piece)
+	rect.self_modulate = tint
+	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if rect.texture != null:
+		var aspect: float = float(rect.texture.get_width()) / float(rect.texture.get_height())
+		rect.custom_minimum_size = Vector2(height * aspect, height)
+	rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	return rect
+
+
+## A centred divider `width` pixels wide: the Kenney half-divider that fades in towards a knot,
+## beside its mirror image, in the trim tint.
+static func fade_divider(width: float) -> Control:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 0)
+	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tex: Texture2D = texture(FADE_DIVIDER)
+	for mirrored in [false, true]:
+		var half: TextureRect = TextureRect.new()
+		half.texture = tex
+		half.flip_h = mirrored
+		half.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		half.stretch_mode = TextureRect.STRETCH_SCALE
+		half.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		half.self_modulate = tint
+		half.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var aspect: float = float(tex.get_height()) / float(tex.get_width()) if tex != null else 0.2
+		half.custom_minimum_size = Vector2(width * 0.5, width * 0.5 * aspect)
+		row.add_child(half)
+	return row
+
+
+## Draws `tex` across `rect` with its left and right `cap` pixels kept whole and the middle
+## stretched, so a rail with knotted ends can span any width. Drawn in the trim tint.
+static func draw_hsliced(canvas: CanvasItem, tex: Texture2D, rect: Rect2, cap: float) -> void:
+	if tex == null:
+		return
+	var tw: float = float(tex.get_width())
+	var th: float = float(tex.get_height())
+	var scale: float = rect.size.y / th
+	var cap_on_screen: float = cap * scale
+	var left: Rect2 = Rect2(rect.position, Vector2(cap_on_screen, rect.size.y))
+	var right: Rect2 = Rect2(rect.end.x - cap_on_screen, rect.position.y, cap_on_screen, rect.size.y)
+	var middle: Rect2 = Rect2(left.end.x, rect.position.y, maxf(0.0, rect.size.x - cap_on_screen * 2.0), rect.size.y)
+	canvas.draw_texture_rect_region(tex, left, Rect2(0, 0, cap, th), tint)
+	canvas.draw_texture_rect_region(tex, middle, Rect2(cap, 0, tw - cap * 2.0, th), tint)
+	canvas.draw_texture_rect_region(tex, right, Rect2(tw - cap, 0, cap, th), tint)
+
+
+## A button face from one of the Ornate bevelled squares, in the trim tint: corners kept whole,
+## text padded wide.
+static func button_box(piece: String) -> StyleBox:
+	var box: StyleBox = _sliced(piece, 16, 0, tint)
+	box.content_margin_left = 22
+	box.content_margin_right = 22
+	box.content_margin_top = 10
+	box.content_margin_bottom = 12
+	return box
+
+
+static func _sliced(piece: String, margin: int, content: int, color: Color) -> StyleBox:
+	var tex: Texture2D = ui(piece)
+	if tex == null:
+		return StyleBoxEmpty.new()
+	var box: StyleBoxTexture = StyleBoxTexture.new()
+	box.texture = tex
+	box.modulate_color = color
+	box.set_texture_margin_all(margin)
+	box.set_content_margin_all(content)
+	return box

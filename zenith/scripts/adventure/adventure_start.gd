@@ -38,7 +38,7 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back)
 	loadout_button.pressed.connect(_on_loadout)
 	begin_button.pressed.connect(_on_begin)
-	for id: String in AdventureLadder.playable_starters():
+	for id: String in AdventureDecks.playable_starters():
 		var d: DeckList = DeckList.resolve(id)
 		if d == null:
 			continue

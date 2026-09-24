@@ -4,13 +4,13 @@
   "tier": "t5",
   "mode": "adventure",
   "duelist": [
-    "personality_alder_rooke_1_matriarch",
-    "personality_alder_rooke_2_rising_water",
-    "personality_alder_rooke_3_the_flood"
+    "personality_04",
+    "personality_05",
+    "personality_06"
   ],
   "style": "tide",
   "alignment": "vigil",
-  "mastery": "tide_mastery",
+  "mastery": "tide_mastery_01",
   "relic": "",
   "reserve": [],
   "archetype": "allies",
@@ -22,148 +22,148 @@
   "tagline": "Let your coven absorb the wounds, turn aside attacks, and drain your rival's Energy to replenish your own.",
   "cards": [
     {
-      "id": "grounding_step",
+      "id": "freestyle_art_02",
+      "count": 3
+    },
+    {
+      "id": "signature_art_01",
       "count": 1
     },
     {
-      "id": "tide_breakwater",
+      "id": "tide_art_01",
       "count": 1
     },
     {
-      "id": "tide_confluence",
+      "id": "tide_art_02",
+      "count": 3
+    },
+    {
+      "id": "tide_art_03",
+      "count": 3
+    },
+    {
+      "id": "tide_art_04",
+      "count": 3
+    },
+    {
+      "id": "tide_art_05",
+      "count": 3
+    },
+    {
+      "id": "tide_art_06",
+      "count": 1
+    },
+    {
+      "id": "tide_art_07",
+      "count": 3
+    },
+    {
+      "id": "tide_art_08",
       "count": 2
     },
     {
-      "id": "tide_depths",
+      "id": "tide_art_09",
+      "count": 3
+    },
+    {
+      "id": "freestyle_combat_01",
       "count": 1
     },
     {
-      "id": "tide_high_water",
+      "id": "freestyle_combat_06",
       "count": 3
     },
     {
-      "id": "tide_springwater",
-      "count": 3
+      "id": "freestyle_combat_07",
+      "count": 1
     },
     {
-      "id": "tide_surge",
-      "count": 3
+      "id": "freestyle_combat_08",
+      "count": 1
     },
     {
-      "id": "tide_torrent",
-      "count": 3
+      "id": "freestyle_combat_09",
+      "count": 1
     },
     {
-      "id": "tide_twin_breaker",
-      "count": 3
-    },
-    {
-      "id": "tide_twin_swell",
-      "count": 3
-    },
-    {
-      "id": "unerring_bolt",
-      "count": 3
-    },
-    {
-      "id": "closing_ranks",
-      "count": 3
-    },
-    {
-      "id": "cut_short",
+      "id": "freestyle_combat_10",
       "count": 2
     },
     {
-      "id": "edrics_vow",
+      "id": "freestyle_combat_11",
+      "count": 3
+    },
+    {
+      "id": "freestyle_combat_12",
+      "count": 3
+    },
+    {
+      "id": "signature_combat_03",
       "count": 2
     },
     {
-      "id": "kept_at_bay",
-      "count": 1
+      "id": "signature_combat_05",
+      "count": 3
     },
     {
-      "id": "last_gasp",
-      "count": 1
-    },
-    {
-      "id": "old_trick",
+      "id": "signature_combat_06",
       "count": 2
     },
     {
-      "id": "rallying_call",
-      "count": 3
-    },
-    {
-      "id": "rookes_deluge",
-      "count": 3
-    },
-    {
-      "id": "stillness",
+      "id": "freestyle_noncombat_02",
       "count": 1
     },
     {
-      "id": "warding_call",
+      "id": "freestyle_noncombat_03",
       "count": 1
     },
     {
-      "id": "watchful_eye",
-      "count": 3
+      "id": "freestyle_noncombat_06",
+      "count": 1
     },
     {
-      "id": "bonding_rite",
+      "id": "freestyle_noncombat_08",
       "count": 2
     },
     {
-      "id": "clear_mind",
+      "id": "personality_51",
       "count": 1
     },
     {
-      "id": "lucky_find",
+      "id": "personality_52",
       "count": 1
     },
     {
-      "id": "recalled_lesson",
+      "id": "freestyle_strike_02",
       "count": 1
     },
     {
-      "id": "personality_ansel_rooke_1",
-      "count": 1
-    },
-    {
-      "id": "personality_tavin_vale_1",
-      "count": 1
-    },
-    {
-      "id": "clean_sweep",
-      "count": 1
-    },
-    {
-      "id": "last_ward",
+      "id": "freestyle_strike_05",
       "count": 2
     },
     {
-      "id": "mournes_stance",
+      "id": "signature_strike_01",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_03",
       "count": 1
     },
     {
-      "id": "no_quarter",
-      "count": 3
-    },
-    {
-      "id": "tide_drowning",
-      "count": 3
-    },
-    {
-      "id": "tide_ebb",
-      "count": 3
-    },
-    {
-      "id": "tide_undertow",
-      "count": 3
-    },
-    {
-      "id": "unyielding_guard",
+      "id": "signature_strike_04",
       "count": 1
+    },
+    {
+      "id": "tide_strike_01",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_02",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_03",
+      "count": 3
     }
   ]
 }

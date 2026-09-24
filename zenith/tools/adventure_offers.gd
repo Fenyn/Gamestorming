@@ -3,8 +3,8 @@ extends SceneTree
 ## godot --headless --path zenith -s tools/adventure_offers.gd
 
 const RUN_SEED: int = 20260920
-## The stages the per-stage eligibility summary reports on; the ladder end is added to these.
-const SAMPLE_STAGES: Array[int] = [0, 2, 4]
+## How far through the run the eligibility summary reports on: the start, each tier gate, the end.
+const SAMPLE_PROGRESS: Array[float] = [0.0, 0.25, 0.5, 1.0]
 
 
 ## How many cards the settlement's "what would five cost" line prices.
@@ -16,23 +16,20 @@ func _init() -> void:
 	lib.load_dir("res://data/cards")
 	_print_pool()
 	_print_economy(lib)
-	for starter_id in AdventureLadder.playable_starters():
+	for starter_id in AdventureDecks.playable_starters():
 		_run_one(starter_id, lib)
 	quit(0)
 
 
-## The Motes side of the file as it stands: what a ladder pays, what a band costs, and how much of
-## the library sits in each band.
+## The Motes side of the file as it stands: what each act pays per duel and per boss, what a band
+## costs, and how much of the library sits in each band.
 func _print_economy(lib: CardLibrary) -> void:
 	var payouts: PackedStringArray = PackedStringArray()
-	var total: int = 0
-	for n in range(8):
-		payouts.append(str(AdventureEconomy.stage_payout(n)))
-		total += AdventureEconomy.stage_payout(n)
+	for act in range(1, 4):
+		payouts.append("act %d: %d a duel, %d the boss" % [
+			act, AdventureEconomy.duel_payout(act, false), AdventureEconomy.duel_payout(act, true)])
 	print("")
-	print("economy: stage payouts %s = %d, completion bonus %d, full win %d" % [
-		", ".join(payouts), total, AdventureEconomy.completion_bonus(),
-		total + AdventureEconomy.completion_bonus()])
+	print("economy: %s; completion bonus %d" % ["; ".join(payouts), AdventureEconomy.completion_bonus()])
 	var counts: Dictionary = {}
 	for id in lib.all_ids():
 		var band: String = AdventureEconomy.band(lib.defs[id])
@@ -67,10 +64,10 @@ func _print_pool() -> void:
 
 
 func _run_one(starter_id: String, lib: CardLibrary) -> void:
-	var ladder: AdventureLadder = AdventureLadder.load_for(starter_id)
+	var map: AdventureMap = AdventureMap.generate(starter_id, RUN_SEED)
 	var run: AdventureRun = AdventureRun.begin(starter_id, RUN_SEED)
-	if ladder == null or run == null:
-		print("skip %s: no ladder or no starter deck" % starter_id)
+	if map == null or run == null:
+		print("skip %s: no map or no starter deck" % starter_id)
 		return
 	var deck: DeckList = run.deck()
 	print("")
@@ -79,29 +76,29 @@ func _run_one(starter_id: String, lib: CardLibrary) -> void:
 	# Eligibility on the starting deck, before any bundle has been taken.
 	var fresh: AdventureRun = AdventureRun.begin(starter_id, RUN_SEED)
 	var sample_parts: PackedStringArray = PackedStringArray()
-	var stages: Array[int] = SAMPLE_STAGES.duplicate()
-	stages.append(ladder.size() - 1)
-	for n in stages:
-		fresh.stage = n
-		sample_parts.append("stage %d: %d" % [n, AdventureRewards.eligible(fresh, lib, n).size()])
-	print("eligible on the starting deck  %s" % ", ".join(sample_parts))
+	for progress in SAMPLE_PROGRESS:
+		sample_parts.append("%.2f: %d" % [progress, AdventureRewards.eligible(fresh, lib, progress).size()])
+	print("eligible on the starting deck, by progress  %s" % ", ".join(sample_parts))
 
 	var earned: int = 0
 	while run.status != "won" and run.status != "lost":
-		var row: Dictionary = ladder.stage(run.stage)
+		if not run.walk_to_next_duel(map):
+			print("no fight left to reach from %s" % run.node_id)
+			break
+		var row: Dictionary = map.duel_for(run.node_id)
 		var stage_number: int = run.stage + 1
 		var opponent: String = str(row.get("opponent", ""))
-		var eligible_now: int = AdventureRewards.eligible(run, lib, run.stage).size()
-		earned += AdventureRewards.finish_stage(run, ladder, lib, true)
+		var eligible_now: int = AdventureRewards.eligible(run, lib, map.progress_of(run.node_id)).size()
+		earned += AdventureRewards.finish_stage(run, map, lib, true)
 		var aspect_taken: String = "-"
 		if run.status == "aspect":
 			var options: Array[String] = run.pending_aspects.duplicate()
 			aspect_taken = "%s (of %d)" % [options[0], options.size()]
 			AdventureRewards.apply_aspect(run, lib, options[0])
-			AdventureRewards.finish_aspect(run, ladder, lib)
+			AdventureRewards.finish_aspect(run, map, lib)
 		print("")
-		print("stage %d  %-22s  deck %d  aspects %d (%s)  aspect taken: %s  eligible %d" % [
-			stage_number, opponent, run.deck().total_cards(), run.aspects(),
+		print("duel %d, %s  %-22s  deck %d  aspects %d (%s)  aspect taken: %s  eligible %d" % [
+			stage_number, map.place_of(run.node_id), opponent, run.deck().total_cards(), run.aspects(),
 			", ".join(run.duelist_ids), aspect_taken, eligible_now])
 		if run.pending_offer.is_empty():
 			print("    (no bundle offered)")
@@ -110,7 +107,7 @@ func _run_one(starter_id: String, lib: CardLibrary) -> void:
 			for id in run.pending_offer:
 				print("    %s" % _describe(lib, id))
 			AdventureRewards.apply_bundle(run, lib, run.pending_offer[0])
-		earned += AdventureRewards.finish_reward(run, ladder)
+		earned += AdventureRewards.finish_reward(run, map)
 	print("end: %s, %d cards, %d aspects (%s)" % [
 		run.status, run.deck().total_cards(), run.aspects(), ", ".join(run.duelist_ids)])
 	_print_settlement(run, lib, earned)

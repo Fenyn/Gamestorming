@@ -10,7 +10,8 @@ func _initialize() -> void:
 	var rows: int = int(ceil(float(ids.size()) / cols))
 	var sheet: Image = Image.create(cell.x * cols, cell.y * rows, false, Image.FORMAT_RGBA8)
 	for i in range(ids.size()):
-		var tex: Texture2D = load("res://assets/card_art/%s.svg" % ids[i])
+		var id: String = str(ids[i])
+		var tex: Texture2D = load("res://assets/card_art/%s/%s.svg" % [id.get_slice("_", 0), id])
 		var img: Image = tex.get_image()
 		# Letterbox rather than stretch: these canvases differ by card type and a squashed
 		# thumbnail would be judged for a shape the card never shows.

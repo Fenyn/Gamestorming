@@ -4,30 +4,30 @@
   "tier": "boss",
   "mode": "adventure",
   "duelist": [
-    "personality_edric_rooke_1_the_hero",
-    "personality_edric_rooke_2_the_stranger",
-    "personality_edric_rooke_3_the_realms_hero",
-    "personality_edric_rooke_4_kindled_through",
-    "personality_edric_rooke_5_the_all_powerful"
+    "personality_30",
+    "personality_31",
+    "personality_32",
+    "personality_33",
+    "personality_34"
   ],
   "style": "tide",
   "alignment": "vigil",
-  "mastery": "tide_fathom_mastery",
-  "relic": "blank_mask",
+  "mastery": "tide_mastery_02",
+  "relic": "relic_01",
   "reserve": [
-    "open_challenge",
-    "tide_bearing_down",
-    "tide_bearing_down",
-    "tide_bearing_down",
-    "lobbed_bolt",
-    "dismissal",
-    "dismissal",
-    "tide_heavy_water",
-    "tide_heavy_water",
-    "tide_heavy_water",
-    "tide_full_weight",
-    "tide_held_under",
-    "defacement"
+    "freestyle_noncombat_09",
+    "tide_strike_09",
+    "tide_strike_09",
+    "tide_strike_09",
+    "freestyle_art_03",
+    "freestyle_combat_17",
+    "freestyle_combat_17",
+    "tide_noncombat_01",
+    "tide_noncombat_01",
+    "tide_noncombat_01",
+    "tide_art_12",
+    "tide_combat_01",
+    "freestyle_noncombat_10"
   ],
   "archetype": "control",
   "subthemes": [
@@ -39,164 +39,164 @@
   "tagline": "Hold their Fervor down with every blow, strip what they place, and spend your discard pile instead of blocking.",
   "cards": [
     {
-      "id": "tide_black_water",
+      "id": "tide_art_06",
+      "count": 1
+    },
+    {
+      "id": "tide_art_10",
+      "count": 3
+    },
+    {
+      "id": "tide_art_11",
       "count": 2
     },
     {
-      "id": "tide_crushing_depth",
-      "count": 3
-    },
-    {
-      "id": "tide_depths",
+      "id": "tide_art_12",
       "count": 1
     },
     {
-      "id": "tide_full_weight",
+      "id": "freestyle_combat_01",
       "count": 1
     },
     {
-      "id": "cut_short",
+      "id": "freestyle_combat_07",
       "count": 1
     },
     {
-      "id": "kept_at_bay",
-      "count": 1
-    },
-    {
-      "id": "old_trick",
+      "id": "freestyle_combat_10",
       "count": 2
     },
     {
-      "id": "reckless_ascent",
+      "id": "freestyle_combat_15",
       "count": 3
     },
     {
-      "id": "stillness",
+      "id": "signature_combat_03",
       "count": 1
     },
     {
-      "id": "bravado_drill",
+      "id": "freestyle_drill_01",
       "count": 1
     },
     {
-      "id": "clear_mind",
+      "id": "freestyle_noncombat_02",
       "count": 1
     },
     {
-      "id": "edrics_low_water",
+      "id": "freestyle_noncombat_03",
       "count": 1
     },
     {
-      "id": "first_cut",
+      "id": "freestyle_noncombat_04",
       "count": 1
     },
     {
-      "id": "foresight",
+      "id": "freestyle_noncombat_06",
       "count": 1
     },
     {
-      "id": "lucky_find",
+      "id": "freestyle_noncombat_14",
       "count": 1
     },
     {
-      "id": "mournes_plans",
+      "id": "signature_noncombat_07",
       "count": 1
     },
     {
-      "id": "recalled_lesson",
+      "id": "signature_noncombat_08",
       "count": 1
     },
     {
-      "id": "wardens_measure",
+      "id": "signature_noncombat_10",
       "count": 1
     },
     {
-      "id": "moth_seal_3",
+      "id": "seal_24",
       "count": 1
     },
     {
-      "id": "moth_seal_4",
+      "id": "seal_25",
       "count": 1
     },
     {
-      "id": "moth_seal_7",
+      "id": "seal_28",
       "count": 1
     },
     {
-      "id": "ashmarks_choke_hold",
+      "id": "freestyle_strike_06",
       "count": 3
     },
     {
-      "id": "edrics_opening_strike",
+      "id": "signature_strike_01",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_02",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_03",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_04",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_05",
       "count": 2
     },
     {
-      "id": "mournes_stance",
+      "id": "signature_strike_30",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_02",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_03",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_04",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_05",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_06",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_07",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_08",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_10",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_11",
+      "count": 3
+    },
+    {
+      "id": "tide_strike_12",
       "count": 1
     },
     {
-      "id": "no_quarter",
-      "count": 3
-    },
-    {
-      "id": "relentless_fury",
-      "count": 3
-    },
-    {
-      "id": "second_wind",
-      "count": 3
-    },
-    {
-      "id": "tide_deadweight",
-      "count": 3
-    },
-    {
-      "id": "tide_deep_anchor",
-      "count": 3
-    },
-    {
-      "id": "tide_deep_guard",
-      "count": 3
-    },
-    {
-      "id": "tide_deep_sweep",
-      "count": 3
-    },
-    {
-      "id": "tide_dredge",
-      "count": 3
-    },
-    {
-      "id": "tide_drowning",
-      "count": 3
-    },
-    {
-      "id": "tide_pressure_wave",
-      "count": 3
-    },
-    {
-      "id": "tide_pull_under",
-      "count": 3
-    },
-    {
-      "id": "tide_sweep_aside",
+      "id": "tide_strike_13",
       "count": 1
     },
     {
-      "id": "tide_undersweep",
-      "count": 1
-    },
-    {
-      "id": "tide_undertow",
+      "id": "tide_strike_14",
       "count": 3
-    },
-    {
-      "id": "tide_welling_deep",
-      "count": 3
-    },
-    {
-      "id": "unyielding_guard",
-      "count": 1
     }
   ]
 }

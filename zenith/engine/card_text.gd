@@ -441,7 +441,9 @@ static func rules_text(def: CardDef) -> String:
 			lines.append("Use this card only if %s." % cond_text(def.only["when"]))
 		if def.only.has("allies_min"):
 			lines.append("You must have %s in play to use this card." % _plural(int(def.only["allies_min"]), "Ally", "Allies"))
-	if def.endurance > 0 and def.endurance_when.is_empty():
+	if str(def.raw.get("endurance_from", "")) == "fervor":
+		lines.append("Endurance X. X = your Fervor.")
+	elif def.endurance > 0 and def.endurance_when.is_empty():
 		lines.append("Endurance %d." % def.endurance)
 	elif not def.endurance_when.is_empty():
 		lines.append("Endurance X. X = %d if %s, otherwise %d." % [int(def.endurance_when.get("then", 0)), cond_text(def.endurance_when.get("value_if", {})), int(def.endurance_when.get("else", 0))])
@@ -473,6 +475,8 @@ static func rules_text(def: CardDef) -> String:
 			"an attack" if after_kind == "" else _a(after_kind.capitalize())])
 	if bool(def.raw.get("reserve_only", false)):
 		lines.append("Reserve only.")
+	if str(def.raw.get("duelist_bloodline", "")) != "":
+		lines.append("%s duelists only." % bloodline_name(str(def.raw["duelist_bloodline"])))
 	if def.is_attack():
 		lines.append(attack_text(def.attack))
 		for v in def.attack.get("variants", []):
@@ -586,6 +590,13 @@ static func rules_text(def: CardDef) -> String:
 			school_name(burn_school) if burn_school != "" else "your", int(burn.get("prevent_per", 2))])
 	if bool(def.raw.get("protect_drills", false)):
 		lines.append("Your Drills cannot be discarded for any reason, an aspect change included.")
+	if bool(def.raw.get("fervor_lock", false)):
+		lines.append("Your Fervor cannot be lowered.")
+	if def.raw.has("keeps_drills_on_advance"):
+		lines.append("When your duelist advances an Aspect, your other Drills are not discarded.")
+		var keeps_self: Dictionary = (def.raw["keeps_drills_on_advance"] as Dictionary).get("self_when", {})
+		if not keeps_self.is_empty():
+			lines.append(_conditional(keeps_self, "this Drill is not discarded either."))
 	if str(def.raw.get("blocks_to_bottom", "")) != "":
 		lines.append("After you stop an attack with %s card that does not remove itself from the game, place it on the bottom of your Life Deck." % _a(school_name(str(def.raw.get("blocks_to_bottom", "")))))
 	if int(def.raw.get("art_cost_delta", 0)) != 0:
@@ -698,6 +709,8 @@ static func attack_text(a: Dictionary) -> String:
 		s += ", plus %d wounds for each Ally you have in play" % int(a["life_per_ally"])
 	if bool(a.get("life_from_surge", false)):
 		s += ", plus wounds equal to your Surge Rate"
+	if int(a.get("life_per_fervor", 0)) > 0:
+		s += ", plus wounds equal to your Fervor" if int(a["life_per_fervor"]) == 1 else ", plus %d wounds for each Fervor you have" % int(a["life_per_fervor"])
 	if a.has("life_per_set_seal"):
 		s += ", plus 1 wound for each %s Seal in play" % str(a["life_per_set_seal"]).capitalize()
 	if str(a.get("life_per_tag", "")) != "":
@@ -730,6 +743,16 @@ static func attack_text(a: Dictionary) -> String:
 		if int(plife.get("stages", 0)) != 0:
 			adds.append("%d Energy of damage" % int(plife["stages"]))
 		s += " You may discard the top card of your Life Deck to add %s." % " and ".join(adds)
+	if a.has("pay_hand"):
+		var phand: Dictionary = a["pay_hand"]
+		var hand_adds: PackedStringArray = PackedStringArray()
+		if int(phand.get("life", 0)) != 0:
+			hand_adds.append(_plural(int(phand["life"]), "wound", "wounds"))
+		if int(phand.get("stages", 0)) != 0:
+			hand_adds.append("%d Energy of damage" % int(phand["stages"]))
+		s += " You may discard a card from your hand as you perform it to add %s." % " and ".join(hand_adds)
+	if bool(a.get("damage_removes", false)):
+		s += " Wounds from it are removed from the game instead of discarded."
 	if bool(a.get("unstoppable", false)):
 		s += " Cannot be stopped."
 	if bool(a.get("no_prevent", false)):
@@ -821,6 +844,10 @@ static func cond_text(when: Dictionary) -> String:
 				parts.append("your duelist is aspect %d or higher" % int(v))
 			"opponent_fervor":
 				parts.append("your opponent's Fervor is %d" % int(v))
+			"opponent_fervor_max":
+				parts.append("your opponent's Fervor is %d or lower" % int(v))
+			"fervor_min":
+				parts.append("your Fervor is %d or higher" % int(v))
 			"allies_min":
 				parts.append("you have an Ally in play" if int(v) <= 1 else "you have %d or more Allies in play" % int(v))
 			"seals_min":
@@ -959,8 +986,12 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "Set %s Energy to %d." % [owner, n]
 		"draw" when bool(e.get("up_to", false)) and n > 1:
 			body = ("Your opponent may draw up to %d cards." if opp else "You may draw up to %d cards.") % n
+		"draw" when str(e.get("from", "top")) == "bottom":
+			body = "Draw the bottom %s of your Life Deck." % ("card" if n == 1 else "%d cards" % n)
 		"draw":
 			body = ("Your opponent draws %s." if opp else "Draw %s.") % _plural(n, "card", "cards")
+		"shuffle_source":
+			body = "Shuffle this card into your Life Deck."
 		"draw_until":
 			body = "Draw until you have %d cards in hand." % n
 		"draw_discard":
@@ -1155,6 +1186,8 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "For the remainder of Combat, %s attacks you use go to the bottom of your Life Deck instead." % school_name(str(params.get("school", "")))
 			elif what == "prevent_strike_damage" and str(e.get("duration", "")) == "next_attack_phase":
 				body = "Prevent all damage from Strikes during your opponent's next attack phase."
+			elif what == "no_endurance" and params.has("school"):
+				body = "For the remainder of Combat, your opponent cannot use Endurance against your %s attacks." % school_name(str(params["school"]))
 			elif what == "energy_on_hit":
 				body = "For the remainder of Combat, your attacks gain \"Hit: your duelist gains %d Energy.\"" % maxi(1, int(params.get("energy", 2)))
 			else:
@@ -1359,6 +1392,8 @@ static func _trigger_head(e: Dictionary) -> String:
 			return "When you perform an attack"
 		"on_success":
 			return "After a successful attack"
+		"on_stopped":
+			return "When your opponent stops your attack"
 		"discard_step":
 			return "At the beginning of each Discard step"
 		"on_wound":
@@ -1701,6 +1736,8 @@ static func modifier_text(m: Dictionary) -> String:
 		amount += " for each personality you have in play"
 	if str(m.get("per_bloodline", "")) != "":
 		amount += " for each %s personality you have in play" % bloodline_name(str(m["per_bloodline"]))
+	if bool(m.get("per_fervor", false)):
+		amount = amount.replace("+1 ", "+X ") + ", X = your Fervor"
 	var s: String = ""
 	if scope == "cost":
 		# A price, not damage: `set` fixes it, `stages` shifts it with an optional floor.
@@ -1913,6 +1950,8 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 			return "Pay %d Energy" % int(cmd.value)
 		&"pay_life":
 			return "Discard a life card" if int(cmd.value) > 0 else "Pay nothing"
+		&"pay_hand":
+			return "Discard a card from hand" if int(cmd.value) > 0 else "Keep your hand"
 		&"discard_choice":
 			return "Discard %s" % name
 		&"pick_in_play":
@@ -1993,6 +2032,8 @@ static func prompt_title(p: Prompt) -> String:
 			var payer: String = str(p.context.get("card_title", ""))
 			if bool(p.context.get("life_cost", false)):
 				return "%s: spend a life card?" % payer if payer != "" else "Spend a life card?"
+			if bool(p.context.get("hand_cost", false)):
+				return "%s: discard a card for more damage?" % payer if payer != "" else "Discard a card for more damage?"
 			return "%s: pay Energy?" % payer if payer != "" else "Pay extra Energy?"
 		&"discard_choice":
 			var n: int = int(p.context.get("amount", 1))
@@ -2362,7 +2403,7 @@ static func trigger_phrase(trigger: String) -> String:
 			return "on the hit"
 		"on_success":
 			return "after the successful attack"
-		"if_stopped":
+		"if_stopped", "on_stopped":
 			return "because the attack was stopped"
 		"on_wound":
 			return "on being discarded from the Life Deck"

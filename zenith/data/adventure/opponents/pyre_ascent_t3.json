@@ -4,13 +4,13 @@
   "tier": "t3",
   "mode": "adventure",
   "duelist": [
-    "personality_edric_rooke_1_the_hero",
-    "personality_edric_rooke_2_the_stranger",
-    "personality_edric_rooke_3_the_realms_hero"
+    "personality_30",
+    "personality_31",
+    "personality_32"
   ],
   "style": "pyre",
   "alignment": "vigil",
-  "mastery": "pyre_ember_mastery",
+  "mastery": "pyre_mastery_02",
   "relic": "",
   "reserve": [],
   "archetype": "strike_beatdown",
@@ -22,131 +22,131 @@
   "tagline": "Weather the early assault and stoke your Fervor to unleash the Ember Knight's strongest Aspects.",
   "cards": [
     {
-      "id": "captains_barrage",
+      "id": "freestyle_art_06",
       "count": 3
     },
     {
-      "id": "declaration",
-      "count": 1
+      "id": "pyre_art_01",
+      "count": 2
     },
     {
-      "id": "grounding_step",
-      "count": 1
-    },
-    {
-      "id": "pyre_hearthguard",
+      "id": "pyre_art_03",
       "count": 3
     },
     {
-      "id": "pyre_immolation",
-      "count": 2
+      "id": "signature_art_01",
+      "count": 1
     },
     {
-      "id": "braced_guard",
+      "id": "signature_art_09",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_01",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_02",
       "count": 3
     },
     {
-      "id": "cut_short",
+      "id": "freestyle_combat_05",
       "count": 1
     },
     {
-      "id": "dismissal",
-      "count": 1
-    },
-    {
-      "id": "edrics_truce",
+      "id": "freestyle_combat_06",
       "count": 2
     },
     {
-      "id": "kept_at_bay",
+      "id": "freestyle_combat_07",
       "count": 1
     },
     {
-      "id": "respite",
+      "id": "freestyle_combat_17",
       "count": 1
     },
     {
-      "id": "stillness",
-      "count": 1
-    },
-    {
-      "id": "watchful_eye",
+      "id": "signature_combat_01",
       "count": 2
     },
     {
-      "id": "foresight",
+      "id": "signature_combat_03",
       "count": 1
     },
     {
-      "id": "rites_unmade",
+      "id": "freestyle_noncombat_01",
       "count": 1
     },
     {
-      "id": "personality_alder_rooke_1",
+      "id": "freestyle_noncombat_04",
       "count": 1
     },
     {
-      "id": "marble_seal_4",
+      "id": "personality_53",
       "count": 1
     },
     {
-      "id": "edrics_opening_strike",
+      "id": "seal_11",
+      "count": 1
+    },
+    {
+      "id": "pyre_strike_01",
       "count": 2
     },
     {
-      "id": "edrics_training",
+      "id": "pyre_strike_03",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_04",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_06",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_07",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_08",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_14",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_15",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_16",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_17",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_18",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_03",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_05",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_06",
       "count": 3
     },
     {
-      "id": "hasks_flying_kick",
-      "count": 2
-    },
-    {
-      "id": "mournes_stance",
-      "count": 1
-    },
-    {
-      "id": "pyre_ashen_veil",
-      "count": 2
-    },
-    {
-      "id": "pyre_backdraft",
-      "count": 2
-    },
-    {
-      "id": "pyre_bellows_guard",
-      "count": 2
-    },
-    {
-      "id": "pyre_blazing_charge",
-      "count": 2
-    },
-    {
-      "id": "pyre_cinder_guard",
-      "count": 2
-    },
-    {
-      "id": "pyre_comet_fall",
-      "count": 2
-    },
-    {
-      "id": "pyre_ember_strike",
-      "count": 2
-    },
-    {
-      "id": "pyre_firestorm",
-      "count": 2
-    },
-    {
-      "id": "pyre_flashpoint",
-      "count": 2
-    },
-    {
-      "id": "pyre_furnace_breath",
-      "count": 2
-    },
-    {
-      "id": "pyre_updraft",
+      "id": "signature_strike_07",
       "count": 2
     }
   ]

@@ -43,6 +43,14 @@ const BACKDROP_DARKEN: float = 0.72
 const NEUTRAL_BACKDROP: Color = Color(0.11, 0.10, 0.10)
 const NO_BACKDROP: Color = Color(0, 0, 0, 0)
 
+## Kenney border rules inlaid in the frame band (tools/import_map_art.py writes them). Per style:
+## the texture's corner size in its own pixels, and how far in from the card edge it sits so its
+## lines land inside the band. Squarer frame corners suit the squared rules.
+const CARD_RULES_DIR: String = "res://assets/ui/card_rules/"
+const RULE_STYLES: Dictionary = {"inner_rule": [48, 6], "double": [32, 0], "notched": [32, -2]}
+const RULE_LIGHTEN: float = 0.45
+const FRAME_RADIUS: int = 14
+
 static var default_backdrop: Color = NEUTRAL_BACKDROP
 
 @onready var frame: Panel = $Frame
@@ -89,6 +97,7 @@ static var default_backdrop: Color = NEUTRAL_BACKDROP
 @onready var p_surge_word: Label = $Person/Column/Body/Side/Surge/Col/Word
 @onready var p_text: KeywordLabel = $Person/Column/Text
 
+var _rule: Panel = null
 var _stage_rows: Array[PanelContainer] = []
 var _fervor_pips: Array[Panel] = []
 var _stage_labels: Array[Label] = []
@@ -96,6 +105,13 @@ var _stage_values: Array[Label] = []
 
 
 func _ready() -> void:
+	# The rule sits over the colour band and under the cream body, so only the band shows it.
+	_rule = Panel.new()
+	_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_rule.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	add_child(_rule)
+	move_child(_rule, frame.get_index() + 1)
+	_rule.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# Ten fixed rungs, top rung is stage 10. Built once; only the numbers change per face.
 	for i in range(STAGES):
 		var row: PanelContainer = PanelContainer.new()
@@ -126,7 +142,8 @@ func _ready() -> void:
 func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPlayer = null, backdrop: Color = NO_BACKDROP) -> void:
 	inner.visible = true
 	var color: Color = Palette.frame_color(def)
-	_style(frame, color, 22, Palette.frame_edge(def))
+	_style(frame, color, FRAME_RADIUS, Palette.frame_edge(def))
+	_rule_style(def, color)
 	_inner_style(def)
 	var picture: Texture2D = art_texture(def, aspect)
 	if def.is_personality():
@@ -176,6 +193,8 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 	cost_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
 	left_badge.text = ""
 	right_badge.text = "Endurance %d" % def.endurance if def.endurance > 0 else ""
+	if str(def.raw.get("endurance_from", "")) != "":
+		right_badge.text = "Endurance X"
 	for l in [left_badge, right_badge]:
 		l.add_theme_color_override("font_color", INK)
 
@@ -252,24 +271,28 @@ static func resolve_backdrop(backdrop: Color) -> Color:
 	return backdrop if backdrop.a > 0.0 else default_backdrop
 
 
-## Card art lives in assets/card_art/<id>.png. Each Aspect is its own card, so a personality's
-## art is found by that card's id like everything else. An .svg of the same name is taken when no
-## painting is there yet, which is how the placeholder house crests are picked up. Missing art
-## falls back to the type glyph. `aspect` is kept so callers need not know which is which.
+## Card art lives in assets/card_art/<group>/<id>.png, where the group is the id's first word
+## (pyre_strike_07 is in pyre/). Ids are generic and never follow a title, so a rename leaves the
+## art alone. An .svg of the same name is taken when no painting is there yet, which is how the
+## placeholder crests are picked up. Missing art falls back to the type glyph. `aspect` is kept so
+## callers need not know which is which.
 static func art_texture(def: CardDef, aspect: int = 0) -> Texture2D:
 	var _unused: int = aspect
-	var candidates: Array[String] = []
-	for stem in [def.id]:
-		candidates.append("%s%s.png" % [ART_DIR, stem])
-		candidates.append("%s%s.svg" % [ART_DIR, stem])
-	for path in candidates:
+	var stem: String = art_path(def.id)
+	for path in [stem + ".png", stem + ".svg"]:
 		if ResourceLoader.exists(path, "Texture2D"):
 			return load(path) as Texture2D
 	return null
 
 
+## The art path for a card id, without the extension.
+static func art_path(id: String) -> String:
+	return "%s%s/%s" % [ART_DIR, id.get_slice("_", 0), id]
+
+
 func show_back() -> void:
 	_style(frame, Palette.BACK_COLOR)
+	_rule.visible = false
 	inner.visible = false
 	margin.visible = false
 	person.visible = false
@@ -313,6 +336,29 @@ func _inner_style(def: CardDef) -> void:
 		box.border_color = Palette.SIGNATURE_RULE
 		box.set_border_width_all(5)
 	inner.add_theme_stylebox_override("panel", box)
+
+
+## The Kenney border drawn in the frame's colour band, lighter than the band so it reads as an
+## inlaid rule. Personalities take the double line, Signature cards the notched one (in their bone
+## rule colour), everything else the inner rule.
+func _rule_style(def: CardDef, color: Color) -> void:
+	var style: String = "double" if def.is_personality() else ("notched" if def.is_signature() else "inner_rule")
+	var spec: Array = RULE_STYLES[style]
+	var tex: Texture2D = load(CARD_RULES_DIR + style + ".png") as Texture2D if ResourceLoader.exists(CARD_RULES_DIR + style + ".png") else null
+	_rule.visible = tex != null
+	if tex == null:
+		return
+	var box: StyleBoxTexture = StyleBoxTexture.new()
+	box.texture = tex
+	box.set_texture_margin_all(int(spec[0]))
+	box.draw_center = false
+	box.modulate_color = Palette.SIGNATURE_RULE if def.is_signature() else color.lightened(RULE_LIGHTEN)
+	_rule.add_theme_stylebox_override("panel", box)
+	var inset: float = float(spec[1])
+	_rule.offset_left = inset
+	_rule.offset_top = inset
+	_rule.offset_right = -inset
+	_rule.offset_bottom = -inset
 
 
 ## `edge` draws a thin outer rule on the frame. Only the Signature group uses it, so its obsidian

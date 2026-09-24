@@ -1,24 +1,24 @@
 {
   "name": "Last Standing",
   "duelist": [
-    "personality_bram_ashmark_1_starved",
-    "personality_bram_ashmark_2_gnawing",
-    "personality_bram_ashmark_3_gorging",
-    "personality_bram_ashmark_4_consuming",
-    "personality_bram_ashmark_5_insatiable"
+    "personality_01",
+    "personality_55",
+    "personality_56",
+    "personality_57",
+    "personality_58"
   ],
   "style": "pyre",
   "alignment": "pact",
-  "mastery": "pyre_ember_mastery",
-  "relic": "severing_clasp",
+  "mastery": "pyre_mastery_02",
+  "relic": "relic_04",
   "reserve": [
-    "open_challenge",
-    "the_watch_goes_dark",
-    "the_watch_goes_dark",
-    "the_watch_goes_dark",
-    "defacement",
-    "no_quarter",
-    "no_quarter"
+    "freestyle_noncombat_09",
+    "freestyle_noncombat_18",
+    "freestyle_noncombat_18",
+    "freestyle_noncombat_18",
+    "freestyle_noncombat_10",
+    "signature_strike_01",
+    "signature_strike_01"
   ],
   "archetype": "strike_beatdown",
   "difficulty": "medium",
@@ -32,131 +32,131 @@
   "blurb": "Bram Ashmark on a longer road. He takes the table apart first, the Allies, the standing workings, the Seals in both Life Decks, and then wears the rival down with attacks that all bite a little deeper than they read. Five Aspects, so he can climb past anyone with three, and the top two put what he spent back in the deck. Slow, and it asks the rival to run out of something.",
   "cards": [
     {
-      "id": "trampled_crossroads",
-      "count": 3
-    },
-    {
-      "id": "pyre_cinder_guard",
-      "count": 3
-    },
-    {
-      "id": "pyre_searing_guard",
-      "count": 3
-    },
-    {
-      "id": "pyre_warding_stance",
-      "count": 3
-    },
-    {
-      "id": "mournes_stance",
-      "count": 1
-    },
-    {
-      "id": "unyielding_guard",
-      "count": 1
-    },
-    {
-      "id": "stillness",
-      "count": 1
-    },
-    {
-      "id": "will_not_break",
-      "count": 1
-    },
-    {
-      "id": "quick_retreat",
-      "count": 2
-    },
-    {
-      "id": "cut_short",
-      "count": 3
-    },
-    {
-      "id": "kept_at_bay",
-      "count": 1
-    },
-    {
-      "id": "cold_appraisal",
-      "count": 3
-    },
-    {
-      "id": "pyre_rekindling",
-      "count": 3
-    },
-    {
-      "id": "pyre_knee_bash",
-      "count": 3
-    },
-    {
-      "id": "pyre_twin_flames",
-      "count": 3
-    },
-    {
-      "id": "pyre_flashpoint",
-      "count": 2
-    },
-    {
-      "id": "pyre_snuffing",
-      "count": 3
-    },
-    {
-      "id": "pyre_scouring_flame",
-      "count": 3
-    },
-    {
-      "id": "pyre_firestorm",
-      "count": 3
-    },
-    {
-      "id": "pyre_furnace_breath",
-      "count": 3
-    },
-    {
-      "id": "pyre_flame_lash",
-      "count": 3
-    },
-    {
-      "id": "pyre_sword_cleave",
-      "count": 3
-    },
-    {
-      "id": "emrys_rising_blow",
-      "count": 3
-    },
-    {
-      "id": "headlong_plunge",
-      "count": 3
-    },
-    {
-      "id": "relentless_fury",
+      "id": "signature_art_14",
       "count": 4
     },
     {
-      "id": "vales_sword_draw",
+      "id": "signature_combat_04",
       "count": 3
     },
     {
-      "id": "pyre_immolation",
+      "id": "signature_combat_03",
       "count": 3
     },
     {
-      "id": "ashmarks_ember_spray",
+      "id": "signature_art_09",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_29",
+      "count": 3
+    },
+    {
+      "id": "freestyle_strike_03",
+      "count": 3
+    },
+    {
+      "id": "freestyle_combat_07",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_03",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_01",
+      "count": 1
+    },
+    {
+      "id": "pyre_strike_01",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_06",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_11",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_16",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_08",
+      "count": 3
+    },
+    {
+      "id": "pyre_art_01",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_19",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_13",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_05",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_02",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_09",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_21",
+      "count": 3
+    },
+    {
+      "id": "pyre_combat_01",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_20",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_23",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_02",
       "count": 4
     },
     {
-      "id": "riftcry",
+      "id": "freestyle_art_09",
       "count": 1
     },
     {
-      "id": "declaration",
+      "id": "freestyle_combat_20",
       "count": 1
     },
     {
-      "id": "spent_to_the_last",
+      "id": "freestyle_combat_01",
       "count": 1
     },
     {
-      "id": "no_quarter",
+      "id": "grounds_01",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_04",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_13",
+      "count": 3
+    },
+    {
+      "id": "signature_combat_02",
       "count": 1
     }
   ]

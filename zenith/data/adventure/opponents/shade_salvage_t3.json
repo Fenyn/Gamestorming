@@ -4,13 +4,13 @@
   "tier": "t3",
   "mode": "adventure",
   "duelist": [
-    "personality_marrow_1_patchwork",
-    "personality_marrow_2_rebuilt",
-    "personality_marrow_3_overwrought"
+    "personality_26",
+    "personality_27",
+    "personality_28"
   ],
   "style": "shade",
   "alignment": "pact",
-  "mastery": "shade_mastery",
+  "mastery": "shade_mastery_01",
   "relic": "",
   "reserve": [],
   "archetype": "art_beatdown",
@@ -23,148 +23,148 @@
   "tagline": "Assemble a crew of constructs that strengthen one another, then unleash powerful Arts to overwhelm your rival.",
   "cards": [
     {
-      "id": "grounding_step",
-      "count": 1
-    },
-    {
-      "id": "mournes_jolting_arc",
+      "id": "freestyle_art_02",
       "count": 2
     },
     {
-      "id": "sabotage",
+      "id": "shade_art_01",
       "count": 2
     },
     {
-      "id": "shade_cutting_hand",
+      "id": "shade_art_03",
+      "count": 2
+    },
+    {
+      "id": "shade_art_04",
       "count": 3
     },
     {
-      "id": "shade_rending_palm",
+      "id": "shade_art_05",
       "count": 2
     },
     {
-      "id": "shade_snaring_web",
+      "id": "signature_art_01",
+      "count": 1
+    },
+    {
+      "id": "signature_art_03",
       "count": 2
     },
     {
-      "id": "shade_umbral_lash",
+      "id": "signature_art_07",
       "count": 2
     },
     {
-      "id": "threefold_bolt",
+      "id": "signature_art_08",
       "count": 2
     },
     {
-      "id": "unerring_bolt",
+      "id": "freestyle_combat_01",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_04",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_05",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_12",
       "count": 2
     },
     {
-      "id": "cold_appraisal",
+      "id": "freestyle_combat_17",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_03",
       "count": 2
     },
     {
-      "id": "cut_short",
+      "id": "signature_combat_04",
       "count": 2
     },
     {
-      "id": "dismissal",
+      "id": "signature_combat_07",
       "count": 1
     },
     {
-      "id": "marrows_retinue",
+      "id": "signature_combat_09",
       "count": 1
     },
     {
-      "id": "rallying_call",
+      "id": "freestyle_drill_07",
+      "count": 1
+    },
+    {
+      "id": "shade_drill_01",
+      "count": 1
+    },
+    {
+      "id": "shade_drill_02",
+      "count": 1
+    },
+    {
+      "id": "signature_drill_02",
       "count": 2
     },
     {
-      "id": "respite",
+      "id": "signature_drill_03",
       "count": 1
     },
     {
-      "id": "scorn_smirks",
+      "id": "freestyle_noncombat_01",
       "count": 1
     },
     {
-      "id": "sever_the_leyline",
+      "id": "freestyle_noncombat_04",
       "count": 1
     },
     {
-      "id": "stillness",
+      "id": "freestyle_noncombat_06",
       "count": 1
     },
     {
-      "id": "absorbing_drill",
-      "count": 2
-    },
-    {
-      "id": "assembly_drill",
+      "id": "freestyle_noncombat_11",
       "count": 1
     },
     {
-      "id": "mournes_quickness_drill",
+      "id": "freestyle_noncombat_12",
       "count": 1
     },
     {
-      "id": "shade_composure_drill",
-      "count": 1
-    },
-    {
-      "id": "shade_takedown_drill",
-      "count": 1
-    },
-    {
-      "id": "breakers_yard",
-      "count": 1
-    },
-    {
-      "id": "foresight",
-      "count": 1
-    },
-    {
-      "id": "lucky_find",
-      "count": 1
-    },
-    {
-      "id": "mercy_smiles",
+      "id": "signature_noncombat_01",
       "count": 3
     },
     {
-      "id": "mourne_takes_measure",
+      "id": "signature_noncombat_05",
       "count": 1
     },
     {
-      "id": "rites_unmade",
+      "id": "personality_46",
       "count": 1
     },
     {
-      "id": "spoiled_rite",
+      "id": "personality_47",
       "count": 1
     },
     {
-      "id": "personality_cull_1",
+      "id": "seal_04",
       "count": 1
     },
     {
-      "id": "personality_orvath_kell_1",
-      "count": 1
-    },
-    {
-      "id": "salt_seal_4",
-      "count": 1
-    },
-    {
-      "id": "second_wind",
+      "id": "freestyle_strike_06",
       "count": 3
     },
     {
-      "id": "shade_gathering_dark",
-      "count": 3
-    },
-    {
-      "id": "shade_warding_burst",
+      "id": "shade_strike_06",
       "count": 2
+    },
+    {
+      "id": "shade_strike_07",
+      "count": 3
     }
   ]
 }

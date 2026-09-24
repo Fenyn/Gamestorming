@@ -1,0 +1,56 @@
+{
+	"_note": "The run's node map (AdventureMap). Three acts of eight tiers: tiers 1 to 7 are nodes joined by random connections, tier 8 is the act's boss. Design doc section 7.1.",
+	"lanes": 4,
+	"walks": 4,
+	"_fights_note": "Every path through tiers 1 to 7 of an act holds this many fighting nodes, boss not counted. fight_chance per act tunes how rare the low end is.",
+	"fights_per_path": [2, 5],
+	"sensei": { "act": 1, "tier": 3 },
+	"_weights_note": "twist and encounter stay at 0 until their duel setup is built (build plan phase 3). shop and shrine are placeholders until phases 2 and 5.",
+	"fight_weights": { "duel": 70, "elite": 15, "key": 10, "twist": 0, "encounter": 0 },
+	"rest_weights": { "shop": 1, "shrine": 1, "forge": 1 },
+	"final_boss": { "family": "steel_beatdown", "tier": "boss" },
+	"acts": [
+		{
+			"fight_chance": 0.55,
+			"band": "weaker",
+			"elite_band": "medium",
+			"elite_from": 5,
+			"boss_bands": ["stronger", "medium"],
+			"ai_level": "easy",
+			"elite_ai_level": "default",
+			"boss_ai_level": "default",
+			"tiers": ["t1", "t1", "t1", "t1", "t2", "t2", "t2"],
+			"boss_tier": "t3",
+			"grant_first_tier": true,
+			"boss_grant": true
+		},
+		{
+			"fight_chance": 0.55,
+			"band": "medium",
+			"elite_band": "stronger",
+			"elite_from": 2,
+			"boss_bands": ["stronger", "medium"],
+			"ai_level": "default",
+			"elite_ai_level": "default",
+			"boss_ai_level": "default",
+			"tiers": ["t3", "t3", "t3", "t3", "t4", "t4", "t4"],
+			"boss_tier": "t5",
+			"grant_first_tier": false,
+			"boss_grant": true
+		},
+		{
+			"fight_chance": 0.55,
+			"band": "medium",
+			"elite_band": "stronger",
+			"elite_from": 2,
+			"boss_bands": ["stronger", "medium"],
+			"ai_level": "default",
+			"elite_ai_level": "default",
+			"boss_ai_level": "default",
+			"tiers": ["t4", "t4", "t4", "t4", "t5", "t5", "t5"],
+			"boss_tier": "boss",
+			"grant_first_tier": false,
+			"boss_grant": false
+		}
+	]
+}

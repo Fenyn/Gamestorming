@@ -4,12 +4,12 @@
   "tier": "t1",
   "mode": "adventure",
   "duelist": [
-    "personality_siphon_1_dormant",
-    "personality_siphon_2_charged"
+    "personality_07",
+    "personality_08"
   ],
   "style": "storm",
   "alignment": "pact",
-  "mastery": "storm_squall_mastery",
+  "mastery": "storm_mastery_02",
   "relic": "",
   "reserve": [],
   "archetype": "art_beatdown",
@@ -22,115 +22,115 @@
   "tagline": "Make enemy attacks costly and land disruptive Arts to shut down Strikes while building your own Fervor.",
   "cards": [
     {
-      "id": "captains_barrage",
+      "id": "freestyle_art_06",
       "count": 2
     },
     {
-      "id": "declaration",
+      "id": "signature_art_03",
+      "count": 2
+    },
+    {
+      "id": "signature_art_08",
+      "count": 2
+    },
+    {
+      "id": "signature_art_09",
       "count": 1
     },
     {
-      "id": "sabotage",
+      "id": "storm_art_03",
       "count": 2
     },
     {
-      "id": "storm_arc_bolt",
+      "id": "storm_art_04",
       "count": 2
     },
     {
-      "id": "storm_chain_lightning",
+      "id": "storm_art_06",
       "count": 2
     },
     {
-      "id": "storm_earthing_rod",
-      "count": 2
-    },
-    {
-      "id": "storm_lash",
+      "id": "storm_art_07",
       "count": 1
     },
     {
-      "id": "storm_palm_surge",
+      "id": "storm_art_08",
       "count": 1
     },
     {
-      "id": "storm_smiting_bolt",
+      "id": "storm_art_09",
       "count": 2
     },
     {
-      "id": "threefold_bolt",
-      "count": 2
-    },
-    {
-      "id": "braced_guard",
+      "id": "freestyle_combat_02",
       "count": 3
     },
     {
-      "id": "cold_appraisal",
+      "id": "freestyle_combat_12",
       "count": 1
     },
     {
-      "id": "rallying_call",
+      "id": "signature_combat_04",
       "count": 1
     },
     {
-      "id": "scorn_smirks",
+      "id": "signature_combat_07",
       "count": 1
     },
     {
-      "id": "assembly_drill",
+      "id": "freestyle_drill_07",
       "count": 1
     },
     {
-      "id": "mournes_quickness_drill",
+      "id": "signature_drill_03",
       "count": 1
     },
     {
-      "id": "corins_conditioning",
+      "id": "freestyle_noncombat_01",
       "count": 1
     },
     {
-      "id": "foresight",
+      "id": "freestyle_noncombat_04",
       "count": 1
     },
     {
-      "id": "mercy_smiles",
+      "id": "freestyle_noncombat_07",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_12",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_01",
       "count": 2
     },
     {
-      "id": "mourne_takes_measure",
+      "id": "signature_noncombat_02",
       "count": 1
     },
     {
-      "id": "provocation",
+      "id": "signature_noncombat_05",
       "count": 1
     },
     {
-      "id": "rites_unmade",
+      "id": "personality_46",
       "count": 1
     },
     {
-      "id": "spoiled_rite",
+      "id": "personality_47",
       "count": 1
     },
     {
-      "id": "personality_cull_1",
+      "id": "seal_19",
       "count": 1
     },
     {
-      "id": "personality_orvath_kell_1",
-      "count": 1
-    },
-    {
-      "id": "sun_seal_5",
-      "count": 1
-    },
-    {
-      "id": "practiced_guard",
+      "id": "freestyle_strike_06",
       "count": 2
     },
     {
-      "id": "second_wind",
+      "id": "signature_strike_26",
       "count": 2
     }
   ]

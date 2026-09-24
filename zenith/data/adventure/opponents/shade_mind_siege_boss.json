@@ -4,29 +4,29 @@
   "tier": "boss",
   "mode": "adventure",
   "duelist": [
-    "personality_gideon_mourne_1_the_marked_lord",
-    "personality_gideon_mourne_2_unflinching",
-    "personality_gideon_mourne_3_unfettered",
-    "personality_gideon_mourne_4_unrepentant"
+    "personality_59",
+    "personality_60",
+    "personality_61",
+    "personality_62"
   ],
   "style": "shade",
   "alignment": "pact",
-  "mastery": "shade_mastery",
-  "relic": "blank_mask",
+  "mastery": "shade_mastery_01",
+  "relic": "relic_01",
   "reserve": [
-    "shade_unraveling",
-    "shade_unraveling",
-    "shade_unraveling",
-    "shade_ransoming_hand",
-    "shade_ransoming_hand",
-    "shade_ransoming_hand",
-    "dismissal",
-    "dismissal",
-    "defacement",
-    "sever_the_leyline",
-    "the_watch_goes_dark",
-    "marked_lightning",
-    "marked_lightning"
+    "shade_strike_01",
+    "shade_strike_01",
+    "shade_strike_01",
+    "shade_strike_13",
+    "shade_strike_13",
+    "shade_strike_13",
+    "freestyle_combat_17",
+    "freestyle_combat_17",
+    "freestyle_noncombat_10",
+    "freestyle_combat_04",
+    "freestyle_noncombat_18",
+    "freestyle_art_10",
+    "freestyle_art_10"
   ],
   "archetype": "strike_beatdown",
   "subthemes": [
@@ -38,147 +38,147 @@
   "tagline": "Take their hand, their table and their options, then finish with blows the mark makes focused.",
   "cards": [
     {
-      "id": "grounding_step",
+      "id": "freestyle_art_10",
       "count": 1
     },
     {
-      "id": "marked_demise",
+      "id": "freestyle_art_11",
       "count": 2
     },
     {
-      "id": "marked_lightning",
+      "id": "shade_art_01",
       "count": 1
     },
     {
-      "id": "shade_fixed_gaze",
+      "id": "shade_art_08",
+      "count": 1
+    },
+    {
+      "id": "shade_art_09",
       "count": 3
     },
     {
-      "id": "shade_recoil",
-      "count": 1
-    },
-    {
-      "id": "shade_swelling_whisper",
+      "id": "shade_art_10",
       "count": 3
     },
     {
-      "id": "shade_turned_whisper",
+      "id": "shade_art_11",
       "count": 1
     },
     {
-      "id": "shade_umbral_lash",
+      "id": "signature_art_01",
       "count": 1
     },
     {
-      "id": "cold_appraisal",
+      "id": "freestyle_combat_01",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_07",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_03",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_04",
       "count": 3
     },
     {
-      "id": "cut_short",
+      "id": "freestyle_drill_01",
       "count": 1
     },
     {
-      "id": "kept_at_bay",
+      "id": "shade_drill_02",
       "count": 1
     },
     {
-      "id": "stillness",
-      "count": 1
-    },
-    {
-      "id": "bravado_drill",
-      "count": 1
-    },
-    {
-      "id": "shade_composure_drill",
-      "count": 1
-    },
-    {
-      "id": "shade_faltering_drill",
+      "id": "shade_drill_03",
       "count": 3
     },
     {
-      "id": "foresight",
+      "id": "freestyle_noncombat_02",
       "count": 1
     },
     {
-      "id": "recalled_lesson",
+      "id": "freestyle_noncombat_04",
       "count": 1
     },
     {
-      "id": "ashmarks_unmaking_whisper",
+      "id": "freestyle_strike_07",
       "count": 3
     },
     {
-      "id": "marked_strength",
+      "id": "shade_strike_02",
       "count": 3
     },
     {
-      "id": "mournes_stance",
-      "count": 1
-    },
-    {
-      "id": "no_quarter",
+      "id": "shade_strike_03",
       "count": 3
     },
     {
-      "id": "relentless_fury",
+      "id": "shade_strike_05",
       "count": 3
     },
     {
-      "id": "scatters_the_ashes",
+      "id": "shade_strike_06",
       "count": 3
     },
     {
-      "id": "shade_bitter_trade",
+      "id": "shade_strike_08",
       "count": 2
     },
     {
-      "id": "shade_dread_grip",
+      "id": "shade_strike_09",
       "count": 3
     },
     {
-      "id": "shade_emptying_whisper",
+      "id": "shade_strike_10",
       "count": 3
     },
     {
-      "id": "shade_hex_recall",
+      "id": "shade_strike_11",
       "count": 3
     },
     {
-      "id": "shade_lingering_whisper",
+      "id": "shade_strike_12",
+      "count": 3
+    },
+    {
+      "id": "shade_strike_14",
       "count": 2
     },
     {
-      "id": "shade_nightmare_hold",
-      "count": 3
-    },
-    {
-      "id": "shade_returning_whisper",
-      "count": 3
-    },
-    {
-      "id": "shade_sifting_whisper",
-      "count": 3
-    },
-    {
-      "id": "shade_silenced_whisper",
-      "count": 3
-    },
-    {
-      "id": "shade_stinging_palm",
+      "id": "shade_strike_15",
       "count": 2
     },
     {
-      "id": "shade_warding_burst",
+      "id": "signature_strike_01",
       "count": 3
     },
     {
-      "id": "unyielding_guard",
+      "id": "signature_strike_02",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_03",
       "count": 1
     },
     {
-      "id": "wall_of_flame",
+      "id": "signature_strike_04",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_08",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_19",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_31",
       "count": 3
     }
   ]

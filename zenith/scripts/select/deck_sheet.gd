@@ -66,7 +66,8 @@ func show_deck(d: DeckList, tag_text: String) -> void:
 	ZenithTheme.chip(alignment_chip, ZenithTheme.MUTED)
 	archetype_chip.visible = Archetype.label(d.archetype) != ""
 	archetype_chip.text = Archetype.label(d.archetype)
-	ZenithTheme.chip(archetype_chip, ZenithTheme.DEFEND)
+	# Informational, like the alignment chip: a saturated colour here read as a selected toggle.
+	ZenithTheme.chip(archetype_chip, ZenithTheme.MUTED)
 	var mastery_def: CardDef = Session.library.defs.get(d.mastery_id)
 	mastery_box.visible = mastery_def != null
 	if mastery_def != null:

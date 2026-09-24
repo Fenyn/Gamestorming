@@ -1,11 +1,10 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/stage.gd" id="1_stage"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="2_faces"]
 [ext_resource type="PackedScene" path="res://scenes/select/deck_sheet.tscn" id="3_sheet"]
 [ext_resource type="PackedScene" path="res://scenes/adventure/stage_deck_panel.tscn" id="4_deckpanel"]
-[ext_resource type="PackedScene" path="res://scenes/ui/stat_tile.tscn" id="5_tile_stat"]
-[ext_resource type="Script" path="res://scripts/ui/arcane_backdrop.gd" id="6_backdrop"]
+[ext_resource type="Script" path="res://scripts/adventure/terrain_backdrop.gd" id="6_backdrop"]
 
 [node name="Stage" type="Control"]
 layout_mode = 3
@@ -44,81 +43,16 @@ theme_override_constants/margin_bottom = 28
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="TitleRow" type="HBoxContainer" parent="Margin/Column"]
-layout_mode = 2
-theme_override_constants/separation = 24
-
-[node name="Title" type="Label" parent="Margin/Column/TitleRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 24
-text = "The ascent"
-
-[node name="HeaderLine" type="HBoxContainer" parent="Margin/Column"]
-layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="DeckName" type="Label" parent="Margin/Column/HeaderLine"]
-layout_mode = 2
-theme_type_variation = &"TitleLabel"
-theme_override_font_sizes/font_size = 30
-text = ""
-
-[node name="Duelist" type="Label" parent="Margin/Column/HeaderLine"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_type_variation = &"AccentLabel"
-theme_override_font_sizes/font_size = 18
-text = ""
-
-[node name="Spacer" type="Control" parent="Margin/Column/HeaderLine"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Motes" parent="Margin/Column/HeaderLine" instance=ExtResource("5_tile_stat")]
-layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 4
-
-[node name="StageStatus" type="Label" parent="Margin/Column/HeaderLine"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 15
-text = ""
-horizontal_alignment = 2
-
-[node name="SubHeader" type="HBoxContainer" parent="Margin/Column"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="DeckSize" type="Label" parent="Margin/Column/SubHeader"]
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = ""
-
-[node name="Aspects" type="Label" parent="Margin/Column/SubHeader"]
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = ""
-
 [node name="Body" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 24
+theme_override_constants/separation = 18
 
 [node name="Ladder" type="VBoxContainer" parent="Margin/Column/Body"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.85
-theme_override_constants/separation = 10
-
-[node name="RouteTitle" type="Label" parent="Margin/Column/Body/Ladder"]
-layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-text = "PATH TO THE FINAL"
-horizontal_alignment = 1
+size_flags_stretch_ratio = 1.35
+theme_override_constants/separation = 8
 
 [node name="Scroll" type="ScrollContainer" parent="Margin/Column/Body/Ladder"]
 layout_mode = 2
@@ -134,7 +68,52 @@ theme_override_constants/separation = 8
 [node name="Right" type="VBoxContainer" parent="Margin/Column/Body"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="RunInfo" type="PanelContainer" parent="Margin/Column/Body/Right"]
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="Margin/Column/Body/Right/RunInfo"]
+layout_mode = 2
 theme_override_constants/separation = 16
+
+[node name="Titles" type="VBoxContainer" parent="Margin/Column/Body/Right/RunInfo/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 2
+
+[node name="DeckName" type="Label" parent="Margin/Column/Body/Right/RunInfo/Row/Titles"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+theme_override_font_sizes/font_size = 28
+text = ""
+text_overrun_behavior = 3
+
+[node name="StageStatus" type="Label" parent="Margin/Column/Body/Right/RunInfo/Row/Titles"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 15
+text = ""
+
+[node name="MotesBox" type="HBoxContainer" parent="Margin/Column/Body/Right/RunInfo/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 6
+
+[node name="MoteIcon" type="TextureRect" parent="Margin/Column/Body/Right/RunInfo/Row/MotesBox"]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MotesValue" type="Label" parent="Margin/Column/Body/Right/RunInfo/Row/MotesBox"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"AccentLabel"
+theme_override_font_sizes/font_size = 28
+text = "0"
 
 [node name="NextOpponent" parent="Margin/Column/Body/Right" instance=ExtResource("3_sheet")]
 layout_mode = 2
@@ -145,8 +124,11 @@ visible = false
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Center" type="CenterContainer" parent="Margin/Column/Body/Right/RunOver"]
+[node name="Center" type="MarginContainer" parent="Margin/Column/Body/Right/RunOver"]
 layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 48
+theme_override_constants/margin_right = 24
 
 [node name="Column" type="VBoxContainer" parent="Margin/Column/Body/Right/RunOver/Center"]
 layout_mode = 2

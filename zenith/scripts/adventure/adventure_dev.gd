@@ -25,16 +25,41 @@ static func reduced_motion() -> bool:
 	return ArcaneBackdrop.motion_reduced()
 
 
-## Puts an unsaved run for `starter_id` into Session. False when the starter or its ladder is
+## Puts an unsaved run for `starter_id` into Session. False when the starter or its map is
 ## missing, leaving Session as it was.
 static func begin_run(starter_id: String) -> bool:
 	var run: AdventureRun = AdventureRun.begin(starter_id, DEV_SEED)
-	var ladder: AdventureLadder = AdventureLadder.load_for(starter_id, DEV_SEED)
-	if run == null or ladder == null:
+	var map: AdventureMap = AdventureMap.generate(starter_id, DEV_SEED)
+	if run == null or map == null:
 		return false
 	Session.run = run
-	Session.ladder = ladder
+	Session.map = map
 	return true
+
+
+## Wins `duels` duels of the Session run in memory, taking the first choice, the first Aspect and
+## the first bundle every time, so a dev screen can open part way through a run. Stops early at the
+## end of the run. Nothing is saved and no Motes move.
+static func walk(duels: int) -> void:
+	var run: AdventureRun = Session.run
+	for i in range(duels):
+		if not run.walk_to_next_duel(Session.map):
+			return
+		AdventureRewards.finish_stage(run, Session.map, Session.library, true)
+		_take_firsts(run)
+		AdventureRewards.finish_reward(run, Session.map)
+		if run.status != "map":
+			return
+
+
+static func _take_firsts(run: AdventureRun) -> void:
+	if run.status == "aspect" and not run.pending_aspects.is_empty():
+		AdventureRewards.apply_aspect(run, Session.library, run.pending_aspects[0])
+		AdventureRewards.finish_aspect(run, Session.map, Session.library)
+	if run.pending_offer.is_empty():
+		AdventureRewards.apply_skip(run)
+	else:
+		AdventureRewards.apply_bundle(run, Session.library, run.pending_offer[0])
 
 
 ## Where a dev screen's wallet, collection and run are written. `--dev-scratch=<dir>` names it;
@@ -92,28 +117,24 @@ static func stock_collection(ids: Array[String], each: int = 1) -> void:
 			Session.collection.add(id, each, Session.library)
 
 
-## Plays a whole run in memory, taking the first Aspect and the first bundle at every stage, and
-## credits the payouts to the scratch wallet. `lose_at` is the 0-based stage the run falls at, or
-## -1 to beat the ladder. False when the starter has no ladder.
+## Plays a whole run in memory, taking the first choice, the first Aspect and the first bundle at
+## every step, and credits the payouts to the scratch wallet. `lose_at` is the 0-based duel the run
+## falls at, or -1 to beat the final boss. False when the starter has no map.
 static func simulate_run(starter_id: String, lose_at: int = -1) -> bool:
 	if not begin_run(starter_id):
 		return false
 	var run: AdventureRun = Session.run
 	while run.status != "won" and run.status != "lost":
+		if not run.walk_to_next_duel(Session.map):
+			return false
 		var won: bool = lose_at < 0 or run.stage < lose_at
-		var payout: int = AdventureRewards.finish_stage(run, Session.ladder, Session.library, won)
+		var payout: int = AdventureRewards.finish_stage(run, Session.map, Session.library, won)
 		if payout > 0:
 			Session.wallet.earn(payout, AdventureWallet.REASON_STAGE, run.run_id, run.stage)
 		if not won:
 			break
-		if run.status == "aspect" and not run.pending_aspects.is_empty():
-			AdventureRewards.apply_aspect(run, Session.library, run.pending_aspects[0])
-			AdventureRewards.finish_aspect(run, Session.ladder, Session.library)
-		if run.pending_offer.is_empty():
-			AdventureRewards.apply_skip(run)
-		else:
-			AdventureRewards.apply_bundle(run, Session.library, run.pending_offer[0])
-		var bonus: int = AdventureRewards.finish_reward(run, Session.ladder)
+		_take_firsts(run)
+		var bonus: int = AdventureRewards.finish_reward(run, Session.map)
 		if bonus > 0:
 			Session.wallet.earn(bonus, AdventureWallet.REASON_COMPLETION, run.run_id)
 	return true

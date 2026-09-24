@@ -69,6 +69,8 @@ In the data it is `bloodline` on a personality's card definition, `only: {"blood
 
 Carriers (in the data since 2026-09-19): Draconic are Halden Quarr, Caedan Vale, Sir Edric Rooke, Wren Rooke, Ansel Rooke, Tavin Vale, the bonded pair and Gideon Mourne. Verdant are Osric Thornwald and Orvath Kell, who share a line. Nobody else has one, Dame Alder Rooke included, though every one of her Allies does.
 
+**Two schools belong to a bloodline (decided 2026-09-23).** The reference game let only a Saiyan Main Personality declare the Saiyan style and only a Namekian one the Namekian style, and the user wants that kept even though it ties a bloodline to a school. So the Steel Mastery is for Draconic duelists and the Root Mastery for Verdant ones: every Duelist card in a Steel deck must be Draconic, and every one in a Root deck Verdant. Allies are not checked. The Mastery carries it as `duelist_bloodline`, `DeckValidator` enforces it, and the card prints "Draconic duelists only." "Draconic only" on a single card still reads whoever is in control of Combat.
+
 Dame Alder Rooke's first Aspect is the only card that reads a bloodline so far. Its `protect_allies` names Draconic rather than guarding everyone, so she shields kin and not every hireling she happens to lead. It covers the same four Allies either way, because all four are Draconic.
 
 ### Keywords
@@ -304,7 +306,7 @@ The first word of a card title sets its school. Everything else is Freestyle. Si
 
 Card naming: each title marries the mechanic to the school's doctrine (Pyre burns and rekindles, Tide ebbs and floods, Storm charges and releases, Shade hexes the mind, Root regrows, Freestyle stays mundane). Steel alone keeps hand-to-hand names, because the Ironblood body is the spell. Titles are short move names, never sentences.
 
-- **Style.** Every deck carries exactly one Mastery, and that Mastery's school is the deck's Style. All school cards in the deck share that school. A Freestyle Mastery allows no school cards. Nothing is declared at setup. The old single-school Surge bonus stays as a flat +1 at Power Up for every deck.
+- **Style.** Every deck carries exactly one Mastery, and that Mastery's school is the deck's Style. All school cards in the deck share that school. A Freestyle Mastery allows no school cards. A Steel Mastery needs a Draconic Duelist and a Root Mastery a Verdant one (see Bloodlines). Nothing is declared at setup. The old single-school Surge bonus stays as a flat +1 at Power Up for every deck.
 - **No gates.** Any duelist may train in any school. "School only" text does not exist; gating comes from alignment and duelist names only.
 - **Alignment.** Vigil, Pact, or Hedge. Allies must match the Duelist. "Vigil only" and "Pact only" text.
 - **Bloodline.** Draconic, Verdant, or none. Sits on the personality, not the deck, so Allies need not match the Duelist. "Draconic only" and "Verdant only" text, read off whoever is in control of Combat. See Bloodlines above.

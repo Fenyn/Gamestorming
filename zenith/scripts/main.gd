@@ -138,9 +138,9 @@ func _dev_adventure(args: PackedStringArray) -> void:
 	if starter_id != "":
 		Session.abandon_run()
 		Session.start_run(starter_id)
-		if stage >= 0 and Session.ladder != null:
-			Session.run.stage = clampi(stage, 0, Session.ladder.size() - 1)
-		if duel:
+		if stage > 0 and Session.map != null:
+			AdventureDev.walk(stage)
+		if duel and Session.map != null and Session.run.walk_to_next_duel(Session.map):
 			Session.begin_stage()
 			return
 	Session.go_to_adventure()

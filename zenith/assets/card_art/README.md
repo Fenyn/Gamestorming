@@ -1,6 +1,8 @@
 # Card art
 
-One PNG per card id: `no_quarter.png`. Duelists may add `<id>_a<aspect>.png`; a missing Aspect file falls back to `<id>.png`. Ids and briefs: `docs/card_roster.md`.
+One PNG per card, named by the card's id, in the folder named by the id's first word: `pyre/pyre_strike_07.png`, `signature/signature_art_03.png`, `personality/personality_17.png`. Ids are generic (since 2026-09-23) and never follow a card's title, so renaming a card never moves its art. Which id is which card, with its art brief, is in `docs/card_roster.md`.
+
+Folders: `pyre`, `steel`, `tide`, `storm`, `shade`, `root` (school cards and that school's Masteries), `freestyle`, `signature` (cards tied to a named character), `personality` (one file per Aspect card), `seal`, `grounds`, `relic`. The test suite fails if a file here does not name a card or sits in the wrong folder.
 
 An `.svg` of the same name is used when no PNG is there. The house crests in here are placeholders in that form: one per character, a base crest per house with a difference for each variant. Drop a PNG in beside one and the PNG wins, so the crest can stay until the painting arrives.
 

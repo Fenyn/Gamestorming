@@ -521,9 +521,9 @@ func _stock_dev_collection(sid: String) -> void:
 		# The cards its own Duelist line grows into. Neither can stand in the Life Deck as an Ally
 		# of its own Duelist's character, and neither fits a tier the stack already has, so they
 		# show up only once an Aspect tier is unlocked and Add Aspect is armed.
-		ids.append("personality_bram_ashmark_3_unstoppable")
-		ids.append("personality_bram_ashmark_3_gorging")
-		ids.append("personality_bram_ashmark_2_gnawing")
+		ids.append("personality_03")
+		ids.append("personality_56")
+		ids.append("personality_55")
 	AdventureDev.stock_collection(ids, 2)
 
 

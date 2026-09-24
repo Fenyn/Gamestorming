@@ -21,24 +21,14 @@ static func load_run() -> AdventureRun:
 	if not FileAccess.file_exists(file):
 		return null
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(file))
-	if not (parsed is Dictionary):
-		return null
-	var run: AdventureRun = AdventureRun.from_dict(parsed)
-	if run != null and run.needs_offer_rebuild:
-		_rebuild_offer(run)
+	var run: AdventureRun = null
+	if parsed is Dictionary:
+		run = AdventureRun.from_dict(CardRenames.migrate(parsed) as Dictionary)
+	# A save from before the current version, or one that will not parse, is dropped rather than
+	# left to offer a Continue that can never load.
+	if run == null:
+		clear()
 	return run
-
-
-## A save written before theme bundles named single cards in its offer. The run is still standing
-## on the same stage, so the bundle offer that stage would have made is drawn now.
-static func _rebuild_offer(run: AdventureRun) -> void:
-	run.needs_offer_rebuild = false
-	var ladder: AdventureLadder = AdventureLadder.load_for(run.starter_id, run.run_seed)
-	if ladder == null:
-		return
-	var library: CardLibrary = CardLibrary.new()
-	library.load_dir("res://data/cards")
-	run.pending_offer = AdventureRewards.offer(run, library, ladder)
 
 
 static func store(run: AdventureRun) -> bool:

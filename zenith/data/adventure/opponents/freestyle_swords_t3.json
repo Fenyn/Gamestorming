@@ -4,13 +4,13 @@
   "tier": "t3",
   "mode": "adventure",
   "duelist": [
-    "personality_caedan_vale_1_last_heir",
-    "personality_caedan_vale_2_unparried",
-    "personality_caedan_vale_3_spellcutter"
+    "personality_16",
+    "personality_17",
+    "personality_18"
   ],
   "style": "freestyle",
   "alignment": "vigil",
-  "mastery": "freestyle_mastery",
+  "mastery": "freestyle_mastery_01",
   "relic": "",
   "reserve": [],
   "archetype": "drills",
@@ -22,131 +22,131 @@
   "tagline": "Build a foundation of Drills, then chain signature sword techniques into increasingly powerful strikes.",
   "cards": [
     {
-      "id": "committed_cut",
+      "id": "freestyle_art_03",
+      "count": 1
+    },
+    {
+      "id": "signature_art_04",
       "count": 2
     },
     {
-      "id": "lobbed_bolt",
+      "id": "freestyle_combat_01",
       "count": 1
     },
     {
-      "id": "cut_short",
+      "id": "freestyle_combat_06",
       "count": 2
     },
     {
-      "id": "keen_eye",
+      "id": "freestyle_combat_16",
       "count": 1
     },
     {
-      "id": "quiet_study",
-      "count": 1
-    },
-    {
-      "id": "stillness",
-      "count": 1
-    },
-    {
-      "id": "watchful_eye",
+      "id": "signature_combat_03",
       "count": 2
     },
     {
-      "id": "absorbing_drill",
+      "id": "signature_combat_08",
       "count": 1
     },
     {
-      "id": "bravado_drill",
+      "id": "freestyle_drill_01",
       "count": 1
     },
     {
-      "id": "counterplay_drill",
-      "count": 1
-    },
-    {
-      "id": "lone_blade_drill",
+      "id": "freestyle_drill_03",
       "count": 2
     },
     {
-      "id": "mournes_quickness_drill",
+      "id": "freestyle_drill_04",
       "count": 1
     },
     {
-      "id": "no_retreat_drill",
+      "id": "freestyle_drill_05",
       "count": 1
     },
     {
-      "id": "swordplay_drill",
+      "id": "signature_drill_01",
       "count": 2
     },
     {
-      "id": "foresight",
+      "id": "signature_drill_02",
       "count": 1
     },
     {
-      "id": "heirloom_blade",
+      "id": "signature_drill_03",
       "count": 1
     },
     {
-      "id": "recalled_lesson",
+      "id": "freestyle_noncombat_02",
       "count": 1
     },
     {
-      "id": "vales_insight",
+      "id": "freestyle_noncombat_04",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_03",
       "count": 2
     },
     {
-      "id": "hilt_guard",
+      "id": "signature_noncombat_06",
+      "count": 1
+    },
+    {
+      "id": "freestyle_strike_04",
+      "count": 2
+    },
+    {
+      "id": "freestyle_strike_06",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_01",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_02",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_03",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_10",
       "count": 3
     },
     {
-      "id": "mournes_stance",
-      "count": 1
-    },
-    {
-      "id": "no_quarter",
+      "id": "signature_strike_11",
       "count": 2
     },
     {
-      "id": "quick_retreat",
+      "id": "signature_strike_12",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_13",
       "count": 3
     },
     {
-      "id": "relentless_fury",
+      "id": "signature_strike_14",
       "count": 2
     },
     {
-      "id": "second_wind",
+      "id": "signature_strike_15",
       "count": 2
     },
     {
-      "id": "sword_flourish",
+      "id": "signature_strike_21",
       "count": 3
     },
     {
-      "id": "sword_lunge",
-      "count": 2
-    },
-    {
-      "id": "sword_sweep",
-      "count": 2
-    },
-    {
-      "id": "sword_thrust",
-      "count": 2
-    },
-    {
-      "id": "vales_pommel_bash",
-      "count": 2
-    },
-    {
-      "id": "vales_quickstep",
-      "count": 2
-    },
-    {
-      "id": "vales_riposte",
+      "id": "signature_strike_22",
       "count": 3
     },
     {
-      "id": "vales_sword_draw",
+      "id": "signature_strike_23",
       "count": 3
     }
   ]

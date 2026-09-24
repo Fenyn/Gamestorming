@@ -67,6 +67,58 @@ that could be satisfied, and there was nothing left, which is why he is a shell.
 his claim, so it took every other person's power to give it back, and what was left was pride. The
 same mark produced two different men, and `marked` is not one condition.
 
+## The Lodestone Heart
+
+Settled 2026-09-23. The thing everyone on the road is after, and the thread that ties every
+storyline together.
+
+- A stone that can open or close any gate between worlds. Whoever holds it decides what comes
+  through and what never will. That is why everyone is seeking it.
+- Worn, it pulls the wearer toward themselves: nothing drags them down, and nothing lifts them past
+  what they are. In the data it is the Relic `lodestone_heart`, and its flags are that pull.
+- **Halden Quarr** wears it now and is its protector. He fights only to keep it from others. He
+  knows he would never use it himself, which makes him the only safe owner.
+- Each side wants it for its own reason. The Vigil wants it out of Pact hands. The Pact wants the
+  gates open. Outlaws want to sell it or use it as leverage. Ashmark wants to feed on what is behind
+  the gates.
+
+## Storylines and relations
+
+Settled 2026-09-23. Three viewpoints on the same road to the Heart. The shared thread is loose,
+and everyone has a reason to fight everyone, friends included.
+
+| Viewpoint | Who | Wants the Heart to |
+|---|---|---|
+| The good side | Sir Edric Rooke, with the Rooke and Vale families around him | Keep it from anyone who would use it |
+| The outlaw side | Gideon Mourne, spiteful and disgraced, out for himself | Profit from it, or extort anyone he can |
+| The villain | Bram Ashmark, marked and mostly monster | Open gates and consume the Eidolons behind them |
+
+Friendly tests are a normal part of this. Family and allies fight each other to prove something,
+and nobody is off limits, Edric's own family included.
+
+**Relations network (first draft).** Who is connected to whom. Meeting one character can bring
+their connections onto the road; how that works in play is in `../../designs/zenith_adventure.md`.
+
+- **Edric**: Alder (wife), Emrys and Ansel (sons), Wren (kin), Tavin (fostered), Caedan (the Vale
+  sword), Mourne (a man who serves against one who would not kneel), Ashmark (hero and monster).
+- **Alder**: the Rooke family, Osric (taught her son), Sable (matriarch and captain).
+- **Emrys**: Caedan and Osric (his teachers), Quarr (both field Steel).
+- **Caedan**: Tavin (cousin), Emrys, Edric.
+- **Osric**: Emrys, Orvath Kell (the same Verdant line).
+- **Mourne**: Kell (the broken company), Marrow (her crew), Ashmark (the same toll gate), Edric,
+  Sable (she wants him in the Draik Company, or as a partner for the Heart).
+- **Marrow**: Cull, Kell, Mourne, Pim, Scorn (kin), Siphon.
+- **Sable**: her crew, Pim, Alder, Mourne.
+- **Siphon**: Tithe, Cull, Pim, Marrow.
+- **Ashmark**: Mourne, Siphon, Edric.
+- **Pim**: the Draiks, Marrow's crew and the Collegium; the bridge from the outlaw side to the rest.
+- **Quarr**: everyone, through the Heart.
+- **Constructs**: all loosely related to one another, since made things recognise each other. See
+  The Collegium for the closer links, which are provisional.
+
+Characters without a deck (Torvan Hask, The Fortress, Corin Thrace, the toll-gate agent) stay off
+the network until they have one.
+
 ## Clans
 
 A clan is a social fact. It grants nothing mechanically and it is not a school. **What a clan
@@ -130,6 +182,11 @@ takes it wherever he can. He fields no Allies. What he traded away still exists 
 future character is "the humanity Ashmark traded away, returned as a person" (unplaced, origin
 undecided).
 
+**In the story** (2026-09-23). The villain's viewpoint. He is marked from his first duel and his
+motives are simple: consume and grow stronger. He wants the Lodestone Heart so he can open gates
+and feed on any Eidolon he meets, until he is a world-ending force. His humanity is a husk. Pieces
+of who he was can surface in dialogue, but he is mostly monster by now.
+
 **Arc across Aspects.** The bargain coming due, not skill improving. The Pact shows as light under
 the skin, then cracks, then the fire streaming inward through a hollow at his chest.
 
@@ -152,7 +209,11 @@ patches, black knuckles, raised welded scars, no armour.
 
 **Who he is.** Draconic, and belongs to no one. An Ironblood grinder who reads the last blow. Steel
 is magic turned inward until the body is the spell, and he hits harder than anyone at the same
-Energy. Few tricks, no recovery, only weight. Nothing in the lore places him beyond that.
+Energy. Few tricks, no recovery, only weight.
+
+He was Pact before he took the Lodestone Heart. Since then he has no use for factions and looks
+only at what the Heart could do in the wrong hands. He wears it, fights only to keep it, and would
+never use it himself, so he is the one safe owner. He stays Pact in the data.
 
 **Arc.** The Pact shows as iron spreading over more of him each Aspect.
 
@@ -188,7 +249,7 @@ crew take control of Combat at any Energy.
 
 ### The crew
 
-| Name | Look | Role | Ally card |
+| Name | Look | Role | Aspect 1 card |
 |---|---|---|---|
 | Vesna Draik | Wiry hooded woman, two knives, face half hidden | The ambusher | Art 6, hit discards a rival Ally |
 | Brann Draik | Broad bald man, leather vest, heavy hands, easy menace | The muscle | Strike +5, hit discards a rival Drill |
@@ -221,7 +282,7 @@ Draconic Allies, so she shields kin and not every hireling she happens to lead.
 | 2 Rising Water | Water climbing her mail to the waist, eyes sea-glass green, a knight at her shoulder | Strike, +4 with Edric in play |
 | 3 The Flood | A wave rising off her shoulders, face calm as deep water, the ground awash | Entering Combat strips all rival Non-Combats |
 
-**As an Ally** (Ember Ascendant): stepping in front of a blow meant for someone else, shield up, no
+**Second Aspect 1 card** (`personality_53`, fielded in Ember Ascendant): stepping in front of a blow meant for someone else, shield up, no
 water raised, furious. Stops a Strike aimed at Edric or Emrys.
 
 ### Sir Edric Rooke
@@ -247,7 +308,7 @@ ground behind him.
 | 4 Kindled Through | Fire up the blade and along the mail seams, teeth set, one fist cocked | Strike 5 Energy and 3 wounds |
 | 5 The All Powerful | Wreathed to the shoulders, the sword a bar of white heat, everything going to ash | Strike +5 Energy and +5 wounds |
 
-**As an Ally** (Tidesworn Coven): sword raised, a focused jet of water along the blade. Focused
+**Second Aspect 1 card** (`personality_50`, fielded in Tidesworn Coven): sword raised, a focused jet of water along the blade. Focused
 Strike, +2 wounds per rival Seal.
 
 **Named cards.** Edric's Committed Cut, Edric Gives Ground, Edric Carves First, Edric's Retaining
@@ -412,6 +473,17 @@ charge them and repair them, and treat the leylines as a supply rather than a my
 Storm because charging a construct and throwing an arc are the same craft. It builds constructs but
 does not own the idea of them, and is stiff about this. Decks: Tempest Engine, Stormlock.
 
+**Not final** (2026-09-23). The Collegium's goals are still to be decided, and none of the
+construct lore is settled. Working links for the relations network:
+
+- Siphon and Tithe are both Collegium; Tithe works from Siphon's side.
+- Cull is the bridge between the Collegium and Marrow's crew.
+- Marrow is built partly from Collegium work; the name under her jaw may be a Collegium wright's.
+- Mercy may be Collegium-built and let go. The Collegium repairs Sledge for pay.
+- The Collegium may have supplied the broken company's front-rank constructs, which links it to
+  Mourne and Kell. Pim already runs with it.
+- The Collegium treats the leylines as a supply, which makes it prey to Ashmark.
+
 ### Siphon
 
 **Look.** Humanoid construct of grey stone and copper wire, sigils cut into its chest, a smooth
@@ -506,6 +578,10 @@ knew the betrayal was wrong is gone and the rest of him is intact. He is not hol
 is. He still signs himself Lord Mourne and nobody corrects him to his face. Sells the craft cheap
 now, to whoever is going somewhere. Deck: Mind Siege, his own list for the first time.
 
+**In the story** (2026-09-23). The outlaw viewpoint. Since his fall he hates everyone, and he is
+spiteful and disgraced. He wants the Lodestone Heart to profit from it or to extort whoever he can.
+The kings and the betrayal above are backstory, and the storylines do not explain them.
+
 **Arc.** The brand spreads from the back of one hand to half his face, and the crest comes off.
 
 | Aspect | Look | Does |
@@ -515,7 +591,7 @@ now, to whoever is going somewhere. Deck: Mind Siege, his own list for the first
 | 3 Unfettered | The broken crest torn off his chest and dropped, both hands lit, moving forward | Focused Art 6 wounds, twice for a Marked discard |
 | 4 Unrepentant | The brand over half his face, arms wide, the hall going dark, no shame in it | Marked Strikes Focused and +3 |
 
-**As an Ally** (Scrap Requiem): mid-cast, the broken crest turned to the viewer, light bleeding off
+**Second Aspect 1 card** (`personality_48`, fielded in Scrap Requiem): mid-cast, the broken crest turned to the viewer, light bleeding off
 his knuckles. Art for 1 Energy.
 
 **Named cards.** Seven across five decks, including Mourne's Jolting Arc.
@@ -590,6 +666,8 @@ an outsider duelist from no country here, and a power large enough to retain a g
 - What Corin Thrace's cut-out mark was, and who cut it.
 - Whether the thing behind the contracts came through a gate once, which would mean a gate has
   opened before and the premise needs a line about it.
+- The Collegium's goals, and the construct lore generally (links above are provisional).
+- How Quarr came to hold the Lodestone Heart, and where it came from.
 
 ## Known gaps between this doc and the code
 
@@ -599,3 +677,6 @@ an outsider duelist from no country here, and a power large enough to retain a g
 - `CAST_SCHOOL` in `tools/gen_roster.py` derives one school per character, so a character
   fielding a second school cannot be expressed there. Edric already does in the data.
 - Torvan Hask's Draconic line is recorded here only; he has no personality card to carry it.
+- The Lodestone Heart is one stone in the lore, but Tempest Engine (`storm_volley`) runs
+  `lodestone_heart` in its precon and boss tier, and Quarr's Ironblood Onslaught runs
+  `blank_mask`.

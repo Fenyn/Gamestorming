@@ -4,13 +4,13 @@
   "tier": "t5",
   "mode": "adventure",
   "duelist": [
-    "personality_halden_quarr_1_the_grinder",
-    "personality_halden_quarr_2_tempered",
-    "personality_halden_quarr_3_ironheart"
+    "personality_13",
+    "personality_14",
+    "personality_15"
   ],
   "style": "steel",
   "alignment": "pact",
-  "mastery": "steel_mastery",
+  "mastery": "steel_mastery_01",
   "relic": "",
   "reserve": [],
   "archetype": "strike_beatdown",
@@ -23,127 +23,127 @@
   "tagline": "Batter your rival with heavy Strikes and replenish your Energy to keep the assault coming.",
   "cards": [
     {
-      "id": "steel_bracing",
+      "id": "steel_art_01",
       "count": 3
     },
     {
-      "id": "steel_scar_tissue",
+      "id": "steel_art_02",
       "count": 3
     },
     {
-      "id": "steel_shockwave",
+      "id": "steel_art_03",
       "count": 3
     },
     {
-      "id": "steel_triple_shock",
+      "id": "steel_art_04",
       "count": 2
     },
     {
-      "id": "cold_appraisal",
+      "id": "freestyle_combat_01",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_03",
       "count": 3
     },
     {
-      "id": "cut_short",
+      "id": "signature_combat_04",
       "count": 3
     },
     {
-      "id": "steel_standoff",
+      "id": "steel_combat_01",
       "count": 1
     },
     {
-      "id": "stillness",
+      "id": "seal_22",
       "count": 1
     },
     {
-      "id": "moth_seal_1",
+      "id": "seal_24",
       "count": 1
     },
     {
-      "id": "moth_seal_3",
+      "id": "seal_25",
       "count": 1
     },
     {
-      "id": "moth_seal_4",
+      "id": "freestyle_strike_01",
       "count": 1
     },
     {
-      "id": "no_quarter",
+      "id": "signature_strike_01",
       "count": 3
     },
     {
-      "id": "old_habit",
-      "count": 1
-    },
-    {
-      "id": "quarrs_crushing_blow",
-      "count": 3
-    },
-    {
-      "id": "quarrs_roar",
-      "count": 3
-    },
-    {
-      "id": "relentless_fury",
+      "id": "signature_strike_02",
       "count": 2
     },
     {
-      "id": "shrugs_it_off",
+      "id": "signature_strike_25",
       "count": 2
     },
     {
-      "id": "steel_battering_ram",
-      "count": 2
-    },
-    {
-      "id": "steel_bull_charge",
-      "count": 2
-    },
-    {
-      "id": "steel_crushing_weight",
+      "id": "signature_strike_27",
       "count": 3
     },
     {
-      "id": "steel_dead_weight",
+      "id": "signature_strike_28",
       "count": 3
     },
     {
-      "id": "steel_forearm_guard",
-      "count": 3
-    },
-    {
-      "id": "steel_hammer_blow",
-      "count": 3
-    },
-    {
-      "id": "steel_headbutt",
-      "count": 2
-    },
-    {
-      "id": "steel_immovable_guard",
+      "id": "steel_strike_02",
       "count": 1
     },
     {
-      "id": "steel_iron_fist",
-      "count": 3
-    },
-    {
-      "id": "steel_iron_jab",
-      "count": 3
-    },
-    {
-      "id": "steel_iron_knee",
-      "count": 3
-    },
-    {
-      "id": "steel_ironhide",
+      "id": "steel_strike_03",
       "count": 2
     },
     {
-      "id": "steel_piston_slam",
+      "id": "steel_strike_04",
       "count": 3
     },
     {
-      "id": "steel_tempering",
+      "id": "steel_strike_05",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_06",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_07",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_08",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_09",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_10",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_11",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_12",
+      "count": 2
+    },
+    {
+      "id": "steel_strike_13",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_14",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_15",
       "count": 3
     }
   ]

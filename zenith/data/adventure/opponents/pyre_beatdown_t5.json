@@ -4,13 +4,13 @@
   "tier": "t5",
   "mode": "adventure",
   "duelist": [
-    "personality_bram_ashmark_1_starved",
-    "personality_bram_ashmark_2_leeching",
-    "personality_bram_ashmark_3_unstoppable"
+    "personality_01",
+    "personality_02",
+    "personality_03"
   ],
   "style": "pyre",
   "alignment": "pact",
-  "mastery": "pyre_mastery",
+  "mastery": "pyre_mastery_01",
   "relic": "",
   "reserve": [],
   "archetype": "strike_beatdown",
@@ -21,131 +21,131 @@
   "tagline": "Keep attacking to fuel your Fervor, climb through fiery Aspects, and overwhelm your rival before your defenses give out.",
   "cards": [
     {
-      "id": "dead_air",
+      "id": "freestyle_art_01",
       "count": 1
     },
     {
-      "id": "grounding_step",
+      "id": "pyre_art_01",
+      "count": 3
+    },
+    {
+      "id": "signature_art_01",
       "count": 1
     },
     {
-      "id": "pyre_immolation",
-      "count": 3
+      "id": "freestyle_combat_01",
+      "count": 1
     },
     {
-      "id": "cold_appraisal",
-      "count": 3
+      "id": "freestyle_combat_03",
+      "count": 1
     },
     {
-      "id": "cut_short",
+      "id": "freestyle_combat_04",
+      "count": 1
+    },
+    {
+      "id": "pyre_combat_01",
       "count": 2
     },
     {
-      "id": "pyre_twin_flames",
+      "id": "signature_combat_02",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_03",
       "count": 2
     },
     {
-      "id": "sever_the_leyline",
-      "count": 1
-    },
-    {
-      "id": "stillness",
-      "count": 1
-    },
-    {
-      "id": "terms_of_the_pact",
-      "count": 1
-    },
-    {
-      "id": "will_not_break",
-      "count": 1
-    },
-    {
-      "id": "bravado_drill",
-      "count": 1
-    },
-    {
-      "id": "recalled_lesson",
-      "count": 1
-    },
-    {
-      "id": "stokes_the_coals",
+      "id": "signature_combat_04",
       "count": 3
     },
     {
-      "id": "all_or_nothing",
-      "count": 3
-    },
-    {
-      "id": "mournes_frantic_rush",
-      "count": 3
-    },
-    {
-      "id": "mournes_stance",
+      "id": "freestyle_drill_01",
       "count": 1
     },
     {
-      "id": "no_quarter",
+      "id": "freestyle_noncombat_02",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_04",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_01",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_03",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_04",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_05",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_06",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_07",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_08",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_09",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_10",
+      "count": 3
+    },
+    {
+      "id": "pyre_strike_11",
       "count": 2
     },
     {
-      "id": "pyre_backdraft",
+      "id": "pyre_strike_12",
       "count": 3
     },
     {
-      "id": "pyre_blazing_charge",
+      "id": "pyre_strike_13",
       "count": 3
     },
     {
-      "id": "pyre_cinder_guard",
-      "count": 3
-    },
-    {
-      "id": "pyre_comet_fall",
-      "count": 3
-    },
-    {
-      "id": "pyre_firestorm",
-      "count": 3
-    },
-    {
-      "id": "pyre_flame_lash",
+      "id": "signature_strike_01",
       "count": 2
     },
     {
-      "id": "pyre_flashover",
+      "id": "signature_strike_02",
       "count": 3
     },
     {
-      "id": "pyre_furnace_breath",
-      "count": 3
-    },
-    {
-      "id": "pyre_kindling",
-      "count": 3
-    },
-    {
-      "id": "pyre_rekindling",
-      "count": 3
-    },
-    {
-      "id": "pyre_scouring_flame",
-      "count": 3
-    },
-    {
-      "id": "pyre_snuffing",
-      "count": 3
-    },
-    {
-      "id": "relentless_fury",
-      "count": 3
-    },
-    {
-      "id": "unyielding_guard",
+      "id": "signature_strike_03",
       "count": 1
     },
     {
-      "id": "wall_of_flame",
+      "id": "signature_strike_04",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_08",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_09",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_20",
       "count": 3
     }
   ]

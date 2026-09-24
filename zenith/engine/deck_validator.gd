@@ -143,6 +143,15 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			problems.append("Deck Style must be set to the Mastery's school")
 		elif mastery.school != wanted_school:
 			problems.append("Mastery school '%s' does not match Style %s" % [mastery.school, deck.style])
+		# Heritage: only a Saiyan or Namekian Main Personality could declare that style, so a Steel
+		# or Root Mastery names the bloodline every Duelist card must carry.
+		if mastery != null:
+			var needs: String = str(mastery.raw.get("duelist_bloodline", ""))
+			if needs != "":
+				for d in stack_defs:
+					if d.bloodline != needs:
+						problems.append("Mastery '%s' needs a %s Duelist; '%s' is not"
+							% [mastery.id, CardText.bloodline_name(needs), d.id])
 	if deck.relic_id != "":
 		var relic: CardDef = library.defs.get(deck.relic_id)
 		if relic == null or relic.type != CardDef.Type.RELIC:

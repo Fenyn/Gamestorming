@@ -29,6 +29,7 @@ func _init() -> void:
 				"id": def.id, "base": def.id, "aspect": 0, "title": def.title,
 				"type_line": CardText.type_line(def), "school": def.school, "type": CardText.type_label(def),
 				"character": def.character, "text": CardText.rules_text(def).replace("\n", " "),
+				"seal_set": def.seal_set, "seal_number": def.seal_number,
 			}))
 	out.close()
 	quit(0)

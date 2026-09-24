@@ -3,121 +3,121 @@
   "version": 2,
   "personalities": {
     "bonded_pair": [
-      "personality_ansel_and_tavin_1_back_to_back"
+      "personality_54"
     ],
     "companion_alpha": [
-      "personality_wren_rooke_1"
+      "personality_49"
     ],
     "companion_beta": [
-      "personality_edric_rooke_1"
+      "personality_50"
     ],
     "companion_delta": [
-      "personality_ansel_rooke_1"
+      "personality_52"
     ],
     "companion_epsilon": [
-      "personality_alder_rooke_1"
+      "personality_53"
     ],
     "companion_gamma": [
-      "personality_tavin_vale_1"
+      "personality_51"
     ],
     "duelist_alpha": [
-      "personality_bram_ashmark_1_starved",
-      "personality_bram_ashmark_2_leeching",
-      "personality_bram_ashmark_3_unstoppable"
+      "personality_01",
+      "personality_02",
+      "personality_03"
     ],
     "duelist_beta": [
-      "personality_alder_rooke_1_matriarch",
-      "personality_alder_rooke_2_rising_water",
-      "personality_alder_rooke_3_the_flood"
+      "personality_04",
+      "personality_05",
+      "personality_06"
     ],
     "duelist_delta": [
-      "personality_sable_draik_1_captain",
-      "personality_sable_draik_2_shrouded",
-      "personality_sable_draik_3_lightless"
+      "personality_10",
+      "personality_11",
+      "personality_12"
     ],
     "duelist_epsilon": [
-      "personality_halden_quarr_1_the_grinder",
-      "personality_halden_quarr_2_tempered",
-      "personality_halden_quarr_3_ironheart"
+      "personality_13",
+      "personality_14",
+      "personality_15"
     ],
     "duelist_eta": [
-      "personality_osric_thornwald_1_greybeard",
-      "personality_osric_thornwald_2_overgrown",
-      "personality_osric_thornwald_3_deep_rooted",
-      "personality_osric_thornwald_4_heartwood",
-      "personality_osric_thornwald_5_grovelord"
+      "personality_21",
+      "personality_22",
+      "personality_23",
+      "personality_24",
+      "personality_25"
     ],
     "duelist_gamma": [
-      "personality_siphon_1_dormant",
-      "personality_siphon_2_charged",
-      "personality_siphon_3_unbound"
+      "personality_07",
+      "personality_08",
+      "personality_09"
     ],
     "duelist_iota": [
-      "personality_edric_rooke_1_the_hero",
-      "personality_edric_rooke_2_the_stranger",
-      "personality_edric_rooke_3_the_realms_hero",
-      "personality_edric_rooke_4_kindled_through",
-      "personality_edric_rooke_5_the_all_powerful"
+      "personality_30",
+      "personality_31",
+      "personality_32",
+      "personality_33",
+      "personality_34"
     ],
     "duelist_kappa": [
-      "personality_emrys_rooke_1_the_eldest",
-      "personality_emrys_rooke_2_first_plate",
-      "personality_emrys_rooke_3_edged",
-      "personality_emrys_rooke_4_shaped",
-      "personality_emrys_rooke_5_scaleclad"
+      "personality_35",
+      "personality_36",
+      "personality_37",
+      "personality_38",
+      "personality_39"
     ],
     "duelist_lambda": [
-      "personality_bram_ashmark_1_starved",
-      "personality_bram_ashmark_2_gnawing",
-      "personality_bram_ashmark_3_gorging",
-      "personality_bram_ashmark_4_consuming",
-      "personality_bram_ashmark_5_insatiable"
+      "personality_01",
+      "personality_55",
+      "personality_56",
+      "personality_57",
+      "personality_58"
     ],
     "duelist_mu": [
-      "personality_gideon_mourne_1_the_marked_lord",
-      "personality_gideon_mourne_2_unflinching",
-      "personality_gideon_mourne_3_unfettered",
-      "personality_gideon_mourne_4_unrepentant"
+      "personality_59",
+      "personality_60",
+      "personality_61",
+      "personality_62"
     ],
     "duelist_theta": [
-      "personality_marrow_1_patchwork",
-      "personality_marrow_2_rebuilt",
-      "personality_marrow_3_overwrought",
-      "personality_marrow_4_fury_amalgam"
+      "personality_26",
+      "personality_27",
+      "personality_28",
+      "personality_29"
     ],
     "duelist_zeta": [
-      "personality_caedan_vale_1_last_heir",
-      "personality_caedan_vale_2_unparried",
-      "personality_caedan_vale_3_spellcutter",
-      "personality_caedan_vale_4_the_quiet_blade",
-      "personality_caedan_vale_5_peerless"
+      "personality_16",
+      "personality_17",
+      "personality_18",
+      "personality_19",
+      "personality_20"
     ],
     "henchman_alpha": [
-      "personality_vesna_draik_1"
+      "personality_40"
     ],
     "henchman_beta": [
-      "personality_brann_draik_1"
+      "personality_41"
     ],
     "henchman_delta": [
-      "personality_halvard_draik_1"
+      "personality_43"
     ],
     "henchman_epsilon": [
-      "personality_pim_1"
+      "personality_44"
     ],
     "henchman_gamma": [
-      "personality_quill_draik_1"
+      "personality_42"
     ],
     "henchman_zeta": [
-      "personality_tithe_1"
+      "personality_45"
     ],
     "salvage_alpha": [
-      "personality_cull_1"
+      "personality_46"
     ],
     "salvage_beta": [
-      "personality_orvath_kell_1"
+      "personality_47"
     ],
     "salvage_gamma": [
-      "personality_gideon_mourne_1_mercenary"
+      "personality_48"
     ]
   },
   "deck_duelists": {

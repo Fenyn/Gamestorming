@@ -2,7 +2,7 @@
 
 Every opponent tier of a family is a prefix of one ordered slot list, so a tier-2 opponent is
 strictly a superset of a tier-1 one and the curve is monotone by construction. See
-`designs/zenith_adventure.md` section 6.6.
+`designs/zenith_adventure.md` section 6.4.
 
 Method:
   1. Expand the precon into slots. A card at count 3 contributes 3 slots. Only the precon's own
@@ -64,10 +64,10 @@ STOP_ANY_SHARE = 1.0 / 3.0
 KEPT_ALLIES = {
     # Tavin Vale and Ansel Rooke: the pair `personality_ansel_and_tavin_1_back_to_back` fuses. Keeping any other two leaves
     # Tide's Bonding card dead.
-    "tide_companions": ["personality_tavin_vale_1", "personality_ansel_rooke_1"],
-    "shade_henchmen": ["personality_vesna_draik_1", "personality_brann_draik_1"],
-    "shade_salvage": ["personality_cull_1", "personality_orvath_kell_1"],
-    "storm_unbound": ["personality_cull_1", "personality_orvath_kell_1"],
+    "tide_companions": ["personality_51", "personality_52"],
+    "shade_henchmen": ["personality_40", "personality_41"],
+    "shade_salvage": ["personality_46", "personality_47"],
+    "storm_unbound": ["personality_46", "personality_47"],
 }
 
 # Roles the quota is kept in proportion for. `special` is core and sits outside the quota.
@@ -219,7 +219,7 @@ def slots(deck_id, deck, lib, drop_lockouts=True, max_copies=0):
     kept = KEPT_ALLIES.get(deck_id, None)
     duelist_character = lib[deck["duelist"][0]].get("character", "")
     out = []
-    for entry in deck["cards"]:
+    for position, entry in enumerate(deck["cards"]):
         card = lib[entry["id"]]
         kind = card.get("type")
         if kind == "grounds":
@@ -232,7 +232,7 @@ def slots(deck_id, deck, lib, drop_lockouts=True, max_copies=0):
         copies = entry["count"] if max_copies <= 0 else min(entry["count"], max_copies)
         for copy_index in range(copies):
             out.append({
-                "id": entry["id"], "role": role(card), "core": is_core,
+                "id": entry["id"], "position": position, "role": role(card), "core": is_core,
                 "copy": copy_index, "precon_count": entry["count"], "power": power(card),
                 "lockout": not is_core and is_lockout(card),
                 "stop": is_stop(card), "any": is_stop_any(card),
@@ -240,7 +240,9 @@ def slots(deck_id, deck, lib, drop_lockouts=True, max_copies=0):
                 "protected": is_stop(card) and (refunds_energy(card) or (
                     duelist_character != "" and card.get("character") == duelist_character)),
             })
-    out.sort(key=lambda s: (not s["core"], s["copy"], -s["precon_count"], s["power"], s["id"]))
+    # The last tie-break is the card's place in the precon list, not its id, so renaming a card
+    # never reshuffles a tier.
+    out.sort(key=lambda s: (not s["core"], s["copy"], -s["precon_count"], s["power"], s["position"]))
     for i, s in enumerate(out):
         s["rank"] = i
     return out

@@ -33,34 +33,34 @@ duelist(ALPHA, [
 # --- The Relic ------------------------------------------------------------
 # Worn like the other three and named for what it takes: two standing workings, off the table and
 # out of the duel, once. Used in Combat rather than at the Non-Combat step.
-add(id="severing_clasp", title="The Severing Clasp", type="relic", school="", reserve_size=7,
+add(id="relic_04", title="The Severing Clasp", type="relic", school="", reserve_size=7,
     uses_per_game=1, limit_per_deck=1, relic_step="combat",
     effects=[{"trigger": "relic_use", **DISCARD_IN_PLAY("non_combat", who="any", amount=2, choose=True, up_to=True, remove=True)}])
 
 # --- Life cards -----------------------------------------------------------
-strike("pyre_knee_bash", "Pyre Knee Bash", "pyre", atk={"stages": 4}, effects=[ACC(1)])
+strike("pyre_strike_19", "Pyre Knee Bash", "pyre", atk={"stages": 4}, effects=[ACC(1)])
 # A Strike card that answers an Art, which is how the printed one is banded.
-block("pyre_warding_stance", "Pyre Warding Stance", "art", "strike", "pyre", endurance=2, effects=[ACC(1)])
+block("pyre_strike_20", "Pyre Warding Stance", "art", "strike", "pyre", endurance=2, effects=[ACC(1)])
 # The cleave lends the rest of your school's attacks the word "Sword" for the Combat, so a list
 # that reads sword titles can be fed by a school that has none.
-strike("pyre_sword_cleave", "Pyre Sword Cleave", "pyre", atk={"stages": 4}, endurance=2,
+strike("pyre_strike_21", "Pyre Sword Cleave", "pyre", atk={"stages": 4}, endurance=2,
        effects=[FLOAT("counts_as_title", school="pyre", title="Sword"), ACC(1), OPP_ACC(-1)])
 # "If performed against a villain, this attack stays on the table to be used 1 more time."
-strike("emrys_rising_blow", "Emrys' Rising Blow", atk={"stages": 3}, character=EMRYS,
+strike("signature_strike_29", "Emrys' Rising Blow", atk={"stages": 3}, character=EMRYS,
        remain_when={"when": {"defender_alignment": "pact"}, "remain": 1}, effects=[ACC(1)],
        remove_after_use=True)
 # "Majin only": the mark, not the school, and read off whoever holds Combat the way a bloodline
 # gate is. It finds another marked Art in the discard on a hit.
-art("ashmarks_ember_spray", "Ashmark's Ember Spray", atk={"printed_life": 5}, character=ALPHA,
+art("signature_art_14", "Ashmark's Ember Spray", atk={"printed_life": 5}, character=ALPHA,
     only={"tag": "marked"}, tags=["marked"], remove_after_use=True,
     effects=[ACC(2), IFS(SEARCH(card_type="art", tag="marked", source="discard", to="hand"))])
 # Every Seal, on the table and in both Life Decks. The Unsealing win stops existing for the duel.
-noncombat("the_watch_goes_dark", "The Watch Goes Dark",
+noncombat("freestyle_noncombat_18", "The Watch Goes Dark",
           [USE(DISCARD_IN_PLAY("seal", who="any", all=True, remove=True, life_decks=True))])
 # The price is the gate: it needs 5 Energy to use and leaves the duelist on none.
-combat("spent_to_the_last", "Spent to the Last",
+combat("freestyle_combat_20", "Spent to the Last",
        [DISCARD_IN_PLAY("non_combat_or_ally", who="any", all=True), E("set_energy", amount=0), ACC(1)],
        only={"energy_min": 5}, limit_per_deck=1)
 # An Art that takes the Grounds away instead of wounding, and stirs the marked duelist who uses it.
-add(id="riftcry", title="Riftcry", type="art", school="",
+add(id="freestyle_art_09", title="Riftcry", type="art", school="",
     effects=[E("discard_grounds"), WHEN(ACC(1), duelist_character=ALPHA)])

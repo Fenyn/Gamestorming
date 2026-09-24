@@ -1,24 +1,24 @@
 {
   "name": "Tempest Engine",
   "duelist": [
-    "personality_siphon_1_dormant",
-    "personality_siphon_2_charged",
-    "personality_siphon_3_unbound"
+    "personality_07",
+    "personality_08",
+    "personality_09"
   ],
   "style": "storm",
   "alignment": "pact",
-  "mastery": "storm_mastery",
-  "relic": "lodestone_heart",
+  "mastery": "storm_mastery_01",
+  "relic": "relic_03",
   "reserve": [
-    "defacement",
-    "dismissal",
-    "dismissal",
-    "storm_smiting_bolt",
-    "storm_maelstrom",
-    "lobbed_bolt",
-    "declaration",
-    "headlong_plunge",
-    "storm_thunderhead"
+    "freestyle_noncombat_10",
+    "freestyle_combat_17",
+    "freestyle_combat_17",
+    "storm_art_04",
+    "storm_strike_01",
+    "freestyle_art_03",
+    "signature_art_09",
+    "freestyle_strike_03",
+    "storm_art_05"
   ],
   "archetype": "art_beatdown",
   "difficulty": "medium",
@@ -32,160 +32,160 @@
   "blurb": "Siphon is a warded construct that charges through ritual and releases all at once. Its Arts come cheap and hit hard, and its Drills keep the charge coming. Poor at close range and helpless on empty Energy.",
   "cards": [
     {
-      "id": "personality_tithe_1",
+      "id": "freestyle_drill_01",
       "count": 1
     },
     {
-      "id": "trampled_crossroads",
+      "id": "freestyle_art_06",
       "count": 3
     },
     {
-      "id": "sun_seal_1",
+      "id": "freestyle_noncombat_03",
       "count": 1
     },
     {
-      "id": "sun_seal_3",
-      "count": 1
-    },
-    {
-      "id": "sun_seal_5",
-      "count": 1
-    },
-    {
-      "id": "cold_appraisal",
+      "id": "signature_combat_04",
       "count": 3
     },
     {
-      "id": "cut_short",
+      "id": "signature_combat_03",
       "count": 3
     },
     {
-      "id": "scorn_smirks",
+      "id": "signature_art_05",
+      "count": 3
+    },
+    {
+      "id": "freestyle_noncombat_04",
       "count": 1
     },
     {
-      "id": "old_trick",
+      "id": "freestyle_combat_07",
+      "count": 1
+    },
+    {
+      "id": "signature_art_10",
       "count": 2
     },
     {
-      "id": "respite",
-      "count": 1
-    },
-    {
-      "id": "mutual_escalation",
+      "id": "signature_noncombat_01",
       "count": 3
     },
     {
-      "id": "reckless_ascent",
+      "id": "freestyle_combat_14",
       "count": 3
     },
     {
-      "id": "kept_at_bay",
+      "id": "signature_strike_01",
+      "count": 3
+    },
+    {
+      "id": "freestyle_combat_10",
+      "count": 2
+    },
+    {
+      "id": "personality_45",
       "count": 1
     },
     {
-      "id": "stillness",
+      "id": "freestyle_noncombat_02",
       "count": 1
     },
     {
-      "id": "siphons_sidestep",
+      "id": "freestyle_combat_15",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_02",
+      "count": 3
+    },
+    {
+      "id": "freestyle_combat_05",
+      "count": 1
+    },
+    {
+      "id": "signature_art_03",
+      "count": 3
+    },
+    {
+      "id": "signature_art_02",
+      "count": 3
+    },
+    {
+      "id": "signature_combat_07",
+      "count": 1
+    },
+    {
+      "id": "freestyle_strike_06",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_24",
       "count": 4
     },
     {
-      "id": "mercy_smiles",
+      "id": "signature_art_11",
       "count": 3
     },
     {
-      "id": "second_wind",
-      "count": 3
-    },
-    {
-      "id": "storm_charged_ward",
-      "count": 3
-    },
-    {
-      "id": "storm_static_field",
+      "id": "freestyle_combat_01",
       "count": 1
     },
     {
-      "id": "storm_chain_lightning",
+      "id": "storm_art_06",
+      "count": 3
+    },
+    {
+      "id": "storm_art_03",
       "count": 2
     },
     {
-      "id": "storm_smiting_bolt",
+      "id": "storm_art_01",
+      "count": 3
+    },
+    {
+      "id": "storm_strike_01",
+      "count": 1
+    },
+    {
+      "id": "storm_strike_02",
+      "count": 1
+    },
+    {
+      "id": "storm_strike_03",
+      "count": 1
+    },
+    {
+      "id": "storm_art_04",
       "count": 2
     },
     {
-      "id": "storm_thunderhead",
+      "id": "storm_art_02",
       "count": 1
     },
     {
-      "id": "storm_arc_bolt",
-      "count": 3
-    },
-    {
-      "id": "draiks_reckoning",
-      "count": 3
-    },
-    {
-      "id": "captains_barrage",
-      "count": 3
-    },
-    {
-      "id": "scattered_ashes",
-      "count": 3
-    },
-    {
-      "id": "sledges_stance",
-      "count": 3
-    },
-    {
-      "id": "sabotage",
-      "count": 3
-    },
-    {
-      "id": "unerring_bolt",
-      "count": 3
-    },
-    {
-      "id": "lingering_curse",
-      "count": 2
-    },
-    {
-      "id": "no_quarter",
-      "count": 3
-    },
-    {
-      "id": "relentless_fury",
-      "count": 3
-    },
-    {
-      "id": "storm_maelstrom",
+      "id": "storm_art_05",
       "count": 1
     },
     {
-      "id": "storm_overcharge",
+      "id": "seal_15",
       "count": 1
     },
     {
-      "id": "storm_recharge",
+      "id": "seal_17",
       "count": 1
     },
     {
-      "id": "recalled_lesson",
+      "id": "seal_19",
       "count": 1
     },
     {
-      "id": "clear_mind",
-      "count": 1
+      "id": "grounds_01",
+      "count": 3
     },
     {
-      "id": "foresight",
-      "count": 1
-    },
-    {
-      "id": "bravado_drill",
-      "count": 1
+      "id": "freestyle_art_02",
+      "count": 3
     }
   ]
 }

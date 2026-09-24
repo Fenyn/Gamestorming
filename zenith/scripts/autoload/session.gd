@@ -1,7 +1,7 @@
 extends Node
 ## Session: what the select screen chose, carried into the duel scene.
 ## Also owns the loaded card library, strike table, available decks, and the live adventure run
-## with its ladder; the adventure block at the bottom moves that run between screens and the save.
+## with its node map; the adventure block at the bottom moves that run between screens and the save.
 
 const CARDS_DIR: String = "res://data/cards"
 const DECKS_DIR: String = "res://data/decks"
@@ -31,7 +31,7 @@ var color_seed: int = 0
 var ai_seat: int = -1               # the seat an AiPlayer drives, -1 for none. Offline only.
 var ai_profile: String = "default"  # level file under AiProfile.DIR, without .json
 var run: AdventureRun = null        # the live adventure run, null outside adventure mode
-var ladder: AdventureLadder = null  # the run's ladder, loaded alongside it
+var map: AdventureMap = null        # the run's node map, rolled again from its seed on load
 ## Motes and the card collection. Both outlive a run, so they are loaded once here and saved by
 ## whichever call spends or earns.
 var wallet: AdventureWallet = AdventureWallet.new()
@@ -178,10 +178,10 @@ func in_adventure() -> bool:
 	return run != null
 
 
-## Lives for the current stage, player first. `AdventureRules` owns the numbers, so the headless
+## Lives for the current duel, player first. `AdventureRules` owns the numbers, so the headless
 ## runners read the same rule the client does.
 func stage_lives() -> Array[int]:
-	var row: Dictionary = ladder.stage(run.stage) if ladder != null else {}
+	var row: Dictionary = map.duel_for(run.node_id) if map != null else {}
 	return AdventureRules.lives_for(row)
 
 
@@ -189,21 +189,21 @@ func stage_lives() -> Array[int]:
 ## loadout screen's swaps; null starts from the printed starter.
 func start_run(starter_id: String, loadout_deck: DeckList = null) -> void:
 	run = AdventureLoadout.begin_from(starter_id, loadout_deck, randi_range(1, 2147483646))
-	ladder = AdventureLadder.load_for(starter_id, run.run_seed)
+	map = AdventureMap.generate(starter_id, run.run_seed)
 	AdventureSave.store(run)
 
 
 ## Loads the saved run into memory. False, and leaves `run` untouched, when there is no save or
-## its ladder is missing.
+## its map cannot be rolled.
 func resume_run() -> bool:
 	var loaded: AdventureRun = AdventureSave.load_run()
 	if loaded == null:
 		return false
-	var loaded_ladder: AdventureLadder = AdventureLadder.load_for(loaded.starter_id, loaded.run_seed)
-	if loaded_ladder == null:
+	var loaded_map: AdventureMap = AdventureMap.generate(loaded.starter_id, loaded.run_seed)
+	if loaded_map == null:
 		return false
 	run = loaded
-	ladder = loaded_ladder
+	map = loaded_map
 	return true
 
 
@@ -211,23 +211,35 @@ func resume_run() -> bool:
 func abandon_run() -> void:
 	AdventureSave.clear()
 	run = null
-	ladder = null
+	map = null
 
 
 ## Leaves adventure mode for a normal match, without touching the save.
 func leave_adventure() -> void:
 	run = null
-	ladder = null
+	map = null
 	seed_value = 0
 	ai_seat = -1
 	ai_profile = "default"
 	player_names = ["Player 1", "Player 2"]
 
 
-## Sets up and starts the duel for the run's current stage. Same stage always gives the same
+## Steps the run onto a map node and saves. A fight goes straight into its duel; any other node is
+## passed through for now and the map screen reopens. A node that is not a choice does nothing.
+func enter_node(id: String) -> void:
+	if run == null or not run.enter(map, id):
+		return
+	AdventureSave.store(run)
+	if run.status == "stage":
+		begin_stage()
+		return
+	get_tree().change_scene_to_file(ADVENTURE_STAGE_SCENE)
+
+
+## Sets up and starts the duel on the node the run stands on. The same duel always gets the same
 ## seed, so quitting mid-duel restarts it unchanged.
 func begin_stage() -> void:
-	var row: Dictionary = ladder.stage(run.stage)
+	var row: Dictionary = map.duel_for(run.node_id)
 	var opponent_id: String = str(row.get("opponent", ""))
 	var opponent: DeckList = DeckList.resolve(opponent_id)
 	chosen = [run.deck(), opponent]
@@ -235,16 +247,16 @@ func begin_stage() -> void:
 	ai_seat = 1
 	ai_profile = str(row.get("ai_level", "default"))
 	seed_value = run.stage_seed(run.stage)
-	player_names = [player_names[0], AdventureLadder.opponent_name(opponent_id, library)]
+	player_names = [player_names[0], AdventureDecks.opponent_name(opponent_id, library)]
 	roll_colors()
 	go_to_duel()
 
 
-## Applies the stage result to the run, credits the Motes a win pays, and saves. A loss ends the
+## Applies the duel result to the run, credits the Motes a win pays, and saves. A loss ends the
 ## run and goes straight to the run-end settlement, which is where the run's cards are bought.
 ## The save is kept until the settlement closes, so quitting on that screen does not lose it.
 func record_stage(won: bool) -> void:
-	var payout: int = AdventureRewards.finish_stage(run, ladder, library, won)
+	var payout: int = AdventureRewards.finish_stage(run, map, library, won)
 	if payout > 0:
 		wallet.earn(payout, AdventureWallet.REASON_STAGE, run.run_id, run.stage)
 		wallet.save()
@@ -284,15 +296,15 @@ func finish_aspect(card_id: String) -> void:
 		return
 	if not AdventureRewards.apply_aspect(run, library, card_id):
 		return
-	AdventureRewards.finish_aspect(run, ladder, library)
+	AdventureRewards.finish_aspect(run, map, library)
 	AdventureSave.store(run)
 	get_tree().change_scene_to_file(ADVENTURE_REWARD_SCENE)
 
 
-## Leaves the reward screen for the next stage, or the run's end. Beating the ladder pays the
+## Leaves the reward screen for the map, or the run's end. Beating the final boss pays the
 ## completion bonus and opens the settlement, where the run deck is on offer at a discount.
 func finish_reward() -> void:
-	var bonus: int = AdventureRewards.finish_reward(run, ladder)
+	var bonus: int = AdventureRewards.finish_reward(run, map)
 	if bonus > 0:
 		wallet.earn(bonus, AdventureWallet.REASON_COMPLETION, run.run_id)
 		wallet.save()
@@ -330,7 +342,7 @@ func finish_settlement() -> void:
 	collection.save()
 	AdventureSave.clear()
 	run = null
-	ladder = null
+	map = null
 	get_tree().change_scene_to_file(ADVENTURE_START_SCENE)
 
 

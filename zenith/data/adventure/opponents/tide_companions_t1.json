@@ -4,12 +4,12 @@
   "tier": "t1",
   "mode": "adventure",
   "duelist": [
-    "personality_alder_rooke_1_matriarch",
-    "personality_alder_rooke_2_rising_water"
+    "personality_04",
+    "personality_05"
   ],
   "style": "tide",
   "alignment": "vigil",
-  "mastery": "tide_mastery",
+  "mastery": "tide_mastery_01",
   "relic": "",
   "reserve": [],
   "archetype": "allies",
@@ -21,119 +21,119 @@
   "tagline": "Let your coven absorb the wounds, turn aside attacks, and drain your rival's Energy to replenish your own.",
   "cards": [
     {
-      "id": "tide_breakwater",
-      "count": 1
-    },
-    {
-      "id": "tide_confluence",
-      "count": 1
-    },
-    {
-      "id": "tide_depths",
-      "count": 1
-    },
-    {
-      "id": "tide_high_water",
-      "count": 1
-    },
-    {
-      "id": "tide_springwater",
+      "id": "freestyle_art_02",
       "count": 2
     },
     {
-      "id": "tide_surge",
+      "id": "tide_art_01",
+      "count": 1
+    },
+    {
+      "id": "tide_art_02",
       "count": 3
     },
     {
-      "id": "tide_torrent",
+      "id": "tide_art_03",
       "count": 2
     },
     {
-      "id": "tide_twin_breaker",
-      "count": 1
-    },
-    {
-      "id": "tide_twin_swell",
+      "id": "tide_art_04",
       "count": 2
     },
     {
-      "id": "unerring_bolt",
+      "id": "tide_art_05",
       "count": 2
     },
     {
-      "id": "closing_ranks",
+      "id": "tide_art_06",
       "count": 1
     },
     {
-      "id": "cut_short",
+      "id": "tide_art_07",
       "count": 1
     },
     {
-      "id": "edrics_vow",
+      "id": "tide_art_08",
       "count": 1
     },
     {
-      "id": "last_gasp",
+      "id": "tide_art_09",
       "count": 1
     },
     {
-      "id": "old_trick",
+      "id": "freestyle_combat_06",
       "count": 1
     },
     {
-      "id": "rallying_call",
+      "id": "freestyle_combat_08",
       "count": 1
     },
     {
-      "id": "rookes_deluge",
+      "id": "freestyle_combat_09",
       "count": 1
     },
     {
-      "id": "warding_call",
+      "id": "freestyle_combat_10",
       "count": 1
     },
     {
-      "id": "watchful_eye",
+      "id": "freestyle_combat_11",
       "count": 1
     },
     {
-      "id": "bonding_rite",
+      "id": "freestyle_combat_12",
       "count": 1
     },
     {
-      "id": "clear_mind",
+      "id": "signature_combat_03",
       "count": 1
     },
     {
-      "id": "lucky_find",
+      "id": "signature_combat_05",
       "count": 1
     },
     {
-      "id": "personality_ansel_rooke_1",
+      "id": "signature_combat_06",
       "count": 1
     },
     {
-      "id": "personality_tavin_vale_1",
+      "id": "freestyle_noncombat_03",
       "count": 1
     },
     {
-      "id": "clean_sweep",
+      "id": "freestyle_noncombat_06",
       "count": 1
     },
     {
-      "id": "last_ward",
+      "id": "freestyle_noncombat_08",
+      "count": 1
+    },
+    {
+      "id": "personality_51",
+      "count": 1
+    },
+    {
+      "id": "personality_52",
+      "count": 1
+    },
+    {
+      "id": "freestyle_strike_02",
+      "count": 1
+    },
+    {
+      "id": "freestyle_strike_05",
       "count": 2
     },
     {
-      "id": "tide_drowning",
-      "count": 2
-    },
-    {
-      "id": "tide_ebb",
+      "id": "tide_strike_01",
       "count": 3
     },
     {
-      "id": "tide_undertow",
+      "id": "tide_strike_02",
+      "count": 2
+    },
+    {
+      "id": "tide_strike_03",
       "count": 2
     }
   ]

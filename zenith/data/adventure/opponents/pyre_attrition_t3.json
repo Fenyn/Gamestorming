@@ -4,13 +4,13 @@
   "tier": "t3",
   "mode": "adventure",
   "duelist": [
-    "personality_bram_ashmark_1_starved",
-    "personality_bram_ashmark_2_gnawing",
-    "personality_bram_ashmark_3_gorging"
+    "personality_01",
+    "personality_55",
+    "personality_56"
   ],
   "style": "pyre",
   "alignment": "pact",
-  "mastery": "pyre_ember_mastery",
+  "mastery": "pyre_mastery_02",
   "relic": "",
   "reserve": [],
   "archetype": "strike_beatdown",
@@ -23,119 +23,119 @@
   "tagline": "Strip the table bare, climb past your rival's last Aspect, and refill your Life Deck while they run out.",
   "cards": [
     {
-      "id": "ashmarks_ember_spray",
+      "id": "freestyle_art_09",
+      "count": 1
+    },
+    {
+      "id": "pyre_art_01",
       "count": 3
     },
     {
-      "id": "declaration",
+      "id": "signature_art_09",
       "count": 1
     },
     {
-      "id": "pyre_immolation",
+      "id": "signature_art_14",
       "count": 3
     },
     {
-      "id": "riftcry",
+      "id": "freestyle_combat_01",
       "count": 1
     },
     {
-      "id": "cold_appraisal",
+      "id": "freestyle_combat_20",
+      "count": 1
+    },
+    {
+      "id": "pyre_combat_01",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_02",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_03",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_04",
       "count": 2
     },
     {
-      "id": "cut_short",
-      "count": 1
-    },
-    {
-      "id": "pyre_twin_flames",
-      "count": 1
-    },
-    {
-      "id": "spent_to_the_last",
-      "count": 1
-    },
-    {
-      "id": "stillness",
-      "count": 1
-    },
-    {
-      "id": "will_not_break",
-      "count": 1
-    },
-    {
-      "id": "emrys_rising_blow",
+      "id": "freestyle_strike_03",
       "count": 2
     },
     {
-      "id": "headlong_plunge",
-      "count": 2
-    },
-    {
-      "id": "mournes_stance",
-      "count": 1
-    },
-    {
-      "id": "no_quarter",
-      "count": 1
-    },
-    {
-      "id": "pyre_cinder_guard",
+      "id": "pyre_strike_01",
       "count": 3
     },
     {
-      "id": "pyre_firestorm",
+      "id": "pyre_strike_02",
       "count": 3
     },
     {
-      "id": "pyre_flame_lash",
+      "id": "pyre_strike_05",
       "count": 2
     },
     {
-      "id": "pyre_flashpoint",
-      "count": 2
-    },
-    {
-      "id": "pyre_furnace_breath",
-      "count": 2
-    },
-    {
-      "id": "pyre_knee_bash",
-      "count": 2
-    },
-    {
-      "id": "pyre_rekindling",
-      "count": 2
-    },
-    {
-      "id": "pyre_scouring_flame",
-      "count": 2
-    },
-    {
-      "id": "pyre_searing_guard",
+      "id": "pyre_strike_06",
       "count": 3
     },
     {
-      "id": "pyre_snuffing",
+      "id": "pyre_strike_08",
       "count": 2
     },
     {
-      "id": "pyre_sword_cleave",
+      "id": "pyre_strike_09",
       "count": 2
     },
     {
-      "id": "pyre_warding_stance",
+      "id": "pyre_strike_11",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_13",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_16",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_19",
+      "count": 2
+    },
+    {
+      "id": "pyre_strike_20",
       "count": 3
     },
     {
-      "id": "quick_retreat",
+      "id": "pyre_strike_21",
       "count": 2
     },
     {
-      "id": "relentless_fury",
+      "id": "signature_strike_01",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_02",
       "count": 3
     },
     {
-      "id": "vales_sword_draw",
+      "id": "signature_strike_03",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_13",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_23",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_29",
       "count": 2
     }
   ]

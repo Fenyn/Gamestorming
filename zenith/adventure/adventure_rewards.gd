@@ -9,21 +9,14 @@ const OFFER_SIZE: int = 3
 ## out everything else.
 const MAX_PER_GROUP: int = 2
 
-## When each tier opens, as a fraction of the ladder length. Written as a fraction so a ladder
-## that is not 8 stages long keeps the same shape: early from stage 0, mid from stage 2 of 8,
-## late from stage 4 of 8.
+## When each tier opens, as a fraction of the way through the run (`AdventureMap.progress_of`):
+## early from the start, mid from act 1 tier 7, late from act 2 tier 5.
 const TIER_OPENS: Dictionary = {"early": 0.0, "mid": 0.25, "late": 0.5}
 
 
-## Bundle ids this run could be offered at `stage`, sorted so the pool is stable for a seed.
-static func eligible(run: AdventureRun, library: CardLibrary, stage: int) -> Array[String]:
-	return _eligible_sized(run, library, stage, 0)
-
-
-## The same, with the ladder length already known. `ladder_size` of 0 means "read it from the
-## run's ladder file".
-static func _eligible_sized(run: AdventureRun, library: CardLibrary, stage: int,
-		ladder_size_value: int) -> Array[String]:
+## Bundle ids this run could be offered at `progress` of the way through the run, sorted so the
+## pool is stable for a seed.
+static func eligible(run: AdventureRun, library: CardLibrary, progress: float) -> Array[String]:
 	var out: Array[String] = []
 	var deck: DeckList = run.deck()
 	if deck == null:
@@ -31,7 +24,6 @@ static func _eligible_sized(run: AdventureRun, library: CardLibrary, stage: int,
 	var duelist: CardDef = library.defs.get(deck.duelist_face_id())
 	if duelist == null:
 		return out
-	var ladder_size: int = ladder_size_value if ladder_size_value > 0 else _ladder_size(run)
 	var taken: Dictionary = {}
 	for id in run.taken_bundles():
 		taken[id] = true
@@ -41,7 +33,7 @@ static func _eligible_sized(run: AdventureRun, library: CardLibrary, stage: int,
 			continue
 		if not _group_ok(bundle, deck, duelist, library):
 			continue
-		if not _tier_ok(str(bundle.get("tier", "")), stage, ladder_size):
+		if not _tier_ok(str(bundle.get("tier", "")), progress):
 			continue
 		if not _cards_ok(bundle, deck, duelist, library):
 			continue
@@ -50,13 +42,6 @@ static func _eligible_sized(run: AdventureRun, library: CardLibrary, stage: int,
 		out.append(id)
 	out.sort()
 	return out
-
-
-## The ladder length a tier gate is measured against. A run carries no ladder, so the stage count
-## is read off the pipeline; 8 when it cannot be read.
-static func _ladder_size(run: AdventureRun) -> int:
-	var ladder: AdventureLadder = AdventureLadder.load_for(run.starter_id, run.run_seed)
-	return ladder.size() if ladder != null and ladder.size() > 0 else 8
 
 
 ## Who may be offered this bundle at all. A school bundle needs a deck of that Style; Freestyle
@@ -107,10 +92,9 @@ static func _fits(bundle: Dictionary, run: AdventureRun, library: CardLibrary) -
 	return DeckValidator.validate(trial, library).is_empty()
 
 
-## Tier gate: `early` from the first stage, `mid` from a quarter of the way up, `late` from half.
-static func _tier_ok(tier: String, stage: int, ladder_size: int) -> bool:
-	var fraction: float = float(TIER_OPENS.get(tier, 0.0))
-	return stage >= int(floor(fraction * float(ladder_size)))
+## Tier gate: `early` from the start, `mid` from a quarter of the way through, `late` from half.
+static func _tier_ok(tier: String, progress: float) -> bool:
+	return progress >= float(TIER_OPENS.get(tier, 0.0))
 
 
 ## The card's `only` gate read against a deck rather than a table. An unknown key means the gate
@@ -211,9 +195,10 @@ static func _own_group(run: AdventureRun) -> String:
 	return deck.style
 
 
-static func offer(run: AdventureRun, library: CardLibrary, ladder: AdventureLadder) -> Array[String]:
-	var ladder_size: int = ladder.size() if ladder != null else 0
-	var ids: Array[String] = _eligible_sized(run, library, run.stage, ladder_size)
+## The offer after the duel just won, gated by how far through the map that duel stood.
+static func offer(run: AdventureRun, library: CardLibrary, map: AdventureMap) -> Array[String]:
+	var progress: float = maxf(0.0, map.progress_of(run.node_id)) if map != null else 0.0
+	var ids: Array[String] = eligible(run, library, progress)
 	return draw(ids, OFFER_SIZE, run.offer_seed(run.stage), run)
 
 
@@ -306,14 +291,15 @@ static func apply_aspect(run: AdventureRun, library: CardLibrary, card_id: Strin
 ##
 ## Returns the Motes the win is worth. Nothing here touches the wallet or a file: the caller
 ## credits it and decides when to save, which is what keeps adventure/ free of IO decisions.
-static func finish_stage(run: AdventureRun, ladder: AdventureLadder, library: CardLibrary, won: bool) -> int:
+static func finish_stage(run: AdventureRun, map: AdventureMap, library: CardLibrary, won: bool) -> int:
 	if not won:
 		run.pending_offer.clear()
 		run.pending_aspects.clear()
 		run.status = "lost"
 		return 0
-	var payout: int = AdventureEconomy.stage_payout(run.stage)
-	var row: Dictionary = ladder.stage(run.stage)
+	var here: Dictionary = map.node(run.node_id)
+	var payout: int = AdventureEconomy.duel_payout(int(here.get("act", 1)), str(here.get("type", "")) == "boss")
+	var row: Dictionary = map.duel_for(run.node_id)
 	if str(row.get("grant", "")) == "aspect":
 		var options: Array[String] = aspect_options(run, library)
 		if not options.is_empty():
@@ -323,25 +309,25 @@ static func finish_stage(run: AdventureRun, ladder: AdventureLadder, library: Ca
 		# The Duelist is at the top of its character's ladder or at the construction maximum.
 		run.picks.append({"stage": run.stage, "kind": "aspect_skipped", "id": ""})
 	run.pending_aspects.clear()
-	run.pending_offer = offer(run, library, ladder)
+	run.pending_offer = offer(run, library, map)
 	run.status = "reward"
 	return payout
 
 
 ## Leaves the Aspect step for the bundle offer, which is built from the deck as it now stands.
-static func finish_aspect(run: AdventureRun, ladder: AdventureLadder, library: CardLibrary) -> void:
+static func finish_aspect(run: AdventureRun, map: AdventureMap, library: CardLibrary) -> void:
 	run.pending_aspects.clear()
-	run.pending_offer = offer(run, library, ladder)
+	run.pending_offer = offer(run, library, map)
 	run.status = "reward"
 
 
-## Leaves the reward screen for the next stage, or ends the run when the ladder is spent. Returns
-## the completion bonus when the ladder is beaten and 0 otherwise; the caller credits it.
-static func finish_reward(run: AdventureRun, ladder: AdventureLadder) -> int:
+## Leaves the reward screen for the map, or ends the run when the duel just won was the final
+## boss. Returns the completion bonus when the run is won and 0 otherwise; the caller credits it.
+static func finish_reward(run: AdventureRun, map: AdventureMap) -> int:
 	run.pending_offer.clear()
 	run.stage += 1
-	if run.stage < ladder.size():
-		run.status = "stage"
+	if run.node_id != map.final_id():
+		run.status = "map"
 		return 0
 	run.status = "won"
 	return AdventureEconomy.completion_bonus()

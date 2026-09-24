@@ -57,8 +57,14 @@ static func tint_for_school(school: String) -> void:
 		tint_strong = Color.WHITE
 		return
 	var c: Color = Palette.school_ui(school)
-	tint = Color.from_hsv(c.h, minf(c.s, TINT_MAX_SATURATION), minf(c.v, TINT_MAX_VALUE))
+	tint = muted(c)
 	tint_strong = Color.from_hsv(c.h, clampf(c.s, 0.65, 0.85), minf(c.v, 0.85))
+
+
+## Any colour capped the way the trim tint is, so a loud group or school colour sits as quietly
+## as the rest of the trim.
+static func muted(color: Color) -> Color:
+	return Color.from_hsv(color.h, minf(color.s, TINT_MAX_SATURATION), minf(color.v, TINT_MAX_VALUE))
 
 
 ## Every terrain tile for an act, in a stable order. Acts past the art on disk reuse the last.
@@ -82,10 +88,19 @@ static func terrain(act: int) -> Array[Texture2D]:
 	return out
 
 
-## The default panel: a dark fill under the thin inner rule (Kenney border 012), both in the trim
-## tint.
-static func panel_box(content: int) -> StyleBox:
-	return _sliced("panel", PANEL_MARGIN, content, tint)
+## Top and bottom text padding per button state, matched to each piece's face and base.
+const BUTTON_PAD: Dictionary = {
+	"normal": Vector2i(8, 18), "hover": Vector2i(8, 18), "pressed": Vector2i(8, 12), "disabled": Vector2i(8, 10),
+}
+
+## Passed as `color` to mean "use the current trim tint".
+const USE_TINT: Color = Color(0, 0, 0, 0)
+
+
+## The default panel: a dark fill under the thin inner rule (Kenney border 012), in `color`, or
+## the trim tint when none is given. The shared theme asks for white so it never caches a school.
+static func panel_box(content: int, color: Color = USE_TINT) -> StyleBox:
+	return _sliced("panel", PANEL_MARGIN, content, tint if color == USE_TINT else color)
 
 
 ## The map board: parchment under the same rule in ink. Never tinted.
@@ -170,12 +185,15 @@ static func draw_hsliced(canvas: CanvasItem, tex: Texture2D, rect: Rect2, cap: f
 
 ## A button face from one of the Ornate bevelled squares, in the trim tint: corners kept whole,
 ## text padded wide.
-static func button_box(piece: String) -> StyleBox:
-	var box: StyleBox = _sliced(piece, 16, 0, tint)
+static func button_box(piece: String, color: Color = USE_TINT) -> StyleBox:
+	var box: StyleBox = _sliced(piece, 16, 0, tint if color == USE_TINT else color)
 	box.content_margin_left = 22
 	box.content_margin_right = 22
-	box.content_margin_top = 10
-	box.content_margin_bottom = 12
+	# The bevelled pieces stand on a base below their face (14 px raised, 8 px pressed, 4 px flat),
+	# so the text is padded to centre on the face, and drops a little when pressed.
+	var pad: Vector2i = BUTTON_PAD.get(piece.trim_prefix("accent_").trim_prefix("button_"), Vector2i(8, 18))
+	box.content_margin_top = pad.x
+	box.content_margin_bottom = pad.y
 	return box
 
 

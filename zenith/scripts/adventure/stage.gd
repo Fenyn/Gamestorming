@@ -131,22 +131,9 @@ func _ready() -> void:
 	SanctumUI.wire_buttons(self)
 
 
-## The shared theme with this screen's buttons swapped for the Ornate bevelled pieces: dark for
-## ordinary buttons, cream for the primary action.
+## The shared theme with its panels and buttons in the run's school tint.
 func _screen_theme() -> Theme:
-	var t: Theme = SanctumUI.theme().duplicate()
-	for kind in ["Button", "AccentButton"]:
-		var prefix: String = "accent" if kind == "AccentButton" else "button"
-		t.set_stylebox("normal", kind, MapArt.button_box(prefix + "_normal"))
-		t.set_stylebox("hover", kind, MapArt.button_box(prefix + "_hover"))
-		t.set_stylebox("pressed", kind, MapArt.button_box(prefix + "_pressed"))
-		t.set_stylebox("disabled", kind, MapArt.button_box("button_disabled"))
-		t.set_stylebox("focus", kind, StyleBoxEmpty.new())
-	# The hover piece of the dark button is tan, so its text turns dark to stay readable.
-	t.set_color("font_hover_color", "Button", ZenithTheme.TEXT_DARK)
-	t.set_color("font_pressed_color", "Button", ZenithTheme.TEXT)
-	t.set_color("font_disabled_color", "AccentButton", ZenithTheme.MUTED)
-	return t
+	return SanctumUI.themed(MapArt.tint)
 
 
 func _draw_vignette(layer: Control) -> void:

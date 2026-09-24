@@ -636,6 +636,31 @@ ART = {
     "pyre_drill_08": "A smoldering heap that never goes out, the edge of it eating slowly into a pile of pages.",
     "pyre_mastery_03": "Dry tinder catching from a spent page laid on top, the first flame just rising.",
     "pyre_mastery_04": "Cinders drifting down onto a raised guard, the guard smoking where they land.",
+    # Steel expansion, 2026-09-23. A human fighter with the dragon surfacing in them for the fight:
+    # scales, talons, horns, fangs, a tail, breath. Never wings, never a whole dragon.
+    "steel_strike_23": "A scaled tail lashing out from behind a fighter and smashing a small brazier off its stand.",
+    "steel_strike_24": "A fighter grown a head taller mid-swing, horned and scaled, a smaller foe caught under the blow.",
+    "steel_strike_25": "Old scales flaking off a fighter's forearm as it takes a hit, new ones bright beneath.",
+    "steel_strike_26": "A fighter's arm swelling into scale and talon as the punch lands, a torn card fluttering behind.",
+    "steel_strike_27": "A taloned hand closed on a throat, the held figure's glow draining out between the fingers.",
+    "steel_strike_28": "A horned fighter charging shoulder-first through a line of lesser fighters, scattering them.",
+    "steel_art_07": "Blood-red breath pouring from a fanged mouth, scale spreading up the neck as it goes.",
+    "steel_art_08": "A gout of breath so hot the ground under it turns to glass and the ash lifts away.",
+    "steel_art_09": "Breath of fire from a fighter looking down at a smaller one, flames licking up a raised arm.",
+    "steel_art_10": "A hoard of old weapons and cards dragged up out of ash by a taloned hand.",
+    "steel_art_11": "A tail sweeping low across a floor, bracing posts and small braziers knocked flying.",
+    "steel_art_12": "A roar from a fanged mouth sending a crowd of lesser fighters back on their heels.",
+    "steel_art_13": "A cornered fighter hunched behind a scaled arm, eyes slitted, a bolt gathering in the other hand.",
+    "steel_art_14": "Scale rippling up a fighter's whole body at once, the eyes gone gold.",
+    "steel_combat_02": "A fighter drawing a huge breath, chest swelling, scale rising along the throat.",
+    "steel_drill_02": "A slitted golden eye in a human face, the one it looks at shrinking back.",
+    "steel_drill_03": "A horned figure standing over a kneeling one, the kneeling one's glow guttering.",
+    "steel_drill_04": "A forearm of hard grey scale raised as a shield, a blade glancing off it.",
+    "steel_noncombat_01": "A fighter with eyes shut and scale showing at the temples, old battles flickering around them.",
+    "steel_noncombat_02": "A grin splitting into fangs, the fighter sweating and paling as the scale comes in.",
+    "steel_mastery_02": "A shadow on a wall behind a fighter, horned and far bigger than the fighter casting it.",
+    "steel_mastery_03": "A scaled back turned to a strike, the blade breaking on it.",
+    "steel_mastery_04": "A fighter mid-roar with blood in the eyes, scale and horn tearing through the skin.",
 }
 
 # Seals: one brief per set, the number added by the generator.
@@ -803,6 +828,11 @@ NEW_SOURCES = {
     "root_art_08": "Namekian Eye Beam (World Games)",
     "root_art_09": "Namekian Energy Beam (Cell Saga)",
     "root_art_10": "Namekian Piercing Beam (Cell Games)",
+    # Three Pyre cards the tournament import added with no source recorded, matched by their text
+    # in the Pyre review of 2026-09-23.
+    "pyre_strike_19": "Red Knee Bash (Androids Saga)",
+    "pyre_strike_20": "Red Energy Defensive Stance (World Games)",
+    "pyre_strike_21": "Red Sword Cleave (Kid Buu Saga)",
     # The Pyre expansion, read off tools/source_candidates.tsv 2026-09-23.
     "pyre_drill_01": "Red Blowing Steam Drill (Irwin IR12)",
     "pyre_drill_02": "Red Tactical Drill (Androids Saga)",
@@ -831,6 +861,30 @@ NEW_SOURCES = {
     "pyre_combat_03": "Red Energy Focus (World Games)",
     "pyre_mastery_03": "Red Style Mastery (Cell Saga)",
     "pyre_mastery_04": "Red Style Mastery (World Games)",
+    # The Steel expansion, read off tools/source_candidates.tsv 2026-09-23.
+    "steel_strike_23": "Saiyan Pride (Cell Games)",
+    "steel_strike_24": "Saiyan Clothesline (Broly Movie M14)",
+    "steel_strike_25": "Saiyan Neckbreaker (Fusion Saga)",
+    "steel_strike_26": "Saiyan Blitz (Fusion Saga)",
+    "steel_strike_27": "Saiyan Lurch (Kid Buu Saga)",
+    "steel_strike_28": "Saiyan Surprise (Broly Movie M17)",
+    "steel_art_07": "Saiyan Two Gun Woo (Fusion Saga)",
+    "steel_art_08": "Saiyan Energy Bullet (Kid Buu Saga)",
+    "steel_art_09": "Saiyan Energy Toss (Broly Movie M35)",
+    "steel_art_10": "Saiyan Energy Bomb (Buu Saga)",
+    "steel_art_11": "Saiyan Strength Blast (Buu Saga)",
+    "steel_art_12": "Saiyan Ki Ball (Buu Saga)",
+    "steel_art_13": "Saiyan Desperation (Kid Buu Saga)",
+    "steel_art_14": "Saiyan Power (Fusion Saga)",
+    "steel_combat_02": "Saiyan Power Stance (Broly Movie promo M17)",
+    "steel_drill_02": "Saiyan Jeering Drill (Kid Buu Saga)",
+    "steel_drill_03": "Saiyan Aggression Drill (Kid Buu Saga)",
+    "steel_drill_04": "Saiyan Protection Drill (Cell Games)",
+    "steel_noncombat_01": "Saiyan Enraged (Broly Movie M15)",
+    "steel_noncombat_02": "Saiyan Offensive Rush (Cell Saga)",
+    "steel_mastery_02": "Saiyan Style Mastery (Trunks Saga)",
+    "steel_mastery_03": "Saiyan Style Mastery (World Games)",
+    "steel_mastery_04": "Saiyan Style Mastery (Buu Saga)",
 }
 
 

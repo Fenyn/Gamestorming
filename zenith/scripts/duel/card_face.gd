@@ -49,7 +49,9 @@ const NO_BACKDROP: Color = Color(0, 0, 0, 0)
 const CARD_RULES_DIR: String = "res://assets/ui/card_rules/"
 const RULE_STYLES: Dictionary = {"inner_rule": [48, 6], "double": [32, 0], "notched": [32, -2]}
 const RULE_LIGHTEN: float = 0.45
-const FRAME_RADIUS: int = 14
+const FRAME_RADIUS: int = 8
+const BODY_RADIUS: int = 10
+const PLACEHOLDER_SEPIA: Color = Color(1.0, 0.86, 0.66)
 
 static var default_backdrop: Color = NEUTRAL_BACKDROP
 
@@ -159,9 +161,10 @@ func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPla
 func _show_standard(def: CardDef, color: Color, picture: Texture2D) -> void:
 	var art_height: float = float(ART_HEIGHTS.get(def.type, 280))
 	art.custom_minimum_size = Vector2(0, art_height)
-	_style(art, color.darkened(0.35), 14)
+	_style(art, color.darkened(0.35), FRAME_RADIUS)
 	art_image.texture = picture
 	art_image.visible = picture != null
+	art_image.self_modulate = placeholder_tint(picture)
 	_mark_type(def, picture != null)
 	title_label.text = def.title
 	title_label.add_theme_color_override("font_color", INK)
@@ -216,9 +219,10 @@ func _show_person(def: CardDef, aspect: int, color: Color, picture: Texture2D, e
 	_round(p_type_chip, Palette.type_ink(def.type), 8, 6, 6)
 	p_type_icon.type = def.type
 	p_type_icon.color = Color.WHITE
-	_style(p_art, backdrop, 14)
+	_style(p_art, backdrop, FRAME_RADIUS)
 	p_art_image.texture = picture
 	p_art_image.visible = picture != null
+	p_art_image.self_modulate = placeholder_tint(picture)
 	p_glyph_icon.visible = picture == null
 	p_glyph_icon.type = def.type
 	p_glyph_icon.color = Color(1, 1, 1, 0.3)
@@ -330,12 +334,21 @@ func _fit_text(label: KeywordLabel, plain: String, box_height: float) -> void:
 func _inner_style(def: CardDef) -> void:
 	var box: StyleBoxFlat = StyleBoxFlat.new()
 	box.bg_color = CREAM
-	box.set_corner_radius_all(22)
+	box.set_corner_radius_all(BODY_RADIUS)
 	box.anti_aliasing = true
 	if def.is_signature():
 		box.border_color = Palette.SIGNATURE_RULE
 		box.set_border_width_all(5)
 	inner.add_theme_stylebox_override("panel", box)
+
+
+## Placeholder art (the `.svg` sketches and crests that stand in until a painting arrives) is drawn
+## in a warm sepia, so a card without its painting reads as a pencil study rather than a grey
+## debug image next to the painted ones. A painting is drawn as it is.
+static func placeholder_tint(picture: Texture2D) -> Color:
+	if picture != null and picture.resource_path.ends_with(".svg"):
+		return PLACEHOLDER_SEPIA
+	return Color.WHITE
 
 
 ## The Kenney border drawn in the frame's colour band, lighter than the band so it reads as an

@@ -246,7 +246,12 @@ func _ready() -> void:
 	root.theme = SanctumUI.theme()
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
 	prompt_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	log_panel.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0.065, 0.065, 0.065, 0.96), Color(0.20, 0.20, 0.20), 2, 1, 14, 10))
+	# The log wears the same framed panel as the phase bar beside it, with tighter padding.
+	log_panel.add_theme_stylebox_override("panel", MapArt.panel_box(14, Color.WHITE))
+	# The inspect hint sits on a small framed panel instead of floating over the table.
+	var inspect_hint: Label = $Root/Inspect/Center/Column/Hint
+	inspect_hint.add_theme_stylebox_override("normal", MapArt.panel_box(14, Color.WHITE))
+	inspect_hint.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	for name in STEP_LABELS:
 		# Each step is a chip with a rule under it, so the strip reads as a progress bar across
 		# the turn: filled behind, gold on the step we are in, empty ahead.
@@ -700,7 +705,7 @@ func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
 	if over:
 		turn_who.text = "DUEL OVER"
 		turn_who.add_theme_color_override("font_color", ZenithTheme.TEXT)
-		phase_panel.add_theme_stylebox_override("panel", ZenithTheme.get_theme().get_stylebox("panel", "PanelContainer"))
+		phase_panel.add_theme_stylebox_override("panel", SanctumUI.panel())
 		return
 
 	var mine: bool = active == me

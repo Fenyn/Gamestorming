@@ -25,6 +25,10 @@ one-shot timing/cleanup. Game controllers tune scale, density, and brightness.
 - `impacts/impact_1`: resolved-damage impact.
 - `ground_effects/ground_effect_1`: inward protection feedback.
 - `loot/power_up`: ascension.
+- `other/falling_leaves`: leaves drifting over the ruined courtyard (added 2026-09-23 by
+  `tools/import_courtyard_art.py`, self-contained scene).
+- `other/god_rays`: light shafts through the courtyard (added the same day, with
+  `source_files/materials/god_rays.tres` and `source_files/shaders/god_rays.gdshader`).
 
 Reduced motion stops and hides ambient particle systems and the animated portal.
 Combat uses the existing static, fading feedback instead of pack bursts in that

@@ -17,7 +17,10 @@ func _ready() -> void:
 		# The exported binary run as the duel server: no title, no window content.
 		get_tree().change_scene_to_file.call_deferred("res://scenes/server.tscn")
 		return
-	theme = ZenithTheme.get_theme()
+	theme = SanctumUI.theme()
+	# Back at the title no run is live, so the trim returns to neutral white.
+	MapArt.tint_for_school("")
+	_dress()
 	Net.leave()
 	adventure_button.pressed.connect(func() -> void: Session.go_to_adventure())
 	hotseat_button.pressed.connect(func() -> void: _offline(-1))
@@ -30,6 +33,18 @@ func _ready() -> void:
 	Net.connection_failed.connect(_on_failed)
 	status_label.text = ""
 	_dev_args()
+
+
+## Library filigree around the menu: a crest over the name and a swirl under the tagline, neutral.
+## No terrain behind it (user, 2026-09-23).
+func _dress() -> void:
+	var column: VBoxContainer = $Center/Column
+	var crest: TextureRect = MapArt.ornament("crest", 34.0)
+	column.add_child(crest)
+	column.move_child(crest, $Center/Column/Title.get_index())
+	var swirl: TextureRect = MapArt.ornament("swirl", 26.0)
+	column.add_child(swirl)
+	column.move_child(swirl, $Center/Column/Sub.get_index() + 1)
 
 
 ## Hotseat when `ai_seat` is -1, otherwise that seat is played by the AI.

@@ -27,6 +27,7 @@ const FORBID_TEXT: Dictionary = {
 	"seals": "place Seals", "non_attack_actions": "do anything but attack or pass in their attack phase",
 	"skip_combat": "skip declaring Combat", "allies": "place Allies",
 	"lower_aspect": "use cards that lower an Aspect",
+	"relic": "use a Relic",
 }
 const FLOAT_TEXT: Dictionary = {
 	"no_prevent": "damage from your attacks cannot be prevented",
@@ -42,6 +43,7 @@ const FLOAT_TEXT: Dictionary = {
 	"stop_next": "the next attack against you is stopped",
 	"prevent_art_life": "Arts against you deal no wounds",
 	"prevent_strike_damage": "Strikes against you deal no damage",
+	"fervor_hits_secondary": "any Hit effect of yours that raises your Fervor or lowers your opponent's Fervor is a secondary effect, and happens whether or not the attack succeeds",
 }
 
 
@@ -340,6 +342,7 @@ const CARD_TYPE_WORDS: Dictionary = {
 	"non_combat_any": ["Non-Combat card, Drill, or Seal", "Non-Combat cards, Drills, or Seals"],
 	"non_combat_or_drill": ["Non-Combat card or Drill", "Non-Combat cards and Drills"],
 	"non_combat": ["Non-Combat card", "Non-Combat cards"], "non_combat_only": ["Non-Combat card", "Non-Combat cards"],
+	"non_combat_card": ["Non-Combat card", "Non-Combat cards"],
 	# A printed band always reads "X card"; the bare "Strike" and "Art" are kept for the attack
 	# itself ("Stops a Strike"). A Strike card need not perform a Strike, and a block is one too.
 	"combat": ["Combat card", "Combat cards"], "strike": ["Strike card", "Strike cards"], "art": ["Art card", "Art cards"],
@@ -436,6 +439,8 @@ static func rules_text(def: CardDef) -> String:
 		# A price to use, not a restriction on who may: worded as the cost it is.
 		if def.only.has("energy_min"):
 			lines.append("Your duelist must have %d Energy to use this." % int(def.only["energy_min"]))
+		if def.only.has("duelist_pays"):
+			lines.append("Your duelist pays %d Energy to use this card." % int(def.only["duelist_pays"]))
 		# A gate on the state of the duel rather than on who is holding the card.
 		if def.only.has("when"):
 			lines.append("Use this card only if %s." % cond_text(def.only["when"]))
@@ -483,9 +488,21 @@ static func rules_text(def: CardDef) -> String:
 			lines.append(_conditional(v.get("when", {}), variant_text(v)))
 	if def.is_defense():
 		lines.append(defense_text(def.defense))
+	# Empower drops every line printed after it, so a line it keeps is printed before it.
+	var kept_by_empower: Array = []
+	var dropped_by_empower: Array = []
+	for e in def.effects:
+		if bool(e.get("after_empower", false)):
+			dropped_by_empower.append(e)
+		else:
+			kept_by_empower.append(e)
+	var effect_lines: PackedStringArray = effects_text(def.effects)
+	if def.empower > 0 and not dropped_by_empower.is_empty() and not kept_by_empower.is_empty():
+		for t in effects_text(kept_by_empower):
+			lines.append(t)
+		effect_lines = effects_text(dropped_by_empower)
 	if def.empower > 0:
 		lines.append("Empower %d." % def.empower)
-	var effect_lines: PackedStringArray = effects_text(def.effects)
 	# A card with its own timing already said when it is used, so drop the default "Use in Combat".
 	if str(def.raw.get("use_at", "")) != "":
 		for i in range(effect_lines.size()):
@@ -561,7 +578,9 @@ static func rules_text(def: CardDef) -> String:
 			lines.append("Limit %d attached." % limit_attached)
 		if str(def.attachment.get("duration", "")) == "combat":
 			lines.append("Discard this card at the end of Combat.")
-	if def.remain > 0:
+	if def.remain >= 99:
+		lines.append("Stays on the table to be used any number of times this Combat.")
+	elif def.remain > 0:
 		lines.append("Remain %d.%s" % [def.remain, (" The extra uses are an Ally's." if str(def.raw.get("remain_by", "")) == "ally" else "")])
 	if not def.remain_when.is_empty():
 		var extra: Variant = def.remain_when.get("remain", 1)
@@ -590,6 +609,32 @@ static func rules_text(def: CardDef) -> String:
 			school_name(burn_school) if burn_school != "" else "your", int(burn.get("prevent_per", 2))])
 	if bool(def.raw.get("protect_drills", false)):
 		lines.append("Your Drills cannot be discarded for any reason, an aspect change included.")
+	if int(def.raw.get("opponent_power_up_less", 0)) > 0:
+		lines.append("Your opponent's personalities gain %d less Energy when they power up in the Power Up step, to a minimum of 0." % int(def.raw["opponent_power_up_less"]))
+	if bool(def.raw.get("no_ascension_win", false)):
+		lines.append("You cannot win by Ascension.")
+	var grant: Dictionary = def.raw.get("grant_attack_lines", {})
+	if not grant.is_empty():
+		var granted: PackedStringArray = effects_text(grant.get("effects", []))
+		lines.append("Your %sattacks gain \"%s\"" % [(school_name(str(grant["school"])) + " ") if str(grant.get("school", "")) != "" else "", " ".join(granted)])
+	var rejuv: Dictionary = def.raw.get("recover_bonus", {})
+	if not rejuv.is_empty():
+		lines.append("In the Recover step, if the card you put back into your Life Deck is %s card, %s" % [
+			_a(school_name(str(rejuv.get("school", "")))), _lc(" ".join(effects_text(rejuv.get("effects", []))))])
+	var boost: Dictionary = def.raw.get("discard_boost", {})
+	if not boost.is_empty():
+		var boost_parts: PackedStringArray = PackedStringArray()
+		if int(boost.get("stages", 0)) > 0:
+			boost_parts.append("do +%d Energy" % int(boost["stages"]))
+		if int(boost.get("life", 0)) > 0:
+			boost_parts.append("do +%d wounds" % int(boost["life"]))
+		for t in effects_text(boost.get("effects", [])):
+			boost_parts.append(_lc(t).trim_suffix("."))
+		var boost_kind: String = str(boost.get("kind", ""))
+		lines.insert(0, "(When you perform %s, you may discard this card from your hand to have that attack %s.)" % [
+			("an attack" if boost_kind == "" else _a(boost_kind.capitalize())), " and ".join(boost_parts)])
+	if bool(def.raw.get("drill_lock_exempt", false)):
+		lines.append("This Drill does not count towards or against the one school of Drills you may have in play.")
 	if bool(def.raw.get("fervor_lock", false)):
 		lines.append("Your Fervor cannot be lowered.")
 	if def.raw.has("keeps_drills_on_advance"):
@@ -718,6 +763,10 @@ static func attack_text(a: Dictionary) -> String:
 	if int(a.get("multiply", 1)) > 1:
 		s += " doing %s the Base Damage" % _times_word(int(a["multiply"]))
 	s += "."
+	var table_times: Dictionary = a.get("table_multiply", {})
+	if not table_times.is_empty():
+		var times: String = _times_word(maxi(1, int(table_times.get("by", 2))))
+		s += " %s the Strike Table result." % (("If the personality performing this has a higher Might than the one defending, " + times) if bool(table_times.get("higher_might", false)) else _cap(times))
 	if a.has("cost_stages") or int(a.get("cost_life", 0)) > 0 or int(a.get("cost_hand", 0)) > 0:
 		var costs: PackedStringArray = PackedStringArray()
 		if a.has("cost_stages"):
@@ -757,8 +806,12 @@ static func attack_text(a: Dictionary) -> String:
 		s += " Cannot be stopped."
 	if bool(a.get("no_prevent", false)):
 		s += " Damage cannot be prevented."
-	if a.has("no_stop_by"):
+	if a.has("no_stop_by") and str(a.get("no_prevent_by", "")) == str(a["no_stop_by"]):
+		s += " Cannot be stopped or prevented by %s cards." % str(a["no_stop_by"]).capitalize()
+	elif a.has("no_stop_by"):
 		s += " Cannot be stopped by %s cards." % str(a["no_stop_by"]).capitalize()
+	if a.has("no_prevent_by") and str(a["no_prevent_by"]) != str(a.get("no_stop_by", "")):
+		s += " Cannot be prevented by %s cards." % str(a["no_prevent_by"]).capitalize()
 	if bool(a.get("only_first_attack", false)):
 		s += " Must be your first attack this Combat."
 	if int(a.get("stops_needed", 1)) > 1:
@@ -868,6 +921,10 @@ static func cond_text(when: Dictionary) -> String:
 				parts.append("the top two cards of your discard pile are %s" % school_name(str(v)))
 			"higher_might":
 				parts.append("your duelist's Might is higher" if bool(v) else "your duelist's Might is not higher")
+			"duelist_higher_might":
+				parts.append("your duelist's Might is higher than your opponent's duelist's" if bool(v) else "your duelist's Might is not higher than your opponent's duelist's")
+			"opponent_style":
+				parts.append("your opponent's deck is %s" % school_name(str(v)))
 			"opponent_used_combat_card":
 				parts.append("your opponent used a Combat card this Combat")
 			"first_attack":
@@ -982,6 +1039,8 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "If %s personality in control has more Energy than the one performing this attack, lower it to match." % owner
 			elif str(e.get("target", "duelist")) == "all":
 				body = "Set all of %s personalities to %d Energy." % [owner, n]
+			elif str(e.get("target", "duelist")) == "duelist" and not role:
+				body = "Set %s duelist's Energy to %d." % [owner, n]
 			else:
 				body = "Set %s Energy to %d." % [owner, n]
 		"draw" when bool(e.get("up_to", false)) and n > 1:
@@ -992,6 +1051,8 @@ static func _effect_body(e: Dictionary) -> String:
 			body = ("Your opponent draws %s." if opp else "Draw %s.") % _plural(n, "card", "cards")
 		"shuffle_source":
 			body = "Shuffle this card into your Life Deck."
+		"show_checked":
+			body = "Show it to your opponent."
 		"draw_until":
 			body = "Draw until you have %d cards in hand." % n
 		"draw_discard":
@@ -1153,19 +1214,42 @@ static func _effect_body(e: Dictionary) -> String:
 			# The float sits on its owner and is read when they are the defender, so it stops the
 			# attacks aimed at them and not their own.
 			var kind: String = str(e.get("kind", "any"))
-			body = "Stops all %s performed against you for the remainder of Combat." % ("attacks" if kind == "any" else kind.capitalize() + "s")
+			var stopped_kind: String = "attacks" if kind == "any" else kind.capitalize() + "s"
+			if bool(e.get("both", false)):
+				body = "Stops all %s, yours as well as your opponent's, for the remainder of Combat." % stopped_kind
+			else:
+				body = "Stops all %s performed against you for the remainder of Combat." % stopped_kind
 		"float":
 			var what: String = str(e.get("what", ""))
 			var params: Dictionary = e.get("params", {})
 			if what == "modifier":
 				var mspan: String = "For the rest of the game" if str(e.get("duration", "combat")) == "game" else "For the remainder of Combat"
 				var mtext: String = modifier_text(params)
+				if bool(params.get("per_endurance_since", false)):
+					# "X = the times you have used Endurance since you played this card".
+					mtext = mtext.replace("+1 Energy", "+X Energy").trim_suffix(".") + ", X = the times you have used Endurance since this card was played."
 				# "All of your OTHER attacks": the attack that puts the effect out is not one of them.
 				if bool(e.get("exclude_source", false)) and mtext.begins_with("Your "):
 					mtext = "Your other " + mtext.substr(5)
 				body = mtext if bool(params.get("once", false)) else "%s, %s" % [mspan, _lc(mtext)]
+			elif what == "make_focused" and bool(params.get("empower_only", false)):
+				body = "For the remainder of Combat, your %sattacks that have Empower are Focused." % (
+					(school_name(str(params["school"])) + " ") if params.has("school") else "")
 			elif what == "make_focused" and params.has("school"):
 				body = "For the remainder of Combat, your other %s attacks are Focused." % school_name(str(params["school"]))
+			elif what == "surge_zero":
+				body = "Until the end of their next turn, your opponent's duelist's Surge Rate is 0 and cannot be changed by other effects."
+			elif what == "endurance_energy":
+				body = "For the remainder of Combat, whenever you use Endurance, your duelist gains %d Energy." % maxi(1, int(params.get("energy", 1)))
+			elif what == "empower_keeps_text":
+				body = "For the remainder of Combat, when you use Empower you still use all of the card's text after Empower."
+			elif what == "prevent_first_attack":
+				var shield_parts: PackedStringArray = PackedStringArray()
+				if int(params.get("stages", 0)) > 0:
+					shield_parts.append("%d Energy" % int(params["stages"]))
+				if int(params.get("life", 0)) > 0:
+					shield_parts.append(_plural(int(params["life"]), "wound", "wounds"))
+				body = "Prevent %s of damage from the first attack performed against you this Combat." % " and ".join(shield_parts)
 			elif what == "phase_drain":
 				body = "For the remainder of Combat, %s duelist loses %d Energy at the beginning of each of their attack phases." % [
 					("your opponent's" if opp else "your"), maxi(1, int(params.get("energy", 1)))]
@@ -1287,9 +1371,15 @@ static func _effect_body(e: Dictionary) -> String:
 			if bool(e.get("rearrange", false)) and not e.has("pick"):
 				body = "Look at %s and put them back in any order." % seen
 			elif bool(e.get("rearrange", false)):
-				# Across the table the end matters, because the owner is not the one setting it.
-				body += " Put the rest back on the %s in any order." % str(e.get("rest", e.get("from", "top"))) \
-					if str(e.get("whose", "self")) == "opponent" else " Put the rest back in any order."
+				# Across the table the end matters, because the owner is not the one setting it, and
+				# so does a `rest` that sends the cards to the other end from where they were seen.
+				var rest_end: String = str(e.get("rest", e.get("from", "top")))
+				if str(e.get("whose", "self")) == "opponent":
+					body += " Put the rest back on the %s in any order." % rest_end
+				elif rest_end != str(e.get("from", "top")):
+					body += " Put the rest on the %s of your Life Deck in any order." % rest_end
+				else:
+					body += " Put the rest back in any order."
 			# "...and put them all on top or all on the bottom" replaces the "back where they were".
 			if str(e.get("place", "")) == "choose":
 				body = body.replace("put them back in any order", "put them all on top or all on the bottom, in any order")
@@ -1326,6 +1416,8 @@ static func _effect_body(e: Dictionary) -> String:
 			return ""
 		_:
 			body = str(e.get("op", "?"))
+	if str(e.get("op", "")) == "energy" and e.has("bank_gain"):
+		body += " Your next attack does +X Energy, X = the Energy this gained you, to a maximum of +%d." % int((e["bank_gain"] as Dictionary).get("cap", 0))
 	if bool(e.get("may", false)):
 		if str(e.get("asks", "")) == "opponent" and body.begins_with("Your opponent "):
 			# The choice is theirs, so the line reads as theirs rather than as something you do.
@@ -1656,14 +1748,18 @@ static func search_text(e: Dictionary) -> String:
 		qual.append("aspect %d" % int(e["aspect"]))
 	var n: int = int(e.get("amount", 1))
 	var noun: String = (" ".join(qual) + " " if not qual.is_empty() else "") + type_words(card_type, n != 1)
-	# A search of the Life Deck always allows taking nothing, so asking for several is "up to".
-	var what: String = _a(noun) if n == 1 else "up to %d %s" % [n, noun]
+	# A search of the Life Deck always allows taking nothing, so asking for several is "up to". A
+	# `must` pick from another pile takes the full number when there are that many.
+	var must: bool = bool(e.get("must", false)) and source != "deck" and source != "either"
+	var what: String = _a(noun) if n == 1 else ("%d %s" if must else "up to %d %s") % [n, noun]
 	if e.has("has_effect"):
 		var spec: Dictionary = e["has_effect"]
 		if str(spec.get("op", "")) == "discard_hand" and str(spec.get("who", "")) == "opponent":
 			what += " that makes your opponent discard from hand"
 		else:
 			what += " with a \"%s\" effect" % str(spec.get("op", "")).replace("_", " ")
+	if bool(e.get("adds_damage", false)):
+		what += " that adds damage to your attacks"
 	if str(e.get("exclude_title", "")) != "":
 		what += " other than \"%s\"" % str(e["exclude_title"])
 	var dest: String = "your hand"
@@ -1687,6 +1783,8 @@ static func search_text(e: Dictionary) -> String:
 		return "Choose %s from %s and place %s on top of your Life Deck.%s" % [what, from, ("them" if plural_pick else "it"), tail]
 	if str(e.get("to", "hand")) == "attack":
 		return "Search %s for %s and perform it during this attack phase." % [from, what]
+	if must:
+		return "Choose %s from %s and put %s into %s." % [what, from, ("it" if n == 1 else "them"), dest]
 	return"Search %s for %s and put %s into %s." % [from, what, ("it" if n == 1 else "them"), dest]
 
 
@@ -1739,6 +1837,12 @@ static func modifier_text(m: Dictionary) -> String:
 	if bool(m.get("per_fervor", false)):
 		amount = amount.replace("+1 ", "+X ") + ", X = your Fervor"
 	var s: String = ""
+	if scope == "opponent_cost":
+		# A tax on the other side: "your opponent's attacks cost an additional +1".
+		s = "Your opponent's %s cost %d more Energy to perform%s." % [what, int(m.get("stages", 0)), (" instead" if bool(m.get("instead", false)) else "")]
+		if m.has("when"):
+			s = _conditional(m["when"], s)
+		return s
 	if scope == "cost":
 		# A price, not damage: `set` fixes it, `stages` shifts it with an optional floor.
 		if m.has("set"):
@@ -2057,6 +2161,8 @@ static func prompt_title(p: Prompt) -> String:
 					return "Entering Combat: use a card?"
 				"performing_attack":
 					return "Your attack connected: use a card with it?"
+				"attack_boost":
+					return "Discard a card from your hand to power up this attack?"
 				"after_damage":
 					var took: int = int(p.context.get("life", 0))
 					return "You took %s: use a card?" % _plural(took, "wound", "wounds") if took > 0 else "You took the hit: use a card?"

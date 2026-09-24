@@ -8,6 +8,8 @@ const SCENES: Dictionary = {
 	"other/dust": preload("res://PolyBlocks/EffectBlocks/assets/other/dust.tscn"),
 	"other/fireflies": preload("res://PolyBlocks/EffectBlocks/assets/other/fireflies.tscn"),
 	"other/portal_magic": preload("res://PolyBlocks/EffectBlocks/assets/other/portal_magic.tscn"),
+	"other/falling_leaves": preload("res://PolyBlocks/EffectBlocks/assets/other/falling_leaves.tscn"),
+	"other/god_rays": preload("res://PolyBlocks/EffectBlocks/assets/other/god_rays.tscn"),
 	"impacts/impact_1": preload("res://PolyBlocks/EffectBlocks/assets/impacts/impact_1.tscn"),
 	"impacts/impact_4": preload("res://PolyBlocks/EffectBlocks/assets/impacts/impact_4.tscn"),
 	"ground_effects/ground_effect_1": preload("res://PolyBlocks/EffectBlocks/assets/ground_effects/ground_effect_1.tscn"),

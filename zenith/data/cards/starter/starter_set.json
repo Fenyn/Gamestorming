@@ -3437,9 +3437,7 @@
 	 "op": "end_combat"
 	},
 	{
-	 "op": "float",
-	 "what": "keep_hand",
-	 "duration": "turn"
+	 "op": "end_turn"
 	}
    ],
    "remove_after_use": true
@@ -5489,12 +5487,8 @@
    "effects": [
 	{
 	 "op": "stop_all",
-	 "kind": "art"
-	},
-	{
-	 "op": "forbid",
-	 "what": "art_attacks",
-	 "duration": "combat"
+	 "kind": "art",
+	 "both": true
 	},
 	{
 	 "op": "fervor",
@@ -5527,8 +5521,8 @@
 	{
 	 "trigger": "if_successful",
 	 "op": "discard_in_play",
-	 "who": "opponent",
-	 "card_type": "non_combat",
+	 "who": "any",
+	 "card_type": "non_combat_card",
 	 "amount": 1,
 	 "remove": true,
 	 "choose": true
@@ -5552,10 +5546,16 @@
 	 "trigger": "before_damage",
 	 "may": true,
 	 "skip_damage": true,
-	 "op": "discard_in_play",
-	 "who": "opponent",
-	 "card_type": "drill_or_ally",
-	 "all": true
+	 "op": "choose_card_type",
+	 "choices": [
+	  "ally",
+	  "drill"
+	 ],
+	 "effect": {
+	  "op": "discard_in_play",
+	  "who": "opponent",
+	  "all": true
+	 }
 	},
 	{
 	 "op": "fervor",
@@ -5571,7 +5571,8 @@
    "attack": {
 	"kind": "strike",
 	"stages": 3,
-	"no_stop_by": "strike"
+	"no_stop_by": "strike",
+	"no_prevent_by": "strike"
    },
    "effects": [
 	{
@@ -5677,8 +5678,7 @@
    "effects": [
 	{
 	 "op": "fervor",
-	 "amount": 1,
-	 "after_empower": true
+	 "amount": 1
 	},
 	{
 	 "trigger": "if_stopped",
@@ -5689,6 +5689,8 @@
 	 },
 	 "to": "hand",
 	 "from": "bottom",
+	 "rearrange": true,
+	 "rest": "top",
 	 "after_empower": true
 	}
    ]
@@ -5737,7 +5739,8 @@
 	 "school": "pyre",
 	 "source": "discard",
 	 "exclude_title": "Pyre Rekindling",
-	 "to": "hand"
+	 "to": "hand",
+	 "must": true
 	}
    ],
    "remove_after_use": true
@@ -5855,10 +5858,10 @@
    "defense": {
 	"stops": "strike",
 	"when": {
-	 "higher_might": true
+	 "duelist_higher_might": true
 	}
    },
-   "remain": 9,
+   "remain": 99,
    "remove_after_use": true,
    "limit_per_deck": 1
   },
@@ -5911,6 +5914,7 @@
 	 "op": "energy",
 	 "who": "opponent",
 	 "amount": -3,
+	 "target": "duelist",
 	 "no_overflow": true
 	}
    ]
@@ -5986,7 +5990,7 @@
 	   {
 		"op": "discard_in_play",
 		"who": "opponent",
-		"card_type": "non_combat",
+		"card_type": "non_combat_card",
 		"amount": 1,
 		"choose": true
 	   }
@@ -6107,8 +6111,12 @@
    },
    "effects": [
 	{
-	 "op": "shuffle_discard",
-	 "amount": 3
+	 "op": "search",
+	 "source": "discard",
+	 "school": "steel",
+	 "amount": 3,
+	 "to": "deck_shuffle",
+	 "must": true
 	}
    ],
    "remove_after_use": true
@@ -6191,6 +6199,12 @@
 		"who": "opponent",
 		"what": "mastery",
 		"duration": "turn"
+	   },
+	   {
+		"op": "forbid",
+		"who": "opponent",
+		"what": "relic",
+		"duration": "turn"
 	   }
 	  ]
 	 }
@@ -6237,7 +6251,7 @@
 	   {
 		"op": "discard_in_play",
 		"who": "opponent",
-		"card_type": "non_combat",
+		"card_type": "non_combat_card",
 		"amount": 1,
 		"choose": true
 	   }
@@ -7610,7 +7624,8 @@
 	 "duration": "combat",
 	 "params": {
 	  "school": "pyre",
-	  "title": "Sword"
+	  "title": "Sword",
+	  "from_hand": true
 	 }
 	},
 	{
@@ -9848,7 +9863,14 @@
 	"kind": "strike",
 	"stages": 3
    },
-   "endurance_from": "fervor"
+   "endurance_from": "fervor",
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "fervor_hits_secondary",
+	 "duration": "combat"
+	}
+   ]
   },
   {
    "id": "pyre_strike_23",
@@ -9982,6 +10004,7 @@
    "title": "Pyre Smoldering Drill",
    "type": "drill",
    "school": "pyre",
+   "drill_lock_exempt": true,
    "modifiers": [
 	{
 	 "scope": "own",
@@ -10090,7 +10113,7 @@
 	}
    ],
    "only": {
-	"energy_min": 5
+	"duelist_pays": 5
    },
    "limit_per_deck": 1
   },
@@ -10149,9 +10172,12 @@
    "effects": [
 	{
 	 "trigger": "if_successful",
-	 "op": "shuffle_discard",
+	 "op": "search",
+	 "source": "discard",
+	 "school": "pyre",
 	 "amount": 5,
-	 "school": "pyre"
+	 "to": "deck_shuffle",
+	 "must": true
 	}
    ]
   },
@@ -10372,6 +10398,605 @@
 	 }
 	}
    ]
+  },
+  {
+   "id": "steel_strike_28",
+   "title": "Steel Towering Charge",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike",
+	"stages": 4,
+	"variants": [
+	 {
+	  "when": {
+	   "higher_might": true
+	  },
+	  "effects": [
+	   {
+		"op": "discard_in_play",
+		"who": "opponent",
+		"card_type": "ally",
+		"amount": 2,
+		"up_to": true,
+		"choose": true
+	   }
+	  ]
+	 }
+	]
+   }
+  },
+  {
+   "id": "steel_strike_24",
+   "title": "Steel Towering Frame",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike",
+	"stages": 3,
+	"table_multiply": {
+	 "by": 2,
+	 "higher_might": true
+	}
+   }
+  },
+  {
+   "id": "steel_art_07",
+   "title": "Steel Boiling Blood",
+   "type": "art",
+   "school": "steel",
+   "attack": {
+	"kind": "art",
+	"printed_life": 6,
+	"variants": [
+	 {
+	  "when": {
+	   "duelist_higher_might": true
+	  },
+	  "focused": true
+	 }
+	]
+   },
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "endurance_energy",
+	 "duration": "combat",
+	 "params": {
+	  "energy": 1
+	 }
+	}
+   ]
+  },
+  {
+   "id": "steel_art_09",
+   "title": "Steel Dragonfire Breath",
+   "type": "art",
+   "school": "steel",
+   "attack": {
+	"kind": "art",
+	"variants": [
+	 {
+	  "when": {
+	   "higher_might": true
+	  },
+	  "effects": [
+	   {
+		"op": "fervor",
+		"amount": 1
+	   },
+	   {
+		"op": "float",
+		"what": "modifier",
+		"duration": "combat",
+		"params": {
+		 "scope": "own",
+		 "kind": "any",
+		 "life": 2
+		},
+		"exclude_source": true
+	   }
+	  ]
+	 }
+	]
+   }
+  },
+  {
+   "id": "steel_noncombat_01",
+   "title": "Steel Blood Memory",
+   "type": "non_combat",
+   "school": "steel",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "fervor",
+	 "amount": 2
+	},
+	{
+	 "trigger": "use",
+	 "op": "recover",
+	 "amount": 2,
+	 "from": "bottom"
+	},
+	{
+	 "trigger": "use",
+	 "op": "draw",
+	 "amount": 1,
+	 "when": {
+	  "duelist_higher_might": true
+	 }
+	}
+   ]
+  },
+  {
+   "id": "steel_combat_02",
+   "title": "Steel Drawn Breath",
+   "type": "combat",
+   "school": "steel",
+   "use_at": "performing_attack",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "duelist",
+	 "bank_gain": {
+	  "cap": 5
+	 }
+	}
+   ]
+  },
+  {
+   "id": "steel_strike_23",
+   "title": "Steel Thrashing Tail",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike"
+   },
+   "endurance": 2,
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "if_stopped",
+	 "op": "discard_in_play",
+	 "who": "any",
+	 "card_type": "drill",
+	 "amount": 1,
+	 "choose": true,
+	 "remove": true
+	}
+   ]
+  },
+  {
+   "id": "steel_art_13",
+   "title": "Steel Cornered Blood",
+   "type": "art",
+   "school": "steel",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "endurance": 4,
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "make_focused",
+	 "duration": "combat",
+	 "params": {
+	  "school": "steel",
+	  "empower_only": true
+	 }
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "steel_drill_04",
+   "title": "Steel Hardscale Drill",
+   "type": "drill",
+   "school": "steel",
+   "shield": "strike"
+  },
+  {
+   "id": "steel_strike_25",
+   "title": "Steel Shedding Scales",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "endurance": 1,
+   "empower": 2,
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "own",
+	  "kind": "strike",
+	  "stages": 1,
+	  "per_endurance_since": true
+	 },
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "steel_strike_27",
+   "title": "Steel Constricting Grip",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike",
+	"focused": true,
+	"stages": 3
+   },
+   "effects": [
+	{
+	 "op": "search",
+	 "card_type": "drill",
+	 "school": "steel",
+	 "to": "play"
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "float",
+	 "who": "opponent",
+	 "what": "surge_zero",
+	 "duration": "next_turn_end"
+	}
+   ]
+  },
+  {
+   "id": "steel_drill_02",
+   "title": "Steel Baleful Gaze Drill",
+   "type": "drill",
+   "school": "steel",
+   "modifiers": [
+	{
+	 "scope": "opponent_cost",
+	 "kind": "any",
+	 "stages": 1
+	},
+	{
+	 "scope": "opponent_cost",
+	 "kind": "any",
+	 "stages": 1,
+	 "when": {
+	  "opponent_style": "root"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "steel_drill_03",
+   "title": "Steel Stifling Presence Drill",
+   "type": "drill",
+   "school": "steel",
+   "drill_lock_exempt": true,
+   "opponent_power_up_less": 1,
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 2
+	}
+   ]
+  },
+  {
+   "id": "steel_strike_26",
+   "title": "Steel Blood Unbound",
+   "type": "strike",
+   "school": "steel",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "empower": 2,
+   "discard_boost": {
+	"kind": "strike",
+	"stages": 4,
+	"effects": [
+	 {
+	  "op": "fervor",
+	  "amount": 1
+	 }
+	]
+   },
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "empower_keeps_text",
+	 "duration": "combat",
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "steel_art_14",
+   "title": "Steel Awakened Blood",
+   "type": "art",
+   "school": "steel",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "empower": 2,
+   "effects": [
+	{
+	 "op": "search",
+	 "card_type": "drill",
+	 "school": "steel",
+	 "adds_damage": true,
+	 "to": "play",
+	 "after_empower": true
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2,
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "steel_art_10",
+   "title": "Steel Reclaimed Hoard",
+   "type": "art",
+   "school": "steel",
+   "attack": {
+	"kind": "art",
+	"printed_life": 3
+   },
+   "empower": 4,
+   "only": {
+	"bloodline": "draconic"
+   },
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "search",
+	 "source": "discard",
+	 "school": "steel",
+	 "amount": 2,
+	 "to": "deck_top",
+	 "must": true,
+	 "exclude_title": "Steel Reclaimed Hoard",
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "steel_art_12",
+   "title": "Steel Routing Roar",
+   "type": "art",
+   "school": "steel",
+   "attack": {
+	"kind": "art"
+   },
+   "empower": 3,
+   "only": {
+	"bloodline": "draconic"
+   },
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "ally",
+	 "amount": 3,
+	 "up_to": true,
+	 "choose": true,
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "steel_art_08",
+   "title": "Steel Scorching Breath",
+   "type": "art",
+   "school": "steel",
+   "attack": {
+	"kind": "art"
+   },
+   "empower": 4,
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "float",
+	 "what": "damage_removes",
+	 "duration": "combat",
+	 "after_empower": true
+	},
+	{
+	 "op": "float",
+	 "what": "no_prevent",
+	 "duration": "combat",
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "steel_art_11",
+   "title": "Steel Tail Sweep",
+   "type": "art",
+   "school": "steel",
+   "attack": {
+	"kind": "art",
+	"printed_life": 3
+   },
+   "empower": 4,
+   "only": {
+	"bloodline": "draconic"
+   },
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "drill",
+	 "amount": 3,
+	 "up_to": true,
+	 "choose": true,
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "steel_noncombat_02",
+   "title": "Steel Bared Fangs",
+   "type": "non_combat",
+   "school": "steel",
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "energy",
+	 "amount": -4,
+	 "target": "duelist"
+	},
+	{
+	 "trigger": "use",
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "own",
+	  "kind": "any",
+	  "life": 3
+	 }
+	}
+   ]
+  },
+  {
+   "id": "steel_mastery_02",
+   "title": "Steel Dragonfear Mastery",
+   "type": "mastery",
+   "school": "steel",
+   "duelist_bloodline": "draconic",
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "op": "draw_check",
+	 "school": "steel",
+	 "effects": [
+	  {
+	   "may": true,
+	   "op": "show_checked",
+	   "then": [
+		{
+		 "op": "energy",
+		 "who": "opponent",
+		 "amount": -4,
+		 "no_overflow": true
+		}
+	   ]
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "steel_mastery_03",
+   "title": "Steel Scale Mastery",
+   "type": "mastery",
+   "school": "steel",
+   "duelist_bloodline": "draconic",
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "op": "draw_check",
+	 "school": "steel",
+	 "effects": [
+	  {
+	   "may": true,
+	   "op": "show_checked",
+	   "then": [
+		{
+		 "op": "float",
+		 "what": "prevent_first_attack",
+		 "duration": "combat",
+		 "params": {
+		  "stages": 4,
+		  "life": 4
+		 }
+		}
+	   ],
+	   "otherwise": [
+		{
+		 "op": "float",
+		 "what": "prevent_first_attack",
+		 "duration": "combat",
+		 "params": {
+		  "stages": 4
+		 }
+		}
+	   ]
+	  }
+	 ],
+	 "else_effects": [
+	  {
+	   "op": "float",
+	   "what": "prevent_first_attack",
+	   "duration": "combat",
+	   "params": {
+		"stages": 4
+	   }
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "steel_mastery_04",
+   "title": "Steel Bloodrage Mastery",
+   "type": "mastery",
+   "school": "steel",
+   "duelist_bloodline": "draconic",
+   "limit_per_deck": 1,
+   "no_ascension_win": true,
+   "grant_attack_lines": {
+	"school": "steel",
+	"effects": [
+	 {
+	  "op": "fervor",
+	  "amount": 1
+	 },
+	 {
+	  "op": "energy",
+	  "amount": 3
+	 }
+	]
+   },
+   "recover_bonus": {
+	"school": "steel",
+	"effects": [
+	 {
+	  "op": "fervor",
+	  "amount": 2
+	 },
+	 {
+	  "op": "energy",
+	  "amount": 4,
+	  "target": "duelist"
+	 }
+	]
+   }
   }
  ]
 }

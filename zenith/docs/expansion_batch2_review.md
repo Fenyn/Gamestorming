@@ -4,7 +4,8 @@
 the 15 new Masteries, the Mastery names, the Steel dragon rename (humanoid, no wings), and the full
 naming pass including first-name signature titles and the four named-source cards. Where a later
 section renames a card, the later name wins. **Built:** Pyre, all 25 cards and both Masteries
-(2026-09-23, `tools/decks/pyre_expansion.py`); their ids are in `docs/card_pool.md` and their
+(2026-09-23, `tools/decks/pyre_expansion.py`), and Steel, all 20 cards and three Masteries (same
+day, `tools/decks/steel_expansion.py`); their ids are in `docs/card_pool.md` and their
 `tools/source_candidates.tsv` rows read `built`. The ids in this sheet are the old proposals and are
 kept as a record. Still open: the
 11 characters the blocked named cards wait on, and whether ids change with the titles when the
@@ -30,8 +31,9 @@ dragon; see "Steel rename" below. Tide is water that drags, drowns and carries. 
 whispered word. Root is thorn, sap, stone and frost.
 
 Rulings still applied to every row: printed "declared" riders are always on, format-only notes are
-dropped, no card carries a bloodline or alignment gate, and the one-school-of-Drills exemptions two
-printed Drills carry are dropped.
+dropped, and no card carries a bloodline or alignment gate. Since the Pyre review of 2026-09-23
+every other printed clause is built as written: the one-school-of-Drills exemption two printed
+Drills carry is kept (`drill_lock_exempt`), and so is any rider a row below says was dropped.
 
 **Engine column.** `ready` maps to effects the engine has today. `add` needs a small engine
 addition, listed at the end. `new` marks a pick that was not in the first draft.

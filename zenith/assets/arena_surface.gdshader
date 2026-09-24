@@ -6,6 +6,10 @@ uniform vec4 inlay_color : source_color = vec4(0.40, 0.31, 0.17, 1.0);
 uniform vec4 seat_zero : source_color = vec4(0.34, 0.74, 0.82, 1.0);
 uniform vec4 seat_one : source_color = vec4(0.62, 0.56, 0.96, 1.0);
 uniform float clock = 24.0;
+// The surface is unshaded, so the lights never darken it: this scales the stone and falls it off
+// towards the rim, so the table has depth instead of reading as one flat, milky field.
+uniform float surface_gain = 0.72;
+uniform float rim_shade = 0.5;
 uniform sampler2D stone_texture : source_color, repeat_enable, filter_linear_mipmap;
 
 float hash(vec2 p) {
@@ -40,6 +44,7 @@ void fragment() {
 	vec3 mineral = texture(stone_texture, UV * vec2(2.8, 2.0)).rgb;
 	float relief = dot(mineral, vec3(0.299, 0.587, 0.114));
 	base *= 0.62 + relief * 1.5;
+	base *= surface_gain * mix(1.0, rim_shade, smoothstep(0.22, 0.72, radius));
 	vec3 school = mix(seat_one.rgb, seat_zero.rgb, smoothstep(-0.10, 0.10, p.y));
 	float side_light = smoothstep(0.12, 0.65, abs(p.x)) * 0.038;
 	base += school * side_light;

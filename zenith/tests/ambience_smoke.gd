@@ -33,18 +33,20 @@ func _run() -> void:
 	world.add_child(fx)
 	root.add_child(world)
 	atmosphere.set_schools(Palette.school_ui("root"), Palette.school_ui("pyre"))
-	_check(atmosphere._surface != surface, "School tint must not mutate the shared arena resource")
-	_check(atmosphere._surface.get_shader_parameter("seat_zero") == Palette.school_ui("root"), "Seat zero must use its public school")
-	_check(atmosphere._mist.get_shader_parameter("seat_one") == Palette.school_ui("pyre"), "Mist must match seat one's public school")
-	atmosphere.reduced_motion = true
-	var frozen: float = atmosphere._clock
-	atmosphere._process(0.5)
-	_check(atmosphere._clock == frozen, "Reduced motion must freeze the arena shaders")
-	for particles: GPUParticles3D in atmosphere._embers:
-		_check(not particles.visible and not particles.emitting, "Reduced motion must immediately hide and stop motes")
-	atmosphere.reduced_motion = false
-	atmosphere._process(0.5)
-	_check(atmosphere._clock > frozen, "Ambient animation must resume after toggling motion back on")
+	_check(inlay.material_override != surface, "The table top must take the courtyard's own stone, not the old shared shader")
+	_check(inlay.material_override is StandardMaterial3D, "The table top must be lit stone")
+	# The courtyard set itself: its drifting leaves stop the moment motion is reduced.
+	var courtyard: CourtyardSet = CourtyardSet.new()
+	world.add_child(courtyard)
+	_check(not courtyard._leaves.is_empty(), "The courtyard must carry its drifting leaves")
+	courtyard.reduced_motion = true
+	courtyard._process(0.5)
+	for particles: GPUParticles3D in courtyard._leaves:
+		_check(not particles.visible and not particles.emitting, "Reduced motion must immediately hide and stop the leaves")
+	courtyard.reduced_motion = false
+	courtyard._process(0.5)
+	for particles: GPUParticles3D in courtyard._leaves:
+		_check(particles.visible and particles.emitting, "The leaves must resume after toggling motion back on")
 	var backdrop: ArcaneBackdrop = ArcaneBackdrop.new()
 	root.add_child(backdrop)
 	ArcaneBackdrop.reduced_motion = true

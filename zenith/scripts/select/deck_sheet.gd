@@ -54,7 +54,7 @@ func show_deck(d: DeckList, tag_text: String) -> void:
 	_deck = d
 	var duelist: CardDef = Session.library.defs.get(d.duelist_face_id())
 	var school_color: Color = Palette.school_ui(d.style)
-	var panel: StyleBoxFlat = SanctumUI.panel()
+	var panel: StyleBox = SanctumUI.panel()
 	add_theme_stylebox_override("panel", panel)
 	tag.text = tag_text
 	duelist_label.text = duelist.title if duelist != null else d.duelist_face_id()

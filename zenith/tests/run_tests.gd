@@ -338,6 +338,28 @@ func _init() -> void:
 		test_pyre_bonfire_puts_several_drills_into_play,
 		test_pyre_tinder_mastery_burns_the_top_discard_for_strike_energy,
 		test_pyre_cinder_mastery_lowers_fervor_and_punishes_a_block,
+		test_a_cost_floor_never_raises_a_cheaper_attack,
+		test_pyre_smoldering_drill_sits_outside_the_drill_school_lock,
+		test_pyre_backdraft_stops_every_art_on_both_sides,
+		test_pyre_scouring_flame_reaches_either_side_of_the_table,
+		test_pyre_firestorm_takes_all_allies_or_all_drills,
+		test_pyre_blazing_charge_bars_prevention_by_strike_cards,
+		test_pyre_flame_lash_keeps_its_fervor_when_empowered_and_stacks_the_rest_on_top,
+		test_pyre_rekindling_and_phoenix_flame_must_take_from_the_pile,
+		test_pyre_sword_cleave_lends_its_word_only_to_attacks_from_hand,
+		test_pyre_blazing_hide_makes_fervor_hits_secondary,
+		test_pyre_conflagration_is_paid_by_the_duelist,
+		test_steel_shipped_cards_match_their_printed_text,
+		test_steel_drills_tax_and_starve_the_opponent,
+		test_steel_towering_frame_doubles_only_the_table,
+		test_steel_endurance_pays_and_counts,
+		test_steel_scorching_breath_covers_its_own_wounds,
+		test_steel_blood_unbound_is_discarded_to_power_a_strike,
+		test_steel_masteries_show_the_drawn_card,
+		test_steel_bloodrage_mastery_writes_onto_attacks_and_pays_on_recovery,
+		test_steel_constricting_grip_holds_their_surge_at_zero,
+		test_steel_drawn_breath_banks_the_gain_for_the_next_attack,
+		test_steel_cornered_blood_and_awakened_blood_read_empower_and_damage,
 		test_the_card_group_tells_signature_from_freestyle,
 		test_every_shipped_card_lands_in_one_group,
 		test_a_duelist_stack_is_one_character_consecutive_from_aspect_one,
@@ -6581,7 +6603,19 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 	eq(storm_types.size(), 26, "26 Storm cards were approved")
 	eq(root_types.size(), 29, "29 Root cards were approved")
 	eq(pyre_types.size(), 27, "25 Pyre cards and 2 Pyre Masteries were approved")
-	var by_school: Dictionary = {"storm": storm_types, "root": root_types, "pyre": pyre_types}
+	var steel_types: Dictionary = {}
+	for n in range(23, 29):
+		steel_types["steel_strike_%d" % n] = "strike"
+	for n in range(7, 15):
+		steel_types["steel_art_%02d" % n] = "art"
+	for n in range(2, 5):
+		steel_types["steel_drill_%02d" % n] = "drill"
+		steel_types["steel_mastery_%02d" % n] = "mastery"
+	for id in ["steel_noncombat_01", "steel_noncombat_02"]:
+		steel_types[id] = "non_combat"
+	steel_types["steel_combat_02"] = "combat"
+	eq(steel_types.size(), 23, "20 Steel cards and 3 Steel Masteries were approved")
+	var by_school: Dictionary = {"storm": storm_types, "root": root_types, "pyre": pyre_types, "steel": steel_types}
 	for school in by_school.keys():
 		var wanted: Dictionary = by_school[school]
 		for id in wanted.keys():
@@ -6593,8 +6627,8 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 			eq(def.type, int(CardDef.TYPE_NAMES[str(wanted[id])]), "%s is a %s card" % [id, wanted[id]])
 			check(CardText.rules_text(def) != "" or def.type == CardDef.Type.DRILL, "%s prints something" % id)
 	# 397 before the personality split; the 27 stack cards became 62 one-Aspect cards. The Pyre
-	# expansion added 27.
-	eq(shipped().defs.size(), 465, "and the set is 403 other cards plus 62 Aspect cards")
+	# expansion added 27 and the Steel expansion 23.
+	eq(shipped().defs.size(), 488, "and the set is 426 other cards plus 62 Aspect cards")
 
 
 ## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
@@ -9187,10 +9221,15 @@ func test_pyre_cinder_sift_drill_buys_a_card_back_on_a_landed_strike() -> void:
 	to_attack(e, 0)
 	# Laid down after entering Combat: the duelist's own power draws off the discard pile there.
 	var spent: CardInstance = real_to_discard(e, 0, "pyre_art_08")
-	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	var strike: int = uid_in_hand(e, 0, "root_strike_04")
+	answer(e, &"attack", strike)
 	settle(e, 6)
 	eq(prompt_kind(e), &"pick_option", "the landed Strike offers the Drill")
 	answer(e, &"pick_option", -1, "yes")
+	# "After performing" the attack: its own card is already in the pile and may be the one taken.
+	eq(prompt_kind(e), &"pick_option", "the pile is offered")
+	check(e.prompt.find(&"pick_option", strike) != null, "the Strike just performed is in the pile already")
+	answer(e, &"pick_option", spent.uid)
 	settle(e, 6)
 	eq(spent.zone, &"life_deck", "the card went back into the Life Deck")
 	eq(sift.power_used_combat, e.state.combat_count, "and the Drill is spent for this Combat")
@@ -9281,3 +9320,477 @@ func test_pyre_cinder_mastery_lowers_fervor_and_punishes_a_block() -> void:
 	settle(e, 6)
 	check(has_event(e, &"attack_stopped"), "the Art was stopped")
 	eq(deck_before - e.player(1).life_deck.size(), 2, "stopping a Pyre Art cost them the top 2 cards")
+
+
+# --- Pyre review, 2026-09-23: every card against its printed text ---------
+
+## "Cost 1 less, to a minimum of 1" lowers what is above the floor and never raises what is under it.
+func test_a_cost_floor_never_raises_a_cheaper_attack() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	e._float(0, "modifier", "combat", {"scope": "cost", "kind": "art", "stages": -1, "min": 1})
+	eq(e._cost_stages(shipped().get_def("storm_art_14").attack, me), 0, "a free Art stays free")
+	eq(e._cost_stages(shipped().get_def("pyre_art_08").attack, me), 1, "a 1-Energy Art stays at 1")
+	eq(e._cost_stages(shipped().get_def("storm_art_22").attack, me), 1, "a 2-Energy Art drops to 1")
+
+
+## "This card does not count towards or against the Styled Drills you can have in play."
+func test_pyre_smoldering_drill_sits_outside_the_drill_school_lock() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	real_inject(e, 0, "storm_drill_01")
+	check(e._can_place(me, e._instance(shipped().get_def("pyre_drill_08"), 0, &"hand")), "it goes down beside a Storm Drill")
+	check(not e._can_place(me, e._instance(shipped().get_def("pyre_drill_07"), 0, &"hand")), "another Pyre Drill does not")
+	var f: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	real_inject(f, 0, "pyre_drill_08")
+	eq(f.player(0).drill_school(), "", "on its own it sets no school")
+	check(f._can_place(f.player(0), f._instance(shipped().get_def("storm_drill_01"), 0, &"hand")), "so a Storm Drill may still follow it")
+
+
+## "Stops all energy attacks for the rest of this combat": no side is named, so both are covered.
+func test_pyre_backdraft_stops_every_art_on_both_sides() -> void:
+	var e: DuelEngine = real_engine(real_deck(["pyre_strike_03"], "pact", "pyre"), real_deck([], "vigil"))
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "pyre_strike_03"))
+	settle(e, 8)
+	check(e._has_floating(1, "stop_all"), "Arts against the opponent are stopped")
+	check(e._has_floating(0, "stop_all"), "and so are Arts against the user")
+	check(not e._forbidden(e.player(0), "art_attacks"), "the user may still perform an Art; it is stopped, not forbidden")
+
+
+## "Choose and remove one Non-Combat card in play": either side's.
+func test_pyre_scouring_flame_reaches_either_side_of_the_table() -> void:
+	var e: DuelEngine = real_engine(real_deck(["pyre_strike_05"], "pact", "pyre"), real_deck([], "vigil"))
+	var mine: CardInstance = real_inject(e, 0, "pyre_drill_07")
+	var theirs: CardInstance = real_inject(e, 1, "storm_drill_03")
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "pyre_strike_05"))
+	settle(e, 8)
+	eq(prompt_kind(e), &"pick_in_play", "the pick is offered")
+	check(e.prompt.find(&"pick_in_play", mine.uid) != null, "the user's own Non-Combat card is on the list")
+	check(e.prompt.find(&"pick_in_play", theirs.uid) != null, "and so is the opponent's")
+	answer(e, &"pick_in_play", mine.uid)
+	eq(mine.zone, &"removed", "the chosen card left the game")
+	eq(theirs.zone, &"in_play", "the other stayed")
+
+
+## "Discard all of the defender's Allies or Drills instead of dealing damage": one kind, all of it.
+func test_pyre_firestorm_takes_all_allies_or_all_drills() -> void:
+	for kind in ["drill", "ally"]:
+		var e: DuelEngine = real_engine(real_deck(["pyre_strike_06"], "pact", "pyre"), real_deck([], "vigil"))
+		var d1: CardInstance = real_inject(e, 1, "storm_drill_03")
+		var d2: CardInstance = real_inject(e, 1, "storm_drill_04")
+		to_attack(e, 0)
+		answer(e, &"attack", uid_in_hand(e, 0, "pyre_strike_06"))
+		settle(e, 4)
+		answer(e, &"pick_option", -1, "yes")
+		eq(prompt_kind(e), &"pick_option", "the kind is the user's pick")
+		check(e.prompt.find(&"pick_option", -1, "ally") != null and e.prompt.find(&"pick_option", -1, "drill") != null, "Allies or Drills")
+		answer(e, &"pick_option", -1, kind)
+		settle(e, 6)
+		eq(d1.zone == &"discard" and d2.zone == &"discard", kind == "drill", "choosing %s: the Drills go only when Drills are chosen" % kind)
+
+
+## "Cannot be stopped or prevented by Physical Combat cards": Endurance printed on a Strike card is
+## that card preventing damage, so it is not offered; on an Art card it still is.
+func test_pyre_blazing_charge_bars_prevention_by_strike_cards() -> void:
+	var e: DuelEngine = real_engine(real_deck(["pyre_strike_07"], "pact", "pyre"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	to_attack(e, 0)
+	var art_card: CardInstance = e._instance(shipped().get_def("pyre_art_06"), 1, &"life_deck")
+	them.life_deck.insert(0, art_card)
+	var strike_card: CardInstance = e._instance(shipped().get_def("pyre_strike_25"), 1, &"life_deck")
+	them.life_deck.insert(0, strike_card)
+	them.duelist.energy = 0
+	answer(e, &"attack", uid_in_hand(e, 0, "pyre_strike_07"))
+	eq(prompt_kind(e), &"endurance", "an Endurance question comes up")
+	eq(int(e.prompt.context.get("card", -1)), art_card.uid, "for the Art card, not the Strike card turned over before it")
+	eq(strike_card.zone, &"discard", "the Strike card's Endurance was never offered")
+	# A standing prevention put out by a Strike card is set aside too; one from an Art is not.
+	var a: Dictionary = {"no_prevent_by": "strike"}
+	e._float(1, "prevent_all", "combat", {"source": strike_card.uid})
+	check(not e._prevention_float(1, "prevent_all", a), "a Strike card's prevention does not apply")
+	e._float(1, "prevent_all", "combat", {"source": art_card.uid})
+	check(e._prevention_float(1, "prevent_all", a), "an Art card's does")
+
+
+## "Raise your anger 1 level. Empower 2. If stopped, search the bottom 5 cards of your Life Deck for
+## a Physical Combat card and place it into your hand. The remaining cards are placed on top of your
+## Life Deck in any order." The Fervor line is printed before Empower, so Empower keeps it.
+func test_pyre_flame_lash_keeps_its_fervor_when_empowered_and_stacks_the_rest_on_top() -> void:
+	var e: DuelEngine = real_engine(real_deck(["pyre_strike_11"], "pact", "pyre"), real_deck([], "vigil"))
+	var guard: CardInstance = real_to_hand(e, 1, "pyre_strike_14")
+	var me: PlayerState = e.player(0)
+	to_attack(e, 0)
+	var lash: CardInstance = e.card(uid_in_hand(e, 0, "pyre_strike_11"))
+	var built: Dictionary = e._build_attack(0, lash, lash.def.attack, lash.def.effects, false, false, true, null, true)
+	var ops: Array[String] = []
+	for line in built["effects"]:
+		ops.append(str((line as Dictionary).get("op", "")))
+	check(ops.has("fervor"), "an Empowered Lash still raises the Fervor")
+	check(not ops.has("look_at"), "and drops the look printed after Empower")
+	check(CardText.rules_text(lash.def).find("Raise your Fervor 1") < CardText.rules_text(lash.def).find("Empower 2"),
+		"the text prints the Fervor line before Empower: %s" % CardText.rules_text(lash.def))
+	var bottom: Array[int] = []
+	for i in range(5):
+		bottom.append(me.life_deck[me.life_deck.size() - 1 - i].uid)
+	answer(e, &"attack", lash.uid)
+	answer(e, &"defend", guard.uid)
+	eq(prompt_kind(e), &"pick_option", "the stopped Lash looks at the bottom five")
+	var taken: int = e.prompt.options[0].card
+	answer(e, &"pick_option", taken)
+	var rounds: int = 0
+	while prompt_kind(e) == &"pick_option" and e.prompt.player == 0 and rounds < 6:
+		rounds += 1
+		e.submit(e.prompt.options[0])
+	eq(e.card(taken).zone, &"hand", "the chosen Strike card went to hand")
+	var tops: Array[int] = []
+	for i in range(4):
+		tops.append(me.life_deck[i].uid)
+	for uid in bottom:
+		if uid != taken:
+			check(tops.has(uid), "card #%d of the five is now on top of the Life Deck" % uid)
+
+
+## "Choose a Red Style attack in your discard pile ... and place it into your hand" and "shuffle 5
+## Red Style cards in your discard pile into your Life Deck" are not optional.
+func test_pyre_rekindling_and_phoenix_flame_must_take_from_the_pile() -> void:
+	var e: DuelEngine = real_engine(real_deck(["pyre_strike_13"], "pact", "pyre"), real_deck([], "vigil"))
+	to_attack(e, 0)
+	real_to_discard(e, 0, "pyre_strike_17")
+	real_to_discard(e, 0, "pyre_strike_18")
+	answer(e, &"attack", uid_in_hand(e, 0, "pyre_strike_13"))
+	eq(prompt_kind(e), &"pick_option", "the pick is offered")
+	check(e.prompt.find(&"pick_none") == null, "and taking nothing is not an answer")
+	var f: DuelEngine = real_engine(real_deck(["pyre_art_07"], "pact", "pyre"), real_deck([], "vigil"))
+	to_attack(f, 0)
+	var pile: Array[CardInstance] = []
+	for id in ["pyre_strike_17", "pyre_strike_17", "pyre_strike_17", "pyre_strike_18", "pyre_strike_18", "pyre_strike_18"]:
+		pile.append(real_to_discard(f, 0, id))
+	answer(f, &"attack", uid_in_hand(f, 0, "pyre_art_07"))
+	settle(f, 8)
+	var rounds: int = 0
+	while prompt_kind(f) == &"pick_option" and f.prompt.player == 0 and rounds < 6:
+		rounds += 1
+		check(f.prompt.find(&"pick_none") == null, "no round of the pick may take nothing")
+		var k: int = maxi(1, f.prompt.batch_min)
+		var uids: Array = []
+		for o in f.prompt.options:
+			if uids.size() < k and o.card >= 0:
+				uids.append(o.card)
+		if f.prompt.batch_type != &"":
+			f.submit(Command.new(0, &"pick_option", -1, uids))
+		else:
+			f.submit(Command.new(0, &"pick_option", int(uids[0])))
+	var back: int = 0
+	for c in pile:
+		if c.zone == &"life_deck":
+			back += 1
+	eq(back, 5, "exactly five Pyre cards went back into the Life Deck")
+
+
+## "...any Red Style attacks you perform with cards from your hand are considered to have 'Sword'."
+func test_pyre_sword_cleave_lends_its_word_only_to_attacks_from_hand() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "pyre"), real_deck([], "vigil"))
+	e._float(0, "counts_as_title", "combat", {"school": "pyre", "title": "Sword", "from_hand": true})
+	var held: CardInstance = real_to_hand(e, 0, "pyre_strike_18")
+	check(e._title_matches(0, held, "Sword"), "a Pyre attack from hand counts as a Sword")
+	var again: CardInstance = real_inject(e, 0, "pyre_strike_04")
+	again.remain = 1
+	again.remain_combat = e.state.combat_count
+	check(not e._title_matches(0, again, "Sword"), "one used again from the table does not")
+	check(not e._title_matches(0, real_to_hand(e, 0, "root_strike_04"), "Sword"), "nor does another school's")
+
+
+## "Any 'If successful' effects that raise your anger or lower your opponent's anger are secondary
+## effects for the remainder of Combat."
+func test_pyre_blazing_hide_makes_fervor_hits_secondary() -> void:
+	var e: DuelEngine = real_engine(real_deck(["pyre_strike_22"], "pact", "pyre"), real_deck([], "vigil"))
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "pyre_strike_22"))
+	settle(e, 8)
+	check(e._has_floating(0, "fervor_hits_secondary"), "the Hide put the rule out for the Combat")
+	var flare: CardInstance = real_to_hand(e, 0, "pyre_art_09")
+	var built: Dictionary = e._build_attack(0, flare, flare.def.attack, flare.def.effects, false, false, false, null, false)
+	eq(str((built["effects"][0] as Dictionary).get("trigger", "secondary")), "secondary", "a Hit that raises Fervor now resolves as the attack is performed")
+	var laying: CardInstance = real_to_hand(e, 0, "pyre_strike_25")
+	var kept: Dictionary = e._build_attack(0, laying, laying.def.attack, laying.def.effects, false, false, false, null, false)
+	eq(str((kept["effects"][0] as Dictionary).get("trigger", "")), "if_successful", "any other Hit stays a Hit")
+
+
+## "Your Main Personality pays 5 power stages": the duelist pays as the card is used.
+func test_pyre_conflagration_is_paid_by_the_duelist() -> void:
+	var e: DuelEngine = real_engine(real_deck(["pyre_combat_02"], "pact", "pyre"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	to_attack(e, 0)
+	me.duelist.energy = 7
+	e._prompt_attack_action(me)
+	answer(e, &"use", uid_in_hand(e, 0, "pyre_combat_02"))
+	settle(e, 4)
+	var paid: int = -1
+	for ev in e.events:
+		if ev.type == &"cost_paid" and int(ev.data.get("player", -1)) == 0:
+			paid = int(ev.data.get("stages", -1))
+	eq(paid, 5, "the duelist paid 5 Energy")
+	eq(me.duelist.energy, 0, "and the card then left them at 0")
+
+
+# --- The Steel expansion and review, 2026-09-23 ----------------------------
+
+## The shipped Steel cards, each against the clause the review found it missing.
+func test_steel_shipped_cards_match_their_printed_text() -> void:
+	# "Stops this combat. The turn ends": nobody gets a Discard step.
+	var e: DuelEngine = real_engine(real_deck(["steel_combat_01"], "pact", "steel"), real_deck([], "vigil"))
+	to_attack(e, 0)
+	var turn: int = e.state.turn
+	answer(e, &"use", uid_in_hand(e, 0, "steel_combat_01"))
+	settle(e, 6, [&"decline", &"done"])
+	check(not has_event(e, &"discard_step"), "the turn ended with no Discard step")
+	eq(e.state.turn, turn + 1, "and the next turn began")
+	# "Use only if your Main Personality has a higher power rating than your opponent's": the two
+	# duelists, whoever holds Combat.
+	var f: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	f.player(0).duelist.energy = 10
+	f.player(1).duelist.energy = 1
+	check(f._cond({"duelist_higher_might": true}, 0, {}), "the stronger duelist passes the gate")
+	check(not f._cond({"duelist_higher_might": true}, 1, {}), "the weaker does not")
+	check(CardText.rules_text(shipped().get_def("steel_strike_02")).contains("any number of times"), "Unyielding Scales stays out without a count")
+	# "Villains, Goku, and Gohan only" was errata'd to Saiyan Heritage only: the Draconic gate.
+	eq(str(shipped().get_def("steel_art_06").only.get("bloodline", "")), "draconic", "Dragonscale Mantle is Draconic only")
+	# "When you use a Saiyan Style card to perform an attack, it goes to the bottom of your Life Deck."
+	f._float(0, "after_use_bottom", "combat", {"school": "steel"})
+	var block: CardInstance = f._instance(shipped().get_def("steel_strike_19"), 0, &"resolving")
+	f._finish_card(block, false)
+	eq(block.zone, &"discard", "a Steel block is not an attack, so it goes to the pile")
+	var swing: CardInstance = f._instance(shipped().get_def("steel_strike_06"), 0, &"resolving")
+	swing.attacked_combat = f.state.combat_count
+	f._finish_card(swing, false)
+	eq(swing.zone, &"life_deck", "a Steel card that attacked goes under the deck")
+	# "Your opponent cannot use his Mastery card and Drills": a forbidden Drill's standing text is off.
+	real_inject(f, 0, "steel_drill_01")
+	eq(f._modifiers_for(f.player(0), "own", "strike", null, {}).size(), 1, "the Drill adds to Strikes")
+	f._float(0, "forbid", "combat", {"what": "drills"})
+	eq(f._modifiers_for(f.player(0), "own", "strike", null, {}).size(), 0, "and adds nothing while Drills are forbidden")
+	# "...cannot use Mastery and Sensei cards": the Relic stands in for the Sensei card.
+	var d: DeckList = real_deck([], "pact")
+	d.relic_id = "relic_03"
+	var g: DuelEngine = real_engine(d, real_deck([], "vigil"))
+	check(g.fervor_shielded(g.player(0)), "the Relic shields the Fervor")
+	g._float(0, "forbid", "turn", {"what": "relic"})
+	check(not g.fervor_shielded(g.player(0)), "and does not while Relics are forbidden")
+	# "Your opponent's Main Personality loses 3 power stages."
+	var fore: Dictionary = shipped().get_def("steel_strike_04").effects[0]
+	eq(str(fore.get("target", "")), "duelist", "Scaled Forearm takes the Energy off their duelist")
+
+
+## "Your opponent's attacks cost +1, +2 if they declared a Namekian Tokui-Waza" and "your opponent's
+## personalities gain 1 less power stage when they power up".
+func test_steel_drills_tax_and_starve_the_opponent() -> void:
+	for style in ["storm", "root"]:
+		var e: DuelEngine = real_engine(real_deck([], "pact", "steel"), real_deck([], "vigil", style))
+		var art_spec: Dictionary = shipped().get_def("storm_art_22").attack
+		eq(e._cost_stages(art_spec, e.player(1)), 2, "an Art costs them 2 to start with")
+		real_inject(e, 0, "steel_drill_02")
+		eq(e._cost_stages(art_spec, e.player(1)), 4 if style == "root" else 3, "the Drill taxes a %s deck" % style)
+		eq(e._cost_stages(art_spec, e.player(0)), 2, "and never its own side")
+	var f: DuelEngine = real_engine(real_deck([], "pact", "steel"), real_deck([], "vigil"))
+	var before: int = f.recover_gain(f.player(1))
+	real_inject(f, 0, "steel_drill_03")
+	eq(f.recover_gain(f.player(1)), before - 1, "they power up 1 less")
+	eq(f.recover_gain(f.player(0)), before, "the owner is untouched")
+	check(f._can_place(f.player(0), f._instance(shipped().get_def("pyre_drill_07"), 0, &"hand")),
+		"and it sits outside the one-school Drill lock")
+
+
+## "If the performer's power rating is higher, double the Base Damage from the Physical Attack Table."
+func test_steel_towering_frame_doubles_only_the_table() -> void:
+	var e: DuelEngine = real_engine(real_deck(["steel_strike_24"], "pact", "steel"), real_deck([], "vigil"))
+	to_attack(e, 0)
+	var frame: CardInstance = e.card(uid_in_hand(e, 0, "steel_strike_24"))
+	e.player(0).duelist.energy = 10
+	e.player(1).duelist.energy = 1
+	var a: Dictionary = e._build_attack(0, frame, frame.def.attack, frame.def.effects, false, false, false, null, true)
+	var b: Dictionary = e._damage_calc(a)
+	eq(int(b["base_stages"]), 2 * int(b["table"]), "the higher performer doubles the table")
+	eq(int(b["stages"]), 2 * int(b["table"]) + 3, "and the card's own +3 is added once")
+	e.player(0).duelist.energy = 1
+	e.player(1).duelist.energy = 10
+	b = e._damage_calc(a)
+	eq(int(b["base_stages"]), int(b["table"]), "the lower one does not")
+
+
+## "When you use Endurance, your Main Personality gains 1 power stage" and "+X, X = the times you
+## have used Endurance since you played this card".
+func test_steel_endurance_pays_and_counts() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	to_attack(e, 0)
+	var hide: CardInstance = e._instance(shipped().get_def("pyre_strike_25"), 1, &"life_deck")
+	them.life_deck.insert(0, hide)
+	them.duelist.energy = 0
+	e._float(1, "endurance_energy", "combat", {"energy": 1})
+	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	eq(prompt_kind(e), &"endurance", "the Endurance question comes up")
+	answer(e, &"endure", hide.uid)
+	eq(them.endurance_uses, 1, "the use is counted")
+	eq(them.duelist.energy, 1, "and the duelist gained 1 Energy for it")
+	var scales: Dictionary = {"scope": "own", "kind": "strike", "stages": 1, "endurance_mark": 0}
+	them.endurance_uses = 3
+	eq(e._modifier_amount(scales, "stages", them), 3, "three uses since the mark make +3")
+	scales["endurance_mark"] = 2
+	eq(e._modifier_amount(scales, "stages", them), 1, "uses before the card was played do not count")
+
+
+## "For the remainder of Combat, any life cards of damage your attacks deal are removed from the
+## game": the Art that says so deals its own wounds that way too.
+func test_steel_scorching_breath_covers_its_own_wounds() -> void:
+	var e: DuelEngine = real_engine(real_deck(["steel_art_08"], "pact", "steel"), real_deck([], "vigil"))
+	to_attack(e, 0)
+	var removed: int = e.player(1).removed.size()
+	var piled: int = e.player(1).discard.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "steel_art_08"))
+	settle(e, 8)
+	check(e.player(1).removed.size() > removed, "its wounds left the game")
+	eq(e.player(1).discard.size(), piled, "and none reached the pile")
+
+
+## "(When you perform a physical attack you may discard this card from your hand to have that attack
+## do an additional +4 power stages and raise your anger 1 level.)" and "when you use Empower, you
+## still use all of the effects after the Empower".
+func test_steel_blood_unbound_is_discarded_to_power_a_strike() -> void:
+	var e: DuelEngine = real_engine(real_deck(["steel_strike_26", "steel_strike_26"], "pact", "steel"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	eq(prompt_kind(e), &"follow_up", "performing a Strike opens the discard window")
+	eq(str(e.prompt.context.get("window", "")), "attack_boost", "and it is that window")
+	var spent: int = e.prompt.options[0].card
+	answer(e, &"use", spent)
+	eq(e.card(spent).zone, &"discard", "the card was discarded")
+	eq(prompt_kind(e), &"follow_up", "the second copy may go too")
+	answer(e, &"decline")
+	eq(me.fervor, 1, "the discarded card raised the Fervor 1")
+	eq(_added_by(e, "Steel Blood Unbound", "stages"), 4, "and the Strike did +4 Energy")
+	e._float(0, "empower_keeps_text", "combat", {})
+	var ashfall: CardInstance = real_to_hand(e, 0, "pyre_art_02")
+	var built: Dictionary = e._build_attack(0, ashfall, ashfall.def.attack, ashfall.def.effects, false, false, true, null, false)
+	eq((built["effects"] as Array).size(), 2, "an Empowered attack keeps every line after Empower")
+
+
+## "Draw a card. If it is a Saiyan Style card, you may show it to your opponent and ..."
+func test_steel_masteries_show_the_drawn_card() -> void:
+	for mastery in ["steel_mastery_02", "steel_mastery_03"]:
+		var d: DeckList = real_deck(["steel_strike_06"], "pact", "steel")
+		d.mastery_id = mastery
+		var e: DuelEngine = real_engine(d, real_deck([], "vigil"))
+		var guard: int = 0
+		while e.prompt != null and not (e.prompt.player == 0 and e.prompt.kind == &"pick_option") and guard < 12:
+			guard += 1
+			var quiet: Command = null
+			for t in [&"done", &"declare", &"decline"]:
+				quiet = e.prompt.find(t)
+				if quiet != null:
+					break
+			if quiet == null:
+				break
+			e.submit(quiet)
+		eq(prompt_kind(e), &"pick_option", "%s asks whether to show the Steel card" % mastery)
+		var their_energy: int = e.player(1).in_control().energy
+		answer(e, &"pick_option", -1, "yes")
+		check(has_event(e, &"hand_revealed"), "the card was shown")
+		if mastery == "steel_mastery_02":
+			eq(e.player(1).in_control().energy, maxi(0, their_energy - 4), "and they lost 4 Energy")
+		else:
+			var shield: Dictionary = e._floating_first(0, "prevent_first_attack")
+			eq(int(shield.get("stages", 0)), 4, "4 Energy of the first attack will be prevented")
+			eq(int(shield.get("life", 0)), 4, "and 4 wounds, because the card was shown")
+			settle(e, 6, [&"decline", &"done", &"declare"])
+			if prompt_kind(e) == &"attack_action" and e.prompt.player == 1:
+				answer(e, &"attack", uid_in_hand(e, 1, "root_strike_04"))
+				settle(e, 8)
+				check(_added_by(e, "Steel Scale Mastery", "stages") < 0, "the first attack against them had Energy prevented")
+				check(e._floating_first(0, "prevent_first_attack").is_empty(), "and it is spent")
+
+
+## "You cannot win by the Most Powerful Personality Victory. All of your Saiyan Style attacks gain
+## 'Raise your anger 1 level. Gain 3 power stages.' During the Rejuvenation Step, if you put any
+## Saiyan Style cards back into your Life Deck, raise your anger 2 levels and your Main Personality
+## gains 4 power stages."
+func test_steel_bloodrage_mastery_writes_onto_attacks_and_pays_on_recovery() -> void:
+	var d: DeckList = real_deck([], "vigil", "steel")
+	d.mastery_id = "steel_mastery_04"
+	var e: DuelEngine = real_engine(real_deck([], "pact"), d)
+	var me: PlayerState = e.player(1)
+	check(me.no_ascension_win, "the Ascension win is off for the game")
+	var charge: CardInstance = real_to_hand(e, 1, "steel_strike_06")
+	var built: Dictionary = e._build_attack(1, charge, charge.def.attack, charge.def.effects, false, false, false, null, true)
+	eq((built["effects"] as Array).size(), 3, "a Steel attack carries its own line and the two the Mastery gives it")
+	var plain: CardInstance = real_to_hand(e, 1, "root_strike_04")
+	var other: Dictionary = e._build_attack(1, plain, plain.def.attack, plain.def.effects, false, false, false, null, true)
+	eq((other["effects"] as Array).size(), 0, "a Root attack gains nothing")
+	real_to_discard(e, 1, "steel_strike_06")
+	var fervor: int = me.fervor
+	e._handle_recover(Command.new(1, &"recover"))
+	# The step's own prompt is still standing in this hand-driven test; the bonus waits in the queue.
+	e.prompts.clear()
+	e._drain()
+	eq(me.fervor, fervor + 2, "putting a Steel card back raises the Fervor 2")
+
+
+## "If successful, your opponent's Main Personality's PUR is set to 0 until the end of his next turn
+## and cannot be modified by other effects."
+func test_steel_constricting_grip_holds_their_surge_at_zero() -> void:
+	var e: DuelEngine = real_engine(real_deck(["steel_strike_27"], "pact", "steel"), real_deck([], "vigil"))
+	check(e.recover_gain(e.player(1)) > 0, "they power up as usual")
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "steel_strike_27"))
+	settle(e, 8, [&"pick_none", &"no_defense", &"no_endure", &"no_critical", &"target", &"decline"])
+	check(e._has_floating(1, "surge_zero"), "the hit holds their Surge")
+	eq(e.recover_gain(e.player(1)), 0, "so they power up nothing, the Style bonus included")
+
+
+## "Raise your Main Personality to his highest power stage. Your next attack does +X power stages,
+## X = the power stages gained by this card, for a maximum of +5."
+func test_steel_drawn_breath_banks_the_gain_for_the_next_attack() -> void:
+	var e: DuelEngine = real_engine(real_deck(["steel_combat_02"], "pact", "steel"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	to_attack(e, 0)
+	me.duelist.energy = 2
+	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	eq(prompt_kind(e), &"follow_up", "the connected Strike offers the card")
+	var landing_phase: int = e.state.attack_phase_count
+	answer(e, &"use", uid_in_hand(e, 0, "steel_combat_02"))
+	eq(me.duelist.energy, CardInstance.MAX_STAGE, "the duelist is at full Energy")
+	var bank: Dictionary = {}
+	for f in e.state.floating:
+		if int(f.get("owner", -1)) == 0 and str(f.get("op", "")) == "modifier" and bool(f.get("once", false)):
+			bank = f
+	eq(int(bank.get("stages", 0)), 5, "the gain of 8 banks the most it can, +5")
+	eq(int(bank.get("from_phase", -1)), landing_phase, "and not for the attack already landing")
+
+
+## What a named source added to the damage of the attacks so far, read off the modified-damage beats.
+func _added_by(e: DuelEngine, source: String, key: String) -> int:
+	var total: int = 0
+	for ev in e.events:
+		if ev.type != &"modified_damage":
+			continue
+		for add in ev.data.get("adds", []):
+			if str((add as Dictionary).get("source", "")) == source:
+				total += int((add as Dictionary).get(key, 0))
+	return total
+
+
+## "Your Saiyan Style attacks that have Empower are focused" and "a Saiyan Style Drill that adds
+## damage to your attacks".
+func test_steel_cornered_blood_and_awakened_blood_read_empower_and_damage() -> void:
+	var e: DuelEngine = real_engine(real_deck(["steel_drill_01", "steel_drill_04"], "pact", "steel"), real_deck([], "vigil"))
+	e._float(0, "make_focused", "combat", {"school": "steel", "empower_only": true})
+	check(e._made_focused(0, real_to_hand(e, 0, "steel_strike_08")), "a Steel attack with Empower is Focused")
+	check(not e._made_focused(0, real_to_hand(e, 0, "steel_strike_06")), "one without Empower is not")
+	var hits: Array[CardInstance] = e.search_candidates(e.player(0), {"card_type": "drill", "school": "steel", "adds_damage": true, "to": "play"})
+	var ids: Array[String] = []
+	for c in hits:
+		ids.append(c.def.id)
+	check(ids.has("steel_drill_01"), "the Drill that adds damage is found")
+	check(not ids.has("steel_drill_04"), "the shield Drill is not")

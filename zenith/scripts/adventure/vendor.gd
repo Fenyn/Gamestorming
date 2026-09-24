@@ -34,7 +34,13 @@ var _busy: bool = false
 
 
 func _ready() -> void:
-	theme = ZenithTheme.get_theme()
+	theme = SanctumUI.theme()
+	# The vendor sits outside any run: neutral trim, and the shelf framed like every other panel.
+	MapArt.tint_for_school("")
+	SanctumUI.dress(self, $Margin/Column/TitleRow/Title as Label)
+	var shelf_frame: PanelContainer = PanelContainer.new()
+	shelf_row.get_parent().add_child(shelf_frame)
+	shelf_row.reparent(shelf_frame)
 	_dev_setup()
 	var tabs: ButtonGroup = ButtonGroup.new()
 	shelf_tab.button_group = tabs

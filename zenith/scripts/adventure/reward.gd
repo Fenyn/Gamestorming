@@ -55,11 +55,16 @@ var _busy: bool = false
 
 
 func _ready() -> void:
-	theme = ZenithTheme.get_theme()
+	theme = SanctumUI.theme()
 	_reduced_motion = AdventureDev.reduced_motion()
 	_dev_setup()
 	if Session.run == null:
 		return
+	# Inside a run the trim takes the run's Mastery school colour, as on the map.
+	var run_deck: DeckList = Session.run.deck()
+	MapArt.tint_for_school(run_deck.style if run_deck != null else "")
+	theme = SanctumUI.themed(MapArt.tint)
+	SanctumUI.dress(self, $Margin/Column/Header/TitleRow/Title as Label)
 	skip_button.pressed.connect(_on_skip)
 	cut_button.pressed.connect(_on_cut_open)
 	take_button.pressed.connect(_on_take)
@@ -406,14 +411,14 @@ func _build_bundle_face(def: CardDef, count: int, face_size: Vector2, bundle_ind
 	return col
 
 
-## Unselected: an edged panel tinted by the card's or bundle's group, like a versus seat panel.
-## Hover brightens the tint. Selected: the accent border the tray and TileButton use everywhere.
-func _card_style(tint: Color, hover: bool, selected: bool) -> StyleBoxFlat:
+## The Kenney framed panel in the card's or bundle's group colour, muted like the trim: the rule
+## and its dark fill both carry the group, so it reads at a glance. Hover brightens it. Selected:
+## the same panel in bright neutral white, which no group colour can be mistaken for.
+func _card_style(tint: Color, hover: bool, selected: bool) -> StyleBox:
 	if selected:
-		return ZenithTheme.box(ZenithTheme.ACCENT_SOFT, ZenithTheme.ACCENT, 14, 2, 20, 18)
-	var edge: Color = tint.lightened(0.2) if hover else tint
-	var tint_alpha: float = 0.16 if hover else 0.08
-	return ZenithTheme.edged(edge, Color(tint, tint_alpha), 14, 20, 18)
+		return MapArt.panel_box(20, Color.WHITE)
+	var group: Color = MapArt.muted(tint)
+	return MapArt.panel_box(20, group.lightened(0.25) if hover else group)
 
 
 func _select_card(index: int) -> void:

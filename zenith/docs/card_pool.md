@@ -9,7 +9,7 @@ Counts leave out Masteries and signature cards and include gated cards. Rows are
 | School | Cards | New | Strike | Art | Combat | Non-Combat | Drill |
 |---|---|---|---|---|---|---|---|
 | Pyre | 50 | 0 | 28 | 11 | 3 | 0 | 8 |
-| Steel | 50 | 20 | 28 | 14 | 2 | 2 | 4 |
+| Steel | 50 | 0 | 28 | 14 | 2 | 2 | 4 |
 | Tide | 50 | 22 | 21 | 15 | 4 | 4 | 6 |
 | Storm | 50 | 7 | 14 | 24 | 2 | 2 | 8 |
 | Shade | 50 | 20 | 23 | 13 | 5 | 2 | 7 |
@@ -31,7 +31,7 @@ Masteries:
 
 | Title | Type | What it does | Subthemes | New | id |
 |---|---|---|---|---|---|
-| Pyre Blazing Hide | Strike | Endurance X. X = your Fervor. Strike doing +3 Energy. | Fervor as a number |  | `pyre_strike_22` |
+| Pyre Blazing Hide | Strike | Endurance X. X = your Fervor. Strike doing +3 Energy. For the remainder of Combat, any Hit effect of yours that raises your Fervor or lowers your opponent's Fervor is a secondary effect, and happens whether or not the attack succeeds. | Fervor as a number |  | `pyre_strike_22` |
 | Pyre Choking Smoke | Strike | Endurance X. X = your Fervor. Stops an Art. Lower your opponent's Fervor 1. If your opponent's Fervor is 1 or lower, remove the bottom 10 cards of your opponent's discard pile from the game. | Fervor as a number, Ash, Art answers |  | `pyre_strike_23` |
 | Pyre Drawing Flue | Art | Endurance 4. Art dealing a wound, plus wounds equal to your Fervor. Hit: Shuffle this card into your Life Deck. | Fervor as a number |  | `pyre_art_04` |
 | Pyre Rising Heat Drill | Drill | Your attacks do +X Energy, X = your Fervor. Limit 1 per deck. | Fervor as a number |  | `pyre_drill_01` |
@@ -43,22 +43,22 @@ Masteries:
 | Pyre Flame Screen Drill | Drill | Defense Shield: stops the first unstopped Art each Combat. | Drills, Art answers |  | `pyre_drill_05` |
 | Pyre Hearthstone Drill | Drill | When your duelist advances an Aspect, your other Drills are not discarded. If your opponent's Fervor is 0, this Drill is not discarded either. | Drills |  | `pyre_drill_06` |
 | Pyre Kiln Drill | Drill | Your Arts do +2 wounds. | Drills, Pyre Arts |  | `pyre_drill_07` |
-| Pyre Smoldering Drill | Drill | At the start of your turn, remove the bottom 3 cards of your opponent's discard pile from the game. Your attacks do +2 Energy. | Drills, Ash |  | `pyre_drill_08` |
+| Pyre Smoldering Drill | Drill | At the start of your turn, remove the bottom 3 cards of your opponent's discard pile from the game. Your attacks do +2 Energy. This Drill does not count towards or against the one school of Drills you may have in play. | Drills, Ash |  | `pyre_drill_08` |
 | Pyre Ashen Veil | Strike | Stops a Strike. Remove the top 10 cards of your opponent's discard pile from the game. Raise your Fervor 1. | Ash, Climbing blocks |  | `pyre_strike_15` |
 | Pyre Cremation | Strike | Strike. Hit: Remove all of your opponent's discard pile from the game. | Ash |  | `pyre_strike_26` |
-| Pyre Firestorm | Strike | Strike. Hit, instead of dealing damage, you may have your opponent discard all Drills and Allies in play. Raise your Fervor 1. | Burning the board |  | `pyre_strike_06` |
-| Pyre Scouring Flame | Strike | Strike. Hit: Your opponent removes a Non-Combat card in play of your choice from the game. Raise your Fervor 1. | Burning the board |  | `pyre_strike_05` |
+| Pyre Firestorm | Strike | Strike. Hit, instead of dealing damage, you may choose one: your opponent discards all Allies in play or your opponent discards all Drills in play. Raise your Fervor 1. | Burning the board |  | `pyre_strike_06` |
+| Pyre Scouring Flame | Strike | Strike. Hit: Remove a Non-Combat card in play from the game. Raise your Fervor 1. | Burning the board |  | `pyre_strike_05` |
 | Pyre Ashfall | Art | Art dealing 3 wounds. Empower 3. Your opponent removes a Drill or Ally in play of your choice from the game. Lower your opponent's Fervor 2. | Burning the board, Pyre Arts |  | `pyre_art_02` |
 | Pyre Immolation | Art | Art. Your opponent removes a Drill or Ally in play of your choice from the game. Raise your Fervor 1. | Burning the board |  | `pyre_art_01` |
-| Pyre Conflagration | Combat | Your duelist must have 5 Energy to use this. All Non-Combat cards and Allies in play are discarded. Set your Energy to 0. Raise your Fervor 1. Limit 1 per deck. | Burning the board |  | `pyre_combat_02` |
+| Pyre Conflagration | Combat | Your duelist pays 5 Energy to use this card. All Non-Combat cards and Allies in play are discarded. Set your duelist's Energy to 0. Raise your Fervor 1. Limit 1 per deck. | Burning the board |  | `pyre_combat_02` |
 | Pyre Flare Volley | Art | Endurance 2. Art dealing 2 wounds. You may discard a card from your hand as you perform it to add 3 wounds. Remain 2. Remove from the game after use. | Pyre Arts |  | `pyre_art_06` |
-| Pyre Phoenix Flame | Art | Art dealing 5 wounds. Hit: Shuffle 5 Pyre cards from your discard pile into your Life Deck. Remove from the game after use. | Pyre Arts |  | `pyre_art_07` |
+| Pyre Phoenix Flame | Art | Art dealing 5 wounds. Hit: Choose 5 Pyre cards from your discard pile and shuffle them into your Life Deck. Remove from the game after use. | Pyre Arts |  | `pyre_art_07` |
 | Pyre Struck Spark | Art | Art dealing 3 wounds. Costs 1 Energy to perform. Raise your Fervor 1. | Pyre Arts |  | `pyre_art_08` |
 | Pyre Sudden Flare | Art | Focused Art dealing 3 wounds. Hit: Raise your Fervor 2. | Pyre Arts |  | `pyre_art_09` |
 | Pyre Unmaking Blaze | Art | Art dealing 6 wounds. Hit, instead of dealing damage, you may have your opponent lose one Aspect. Remove from the game after use. | Pyre Arts |  | `pyre_art_10` |
 | Pyre White Flame | Art | Endurance 2. Art dealing 6 wounds. Wounds from it are removed from the game instead of discarded. Draw the bottom card of your Life Deck. Remove from the game after use. | Pyre Arts |  | `pyre_art_11` |
 | Pyre Stoked Blaze | Combat | For the remainder of Combat, your Arts cost 1 less Energy to perform, to a minimum of 1. For the remainder of Combat, your Arts do +2 wounds. Lower your opponent's Fervor 1. | Pyre Arts |  | `pyre_combat_03` |
-| Pyre Backdraft | Strike | Strike doing +3 Energy. Stops all Arts performed against you for the remainder of Combat. You may not perform Arts for the remainder of Combat. Lower your opponent's Fervor 1. | Art answers |  | `pyre_strike_03` |
+| Pyre Backdraft | Strike | Strike doing +3 Energy. Stops all Arts, yours as well as your opponent's, for the remainder of Combat. Lower your opponent's Fervor 1. | Art answers |  | `pyre_strike_03` |
 | Pyre Ember Ward | Strike | Endurance 2. Stops an Art. Raise your Fervor 1. | Art answers |  | `pyre_strike_20` |
 | Pyre Heat Haze | Strike | Stops an Art. If your Fervor is 1 or higher, stops all Arts performed against you for the remainder of Combat. Remove from the game after use. Limit 1 per deck. | Art answers |  | `pyre_strike_27` |
 | Pyre Hearthguard | Art | Stops an Art. Raise any one personality's Energy to full. Remove from the game after use. | Art answers |  | `pyre_art_03` |
@@ -66,16 +66,16 @@ Masteries:
 | Pyre Bellows Guard | Strike | Stops a Strike. Gain 5 Energy. Raise your Fervor 1. | Climbing blocks |  | `pyre_strike_14` |
 | Pyre Cinder Guard | Strike | Stops a Strike. Raise your Fervor 2. Gain 2 Energy. | Climbing blocks |  | `pyre_strike_01` |
 | Pyre Searing Guard | Strike | Endurance 1. Stops a Strike. Your opponent takes a wound. Raise your Fervor 1. Gain 5 Energy. | Climbing blocks |  | `pyre_strike_02` |
-| Pyre Blazing Charge | Strike | Strike doing +3 Energy. Cannot be stopped by Strike cards. Raise your Fervor 1. Remove from the game after use. | Fervor attacks |  | `pyre_strike_07` |
+| Pyre Blazing Charge | Strike | Strike doing +3 Energy. Cannot be stopped or prevented by Strike cards. Raise your Fervor 1. Remove from the game after use. | Fervor attacks |  | `pyre_strike_07` |
 | Pyre Burning Sword Cleave | Strike | Endurance 2. Strike doing +4 Energy. For the remainder of Combat, the Pyre attacks you perform from your hand count as having "Sword" in the title. Raise your Fervor 1. Lower your opponent's Fervor 1. | Fervor attacks |  | `pyre_strike_21` |
 | Pyre Comet Fall | Strike | Strike doing +4 Energy. Remain 1. Remove from the game after use. | Fervor attacks |  | `pyre_strike_04` |
 | Pyre Ember Strike | Strike | Strike doing +3 Energy. Raise your Fervor 1. | Fervor attacks |  | `pyre_strike_18` |
-| Pyre Flame Lash | Strike | Endurance 2. Strike doing +4 Energy. Empower 2. Raise your Fervor 1. If stopped, look at the bottom 5 cards of your Life Deck. You may put a Strike card from among them into your hand. | Fervor attacks |  | `pyre_strike_11` |
+| Pyre Flame Lash | Strike | Endurance 2. Strike doing +4 Energy. Raise your Fervor 1. Empower 2. If stopped, look at the bottom 5 cards of your Life Deck. You may put a Strike card from among them into your hand. Put the rest on the top of your Life Deck in any order. | Fervor attacks |  | `pyre_strike_11` |
 | Pyre Flashover | Strike | Strike doing +3 Energy. If your opponent used a Combat card this Combat, Remain 2. Remove from the game after use. | Fervor attacks |  | `pyre_strike_10` |
 | Pyre Flashpoint | Strike | Strike doing +3 Energy. Costs 4 Energy to perform. Raise your Fervor 2. | Fervor attacks |  | `pyre_strike_16` |
 | Pyre Furnace Breath | Strike | Strike doing +4 Energy. Raise your Fervor 2. Remove from the game after use. | Fervor attacks |  | `pyre_strike_08` |
 | Pyre Kindling | Strike | Strike doing +3 wounds. Raise your Fervor 1. For the remainder of Combat, your other Pyre attacks are Focused. | Fervor attacks |  | `pyre_strike_12` |
-| Pyre Rekindling | Strike | Strike doing +6 Energy. Raise your Fervor 1. Search your discard pile for a Pyre attack card other than "Pyre Rekindling" and put it into your hand. Remove from the game after use. | Fervor attacks |  | `pyre_strike_13` |
+| Pyre Rekindling | Strike | Strike doing +6 Energy. Raise your Fervor 1. Choose a Pyre attack card other than "Pyre Rekindling" from your discard pile and put it into your hand. Remove from the game after use. | Fervor attacks |  | `pyre_strike_13` |
 | Pyre Scorching Blow | Strike | Strike doing +4 Energy. Raise your Fervor 1. | Fervor attacks |  | `pyre_strike_19` |
 | Pyre Snuffing | Strike | Strike doing +3 Energy. If your opponent's Fervor is 0, damage cannot be prevented and raise your Fervor 1. Your opponent may not use Powers for the remainder of Combat. | Fervor attacks |  | `pyre_strike_09` |
 | Pyre Updraft | Strike | Strike doing +3 Energy. Raise your Fervor 1. | Fervor attacks |  | `pyre_strike_17` |
@@ -89,44 +89,44 @@ Subthemes: Might comparison 9, Endurance armour 9, Energy squeeze 8, Empower 10,
 Masteries:
 
 - **Steel Hoard Mastery** (`steel_mastery_01`): Draconic duelists only. When entering Combat, discard the top card of your Life Deck. If it is a Steel card, draw 2 cards. Otherwise, draw a card. Limit 1 per deck.
-- **Steel Dragonfear Mastery** (new): Entering Combat, draw a card. If it is Steel, you may show it and they lose 4 Energy
-- **Steel Scale Mastery** (new): Entering Combat, draw a card. The first attack against you this Combat does 4 less Energy damage; if the card was Steel and you show it, also 4 fewer wounds
-- **Steel Bloodrage Mastery** (new): You cannot win by Ascension. Your Steel attacks raise your Fervor 1 and gain 3 Energy. In the Recover step, if a Steel card goes back into your deck, Fervor +2 and gain 4 Energy
+- **Steel Dragonfear Mastery** (`steel_mastery_02`): Draconic duelists only. When entering Combat, draw a card. If it is a Steel card, you may show it to your opponent. If you do, your opponent loses 4 Energy. Limit 1 per deck.
+- **Steel Scale Mastery** (`steel_mastery_03`): Draconic duelists only. When entering Combat, draw a card. If it is a Steel card, you may show it to your opponent. If you do, prevent 4 Energy and 4 wounds of damage from the first attack performed against you this Combat. If you do not, prevent 4 Energy of damage from the first attack performed against you this Combat. Otherwise, prevent 4 Energy of damage from the first attack performed against you this Combat. Limit 1 per deck.
+- **Steel Bloodrage Mastery** (`steel_mastery_04`): Draconic duelists only. You cannot win by Ascension. Your Steel attacks gain "Raise your Fervor 1. Gain 3 Energy." In the Recover step, if the card you put back into your Life Deck is a Steel card, raise your Fervor 2. Gain 4 Energy. Limit 1 per deck.
 
 | Title | Type | What it does | Subthemes | New | id |
 |---|---|---|---|---|---|
-| Steel Dragonblood Charge | Strike | Strike dealing 7 Energy. If your duelist's Might is higher, your opponent may not use a Mastery this turn. | Might comparison |  | `steel_strike_12` |
+| Steel Dragonblood Charge | Strike | Strike dealing 7 Energy. If your duelist's Might is higher, your opponent may not use a Mastery this turn and your opponent may not use a Relic this turn. | Might comparison |  | `steel_strike_12` |
 | Steel Dragonweight Blow | Strike | Strike doing +3 Energy. If your duelist's Might is higher, your opponent discards a Non-Combat card in play of your choice. | Might comparison |  | `steel_strike_15` |
-| Steel Towering Charge | Strike | +4 Energy. If your Might is higher, discard up to 2 of their Allies | Might comparison | new |  |
-| Steel Towering Frame | Strike | +3 Energy. Doubles the Strike Table base while your Might is higher | Might comparison | new |  |
-| Steel Unyielding Scales | Strike | If your duelist's Might is higher, stops a Strike. Remain 9. Remove from the game after use. Limit 1 per deck. | Might comparison |  | `steel_strike_02` |
-| Steel Boiling Blood | Art | 6 wounds. Focused while your Might is higher. This Combat, each Endurance you use gains you 1 Energy | Might comparison, Endurance armour | new |  |
-| Steel Dragonfire Breath | Art | Art. If your Might is higher: Fervor +1, and your other attacks do +2 wounds this Combat | Might comparison | new |  |
-| Steel Drawn Breath | Combat | Use when you attack. Fill your Energy. Your next attack does +X Energy, X = Energy gained, up to 5. Removed after use | Might comparison | new |  |
-| Steel Blood Memory | Non-Combat | Fervor +2. The bottom 2 cards of your discard pile go under your Life Deck. If your Might is higher, draw a card. Removed after use | Might comparison | new |  |
+| Steel Towering Charge | Strike | Strike doing +4 Energy. If your duelist's Might is higher, your opponent discards up to 2 Allies in play of your choice. | Might comparison |  | `steel_strike_28` |
+| Steel Towering Frame | Strike | Strike doing +3 Energy. If the personality performing this has a higher Might than the one defending, double the Strike Table result. | Might comparison |  | `steel_strike_24` |
+| Steel Unyielding Scales | Strike | If your duelist's Might is higher than your opponent's duelist's, stops a Strike. Stays on the table to be used any number of times this Combat. Remove from the game after use. Limit 1 per deck. | Might comparison |  | `steel_strike_02` |
+| Steel Boiling Blood | Art | Art dealing 6 wounds. If your duelist's Might is higher than your opponent's duelist's, focused. For the remainder of Combat, whenever you use Endurance, your duelist gains 1 Energy. | Might comparison, Endurance armour |  | `steel_art_07` |
+| Steel Dragonfire Breath | Art | Art. If your duelist's Might is higher, raise your Fervor 1 and for the remainder of Combat, your other attacks do +2 wounds. | Might comparison |  | `steel_art_09` |
+| Steel Drawn Breath | Combat | Use when performing an attack. Raise your duelist's Energy to full. Your next attack does +X Energy, X = the Energy this gained you, to a maximum of +5. Remove from the game after use. | Might comparison |  | `steel_combat_02` |
+| Steel Blood Memory | Non-Combat | Use in Combat: Raise your Fervor 2. Place the bottom 2 cards of your discard pile at the bottom of your Life Deck. If your duelist's Might is higher than your opponent's duelist's, draw a card. Remove from the game after use. | Might comparison |  | `steel_noncombat_01` |
 | Steel Hoarding Claw | Strike | Endurance 2. Strike doing +3 Energy. Lower your opponent's Fervor 1. Hit: Search your Life Deck for a Seal and put it into play. Remove from the game after use. | Endurance armour |  | `steel_strike_05` |
 | Steel Scalebound Blow | Strike | Endurance 4. Strike doing +3 Energy and +2 wounds. | Endurance armour |  | `steel_strike_14` |
 | Steel Taloned Fist | Strike | Endurance 3. Strike doing +4 Energy. | Endurance armour |  | `steel_strike_13` |
-| Steel Thrashing Tail | Strike | Endurance 2. If stopped, a Drill in play of your choice leaves the game. Removed after use | Endurance armour | new |  |
-| Steel Cornered Blood | Art | Endurance 4. 5 wounds. Fervor +1. This Combat your Steel attacks with Empower are Focused | Endurance armour, Empower | new |  |
-| Steel Shed Skin | Art | Endurance 2. Strike doing +4 Energy. Shuffle 3 cards from your discard pile into your Life Deck. Remove from the game after use. | Endurance armour |  | `steel_art_03` |
-| Steel Hardscale Drill | Drill | Defense Shield: stops the first unstopped Strike each Combat | Endurance armour | new |  |
-| Steel Constricting Grip | Strike | Focused, +3 Energy. Put a Steel Drill from your deck into play. Hit: their Surge is 0 until the end of their next turn | Energy squeeze | new |  |
+| Steel Thrashing Tail | Strike | Endurance 2. Strike. If stopped, remove a Drill in play from the game. Remove from the game after use. | Endurance armour |  | `steel_strike_23` |
+| Steel Cornered Blood | Art | Endurance 4. Art dealing 5 wounds. For the remainder of Combat, your Steel attacks that have Empower are Focused. Raise your Fervor 1. | Endurance armour, Empower |  | `steel_art_13` |
+| Steel Shed Skin | Art | Endurance 2. Strike doing +4 Energy. Choose 3 Steel cards from your discard pile and shuffle them into your Life Deck. Remove from the game after use. | Endurance armour |  | `steel_art_03` |
+| Steel Hardscale Drill | Drill | Defense Shield: stops the first unstopped Strike each Combat. | Endurance armour |  | `steel_drill_04` |
+| Steel Constricting Grip | Strike | Focused Strike doing +3 Energy. Search your Life Deck for a Steel Drill and put it into play. Hit: Until the end of their next turn, your opponent's duelist's Surge Rate is 0 and cannot be changed by other effects. | Energy squeeze |  | `steel_strike_27` |
 | Steel Fanged Snap | Strike | Strike doing +3 Energy. Hit: Your opponent pays 2 more Energy for their next attack this Combat. | Energy squeeze |  | `steel_strike_09` |
 | Steel Pinning Claw | Strike | Strike doing +3 Energy. Empower 2. Until the end of your next turn, your opponent's duelist and Allies cannot gain Energy. Remove from the game after use. | Energy squeeze, Empower |  | `steel_strike_08` |
-| Steel Scaled Forearm | Strike | Stops a Strike. Your opponent loses 3 Energy. | Energy squeeze |  | `steel_strike_04` |
+| Steel Scaled Forearm | Strike | Stops a Strike. Your opponent's duelist loses 3 Energy. | Energy squeeze |  | `steel_strike_04` |
 | Steel Serpentine Twist | Strike | Stops a Strike. Your opponent loses 4 Energy. | Energy squeeze |  | `steel_strike_19` |
 | Steel Swallowed Flame | Art | Stops an Art. If the bottom card of your discard pile is Steel, your opponent's duelist loses 4 Energy. | Energy squeeze |  | `steel_art_05` |
-| Steel Baleful Gaze Drill | Drill | Their attacks cost +1 Energy, +2 when they play Root | Energy squeeze | new |  |
-| Steel Stifling Presence Drill | Drill | Your attacks do +2 Energy. Their personalities gain 1 less in the Power Up step | Energy squeeze | new |  |
-| Steel Blood Unbound | Strike | +3 Energy. Empower 2. This Combat, when you Empower, you keep the rest of the card's text | Empower | new |  |
-| Steel Shedding Scales | Strike | Endurance 1. +3 Energy, Fervor +1, Empower 2. This Combat your Strikes do +1 Energy per Endurance you have used | Empower, Endurance armour | new |  |
-| Steel Awakened Blood | Art | 5 wounds. Empower 2. Put a Steel Drill that adds damage from your deck into play. Their Fervor -2 | Empower | new |  |
+| Steel Baleful Gaze Drill | Drill | Your opponent's attacks cost 1 more Energy to perform. If your opponent's deck is Root, your opponent's attacks cost 2 more Energy to perform instead. | Energy squeeze |  | `steel_drill_02` |
+| Steel Stifling Presence Drill | Drill | Your attacks do +2 Energy. Your opponent's personalities gain 1 less Energy when they power up in the Power Up step, to a minimum of 0. This Drill does not count towards or against the one school of Drills you may have in play. | Energy squeeze |  | `steel_drill_03` |
+| Steel Blood Unbound | Strike | (When you perform a Strike, you may discard this card from your hand to have that attack do +4 Energy and raise your Fervor 1.) Strike doing +3 Energy. Empower 2. For the remainder of Combat, when you use Empower you still use all of the card's text after Empower. | Empower |  | `steel_strike_26` |
+| Steel Shedding Scales | Strike | Endurance 1. Strike doing +3 Energy. Raise your Fervor 1. Empower 2. For the remainder of Combat, your Strikes do +X Energy, X = the times you have used Endurance since this card was played. | Empower, Endurance armour |  | `steel_strike_25` |
+| Steel Awakened Blood | Art | Art dealing 5 wounds. Empower 2. Search your Life Deck for a Steel Drill that adds damage to your attacks and put it into play. Lower your opponent's Fervor 2. | Empower |  | `steel_art_14` |
 | Steel Deafening Roar | Art | Draconic only. Art. Empower 3. Your opponent may not use a Mastery or use Drills for the remainder of Combat. Remove from the game after use. | Empower |  | `steel_art_02` |
-| Steel Reclaimed Hoard | Art | Draconic only. 3 wounds. Empower 4. Put 2 Steel cards from your discard pile on top of your deck. Removed after use | Empower | new |  |
-| Steel Routing Roar | Art | Draconic only. Art. Empower 3. Discard up to 3 of their Allies. Removed after use | Empower | new |  |
-| Steel Scorching Breath | Art | Fervor +1. Empower 4. This Combat your wounds leave the game and cannot be prevented | Empower | new |  |
-| Steel Tail Sweep | Art | Draconic only. 3 wounds. Empower 4. Discard up to 3 of their Drills. Removed after use | Empower | new |  |
+| Steel Reclaimed Hoard | Art | Draconic only. Art dealing 3 wounds. Empower 4. Choose 2 Steel cards other than "Steel Reclaimed Hoard" from your discard pile and place them on top of your Life Deck. Remove from the game after use. | Empower |  | `steel_art_10` |
+| Steel Routing Roar | Art | Draconic only. Art. Empower 3. Your opponent discards up to 3 Allies in play of your choice. Remove from the game after use. | Empower |  | `steel_art_12` |
+| Steel Scorching Breath | Art | Art. Raise your Fervor 1. Empower 4. For the remainder of Combat, wounds from your attacks are removed from the game. For the remainder of Combat, damage from your attacks cannot be prevented. | Empower |  | `steel_art_08` |
+| Steel Tail Sweep | Art | Draconic only. Art dealing 3 wounds. Empower 4. Your opponent discards up to 3 Drills in play of your choice. Remove from the game after use. | Empower |  | `steel_art_11` |
 | Steel Clawed Heel | Strike | Strike doing +4 Energy. You may discard the top card of your Life Deck to add 3 wounds. | Raw Strikes |  | `steel_strike_20` |
 | Steel Clawed Pounce | Strike | Strike doing +3 Energy. You may discard the top card of your Life Deck to add 3 Energy of damage. | Raw Strikes |  | `steel_strike_22` |
 | Steel Horn Gore | Strike | Strike. Hit: Your opponent discards up to 2 Non-Combat cards and Allies in play of your choice. | Raw Strikes |  | `steel_strike_11` |
@@ -142,8 +142,8 @@ Masteries:
 | Steel Dragonscale Mantle | Art | Draconic only. Stops an Art. Stops all Arts performed against you for the remainder of Combat. | Raw Strikes |  | `steel_art_06` |
 | Steel Raised Scales | Art | Stops a Strike or an Art. Raise your Fervor 1. Search your Life Deck for a "Steel Kindred Standoff" card and put it into your hand. Remove from the game after use. | Raw Strikes |  | `steel_art_01` |
 | Steel Searing Breath | Art | Focused Art dealing 3 wounds. Hit: Draw a card. | Raw Strikes |  | `steel_art_04` |
-| Steel Kindred Standoff | Combat | End Combat. For the rest of the turn, you keep your hand through the Discard step. Remove from the game after use. | Raw Strikes |  | `steel_combat_01` |
-| Steel Bared Fangs | Non-Combat | Your duelist loses 4 Energy. Your attacks do +3 wounds this Combat | Raw Strikes | new |  |
+| Steel Kindred Standoff | Combat | End Combat. The turn ends. Remove from the game after use. | Raw Strikes |  | `steel_combat_01` |
+| Steel Bared Fangs | Non-Combat | Use in Combat: Lose 4 Energy. For the remainder of Combat, your attacks do +3 wounds. | Raw Strikes |  | `steel_noncombat_02` |
 | Steel Clawed Hands Drill | Drill | Your Strikes do +2 Energy. | Raw Strikes |  | `steel_drill_01` |
 
 ## Tide (water): 50 cards
@@ -190,7 +190,7 @@ Masteries:
 | Tide Surge | Art | Art dealing 5 wounds. Stops a Strike. | Guard |  | `tide_art_02` |
 | Tide Parting Waters | Combat | Endurance X, X = your Fervor. Stops a Strike or an Art. Removed after use, or discarded at Aspect 3+ | Guard | new |  |
 | Tide Seawall Drill | Drill | Defense Shield: stops the first unstopped Strike each Combat | Guard | new |  |
-| Tide Dredge | Strike | Endurance 2. Strike doing +5 Energy. Look at the top 5 cards of your Life Deck. You may put a Non-Combat card from among them into play. Put the rest back in any order. Remove from the game after use. | Digging |  | `tide_strike_07` |
+| Tide Dredge | Strike | Endurance 2. Strike doing +5 Energy. Look at the top 5 cards of your Life Deck. You may put a Non-Combat card from among them into play. Put the rest on the bottom of your Life Deck in any order. Remove from the game after use. | Digging |  | `tide_strike_07` |
 | Tide Depths | Art | Art dealing 3 wounds. Search your Life Deck for a card and put it into your hand. Remove from the game after use. | Digging |  | `tide_art_06` |
 | Tide High Water | Art | Art dealing 5 wounds. Raise your Fervor 1. Hit: Search your Life Deck for a Grounds card and put it into play. | Digging |  | `tide_art_07` |
 | Tide Returning Tide | Combat | Their Fervor -2. Put your top 3 discards under your deck | Digging | new |  |
@@ -432,7 +432,7 @@ Mastery: **Freestyle Discipline Mastery** (`freestyle_mastery_01`): When enterin
 | Marked Demise | Art | Marked only. Art. You may reduce the wounds this attack deals by any amount, to a minimum of 0, and remove one of your opponent's Drills in play for every wound given up. Empower 2. Limit 2 per deck. | Board removal, Other |  | `freestyle_art_11` |
 | Riftcry | Art | Discard the Grounds in play. If Bram Ashmark is your duelist, raise your Fervor 1. | Board removal, Fervor, Other |  | `freestyle_art_09` |
 | Dismissal | Combat | All Allies in play are removed from the game. Remove from the game after use. Limit 2 per deck. | Board removal, Allies, Other |  | `freestyle_combat_17` |
-| Spent to the Last | Combat | Your duelist must have 5 Energy to use this. Discard all Non-Combat cards and Allies in play. Set your Energy to 0. Raise your Fervor 1. Limit 1 per deck. | Board removal, Allies, Fervor, Other |  | `freestyle_combat_20` |
+| Spent to the Last | Combat | Your duelist must have 5 Energy to use this. Discard all Non-Combat cards and Allies in play. Set your duelist's Energy to 0. Raise your Fervor 1. Limit 1 per deck. | Board removal, Allies, Fervor, Other |  | `freestyle_combat_20` |
 | An Open Challenge | Non-Combat | Use during your opponent's Declare step: Discard a card from your hand. Your opponent must declare Combat this turn. Begins the game in play. Remove from the game after use. Limit 1 per deck. | Board removal, Other |  | `freestyle_noncombat_09` |
 | Defacement | Non-Combat | Use in Combat: Your opponent removes a Seal in play of your choice from the game. Remove from the game after use. Limit 1 per deck. | Board removal, Seals, Other |  | `freestyle_noncombat_10` |
 | Kin's Rescue | Non-Combat | Use in Combat: For the remainder of Combat, all damage from attacks against you is prevented. If Marble Seal 7 is in play, discard this card after use instead. Remove from the game after use. Limit 1 per deck. | Board removal, Seals, Other |  | `freestyle_noncombat_16` |
@@ -444,7 +444,7 @@ Mastery: **Freestyle Discipline Mastery** (`freestyle_mastery_01`): When enterin
 | Counterplay Drill | Drill | When placed, name a card. Neither player may play or use it while this is in play. Limit 2 per deck. | Board removal, Other |  | `freestyle_drill_04` |
 | Lone Blade Drill | Drill | Your Strikes do +5 Energy. Discard this Drill if you have any other Non-Combat card in play. | Board removal, Other |  | `freestyle_drill_03` |
 | Second Wind | Strike | Stops a Strike. Raise your duelist's Energy to full. Shuffle 3 cards from the bottom of your discard pile into your Life Deck. | Recursion, Stops, Other |  | `freestyle_strike_06` |
-| Last Gasp | Combat | Set your Energy to 0. Remove all of your discard pile from the game. Your opponent takes 5 wounds. Remove from the game after use. Limit 1 per deck. | Recursion, Other |  | `freestyle_combat_09` |
+| Last Gasp | Combat | Set your duelist's Energy to 0. Remove all of your discard pile from the game. Your opponent takes 5 wounds. Remove from the game after use. Limit 1 per deck. | Recursion, Other |  | `freestyle_combat_09` |
 | Parley | Combat | End Combat. Place the bottom card of your discard pile at the bottom of your Life Deck. Remove from the game after use. | Recursion, Other |  | `freestyle_combat_18` |
 | Foresight | Non-Combat | When entering Combat, search your discard pile for a Strike, Art, or Combat card and put it into your hand. | Recursion, Other |  | `freestyle_noncombat_04` |
 | Provocation | Non-Combat | Raise your Fervor 2. Choose up to 2 cards from your discard pile and place them on the bottom of your Life Deck. Remove from the game after use. | Recursion, Fervor, Other |  | `freestyle_noncombat_07` |

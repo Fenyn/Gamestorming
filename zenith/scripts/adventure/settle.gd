@@ -39,12 +39,17 @@ var _busy: bool = false
 
 
 func _ready() -> void:
-	theme = ZenithTheme.get_theme()
+	theme = SanctumUI.theme()
 	_reduced_motion = AdventureDev.reduced_motion()
 	_dev_setup()
 	if Session.run == null:
 		Session.go_to_adventure()
 		return
+	# The run's end still wears the run's school colour, as on the map.
+	var run_deck: DeckList = Session.run.deck()
+	MapArt.tint_for_school(run_deck.style if run_deck != null else "")
+	theme = SanctumUI.themed(MapArt.tint)
+	SanctumUI.dress(self, $Margin/Column/Header/TitleRow/Title as Label)
 	continue_button.pressed.connect(_on_continue)
 	inspect.gui_input.connect(_on_inspect_input)
 	inspect.visible = false

@@ -35,6 +35,7 @@ var stopped_last_phase: bool = false   # ...and in the one before it, which some
 var skip_next_attack_phase: bool = false
 var worst_wound_combat: int = 0        # most life cards this player lost to one attack this Combat
 var entering_combat_done: bool = false # their "use when entering Combat" window is closed
+var endurance_uses: int = 0            # Endurance this player has used, all game; floats mark it
 # Cross-turn flags
 var seal_victory_pending: bool = false
 var no_ascension_win: bool = false          # a card effect forbade the Ascension win for the game
@@ -80,6 +81,7 @@ func copy(cards: Dictionary) -> PlayerState:
 	p.skip_next_attack_phase = skip_next_attack_phase
 	p.worst_wound_combat = worst_wound_combat
 	p.entering_combat_done = entering_combat_done
+	p.endurance_uses = endurance_uses
 	p.seal_victory_pending = seal_victory_pending
 	p.no_ascension_win = no_ascension_win
 	p.relic_uses = relic_uses
@@ -141,7 +143,8 @@ func seals_of_set(set_name: String) -> int:
 ## School word of the styled Drills in play, or "" if none.
 func drill_school() -> String:
 	for d in drills():
-		if d.def.school != "":
+		# "This card does not count towards or against the Styled Drills you can have in play."
+		if d.def.school != "" and not bool(d.def.raw.get("drill_lock_exempt", false)):
 			return d.def.school
 	return ""
 

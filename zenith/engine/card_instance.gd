@@ -21,6 +21,7 @@ var shield_used_combat: int = -1
 var power_uses_combat: int = 0    # how many times the Power fired this Combat (for uses > 1)
 var remain: int = 0               # uses left while sitting in play as a Remain card
 var remain_combat: int = -1       # the Combat the Remain card belongs to
+var attacked_combat: int = -1     # the Combat this card last performed an attack in
 var cards_under: Array[CardInstance] = []
 var attached_to: CardInstance = null
 var named_card: String = ""       # for "name a card" drills
@@ -61,6 +62,7 @@ func copy_into(c: CardInstance) -> void:
 	c.power_uses_combat = power_uses_combat
 	c.remain = remain
 	c.remain_combat = remain_combat
+	c.attacked_combat = attacked_combat
 	c.cards_under = cards_under
 	c.attached_to = attached_to
 	c.named_card = named_card

@@ -21,9 +21,10 @@ from cardlib import (add, strike, art, block, combat, drill,
 # Every attack reads the Fervor as it is worked out, so the Drill grows with the climb.
 drill("pyre_drill_01", "Pyre Rising Heat Drill", "pyre", limit_per_deck=1,
       modifiers=[{"scope": "own", "kind": "any", "stages": 1, "per_fervor": True}])
-# Endurance X on a life card is the owner's Fervor when the card is turned over. The printed rider
-# that makes Fervor lines secondary effects is dropped.
-strike("pyre_strike_22", "Pyre Blazing Hide", "pyre", atk={"stages": 3}, endurance_from="fervor")
+# Endurance X on a life card is the owner's Fervor when the card is turned over. For the rest of
+# Combat, "if successful" lines that raise the user's Fervor or lower the opponent's are secondary.
+strike("pyre_strike_22", "Pyre Blazing Hide", "pyre", atk={"stages": 3}, endurance_from="fervor",
+       effects=[FLOAT("fervor_hits_secondary")])
 block("pyre_strike_23", "Pyre Choking Smoke", "art", "strike", "pyre", endurance_from="fervor",
       effects=[OPP_ACC(-1),
                WHEN(E("remove_discard", "opponent", amount=10, **{"from": "bottom"}), opponent_fervor_max=1)])
@@ -42,7 +43,8 @@ drill("pyre_drill_05", "Pyre Flame Screen Drill", "pyre", shield="art")
 drill("pyre_drill_06", "Pyre Hearthstone Drill", "pyre",
       keeps_drills_on_advance={"self_when": {"opponent_fervor": 0}})
 drill("pyre_drill_07", "Pyre Kiln Drill", "pyre", modifiers=[{"scope": "own", "kind": "art", "life": 2}])
-drill("pyre_drill_08", "Pyre Smoldering Drill", "pyre",
+# Printed outside the Styled Drill count, so it neither sets the one-school lock nor is kept out by it.
+drill("pyre_drill_08", "Pyre Smoldering Drill", "pyre", drill_lock_exempt=True,
       modifiers=[{"scope": "own", "kind": "any", "stages": 2}],
       effects=[{"trigger": "turn_start", "op": "remove_discard", "who": "opponent", "amount": 3, "from": "bottom"}])
 strike("pyre_strike_25", "Pyre Laying Fire", "pyre", atk={"stages": 3}, endurance=2,
@@ -55,20 +57,22 @@ strike("pyre_strike_24", "Pyre Bonfire", "pyre", atk={}, empower=4, remove_after
 # --- Ash and the board ----------------------------------------------------
 strike("pyre_strike_26", "Pyre Cremation", "pyre", atk={},
        effects=[IFS(E("remove_discard", "opponent", all=True))])
-# Both sides lose their Allies and Non-Combat cards; Seals are never Non-Combat cards here.
+# The duelist pays 5 as the card is used, whoever holds Combat. Both sides lose their Allies and
+# Non-Combat cards (Drills among them); Seals and Grounds are not Non-Combat cards.
 combat("pyre_combat_02", "Pyre Conflagration",
        [DISCARD_IN_PLAY("non_combat_or_ally", all=True),
         DISCARD_IN_PLAY("non_combat_or_ally", who="self", all=True),
         E("set_energy", amount=0, target="duelist"), ACC(1)],
-       school="pyre", only={"energy_min": 5}, limit_per_deck=1)
+       school="pyre", only={"duelist_pays": 5}, limit_per_deck=1)
 
 # --- Arts and Art answers -------------------------------------------------
 art("pyre_art_05", "Pyre Burned Through", "pyre", atk={"printed_life": 5},
     effects=[FLOAT("no_endurance", who="opponent", school="pyre"), IFS(ACC(2))])
 art("pyre_art_06", "Pyre Flare Volley", "pyre", atk={"printed_life": 2, "pay_hand": {"life": 3}},
     endurance=2, remain=2, remove_after_use=True)
+# The five are the user's choice from the pile, and not optional when there are five.
 art("pyre_art_07", "Pyre Phoenix Flame", "pyre", atk={"printed_life": 5}, remove_after_use=True,
-    effects=[IFS(E("shuffle_discard", amount=5, school="pyre"))])
+    effects=[IFS(SEARCH(source="discard", school="pyre", amount=5, to="deck_shuffle", must=True))])
 art("pyre_art_08", "Pyre Struck Spark", "pyre", atk={"printed_life": 3, "cost_stages": 1}, effects=[ACC(1)])
 art("pyre_art_09", "Pyre Sudden Flare", "pyre", atk={"focused": True, "printed_life": 3}, effects=[IFS(ACC(2))])
 # "6 wounds or lower their duelist an Aspect": the Aspect is taken in place of the damage, the way

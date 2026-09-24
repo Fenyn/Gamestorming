@@ -60,7 +60,7 @@ var _busy: bool = false
 
 
 func _ready() -> void:
-	theme = ZenithTheme.get_theme()
+	theme = SanctumUI.theme()
 	_reduced_motion = AdventureDev.reduced_motion()
 	_dev_setup()
 	if starter_id == "":
@@ -70,6 +70,10 @@ func _ready() -> void:
 	if _deck == null:
 		Session.go_to_adventure()
 		return
+	# The loadout is the first step of a run: it already wears the starter's school colour.
+	MapArt.tint_for_school(_deck.style)
+	theme = SanctumUI.themed(MapArt.tint)
+	SanctumUI.dress(self, $Margin/Column/TitleRow/Title as Label)
 	deck_list.card_selected.connect(_on_deck_card_picked)
 	reset_button.pressed.connect(_on_reset)
 	swap_button.pressed.connect(_on_swap)

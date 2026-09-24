@@ -18,6 +18,13 @@ var starter_duelist: Array[String] = []
 ## The Duelist's Aspect stack as it stands, one card id per tier. Each Aspect is its own card, so
 ## a run grows by gaining the next tier card, not by raising a number.
 var duelist_ids: Array[String] = []
+## The Duelist's personality cards the player owns above the starting stack. An Aspect grant only
+## ever offers one of these (design doc 8.6).
+var owned_aspects: Array[String] = []
+## A starting Relic and Reserve, from the character's deck abilities. "" and [] leave the starter's
+## own.
+var relic_id: String = ""
+var reserve: Array[String] = []
 var stage: int = 0
 var run_seed: int = 0
 ## The map node the run stands on, "" before the first step.
@@ -136,6 +143,9 @@ func deck() -> DeckList:
 		return null
 	d.cards = cards.duplicate()
 	d.set_duelist(duelist_ids)
+	if relic_id != "":
+		d.relic_id = relic_id
+		d.reserve = reserve.duplicate()
 	return d
 
 
@@ -153,9 +163,8 @@ func taken_bundles() -> Array[String]:
 	return out
 
 
-## Every personality card that could be the run's next Aspect: the same character, one tier up,
-## and legal for the deck's alignment. The later client pass offers this as a choice; `next_tier`
-## picks one for now.
+## Every owned personality card that could be the run's next Aspect: the same character, one tier
+## up, and legal for the deck's alignment.
 func next_tier_options(library: CardLibrary) -> Array[String]:
 	var out: Array[String] = []
 	if duelist_ids.is_empty():
@@ -165,9 +174,9 @@ func next_tier_options(library: CardLibrary) -> Array[String]:
 		return out
 	var d: DeckList = deck()
 	var alignment: String = d.alignment if d != null else ""
-	for id in library.all_ids():
-		var def: CardDef = library.defs[id]
-		if not def.is_personality() or def.character != top.character:
+	for id in owned_aspects:
+		var def: CardDef = library.defs.get(id)
+		if def == null or not def.is_personality() or def.character != top.character:
 			continue
 		if def.aspect != top.aspect + 1:
 			continue
@@ -216,10 +225,9 @@ static func _mix(a: int, b: int) -> int:
 	return (h & 0x3FFFFFFF) + 1
 
 
-## Bumped to 5 for the node map (2026-09-23). An older save is not migrated: `from_dict` refuses
-## it and the run is dropped, since a run in flight is not worth carrying across (user,
-## 2026-09-23).
-const SAVE_VERSION: int = 5
+## An older save is not migrated: `from_dict` refuses it and the run is dropped, since a run in
+## flight is not worth carrying across (user, 2026-09-23).
+const SAVE_VERSION: int = 6
 
 
 func to_dict() -> Dictionary:
@@ -229,6 +237,9 @@ func to_dict() -> Dictionary:
 		"run_id": run_id,
 		"cards": cards.duplicate(),
 		"duelist": duelist_ids.duplicate(),
+		"owned_aspects": owned_aspects.duplicate(),
+		"relic": relic_id,
+		"reserve": reserve.duplicate(),
 		"starter_cards": starter_cards.duplicate(),
 		"starter_duelist": starter_duelist.duplicate(),
 		"stage": stage,
@@ -256,6 +267,11 @@ static func from_dict(d: Dictionary) -> AdventureRun:
 		run.cards.append(str(id))
 	for id in d.get("duelist", []):
 		run.duelist_ids.append(str(id))
+	for id in d.get("owned_aspects", []):
+		run.owned_aspects.append(str(id))
+	run.relic_id = str(d.get("relic", ""))
+	for id in d.get("reserve", []):
+		run.reserve.append(str(id))
 	run.stage = int(d.get("stage", 0))
 	run.run_seed = int(d.get("run_seed", 0))
 	run.node_id = str(d.get("node_id", ""))

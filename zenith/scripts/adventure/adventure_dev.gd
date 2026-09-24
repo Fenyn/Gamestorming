@@ -36,6 +36,7 @@ static func begin_run(starter_id: String) -> bool:
 	var map: AdventureMap = AdventureMap.generate(starter_id, DEV_SEED)
 	if run == null or map == null:
 		return false
+	AdventureProgress.prepare_run(run, Session.library, Session.collection, Session.unlocks)
 	Session.run = run
 	Session.map = map
 	return true
@@ -84,7 +85,9 @@ static func use_scratch_saves() -> void:
 	AdventureUpgrades.path_override = dir.path_join("upgrades.json")
 	AdventureSave.path_override = dir.path_join("run.json")
 	AdventureUnlocks.path_override = dir.path_join("unlocks.json")
+	AdventureProgress.path_override = dir.path_join("progress.json")
 	Session.unlocks = AdventureUnlocks.new()
+	Session.progress = AdventureProgress.new()
 	Session.wallet = AdventureWallet.new()
 	Session.collection = AdventureCollection.new()
 	Session.upgrades = AdventureUpgrades.new()
@@ -99,20 +102,13 @@ static func give_motes(amount: int) -> void:
 	Session.wallet.motes = maxi(0, int(flagged) if flagged != "" else amount)
 
 
-## `--dev-upgrades=<slots>,<tier>` presets the scratch upgrades for one starter outright, with no
-## Motes spent: a preset is not something the player bought.
+## `--dev-upgrades=<slots>` presets the scratch upgrades for one starter outright, with no Motes
+## spent: a preset is not something the player bought.
 static func preset_upgrades(starter_id: String) -> void:
 	var arg: String = flag("--dev-upgrades=")
-	if arg == "":
+	if arg == "" or arg.get_slice(",", 0) == "":
 		return
-	var parts: PackedStringArray = arg.split(",")
-	var row: Dictionary = {}
-	if parts.size() > 0 and parts[0] != "":
-		row["extra_slots"] = maxi(0, int(parts[0]))
-	if parts.size() > 1 and parts[1] != "":
-		row["aspect_tiers"] = maxi(0, int(parts[1]))
-	if not row.is_empty():
-		Session.upgrades.rows[starter_id] = row
+	Session.upgrades.rows[starter_id] = {"extra_slots": maxi(0, int(arg.get_slice(",", 0)))}
 
 
 ## Puts `each` copies of every id into the scratch collection, capped the way the collection caps

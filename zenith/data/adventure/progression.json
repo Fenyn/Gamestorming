@@ -1,0 +1,60 @@
+{
+	"_note": "School and personality XP, design doc sections 8.3 and 8.4. Every number is a first guess. `levels` are cumulative XP thresholds, level 1 at index 0; past the end each level costs `past_end_step` more. A level's reward runs once, the first time the level is reached.",
+	"xp": {
+		"main_duel": 10,
+		"main_boss": 25,
+		"main_run": 50,
+		"ally_in_play": 15,
+		"beaten_duel": 5,
+		"beaten_boss": 15,
+		"school_duel": 10,
+		"school_boss": 25,
+		"school_run": 50
+	},
+	"personality_levels": [0, 100, 250, 450, 700, 1000, 1350, 1750, 2200, 2700],
+	"school_levels": [0, 80, 200, 360, 560, 800, 1080, 1400, 1760, 2160],
+	"past_end_step": 450,
+	"_school_note": "Each school level adds `school_batch` cards of that school to the collection, one copy each, in pool order (cards printed at higher limits first, then by id). Once every card has had a copy the pool starts over, and copies past the collection cap dust into Motes. Levels in `mastery_levels` also add the school's next Mastery.",
+	"school_batch": 3,
+	"mastery_levels": [4, 8, 12, 16],
+	"_tracks_note": "Authored personality milestones, keyed by character. A level may give `cards` (into the collection), `starter` (opens that starter), and `abilities` (for every starter of that character: start_relic, start_reserve). A character with no track here gets two of their own signature cards per level, in id order.",
+	"tracks": {
+		"Sir Edric Rooke": {
+			"2": { "cards": ["signature_art_04", "signature_drill_05"] },
+			"3": { "abilities": ["start_relic", "start_reserve"] },
+			"4": { "cards": ["personality_33"] },
+			"5": { "cards": ["signature_combat_06", "signature_strike_06"], "starter": "pyre_ascent_start" },
+			"7": { "cards": ["personality_34"] }
+		},
+		"Gideon Mourne": {
+			"2": { "cards": ["signature_strike_03", "signature_art_07"] },
+			"3": { "abilities": ["start_relic", "start_reserve"] },
+			"4": { "cards": ["personality_62"] },
+			"5": { "cards": ["signature_noncombat_05", "signature_noncombat_08"] },
+			"6": { "cards": ["personality_48"] }
+		},
+		"Bram Ashmark": {
+			"2": { "cards": ["signature_strike_02", "signature_combat_02"] },
+			"3": { "starter": "pyre_attrition_start" },
+			"4": { "abilities": ["start_relic", "start_reserve"] },
+			"5": { "cards": ["personality_57"] },
+			"7": { "cards": ["personality_58"] }
+		},
+		"Emrys Rooke": {
+			"2": { "starter": "steel_heir_start" },
+			"3": { "cards": ["signature_strike_01", "signature_strike_09"] },
+			"4": { "cards": ["personality_37"] },
+			"5": { "abilities": ["start_relic", "start_reserve"] }
+		},
+		"Dame Alder Rooke": {
+			"2": { "cards": ["signature_combat_05"] },
+			"3": { "cards": ["personality_05"] },
+			"5": { "starter": "tide_companions_start" }
+		},
+		"Marrow": {
+			"2": { "cards": ["signature_combat_04", "signature_combat_09"] },
+			"3": { "starter": "shade_salvage_start" },
+			"4": { "cards": ["personality_28"] }
+		}
+	}
+}

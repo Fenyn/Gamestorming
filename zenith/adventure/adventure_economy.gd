@@ -150,10 +150,3 @@ static func slot_cost_total(n: int) -> int:
 	for i in range(1, n + 1):
 		sum += slot_cost(i)
 	return sum
-
-
-## What unlocking Aspect `tier` costs, 0 for a tier that is not for sale. Keyed by tier as a
-## string, because JSON has no integer keys.
-static func aspect_tier_cost(tier: int) -> int:
-	var costs: Dictionary = data().get("aspect_tier_costs", {})
-	return int(costs.get(str(tier), 0))

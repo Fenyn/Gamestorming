@@ -25,8 +25,6 @@ static var starter_id: String = ""
 @onready var motes_tile: StatTile = $Margin/Column/Upgrades/UpgradeRow/Motes
 @onready var slot_label: Label = $Margin/Column/Upgrades/UpgradeRow/SlotBox/SlotLabel
 @onready var buy_slot_button: Button = $Margin/Column/Upgrades/UpgradeRow/SlotBox/BuySlot
-@onready var aspect_label: Label = $Margin/Column/Upgrades/UpgradeRow/AspectBox/AspectLabel
-@onready var buy_aspect_button: Button = $Margin/Column/Upgrades/UpgradeRow/AspectBox/BuyAspect
 @onready var upgrade_status_label: Label = $Margin/Column/Upgrades/UpgradeRow/UpgradeStatus
 @onready var rung_row: HFlowContainer = $Margin/Column/Body/Left/RungRow
 @onready var deck_list: RunDeckList = $Margin/Column/Body/Left/DeckList
@@ -80,7 +78,6 @@ func _ready() -> void:
 	add_button.pressed.connect(_on_add)
 	add_aspect_button.pressed.connect(_on_add_aspect)
 	buy_slot_button.pressed.connect(_on_buy_slot)
-	buy_aspect_button.pressed.connect(_on_buy_aspect)
 	back_button.pressed.connect(_on_back)
 	begin_button.pressed.connect(_on_begin)
 	swap_status_label.text = ""
@@ -95,8 +92,8 @@ func _ready() -> void:
 
 # --- The upgrades strip -----------------------------------------------------
 
-## "Deck slots: 50 + 2 (buy next: 200 Motes)" and the Aspect tiers beside it, both with a Buy that
-## goes quiet when the wallet is short or the starter has bought everything there is.
+## "Deck slots: 50 + 2 of 32" with a Buy that goes quiet when the wallet is short or the starter
+## has bought every slot there is.
 func _refresh_upgrades() -> void:
 	motes_tile.set_stat("Motes", str(Session.wallet.motes), "", ZenithTheme.ACCENT)
 	var bought: int = Session.upgrades.slots(starter_id)
@@ -114,20 +111,6 @@ func _refresh_upgrades() -> void:
 		buy_slot_button.tooltip_text = "" if not buy_slot_button.disabled else "%d Motes short." % (
 			slot_cost - Session.wallet.motes)
 
-	var base_aspects: int = int(_deck.get_meta(AdventureLoadout.META_BASE_ASPECTS, _deck.duelist_ids.size()))
-	var unlocked: int = Session.upgrades.aspect_tier(starter_id, base_aspects)
-	var aspect_cost: int = Session.upgrades.next_aspect_cost(starter_id, base_aspects)
-	aspect_label.text = "Aspect tiers: 1-%d" % unlocked
-	if aspect_cost <= 0:
-		buy_aspect_button.text = "Aspect tiers maxed"
-		buy_aspect_button.disabled = true
-		buy_aspect_button.tooltip_text = "The stack is already at the highest Aspect a deck may run."
-	else:
-		buy_aspect_button.text = "Unlock tier %d: %d Motes" % [unlocked + 1, aspect_cost]
-		buy_aspect_button.disabled = not Session.wallet.can_afford(aspect_cost)
-		buy_aspect_button.tooltip_text = "" if not buy_aspect_button.disabled else "%d Motes short." % (
-			aspect_cost - Session.wallet.motes)
-
 
 func _on_buy_slot() -> void:
 	if _busy:
@@ -135,19 +118,6 @@ func _on_buy_slot() -> void:
 	upgrade_status_label.text = ""
 	if not Session.buy_slot(starter_id):
 		upgrade_status_label.text = "That slot could not be bought."
-		return
-	_refresh_left()
-	_refresh_upgrades()
-	await _refresh_swap_panel()
-	_refresh_footer()
-
-
-func _on_buy_aspect() -> void:
-	if _busy:
-		return
-	upgrade_status_label.text = ""
-	if not Session.buy_aspect_tier(starter_id):
-		upgrade_status_label.text = "That Aspect tier could not be unlocked."
 		return
 	_refresh_left()
 	_refresh_upgrades()
@@ -232,7 +202,7 @@ func _refresh_swap_panel() -> void:
 			_swap_ids = AdventureLoadout.swappable_add(_deck, Session.library, Session.collection, Session.upgrades)
 		"aspect":
 			swap_hint_label.text = "Collection Aspect cards that could go on top of the stack"
-			_swap_ids = AdventureLoadout.swappable_aspect(_deck, Session.library, Session.collection, Session.upgrades)
+			_swap_ids = AdventureLoadout.swappable_aspect(_deck, Session.library, Session.collection)
 		_:
 			swap_hint_label.text = ("Your whole collection. Pick a deck card or an Aspect tier to " +
 				"swap, or Add to fill an empty deck slot. Greyed cards do not fit this deck.")
@@ -321,8 +291,8 @@ func _usable(id: String) -> bool:
 	if (AdventureLoadout.add_card(_deck, id, Session.library, Session.collection,
 			Session.upgrades)["problems"] as Array[String]).is_empty():
 		return true
-	if (AdventureLoadout.add_aspect(_deck, id, Session.library, Session.collection,
-			Session.upgrades)["problems"] as Array[String]).is_empty():
+	if (AdventureLoadout.add_aspect(_deck, id, Session.library,
+			Session.collection)["problems"] as Array[String]).is_empty():
 		return true
 	for tier in range(1, _deck.duelist_ids.size() + 1):
 		if (AdventureLoadout.swap_rung(_deck, tier, id, Session.library,
@@ -367,15 +337,16 @@ func _refresh_actions() -> void:
 		add_button.disabled = room <= 0
 	add_button.tooltip_text = "" if room > 0 else "Every deck slot is filled. Buy one to add a card."
 
-	var aspect_room: bool = _deck.duelist_ids.size() < AdventureLoadout.aspect_cap(_deck, Session.upgrades)
+	var aspect_room: bool = _deck.duelist_ids.size() < AdventureLoadout.aspect_cap(_deck)
+	var owned_next: bool = aspect_room and not AdventureLoadout.swappable_aspect(
+		_deck, Session.library, Session.collection).is_empty()
 	if _mode == "aspect":
 		add_aspect_button.text = "Add Aspect card"
 		add_aspect_button.disabled = _selected_in_id == ""
 	else:
 		add_aspect_button.text = "Add Aspect"
-		add_aspect_button.disabled = not aspect_room or AdventureLoadout.swappable_aspect(
-			_deck, Session.library, Session.collection, Session.upgrades).is_empty()
-	add_aspect_button.tooltip_text = "" if aspect_room else "Unlock the next Aspect tier to add one."
+		add_aspect_button.disabled = not owned_next
+	add_aspect_button.tooltip_text = "" if owned_next else "You own no Aspect card for the next tier."
 
 
 func _on_swap() -> void:
@@ -424,7 +395,7 @@ func _on_add_aspect() -> void:
 	if _selected_in_id == "":
 		return
 	await _apply(AdventureLoadout.add_aspect(_deck, _selected_in_id, Session.library,
-		Session.collection, Session.upgrades), "That Aspect card cannot be added.")
+		Session.collection), "That Aspect card cannot be added.")
 
 
 ## Takes the deck a swap or an add handed back, or shows why it was refused and changes nothing.
@@ -551,7 +522,7 @@ func _dev_after_layout() -> void:
 		_take(AdventureLoadout.add_card(_deck, add_arg, Session.library, Session.collection, Session.upgrades))
 	var add_aspect_arg: String = AdventureDev.flag("--dev-add-aspect=")
 	if add_aspect_arg != "":
-		_take(AdventureLoadout.add_aspect(_deck, add_aspect_arg, Session.library, Session.collection, Session.upgrades))
+		_take(AdventureLoadout.add_aspect(_deck, add_aspect_arg, Session.library, Session.collection))
 	var pick_card_arg: String = AdventureDev.flag("--dev-pick-card=")
 	var pick_rung_arg: String = AdventureDev.flag("--dev-pick-rung=")
 	if pick_card_arg != "":

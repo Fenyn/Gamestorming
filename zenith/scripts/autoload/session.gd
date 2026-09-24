@@ -16,6 +16,7 @@ const ADVENTURE_REWARD_SCENE: String = "res://scenes/adventure/reward.tscn"
 const ADVENTURE_SETTLE_SCENE: String = "res://scenes/adventure/settle.tscn"
 const ADVENTURE_VENDOR_SCENE: String = "res://scenes/adventure/vendor.tscn"
 const ADVENTURE_LOADOUT_SCENE: String = "res://scenes/adventure/loadout.tscn"
+const ADVENTURE_JOURNAL_SCENE: String = "res://scenes/adventure/journal.tscn"
 
 var library: CardLibrary = CardLibrary.new()
 var strike_table: StrikeTable = null
@@ -36,14 +37,17 @@ var map: AdventureMap = null        # the run's node map, rolled again from its 
 ## whichever call spends or earns.
 var wallet: AdventureWallet = AdventureWallet.new()
 var collection: AdventureCollection = AdventureCollection.new()
-## Deck slots and Aspect tiers bought per starter. Outlives a run like the other two.
+## Deck slots bought per starter. Outlives a run like the other two.
 var upgrades: AdventureUpgrades = AdventureUpgrades.new()
-## Open starters and quest progress. Outlives a run.
+## Open starters, achievement progress and deck abilities. Outlives a run.
 var unlocks: AdventureUnlocks = AdventureUnlocks.new()
-## Starters the last recorded duel opened, and the card that joined the run; the next screen that
-## shows them clears them.
-var unlock_report: Array[String] = []
-var joined_report: String = ""
+## School and personality XP. Outlives a run.
+var progress: AdventureProgress = AdventureProgress.new()
+## What the last recorded duel gave (a join, levels, achievements), one line each; the next screen
+## that shows them clears them.
+var story_lines: Array[String] = []
+## The referee of the duel in progress, read once it ends for what the achievements track.
+var last_referee: Referee = null
 ## What the load-time trim dissolved, in AdventureCollection's report shape. The first screen that
 ## can show it calls `take_dissolve_report()`, which hands it over and clears it, so the line is
 ## shown once and not on every screen after.
@@ -58,6 +62,7 @@ func _ready() -> void:
 	collection = AdventureCollection.load_collection()
 	upgrades = AdventureUpgrades.load_upgrades()
 	unlocks = AdventureUnlocks.load_unlocks()
+	progress = AdventureProgress.load_progress()
 	# A collection saved under the old caps can hold rows the new ones do not. Trimming pays the
 	# overflow back as Motes rather than leaving copies that nothing can use.
 	var trimmed: Dictionary = collection.trim_to_cap(library, wallet)
@@ -120,6 +125,7 @@ func build_referee() -> Referee:
 		var guest: String = str(map.duel_for(run.node_id).get("guest", "")) if map != null else ""
 		if guest != "":
 			referee.engine.set_guest_ally(0, guest)
+	last_referee = referee
 	return referee
 
 
@@ -199,6 +205,7 @@ func stage_lives() -> Array[int]:
 ## loadout screen's swaps; null starts from the printed starter.
 func start_run(starter_id: String, loadout_deck: DeckList = null) -> void:
 	run = AdventureLoadout.begin_from(starter_id, loadout_deck, randi_range(1, 2147483646))
+	AdventureProgress.prepare_run(run, library, collection, unlocks)
 	map = AdventureMap.generate(starter_id, run.run_seed)
 	AdventureSave.store(run)
 
@@ -267,10 +274,13 @@ func begin_stage() -> void:
 ## The save is kept until the settlement closes, so quitting on that screen does not lose it.
 func record_stage(won: bool) -> void:
 	if won:
-		joined_report = AdventureStory.apply_boss_win(run, map, library)
-		var opened: Array[String] = AdventureQuests.apply(unlocks, AdventureQuests.events_for_win(run, map))
-		unlock_report.append_array(opened)
+		var engine: DuelEngine = last_referee.engine if last_referee != null else null
+		story_lines.append_array(AdventureProgress.record_win(run, map, engine, library, collection,
+			unlocks, progress, wallet))
 		unlocks.save()
+		progress.save()
+		collection.save()
+		wallet.save()
 	var payout: int = AdventureRewards.finish_stage(run, map, library, won)
 	if payout > 0:
 		wallet.earn(payout, AdventureWallet.REASON_STAGE, run.run_id, run.stage)
@@ -393,35 +403,21 @@ func dissolve_card(id: String) -> int:
 	return paid
 
 
+## What the last won duel gave, one line each, handed over once. Empty when it gave nothing.
+func take_story_lines() -> Array[String]:
+	var out: Array[String] = story_lines.duplicate()
+	story_lines.clear()
+	return out
+
+
 ## The pending auto-dissolve line, handed over once. "" when there is nothing to show.
-## "Emrys Rooke joins your deck. Unlocked: Blade Legacy." for the screen after a won duel, then
-## cleared. "" when the duel gave neither.
-func take_story_report() -> String:
-	var lines: PackedStringArray = PackedStringArray()
-	if joined_report != "" and library.has(joined_report):
-		lines.append("%s joins your deck." % library.get_def(joined_report).title)
-	for id in unlock_report:
-		var deck: DeckList = DeckList.resolve(id)
-		lines.append("Unlocked: %s." % (deck.name if deck != null else id))
-	joined_report = ""
-	unlock_report.clear()
-	return " ".join(lines)
-
-
 func take_dissolve_report() -> String:
 	var line: String = AdventureCollection.report_line(dissolve_report)
 	dissolve_report = {}
 	return line
 
 
-# --- Deck slots and Aspect tiers --------------------------------------------
-
-## The Aspect stack height `starter_id` prints, which is the floor its unlocked tier is measured
-## against. 0 when the starter cannot be resolved.
-func starter_aspects(starter_id: String) -> int:
-	var deck: DeckList = DeckList.resolve(starter_id)
-	return deck.duelist_ids.size() if deck != null else 0
-
+# --- Deck slots -------------------------------------------------------------
 
 ## Buys one more deck slot for `starter_id` and saves. False when it is maxed out or the wallet is
 ## short, and nothing moves.
@@ -433,18 +429,12 @@ func buy_slot(starter_id: String) -> bool:
 	return true
 
 
-## Unlocks the next Aspect tier for `starter_id` and saves. False when there is no tier left to buy
-## or the wallet is short, and nothing moves.
-func buy_aspect_tier(starter_id: String) -> bool:
-	if not upgrades.buy_aspect_tier(starter_id, starter_aspects(starter_id), wallet):
-		return false
-	wallet.save()
-	upgrades.save()
-	return true
-
-
 func go_to_vendor() -> void:
 	get_tree().change_scene_to_file(_scene_or_start(ADVENTURE_VENDOR_SCENE))
+
+
+func go_to_journal() -> void:
+	get_tree().change_scene_to_file(_scene_or_start(ADVENTURE_JOURNAL_SCENE))
 
 
 func go_to_loadout() -> void:

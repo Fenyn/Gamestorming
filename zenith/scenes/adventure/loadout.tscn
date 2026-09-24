@@ -86,21 +86,6 @@ layout_mode = 2
 disabled = true
 text = "Buy deck slot"
 
-[node name="AspectBox" type="VBoxContainer" parent="Margin/Column/Upgrades/UpgradeRow"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/separation = 4
-
-[node name="AspectLabel" type="Label" parent="Margin/Column/Upgrades/UpgradeRow/AspectBox"]
-layout_mode = 2
-text = "Aspect tiers"
-
-[node name="BuyAspect" type="Button" parent="Margin/Column/Upgrades/UpgradeRow/AspectBox"]
-custom_minimum_size = Vector2(200, 36)
-layout_mode = 2
-disabled = true
-text = "Unlock Aspect tier"
-
 [node name="UpgradeStatus" type="Label" parent="Margin/Column/Upgrades/UpgradeRow"]
 layout_mode = 2
 size_flags_horizontal = 3

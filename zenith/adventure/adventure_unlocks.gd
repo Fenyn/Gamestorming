@@ -1,19 +1,26 @@
 class_name AdventureUnlocks
 extends RefCounted
-## Which starters the player can begin a run with, and how far each quest has got. Kept for good in
-## user://adventure/unlocks.json. The starters open on a new save come from AdventureStory; quests
-## open the rest (AdventureQuests).
+## What the player has opened for good, apart from cards: the starters a run can begin with, each
+## achievement's finished steps, and the deck abilities each character has earned. Kept in
+## user://adventure/unlocks.json. The starters open on a new save come from AdventureStory.
 
 const PATH: String = "user://adventure/unlocks.json"
-const SAVE_VERSION: int = 1
+const SAVE_VERSION: int = 2
+
+const ABILITY_RELIC: String = "start_relic"
+const ABILITY_RESERVE: String = "start_reserve"
 
 ## Tests point this somewhere else so nothing lands on the player's save.
 static var path_override: String = ""
 
-## Starter ids opened by quests, on top of the storylines' open list.
+## Starter ids opened on top of the storylines' open list.
 var starters: Array[String] = []
-## quest id -> steps done.
-var quest_steps: Dictionary = {}
+## achievement id -> the indices of its finished steps.
+var steps: Dictionary = {}
+## Achievement ids completed, in the order they completed.
+var completed: Array[String] = []
+## character -> abilities earned, for every starter of that character.
+var abilities: Dictionary = {}
 
 
 static func path() -> String:
@@ -24,8 +31,8 @@ func is_open(starter_id: String) -> bool:
 	return starters.has(starter_id) or AdventureStory.open_starters().has(starter_id)
 
 
-## The starters a run can begin with, sorted: open ones first in the storylines' order, then the
-## unlocked ones by id. Only ids that have a starter file count.
+## The starters a run can begin with: open ones first in the storylines' order, then the unlocked
+## ones by id. Only ids that have a starter file count.
 func available_starters() -> Array[String]:
 	var files: Array[String] = AdventureDecks.playable_starters()
 	var out: Array[String] = []
@@ -49,12 +56,39 @@ func unlock(starter_id: String) -> bool:
 	return true
 
 
-func steps_done(quest_id: String) -> int:
-	return int(quest_steps.get(quest_id, 0))
+func steps_done(achievement_id: String) -> Array[int]:
+	var out: Array[int] = []
+	for i in steps.get(achievement_id, []):
+		out.append(int(i))
+	return out
+
+
+func is_complete(achievement_id: String) -> bool:
+	return completed.has(achievement_id)
+
+
+func has_ability(character: String, ability: String) -> bool:
+	return (abilities.get(character, []) as Array).has(ability)
+
+
+## Grants an ability. False when the character already had it.
+func grant_ability(character: String, ability: String) -> bool:
+	var held: Array = abilities.get(character, [])
+	if held.has(ability):
+		return false
+	held.append(ability)
+	abilities[character] = held
+	return true
 
 
 func to_dict() -> Dictionary:
-	return {"version": SAVE_VERSION, "starters": starters.duplicate(), "quest_steps": quest_steps.duplicate()}
+	return {
+		"version": SAVE_VERSION,
+		"starters": starters.duplicate(),
+		"steps": steps.duplicate(true),
+		"completed": completed.duplicate(),
+		"abilities": abilities.duplicate(true),
+	}
 
 
 static func from_dict(d: Dictionary) -> AdventureUnlocks:
@@ -62,9 +96,20 @@ static func from_dict(d: Dictionary) -> AdventureUnlocks:
 	for id in d.get("starters", []):
 		if not u.starters.has(str(id)):
 			u.starters.append(str(id))
-	var steps: Dictionary = d.get("quest_steps", {})
-	for id in steps.keys():
-		u.quest_steps[str(id)] = maxi(0, int(steps[id]))
+	var saved_steps: Dictionary = d.get("steps", {})
+	for id in saved_steps.keys():
+		var done: Array = []
+		for i in saved_steps[id]:
+			done.append(int(i))
+		u.steps[str(id)] = done
+	for id in d.get("completed", []):
+		u.completed.append(str(id))
+	var saved_abilities: Dictionary = d.get("abilities", {})
+	for character in saved_abilities.keys():
+		var held: Array = []
+		for a in saved_abilities[character]:
+			held.append(str(a))
+		u.abilities[str(character)] = held
 	return u
 
 

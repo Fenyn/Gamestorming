@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=27 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_view.gd" id="1_view"]
 [ext_resource type="Script" path="res://scripts/duel/table_camera.gd" id="5_camera"]
@@ -12,6 +12,8 @@
 [ext_resource type="Texture2D" path="res://assets/courtyard/textures/playmat_edge.png" id="12_playmat_edge"]
 [ext_resource type="Script" path="res://scripts/duel/arena_atmosphere.gd" id="10_atmosphere"]
 [ext_resource type="Script" path="res://scripts/duel/duel_presence.gd" id="11_presence"]
+[ext_resource type="Shader" path="res://scripts/duel/playmat.gdshader" id="13_playmat_shader"]
+[ext_resource type="Shader" path="res://scripts/duel/arena_veil.gdshader" id="14_veil_shader"]
 
 [sub_resource type="Environment" id="Environment_duel"]
 background_mode = 2
@@ -33,24 +35,19 @@ albedo_color = Color(0.085, 0.13, 0.16, 1)
 roughness = 0.9
 
 [sub_resource type="PlaneMesh" id="Plane_surface"]
-size = Vector2(9.2, 6.4)
+size = Vector2(10.4, 7.4)
 
-[sub_resource type="StandardMaterial3D" id="Material_surface"]
-albedo_color = Color(0.8, 0.8, 0.82, 1)
-albedo_texture = ExtResource("9_playmat")
-roughness = 1.0
-uv1_scale = Vector3(3, 2, 1)
-texture_filter = 5
+[sub_resource type="ShaderMaterial" id="Material_surface"]
+shader = ExtResource("13_playmat_shader")
+shader_parameter/fabric = ExtResource("9_playmat")
+shader_parameter/rim_fabric = ExtResource("12_playmat_edge")
 
-[sub_resource type="PlaneMesh" id="Plane_mat_edge"]
-size = Vector2(9.5, 6.7)
+[sub_resource type="PlaneMesh" id="Plane_veil"]
+size = Vector2(40, 40)
 
-[sub_resource type="StandardMaterial3D" id="Material_mat_edge"]
-albedo_color = Color(0.85, 0.8, 0.8, 1)
-albedo_texture = ExtResource("12_playmat_edge")
-roughness = 1.0
-uv1_scale = Vector3(3, 2, 1)
-texture_filter = 5
+[sub_resource type="ShaderMaterial" id="Material_veil"]
+render_priority = 5
+shader = ExtResource("14_veil_shader")
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.1, 40)
@@ -104,12 +101,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 mesh = SubResource("BoxMesh_table")
 surface_material_override/0 = SubResource("StandardMaterial3D_table")
 
-[node name="MatEdge" type="MeshInstance3D" parent="Table"]
-position = Vector3(0, 0.101, 0)
-cast_shadow = 0
-mesh = SubResource("Plane_mat_edge")
-material_override = SubResource("Material_mat_edge")
-
 [node name="Inlay" type="MeshInstance3D" parent="Table"]
 position = Vector3(0, 0.102, 0)
 cast_shadow = 0
@@ -119,8 +110,8 @@ material_override = SubResource("Material_surface")
 [node name="CameraRig" type="Node3D" parent="."]
 
 [node name="Camera" type="Camera3D" parent="CameraRig"]
-transform = Transform3D(1, 0, 0, 0, 0.681998, 0.731354, 0, -0.731354, 0.681998, 0, 6.4, 5.6)
-fov = 54.0
+transform = Transform3D(1, 0, 0, 0, 0.615661, 0.788011, 0, -0.788011, 0.615661, 0, 7.01, 5.98)
+fov = 50.0
 script = ExtResource("5_camera")
 
 [node name="Hand3D" parent="CameraRig/Camera" instance=ExtResource("7_hand")]
@@ -131,6 +122,7 @@ script = ExtResource("5_camera")
 
 [node name="FocusCard" type="Sprite3D" parent="CameraRig/Camera"]
 visible = false
+render_priority = 20
 shaded = false
 no_depth_test = true
 texture_filter = 3
@@ -141,40 +133,47 @@ script = ExtResource("2_layout")
 [node name="P0" type="Node3D" parent="Zones"]
 
 [node name="Duelist" type="Marker3D" parent="Zones/P0"]
-position = Vector3(0, 0, 1.15)
+position = Vector3(0, 0, 1.65)
 
 [node name="AllyStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-2.86, 0, 1.55)
+position = Vector3(-2.2, 0, 2.15)
 
 [node name="SealStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(2.6, 0, 1.55)
+position = Vector3(1.35, 0, 2.22)
 
 [node name="RemainStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(2.45, 0, 2.4)
+position = Vector3(-3.35, 0, 3.18)
 
 [node name="LifeDeck" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-1.4, 0, 0.8)
+position = Vector3(-1.35, 0, 1.05)
 
 [node name="Discard" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-1.4, 0, 1.61)
+position = Vector3(-1.35, 0, 2.1)
 
 [node name="Removed" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-4.0, 0, 2.6)
+position = Vector3(-2.75, 0, 3.25)
 
 [node name="Mastery" type="Marker3D" parent="Zones/P0"]
-position = Vector3(1.45, 0, 1.15)
+position = Vector3(1.45, 0, 1.12)
 
 [node name="DrillStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-2.65, 0, 0.5)
+position = Vector3(-2.2, 0, 1.05)
 
 [node name="Resolving" type="Marker3D" parent="Zones/P0"]
-position = Vector3(0.65, 0, 0)
+position = Vector3(0.72, 0, 0)
 
 [node name="NonCombatStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(2.65, 0, 0.5)
+position = Vector3(2.4, 0, 1.05)
 
 [node name="HandStart" type="Marker3D" parent="Zones/P0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.02, 3.35)
+
+[node name="ArenaVeil" type="MeshInstance3D" parent="."]
+visible = false
+position = Vector3(0, 0.12, 0)
+cast_shadow = 0
+mesh = SubResource("Plane_veil")
+material_override = SubResource("Material_veil")
 
 [node name="Cards" type="Node3D" parent="."]
 

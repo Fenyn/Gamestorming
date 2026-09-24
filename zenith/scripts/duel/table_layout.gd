@@ -1,15 +1,19 @@
 class_name TableLayout
 extends Node3D
-## Mirrored arena slots: enlarged duelists face each other in the center, with Life Decks
-## beside them. Smaller support rows occupy the flanks. Every off-field card is on the felt too:
-## the Discard under the Life Deck, Out and the Relic flanking the stat crest, the Mastery on the
-## duelist's other side. Zone bounds use the same scales as card slots so placement checks
-## include the hero cards.
+## Mirrored hourglass: each seat holds a wide lobe of the mat, and the fighters face each other
+## across the narrow waist between them, where attacks and defenses are played. In each lobe the
+## Life Deck and Discard stand on the fighter's left with the Drill and Ally rows beyond them, the
+## Mastery on its right with the Non-Combat and Seal rows beyond it, and Out, the Relic and Remain
+## along the owner's edge either side of the stat plaque, far enough out to clear the opponent's
+## hand fan, which the far seat's plaque draws beside it. Zone bounds use the same scales as card
+## slots so placement checks include the hero cards.
 
 const CARD_SIZE: Vector2 = Vector2(0.63, 0.88)
-const SEAL_SCALE: float = 0.55
+const SEAL_SCALE: float = 0.75
 const STANDING_STEP: float = 0.42
 const STANDING_SCALE: float = 0.55
+## Standing ghosts line up in the waist, left of the arena, on their owner's half.
+const STANDING_START: Vector3 = Vector3(-1.5, 0.001, 0.3)
 const HAND_STEP: float = 0.32
 const HAND_SCALE: float = 0.70
 const STACK_STEP: float = 0.0015
@@ -25,13 +29,12 @@ const LINE_COLOR: Color = Color(0.86, 0.82, 0.74, 0.32)
 
 ## Row zones: marker, slots before cards start overlapping, and per-card scale.
 const ROWS: Dictionary = {
-	&"ally": {"marker": "AllyStart", "slots": 4, "step": 0.53, "direction": -1, "scale": 0.68, "label": "Allies"},
-	&"drill": {"marker": "DrillStart", "slots": 5, "step": 0.45, "direction": -1, "scale": 0.60, "label": "Drills"},
-	&"non_combat": {"marker": "NonCombatStart", "slots": 5, "step": 0.45, "scale": 0.60, "label": "Non-Combat"},
-	&"seal": {"marker": "SealStart", "slots": 7, "step": 0.34, "scale": SEAL_SCALE, "label": "Seals"},
-	# Cards kept out by Remain. Set outboard of the duelist, clear of the stat crest the
-	# duelist fixture draws over that side of the table for both seats.
-	&"remain": {"marker": "RemainStart", "slots": 2, "step": 0.35, "direction": -1, "scale": 0.60, "label": "Remain"},
+	&"ally": {"marker": "AllyStart", "slots": 3, "step": 0.6, "direction": -1, "scale": 0.95, "label": "Allies"},
+	&"drill": {"marker": "DrillStart", "slots": 3, "step": 0.6, "direction": -1, "scale": 0.95, "label": "Drills"},
+	&"non_combat": {"marker": "NonCombatStart", "slots": 3, "step": 0.6, "scale": 0.95, "label": "Non-Combat"},
+	&"seal": {"marker": "SealStart", "slots": 6, "step": 0.45, "scale": SEAL_SCALE, "label": "Seals"},
+	# Cards kept out by Remain, on the owner's edge beside Out.
+	&"remain": {"marker": "RemainStart", "slots": 2, "step": 0.45, "direction": -1, "scale": 0.75, "label": "Remain"},
 }
 ## Single-card zones: marker and label. Discard and Removed are stacks like the Life Deck; the
 ## Relic is one card with its Reserve face down under it.
@@ -47,21 +50,19 @@ const SINGLES: Dictionary = {
 ## Piles: their felt is outlined and clickable even when empty, and a click opens the browser.
 ## The Relic with its Reserve under it is one pile.
 const PILES: Array[StringName] = [&"discard", &"removed", &"relic"]
-## Zones whose caption sits on the inner (table-centre) edge. Below them is the stat crest the
-## duelist fixture draws, which would cover a caption on the owner's edge.
+## Zones whose caption sits on the inner (table-centre) edge. Out and the Relic sit on the owner's
+## edge of the mat, where a caption below them would fall off it.
 const TOP_CAPTIONS: Array[StringName] = [&"discard", &"removed", &"relic"]
-const MASTERY_SCALE: float = 1.2
-const PILE_SCALE: float = 0.85        # Out, and the Relic with its Reserve
-const DISCARD_SCALE: float = 0.6375   # three quarters of a pile card, so it fits under the Life Deck
+const DUELIST_SCALE: float = 2.6
+const MASTERY_SCALE: float = 1.3
+const RESOLVING_SCALE: float = 1.3
+const LIFE_SCALE: float = 1.0
+const PILE_SCALE: float = 0.75        # Out, and the Relic with its Reserve
+const DISCARD_SCALE: float = 0.8
 const DISCARD_PAD: float = 0.02
 const DISCARD_STRIP: float = 0.12
 const RESERVE_PEEK: float = 0.02      # each Reserve card shows this much edge past the Relic
 const RESERVE_FAN: float = ZONE_PAD   # the whole Reserve fans no further than the outline's padding
-## The viewer's own seat pulls Out (and the Relic, its mirror) in beside the stat crest. The far
-## seat keeps them outboard, clear of the opponent's IN HAND fan. The near Remain row moves
-## outboard to leave the Relic its room.
-const NEAR_OUT_X: float = -2.05
-const NEAR_REMAIN_X: float = 4.0
 
 ## A click on a pile's felt (its outline or its caption), for either seat.
 signal pile_clicked(player: int, zone: StringName)
@@ -69,44 +70,37 @@ signal pile_clicked(player: int, zone: StringName)
 @onready var p0: Node3D = $P0
 
 var _labels: Array[Label3D] = []
-var _viewer: int = 0
-
 
 func _card_scale(zone: StringName) -> float:
 	if ROWS.has(zone):
 		return float(ROWS[zone]["scale"])
 	if zone == &"duelist":
-		return 1.9
+		return DUELIST_SCALE
 	if zone == &"grounds":
 		return 0.65
 	if zone == &"resolving":
-		return 0.78
+		return RESOLVING_SCALE
 	if zone == &"mastery":
 		return MASTERY_SCALE
 	if zone == &"discard":
 		return DISCARD_SCALE
 	if zone == &"removed" or zone == &"relic":
 		return PILE_SCALE
-	return 0.85
+	return LIFE_SCALE
 
 
 func _ready() -> void:
 	_draw_marks()
 
 
-## `near` is true for the viewer's own seat, which sets Out and Remain differently (NEAR_OUT_X).
-func marker(name: String, near: bool = false) -> Vector3:
+func marker(name: String) -> Vector3:
 	# The Relic has no marker of its own: it is Out mirrored across the duelist's centre line, so
-	# the two piles flanking the stat crest can never drift apart.
+	# the two piles flanking the stat plaque can never drift apart.
 	if name == "Relic":
-		var out: Vector3 = marker("Removed", near)
+		var out: Vector3 = marker("Removed")
 		return Vector3(2.0 * marker("Duelist").x - out.x, out.y, out.z)
 	var m: Node3D = p0.get_node_or_null(NodePath(name))
 	assert(m != null, "TableLayout is missing marker %s" % name)
-	if near and name == "Removed":
-		return Vector3(NEAR_OUT_X, m.position.y, m.position.z)
-	if near and name == "RemainStart":
-		return Vector3(NEAR_REMAIN_X, m.position.y, m.position.z)
 	return m.position
 
 
@@ -117,20 +111,19 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 	var pos: Vector3 = Vector3.ZERO
 	var scale_factor: float = _card_scale(zone)
 	var yaw: float = 0.0
-	var near: bool = player == viewer
 	if ROWS.has(zone):
 		var row: Dictionary = ROWS[zone]
-		pos = marker(str(row["marker"]), near) + Vector3(_row_offset(row, index, count), 0.002 * index, 0)
+		pos = marker(str(row["marker"])) + Vector3(_row_offset(row, index, count), 0.002 * index, 0)
 		scale_factor = float(row["scale"])
 	else:
 		match zone:
 			&"life_deck", &"discard", &"removed":
-				pos = marker(str(SINGLES[zone]["marker"]), near) + Vector3(0, STACK_STEP * index, 0)
+				pos = marker(str(SINGLES[zone]["marker"])) + Vector3(0, STACK_STEP * index, 0)
 			&"relic":
 				# Index 0 is the Relic, on top; the Reserve fans out under it toward the owner's
 				# edge, inside the outline's padding, so the stack shows cards wait there.
 				var step: float = minf(RESERVE_PEEK, RESERVE_FAN / float(maxi(1, count - 1)))
-				pos = marker("Relic", near) + Vector3(0, STACK_STEP * float(count - 1 - index), step * index)
+				pos = marker("Relic") + Vector3(0, STACK_STEP * float(count - 1 - index), step * index)
 			&"hand":
 				var spread: float = HAND_STEP * (count - 1)
 				pos = marker("HandStart") + Vector3(HAND_STEP * index - spread * 0.5, 0.002 * index, 0)
@@ -138,12 +131,13 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 			&"resolving":
 				pos = marker("Resolving") + Vector3(0, RESOLVING_LIFT, 0)
 			&"grounds":
-				pos = Vector3(1.5, 0.001, 0)
+				# The shared field lies across the middle of the arena, under the cards in play.
+				pos = Vector3(0, 0.001, 0)
 				yaw = PI * 0.5
 			&"standing":
 				# An effect that outlasts the Combat has no card left on the table, so its source
-				# stands as a small ghost on its owner's inner edge, clear of every other zone.
-				pos = Vector3(-4.58 + STANDING_STEP * index, 0.001, 0.36)
+				# stands as a small ghost in the waist on its owner's half, clear of every zone.
+				pos = STANDING_START + Vector3(-STANDING_STEP * index, 0, 0)
 				scale_factor = STANDING_SCALE
 			_:
 				assert(SINGLES.has(zone), "TableLayout has no zone %s" % zone)
@@ -152,55 +146,12 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 		pos = Vector3(-pos.x, pos.y, -pos.z)
 	if viewer == 1:
 		yaw += PI
-	# A narrower playing field leaves the portrait fixtures and decision rail clear.
-	pos.x *= 0.72
 	var basis: Basis = Basis(Vector3.UP, yaw).scaled(Vector3.ONE * scale_factor * 0.92)
 	return Transform3D(basis, pos + Vector3(0, CARD_LIFT, 0))
 
 
-## Zones laid out differently on the viewer's own seat (NEAR_OUT_X, NEAR_REMAIN_X).
-const SHIFTING: Array[StringName] = [&"removed", &"relic", &"remain"]
-
-
-## A point on the table plane (world x, z) as `viewer` sees it, moved into the layout both seats
-## share for presence. World space is the same on both clients (seat 0 on +z, seat 1 mirrored
-## through the centre; each camera rig turns rather than the table), except that the viewer's
-## own Out, Relic and Remain sit in their near places. The shared layout puts every seat's piles
-## in their far places, so a point over one of the viewer's own shifted zones moves by the same
-## offset its zone did. Everything else is already shared.
-func to_shared(point: Vector2, viewer: int) -> Vector2:
-	return _shift_own_zone(point, viewer, true)
-
-
-## The reverse of `to_shared`, for the receiving `viewer`: a point in the shared layout over one
-## of that viewer's own shifted zones moves to where this client draws that zone.
-func from_shared(point: Vector2, viewer: int) -> Vector2:
-	return _shift_own_zone(point, viewer, false)
-
-
-func _shift_own_zone(point: Vector2, viewer: int, from_near: bool) -> Vector2:
-	var s: float = -1.0 if viewer == 1 else 1.0
-	# Into the unmirrored, uncompressed frame the zone rectangles are kept in.
-	var local: Vector2 = Vector2(point.x * s / 0.72, point.y * s)
-	for zone in SHIFTING:
-		var from_rect: Rect2 = _zone_rect(zone, from_near)
-		if from_rect.has_point(local):
-			local += _zone_rect(zone, not from_near).get_center() - from_rect.get_center()
-			return Vector2(local.x * 0.72 * s, local.y * s)
-	return point
-
-
 ## Turns the zone labels to read upright for whoever holds the table.
 func set_viewer(viewer: int) -> void:
-	if viewer != _viewer:
-		# The viewer's own seat lays Out, the Relic and Remain differently, so the felt is redrawn.
-		_viewer = viewer
-		for child in get_children():
-			if child != p0:
-				remove_child(child)
-				child.queue_free()
-		_labels.clear()
-		_draw_marks()
 	for l in _labels:
 		l.rotation.y = PI if viewer == 1 else 0.0
 
@@ -251,24 +202,22 @@ func _row_offset(row: Dictionary, index: int, count: int) -> float:
 	return step * (slots - 1) * float(index) / float(count - 1)
 
 
-## Felt rectangle for a zone on the near side: the cards it holds, padding, and a label strip on
-## the owner's (high z) edge, or the inner edge for TOP_CAPTIONS. Every zone in a row is the same
+## Felt rectangle for a zone on seat 0: the cards it holds, padding, and a label strip on the
+## owner's (high z) edge, or the inner edge for TOP_CAPTIONS. Every zone in a row is the same
 ## height, so rows read as bands. The Life Deck has no strip: its count rides on the pile.
-func _zone_rect(zone: StringName, near: bool = true) -> Rect2:
-	# Rectangles account for the same card scale and horizontal compression as slot().
+func _zone_rect(zone: StringName) -> Rect2:
+	# Rectangles account for the same card scale as slot().
 	var size: Vector2 = CARD_SIZE * _card_scale(zone) * 0.92
-	size.x /= 0.72
 	var center: Vector3 = Vector3.ZERO
 	if ROWS.has(zone):
 		var row: Dictionary = ROWS[zone]
 		var span: float = float(row["step"]) * (int(row["slots"]) - 1)
 		size.x += span
-		center = marker(str(row["marker"]), near) + Vector3(span * 0.5 * float(row.get("direction", 1)), 0, 0)
+		center = marker(str(row["marker"])) + Vector3(span * 0.5 * float(row.get("direction", 1)), 0, 0)
 	elif zone == &"grounds":
-		size = Vector2(CARD_SIZE.y / 0.72, CARD_SIZE.x) * _card_scale(zone) * 0.92
-		center = Vector3(1.5, 0, 0)
+		size = Vector2(CARD_SIZE.y, CARD_SIZE.x) * _card_scale(zone) * 0.92
 	else:
-		center = marker(str(SINGLES[zone]["marker"]), near)
+		center = marker(str(SINGLES[zone]["marker"]))
 	# Resolving cards have no felt mark or label. Validate their visible footprint rather than
 	# reserving decorative padding that would falsely overlap the enlarged fighter cards.
 	if zone != &"resolving":
@@ -284,16 +233,16 @@ func _zone_rect(zone: StringName, near: bool = true) -> Rect2:
 
 
 ## The card-sized part of a zone's rectangle, without its label strip.
-func _card_rect(zone: StringName, near: bool = true) -> Rect2:
-	var r: Rect2 = _zone_rect(zone, near)
+func _card_rect(zone: StringName) -> Rect2:
+	var r: Rect2 = _zone_rect(zone)
 	var strip: float = _strip(zone)
 	if zone in TOP_CAPTIONS:
 		return Rect2(r.position + Vector2(0, strip), r.size - Vector2(0, strip))
 	return Rect2(r.position, r.size - Vector2(0, strip))
 
 
-## Felt padding around a zone's cards. The Discard squeezes between the Life Deck and the stat
-## crest, so its outline hugs the card.
+## Felt padding around a zone's cards. The Discard squeezes between the Life Deck and Out, so its
+## outline hugs the card.
 func _pad(zone: StringName) -> float:
 	return DISCARD_PAD if zone == &"discard" else ZONE_PAD
 
@@ -314,13 +263,12 @@ func _draw_marks() -> void:
 	var placed: Array[Rect2] = []
 	for zone in zones:
 		for player in range(2):
-			var near: bool = player == _viewer
-			var r: Rect2 = _zone_rect(zone, near)
+			var r: Rect2 = _zone_rect(zone)
 			# Small inlaid ticks replace the full rectangular zone grid.
 			if zone in PILES:
 				# An empty pile is still a place: its card-sized outline stays on the felt, and
 				# the whole mark, caption included, opens the pile when clicked.
-				_add_rect(mesh, _card_rect(zone, near), player == 1)
+				_add_rect(mesh, _card_rect(zone), player == 1)
 				_add_pick(zone, r, player)
 			elif SINGLES.has(zone) and zone != &"resolving":
 				_add_tick(mesh, r, player == 1)
@@ -345,8 +293,8 @@ func _draw_marks() -> void:
 func _add_tick(mesh: ImmediateMesh, r: Rect2, mirror: bool) -> void:
 	var s: float = -1.0 if mirror else 1.0
 	var center: Vector2 = r.get_center()
-	mesh.surface_add_vertex(Vector3((center.x - 0.08) * s * 0.72, 0, r.end.y * s))
-	mesh.surface_add_vertex(Vector3((center.x + 0.08) * s * 0.72, 0, r.end.y * s))
+	mesh.surface_add_vertex(Vector3((center.x - 0.08) * s, 0, r.end.y * s))
+	mesh.surface_add_vertex(Vector3((center.x + 0.08) * s, 0, r.end.y * s))
 
 
 func _mirrored(r: Rect2) -> Rect2:
@@ -364,12 +312,11 @@ func _assert_no_overlap(rects: Array[Rect2]) -> void:
 
 func _add_rect(mesh: ImmediateMesh, r: Rect2, mirror: bool) -> void:
 	var s: float = -1.0 if mirror else 1.0
-	# Rects are kept before the horizontal compression slot() applies, so apply it here too.
 	var corners: Array[Vector3] = [
-		Vector3(r.position.x * s * 0.72, 0, r.position.y * s),
-		Vector3(r.end.x * s * 0.72, 0, r.position.y * s),
-		Vector3(r.end.x * s * 0.72, 0, r.end.y * s),
-		Vector3(r.position.x * s * 0.72, 0, r.end.y * s),
+		Vector3(r.position.x * s, 0, r.position.y * s),
+		Vector3(r.end.x * s, 0, r.position.y * s),
+		Vector3(r.end.x * s, 0, r.end.y * s),
+		Vector3(r.position.x * s, 0, r.end.y * s),
 	]
 	for i in range(4):
 		mesh.surface_add_vertex(corners[i])
@@ -386,11 +333,11 @@ func _add_pick(zone: StringName, r: Rect2, player: int) -> void:
 	area.monitorable = false
 	var shape: CollisionShape3D = CollisionShape3D.new()
 	var box: BoxShape3D = BoxShape3D.new()
-	box.size = Vector3(r.size.x * 0.72, 0.004, r.size.y)
+	box.size = Vector3(r.size.x, 0.004, r.size.y)
 	shape.shape = box
 	area.add_child(shape)
 	var center: Vector2 = r.get_center()
-	area.position = Vector3(center.x * s * 0.72, 0.0, center.y * s)
+	area.position = Vector3(center.x * s, 0.0, center.y * s)
 	area.input_event.connect(_on_pick_input.bind(player, zone))
 	add_child(area)
 
@@ -435,7 +382,7 @@ func _add_label(zone: StringName, r: Rect2, mirror: bool) -> void:
 	elif ROWS.has(zone):
 		# Keep row captions toward the arena center, clear of the duelist's stat crests.
 		z = r.position.y + 0.02
-	l.position = Vector3(r.get_center().x * s * 0.72, LABEL_HEIGHT, z * s)
+	l.position = Vector3(r.get_center().x * s, LABEL_HEIGHT, z * s)
 	# Lying flat with no yaw, a Label3D reads upright for the unrotated camera; set_viewer turns
 	# every label with the camera, so both sides always read the same way up.
 	l.rotation = Vector3(-PI * 0.5, 0, 0)

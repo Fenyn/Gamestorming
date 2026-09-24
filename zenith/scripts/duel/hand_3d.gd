@@ -9,10 +9,13 @@ signal inspected(uid: int)
 
 const DEPTH: float = 2.4
 const FACE_SIZE: Vector2 = Vector2(512, 716)
-const CARD_WIDTH: float = 192.0
+const CARD_WIDTH: float = 240.0
+const WIDTH_FRACTION: float = 0.125                 # of the viewport width, on narrow screens
+const FAN_CENTRE: float = 0.5                       # share of the viewport width, under the table's centre
 const EXPANDED_WIDTH: float = 390.0
 const REVEAL_FRACTION: float = 0.15
-const RESTING_VISIBLE_FRACTION: float = 0.15
+## The tucked hand shows each card's title band and the top of its art.
+const RESTING_VISIBLE_FRACTION: float = 0.28
 const AURA: Shader = preload("res://scripts/duel/card_aura.gdshader")
 const BORDER_FX: PackedScene = preload("res://scenes/duel/card_border_fx.tscn")
 const HOVER_TINT: Color = Color(0.48, 0.88, 1.0, 1.0)
@@ -343,30 +346,23 @@ func _layout(snap: bool = false) -> void:
 	_expanded_rect = Rect2()
 	_handoff_rect = Rect2()
 	_preview.hide()
-	var width: float = minf(CARD_WIDTH, _size.x * 0.105)
-	if _hero_bottom >= 0.0:
-		# The open fan remains fully visible below the player's readout; the separate reading
-		# face carries legible details when the lower shelf must contract. The tucked hand uses
-		# the same size so tucking is a pure drop, not a different set of cards.
-		var room_below_hero: float = maxf(84.0, _size.y - _hero_bottom - PREVIEW_MARGIN - 20.0)
-		width = minf(width, room_below_hero * FACE_SIZE.x / FACE_SIZE.y)
+	# The open fan rises over the lower table, the player's readout included, while it is held
+	# open. The tucked hand uses the same size so tucking is a pure drop.
+	var width: float = minf(CARD_WIDTH, _size.x * WIDTH_FRACTION)
 	var height: float = width * FACE_SIZE.y / FACE_SIZE.x
 	var band: float = minf(_size.x * 0.53, 1040.0)
 	var old_first: int = _page * _per_page
-	_per_page = maxi(3, int(band / (width * 0.64)))
+	# Each card keeps a little over half its width clear, so seven fit on one page at any size.
+	_per_page = maxi(3, int(band / (width * 0.55)))
 	_page = clampi((_hovered if _hovered >= 0 else old_first) / _per_page, 0, maxi(0, ceili(float(_items.size()) / _per_page) - 1))
 	var first: int = _page * _per_page
 	var count: int = mini(_per_page, _items.size() - first)
 	var step: float = minf(width + 14.0, (band - width) / maxf(1.0, count - 1))
 	var fan_shift: float = 0.0
 	var fan_top: float = _size.y - height - 64.0
-	var fan_right: float = _size.x * 0.52 + (count - 1) * 0.5 * step + width * 0.5
+	var fan_right: float = _size.x * FAN_CENTRE +(count - 1) * 0.5 * step + width * 0.5
 	if _decision_rect.has_area() and _decision_rect.position.y < _size.y - 58.0 and _decision_rect.end.y > fan_top:
 		fan_shift = minf(0.0, _decision_rect.position.x - PREVIEW_MARGIN - fan_right)
-	var fan_left: float = _size.x * 0.52 + fan_shift - (count - 1) * 0.5 * step - width * 0.5
-	var fan_drop: float = 0.0
-	if revealed and _hero_bottom >= 0.0 and fan_right + fan_shift > _hero_left and fan_left < _hero_right:
-		fan_drop = maxf(0.0, _hero_bottom + PREVIEW_MARGIN + 20.0 - fan_top)
 	var units: float = _units_per_pixel()
 	for i in range(_items.size()):
 		var item: Dictionary = _items[i]
@@ -389,7 +385,7 @@ func _layout(snap: bool = false) -> void:
 			item["rect"] = Rect2()
 			continue
 		var offset: float = i - first - (count - 1) * 0.5
-		var center: Vector2 = Vector2(_size.x * 0.52 + fan_shift + offset * step, _size.y - height * 0.5 - 64.0 + absf(offset) * 5.0 + fan_drop)
+		var center: Vector2 = Vector2(_size.x * FAN_CENTRE + fan_shift + offset * step, _size.y - height * 0.5 - 64.0 + absf(offset) * 5.0)
 		item["rect"] = Rect2(center - Vector2(width, height) * 0.5, Vector2(width, height)) if revealed else Rect2()
 		if not revealed:
 			# A shallow strip of real card tops advertises the tucked hand.
@@ -420,10 +416,10 @@ func _layout(snap: bool = false) -> void:
 		title.width = width * 2.0 - 12.0
 		title.position = Vector3(0, height * units * 0.5 + 24.0 * units, 0.004)
 		title.text = item["title_text"]
-		title.visible = revealed and fan_drop <= 1.0
+		title.visible = revealed
 		var summary: Label3D = item["summary"]
 		summary.render_priority = face.render_priority + 1
-		summary.visible = revealed and fan_drop <= 1.0
+		summary.visible = revealed
 		summary.pixel_size = units * 0.5
 		summary.position = Vector3(0, -height * units * 0.5 - 19.0 * units, 0.005)
 		if over:
@@ -437,7 +433,7 @@ func _layout(snap: bool = false) -> void:
 	if not revealed:
 		_hint.text = "Hand %d  |  H" % _items.size()
 	_hint.pixel_size = units * 0.5
-	_hint.position = _camera.to_local(_camera.project_position(Vector2(_size.x * 0.52, _size.y - 15.0), DEPTH - 0.25))
+	_hint.position = _camera.to_local(_camera.project_position(Vector2(_size.x * FAN_CENTRE, _size.y - 15.0), DEPTH - 0.25))
 	_hint.visible = revealed and not _items.is_empty() and _hovered < 0
 
 

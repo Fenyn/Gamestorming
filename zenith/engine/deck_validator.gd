@@ -114,6 +114,9 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 		# "Sensei Deck only": legal in the Reserve and nowhere else.
 		if bool(def.raw.get("reserve_only", false)):
 			problems.append("'%s' is Reserve only and cannot be in the Life Deck" % id)
+		# A card on the CRD's banned list is an adventure bomb and never legal in a tournament deck.
+		if bool(def.raw.get("banned", false)) and not adventure:
+			problems.append("'%s' is banned outside adventure mode" % id)
 		if def.type == CardDef.Type.PERSONALITY:
 			problems.append_array(ally_problems(def, deck, duelist))
 	for id in counts.keys():
@@ -168,6 +171,8 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			continue
 		if def.school != "" and deck.style != def.school:
 			problems.append("Reserve card '%s' is %s, deck Style is %s" % [id, def.school, deck.style])
+		if bool(def.raw.get("banned", false)) and not adventure:
+			problems.append("Reserve card '%s' is banned outside adventure mode" % id)
 		# A Reserve swap puts these cards in the Life Deck before the first turn, so a personality
 		# in the Reserve is an Ally and obeys the Ally rules like any other.
 		if def.type == CardDef.Type.PERSONALITY:

@@ -5,7 +5,7 @@ extends Camera3D
 ## home framing. Pitch and yaw never change, so the perspective the layout was tuned for holds.
 ## Everything happens in the rig's local space, so the hotseat swing keeps working underneath.
 
-const LOOK_AT: Vector3 = Vector3(0, 0, 0.2)
+const LOOK_AT: Vector3 = Vector3(0, 0, 0.5)
 const IDLE_SECONDS: float = 4.0
 const GLIDE: float = 9.0                 # exponential smoothing rate toward the target position
 const ZOOM_STEP: float = 0.14            # share of the distance to the cursor point per wheel notch
@@ -16,8 +16,23 @@ const DRAG_PAN: float = 0.0075           # table units per pixel of middle-drag 
 const BOUNDS: Rect2 = Rect2(-5.2, -3.7, 10.4, 7.4)   # the table top; the look point stays inside
 const ROAM_MARGIN: Vector2 = Vector2(0.62, 0.45)     # table units kept clear of each edge, per unit of camera height
 
+## While an exchange is live the view leans in on the arena ring between the fighters, a slower,
+## eased glide than an ordinary return so the push reads as a deliberate move.
+const ARENA_LOOK: Vector3 = Vector3(0, 0, -0.2)
+const ARENA_DISTANCE: float = 7.5
+const ARENA_GLIDE: float = 4.5
+
 var _home: Transform3D
 var _target: Vector3
+var _glide: float = GLIDE
+## Set by the duel view; the rest position moves in on the arena and glides back out after.
+var arena_focus: bool = false:
+	set(value):
+		if arena_focus == value:
+			return
+		arena_focus = value
+		return_home()
+		_glide = ARENA_GLIDE
 var _idle: float = 0.0
 var _dragging: bool = false
 var hand_navigation: bool = false
@@ -31,8 +46,14 @@ func _ready() -> void:
 
 ## Glide back to the home framing now (hand-offs, swings).
 func return_home() -> void:
-	_target = _home.origin
+	_target = _rest()
 	_idle = 0.0
+
+
+func _rest() -> Vector3:
+	if arena_focus:
+		return ARENA_LOOK + _home.basis.z * ARENA_DISTANCE
+	return _home.origin
 
 
 func _input(event: InputEvent) -> void:
@@ -69,8 +90,8 @@ func _process(delta: float) -> void:
 	else:
 		_idle += delta
 		if _idle >= IDLE_SECONDS and not _dragging:
-			_target = _home.origin
-	position = position.lerp(_target, 1.0 - exp(-GLIDE * delta))
+			_target = _rest()
+	position = position.lerp(_target, 1.0 - exp(-_glide * delta))
 
 
 ## Dev flags: pan by (dx, dz) table units and zoom `notches` toward the screen centre, then snap.
@@ -112,6 +133,7 @@ func _forward_flat() -> Vector3:
 
 ## `right` and `ahead` in table units along the camera's own axes, look point kept on the table.
 func _pan(right: float, ahead: float) -> void:
+	_glide = GLIDE
 	_target += _home.basis.x * right + _forward_flat() * ahead
 	_clamp_target()
 
@@ -119,6 +141,7 @@ func _pan(right: float, ahead: float) -> void:
 ## Dolly along the line to the point under the cursor on the table plane: the spot under the
 ## pointer stays under the pointer, so zooming reads as leaning in rather than as a lens change.
 func _zoom(direction: float, screen_pos: Vector2) -> void:
+	_glide = GLIDE
 	var origin: Vector3 = project_ray_origin(screen_pos)
 	var dir: Vector3 = project_ray_normal(screen_pos)
 	if is_zero_approx(dir.y):

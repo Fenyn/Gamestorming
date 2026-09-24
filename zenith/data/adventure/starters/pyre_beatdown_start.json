@@ -21,7 +21,7 @@
   "chaff": ["pyre_art_03", "pyre_strike_02"],
   "cards": [
     {"id": "pyre_strike_12", "count": 3},
-    {"id": "pyre_strike_11", "count": 2},
+    {"id": "pyre_strike_11", "count": 1},
     {"id": "pyre_strike_13", "count": 1},
     {"id": "pyre_strike_04", "count": 3},
     {"id": "pyre_strike_08", "count": 2},

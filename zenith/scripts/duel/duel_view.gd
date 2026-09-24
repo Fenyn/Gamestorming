@@ -57,7 +57,11 @@ const PILE_ZONES: Array[StringName] = [&"discard", &"removed", &"relic"]   # ind
 ## Where a used card can be by the time its beat replays. A card that stays in play (an Ally, a
 ## Drill, a Remain card) is never held: its own zone is where it is read.
 const HOLD_ZONES: Array[StringName] = [&"resolving", &"discard", &"removed", &"life_deck"]
-const HELD_STEP: float = 0.004        # a second held card of the same seat sits just above the first
+const ARENA_FADE: float = 0.35        # seconds for the table to dim or come back around an exchange
+const PLATE_DIM: Color = Color(0.45, 0.45, 0.45)   # the stat plaques, which stand up through the veil
+const FOCUS_POP_FROM: float = 0.9     # the centre-stage card's scale as it appears
+const FOCUS_POP_TIME: float = 0.22
+const HELD_STEP: float = 0.004       # a second held card of the same seat sits just above the first
 
 @onready var rig: Node3D = $CameraRig
 @onready var camera: TableCamera = $CameraRig/Camera
@@ -70,6 +74,7 @@ const HELD_STEP: float = 0.004        # a second held card of the same seat sits
 @onready var near_duelist: DuelistDisplay = $NearDuelist
 @onready var far_duelist: DuelistDisplay = $FarDuelist
 @onready var focus_card: Sprite3D = $CameraRig/Camera/FocusCard
+@onready var arena_veil: MeshInstance3D = $ArenaVeil
 @onready var presence: DuelPresence = $Presence
 
 var duel_host: DuelHost = null       # the rules, where they run here (hotseat, hosting)
@@ -129,7 +134,11 @@ var _window_skips: int = 0           # skipped response windows in the update be
 var _fast_triggers: Dictionary = {}  # line index -> run length, for a batched run of triggers
 var _shown_stats: Dictionary = {}    # player -> [energy, might] as the readout last drew them
 var _reduced_motion: bool = false
-var _stall_since: int = 0            # when the viewer was first owed a decision with no panel up
+var _exchange_live: bool = false     # the exchange holds a card in play, as of the last `_targets`
+var _arena_on: bool = false          # the table is dimmed for a live exchange (`_set_arena`)
+var _arena_fade: Tween = null
+var _focus_pop: Tween = null
+var _stall_since: int = 0           # when the viewer was first owed a decision with no panel up
 ## Online presence (`PresenceState`): what the other player is doing, drawn here, and what this
 ## one is doing, sent from here. Off in hotseat, vs AI and adventure.
 var _presence_on: bool = false
@@ -235,7 +244,15 @@ func _process(_delta: float) -> void:
 			_presence_drawn_view = view
 			_draw_presence(false)
 	_layout_fixtures()
+	var focus_was: bool = focus_card.visible
 	focus_card.visible = hud.focus.visible and not overlay
+	# On centre stage the card arrives with a small push toward the viewer.
+	if focus_card.visible and not focus_was and _arena_on and not _reduced_motion:
+		if _focus_pop != null and _focus_pop.is_valid():
+			_focus_pop.kill()
+		focus_card.scale = Vector3.ONE * FOCUS_POP_FROM
+		_focus_pop = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_focus_pop.tween_property(focus_card, "scale", Vector3.ONE, FOCUS_POP_TIME)
 	if focus_card.visible and view != null:
 		var shown_def: CardDef = _replay_focus_def
 		var aspect: int = 1
@@ -253,6 +270,37 @@ func _process(_delta: float) -> void:
 				_focus_key = key
 		else:
 			focus_card.visible = false
+	_set_arena(_exchange_live)
+
+
+## While an exchange is live the table recedes behind a veil, the camera leans in on the ring, the
+## ring pulses once, and the HUD's focus card takes centre stage over it. Reduced motion keeps the
+## dimming and the centred card and drops the moves.
+func _set_arena(on: bool) -> void:
+	camera.arena_focus = on and not _reduced_motion
+	if on == _arena_on:
+		return
+	_arena_on = on
+	hud.centre_stage = on
+	if _arena_fade != null and _arena_fade.is_valid():
+		_arena_fade.kill()
+	var veil: ShaderMaterial = arena_veil.material_override
+	var plate_tint: Color = PLATE_DIM if on else Color.WHITE
+	arena_veil.visible = true
+	if _reduced_motion:
+		veil.set_shader_parameter("amount", 1.0 if on else 0.0)
+		arena_veil.visible = on
+		for fixture: DuelistDisplay in [near_duelist, far_duelist]:
+			fixture.plate_face.modulate = plate_tint
+		return
+	_arena_fade = create_tween().set_parallel().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_arena_fade.tween_method(func(value: float) -> void: veil.set_shader_parameter("amount", value), 0.0 if on else 1.0, 1.0 if on else 0.0, ARENA_FADE)
+	for fixture: DuelistDisplay in [near_duelist, far_duelist]:
+		_arena_fade.tween_property(fixture.plate_face, "modulate", plate_tint, ARENA_FADE)
+	if not on:
+		_arena_fade.chain().tween_callback(func() -> void: arena_veil.visible = false)
+		return
+	fx.ring(Vector3(0, 0.02, 0), ZenithTheme.ACCENT, 1.6)
 
 
 ## Safety net, not a mechanism. The table runs on awaits, and a decision panel that never comes
@@ -299,7 +347,9 @@ func _layout_fixtures() -> void:
 	var decision_rect: Rect2 = Rect2()
 	if hud.prompt_panel.visible:
 		decision_rect = hud.prompt_panel.get_global_rect()
-	if hud.focus.visible:
+	# On centre stage the card sits over the table's middle; the open hand rises over its lower
+	# edge rather than stepping aside, and only the decision beside it is kept clear.
+	if hud.focus.visible and not hud.centre_stage:
 		decision_rect = decision_rect.merge(hud.focus.get_global_rect()) if decision_rect.has_area() else hud.focus.get_global_rect()
 	hand_3d.set_decision_rect(decision_rect)
 	if not hud.focus.visible:
@@ -1887,7 +1937,7 @@ func _local_presence(board_interactive: bool) -> Dictionary:
 	if hit == null:
 		return state
 	var point: Vector3 = hit
-	var shared: Vector2 = zones.to_shared(Vector2(point.x, point.z), viewer)
+	var shared: Vector2 = Vector2(point.x, point.z)
 	if not PresenceState.TABLE_BOUNDS.has_point(shared):
 		return state
 	state["on"] = true
@@ -1932,7 +1982,7 @@ func _demo_presence() -> Dictionary:
 	if card == null:
 		return state
 	var centre: Vector3 = card.global_position
-	var shared: Vector2 = zones.to_shared(Vector2(centre.x + cos(t * 1.7) * 0.15, centre.z + sin(t * 2.3) * 0.2), viewer)
+	var shared: Vector2 = Vector2(centre.x + cos(t * 1.7) * 0.15, centre.z + sin(t * 2.3) * 0.2)
 	state["on"] = true
 	state["x"] = shared.x
 	state["z"] = shared.y
@@ -1985,8 +2035,7 @@ func _draw_presence(heard: bool) -> void:
 		if over_fan != null:
 			presence.place(over_fan)
 		elif bool(state["on"]):
-			var p: Vector2 = zones.from_shared(Vector2(float(state["x"]), float(state["z"])), viewer)
-			presence.place(Vector3(p.x, 0.0, p.y))
+			presence.place(Vector3(float(state["x"]), 0.0, float(state["z"])))
 		else:
 			presence.place(null)
 	hud.set_presence_line(_presence_text(state, rival), color)
@@ -2250,6 +2299,8 @@ func _targets() -> Dictionary:
 		out[uid] = [zones.slot(int(ghosts[uid][0]), &"standing", int(ghosts[uid][1]), 1, vw), true, true]
 	if view.grounds >= 0:
 		out[view.grounds] = [zones.slot(0, &"grounds", 0, 1, vw), true, true]
+	# While the exchange holds a card in play the arena is live (`_set_arena`).
+	_exchange_live = not view.resolving.is_empty() or not _held.is_empty()
 	var in_play_slot: Array[int] = [0, 0]
 	for uid in view.resolving:
 		if not out.has(uid):

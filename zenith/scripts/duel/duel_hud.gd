@@ -50,6 +50,13 @@ const CARD_FACE: PackedScene = preload("res://scenes/duel/card_face.tscn")
 const CARD_ASPECT: float = 716.0 / 512.0
 const DECISION_GAP: float = 12.0
 const DECISION_BOTTOM_MARGIN: float = 24.0
+## The focus slot on the rail: its offsets from the top-right corner and its width and height, as
+## `hud.tscn` authors them.
+const RAIL_FOCUS: Rect2 = Rect2(-374, 130, 320, 480)
+## The focus slot on centre stage (`centre_stage`): the card's width and the gap to the decision
+## beside it. The pair is centred on the screen both ways.
+const STAGE_CARD_WIDTH: float = 360.0
+const STAGE_GAP: float = 20.0
 const DECISION_RESULT_HEIGHT: float = 54.0
 ## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand:
 ## the decision is about the cards themselves, as in a discard-step keep or a Reserve swap.
@@ -240,6 +247,15 @@ var _filament_target: int = -1         # the table card the current pending job 
 var _filament_uid: int = -1            # the card that job belongs to, so the stack can source it
 var _filament_state: StringName = &"pending"
 var inspect_uid: int = -1              # the card the inspect overlay shows, -1 when closed or unknown
+## While an exchange is live the focus slot is the hero: it moves off the rail to the middle of
+## the screen, over the arena, at a larger size, with the decision beside it and no filament.
+var centre_stage: bool = false:
+	set(value):
+		if centre_stage == value:
+			return
+		centre_stage = value
+		_layout_prompt_column()
+var _staging: bool = false             # guards `_on_prompt_resized` against its own layout
 
 
 func _ready() -> void:
@@ -247,6 +263,7 @@ func _ready() -> void:
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
 	# The decision column is a framed plate too, so its text never sits bare on the courtyard.
 	prompt_panel.add_theme_stylebox_override("panel", MapArt.panel_box(16, Color.WHITE))
+	prompt_panel.resized.connect(_on_prompt_resized)
 	# The log wears the same framed panel as the phase bar beside it, with tighter padding.
 	log_panel.add_theme_stylebox_override("panel", MapArt.panel_box(14, Color.WHITE))
 	# The inspect hint sits on a small framed panel instead of floating over the table.
@@ -367,19 +384,40 @@ func _compact_prompt() -> void:
 func _layout_prompt_column() -> void:
 	if focus == null or prompt_panel == null:
 		return
-	prompt_panel.offset_left = focus.offset_left
-	prompt_panel.offset_right = focus.offset_right
-	# Use the authored rail width rather than a transient child minimum. CardFace renders from a
-	# 512x716 source and may report that unscaled minimum for a frame while the layout settles.
-	var focus_width: float = focus.offset_right - focus.offset_left
-	var focus_bottom: float = focus.offset_top + FOCUS_CAPTION_HEIGHT + focus_width * CARD_ASPECT
+	# Both panels are anchored to the right edge, so their offsets count from there.
+	var stage: bool = centre_stage and focus.visible
+	var card_width: float = STAGE_CARD_WIDTH if stage else RAIL_FOCUS.size.x
+	var left: float = RAIL_FOCUS.position.x
+	if stage:
+		left = root.size.x * 0.5 - (card_width + STAGE_GAP + RAIL_FOCUS.size.x) * 0.5 - root.size.x
+	focus.offset_left = left
+	focus.offset_right = left + card_width
+	var card_height: float = FOCUS_CAPTION_HEIGHT + card_width * CARD_ASPECT
+	focus.offset_top = (root.size.y - card_height) * 0.5 if stage else RAIL_FOCUS.position.y
+	focus.offset_bottom = focus.offset_top + card_height
+	# On the rail the decision sits under the card; on centre stage, beside it, level with its face.
+	prompt_panel.offset_left = focus.offset_right + STAGE_GAP if stage else focus.offset_left
+	prompt_panel.offset_right = prompt_panel.offset_left + RAIL_FOCUS.size.x
+	var focus_bottom: float = focus.offset_bottom
 	# The response stack lives inside the Focus rect, so it costs the decision column nothing.
 	_layout_stack()
 	var top: float = focus_bottom + DECISION_GAP if focus.visible else 210.0
+	if stage:
+		# Centred on the card's face; the panel's height is the one it last settled at, and a change
+		# lays the column out again (`_on_prompt_resized`).
+		top = focus.offset_top + FOCUS_CAPTION_HEIGHT + (card_width * CARD_ASPECT - prompt_panel.size.y) * 0.5
 	prompt_panel.offset_top = top
 	# Let the VBox determine height again after a larger prior decision.
 	prompt_panel.offset_bottom = prompt_panel.offset_top
 	_fit_actions()
+
+
+## On centre stage the decision is centred on the card, so it follows its own height.
+func _on_prompt_resized() -> void:
+	if centre_stage and focus.visible and not _fitting_actions and not _staging:
+		_staging = true
+		_layout_prompt_column()
+		_staging = false
 
 
 func _fit_actions() -> void:
@@ -2289,7 +2327,8 @@ func _process(_delta: float) -> void:
 func _draw_filament() -> void:
 	if filament == null:
 		return
-	if not focus.visible or _filament_target < 0 or tray.visible or inspect.visible \
+	# On centre stage the card sits over the arena it would point into, so there is no filament.
+	if not focus.visible or centre_stage or _filament_target < 0 or tray.visible or inspect.visible \
 		or table == null or not table.has_method("screen_anchor"):
 		filament.visible = false
 		return

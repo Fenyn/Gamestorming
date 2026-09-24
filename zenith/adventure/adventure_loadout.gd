@@ -1,7 +1,7 @@
 class_name AdventureLoadout
 extends RefCounted
 ## Building a starter into the deck a run begins from: swapping collection cards in, filling the
-## extra deck slots bought with Motes, and adding the Aspect cards whose tiers were unlocked.
+## extra deck slots bought with Motes, and adding owned Aspect cards.
 ##
 ## The collection is a library. A swap copies from it and never empties it, so the same card can go
 ## into every run and into two different starters at once. What it does limit is how many copies
@@ -112,16 +112,10 @@ static func ceiling_left(deck: DeckList) -> int:
 	return ceiling - deck.total_cards()
 
 
-## The highest Aspect this starter's stack may reach before a run begins: its own printed height,
-## or higher when a tier was bought.
-static func aspect_cap(deck: DeckList, upgrades: AdventureUpgrades = null) -> int:
-	if deck == null:
-		return 0
-	var base: int = int(deck.get_meta(META_BASE_ASPECTS, deck.duelist_ids.size()))
-	var starter_id: String = starter_of(deck)
-	if upgrades == null or starter_id == "":
-		return base
-	return upgrades.aspect_tier(starter_id, base)
+## The highest Aspect a stack may reach before a run begins. Which cards can fill it is the
+## collection's answer: an Aspect card is added only when it is owned.
+static func aspect_cap(deck: DeckList) -> int:
+	return DeckValidator.MAX_ASPECTS if deck != null else 0
 
 
 ## Distinct Life Deck card ids that can be traded away, sorted. Everything in the deck qualifies:
@@ -204,7 +198,7 @@ static func swap_rung(deck: DeckList, tier: int, in_id: String, library: CardLib
 	return _finish(trial, in_id, library, collection, problems)
 
 
-# --- Adding, once slots and tiers have been bought --------------------------
+# --- Adding -----------------------------------------------------------------
 
 ## Collection cards that could legally fill an empty Life Deck slot, sorted. Empty when the deck is
 ## already at its cap.
@@ -240,37 +234,35 @@ static func add_card(deck: DeckList, in_id: String, library: CardLibrary,
 	return _finish(trial, in_id, library, collection, problems)
 
 
-## Collection Aspect cards that could be added on top of the Duelist stack, sorted. Empty when no
-## tier above the stack has been unlocked.
+## Owned Aspect cards that could be added on top of the Duelist stack, sorted.
 static func swappable_aspect(deck: DeckList, library: CardLibrary,
-		collection: AdventureCollection, upgrades: AdventureUpgrades = null) -> Array[String]:
+		collection: AdventureCollection) -> Array[String]:
 	var out: Array[String] = []
 	if collection == null or deck == null:
 		return out
-	if deck.duelist_ids.size() + 1 > aspect_cap(deck, upgrades):
+	if deck.duelist_ids.size() + 1 > aspect_cap(deck):
 		return out
 	for id in collection.all_ids():
 		var def: CardDef = library.defs.get(id)
 		if def == null or not def.is_personality():
 			continue
-		var result: Dictionary = add_aspect(deck, id, library, collection, upgrades)
+		var result: Dictionary = add_aspect(deck, id, library, collection)
 		if (result["problems"] as Array[String]).is_empty():
 			out.append(id)
 	return out
 
 
-## Puts one more Aspect card on top of the Duelist stack. Only the next tier can be added, and only
-## once that tier has been unlocked for this starter; the stack stays consecutive from Aspect 1,
-## which is the validator's rule and not restated here.
+## Puts one more owned Aspect card on top of the Duelist stack. Only the next tier can be added;
+## the stack stays consecutive from Aspect 1, which is the validator's rule and not restated here.
 static func add_aspect(deck: DeckList, in_id: String, library: CardLibrary,
-		collection: AdventureCollection = null, upgrades: AdventureUpgrades = null) -> Dictionary:
+		collection: AdventureCollection = null) -> Dictionary:
 	var problems: Array[String] = []
 	if deck == null:
 		problems.append("No deck to add to")
 		return {"deck": null, "problems": problems}
 	var next_tier: int = deck.duelist_ids.size() + 1
-	if next_tier > aspect_cap(deck, upgrades):
-		problems.append("Aspect %d is not unlocked for this starter" % next_tier)
+	if next_tier > aspect_cap(deck):
+		problems.append("A stack holds at most %d Aspects" % aspect_cap(deck))
 		return {"deck": null, "problems": problems}
 	if ceiling_left(deck) <= 0:
 		problems.append("The deck is at the %d-card maximum; take a Life Deck card out first" % deck.total_cards())

@@ -10,6 +10,9 @@
   "alignment": "pact",
   "mastery": "shade_mastery_01",
   "relic": "relic_01",
+  "adventure_bombs": [
+    "shade_drill_03"
+  ],
   "reserve": [
     "shade_strike_01",
     "shade_strike_01",
@@ -110,10 +113,6 @@
     },
     {
       "id": "shade_strike_11",
-      "count": 3
-    },
-    {
-      "id": "shade_drill_03",
       "count": 3
     },
     {

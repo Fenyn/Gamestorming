@@ -95,7 +95,7 @@
     },
     {
       "id": "freestyle_combat_12",
-      "count": 2
+      "count": 1
     },
     {
       "id": "signature_combat_03",
@@ -147,6 +147,10 @@
     },
     {
       "id": "signature_strike_03",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_04",
       "count": 1
     },
     {

@@ -432,8 +432,11 @@ func _apply_pick(seat: int, deck_index: int, deck_name: String, player_name: Str
 
 ## Authorities validate the shared catalog before accepting readiness or indexing a deck.
 func valid_deck_pick(deck_index: int, deck_name: String) -> bool:
+	# A tournament-legal deck only: this is where an adventure-only (banned) card is kept out of online play.
 	return deck_index >= 0 and deck_index < Session.decks.size() \
-		and Session.decks[deck_index].name == deck_name
+		and Session.decks[deck_index].name == deck_name \
+		and Session.decks[deck_index].mode != "adventure" \
+		and Session.deck_problems(Session.decks[deck_index]).is_empty()
 
 
 func _valid_lobby_pick(deck_index: int, deck_name: String, ready: bool) -> bool:

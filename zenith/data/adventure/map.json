@@ -21,7 +21,7 @@
 			"boss_ai_level": "default",
 			"tiers": ["t1", "t1", "t1", "t1", "t2", "t2", "t2"],
 			"boss_tier": "t3",
-			"grant_first_tier": true,
+			"grant_first_tier": false,
 			"boss_grant": true
 		},
 		{

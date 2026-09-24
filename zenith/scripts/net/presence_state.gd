@@ -7,7 +7,7 @@ extends RefCounted
 ##
 ## Wire keys, all optional on the way in and all present on the way out of `sanitise`:
 ##   on: bool          the pointer is over the table
-##   x, z: float       the pointer on the table plane, in the shared layout (`TableLayout.to_shared`)
+##   x, z: float       the pointer on the table plane, in world space (both clients lay it out alike)
 ##   card: int         uid of a public table card under the pointer, -1 for none
 ##   hand: int         slot index of the sender's own hand card under the pointer, -1 for none
 ##   look: String      "" | "pile" | "inspect" | "log" | "choice"

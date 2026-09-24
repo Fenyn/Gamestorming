@@ -1,5 +1,5 @@
 {
-	"_note": "Story runs, design doc section 8.5. `open` are the starters a new save can play; everything else is unlocked by quests.json. A starter without an entry here plays with random act bosses and no guests. `bosses` sets an act's boss family (its tier comes from map.json); `on_win.joins` adds that personality card to the run deck. `guests` are the personalities an Encounter node can bring in, drawn from the main's connections in zenith/docs/cast.md.",
+	"_note": "Story runs, design doc section 8.5. `open` are the starters a new save can play; everything else is unlocked by personality XP (progression.json) or achievements (achievements.json). A starter without an entry here plays with random act bosses and no guests. `bosses` sets an act's boss family (its tier comes from map.json); `on_win.joins` adds that personality card to the run deck. `guests` are the personalities an Encounter node can bring in, drawn from the main's connections in zenith/docs/cast.md.",
 	"open": ["tide_deepwater_start", "shade_mind_siege_start", "pyre_beatdown_start"],
 	"starters": {
 		"tide_deepwater_start": {

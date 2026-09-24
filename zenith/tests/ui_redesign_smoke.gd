@@ -79,7 +79,7 @@ func _run() -> void:
 	hand._layout(true)
 	_check(not hand.revealed, "Hand must start retracted rather than occupying the table")
 	var viewport_size: Vector2 = root.get_visible_rect().size
-	var bottom_pointer: Vector2 = Vector2(viewport_size.x * 0.52, viewport_size.y - 20.0)
+	var bottom_pointer: Vector2 = Vector2(viewport_size.x * hand.FAN_CENTRE, viewport_size.y - 20.0)
 	_check(hand._hit(bottom_pointer, true) == -1, "Retracted hand must have no invisible picking regions")
 	_check(hand.blocks_pointer(bottom_pointer), "Hand activation band must suppress board tooltips before cards expand")
 	_check(not hand.blocks_pointer(Vector2(viewport_size.x * 0.5, 100.0)), "Tucked hand must not suppress unrelated board picking")
@@ -93,9 +93,9 @@ func _run() -> void:
 	var middle: int = visible_indices[visible_indices.size() / 2] if not visible_indices.is_empty() else 0
 	var hidden_center: Vector2 = duel.camera.unproject_position(hand._items[middle]["node"].global_position)
 	_check(hidden_center.y > viewport_size.y, "Tucked hand card centers must stay below the viewport")
-	var card_height: float = minf(hand.CARD_WIDTH, viewport_size.x * 0.105) * hand.FACE_SIZE.y / hand.FACE_SIZE.x
+	var card_height: float = minf(hand.CARD_WIDTH, viewport_size.x * hand.WIDTH_FRACTION) * hand.FACE_SIZE.y / hand.FACE_SIZE.x
 	var exposed_fraction: float = (viewport_size.y - hidden_center.y + card_height * 0.5) / card_height
-	_check(exposed_fraction >= 0.10 and exposed_fraction <= 0.20, "Tucked hand must expose only the top ten to twenty percent as an affordance")
+	_check(exposed_fraction >= 0.20 and exposed_fraction <= 0.35, "Tucked hand must expose the title band and no more than a third of the card")
 	_check(not hand._items[0]["title"].visible and not hand._items[0]["summary"].visible, "Tucked card tops must not retain floating title or forecast clutter")
 	hand._update_pointer(bottom_pointer)
 	_check(hand.revealed, "Entering the bottom fifteen percent must reveal the hand")
@@ -141,9 +141,10 @@ func _run() -> void:
 	for seat in range(2):
 		var life_slot: Transform3D = duel.zones.slot(seat, &"life_deck", 0, 1, 0)
 		var identity_slot: Transform3D = duel.zones.slot(seat, &"duelist", 0, 1, 0)
-		# The Life Deck sits a little toward the centre of the table, to leave its Discard room below.
-		_check(absf(life_slot.origin.z) < absf(identity_slot.origin.z) and absf(life_slot.origin.z - identity_slot.origin.z) < 0.5, "Each Life Deck must sit beside its duelist, nudged toward the centre")
-		_check(life_slot.origin.distance_to(identity_slot.origin) < 1.2, "Each Life Deck must sit close beside its own duelist")
+		# The Life Deck sits toward the centre of the table, level with the duelist's inner half,
+		# to leave its Discard room below.
+		_check(absf(life_slot.origin.z) < absf(identity_slot.origin.z) and absf(life_slot.origin.z - identity_slot.origin.z) < 0.7, "Each Life Deck must sit beside its duelist, nudged toward the centre")
+		_check(life_slot.origin.distance_to(identity_slot.origin) < 1.6, "Each Life Deck must sit close beside its own duelist")
 		var life_top: float = absf(life_slot.origin.z) - TableLayout.CARD_SIZE.y * life_slot.basis.get_scale().z * 0.5
 		var duelist_top: float = absf(identity_slot.origin.z) - TableLayout.CARD_SIZE.y * identity_slot.basis.get_scale().z * 0.5
 		_check(life_top >= duelist_top - 0.001, "A Life Deck must not reach past its duelist's inner edge")
@@ -161,11 +162,24 @@ func _run() -> void:
 		var relic_slot: Transform3D = duel.zones.slot(seat, &"relic", 0, 1, 0)
 		_check(is_equal_approx(relic_slot.origin.x - identity_slot.origin.x, identity_slot.origin.x - out_slot.origin.x) and is_equal_approx(relic_slot.origin.z, out_slot.origin.z), "Each Relic must mirror Out exactly across the duelist's centre line")
 		_check(relic_slot.basis.get_scale().is_equal_approx(out_slot.basis.get_scale()), "The Relic and Out must be the same size")
-		_check(is_equal_approx(discard_slot.basis.get_scale().x, out_slot.basis.get_scale().x * 0.75), "The Discard must be three quarters the size of the other piles")
+		_check(discard_slot.basis.get_scale().x < life_slot.basis.get_scale().x, "The Discard must read smaller than the Life Deck above it")
 		# The Reserve sits under the Relic: lower in the stack, its edge showing past it.
 		var reserve_slot: Transform3D = duel.zones.slot(seat, &"relic", 1, 2, 0)
 		var relic_top: Transform3D = duel.zones.slot(seat, &"relic", 0, 2, 0)
 		_check(reserve_slot.origin.y < relic_top.origin.y and reserve_slot.origin.distance_to(relic_top.origin) > 0.01, "A Reserve card must tuck under its Relic with an edge showing")
+	# A live exchange puts the focus card on centre stage: larger, with the decision beside it, the
+	# pair centred on the screen; it goes back to the rail afterwards.
+	# The HUD script reads autoloads, so it is reached through the scene rather than by class name.
+	var hud: CanvasLayer = duel.hud
+	var rail: Rect2 = hud.get_script().get_script_constant_map()["RAIL_FOCUS"]
+	var focus_shown: bool = hud.focus.visible
+	hud.focus.visible = true
+	hud.centre_stage = true
+	var staged: Rect2 = hud.focus.get_global_rect().merge(hud.prompt_panel.get_global_rect())
+	_check(absf(staged.get_center().x - hud.root.size.x * 0.5) < 2.0 and hud.focus.size.x > rail.size.x, "Centre stage must centre a larger focus card and its decision on the screen")
+	hud.centre_stage = false
+	_check(is_equal_approx(hud.focus.offset_left, rail.position.x) and is_equal_approx(hud.focus.offset_top, rail.position.y), "Leaving centre stage must put the focus card back on the rail")
+	hud.focus.visible = focus_shown
 	# Every off-field card is on the felt, and the screen-edge rail is gone.
 	for zone in [&"discard", &"removed", &"mastery", &"relic"]:
 		_check(TableLayout.SINGLES.has(zone), "The table must hold a %s zone" % zone)
@@ -303,15 +317,15 @@ func _run() -> void:
 		for item in hand._items:
 			if (item["node"] as Node3D).visible:
 				var resting_rect: Rect2 = item["rect"]
-				var clear_of_readout: bool = resting_rect.position.y >= hand._hero_bottom + hand.PREVIEW_MARGIN - 1.0 if resting_rect.end.x > hand._hero_left and resting_rect.position.x < hand._hero_right else true
-				_check(not resting_rect.intersects(decision_area) and clear_of_readout, "The open fan must leave hero data and the decision visible at %s" % str(scale_size))
+				# The open fan rises over the player's own readout while it is held open.
+				_check(not resting_rect.intersects(decision_area), "The open fan must leave the decision visible at %s" % str(scale_size))
 	root.content_scale_size = Vector2i(1280, 720)
 	hand._layout(true)
 	var narrow_capacity: int = hand._per_page
 	var focused_uid: int = int(hand._items[hand._hovered]["uid"])
 	root.content_scale_size = Vector2i(3840, 1080)
 	hand._layout(true)
-	_check(hand._per_page != narrow_capacity, "Resize fixture must change the number of cards per page")
+	_check(hand._per_page >= 7 and narrow_capacity >= 7, "A seven-card hand must fit on one page at any size")
 	_check(int(hand._items[hand._hovered]["uid"]) == focused_uid and hand._items[hand._hovered]["node"].visible, "Resize must keep the browsed card visible on a valid page")
 	root.content_scale_size = Vector2i(1280, 720)
 	hand._layout(true)
@@ -337,7 +351,7 @@ func _run() -> void:
 	var wheel: InputEventMouseButton = InputEventMouseButton.new()
 	wheel.pressed = true
 	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
-	wheel.position = Vector2(hand._size.x * 0.52, hand._size.y - 8.0)
+	wheel.position = Vector2(hand._size.x * hand.FAN_CENTRE, hand._size.y - 8.0)
 	hand._unhandled_input(wheel)
 	_check(hand._page != wheel_page_before and clicks == 0, "Wheel paging must work in the revealed lower hand band without choosing a card")
 	var under_card: Node3D = duel.views[duel.view.player(0).duelist]

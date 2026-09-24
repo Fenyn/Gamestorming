@@ -278,7 +278,8 @@ func _init() -> void:
 		test_adventure_encounters_bring_a_guest_from_the_storyline,
 		test_a_guest_ally_starts_in_play,
 		test_adventure_boss_win_joins_the_run,
-		test_adventure_quests_open_starters,
+		test_adventure_achievements_track_steps,
+		test_adventure_xp_levels_pay_milestones,
 		test_every_reward_bundle_is_well_formed,
 		test_an_adventure_offer_is_three_legal_bundles_the_deck_can_run,
 		test_the_first_duel_grant_offers_an_aspect_choice,
@@ -322,7 +323,7 @@ func _init() -> void:
 		test_storm_return_stroke_refills_and_returning_front_goes_under_the_deck,
 		test_root_sightline_drill_sends_the_whole_look_to_one_end,
 		test_root_trail_cut_reaches_into_their_deck,
-		test_root_thorn_hedge_answers_the_hit_it_just_took,
+		test_root_thorn_hedge_goes_into_play_when_hit_and_is_used_later,
 		test_root_quickening_is_focused_against_a_marked_duelist,
 		test_root_kin_clearing_needs_an_ally_before_it_clears_the_table,
 		test_root_old_growth_spends_your_own_deck_or_your_hand,
@@ -345,7 +346,7 @@ func _init() -> void:
 		test_pyre_cinder_mastery_lowers_fervor_and_punishes_a_block,
 		test_a_cost_floor_never_raises_a_cheaper_attack,
 		test_pyre_smoldering_drill_sits_outside_the_drill_school_lock,
-		test_pyre_backdraft_stops_every_art_on_both_sides,
+		test_pyre_backdraft_stops_every_art_against_its_user,
 		test_pyre_scouring_flame_reaches_either_side_of_the_table,
 		test_pyre_firestorm_takes_all_allies_or_all_drills,
 		test_pyre_blazing_charge_bars_prevention_by_strike_cards,
@@ -402,6 +403,8 @@ func _init() -> void:
 		test_storm_seeking_spark_and_stormwall_drills,
 		test_storm_gathering_front_lightning_rod_and_steady_current,
 		test_storm_gale_and_conductor_masteries,
+		test_freestyle_cards_match_their_printed_text,
+		test_a_banned_card_is_an_adventure_bomb_only,
 		test_the_card_group_tells_signature_from_freestyle,
 		test_every_shipped_card_lands_in_one_group,
 		test_a_duelist_stack_is_one_character_consecutive_from_aspect_one,
@@ -438,7 +441,7 @@ func _init() -> void:
 		test_a_loadout_takes_no_more_copies_than_the_collection_holds,
 		test_the_loadout_stops_at_the_full_deck_maximum_before_the_validator_does,
 		test_bought_deck_slots_raise_the_loadout_cap_at_a_rising_price,
-		test_an_unlocked_aspect_tier_adds_the_next_card_and_the_run_carries_on,
+		test_owned_aspects_gate_the_loadout_and_the_run,
 		test_the_upgrades_file_round_trips_through_a_path_override,
 		test_the_pending_queue_lists_what_resolves_next_in_order,
 		test_a_pending_job_the_seat_cannot_see_reads_as_hidden,
@@ -5743,17 +5746,16 @@ func test_adventure_map_fields_legal_opponents() -> void:
 					if after != "" and int(map.node(to)["act"]) == int(n["act"]):
 						check(AdventureDecks.family_of(after) != AdventureDecks.family_of(opponent),
 							"%s: %s and %s fight the same family back to back" % [tag, id, to])
-			# Grants sit on act 1's tier 1 and the first two bosses, so every path meets three.
+			# Grants sit on the first two bosses, and offer only owned Aspects (design doc 8.6).
 			var grants: Array[String] = []
 			for id in map.nodes.keys():
 				if str(map.duel_for(id).get("grant", "")) == "aspect":
 					grants.append(id)
-			var expected: Array[String] = map.ids_at(1, 1)
-			expected.append(AdventureMap.boss_id_of(1))
+			var expected: Array[String] = [AdventureMap.boss_id_of(1)]
 			expected.append(AdventureMap.boss_id_of(2))
 			grants.sort()
 			expected.sort()
-			eq(grants, expected, "%s: Aspect grants on the first duel and the act 1 and 2 bosses" % tag)
+			eq(grants, expected, "%s: Aspect grants on the act 1 and 2 bosses" % tag)
 
 
 ## The three storyline starters meet their set act 1 and act 2 bosses at the act's boss tier, and
@@ -5830,36 +5832,138 @@ func test_adventure_boss_win_joins_the_run() -> void:
 	eq(AdventureStory.apply_boss_win(mourne, mourne_map, shipped), "personality_47", "Kell joins Mourne after the act 1 boss")
 
 
-## Act 2 bosses open a starter at once; two-step quests need the act 1 boss and then a finished run,
-## in that order.
-func test_adventure_quests_open_starters() -> void:
+## Achievements: ordered steps, hidden ones revealed by their first step, unordered ones in any
+## order, chained through a completed achievement, and a secret one invisible until done.
+func test_adventure_achievements_track_steps() -> void:
 	AdventureUnlocks.path_override = "user://adventure/test_unlocks.json"
 	AdventureUnlocks.clear()
 	var u: AdventureUnlocks = AdventureUnlocks.load_unlocks()
 	eq(u.available_starters(), ["tide_deepwater_start", "shade_mind_siege_start", "pyre_beatdown_start"] as Array[String],
 		"a new save opens the three storyline starters")
-	var run_won: Array[Dictionary] = [{"event": "run_won", "starter": "tide_deepwater_start"}]
-	eq(AdventureQuests.apply(u, run_won), [] as Array[String], "a finished run before the act 1 step opens nothing")
-	var act2: Array[Dictionary] = [{"event": "boss_won", "starter": "tide_deepwater_start", "act": 2}]
-	eq(AdventureQuests.apply(u, act2), ["freestyle_swords_start"] as Array[String], "Edric's act 2 boss opens Caedan")
-	eq(AdventureQuests.apply(u, act2), [] as Array[String], "and only once")
-	var act1: Array[Dictionary] = [{"event": "boss_won", "starter": "tide_deepwater_start", "act": 1}]
-	eq(AdventureQuests.apply(u, act1), [] as Array[String], "Emrys's quest takes its first step")
-	eq(u.steps_done("edric_the_heir"), 1, "one step done")
-	eq(AdventureQuests.apply(u, run_won), ["steel_heir_start"] as Array[String], "a finished Edric run opens Emrys")
-	check(not u.is_open("shade_henchmen_start"), "Edric's act 2 does not open Sable")
+	var edric_act2: Dictionary = {"event": "duel_won", "main": "Sir Edric Rooke", "starter": "tide_deepwater_start",
+		"node": "boss", "act": 2, "opponent": "Caedan Vale", "allies": [], "blocks": 3, "aspect": 3}
+	var done: Array[Dictionary] = AdventureAchievements.apply(u, [edric_act2] as Array[Dictionary])
+	eq(done.size(), 1, "Edric's act 2 boss completes the Vale test")
+	eq(str(done[0].get("starter", "")), "freestyle_swords_start", "which opens Caedan's starter")
+	eq(AdventureAchievements.apply(u, [edric_act2] as Array[Dictionary]).size(), 0, "and only once")
+	# Hidden: "???" until its first step, then named.
+	var row: Dictionary = _journal_row(u, "edric_fire_in_the_knight")
+	eq(str(row.get("state", "")), "unknown", "a hidden achievement starts unknown")
+	eq(str(row.get("title", "")), "???", "and unnamed")
+	var beat_bram: Dictionary = {"event": "duel_won", "main": "Sir Edric Rooke", "opponent": "Bram Ashmark",
+		"node": "duel", "act": 1, "allies": [], "blocks": 0, "aspect": 2}
+	eq(AdventureAchievements.apply(u, [beat_bram] as Array[Dictionary]).size(), 0, "one early win is only a first step")
+	eq(str(_journal_row(u, "edric_fire_in_the_knight").get("state", "")), "open", "which reveals it")
+	var shallow: Dictionary = beat_bram.duplicate()
+	shallow["act"] = 2
+	eq(AdventureAchievements.apply(u, [shallow] as Array[Dictionary]).size(), 0, "the second step wants Aspect 3")
+	var deep: Dictionary = shallow.duplicate()
+	deep["aspect"] = 3
+	eq(AdventureAchievements.apply(u, [deep] as Array[Dictionary]).size(), 1, "and completes once it is met")
+	# Allies together, and a block limit.
+	var together: Dictionary = {"event": "duel_won", "main": "Sir Edric Rooke", "allies": ["Emrys Rooke"], "act": 1}
+	eq(AdventureAchievements.apply(u, [together] as Array[Dictionary]).size(), 0, "one of the two allies is not enough")
+	together["allies"] = ["Emrys Rooke", "Dame Alder Rooke"]
+	eq(AdventureAchievements.apply(u, [together] as Array[Dictionary]).size(), 1, "both complete the line holds")
+	var head_on: Dictionary = {"event": "duel_won", "main": "Bram Ashmark", "opponent": "Siphon", "node": "boss", "act": 1, "blocks": 1}
+	eq(AdventureAchievements.apply(u, [head_on] as Array[Dictionary]).size(), 0, "a block spoils head-on")
+	head_on["blocks"] = 0
+	eq(AdventureAchievements.apply(u, [head_on] as Array[Dictionary]).size(), 1, "and none earns it")
+	# Unordered, then a secret chained off it.
+	eq(_journal_row(u, "quarr_unbroken").size(), 0, "a secret achievement is not in the journal")
+	for main in ["Bram Ashmark", "Gideon Mourne"]:
+		AdventureAchievements.apply(u, [{"event": "run_won", "main": main}] as Array[Dictionary])
+	eq(u.steps_done("the_heart").size(), 2, "the Heart's steps land in any order")
+	var last: Array[Dictionary] = AdventureAchievements.apply(u,
+		[{"event": "run_won", "main": "Sir Edric Rooke"}] as Array[Dictionary])
+	eq(last.size(), 1, "the third main completes the Heart")
+	eq(u.steps_done("quarr_unbroken").size(), 1, "whose completion is the secret's first step")
 	check(u.save(), "unlocks save")
 	var loaded: AdventureUnlocks = AdventureUnlocks.load_unlocks()
-	check(loaded.available_starters().has("freestyle_swords_start") and loaded.available_starters().has("steel_heir_start"),
-		"the unlocks survive a reload: %s" % str(loaded.available_starters()))
-	eq(loaded.available_starters().size(), 5, "three open and two unlocked")
-	var map: AdventureMap = AdventureMap.generate("shade_mind_siege_start", 3)
-	var run: AdventureRun = AdventureRun.begin("shade_mind_siege_start", 3)
-	run.node_id = map.final_id()
-	var events: Array[Dictionary] = AdventureQuests.events_for_win(run, map)
-	eq(events.size(), 2, "beating the final boss fires boss_won and run_won")
+	check(loaded.is_complete("the_heart") and loaded.steps_done("quarr_unbroken").size() == 1,
+		"achievement progress survives a reload")
 	AdventureUnlocks.clear()
 	AdventureUnlocks.path_override = ""
+
+
+func _journal_row(u: AdventureUnlocks, id: String) -> Dictionary:
+	for row in AdventureAchievements.journal(u):
+		if str(row["id"]) == id:
+			return row
+	return {}
+
+
+## XP: the main, the allies in play and the beaten opponent all gain; levels pay out once each,
+## school levels hand out the school's cards in order and dust past the cap, and a milestone
+## opens a starter or grants an ability.
+func test_adventure_xp_levels_pay_milestones() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var p: AdventureProgress = AdventureProgress.new()
+	eq(AdventureProgress.level_of(0, [0, 100, 250], 100), 1, "0 XP is level 1")
+	eq(AdventureProgress.level_of(250, [0, 100, 250], 100), 3, "a threshold reached is its level")
+	eq(AdventureProgress.level_of(460, [0, 100, 250], 100), 5, "past the curve each step adds a level")
+	var boss: Dictionary = {"main": "Sir Edric Rooke", "school": "tide", "node": "boss", "act": 1,
+		"opponent": "Emrys Rooke", "allies": ["Emrys Rooke", "Tavin Vale"], "run_won": false}
+	var ups: Array[Dictionary] = []
+	for i in range(4):
+		ups.append_array(p.award(boss))
+	eq(int(p.personality_xp["Sir Edric Rooke"]), 100, "the main gains boss XP")
+	eq(int(p.personality_xp["Emrys Rooke"]), 4 * (15 + 15), "an ally who is also the beaten boss gains both")
+	eq(p.personality_level("Sir Edric Rooke"), 2, "100 XP is level 2")
+	var edric_twos: int = 0
+	for up in ups:
+		if str(up["key"]) == "Sir Edric Rooke" and int(up["level"]) == 2:
+			edric_twos += 1
+	eq(edric_twos, 1, "a level is reported once")
+	eq(p.award({"main": "Sir Edric Rooke", "node": "duel"}).size(), 0, "and not again on the next win")
+	# Rewards.
+	var collection: AdventureCollection = AdventureCollection.new()
+	var unlocks: AdventureUnlocks = AdventureUnlocks.new()
+	var wallet: AdventureWallet = AdventureWallet.new()
+	var emrys: Dictionary = p.reward_for({"kind": "personality", "key": "Emrys Rooke", "level": 2}, shipped)
+	AdventureProgress.grant(emrys, "Emrys Rooke", shipped, collection, unlocks, wallet)
+	check(unlocks.is_open("steel_heir_start"), "Emrys's level 2 opens Steel Inheritance")
+	var edric3: Dictionary = p.reward_for({"kind": "personality", "key": "Sir Edric Rooke", "level": 3}, shipped)
+	AdventureProgress.grant(edric3, "Sir Edric Rooke", shipped, collection, unlocks, wallet)
+	check(unlocks.has_ability("Sir Edric Rooke", AdventureUnlocks.ABILITY_RELIC), "Edric's level 3 grants a starting Relic")
+	var generic: Dictionary = p.reward_for({"kind": "personality", "key": "Tavin Vale", "level": 2}, shipped)
+	eq(int(generic.get("signatures", 0)), 2, "a character with no track gets two signatures a level")
+	var pool: Array[String] = AdventureProgress.school_pool("tide", shipped)
+	var first: Dictionary = p.reward_for({"kind": "school", "key": "tide", "level": 2}, shipped)
+	eq(first["cards"], pool.slice(0, 3), "a school level hands out the next three of its pool")
+	var second: Dictionary = p.reward_for({"kind": "school", "key": "tide", "level": 3}, shipped)
+	eq(second["cards"], pool.slice(3, 6), "and the level after, the three after that")
+	var mastery: Dictionary = p.reward_for({"kind": "school", "key": "tide", "level": 4}, shipped)
+	var has_mastery: bool = false
+	for id in mastery["cards"]:
+		if shipped.has(str(id)) and shipped.get_def(str(id)).type == CardDef.Type.MASTERY:
+			has_mastery = true
+	check(has_mastery, "a mastery level adds a Mastery")
+	for i in range(3):
+		collection.add(pool[0], 1, shipped)
+	var before: int = wallet.motes
+	AdventureProgress.grant({"cards": [pool[0]]}, "", shipped, collection, unlocks, wallet)
+	check(wallet.motes > before, "a copy past the cap dusts into Motes")
+	# A starting Relic comes from the character's own precon.
+	var run: AdventureRun = AdventureRun.begin("tide_deepwater_start", 9)
+	AdventureProgress.prepare_run(run, shipped, collection, unlocks)
+	check(run.relic_id != "", "Edric's run starts with a Relic")
+	eq(DeckValidator.validate(run.deck(), shipped).size(), 0, "and the deck is still legal")
+	# The whole path a won duel takes: the storyline join, XP, and achievements, in one call.
+	var edric: AdventureRun = AdventureRun.begin("tide_deepwater_start", 5)
+	var edric_map: AdventureMap = AdventureMap.generate("tide_deepwater_start", 5)
+	edric.node_id = AdventureMap.boss_id_of(1)
+	var fresh: AdventureProgress = AdventureProgress.new()
+	var lines: Array[String] = AdventureProgress.record_win(edric, edric_map, null, shipped,
+		AdventureCollection.new(), AdventureUnlocks.new(), fresh, AdventureWallet.new())
+	check(lines.size() > 0 and lines[0].contains("joins your deck"), "the act 1 boss win reports Emrys joining: %s" % str(lines))
+	eq(int(fresh.personality_xp.get("Sir Edric Rooke", 0)), 25, "Edric gains boss XP")
+	eq(int(fresh.personality_xp.get("Emrys Rooke", 0)), 15, "Emrys gains XP for being beaten at a boss")
+	eq(int(fresh.school_xp.get("tide", 0)), 25, "and Tide gains school XP")
+	var exclusive: Array[String] = AdventureProgress.exclusive_ids()
+	check(exclusive.has("personality_32"), "milestone and achievement cards are known")
+	for id in AdventureVendor.pool(shipped):
+		check(not exclusive.has(id), "the vendor never stocks %s" % id)
 
 
 ## The reward screen never shows a bundle the validator would refuse, and never someone else's.
@@ -5953,16 +6057,23 @@ func test_an_adventure_offer_is_three_legal_bundles_the_deck_can_run() -> void:
 		eq(run.node_id, map.final_id(), "%s ends on the final boss" % starter_id)
 
 
-## A granting duel stops for an Aspect choice instead of handing one over silently. The run's first
-## duel grants; the next one does not.
+## A granting boss stops for a choice among the owned Aspect cards instead of handing one over
+## silently. An ordinary duel never grants.
 func test_the_first_duel_grant_offers_an_aspect_choice() -> void:
 	var shipped: CardLibrary = shipped_library()
 	var map: AdventureMap = AdventureMap.generate("pyre_beatdown_start", 7)
 	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
+	run.owned_aspects = ["personality_03", "personality_56"]
 	eq(run.aspects(), 2, "a starter opens at two Aspects")
 	check(run.walk_to_next_duel(map), "the run steps onto its first duel")
 	AdventureRewards.finish_stage(run, map, shipped, true)
-	eq(run.status, "aspect", "the first duel stops for the Aspect choice")
+	eq(run.status, "reward", "an ordinary duel grants nothing")
+	AdventureRewards.apply_skip(run)
+	AdventureRewards.finish_reward(run, map)
+	run.node_id = AdventureMap.boss_id_of(1)
+	run.status = "stage"
+	AdventureRewards.finish_stage(run, map, shipped, true)
+	eq(run.status, "aspect", "the act 1 boss stops for the Aspect choice")
 	eq(run.pending_aspects, ["personality_03", "personality_56"],
 		"and lists both of Bram Ashmark's third Aspects")
 	eq(run.pending_offer.size(), 0, "the bundle offer waits until the Aspect is taken")
@@ -5980,9 +6091,10 @@ func test_the_first_duel_grant_offers_an_aspect_choice() -> void:
 	AdventureRewards.apply_skip(run)
 	AdventureRewards.finish_reward(run, map)
 	eq(run.status, "map", "a won duel hands the run back to the map")
-	check(run.walk_to_next_duel(map), "the run steps onto its second duel")
+	run.node_id = AdventureMap.boss_id_of(2)
+	run.status = "stage"
 	AdventureRewards.finish_stage(run, map, shipped, true)
-	eq(run.status, "reward", "the second duel grants nothing and goes straight to the bundles")
+	eq(run.status, "reward", "with no owned tier 4 the act 2 boss goes straight to the bundles")
 	eq(run.aspects(), 3, "so the Aspect count is unchanged")
 	# A loss ends the run wherever it happens.
 	var lost: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
@@ -5994,7 +6106,8 @@ func test_the_first_duel_grant_offers_an_aspect_choice() -> void:
 	topped.duelist_ids = ["personality_01", "personality_55",
 		"personality_56", "personality_57",
 		"personality_58"]
-	topped.walk_to_next_duel(map)
+	topped.node_id = AdventureMap.boss_id_of(1)
+	topped.status = "stage"
 	AdventureRewards.finish_stage(topped, map, shipped, true)
 	eq(topped.status, "reward", "a full stack goes straight to the bundles")
 	eq(str(topped.picks[0].get("kind", "")), "aspect_skipped", "and the skipped grant is recorded")
@@ -6943,9 +7056,12 @@ func test_storm_free_current_waives_costs_for_a_storm_hand() -> void:
 	check(has_event(e, &"hand_revealed"), "the hand was shown before it was counted")
 	eq(me.attachments().size(), 1, "three school cards in hand, so it rode onto the duelist")
 	eq(me.attachments()[0].attached_to, me.duelist, "onto the duelist, not the card in control")
-	check(e._costs_waived(me, me.duelist), "the duelist pays no costs while it is there")
+	check(e._costs_waived(me, me.duelist), "costs other cards add are waived while it is there")
+	# "You still have to pay the original cost of the card that you are using" (CRD ruling).
+	e._float(1, "modifier", "combat", {"scope": "opponent_cost", "kind": "art", "stages": 2})
+	eq(e._cost_stages(art, me), 2, "a tax from the other side is not paid, the Art's own 2 is")
 	me.duelist.energy = 0
-	check(e._can_pay(me.duelist, me, art), "so an Art is affordable at no Energy")
+	check(not e._can_pay(me.duelist, me, art), "so an Art is not free")
 	var ally: CardInstance = real_inject(e, 0, _an_ally_id())
 	check(not e._costs_waived(me, ally), "an Ally still pays its own")
 	skip_to_turn(e, 3)
@@ -7071,8 +7187,10 @@ func test_root_trail_cut_reaches_into_their_deck() -> void:
 	eq(e.card(gone).zone, &"removed", "the picked card left the game")
 
 
-## "Use immediately after you take damage from an attack: they lose the top 3 of their Life Deck."
-func test_root_thorn_hedge_answers_the_hit_it_just_took() -> void:
+## "Whenever you take damage from one of your opponent's attacks, you may place this card directly
+## into play from your hand. You can only use it during your Attacker Attacks phase ... to make your
+## opponent discard the top 3 cards of his Life Deck" (CRD errata to Namekian Finishing Effort).
+func test_root_thorn_hedge_goes_into_play_when_hit_and_is_used_later() -> void:
 	var e: DuelEngine = real_engine(real_deck(["root_strike_05"], "pact"), real_deck([], "vigil", "root"))
 	var hedge: CardInstance = real_to_hand(e, 1, "root_noncombat_02")
 	to_attack(e, 0)
@@ -7082,10 +7200,14 @@ func test_root_thorn_hedge_answers_the_hit_it_just_took() -> void:
 	eq(prompt_kind(e), &"follow_up", "the player who was hit gets a window")
 	eq(e.prompt.player, 1, "it belongs to the defender, not the attacker")
 	eq(str(e.prompt.context.get("window", "")), "after_damage", "and it is that window")
-	check(e.prompt.find(&"use", hedge.uid) != null, "the Non-Combat is on offer straight from hand")
-	answer(e, &"use", hedge.uid)
-	eq(e.player(0).life_deck.size(), attacker_deck - 3, "the attacker lost the top 3 of their Life Deck")
-	eq(e.card(hedge.uid).zone, &"discard", "and the card went to the pile, never onto the table")
+	check(e.prompt.find(&"use", hedge.uid, "place") != null, "the card may be put into play from hand")
+	answer(e, &"use", hedge.uid, "place")
+	eq(e.card(hedge.uid).zone, &"in_play", "it went onto the table")
+	eq(e.player(0).life_deck.size(), attacker_deck, "and did nothing yet")
+	e.prompts.clear()
+	e._use_card(e.player(1), hedge, false)
+	e._drain()
+	eq(e.player(0).life_deck.size(), attacker_deck - 3, "used later, the attacker loses the top 3")
 
 
 ## "If performed against a Marked duelist, this attack is Focused." The keyword is read off the
@@ -7707,12 +7829,15 @@ func test_an_adventure_run_gains_the_next_aspect_card_of_its_own_line() -> void:
 	eq(run.aspects(), 2, "a starter opens at two Aspects")
 	eq(run.duelist_ids[0], "personality_01", "starting from the card both lines share")
 	eq(run.duelist_ids[1], "personality_55", "and the Glut line's second rung")
+	eq(run.next_tier_options(shipped), [] as Array[String], "nothing is offerable until it is owned")
+	run.owned_aspects = ["personality_56", "personality_03"]
 	eq(run.next_tier_options(shipped), ["personality_03", "personality_56"],
-		"both of the character's third Aspects are offerable")
+		"both of the character's owned third Aspects are offerable")
 	eq(run.next_tier(shipped), "personality_56",
 		"and the one picked for now stays on the line the starter was written with")
 	# The Hollow line starts from the same shared Aspect 1 and climbs the other way.
 	var hollow: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 31337)
+	hollow.owned_aspects = run.owned_aspects.duplicate()
 	eq(hollow.duelist_ids[1], "personality_02", "the other starter runs the Hollow line")
 	eq(hollow.next_tier(shipped), "personality_03",
 		"and gains that line's third Aspect from the same pair of options")
@@ -8061,7 +8186,7 @@ const MOTES_STARTER: String = "pyre_beatdown_start"
 
 ## A card of each printed tell, and what band it belongs in.
 const MOTES_BAND_CASES: Array = [
-	["freestyle_noncombat_03", AdventureEconomy.BAND_BASE],                   # three copies, answers one card
+	["freestyle_strike_06", AdventureEconomy.BAND_BASE],                   # three copies, answers one attack
 	["freestyle_combat_17", AdventureEconomy.BAND_LIMITED],                 # printed at two
 	["signature_strike_01", AdventureEconomy.BAND_RESTRICTED],             # three copies, but a lockout
 	["relic_01", AdventureEconomy.BAND_RESTRICTED],             # printed at one
@@ -8082,7 +8207,7 @@ func test_motes_price_a_card_by_its_printed_tell() -> void:
 		eq(AdventureEconomy.band(def), str(row[1]), "'%s' is a %s card" % [def.id, str(row[1])])
 	check(AdventureEconomy.is_lockout(shipped.defs.get("signature_strike_01")), "a forbid is a lockout")
 	check(AdventureEconomy.is_lockout(shipped.defs.get("freestyle_combat_01")), "and so is stopping everything")
-	check(not AdventureEconomy.is_lockout(shipped.defs.get("freestyle_noncombat_03")), "a search is not")
+	check(not AdventureEconomy.is_lockout(shipped.defs.get("freestyle_strike_06")), "a Strike answer is not")
 	check(not AdventureEconomy.is_lockout(shipped.defs.get("seal_01")), "a Seal is exempt by name")
 	# Every card in the library is priced, and the bands climb.
 	var prices: Array[int] = []
@@ -8153,29 +8278,29 @@ func test_the_collection_holds_what_a_deck_may_run_and_dissolves_the_rest() -> v
 	var collection: AdventureCollection = AdventureCollection.load_collection()
 	eq(collection.total_copies(), 0, "a collection with no file starts empty")
 	# The cap is what DeckValidator would allow, read off its own constants.
-	eq(AdventureCollection.cap("freestyle_noncombat_03", shipped), DeckValidator.DEFAULT_LIMIT, "a plain card caps at three")
+	eq(AdventureCollection.cap("freestyle_strike_06", shipped), DeckValidator.DEFAULT_LIMIT, "a plain card caps at three")
 	eq(AdventureCollection.cap("freestyle_combat_17", shipped), 2, "a card printed at two caps at two")
 	eq(AdventureCollection.cap("signature_strike_06", shipped), DeckValidator.SIGNATURE_LIMIT,
 		"a card named for a character caps at the signature fourth")
 	eq(AdventureCollection.cap("personality_01", shipped), 1, "a personality caps at one")
 	eq(AdventureCollection.cap("seal_01", shipped), 1, "a Seal caps at one")
 	eq(AdventureCollection.cap("not_a_card", shipped), 0, "an unknown card is not collectable")
-	eq(collection.add("freestyle_noncombat_03", 2, shipped), 2, "two copies land")
-	eq(collection.add("freestyle_noncombat_03", 5, shipped), 1, "and only the third of the next five")
-	eq(collection.copies("freestyle_noncombat_03"), 3, "the cap holds")
-	check(collection.is_full("freestyle_noncombat_03", shipped), "and the row is full")
+	eq(collection.add("freestyle_strike_06", 2, shipped), 2, "two copies land")
+	eq(collection.add("freestyle_strike_06", 5, shipped), 1, "and only the third of the next five")
+	eq(collection.copies("freestyle_strike_06"), 3, "the cap holds")
+	check(collection.is_full("freestyle_strike_06", shipped), "and the row is full")
 	eq(collection.add("not_a_card", 1, shipped), 0, "an unknown card never lands")
 	eq(collection.add("personality_01", 3, shipped), 1, "a personality lands once")
 	# Dissolving pays a fraction of the price and takes the copy away.
 	var wallet: AdventureWallet = AdventureWallet.new()
-	var def: CardDef = shipped.defs.get("freestyle_noncombat_03")
-	var paid: int = collection.dissolve("freestyle_noncombat_03", shipped, wallet)
+	var def: CardDef = shipped.defs.get("freestyle_strike_06")
+	var paid: int = collection.dissolve("freestyle_strike_06", shipped, wallet)
 	eq(paid, AdventureEconomy.dissolve_value(def), "dissolving pays the card's dissolve value")
 	eq(wallet.motes, paid, "into the wallet")
-	eq(collection.copies("freestyle_noncombat_03"), 2, "and one copy is gone")
+	eq(collection.copies("freestyle_strike_06"), 2, "and one copy is gone")
 	eq(collection.dissolve("not_held", shipped, wallet), 0, "a card you do not hold dissolves for nothing")
-	eq(collection.remove("freestyle_noncombat_03", 9), 2, "removing takes what is there")
-	check(not collection.all_ids().has("freestyle_noncombat_03"), "and an empty row leaves the collection")
+	eq(collection.remove("freestyle_strike_06", 9), 2, "removing takes what is there")
+	check(not collection.all_ids().has("freestyle_strike_06"), "and an empty row leaves the collection")
 	collection.add("freestyle_combat_17", 2, shipped)
 	check(collection.save(), "the collection writes to disk")
 	var loaded: AdventureCollection = AdventureCollection.load_collection()
@@ -8378,22 +8503,22 @@ func test_the_vendor_sells_a_rotating_shelf_of_buyable_cards() -> void:
 func test_a_loadout_swap_is_legal_only_through_the_validator() -> void:
 	var shipped: CardLibrary = shipped_library()
 	var collection: AdventureCollection = AdventureCollection.new()
-	for id in ["freestyle_noncombat_03", "steel_combat_01", "pyre_strike_12", "seal_01",
+	for id in ["freestyle_strike_06", "steel_combat_01", "pyre_strike_12", "seal_01",
 			"personality_55", "personality_56"]:
 		collection.add(str(id), 1, shipped)
 	var deck: DeckList = AdventureLoadout.base_deck(MOTES_STARTER)
 	check(deck != null, "the starter resolves")
 	var size: int = deck.cards.size()
 	check(AdventureLoadout.swappable_out(deck).has("pyre_strike_12"), "a card in the deck can go out")
-	check(not AdventureLoadout.swappable_out(deck).has("freestyle_noncombat_03"), "a card that is not cannot")
+	check(not AdventureLoadout.swappable_out(deck).has("freestyle_strike_06"), "a card that is not cannot")
 	# One out, one in, and the deck stays the size it was.
-	var legal: Dictionary = AdventureLoadout.swap(deck, "pyre_strike_12", "freestyle_noncombat_03", shipped, collection)
+	var legal: Dictionary = AdventureLoadout.swap(deck, "pyre_strike_12", "freestyle_strike_06", shipped, collection)
 	eq((legal["problems"] as Array[String]).size(), 0, "a legal swap has nothing to answer for")
 	var swapped: DeckList = legal["deck"]
 	check(swapped != null, "and hands back the swapped deck")
 	if swapped != null:
 		eq(swapped.cards.size(), size, "the starter keeps its size")
-		eq(swapped.cards.count("freestyle_noncombat_03"), 1, "the new card is in")
+		eq(swapped.cards.count("freestyle_strike_06"), 1, "the new card is in")
 		eq(swapped.cards.count("pyre_strike_12"), deck.cards.count("pyre_strike_12") - 1, "one copy of the old one is out")
 	eq(deck.cards.size(), size, "and the deck it was asked about is untouched")
 	# The validator's own words come back for each refusal.
@@ -8407,7 +8532,7 @@ func test_a_loadout_swap_is_legal_only_through_the_validator() -> void:
 	check(swap_problem_mentions(seal_swap, "Seal set"), "a Seal of another set is refused")
 	var unowned: Dictionary = AdventureLoadout.swap(deck, "pyre_strike_12", "freestyle_combat_01", shipped, collection)
 	check(swap_problem_mentions(unowned, "collection"), "a card you do not own is not swappable in")
-	check(AdventureLoadout.swappable_in(deck, shipped, collection, "pyre_strike_12").has("freestyle_noncombat_03"),
+	check(AdventureLoadout.swappable_in(deck, shipped, collection, "pyre_strike_12").has("freestyle_strike_06"),
 		"the swappable list holds the legal card")
 	check(not AdventureLoadout.swappable_in(deck, shipped, collection, "pyre_strike_12").has("steel_combat_01"),
 		"and not the illegal one")
@@ -8451,13 +8576,13 @@ func test_a_run_settles_for_what_it_added_across_a_save() -> void:
 	var shipped: CardLibrary = shipped_library()
 	var printed: DeckList = DeckList.resolve(MOTES_STARTER)
 	var run: AdventureRun = AdventureRun.begin(MOTES_STARTER, 8181)
-	run.cards.append("freestyle_noncombat_03")
-	run.cards.append("freestyle_noncombat_03")
+	run.cards.append("freestyle_strike_06")
+	run.cards.append("freestyle_strike_06")
 	run.duelist_ids.append("personality_56")
 	eq(run.run_id, AdventureRun.id_for(MOTES_STARTER, 8181), "a run is named from its starter and seed")
 	eq(run.starter_cards, printed.cards, "the printed starter is its starting deck")
 	eq(run.starter_duelist, printed.duelist_ids, "stack included")
-	eq(run.added_cards(), ["freestyle_noncombat_03", "freestyle_noncombat_03"] as Array[String],
+	eq(run.added_cards(), ["freestyle_strike_06", "freestyle_strike_06"] as Array[String],
 		"so the run settles for what it actually added")
 	eq(run.added_duelist_cards(), ["personality_56"] as Array[String],
 		"and for the Aspect it climbed to")
@@ -8468,11 +8593,11 @@ func test_a_run_settles_for_what_it_added_across_a_save() -> void:
 	eq(again.starter_cards, run.starter_cards, "and so does the starting deck")
 	run.status = "lost"
 	AdventureSettlement.open(run)
-	run.kept["freestyle_noncombat_03"] = 1
+	run.kept["freestyle_strike_06"] = 1
 	var settled: AdventureRun = AdventureRun.from_dict(run.to_dict())
 	eq(settled.status, "settle", "a run saved on the settle screen comes back to it")
 	eq(settled.outcome, "lost", "knowing which way it ended")
-	eq(int(settled.kept.get("freestyle_noncombat_03", 0)), 1, "and what was already bought")
+	eq(int(settled.kept.get("freestyle_strike_06", 0)), 1, "and what was already bought")
 	eq(AdventureSettlement.offers(settled, shipped, false).size(), 2,
 		"so the offer no longer lists the copy that was kept")
 
@@ -8486,7 +8611,7 @@ const MOTES_STARTER_TWO: String = "pyre_attrition_start"
 
 func test_the_collection_caps_at_three_four_or_one_and_dissolves_the_rest() -> void:
 	var shipped: CardLibrary = shipped_library()
-	eq(AdventureCollection.cap("freestyle_noncombat_03", shipped), AdventureCollection.CAP_NORMAL,
+	eq(AdventureCollection.cap("freestyle_strike_06", shipped), AdventureCollection.CAP_NORMAL,
 		"a normal card caps at three")
 	eq(AdventureCollection.cap("signature_strike_06", shipped), AdventureCollection.CAP_SIGNATURE,
 		"a card named for a character caps at four")
@@ -8506,10 +8631,10 @@ func test_the_collection_caps_at_three_four_or_one_and_dissolves_the_rest() -> v
 	# Banking past the cap dissolves the overflow instead of dropping it.
 	var wallet: AdventureWallet = AdventureWallet.new()
 	var fresh: AdventureCollection = AdventureCollection.new()
-	var banked: Dictionary = fresh.bank("freestyle_noncombat_03", 5, shipped, wallet)
+	var banked: Dictionary = fresh.bank("freestyle_strike_06", 5, shipped, wallet)
 	eq(int(banked["added"]), 3, "three of five copies land")
 	eq(int(banked["copies"]), 2, "and the other two dissolve")
-	eq(int(banked["motes"]), 2 * AdventureEconomy.dissolve_value(shipped.defs["freestyle_noncombat_03"]),
+	eq(int(banked["motes"]), 2 * AdventureEconomy.dissolve_value(shipped.defs["freestyle_strike_06"]),
 		"paying the dissolve value per copy")
 	eq(wallet.motes, int(banked["motes"]), "into the wallet")
 	eq(AdventureCollection.report_line(banked), "2 copies dissolved for %d Motes" % int(banked["motes"]),
@@ -8517,22 +8642,22 @@ func test_the_collection_caps_at_three_four_or_one_and_dissolves_the_rest() -> v
 	eq(AdventureCollection.report_line({"copies": 0, "motes": 0}), "", "with nothing to say when nothing dissolved")
 	# A collection saved under the old caps is trimmed on load, and the overflow is paid back.
 	var old: Dictionary = {"version": 1, "cards": {
-		"freestyle_noncombat_03": 5,
+		"freestyle_strike_06": 5,
 		"freestyle_combat_17": 4,
 		"personality_01": 3,
 		"pyre_strike_12": 3,
 	}}
 	var migrated: AdventureCollection = AdventureCollection.from_dict(old)
 	eq(migrated.loaded_version, 1, "the old file says which version it was written at")
-	eq(migrated.copies("freestyle_noncombat_03"), 5, "and loads exactly what it held")
+	eq(migrated.copies("freestyle_strike_06"), 5, "and loads exactly what it held")
 	var purse: AdventureWallet = AdventureWallet.new()
 	var report: Dictionary = migrated.trim_to_cap(shipped, purse)
-	eq(migrated.copies("freestyle_noncombat_03"), 3, "the trim takes a normal row back to three")
+	eq(migrated.copies("freestyle_strike_06"), 3, "the trim takes a normal row back to three")
 	eq(migrated.copies("freestyle_combat_17"), 2, "a card printed at two back to two")
 	eq(migrated.copies("personality_01"), 1, "and a personality back to one")
 	eq(migrated.copies("pyre_strike_12"), 3, "a row already inside its cap is left alone")
 	eq(int(report["copies"]), 6, "six copies dissolved in all")
-	var expected_motes: int = 2 * AdventureEconomy.dissolve_value(shipped.defs["freestyle_noncombat_03"]) \
+	var expected_motes: int = 2 * AdventureEconomy.dissolve_value(shipped.defs["freestyle_strike_06"]) \
 		+ 2 * AdventureEconomy.dissolve_value(shipped.defs["freestyle_combat_17"]) \
 		+ 2 * AdventureEconomy.dissolve_value(shipped.defs["personality_01"])
 	eq(int(report["motes"]), expected_motes, "for what they were worth")
@@ -8592,42 +8717,42 @@ func loadout_slot_for(deck: DeckList, in_id: String, library: CardLibrary,
 func test_a_loadout_takes_no_more_copies_than_the_collection_holds() -> void:
 	var shipped: CardLibrary = shipped_library()
 	var collection: AdventureCollection = AdventureCollection.new()
-	eq(collection.add("freestyle_noncombat_03", 2, shipped), 2, "the collection holds two copies")
+	eq(collection.add("freestyle_strike_06", 2, shipped), 2, "the collection holds two copies")
 	var deck: DeckList = AdventureLoadout.base_deck(MOTES_STARTER)
 	eq(AdventureLoadout.starter_of(deck), MOTES_STARTER, "the loadout deck remembers its starter")
-	eq(AdventureLoadout.from_collection(deck, "freestyle_noncombat_03"), 0, "and takes nothing from the library yet")
+	eq(AdventureLoadout.from_collection(deck, "freestyle_strike_06"), 0, "and takes nothing from the library yet")
 	# Two copies in is exactly what two copies owned allows.
-	var first_slot: String = loadout_slot_for(deck, "freestyle_noncombat_03", shipped, collection)
+	var first_slot: String = loadout_slot_for(deck, "freestyle_strike_06", shipped, collection)
 	check(first_slot != "", "there is a slot the card can take")
-	var one: DeckList = AdventureLoadout.swap(deck, first_slot, "freestyle_noncombat_03", shipped, collection)["deck"]
+	var one: DeckList = AdventureLoadout.swap(deck, first_slot, "freestyle_strike_06", shipped, collection)["deck"]
 	check(one != null, "the first copy swaps in")
-	eq(AdventureLoadout.from_collection(one, "freestyle_noncombat_03"), 1, "one copy is now from the library")
-	var second_slot: String = loadout_slot_for(one, "freestyle_noncombat_03", shipped, collection)
+	eq(AdventureLoadout.from_collection(one, "freestyle_strike_06"), 1, "one copy is now from the library")
+	var second_slot: String = loadout_slot_for(one, "freestyle_strike_06", shipped, collection)
 	check(second_slot != "", "and there is a second slot for it")
-	var two: DeckList = AdventureLoadout.swap(one, second_slot, "freestyle_noncombat_03", shipped, collection)["deck"]
+	var two: DeckList = AdventureLoadout.swap(one, second_slot, "freestyle_strike_06", shipped, collection)["deck"]
 	check(two != null, "the second copy swaps in as well")
-	eq(two.cards.count("freestyle_noncombat_03") if two != null else -1, 2, "the deck runs two")
-	eq(AdventureLoadout.from_collection(two, "freestyle_noncombat_03"), 2, "both from the library")
+	eq(two.cards.count("freestyle_strike_06") if two != null else -1, 2, "the deck runs two")
+	eq(AdventureLoadout.from_collection(two, "freestyle_strike_06"), 2, "both from the library")
 	# A third would be legal to run and is refused anyway: the collection only holds two.
 	var third_slot: String = ""
 	for out_id in AdventureLoadout.swappable_out(two):
-		if out_id != "freestyle_noncombat_03":
+		if out_id != "freestyle_strike_06":
 			third_slot = out_id
 			break
-	var third: Dictionary = AdventureLoadout.swap(two, third_slot, "freestyle_noncombat_03", shipped, collection)
+	var third: Dictionary = AdventureLoadout.swap(two, third_slot, "freestyle_strike_06", shipped, collection)
 	check(third["deck"] == null, "a third copy is refused")
 	check(swap_problem_mentions(third, "You own 2 copies"), "because the collection only holds two")
-	check(not AdventureLoadout.swappable_in(two, shipped, collection, third_slot).has("freestyle_noncombat_03"),
+	check(not AdventureLoadout.swappable_in(two, shipped, collection, third_slot).has("freestyle_strike_06"),
 		"and it is off the swappable list")
-	eq(collection.copies("freestyle_noncombat_03"), 2, "nothing was consumed either way")
+	eq(collection.copies("freestyle_strike_06"), 2, "nothing was consumed either way")
 	# The library is shared: the same two copies go into a second starter at the same time.
 	var other: DeckList = AdventureLoadout.base_deck(MOTES_STARTER_TWO)
 	check(other != null, "the second starter resolves")
-	var other_slot: String = loadout_slot_for(other, "freestyle_noncombat_03", shipped, collection)
+	var other_slot: String = loadout_slot_for(other, "freestyle_strike_06", shipped, collection)
 	check(other_slot != "", "which can take the card too")
-	var other_one: DeckList = AdventureLoadout.swap(other, other_slot, "freestyle_noncombat_03", shipped, collection)["deck"]
+	var other_one: DeckList = AdventureLoadout.swap(other, other_slot, "freestyle_strike_06", shipped, collection)["deck"]
 	check(other_one != null, "even while the first starter is already running both copies")
-	eq(collection.copies("freestyle_noncombat_03"), 2, "and the collection still holds two")
+	eq(collection.copies("freestyle_strike_06"), 2, "and the collection still holds two")
 	# A starter's own cards are the starter's, not the library's.
 	eq(AdventureLoadout.from_collection(deck, "pyre_strike_12"), 0,
 		"a printed card counts against nothing, however many the starter runs")
@@ -8651,11 +8776,11 @@ func test_the_loadout_stops_at_the_full_deck_maximum_before_the_validator_does()
 	taller.append(taller[taller.size() - 1])
 	deck.set_duelist(taller)
 	while deck.total_cards() < DeckValidator.MAX_CARDS:
-		deck.cards.append("freestyle_noncombat_03")
+		deck.cards.append("freestyle_strike_06")
 	eq(AdventureLoadout.ceiling_left(deck), 0, "the whole deck is at the maximum")
 	check(AdventureLoadout.size_cap(deck, upgrades) > deck.cards.size(), "while a bought slot is still empty")
 	eq(AdventureLoadout.room_left(deck, upgrades), 0, "so there is no room left")
-	var result: Dictionary = AdventureLoadout.add_card(deck, "freestyle_noncombat_03", shipped, null, upgrades)
+	var result: Dictionary = AdventureLoadout.add_card(deck, "freestyle_strike_06", shipped, null, upgrades)
 	eq(result["deck"], null, "the add is refused")
 	check(str((result["problems"] as Array[String])[0]).contains("maximum"), "by the loadout, naming the maximum: %s" % str(result["problems"]))
 
@@ -8674,9 +8799,9 @@ func test_bought_deck_slots_raise_the_loadout_cap_at_a_rising_price() -> void:
 	eq(AdventureEconomy.slot_cost_total(3), 330, "which is 330 Motes")
 	# The ceiling is the validator's own card maximum, measured from what the starter prints.
 	var starter_deck: DeckList = AdventureLoadout.base_deck(MOTES_STARTER)
-	eq(starter_deck.total_cards(), 53, "the starter prints 53 cards in all")
-	eq(AdventureLoadout.max_slots(starter_deck), DeckValidator.MAX_CARDS - 53,
-		"so it has 32 slots to buy before it hits the maximum")
+	eq(starter_deck.total_cards(), 52, "the starter prints 52 cards in all")
+	eq(AdventureLoadout.max_slots(starter_deck), DeckValidator.MAX_CARDS - 52,
+		"so it has 33 slots to buy before it hits the maximum")
 	eq(AdventureLoadout.max_slots_for(MOTES_STARTER), AdventureLoadout.max_slots(starter_deck),
 		"and the starter id answers the same")
 	var root_deck: DeckList = AdventureLoadout.base_deck("root_seals_start")
@@ -8698,92 +8823,74 @@ func test_bought_deck_slots_raise_the_loadout_cap_at_a_rising_price() -> void:
 	eq(upgrades.slots(MOTES_STARTER_TWO), 0, "a slot is bought per starter and not for all of them")
 	# The loadout cap follows the slots, and Add fills them.
 	var collection: AdventureCollection = AdventureCollection.new()
-	collection.add("freestyle_noncombat_03", 2, shipped)
+	collection.add("freestyle_strike_06", 2, shipped)
 	var deck: DeckList = AdventureLoadout.base_deck(MOTES_STARTER)
 	var printed: int = deck.cards.size()
 	var none: AdventureUpgrades = AdventureUpgrades.new()
 	eq(AdventureLoadout.size_cap(deck, none), printed, "an unbought starter caps at its printed size")
 	eq(AdventureLoadout.room_left(deck, none), 0, "with no room to add")
-	var refused: Dictionary = AdventureLoadout.add_card(deck, "freestyle_noncombat_03", shipped, collection, none)
+	var refused: Dictionary = AdventureLoadout.add_card(deck, "freestyle_strike_06", shipped, collection, none)
 	check(refused["deck"] == null, "so Add is refused at the cap")
 	check(swap_problem_mentions(refused, "buy a deck slot"), "and says what would open one")
 	eq(AdventureLoadout.size_cap(deck, upgrades), printed + 1, "a bought slot raises the cap by one")
 	eq(AdventureLoadout.room_left(deck, upgrades), 1, "leaving one slot free")
-	check(AdventureLoadout.swappable_add(deck, shipped, collection, upgrades).has("freestyle_noncombat_03"),
+	check(AdventureLoadout.swappable_add(deck, shipped, collection, upgrades).has("freestyle_strike_06"),
 		"which the collection card can fill")
-	var grown: DeckList = AdventureLoadout.add_card(deck, "freestyle_noncombat_03", shipped, collection, upgrades)["deck"]
+	var grown: DeckList = AdventureLoadout.add_card(deck, "freestyle_strike_06", shipped, collection, upgrades)["deck"]
 	check(grown != null, "and Add fills it")
 	eq(grown.cards.size() if grown != null else 0, printed + 1, "the deck is one card bigger")
 	eq(AdventureLoadout.room_left(grown, upgrades), 0, "with the slot spent")
-	check(AdventureLoadout.add_card(grown, "freestyle_noncombat_03", shipped, collection, upgrades)["deck"] == null,
+	check(AdventureLoadout.add_card(grown, "freestyle_strike_06", shipped, collection, upgrades)["deck"] == null,
 		"and a second Add refused until another slot is bought")
 	# A starter with an empty slot may still begin: the cap is a ceiling, not a requirement.
 	eq(DeckValidator.validate(deck, shipped).size(), 0, "an unfilled slot leaves the deck legal")
 	eq(DeckValidator.validate(grown, shipped).size(), 0, "and so does a filled one")
 
 
-func test_an_unlocked_aspect_tier_adds_the_next_card_and_the_run_carries_on() -> void:
+func test_owned_aspects_gate_the_loadout_and_the_run() -> void:
 	var shipped: CardLibrary = shipped_library()
 	var deck: DeckList = AdventureLoadout.base_deck(MOTES_STARTER)
 	var base_aspects: int = deck.duelist_ids.size()
 	eq(base_aspects, 2, "the starter prints a two-card stack")
 	var collection: AdventureCollection = AdventureCollection.new()
+	# Nothing owned: nothing to add, and a run never climbs.
+	var locked: Dictionary = AdventureLoadout.add_aspect(deck, "personality_56", shipped, collection)
+	check(locked["deck"] == null, "an Aspect card the collection lacks is refused")
+	check(swap_problem_mentions(locked, "not in the collection"), "saying so plainly")
+	check(AdventureLoadout.swappable_aspect(deck, shipped, collection).is_empty(), "and nothing is on offer")
+	var bare: AdventureRun = AdventureLoadout.begin_from(MOTES_STARTER, deck, 4242)
+	AdventureProgress.prepare_run(bare, shipped, collection, AdventureUnlocks.new())
+	eq(bare.owned_aspects.size(), 0, "a run owns no Aspect above its stack")
+	eq(_aspect_grants_over_a_run(bare, shipped, 4242), 0, "and is never offered one")
+	# Owned cards go on in order, only the next tier at a time.
 	collection.add("personality_56", 1, shipped)
 	collection.add("personality_57", 1, shipped)
-	var upgrades: AdventureUpgrades = AdventureUpgrades.new()
-	var wallet: AdventureWallet = AdventureWallet.new()
-	eq(upgrades.aspect_tier(MOTES_STARTER, base_aspects), base_aspects,
-		"an unbought starter stands at its own height")
-	eq(upgrades.next_aspect_cost(MOTES_STARTER, base_aspects), AdventureEconomy.aspect_tier_cost(3),
-		"and the next tier is priced")
-	check(AdventureEconomy.aspect_tier_cost(4) > AdventureEconomy.aspect_tier_cost(3),
-		"tier 4 costs more than tier 3")
-	check(AdventureEconomy.aspect_tier_cost(5) > AdventureEconomy.aspect_tier_cost(4),
-		"and tier 5 more again")
-	# Before the unlock the card cannot be added, however many copies are banked.
-	var locked: Dictionary = AdventureLoadout.add_aspect(deck, "personality_56",
-		shipped, collection, upgrades)
-	check(locked["deck"] == null, "a locked tier refuses the card")
-	check(swap_problem_mentions(locked, "not unlocked"), "saying so plainly")
-	check(AdventureLoadout.swappable_aspect(deck, shipped, collection, upgrades).is_empty(),
-		"and offers nothing to add")
-	check(not upgrades.buy_aspect_tier(MOTES_STARTER, base_aspects, wallet), "an empty wallet unlocks nothing")
-	wallet.earn(10000, AdventureWallet.REASON_STAGE)
-	check(upgrades.buy_aspect_tier(MOTES_STARTER, base_aspects, wallet), "with Motes the tier unlocks")
-	eq(wallet.motes, 10000 - AdventureEconomy.aspect_tier_cost(3), "at the tier's price")
-	eq(upgrades.aspect_tier(MOTES_STARTER, base_aspects), 3, "the starter may now run three")
-	eq(AdventureLoadout.aspect_cap(deck, upgrades), 3, "which is what the loadout reads")
-	# Only the next tier can be added, and the stack stays consecutive.
-	var skipped: Dictionary = AdventureLoadout.add_aspect(deck, "personality_57",
-		shipped, collection, upgrades)
-	check(skipped["deck"] == null, "a tier-four card cannot jump onto a two-card stack")
-	var offered_tier: Array[String] = ["personality_56"]
-	eq(AdventureLoadout.swappable_aspect(deck, shipped, collection, upgrades), offered_tier,
-		"only the tier-three card is on offer")
-	var tall: DeckList = AdventureLoadout.add_aspect(deck, "personality_56",
-		shipped, collection, upgrades)["deck"]
+	eq(AdventureLoadout.aspect_cap(deck), DeckValidator.MAX_ASPECTS, "the stack may reach the construction maximum")
+	check(AdventureLoadout.add_aspect(deck, "personality_57", shipped, collection)["deck"] == null,
+		"a tier-four card cannot jump onto a two-card stack")
+	eq(AdventureLoadout.swappable_aspect(deck, shipped, collection), ["personality_56"] as Array[String],
+		"only the owned tier-three card is on offer")
+	var tall: DeckList = AdventureLoadout.add_aspect(deck, "personality_56", shipped, collection)["deck"]
 	check(tall != null, "the tier-three card goes on")
-	eq(tall.duelist_ids.size() if tall != null else 0, 3, "making a three-card stack")
 	eq(DeckValidator.validate(tall, shipped).size(), 0, "which is legal to run")
-	check(AdventureLoadout.add_aspect(tall, "personality_57", shipped,
-		collection, upgrades)["deck"] == null, "and tier four stays locked until it is bought")
-	# A run started from that deck carries on from where the stack ends.
+	# A run from that deck climbs only through what is owned: tier 4 at a boss, then nothing.
 	var run: AdventureRun = AdventureLoadout.begin_from(MOTES_STARTER, tall, 4242)
-	eq(run.duelist_ids.size(), 3, "the run begins three Aspects high")
-	var options: Array[String] = run.next_tier_options(shipped)
-	check(not options.is_empty(), "and its next Aspect is a tier-four card")
-	for id in options:
-		eq((shipped.defs[id] as CardDef).aspect, 4, "'%s' is Aspect 4" % id)
-	# The run's own first grant then offers that tier rather than the one already held.
-	var map: AdventureMap = AdventureMap.generate(MOTES_STARTER, 4242)
+	AdventureProgress.prepare_run(run, shipped, collection, AdventureUnlocks.new())
+	eq(run.owned_aspects, ["personality_57"] as Array[String], "the run carries the owned tier-four card")
+	eq(run.next_tier_options(shipped), ["personality_57"] as Array[String], "and offers only that")
+	eq(_aspect_grants_over_a_run(run, shipped, 4242), 1, "one boss grant climbs to it; the next has nothing owned")
+	eq(run.duelist_ids.size(), 4, "so the run finished four Aspects high")
+
+
+## Plays `run` to the end on its map, winning every duel and taking the first offer. Returns how
+## many Aspect choices it was given.
+func _aspect_grants_over_a_run(run: AdventureRun, shipped: CardLibrary, run_seed: int) -> int:
+	var map: AdventureMap = AdventureMap.generate(run.starter_id, run_seed)
 	var granted: int = 0
 	while run.status != "won" and run.status != "lost" and run.walk_to_next_duel(map):
 		AdventureRewards.finish_stage(run, map, shipped, true)
 		if run.status == "aspect":
 			granted += 1
-			if granted == 1:
-				for id in run.pending_aspects:
-					eq((shipped.defs[id] as CardDef).aspect, 4, "the first grant offers Aspect 4, not Aspect 3")
 			AdventureRewards.apply_aspect(run, shipped, run.pending_aspects[0])
 			AdventureRewards.finish_aspect(run, map, shipped)
 		if run.pending_offer.is_empty():
@@ -8791,24 +8898,7 @@ func test_an_unlocked_aspect_tier_adds_the_next_card_and_the_run_carries_on() ->
 		else:
 			AdventureRewards.apply_bundle(run, shipped, run.pending_offer[0])
 		AdventureRewards.finish_reward(run, map)
-	eq(granted, 2, "the first duel and the act 1 boss each offered an Aspect; the act 2 boss had none left")
-	eq(run.duelist_ids.size(), 5, "so the run finished five Aspects high")
-	eq(run.added_duelist_cards().size(), 2, "having climbed two tiers of its own")
-	# A stack already at the construction maximum is skipped rather than offered nothing.
-	var maxed: AdventureRun = AdventureLoadout.begin_from(MOTES_STARTER, tall, 77)
-	maxed.duelist_ids = ["personality_01", "personality_02",
-		"personality_56", "personality_57",
-		"personality_58"]
-	eq(maxed.next_tier_options(shipped).size(), 0, "a five-card stack has nowhere left to climb")
-	var maxed_map: AdventureMap = AdventureMap.generate(MOTES_STARTER, 77)
-	maxed.walk_to_next_duel(maxed_map)
-	AdventureRewards.finish_stage(maxed, maxed_map, shipped, true)
-	check(maxed.status != "aspect", "so the granting first duel skips the Aspect choice")
-	var skipped_pick: bool = false
-	for pick in maxed.picks:
-		if str(pick.get("kind", "")) == "aspect_skipped":
-			skipped_pick = true
-	check(skipped_pick, "and records that it was skipped")
+	return granted
 
 
 func test_the_upgrades_file_round_trips_through_a_path_override() -> void:
@@ -8822,7 +8912,6 @@ func test_the_upgrades_file_round_trips_through_a_path_override() -> void:
 	var most: int = AdventureLoadout.max_slots_for(MOTES_STARTER)
 	check(upgrades.buy_slot(MOTES_STARTER, wallet, most), "a slot is bought")
 	check(upgrades.buy_slot(MOTES_STARTER, wallet, most), "and a second")
-	check(upgrades.buy_aspect_tier(MOTES_STARTER, 2, wallet), "and an Aspect tier")
 	check(upgrades.buy_slot(MOTES_STARTER_TWO, wallet, AdventureLoadout.max_slots_for(MOTES_STARTER_TWO)),
 		"a second starter buys its own slot")
 	eq(wallet.ledger[wallet.ledger.size() - 1]["reason"], AdventureWallet.REASON_SLOT,
@@ -8830,17 +8919,9 @@ func test_the_upgrades_file_round_trips_through_a_path_override() -> void:
 	check(upgrades.save(), "the upgrades write to disk")
 	var loaded: AdventureUpgrades = AdventureUpgrades.load_upgrades()
 	eq(loaded.slots(MOTES_STARTER), 2, "the slot count came back an int")
-	eq(loaded.aspect_tier(MOTES_STARTER, 2), 3, "and the unlocked tier with it")
 	eq(loaded.slots(MOTES_STARTER_TWO), 1, "each starter keeps its own")
-	eq(loaded.aspect_tier(MOTES_STARTER_TWO, 2), 2, "and an unbought tier stays at the printed height")
 	eq(loaded.all_starters(), upgrades.all_starters(), "the rows came back whole")
 	eq(int(upgrades.to_dict()["version"]), AdventureUpgrades.SAVE_VERSION, "written at the current version")
-	# A tier cannot be bought past the construction maximum.
-	for _i in range(6):
-		upgrades.buy_aspect_tier(MOTES_STARTER, 2, wallet)
-	eq(upgrades.aspect_tier(MOTES_STARTER, 2), DeckValidator.MAX_ASPECTS,
-		"buying stops at the highest Aspect a deck may run")
-	eq(upgrades.next_aspect_cost(MOTES_STARTER, 2), 0, "with nothing left to buy")
 	wallet.earn(1000000, AdventureWallet.REASON_STAGE)
 	for _i in range(most + 3):
 		upgrades.buy_slot(MOTES_STARTER, wallet, most)
@@ -9260,7 +9341,7 @@ func test_pyre_hearthstone_keeps_drills_through_a_climb_only() -> void:
 
 
 ## Endurance X on a life card is its owner's Fervor, and an Art can add the attacker's Fervor in
-## wounds and go back into the deck when it lands.
+## wounds. The CRD takes away Red Arm Cannon's "shuffle into your Life Deck", so it is discarded.
 func test_pyre_endurance_x_and_drawing_flue_read_fervor() -> void:
 	var e: DuelEngine = real_engine(real_deck(["pyre_art_04"], "pact", "pyre"), real_deck([], "vigil"))
 	var hide: CardInstance = real_to_deck(e, 1, "pyre_strike_22")
@@ -9276,7 +9357,7 @@ func test_pyre_endurance_x_and_drawing_flue_read_fervor() -> void:
 	answer(e, &"attack", flue)
 	settle(e, 8)
 	eq(before - e.player(1).life_deck.size(), 4, "1 wound plus 3 for Fervor 3")
-	eq(e.card(flue).zone, &"life_deck", "the hit shuffled the card back into its owner's Life Deck")
+	eq(e.card(flue).zone, &"discard", "and the card is discarded like any other")
 
 
 ## "Your opponent cannot use Endurance against your Pyre attacks": the bar names a school, so a
@@ -9413,14 +9494,15 @@ func test_pyre_burnt_offering_drill_spends_the_whole_hand() -> void:
 	check(not (prompt_kind(f) == &"defense" and f.prompt.find(&"defend", empty.uid) != null), "with no cards in hand it is not offered")
 
 
-## "Once per Combat, after a successful Strike, you may shuffle a card from your discard pile into
-## your Life Deck."
+## "Once per Combat, after performing a successful physical attack, you may choose 1 non-Red Style
+## card in your discard pile and shuffle it into your Life Deck" (CRD errata to Red Hunting Drill).
 func test_pyre_cinder_sift_drill_buys_a_card_back_on_a_landed_strike() -> void:
 	var e: DuelEngine = real_engine(real_deck([], "pact", "pyre"), real_deck([], "vigil"))
 	var sift: CardInstance = real_inject(e, 0, "pyre_drill_04")
 	to_attack(e, 0)
 	# Laid down after entering Combat: the duelist's own power draws off the discard pile there.
-	var spent: CardInstance = real_to_discard(e, 0, "pyre_art_08")
+	var pyre_card: CardInstance = real_to_discard(e, 0, "pyre_art_08")
+	var spent: CardInstance = real_to_discard(e, 0, "tide_drill_05")
 	var strike: int = uid_in_hand(e, 0, "root_strike_04")
 	answer(e, &"attack", strike)
 	settle(e, 6)
@@ -9429,6 +9511,7 @@ func test_pyre_cinder_sift_drill_buys_a_card_back_on_a_landed_strike() -> void:
 	# "After performing" the attack: its own card is already in the pile and may be the one taken.
 	eq(prompt_kind(e), &"pick_option", "the pile is offered")
 	check(e.prompt.find(&"pick_option", strike) != null, "the Strike just performed is in the pile already")
+	check(e.prompt.find(&"pick_option", pyre_card.uid) == null, "a Pyre card is not offered")
 	answer(e, &"pick_option", spent.uid)
 	settle(e, 6)
 	eq(spent.zone, &"life_deck", "the card went back into the Life Deck")
@@ -9547,15 +9630,16 @@ func test_pyre_smoldering_drill_sits_outside_the_drill_school_lock() -> void:
 	check(f._can_place(f.player(0), f._instance(shipped().get_def("storm_drill_01"), 0, &"hand")), "so a Storm Drill may still follow it")
 
 
-## "Stops all energy attacks for the rest of this combat": no side is named, so both are covered.
-func test_pyre_backdraft_stops_every_art_on_both_sides() -> void:
+## "Stops all energy attacks for the rest of this combat": stopping is defense, so it covers the
+## attacks against the user only, though no side is named.
+func test_pyre_backdraft_stops_every_art_against_its_user() -> void:
 	var e: DuelEngine = real_engine(real_deck(["pyre_strike_03"], "pact", "pyre"), real_deck([], "vigil"))
 	to_attack(e, 0)
 	answer(e, &"attack", uid_in_hand(e, 0, "pyre_strike_03"))
 	settle(e, 8)
-	check(e._has_floating(1, "stop_all"), "Arts against the opponent are stopped")
-	check(e._has_floating(0, "stop_all"), "and so are Arts against the user")
-	check(not e._forbidden(e.player(0), "art_attacks"), "the user may still perform an Art; it is stopped, not forbidden")
+	check(e._has_floating(0, "stop_all"), "Arts against the user are stopped")
+	check(not e._has_floating(1, "stop_all"), "the user's own Arts are not")
+	check(not e._forbidden(e.player(0), "art_attacks"), "the user may still perform an Art")
 
 
 ## "Choose and remove one Non-Combat card in play": either side's.
@@ -10036,7 +10120,7 @@ func test_tide_shipped_cards_match_their_printed_text() -> void:
 	var confluence: Dictionary = shipped().get_def("tide_art_08").attack["variants"][0]
 	check(bool(confluence.get("after_empower", false)), "Confluence's Ally Focus is printed after Empower")
 	eq(str(shipped().get_def("tide_strike_04").effects[0].get("who", "")), "any", "Pull Under reaches either side")
-	check(not shipped().get_def("tide_strike_07").remove_after_use, "Dredge is not removed after use")
+	check(shipped().get_def("tide_strike_07").remove_after_use, "Dredge is removed after use (CRD errata to Blue Lunge)")
 	eq(str(shipped().get_def("tide_strike_08").effects[0].get("op", "")), "stop_all", "Waterlogged stops Strikes, it does not forbid them")
 	eq(str(shipped().get_def("tide_strike_12").effects[0].get("duration", "")), "next_attack_phase", "Undersweep waits for their next phase")
 
@@ -10517,17 +10601,16 @@ func test_root_new_shoots_takes_the_top_or_bottom_three() -> void:
 
 
 ## "All of your physical attacks do +2 power stages of damage for the remainder of Combat. Take a
-## Dragon Ball in play and place it at the bottom of its owner's Life Deck."
+## Dragon Ball in play and place it at the bottom of its owner's Life Deck." The CRD limits it to a
+## Dragon Ball the opponent controls.
 func test_root_swallowing_earth_puts_a_seal_under_its_deck() -> void:
 	var e: DuelEngine = real_engine(real_deck(["root_combat_07"], "pact", "root"), real_deck([], "vigil"))
 	var mine: CardInstance = real_inject(e, 0, "seal_08")
 	var theirs: CardInstance = real_inject(e, 1, "seal_09")
 	to_attack(e, 0)
 	answer(e, &"use", uid_in_hand(e, 0, "root_combat_07"))
-	eq(prompt_kind(e), &"pick_in_play", "a Seal is chosen")
-	check(e.prompt.find(&"pick_in_play", mine.uid) != null and e.prompt.find(&"pick_in_play", theirs.uid) != null, "from either side")
-	answer(e, &"pick_in_play", theirs.uid)
-	eq(theirs.zone, &"life_deck", "it went to a Life Deck")
+	eq(mine.zone, &"in_play", "the user's own Seal stays")
+	eq(theirs.zone, &"life_deck", "the opponent's went to a Life Deck")
 	eq(e.player(1).life_deck.back(), theirs, "its owner's, at the bottom")
 	var total: int = 0
 	for entry in e._modifiers_for(e.player(0), "own", "strike", null, {}):
@@ -10786,7 +10869,8 @@ func test_storm_shipped_cards_match_their_printed_text() -> void:
 			continue
 		eq(str(g.prompt.context.get("purpose", "")), "pay_cost", "%s: the payment is offered" % case)
 		answer(g, &"pick_option", -1, "yes")
-		eq(gp.duelist.energy, 3 if case == "pays" else 5, "%s: the Energy paid" % case)
+		# The card's own cost: Free Current does not waive it (CRD ruling on Orange Gambit).
+		eq(gp.duelist.energy, 3, "%s: the Energy paid" % case)
 		eq(prompt_kind(g), &"pick_option", "%s: then the deck is searched" % case)
 		check(bool(g.prompt.context.get("search", false)), "%s: it is the search" % case)
 	# "All energy attacks this personality performs for the remainder of Combat do +2 life cards."
@@ -10953,3 +11037,112 @@ func test_storm_gale_and_conductor_masteries() -> void:
 	answer(h, &"pick_option", -1, "yes")
 	eq(pile_drill.zone, &"life_deck", "the Drill went under the deck")
 	eq(q.life_deck.back(), pile_drill, "at the bottom")
+
+
+# --- The Freestyle review, 2026-09-24 ---------------------------------------
+
+## The Freestyle cards, each against the clause the review found it missing.
+## A card on the CRD's banned list (Black Weakness Drill) is legal in adventure decks as a bomb and
+## nowhere else, so no tournament or online deck may hold it.
+func test_a_banned_card_is_an_adventure_bomb_only() -> void:
+	var banned: CardDef = shipped().get_def("shade_drill_03")
+	check(bool(banned.raw.get("banned", false)), "Forgetting Drill is on the banned list")
+	eq(banned.limit_per_deck, 1, "and runs one copy as a bomb")
+	var siege: DeckList = DeckList.load_from("res://data/decks/shade_mind_siege.json")
+	check(not siege.cards.has("shade_drill_03"), "the tournament deck holds none")
+	eq(DeckValidator.validate(siege, shipped()).size(), 0, "and is legal")
+	siege.cards.append("shade_drill_03")
+	check(DeckValidator.validate(siege, shipped()).has("'shade_drill_03' is banned outside adventure mode"), "adding it makes a tournament deck illegal")
+	siege.mode = "adventure"
+	check(not DeckValidator.validate(siege, shipped()).has("'shade_drill_03' is banned outside adventure mode"), "an adventure deck may run it")
+	var boss: DeckList = DeckList.load_from("res://data/adventure/opponents/shade_mind_siege_boss.json")
+	eq(boss.cards.count("shade_drill_03"), 1, "the adventure boss carries it as a bomb")
+	var early: DeckList = DeckList.load_from("res://data/adventure/opponents/shade_mind_siege_t1.json")
+	check(not early.cards.has("shade_drill_03"), "an early tier does not")
+
+
+func test_freestyle_cards_match_their_printed_text() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	var them: PlayerState = e.player(1)
+	# "Stop all energy attacks in this combat": the attacks against the user.
+	eq(str(shipped().get_def("freestyle_art_01").defense.get("stop_all", "")), "art", "Dead Air stops every Art against its user")
+	# "You may discard one of your Non-Combat cards in play to search ...": no discard, no search.
+	var lob: Dictionary = shipped().get_def("freestyle_art_03").effects[0]
+	check(not e._cond(lob["when"], 0, {}), "Lobbed Bolt offers nothing with no Non-Combat card in play")
+	var drill_card: CardInstance = real_inject(e, 0, "storm_drill_03")
+	check(e._cond(lob["when"], 0, {}), "a Drill in play counts as one")
+	e.prompts.clear()
+	e._enqueue([lob], "secondary", 0, {}, null)
+	e._drain()
+	answer(e, &"pick_option", -1, "yes")
+	eq(drill_card.zone, &"discard", "the Drill was discarded")
+	check(bool(e.prompt.context.get("search", false)), "and then the deck is searched")
+	e.prompts.clear()
+	e._choice = {}
+	# "To have this attack do an additional +7 life cards": this attack only.
+	var plain: CardInstance = real_to_hand(e, 0, "root_strike_04")
+	e.state.attack = e._build_attack(0, plain, plain.def.attack, plain.def.effects, false, false, false, null, true)
+	e._apply_effect({"op": "attack_bonus", "life": 7}, 0, {}, null)
+	eq(int(e.state.attack["extra_life"]), 7, "Overreach adds to the attack in the air")
+	e.state.attack = {}
+	# "Draw the top 2 cards from your discard pile. Your opponent's Main Personality gains 5 power
+	# stages. Remove from game after use." (CRD errata to Battle Pausing, which is restricted.)
+	real_to_discard(e, 0, "tide_drill_05")
+	real_to_discard(e, 0, "tide_drill_06")
+	var held: int = me.hand.size()
+	them.duelist.energy = 0
+	for line in shipped().get_def("freestyle_combat_05").effects:
+		e._apply_effect(line, 0, {}, null)
+	eq(me.hand.size(), held + 2, "Respite: the user draws")
+	eq(them.duelist.energy, 5, "and the opponent's duelist gains 5")
+	check(shipped().get_def("freestyle_combat_05").remove_after_use, "removed after use")
+	eq(shipped().get_def("freestyle_combat_05").limit_per_deck, 1, "one per deck")
+	# "End Combat. Place the bottom card of your discard pile at the bottom of your Life Deck."
+	var oldest: CardInstance = real_to_discard(e, 0, "tide_drill_05")
+	e.player(0).discard.erase(oldest)
+	e.player(0).discard.insert(0, oldest)
+	e._apply_effect(shipped().get_def("freestyle_combat_18").effects[1], 0, {}, null)
+	eq(oldest.zone, &"life_deck", "Parley: the user's own card goes back")
+	# "Shuffle all of your opponent's Dragon Balls back into his Life Deck."
+	var seal: CardInstance = real_inject(e, 1, "seal_08")
+	e._apply_effect(shipped().get_def("freestyle_combat_08").effects[1], 0, {}, null)
+	eq(seal.zone, &"life_deck", "Warding Call shuffles their Seals into their deck")
+	# "You may only use this card in place of a defense. ... Stops a physical or energy attack and
+	# stops all attacks for the remainder of Combat. ... If a Dragon Ball 7 from any Dragon Ball set is
+	# in play, discard this card instead" (CRD errata to Mommy's Coming Dear).
+	var rescue: CardDef = shipped().get_def("freestyle_noncombat_16")
+	eq(str(rescue.defense.get("stops", "")), "any", "Kin's Rescue is a defense that stops a Strike or an Art")
+	eq(str(rescue.defense.get("stop_all", "")), "any", "and every attack against its user after it")
+	check(rescue.effects_for("use").is_empty(), "it is not used in the attack phase")
+	check(not e._kept_by_seal(rescue), "with no Seal 7 in play it leaves the game")
+	real_inject(e, 1, "seal_28")
+	check(e._kept_by_seal(rescue), "any set's Seal 7, on either side, keeps it")
+	# "Cards that stop an attack (including for the remainder of Combat) can only be played as a defense."
+	check(not bool(shipped().get_def("freestyle_combat_01").raw.get("use_in_attack", false)), "Stillness is a defense only")
+	eq(str(shipped().get_def("freestyle_combat_03").defense.get("stop_all", "")), "stopped", "Terms of the Pact stops all of the kind it stopped")
+	# Restricted to one per deck (CRD restricted list), a sample.
+	for id in ["freestyle_art_01", "freestyle_strike_01", "freestyle_combat_10", "freestyle_combat_16", "tide_strike_07", "pyre_strike_11"]:
+		eq(shipped().get_def(id).limit_per_deck, 1, "%s is restricted to one" % id)
+	# "When your opponent uses a card effect besides damage that makes you discard the top cards of
+	# your Life Deck, you may discard this card from your hand to reduce the amount by 10."
+	real_to_hand(e, 1, "freestyle_strike_05")
+	e.prompts.clear()
+	e._apply_effect({"op": "discard_life", "who": "opponent", "amount": 5}, 0, {}, null)
+	eq(str(e.prompt.context.get("purpose", "")), "deck_loss_guard", "Last Ward is offered against a mill")
+	eq(int(e.prompt.context.get("reduce", 0)), 10, "for 10 cards")
+	e.prompts.clear()
+	e._choice = {}
+	# The rest are placement and timing words, read off the data.
+	eq(str(shipped().get_def("freestyle_combat_10").effects[0].get("to", "")), "attack", "Old Trick's card is performed this phase")
+	eq(str(shipped().get_def("freestyle_combat_15").raw.get("use_at", "")), "end_of_combat", "Reckless Ascent is used at the end of Combat")
+	eq(str(shipped().get_def("freestyle_drill_01").raw.get("start_in_play", "")), "may", "Bravado Drill may start in play")
+	check(bool(shipped().get_def("freestyle_noncombat_04").effects[0].get("show", false)), "Foresight shows its card")
+	check(bool(shipped().get_def("freestyle_noncombat_07").effects[1].get("must", false)), "Provocation takes exactly 2")
+	check(bool(shipped().get_def("freestyle_noncombat_13").effects[1].get("must", false)), "The Gate's Boon takes exactly 3")
+	check(bool(shipped().get_def("freestyle_noncombat_10").raw.get("reserve_only", false)), "Defacement is Sensei Deck only")
+	eq(str(shipped().get_def("freestyle_noncombat_10").effects[0].get("who", "")), "any", "and takes either side's Seal")
+	eq(str(shipped().get_def("freestyle_strike_02").effects[0].get("who", "")), "any", "Clean Sweep reaches either side")
+	eq(str(shipped().get_def("freestyle_strike_03").effects[2].get("who", "")), "any", "Headlong Plunge's Ally is either side's")
+	eq(str(shipped().get_def("freestyle_art_05").raw.get("remain_by", "")), "ally", "Knife Volley's extra use is an Ally's")
+	eq(str(shipped().get_def("freestyle_combat_16").effects[0]["effects"][0].get("op", "")), "show_checked", "Keen Eye shows the named card")

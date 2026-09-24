@@ -414,11 +414,17 @@ def write_opponents(out_dir="data/adventure/opponents"):
         deck_id = os.path.basename(path)[:-5]
         deck = json.load(open(path, encoding="utf-8"))
         aspects_by_tier = {t[0]: t[3] for t in OPPONENT_TIERS}
+        lockouts_by_tier = {t[0]: t[2] for t in OPPONENT_TIERS}
         for tier, picked in ladder(deck_id, deck, lib):
             aspects = aspects_by_tier[tier]
             counts = {}
             for s in picked:
                 counts[s["id"]] = counts.get(s["id"], 0) + 1
+            # Banned cards are never in a precon; a deck lists them as adventure bombs instead, one
+            # copy each, from the tiers that allow lockouts.
+            if lockouts_by_tier[tier]:
+                for bomb in deck.get("adventure_bombs", []):
+                    counts[bomb] = 1
             out = {
                 "name": "%s (%s)" % (deck["name"], tier.upper()),
                 "source_deck": deck_id,

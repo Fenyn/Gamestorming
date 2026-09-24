@@ -51,7 +51,7 @@
     },
     {
       "id": "signature_art_12",
-      "count": 2
+      "count": 1
     },
     {
       "id": "signature_art_13",
@@ -70,12 +70,16 @@
       "count": 1
     },
     {
+      "id": "freestyle_combat_07",
+      "count": 1
+    },
+    {
       "id": "freestyle_combat_17",
       "count": 1
     },
     {
       "id": "freestyle_combat_18",
-      "count": 2
+      "count": 1
     },
     {
       "id": "freestyle_combat_19",
@@ -83,7 +87,7 @@
     },
     {
       "id": "root_combat_01",
-      "count": 1
+      "count": 2
     },
     {
       "id": "root_combat_02",
@@ -114,11 +118,15 @@
       "count": 1
     },
     {
-      "id": "freestyle_noncombat_04",
+      "id": "freestyle_noncombat_12",
       "count": 1
     },
     {
-      "id": "freestyle_noncombat_12",
+      "id": "freestyle_noncombat_13",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_14",
       "count": 1
     },
     {
@@ -180,10 +188,6 @@
     {
       "id": "root_strike_02",
       "count": 2
-    },
-    {
-      "id": "signature_strike_03",
-      "count": 1
     },
     {
       "id": "signature_strike_26",

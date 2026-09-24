@@ -55,6 +55,12 @@ theme_type_variation = &"HeaderLabel"
 theme_override_font_sizes/font_size = 24
 text = "Choose your champion"
 
+[node name="Journal" type="Button" parent="Margin/Column/TitleRow"]
+custom_minimum_size = Vector2(130, 44)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Journal"
+
 [node name="Vendor" type="Button" parent="Margin/Column/TitleRow"]
 custom_minimum_size = Vector2(130, 44)
 layout_mode = 2
@@ -114,6 +120,11 @@ theme_type_variation = &"WarnLabel"
 text = ""
 horizontal_alignment = 2
 autowrap_mode = 3
+
+[node name="Decks" type="HBoxContainer" parent="Margin/Column/Footer"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
 
 [node name="Loadout" type="Button" parent="Margin/Column/Footer"]
 custom_minimum_size = Vector2(140, 52)

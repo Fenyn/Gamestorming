@@ -1,0 +1,100 @@
+{
+	"_note": "Achievements, design doc section 8.5. `visibility`: public (listed from the start), hidden (\"???\" until the first step, then the hint), secret (invisible until done). Steps complete in order unless `ordered` is false. A step matches a won duel's result when every field it names agrees: `event` (duel_won or run_won), `main`, `starter`, `node`, `act`, `act_min`, `opponent`, `allies_all`, `blocks_max`, `aspect_min`; `achievement` matches the event fired when that achievement completes. Rewards: `cards` into the collection, `starter` to open. The specific set is still a working list.",
+	"achievements": [
+		{
+			"id": "edric_line_holds",
+			"character": "Sir Edric Rooke",
+			"title": "The line holds",
+			"hint": "Win beside your wife and your eldest.",
+			"visibility": "public",
+			"steps": [{ "event": "duel_won", "main": "Sir Edric Rooke", "allies_all": ["Dame Alder Rooke", "Emrys Rooke"] }],
+			"cards": ["personality_32"]
+		},
+		{
+			"id": "edric_vale_test",
+			"character": "Sir Edric Rooke",
+			"title": "The Vale test",
+			"hint": "Beat Caedan Vale at the end of Edric's act 2.",
+			"visibility": "public",
+			"steps": [{ "event": "duel_won", "starter": "tide_deepwater_start", "node": "boss", "act": 2 }],
+			"starter": "freestyle_swords_start"
+		},
+		{
+			"id": "edric_fire_in_the_knight",
+			"character": "Sir Edric Rooke",
+			"title": "Fire in the knight",
+			"hint": "Meet the monster again, deeper in, and hold.",
+			"visibility": "hidden",
+			"steps": [
+				{ "event": "duel_won", "main": "Sir Edric Rooke", "opponent": "Bram Ashmark" },
+				{ "event": "duel_won", "main": "Sir Edric Rooke", "opponent": "Bram Ashmark", "act_min": 2, "aspect_min": 3 }
+			],
+			"starter": "pyre_ascent_start"
+		},
+		{
+			"id": "mourne_crest_comes_off",
+			"character": "Gideon Mourne",
+			"title": "The crest comes off",
+			"hint": "Break the man who kneels, where it counts.",
+			"visibility": "hidden",
+			"steps": [
+				{ "event": "duel_won", "main": "Gideon Mourne", "opponent": "Sir Edric Rooke" },
+				{ "event": "duel_won", "main": "Gideon Mourne", "opponent": "Sir Edric Rooke", "act_min": 2 }
+			],
+			"cards": ["personality_61"]
+		},
+		{
+			"id": "mourne_draik_offer",
+			"character": "Gideon Mourne",
+			"title": "The Draik offer",
+			"hint": "Beat Sable Draik at the end of Mourne's act 2.",
+			"visibility": "public",
+			"steps": [{ "event": "duel_won", "starter": "shade_mind_siege_start", "node": "boss", "act": 2 }],
+			"starter": "shade_henchmen_start"
+		},
+		{
+			"id": "ashmark_head_on",
+			"character": "Bram Ashmark",
+			"title": "Head-on",
+			"hint": "Beat Siphon at the end of act 1 without a single block.",
+			"visibility": "public",
+			"steps": [{ "event": "duel_won", "main": "Bram Ashmark", "opponent": "Siphon", "node": "boss", "act": 1, "blocks_max": 0 }],
+			"cards": ["personality_03"]
+		},
+		{
+			"id": "ashmark_the_hero_falls",
+			"character": "Bram Ashmark",
+			"title": "The hero falls",
+			"hint": "Beat Sir Edric Rooke at the end of Ashmark's act 2.",
+			"visibility": "public",
+			"steps": [{ "event": "duel_won", "starter": "pyre_beatdown_start", "node": "boss", "act": 2 }],
+			"starter": "pyre_ascent_start"
+		},
+		{
+			"id": "the_heart",
+			"character": "Halden Quarr",
+			"title": "The Lodestone Heart",
+			"hint": "Take the Heart from Quarr with Edric, Mourne and Ashmark.",
+			"visibility": "public",
+			"ordered": false,
+			"steps": [
+				{ "event": "run_won", "main": "Sir Edric Rooke" },
+				{ "event": "run_won", "main": "Gideon Mourne" },
+				{ "event": "run_won", "main": "Bram Ashmark" }
+			],
+			"cards": ["relic_03"]
+		},
+		{
+			"id": "quarr_unbroken",
+			"character": "Halden Quarr",
+			"title": "Unbroken",
+			"hint": "",
+			"visibility": "secret",
+			"steps": [
+				{ "achievement": "the_heart" },
+				{ "event": "run_won" }
+			],
+			"starter": "steel_beatdown_start"
+		}
+	]
+}

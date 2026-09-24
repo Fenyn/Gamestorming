@@ -25,6 +25,11 @@ const PLATE_CANVAS: Vector2i = Vector2i(560, 196)
 const NEAR_DROP: float = 85.0
 ## Baseline of the Aspect caption below the duelist card's bottom edge, in canvas pixels.
 const ASPECT_GAP: float = 34.0
+## Status lines: centred past the far seat's plate, in a column right of the near seat's, where
+## the tucked hand does not cover them.
+const FLAG_WIDTH: float = 690.0
+const NEAR_FLAG_WIDTH: float = 300.0   # stops short of the Relic's outline
+const NEAR_FLAG_GAP: float = 24.0
 ## ALL draws everything on one canvas; PRINT leaves the tracker to the plate; PLATE draws only
 ## the tracker and its lives tab.
 @export var part: Part = Part.ALL
@@ -183,8 +188,9 @@ func update_layout() -> Dictionary:
 	var tracker_y: float = card_bounds.position.y - 184.0 if far_side else card_bounds.end.y + 24.0 + NEAR_DROP
 	var tracker: Rect2 = Rect2(Vector2(middle_x - TRACKER_SIZE.x * 0.5, tracker_y), TRACKER_SIZE)
 	# The far seat's status lines sit past its standing plate, clear of the table it hides.
-	var first_row: float = tracker_y - 48.0 - flag_clearance if far_side else tracker.end.y + 48.0
-	var text_width: float = 690.0
+	var first_row: float = tracker_y - 48.0 - flag_clearance if far_side else tracker.position.y + 48.0
+	var text_width: float = FLAG_WIDTH if far_side else NEAR_FLAG_WIDTH
+	var flag_left: float = middle_x - text_width * 0.5 if far_side else tracker.end.x + NEAR_FLAG_GAP
 	stat_hit_rects.append(tracker)
 	if far_side:
 		stat_hit_rects.append(Rect2(tracker.position + Vector2(-205, 0), Vector2(185, 160)))
@@ -192,11 +198,11 @@ func update_layout() -> Dictionary:
 		stat_hit_rects.append(_lives_tab(tracker))
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
-		stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, first_row - 34, text_width, 42))
+		stat_hit_rects.append(Rect2(flag_left, first_row - 34, text_width, 42))
 	var lines: PackedStringArray = _wrap_flags(text_width, 34)
 	for i in range(mini(lines.size(), flag_rows)):
-		stat_hit_rects.append(Rect2(middle_x - text_width * 0.5, first_row + (i + 2 - flag_rows) * 36.0 - 34, text_width, 42))
-	return {"tracker": tracker, "flags": first_row, "middle": middle_x}
+		stat_hit_rects.append(Rect2(flag_left, first_row + (i + 2 - flag_rows) * 36.0 - 34, text_width, 42))
+	return {"tracker": tracker, "flags": first_row, "middle": middle_x, "flag_left": flag_left, "flag_width": text_width}
 
 
 func _draw() -> void:
@@ -213,7 +219,9 @@ func _draw() -> void:
 	var tracker: Rect2 = layout["tracker"]
 	var middle_x: float = float(layout["middle"])
 	var first_row: float = float(layout["flags"])
-	var text_width: float = 690.0
+	var text_width: float = float(layout["flag_width"])
+	var flag_left: float = float(layout["flag_left"])
+	var centred: bool = _player_index != _viewer
 	if _player_index != _viewer:
 		_draw_opponent_hand(tracker.position + Vector2(-205, 0))
 	if part == Part.ALL:
@@ -225,12 +233,12 @@ func _draw() -> void:
 	var lines: PackedStringArray = _wrap_flags(text_width, 34)
 	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
 	if not _seal_sets.is_empty():
-		_draw_seals(first_row, middle_x, text_width)
+		_draw_seals(first_row, flag_left + text_width * 0.5, text_width)
 	for i in range(mini(lines.size(), flag_rows)):
 		var value: String = lines[i]
 		if i == flag_rows - 1 and lines.size() > flag_rows:
-			value = "%s · +%d more" % [lines[i].left(26), lines.size() - flag_rows]
-		_text(value, Vector2(middle_x - text_width * 0.5, first_row + (i + 2 - flag_rows) * 36.0), text_width, 34, FERVOR, true)
+			value = "%s · +%d more" % [lines[i].left(26 if centred else 10), lines.size() - flag_rows]
+		_text(value, Vector2(flag_left, first_row + (i + 2 - flag_rows) * 36.0), text_width, 34, FERVOR, centred)
 
 
 ## The stat tracker: name, Aspect and seat along the top, then Energy, Might and Fervor. A

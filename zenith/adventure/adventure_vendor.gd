@@ -5,7 +5,8 @@ extends RefCounted
 ## it is not stored as a list and cannot drift out of step with the save.
 ##
 ## Masteries and Relics are out because a deck names one of each and neither is bought a copy at a
-## time. Seals are out because they are held for a reward route of their own (design 12.1).
+## time. Seals are out because they are held for a reward route of their own (design 12.1). A card
+## that an XP milestone or an achievement gives is never sold (design 8).
 
 ## What the shelf is drawn from. A card of any other type is on sale.
 const EXCLUDED_TYPES: Array[int] = [
@@ -19,9 +20,10 @@ const DEFAULT_SEED: int = 1
 ## Every card the vendor would ever stock, sorted, before the collection is consulted.
 static func pool(library: CardLibrary) -> Array[String]:
 	var out: Array[String] = []
+	var exclusive: Array[String] = AdventureProgress.exclusive_ids()
 	for id in library.all_ids():
 		var def: CardDef = library.defs[id]
-		if EXCLUDED_TYPES.has(int(def.type)):
+		if EXCLUDED_TYPES.has(int(def.type)) or exclusive.has(id):
 			continue
 		out.append(id)
 	return out

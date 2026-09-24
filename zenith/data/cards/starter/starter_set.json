@@ -2931,17 +2931,11 @@
 	"stops": "any",
 	"stop_all": "any"
    },
-   "limit_per_deck": 1,
-   "use_in_attack": true,
-   "effects": [
-	{
-	 "op": "stop_all",
-	 "kind": "any"
-	}
-   ]
+   "limit_per_deck": 1
   },
   {
    "id": "signature_strike_03",
+   "limit_per_deck": 1,
    "character": "Gideon Mourne",
    "title": "Mourne's Stance",
    "type": "strike",
@@ -2954,6 +2948,7 @@
   },
   {
    "id": "signature_strike_04",
+   "limit_per_deck": 1,
    "title": "The Fortress' Iron Bulwark",
    "type": "strike",
    "school": "",
@@ -2966,6 +2961,7 @@
   },
   {
    "id": "signature_art_01",
+   "limit_per_deck": 1,
    "title": "The Fortress' Arcane Aegis",
    "type": "art",
    "school": "",
@@ -2978,20 +2974,14 @@
   },
   {
    "id": "freestyle_art_01",
+   "limit_per_deck": 1,
    "title": "Dead Air",
    "type": "art",
    "school": "",
    "defense": {
 	"stops": "art",
 	"stop_all": "art"
-   },
-   "effects": [
-	{
-	 "op": "forbid",
-	 "what": "art_attacks",
-	 "duration": "combat"
-	}
-   ]
+   }
   },
   {
    "id": "freestyle_combat_02",
@@ -3105,11 +3095,10 @@
    "title": "Terms of the Pact",
    "type": "combat",
    "school": "",
-   "effects": [
-	{
-	 "op": "choose_stop_all_kind"
-	}
-   ],
+   "defense": {
+	"stops": "any",
+	"stop_all": "stopped"
+   },
    "alignment_only": "pact",
    "remove_after_use": true,
    "limit_per_deck": 1
@@ -3194,6 +3183,7 @@
 	 "target": "duelist"
 	}
    ],
+   "remove_after_use": true,
    "limit_per_deck": 1
   },
   {
@@ -3215,6 +3205,7 @@
   },
   {
    "id": "freestyle_combat_07",
+   "limit_per_deck": 1,
    "title": "Kept at Bay",
    "type": "combat",
    "school": "",
@@ -3242,9 +3233,11 @@
 	},
 	{
 	 "op": "discard_in_play",
-	 "who": "opponent",
+	 "who": "any",
+	 "owned_by": "opponent",
 	 "card_type": "seal",
-	 "all": true
+	 "all": true,
+	 "to": "deck_shuffle"
 	}
    ],
    "limit_per_deck": 1
@@ -3323,6 +3316,7 @@
   },
   {
    "id": "freestyle_combat_10",
+   "limit_per_deck": 1,
    "title": "Old Trick",
    "type": "combat",
    "school": "",
@@ -3331,7 +3325,7 @@
 	 "op": "search",
 	 "card_type": "attack",
 	 "source": "reserve",
-	 "to": "hand"
+	 "to": "attack"
 	}
    ],
    "remove_after_use": true
@@ -3426,6 +3420,7 @@
   },
   {
    "id": "steel_combat_01",
+   "limit_per_deck": 1,
    "title": "Steel Kindred Standoff",
    "type": "combat",
    "school": "steel",
@@ -3464,6 +3459,7 @@
    "title": "Reckless Ascent",
    "type": "combat",
    "school": "",
+   "use_at": "end_of_combat",
    "effects": [
 	{
 	 "op": "no_ascension_win"
@@ -3476,6 +3472,7 @@
   },
   {
    "id": "freestyle_combat_16",
+   "limit_per_deck": 1,
    "title": "Keen Eye",
    "type": "combat",
    "school": "",
@@ -3484,6 +3481,9 @@
 	 "op": "draw_check",
 	 "check": "named",
 	 "effects": [
+	  {
+	   "op": "show_checked"
+	  },
 	  {
 	   "op": "draw",
 	   "amount": 1
@@ -3495,6 +3495,7 @@
   },
   {
    "id": "signature_combat_08",
+   "limit_per_deck": 1,
    "title": "Caedan's Quiet Study",
    "type": "combat",
    "school": "",
@@ -3655,6 +3656,7 @@
   },
   {
    "id": "freestyle_strike_01",
+   "limit_per_deck": 1,
    "title": "Old Habit",
    "type": "strike",
    "school": "",
@@ -3701,6 +3703,7 @@
   },
   {
    "id": "freestyle_art_03",
+   "limit_per_deck": 1,
    "title": "Lobbed Bolt",
    "type": "art",
    "school": "",
@@ -3710,16 +3713,21 @@
    "endurance": 1,
    "effects": [
 	{
+	 "may": true,
 	 "op": "discard_in_play",
-	 "card_type": "non_combat_only",
+	 "card_type": "non_combat",
 	 "amount": 1,
 	 "choose": true,
-	 "up_to": true
-	},
-	{
-	 "op": "search",
-	 "card_type": "non_combat",
-	 "to": "play"
+	 "when": {
+	  "own_non_combats_min": 1
+	 },
+	 "then": [
+	  {
+	   "op": "search",
+	   "card_type": "non_combat",
+	   "to": "play"
+	  }
+	 ]
 	}
    ],
    "remove_after_use": true
@@ -3738,7 +3746,7 @@
 	{
 	 "trigger": "if_successful",
 	 "op": "discard_in_play",
-	 "who": "opponent",
+	 "who": "any",
 	 "card_type": "non_combat",
 	 "amount": 6,
 	 "up_to": true,
@@ -3761,15 +3769,8 @@
 	 "may": true,
 	 "then": [
 	  {
-	   "op": "float",
-	   "what": "modifier",
-	   "duration": "combat",
-	   "params": {
-		"scope": "own",
-		"kind": "any",
-		"life": 7,
-		"once": true
-	   }
+	   "op": "attack_bonus",
+	   "life": 7
 	  }
 	 ],
 	 "op": "lose_aspect",
@@ -3855,6 +3856,7 @@
 	}
    ],
    "remain": 1,
+   "remain_by": "ally",
    "remove_after_use": true
   },
   {
@@ -3869,10 +3871,8 @@
    "alignment_only": "pact",
    "effects": [
 	{
-	 "op": "forbid",
-	 "who": "opponent",
-	 "what": "strike_attacks",
-	 "duration": "combat"
+	 "op": "stop_all",
+	 "kind": "strike"
 	},
 	{
 	 "op": "fervor",
@@ -4014,7 +4014,7 @@
 	},
 	{
 	 "op": "discard_in_play",
-	 "who": "opponent",
+	 "who": "any",
 	 "card_type": "ally",
 	 "amount": 1,
 	 "choose": true,
@@ -4173,21 +4173,7 @@
    "school": "",
    "attack": {
 	"kind": "strike",
-	"stages": 4,
-	"variants": [
-	 {
-	  "when": {
-	   "duelist_character": "Caedan Vale",
-	   "stopped_last_phase": true
-	  },
-	  "effects": [
-	   {
-		"op": "skip_next_attack_phase",
-		"who": "opponent"
-	   }
-	  ]
-	 }
-	]
+	"stages": 4
    },
    "character": "Caedan Vale",
    "endurance": 2,
@@ -4195,6 +4181,14 @@
 	{
 	 "op": "fervor",
 	 "amount": 1
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "pass_next_phase",
+	 "who": "opponent",
+	 "when": {
+	  "character": "Caedan Vale"
+	 }
 	}
    ]
   },
@@ -4363,6 +4357,7 @@
   },
   {
    "id": "steel_strike_01",
+   "limit_per_deck": 1,
    "title": "Steel Locking Jaws",
    "type": "strike",
    "school": "steel",
@@ -4388,6 +4383,9 @@
    "title": "Last Ward",
    "type": "strike",
    "school": "",
+   "deck_loss_guard": {
+	"amount": 10
+   },
    "defense": {
 	"stops": "any",
 	"stop_focused": "discard_hand"
@@ -4545,7 +4543,7 @@
 	{
 	 "trigger": "use",
 	 "op": "search",
-	 "card_type": "strike_or_art",
+	 "card_type": "hand_combat",
 	 "source": "either",
 	 "to": "hand"
 	}
@@ -4553,6 +4551,7 @@
   },
   {
    "id": "freestyle_noncombat_03",
+   "limit_per_deck": 1,
    "title": "Clear Mind",
    "type": "non_combat",
    "school": "",
@@ -4567,6 +4566,7 @@
   },
   {
    "id": "freestyle_noncombat_04",
+   "limit_per_deck": 1,
    "title": "Foresight",
    "type": "non_combat",
    "school": "",
@@ -4576,7 +4576,8 @@
 	 "op": "search",
 	 "card_type": "hand_combat",
 	 "source": "discard",
-	 "to": "hand"
+	 "to": "hand",
+	 "show": true
 	}
    ]
   },
@@ -4657,6 +4658,7 @@
 	 "op": "search",
 	 "source": "discard",
 	 "amount": 2,
+	 "must": true,
 	 "to": "deck_bottom"
 	}
    ]
@@ -4801,11 +4803,12 @@
    "school": "",
    "remove_after_use": true,
    "limit_per_deck": 1,
+   "reserve_only": true,
    "effects": [
 	{
 	 "trigger": "use",
 	 "op": "discard_in_play",
-	 "who": "opponent",
+	 "who": "any",
 	 "card_type": "seal",
 	 "amount": 1,
 	 "remove": true,
@@ -4894,7 +4897,7 @@
    "title": "Bravado Drill",
    "type": "drill",
    "school": "",
-   "start_in_play": true,
+   "start_in_play": "may",
    "limit_per_deck": 1,
    "effects": [
 	{
@@ -5203,7 +5206,9 @@
 	 "op": "discard_in_play",
 	 "who": "opponent",
 	 "card_type": "non_combat",
-	 "all": true,
+	 "amount": 2,
+	 "up_to": true,
+	 "choose": true,
 	 "remove": true
 	}
    ]
@@ -5225,6 +5230,7 @@
 	 "op": "search",
 	 "source": "discard",
 	 "amount": 3,
+	 "must": true,
 	 "to": "deck_shuffle"
 	}
    ]
@@ -5235,6 +5241,8 @@
    "title": "Edric Carves First",
    "type": "non_combat",
    "school": "",
+   "remove_after_use": true,
+   "limit_per_deck": 1,
    "effects": [
 	{
 	 "trigger": "use",
@@ -5246,6 +5254,7 @@
   },
   {
    "id": "signature_noncombat_08",
+   "limit_per_deck": 1,
    "character": "Gideon Mourne",
    "title": "Mourne's Plans",
    "type": "non_combat",
@@ -5266,6 +5275,8 @@
    "title": "Mourne's Smirk",
    "type": "non_combat",
    "school": "",
+   "remove_after_use": true,
+   "limit_per_deck": 1,
    "effects": [
 	{
 	 "trigger": "use",
@@ -5313,16 +5324,11 @@
    "alignment_only": "vigil",
    "remove_after_use": true,
    "limit_per_deck": 1,
-   "discard_if_seal": "seal_14",
-   "discard_if_seal_title": "Marble Seal 7",
-   "effects": [
-	{
-	 "trigger": "use",
-	 "op": "float",
-	 "what": "prevent_all",
-	 "duration": "combat"
-	}
-   ]
+   "discard_if_seal_number": 7,
+   "defense": {
+	"stops": "any",
+	"stop_all": "any"
+   }
   },
   {
    "id": "freestyle_noncombat_17",
@@ -5484,8 +5490,7 @@
    "effects": [
 	{
 	 "op": "stop_all",
-	 "kind": "art",
-	 "both": true
+	 "kind": "art"
 	},
 	{
 	 "op": "fervor",
@@ -5663,6 +5668,7 @@
   },
   {
    "id": "pyre_strike_11",
+   "limit_per_deck": 1,
    "title": "Pyre Flame Lash",
    "type": "strike",
    "school": "pyre",
@@ -6604,6 +6610,7 @@
    },
    "effects": [
 	{
+	 "trigger": "if_successful",
 	 "op": "energy",
 	 "who": "opponent",
 	 "amount": -3,
@@ -6886,6 +6893,7 @@
   },
   {
    "id": "tide_art_06",
+   "limit_per_deck": 1,
    "title": "Tide Depths",
    "type": "art",
    "school": "tide",
@@ -7145,6 +7153,7 @@
   },
   {
    "id": "storm_strike_02",
+   "limit_per_deck": 1,
    "title": "Storm Overcharge",
    "type": "strike",
    "school": "storm",
@@ -7265,6 +7274,7 @@
 	 "to": "hand"
 	}
    ],
+   "remove_after_use": true,
    "only": {
 	"character": "Osric Thornwald"
    }
@@ -7873,6 +7883,8 @@
    "title": "Tide Dredge",
    "type": "strike",
    "school": "tide",
+   "remove_after_use": true,
+   "limit_per_deck": 1,
    "attack": {
 	"kind": "strike",
 	"stages": 5
@@ -8655,6 +8667,8 @@
   },
   {
    "id": "shade_drill_03",
+   "banned": true,
+   "limit_per_deck": 1,
    "title": "Shade Forgetting Drill",
    "type": "drill",
    "school": "shade",
@@ -9411,9 +9425,10 @@
    "title": "Root Thorn Hedge",
    "type": "non_combat",
    "school": "root",
-   "use_at": "after_damage",
+   "place_at": "after_damage",
    "effects": [
 	{
+	 "trigger": "use",
 	 "op": "discard_life",
 	 "who": "opponent",
 	 "amount": 3
@@ -9682,16 +9697,9 @@
    "title": "Root Bramble Wall",
    "type": "combat",
    "school": "root",
-   "effects": [
-	{
-	 "op": "float",
-	 "what": "stop_next",
-	 "duration": "combat",
-	 "params": {
-	  "kind": "any"
-	 }
-	}
-   ],
+   "defense": {
+	"stops": "any"
+   },
    "remove_after_use": true
   },
   {
@@ -9946,13 +9954,7 @@
 	"printed_life": 1,
 	"life_per_fervor": 1
    },
-   "endurance": 4,
-   "effects": [
-	{
-	 "trigger": "if_successful",
-	 "op": "shuffle_source"
-	}
-   ]
+   "endurance": 4
   },
   {
    "id": "pyre_drill_02",
@@ -9993,6 +9995,7 @@
 	 "may": true,
 	 "op": "search",
 	 "source": "discard",
+	 "school_not": "pyre",
 	 "to": "deck_shuffle",
 	 "when": {
 	  "attack_kind": "strike",
@@ -10940,6 +10943,7 @@
 		 "op": "energy",
 		 "who": "opponent",
 		 "amount": -4,
+		 "target": "duelist",
 		 "no_overflow": true
 		}
 	   ]
@@ -11265,7 +11269,15 @@
    "title": "Tide Shoal Drill",
    "type": "drill",
    "school": "tide",
+   "once_per_turn": true,
    "effects": [
+	{
+	 "trigger": "on_success",
+	 "op": "mark_used",
+	 "when": {
+	  "attack_kind": "strike"
+	 }
+	},
 	{
 	 "trigger": "on_success",
 	 "op": "search",
@@ -12140,7 +12152,7 @@
 	},
 	{
 	 "op": "discard_in_play",
-	 "who": "any",
+	 "who": "opponent",
 	 "card_type": "seal",
 	 "amount": 1,
 	 "choose": true,

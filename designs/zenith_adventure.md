@@ -194,16 +194,10 @@ the deck gets smaller, and with the deck as the life total it is always a real t
 
 ### 4.4 Aspects
 
-A duel with `"grant": "aspect"` offers every legal next-tier Aspect card of the Duelist's
-character as a choice before the bundle offer (built). A Duelist at the top of its stack, or at
-5, skips the grant and goes straight to the bundles. Aspect tiers can also be bought per starter
-with Motes before a run (section 8.2).
-
-Aspect awards come **early**, because the MPPV house rule makes Aspect count a matchup fact and a
-shallow duelist is exposed to it.
-
-Not built: capping tier 1 and 2 opponents at the player's own Aspect count, so nobody loses to an
-opponent's first ascension before the run has started.
+Superseded 2026-09-24 by section 8.6. A duel with `"grant": "aspect"` (act 1 and act 2 bosses)
+offers only the next-tier Aspect cards of the Duelist's character that the player owns. With none
+owned, the grant is skipped. Aspect tiers are no longer bought with Motes, and opponents are not
+capped at the player's Aspect count.
 
 ### 4.5 Grounds
 
@@ -397,7 +391,8 @@ and 8.3.
   act is 3 to 6 duels and a run 9 to 18. Combat is the main part of the game, so a path with only
   2 duels should be rare; most paths hold 3 or 4. Every fighting node counts as a duel: Duel,
   Elite, Twist, Encounter and Key character.
-- The act 2 boss is set per starter (section 8.5). The act 1 boss is a random opponent for now.
+- The act 1 and act 2 bosses are set per storyline starter (section 8.8); other starters draw
+  them at random.
 - **Opponent strength by act**, set 2026-09-23:
 
   | Act | Ordinary duels | Boss | Duel band | AI |
@@ -407,8 +402,8 @@ and 8.3.
   | 3 | t4, then t5 from tier 5 | Quarr, `steel_beatdown_boss` | medium | default |
 
   An Elite draws from one band stronger than a duel; every boss draws from the stronger band.
-- **Aspect grants:** three per run, after the first duel and after the act 1 and act 2 bosses,
-  which takes a two-Aspect starter to 5.
+- **Aspect grants:** after the act 1 and act 2 bosses, and only from Aspect cards the player owns
+  (section 8.6).
 - The Sensei fills the whole of tier 3 of act 1, so every path meets it.
 - The **final boss of every run is Halden Quarr** with `steel_beatdown`, at tier 8 of act 3. He
   wears the Lodestone Heart, the stone every storyline is after (`zenith/docs/cast.md`), and the
@@ -437,8 +432,7 @@ and 8.3.
 | Forge | Cut cards from the deck, or add copies of cards already in it |
 | Mystery | A text event with a choice. Later, after the others |
 
-Random encounters and quest nodes are also where new personality card variants are unlocked
-(section 8.3).
+Hidden achievement chains can add a hidden node to the map (section 8.5).
 
 ### 7.3 Twist duels
 
@@ -548,10 +542,16 @@ cards it added can be kept for Motes. Quitting mid-duel restarts that duel with 
 
 ## 8. Meta-progression
 
-Two tracks, kept apart.
+Decided 2026-09-24. Three routes, kept apart:
 
-- **Motes** buy cards, deck slots and Aspect tiers (8.2). Built.
-- **Story unlocks** are never bought. They come from runs, missions and nodes (8.3). Design only.
+| Route | What it gives |
+|---|---|
+| **Motes** (8.2) | The vendor, deck slots per starter, and dusting of copies past the cap |
+| **XP** (8.3, 8.4) | School XP fills a school's library. Personality XP pays a character's authored milestones |
+| **Achievements** (8.5) | Everything else: first tier 3 Aspects, act 2 boss starters, hidden chains, unique story printings, the Lodestone Heart and Quarr |
+
+Nothing earned through XP or achievements is ever for sale, and a milestone printing never shows
+up on the vendor.
 
 ### 8.1 The collection
 
@@ -584,6 +584,8 @@ Motes are the one currency outside a run. Built 2026-09-21: `adventure_economy.g
   the final boss adds a completion bonus of 50. Dissolving pays 25% of price. A typical full win
   of 3 or 4 duels an act pays about 545 and keeps six or seven cards at base price.
 - **Vendor.** Sells cards outright into the collection. Shelf of 6, rotating each run, reroll 40.
+  It may stock a random personality card, but never one flagged as a milestone or achievement
+  printing.
 - **Deck slots, per starter.** A bought slot raises that starter's loadout size cap by one,
   filled with any legal pick from the collection. Slots run to `DeckValidator`'s maximum (85, Root
   90) minus the starter's printed total, so a run reaches the full 85 only after slots are bought.
@@ -598,53 +600,90 @@ Motes are the one currency outside a run. Built 2026-09-21: `adventure_economy.g
   | 20 | 610 | 5740 | 11.7 |
   | 32 | 1920 | 20110 | 41.0 |
 
-- **Aspect tiers, per starter.** 100 for tier 2, 200 for tier 3, 400 for tier 4, 800 for tier 5.
-  A bought tier lets the loadout add that tier's card of the starter's own character from the
-  collection; the run's own Aspect grant then carries on from where the stack ends.
+- **Aspect tiers are no longer bought** (removed 2026-09-24). Aspect cards are owned through
+  personality milestones and achievements (8.6).
 - Files: `wallet.json` (Motes, ledger, vendor stock seed), `collection.json`, `upgrades.json`
-  (`extra_slots` and `aspect_tiers` per starter). The run save is at version 5.
+  (`extra_slots` per starter).
 
-### 8.3 Story unlocks
+### 8.3 School XP
 
-Decided 2026-09-23, not built.
+A run earns XP for the school of its Mastery: per duel won, more per boss, a bonus for finishing
+the run. Each school level adds a batch of about three of that school's cards to the collection,
+through the collection's own caps, so a copy past the cap dusts into Motes. Milestone levels add
+the school's alternate Masteries. A school's roughly 50 cards fill over about eight levels.
 
-- New playable characters, and a character's second deck.
-- Personality card variants, from random encounters and quest nodes.
-- Relics, Resonances and Grounds added to their offer pools.
-- A harder difficulty after a first clear, in the manner of Monster Train's Covenant.
-- Gallery pages and epilogues.
+### 8.4 Personality XP
 
-**Missions** are a per-character list of goals completed during runs. They are the main route to
-the story unlocks.
+One XP track per character, shared by every deck of that character. It keeps building after the
+character is unlocked.
 
-### 8.4 The starting cast
-
-A run can start with only three characters. Every other starter is an unlock, and the more
-complex decks come later in the chain. This replaces the earlier plan to lock five advanced
-starters behind a deck-size track; the `"unlock": {"track": "deck_cap", "step": 50}` field in
-those five starter files is no longer read by anything.
-
-| Character | Starter |
+| Source | XP (first guess) |
 |---|---|
-| Sir Edric Rooke | `tide_deepwater` |
-| Gideon Mourne | `shade_mind_siege` |
-| Bram Ashmark | `pyre_beatdown` |
+| As the main: each duel won, each boss, the run won | 10, 25, 50 |
+| In play as an Ally or guest in a won duel | 15 |
+| Beaten by the player: a duel, a boss | 5, 15 |
 
-**Halden Quarr is very hard to unlock**, since he is every run's final boss.
+Levels run to 10 on a rising curve (100 for level 2, then about 250, 450, 700, 1000, up to about
+2500). **Milestones are authored per character**, in whatever order suits them:
 
-Not built: `AdventureDecks.playable_starters()` still returns all 14 starters.
+- signature cards, into the collection;
+- **unique personality printings**, obtainable only from that milestone; other printings of the
+  same character may come from the vendor or elsewhere;
+- becoming a startable Ally;
+- the character's starter deck, at a level set per character (Emrys early, Alder later);
+- **deck abilities** for every starter of that character: a starting Relic, a starting Reserve,
+  later a starting Resonance;
+- a gallery page, and an epilogue at the top.
 
-### 8.5 Storylines, the relations network and quests
+### 8.5 Achievements
+
+Everything that is neither Motes nor XP. An achievement is ordered steps, tracked in the
+background from run and duel events, and listed in an **achievement journal** grouped by
+character.
+
+- **Public**: listed with its steps from the start.
+- **Hidden**: shown as "???" until its first step happens, then revealed with a one-line hint.
+- **Secret**: invisible until done.
+
+A random meeting never unlocks anything by itself; beating someone at a Key node can only start a
+chain. Step types: beat a character (by node type, act, count, or within one run), beat an act
+boss or finish a run with a main, characters in play together in a won duel, a duel won without
+playing a card type, reaching Aspect N in a duel, a full Seal set, a card or character in the run
+deck. Hidden chains can put a hidden node on the map.
+
+The specific achievements are deliberately still open. Working examples: Edric's first tier 3
+from winning a duel with Alder and Emrys in play; Ashmark's from beating Siphon at act 1 without a
+block; the act 2 bosses opening Caedan, Sable and Ember Ascendant; hidden chains for Osric, both
+Siphon decks and Quarr; the Lodestone Heart for beating Quarr with all three mains.
+
+### 8.6 Aspects
+
+- **No random in-run grants.** A new Aspect card is a meta unlock, from a personality milestone or
+  an achievement. Each character's first tier 3 comes from an achievement.
+- A run climbs only through Aspects the player owns: the starter's own printed stack, plus any
+  owned higher card of that character. A boss win adds the next owned tier.
+- Opponents are not capped at the player's Aspect count. The act 1 boss stays t3 with its third
+  Aspect, the first rival who can outclimb the player.
+
+### 8.7 The starting cast and character select
+
+Three characters are open on a new save: Sir Edric Rooke (`tide_deepwater`), Gideon Mourne
+(`shade_mind_siege`) and Bram Ashmark (`pyre_beatdown`). Every other starter unlocks through
+personality XP or an achievement. **Halden Quarr is very hard to unlock**, since he is every
+run's final boss.
+
+Character select picks a character, then a deck when the character has more than one (Edric,
+Ashmark, Siphon).
+
+### 8.8 Storylines and the relations network
 
 Decided 2026-09-23 with the lore in `zenith/docs/cast.md` (The Lodestone Heart, Storylines and
 relations).
 
-**Built 2026-09-23:** set act bosses, act 1 joins, Encounter guests, the three open starters and
-quest unlocks. Data in `data/adventure/storylines.json` and `quests.json`, code in
-`AdventureStory`, `AdventureQuests`, `AdventureUnlocks` (`user://adventure/unlocks.json`) and
-`DuelEngine.set_guest_ally`. Random draws never meet the run's own character; a set boss may.
-Not built: Key character meetings from the network, Ally-pair introductions, story text, and quest
-conditions beyond beating a boss or finishing a run.
+**Built 2026-09-23:** set act bosses, act 1 joins, Encounter guests and the three open starters,
+in `data/adventure/storylines.json`, `AdventureStory` and `DuelEngine.set_guest_ally`. Random
+draws never meet the run's own character; a set boss may. Not built: Key character meetings from
+the network, Ally-pair introductions, story text.
 
 **Each starter is a storyline.** Everyone is after the Lodestone Heart, and every run can fight
 the whole roster, friendly tests included. The three runs overlap heavily in opponents. They
@@ -657,18 +696,16 @@ differ in which Allies join and which meetings and quests unlock characters.
 | Ashmark, `pyre_beatdown` | The villain | Siphon, `storm_volley`: a charged Collegium construct, his first meal | Sir Edric Rooke, `pyre_ascent` | Edric's Ember Ascendant deck |
 
 Act 3 is Quarr, who takes more effort. Full starter unlocks sit around act 2: an act 2 boss often
-unlocks that character, but not always. An act 1 boss gives quest progress or an Ally unlock, not
-a starter:
+unlocks that character through an achievement, but not always. An act 1 boss gives XP, an Ally or
+an achievement step, not a starter:
 
-- **Edric beats Emrys.** Emrys joins the run as an Ally at his Aspect 1, The Eldest. First step of
-  a quest toward Steel Inheritance, such as finishing the run with Emrys still in the deck.
+- **Edric beats Emrys.** Emrys joins the run deck at his Aspect 1, The Eldest, and his personality
+  XP starts to build toward Steel Inheritance.
 - **Mourne beats Marrow.** Orvath Kell, the broken company's last officer and Mourne's old
-  comrade, joins as an Ally. First step of a quest toward Scrap Requiem. Kell has fewer than two
-  named cards, so he joins through an Ally encounter (7.4) rather than a bundle.
-- **Ashmark beats Siphon.** Quest progress only, since he fields no Allies. Consuming Siphon's
-  charge is the first step toward Last Standing. It also puts the Collegium on his trail, so a
-  rebuilt Siphon (Stormlock, `storm_unbound`) can return in later runs as a hidden challenger.
-  His run may read thinner than the other two at act 1.
+  comrade, joins the run deck. Marrow's personality XP builds toward Scrap Requiem.
+- **Ashmark beats Siphon.** He fields no Allies. It is the first step of the chain in which a
+  rebuilt Siphon (Stormlock, `storm_unbound`) returns in a later run as a hidden challenger. His
+  run may read thinner than the other two at act 1.
 
 **The relations network.** Characters are linked by the relations in `cast.md`. Meeting nodes
 (Key character, section 7.2) are drawn from the main personality's connections. An Ally in the
@@ -677,22 +714,12 @@ main to someone new, which adds that connection for the run. Working examples: C
 introduce Marrow; Pim and any Draik introduce Sable; Ansel and Tavin introduce Caedan; Alder and
 Emrys introduce Osric; Siphon and Tithe introduce Cull; Cull and Scorn introduce Marrow.
 
-**Quests unlock characters.** Public or hidden. A quest unlocks a character either as a main
-personality that can be swapped into a deck, or with its own precon. Precon characters always come
-through quests, and some come through side quests or hidden chains of nodes. Patterns taken from
-the PS1 and PS2 era:
-
-- Beating a set boss unlocks that character (Tekken 2's sub-bosses). This is the act 2 boss.
-- A hidden challenger appears mid-run when a condition is met; beat it to unlock it, and a loss
-  means it returns in a later run (Mortal Kombat's secret fighters, Smash Melee's challengers).
-- A recruit joins only when a certain character is already with you (Suikoden). This is the Ally
-  pair introduction.
-- Side quest chains for secret characters (Final Fantasy Tactics).
-- Motes cover both the every-run fallback and the shop, so nobody is locked out for good.
-
-Started by an act 1 boss, with the rest of the quest still to write: Emrys, Marrow, Last
-Standing, Stormlock. Tempest Engine has no route yet, because Siphon is an act 1 boss. Not
-placed at all: Alder, Osric, and Quarr's own deck.
+**Where each starter unlocks** (working, 2026-09-24): Caedan, Sable and Ember Ascendant from act 2
+boss achievements; Emrys, Alder, Marrow and Last Standing from personality XP; Osric, both Siphon
+decks and Quarr from hidden achievement chains. Patterns taken from the PS1 and PS2 era: set
+bosses that unlock their character (Tekken 2), hidden challengers on conditions that return after a
+loss (Mortal Kombat, Smash Melee), recruits who need a certain character with you (Suikoden), and
+side chains for secret characters (Final Fantasy Tactics).
 
 **Only the three starters have storylines so far.** A run played with any other character (Caedan,
 Sable, Emrys and the rest, once unlocked) still needs its own storyline, act bosses and meetings.
@@ -727,7 +754,8 @@ Until then those runs use random act bosses.
   which family sits in which band.
 - Rewards are theme bundles, pick one of three, with a cut on every reward screen.
 - Reserve bundles hold counter tech and go into the Reserve.
-- Aspects are a choice at the grant stage, and can be bought per starter with Motes.
+- Aspects are owned, never random: personality milestones and achievements unlock Aspect cards,
+  and a run climbs only through owned ones (8.6). They are not bought with Motes.
 - A run's deck has a size cap, and the full 85 needs bought slots. Won cards past the cap wait
   in the run library, and cards swap between the deck, the library and the Reserve between nodes.
 - Grounds are optional and arrive as a block of 3.
@@ -740,11 +768,13 @@ Until then those runs use random act bosses.
 - One Sensei per run: a forced early node offering a Relic with a school-themed starting Reserve.
 - Mana is the per-run currency. Motes are the only meta currency.
 - Keeping cards costs Motes. The collection is a shared library with copy caps.
-- Story unlocks are earned, never bought. Missions are the main route.
+- Three meta routes: Motes (vendor, deck slots, dusting), XP (school and personality), and
+  achievements for everything else, tracked in a journal (section 8).
 - Three starting characters: Edric (`tide_deepwater`), Gideon (`shade_mind_siege`), Bram
   (`pyre_beatdown`). Quarr is very hard to unlock.
-- Each starter is a storyline with a set act 2 boss; meetings follow the relations network, and
-  characters unlock through quests (section 8.5).
+- Each starter is a storyline with set act 1 and act 2 bosses; meetings follow the relations
+  network (section 8.8).
+- Character select picks a character, then a deck when there are several.
 - Stacking per-run modifiers are Resonances, implemented as undiscardable hidden Drills.
 
 ## 11. Open

@@ -57,18 +57,10 @@ static func themed(tint: Color) -> Theme:
 	return t
 
 
-## Dresses a flat screen in the shared look: its screen title on a scroll banner in the trim tint,
-## and, with `terrain`, the dim hex terrain from the adventure map behind it (inside its
-## `Background` node). Screens for reading cards (deck views, bundle picks, the shelf) leave the
-## terrain off: behind rows of cards it is too busy (user, 2026-09-23). `act` picks the land,
-## `seed_value` lays it out.
-static func dress(screen: Control, title: Label, terrain: bool = false, act: int = 1, seed_value: int = 20260923) -> void:
-	var background: Control = screen.get_node_or_null("Background") as Control
-	if terrain and background != null:
-		var backdrop: TerrainBackdrop = TerrainBackdrop.new()
-		background.add_child(backdrop)
-		backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		backdrop.show_act(act, seed_value)
+## Dresses a flat screen in the shared look: its screen title on a scroll banner in the trim tint.
+## The screens keep a plain dark background; the hex terrain that once sat behind them was too
+## busy (user, 2026-09-23) and is gone.
+static func dress(_screen: Control, title: Label) -> void:
 	if title != null:
 		banner_heading(title)
 

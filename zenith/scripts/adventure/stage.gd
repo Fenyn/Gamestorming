@@ -24,10 +24,6 @@ extends Control
 @onready var title_button: Button = $Margin/Column/Footer/TitleButton
 @onready var deck_panel: StageDeckPanel = $DeckPanel
 
-## Ink darkening at the map frame's edges, so the parchment reads as a sheet and not a fill.
-const VIGNETTE: Color = Color(0.24, 0.14, 0.07, 0.3)
-const VIGNETTE_DEPTH: float = 70.0
-
 var _abandon_armed: bool = false
 var _route: MapRoute = null
 ## The scouted node's marker, over the note a non-fighting node shows.
@@ -52,34 +48,30 @@ func _ready() -> void:
 	next_sheet.portrait_caption.custom_minimum_size.x = 314
 	next_sheet.mastery.custom_minimum_size = Vector2(240, 336)
 	next_sheet.mastery_caption.custom_minimum_size.x = 240
-	# The map is parchment under an inked inner rule; the side panel's pieces are dark panels under
-	# the same rule in the trim tint (Kenney border 012). Pixel frames keep hard edges; their
-	# contents stay smooth.
+	# The map and the side panel's pieces are all dark panels under the Kenney inner rule (border
+	# 012) in the trim tint. Pixel frames keep hard edges; their contents stay smooth.
 	var frame: PanelContainer = PanelContainer.new()
-	frame.add_theme_stylebox_override("panel", MapArt.board_box(22))
+	frame.add_theme_stylebox_override("panel", MapArt.panel_box(22))
 	frame.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var at: int = ladder_scroll.get_index()
 	ladder_column.add_child(frame)
 	ladder_column.move_child(frame, at)
-	ladder_scroll.reparent(frame)
-	ladder_scroll.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	var vignette: Control = Control.new()
-	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vignette.draw.connect(func() -> void: _draw_vignette(vignette))
-	vignette.resized.connect(vignette.queue_redraw)
-	frame.add_child(vignette)
-	# The legend sits on a long tan scroll under the map.
-	var scroll_banner: PanelContainer = PanelContainer.new()
-	scroll_banner.add_theme_stylebox_override("panel", MapArt.banner_box("banner_tan", 40))
-	scroll_banner.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	scroll_banner.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var legend: HBoxContainer = _legend()
-	legend.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	scroll_banner.add_child(legend)
-	ladder_column.add_child(scroll_banner)
-	# The preview's tag rides a cream scroll, and a filigree swirl divides the sheet's text from
-	# its cards. Only this screen's copy of the sheet is dressed; the matchup screen keeps its own.
+	# Inside the board: the legend inlaid down its left wall, a thin rule, then the scrolling map.
+	var board_row: HBoxContainer = HBoxContainer.new()
+	board_row.add_theme_constant_override("separation", 18)
+	board_row.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	frame.add_child(board_row)
+	board_row.add_child(_legend())
+	var rule: ColorRect = ColorRect.new()
+	rule.color = Color(MapArt.tint, 0.35)
+	rule.custom_minimum_size = Vector2(2, 0)
+	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	board_row.add_child(rule)
+	ladder_scroll.reparent(board_row)
+	ladder_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# The preview's tag rides a cream scroll, and a Kenney rule divides the sheet's text from its
+	# cards. Only this screen's copy of the sheet is dressed; the matchup screen keeps its own.
 	next_sheet.tag.add_theme_stylebox_override("normal", MapArt.banner_box("banner", 40, 14, 18))
 	next_sheet.tag.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
 	next_sheet.tag.add_theme_font_size_override("font_size", 15)
@@ -90,9 +82,9 @@ func _ready() -> void:
 	var fade_rule: Control = MapArt.fade_divider(260.0)
 	next_sheet.chips.get_parent().add_child(fade_rule)
 	next_sheet.chips.get_parent().move_child(fade_rule, next_sheet.note_label.get_index())
-	var sheet_swirl: TextureRect = MapArt.ornament("swirl", 26.0)
-	next_sheet.cards.get_parent().add_child(sheet_swirl)
-	next_sheet.cards.get_parent().move_child(sheet_swirl, next_sheet.cards.get_index())
+	var sheet_rule: Control = MapArt.fade_divider(200.0)
+	next_sheet.cards.get_parent().add_child(sheet_rule)
+	next_sheet.cards.get_parent().move_child(sheet_rule, next_sheet.cards.get_index())
 	# The placeholder panel fits its content instead of stretching down the side.
 	run_over_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_frame(run_info, 28)
@@ -106,13 +98,13 @@ func _ready() -> void:
 	var note_column: VBoxContainer = run_over_panel.get_node("Center/Column")
 	note_column.add_child(_node_icon)
 	note_column.move_child(_node_icon, 0)
-	# A small crest over the heading and a swirl under it, from the same filigree set.
+	# A small crest over the heading and a Kenney rule under it.
 	var crest: TextureRect = MapArt.ornament("crest_small", 22.0)
 	note_column.add_child(crest)
 	note_column.move_child(crest, run_over_heading.get_index())
-	var note_swirl: TextureRect = MapArt.ornament("swirl", 24.0)
-	note_column.add_child(note_swirl)
-	note_column.move_child(note_swirl, run_over_reached.get_index())
+	var note_rule: Control = MapArt.fade_divider(180.0)
+	note_column.add_child(note_rule)
+	note_column.move_child(note_rule, run_over_reached.get_index())
 	_dev_note = Label.new()
 	_dev_note.theme_type_variation = &"WarnLabel"
 	_dev_note.add_theme_font_size_override("font_size", 13)
@@ -134,21 +126,6 @@ func _ready() -> void:
 ## The shared theme with its panels and buttons in the run's school tint.
 func _screen_theme() -> Theme:
 	return SanctumUI.themed(MapArt.tint)
-
-
-func _draw_vignette(layer: Control) -> void:
-	var w: float = layer.size.x
-	var h: float = layer.size.y
-	var d: float = VIGNETTE_DEPTH
-	var clear: Color = Color(VIGNETTE, 0.0)
-	var bands: Array[PackedVector2Array] = [
-		PackedVector2Array([Vector2(0, 0), Vector2(w, 0), Vector2(w, d), Vector2(0, d)]),
-		PackedVector2Array([Vector2(0, h), Vector2(w, h), Vector2(w, h - d), Vector2(0, h - d)]),
-		PackedVector2Array([Vector2(0, 0), Vector2(0, h), Vector2(d, h), Vector2(d, 0)]),
-		PackedVector2Array([Vector2(w, 0), Vector2(w, h), Vector2(w - d, h), Vector2(w - d, 0)]),
-	]
-	for band in bands:
-		layer.draw_polygon(band, PackedColorArray([VIGNETTE, VIGNETTE, clear, clear]))
 
 
 ## The tinted panel on one side-panel piece, with its first child kept smooth.
@@ -178,9 +155,6 @@ func _refresh() -> void:
 	var run: AdventureRun = Session.run
 	var map: AdventureMap = Session.map
 	var deck: DeckList = run.deck()
-	$Background.set_school(Palette.school_ui(deck.style), true)
-	$Background.show_act(MapRoute.act_to_show(run, map), run.run_seed)
-
 	deck_name_label.text = deck.name.trim_suffix(" (Starter)")
 	motes_label.text = str(Session.wallet.motes)
 	motes_label.tooltip_text = "Motes"
@@ -235,24 +209,26 @@ func _scroll_to_focus() -> void:
 	ladder_scroll.scroll_vertical = int(_route.focus_y() - ladder_scroll.size.y * 0.6)
 
 
-## One marker and name per node type, so the map reads without hovering.
-func _legend() -> HBoxContainer:
-	var row: HBoxContainer = HBoxContainer.new()
+## One marker and name per node type, stacked down the board's left wall, so the map reads without
+## hovering.
+func _legend() -> VBoxContainer:
+	var row: VBoxContainer = VBoxContainer.new()
 	row.add_theme_constant_override("separation", 14)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	for type in ["duel", "elite", "key", "boss", "sensei", "shop", "shrine", "forge"]:
 		var cell: HBoxContainer = HBoxContainer.new()
-		cell.add_theme_constant_override("separation", 4)
+		cell.add_theme_constant_override("separation", 10)
 		var icon: TextureRect = TextureRect.new()
 		icon.texture = MapArt.marker(type)
-		icon.custom_minimum_size = Vector2(26, 26)
+		icon.custom_minimum_size = Vector2(44, 44)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		cell.add_child(icon)
 		var name_label: Label = Label.new()
 		name_label.text = AdventureMap.type_name(type)
-		name_label.add_theme_font_size_override("font_size", 13)
-		name_label.add_theme_color_override("font_color", Color(0.24, 0.15, 0.08))
+		name_label.add_theme_font_size_override("font_size", 17)
+		name_label.add_theme_color_override("font_color", ZenithTheme.TEXT)
+		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		cell.add_child(name_label)
 		row.add_child(cell)
 	return row
@@ -297,7 +273,6 @@ func _show_next_opponent(row_data: Dictionary) -> void:
 	next_sheet.show_deck(opp, "NEXT CHALLENGER")
 	# show_deck sets its own panel every call; the stage screen frames it like the rest.
 	next_sheet.add_theme_stylebox_override("panel", MapArt.panel_box(26))
-	$Background.set_rival(Palette.school_ui(opp.style))
 	var tier: String = AdventureDecks.tier_of(opponent_id)
 	var boss: bool = str(row_data.get("node", "")) == "boss"
 	next_sheet.clear_extra_chips()

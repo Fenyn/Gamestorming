@@ -1,114 +1,46 @@
-"""The Storm expansion: 26 new school cards, filling the gaps the school had no card for.
+"""The Storm expansion: 7 new school cards and 2 Masteries, bringing the school to 50.
 
     python tools/add_card.py decks/storm_expansion
 
-Ids and titles are approved. Every card stands in for one printed card; which one is recorded in
-`docs/card_roster.csv` through the table in `tools/gen_roster.py`, and nowhere else. Cards are
-listed here in the order they were approved, and referred to only by their own ids.
-
-Two readings run through the whole batch:
-
-* A printed "if you declared a Tokui-Waza" rider is always on, so a card carrying one is written
-  with the rider applied and no condition. The source's own errata treat the declaration as the
-  normal state of play.
-* A printed tournament-format note has no parallel here and is dropped.
+Titles are the ones locked in `docs/expansion_batch2_review.md`; sources are in `tools/gen_roster.py`
+(NEW_SOURCES) and `tools/source_candidates.tsv`. Every printed clause is built as written, except
+that a "declared a Tokui-Waza" rider is always on.
 """
-from cardlib import (add, strike, art, block, combat, noncombat, drill,
-                     E, ACC, OPP_ACC, VIG, FLOAT, SEARCH, IFS, IFSTOP, USE,
-                     AFTER_EMPOWER, WHEN, DISCARD_IN_PLAY)
+from cardlib import (add, strike, art, drill, E, IFS, FLOAT, SEARCH, AFTER_EMPOWER)
 
-
-# "All of your OTHER attacks do +N for the remainder of Combat." The line runs while the attack
-# carrying it is still in the air, so the flag keeps that one attack out of its own bonus.
-def OTHER_ATTACKS(**params):
-    d = FLOAT("modifier", **params)
-    d["exclude_source"] = True
-    return d
-
-
-# --- Strike answers -------------------------------------------------------
-# The school's plain Strike answer. Until now only storm_static_field stopped a Strike, and that
-# card is an attack as well.
-block("storm_strike_04", "Storm Rising Gust", "strike", "strike", "storm", effects=[ACC(1)])
-# The second stop is a floating one, and it waits for their next attack phase as printed. A
-# `next_attack_phase` float is aimed at the attacks it answers, so it lives through its owner's
-# own phase in between and does not spend itself on the attack this card already stopped.
-block("storm_strike_05", "Storm Twin Earthing", "strike", "strike", "storm",
-      effects=[FLOAT("stop_next", duration="next_attack_phase", kind="strike")])
-# Printed in the Energy Combat band although it answers a Strike, so it is typed by the band and
-# stops by what the text says, the way pyre_warding_stance already is.
-block("storm_art_11", "Storm Damping Guard", "strike", "art", "storm", effects=[OPP_ACC(-1)])
-# A Non-Combat that stops from the table and then goes under the Life Deck instead of to the pile.
-add(id="storm_noncombat_01", title="Storm Returning Front", type="non_combat", school="storm",
-    defense={"stops": "strike"}, bottom_after_use=True)
 
 # --- Drills ---------------------------------------------------------------
-# The school's first Drills of any kind: a shield for each attack kind, then two standing effects.
-drill("storm_drill_01", "Storm Mantle Drill", "storm", shield="strike")
-drill("storm_drill_02", "Storm Dispersal Drill", "storm", shield="art")
-drill("storm_drill_03", "Storm Tight Coil Drill", "storm",
-      modifiers=[{"scope": "own", "kind": "art", "life": 2}])
-drill("storm_drill_04", "Storm Conduit Drill", "storm",
-      modifiers=[{"scope": "cost", "kind": "art", "stages": -1, "min": 1}])
+drill("storm_drill_05", "Storm Backflash Drill", "storm",
+      effects=[{"trigger": "on_damaged", "may": True, "op": "draw_discard", "amount": 1, "from": "bottom",
+                "when": {"attack_kind": "strike", "discard_min": 1}}])
+drill("storm_drill_06", "Storm Seeking Spark Drill", "storm", once_per_combat=True,
+      effects=[{"trigger": "on_success", "op": "mark_used", "when": {"attack_kind": "art"}},
+               {"trigger": "on_success", "op": "search", "whose": "opponent", "to": "discard",
+                "when": {"attack_kind": "art"}}])
+drill("storm_drill_07", "Storm Grounding Drill", "storm", limit_per_deck=2,
+      effects=[{"trigger": "on_stop", "may": True, "op": "exile_source",
+                "then": [E("stop_all", kind="stopped")]}])
+drill("storm_drill_08", "Storm Stormwall Drill", "storm", surge_bonus=1, shields_stop_focused=True)
 
-# --- Non-Combats and Combat cards -----------------------------------------
-# Waits for a single hit of five wounds or more, then brings the company back at full Energy.
-noncombat("storm_noncombat_02", "Storm Mustering Peal",
-          [USE(SEARCH(card_type="ally", source="discard", amount=3, to="play", stages="max"))],
-          school="storm", endurance=2, only={"when": {"took_wounds_min": 5}})
-# Their Seals go under their own Life Deck, in the order the user picks them.
-combat("storm_combat_01", "Storm Scattering Gale",
-       [DISCARD_IN_PLAY("seal", amount=2, up_to=True, choose=True, to="deck_bottom")],
-       school="storm", endurance=3)
-# Prepared as Combat is entered: the hand is shown, and three of the school in it buys a rider
-# that waives what the duelist pays for card effects.
-add(id="storm_combat_02", title="Storm Free Current", type="combat", school="storm",
-    use_at="entering_combat",
-    attachment={"target": "duelist", "duration": "combat",
-                "modifiers": [{"scope": "cost", "kind": "any", "set": 0}]},
-    effects=[E("reveal_hand"),
-             WHEN(E("attach", to="duelist"), hand_school_min={"school": "storm", "count": 3})])
+# --- Attacks --------------------------------------------------------------
+strike("storm_strike_13", "Storm Gathering Front", "storm", atk={"stages": 3}, empower=2,
+       effects=[AFTER_EMPOWER(E("look_at", amount=4, pick={"card_type": "drill"}, to="play",
+                                rearrange=True, **{"from": "top"}))])
+strike("storm_strike_14", "Storm Lightning Rod", "storm", atk={},
+       effects=[FLOAT("at_combat_end", effects=[SEARCH(card_type="drill", school_in=["", "storm"], to="play")])])
+art("storm_art_24", "Storm Steady Current", "storm", atk={"printed_life": 5}, endurance=1,
+    effects=[FLOAT("keep_drills")])
 
-# --- Energy gain ----------------------------------------------------------
-block("storm_art_12", "Storm Catching Stance", "art", "art", "storm",
-      effects=[VIG(4), OPP_ACC(-1)])
-strike("storm_strike_06", "Storm Feeding Arc", "storm", atk={},
-       effects=[VIG(3, "duelist"), E("remove_discard", "opponent", amount=1)])
-strike("storm_strike_07", "Storm Return Stroke", "storm", atk={"stages": 3},
-       effects=[IFS(VIG("max", "duelist")), ACC(1)])
-
-# --- Hand attack and Fervor denial ----------------------------------------
-# "Look at their hand and choose a Physical Combat card; they discard it." The band is a filter on
-# the card's own type, and a hand with none of that band is still seen.
-strike("storm_strike_08", "Storm Wringing Squall", "storm", atk={}, endurance=3,
-       effects=[IFS(E("discard_hand", "opponent", amount=1, random=False, chooser="owner",
-                      reveal=True, filter={"card_type": "strike"}))])
-art("storm_art_13", "Storm Rolling Peal", "storm", atk={}, empower=3,
-    effects=[AFTER_EMPOWER(OTHER_ATTACKS(scope="own", kind="art", life=1)),
-             AFTER_EMPOWER(OPP_ACC(-2))])
-
-# --- The cost band --------------------------------------------------------
-art("storm_art_14", "Storm Idle Spark", "storm", atk={"printed_life": 3, "cost_stages": 0})
-art("storm_art_15", "Storm Pent Discharge", "storm", atk={"cost_stages": 3}, endurance=2,
-    effects=[IFS(E("discard_hand", "opponent", amount=1, random=False))])
-
-# --- Workhorses -----------------------------------------------------------
-strike("storm_strike_09", "Storm Opened Channel", "storm", atk={"focused": True, "stages": 2},
-       effects=[IFS(FLOAT("modifier", scope="own", kind="art", life=2))])
-art("storm_art_16", "Storm Ungrounded Flash", "storm",
-    atk={"printed_life": 6, "no_stop_by": "art"})
-strike("storm_strike_10", "Storm Felling Gust", "storm", atk={"stages": 4},
-       effects=[IFS(DISCARD_IN_PLAY("ally", amount=1, choose=True))])
-art("storm_art_21", "Storm Residual Shock", "storm", atk={"printed_life": 6},
-    effects=[IFSTOP(E("discard_life", "opponent", amount=2))])
-strike("storm_strike_11", "Storm Levelling Wind", "storm",
-       atk={"focused": True, "stages": 3}, endurance=2,
-       effects=[IFS(DISCARD_IN_PLAY("ally", amount=4, up_to=True, choose=True)), OPP_ACC(-2)])
-strike("storm_strike_12", "Storm Tailwind", "storm", atk={"stages": 4}, endurance=3,
-       effects=[OTHER_ATTACKS(scope="own", kind="any", stages=1), OPP_ACC(-2)])
-art("storm_art_22", "Storm Cold Front", "storm", atk={}, effects=[OPP_ACC(-2)])
-# Names a card that can perform a Strike and takes every copy out of their Life Deck. The naming
-# is unconditional on the printed card, so it does not wait on the attack landing.
-art("storm_art_23", "Storm Silencing Static", "storm", atk={"printed_life": 5},
-    effects=[E("name_card", pool="opponent_deck", filter={"attack_kind": "strike"},
-               strip={"to": "discard"})])
+# --- Masteries ------------------------------------------------------------
+add(id="storm_mastery_03", title="Storm Gale Mastery", type="mastery", school="storm", limit_per_deck=1,
+    modifiers=[{"scope": "own", "kind": "strike", "stages": 2}],
+    effects=[{"trigger": "on_success", "op": "float", "what": "modifier", "duration": "combat",
+              "exclude_source": True, "params": {"scope": "own", "kind": "strike", "life": 1},
+              "when": {"source_school": "storm", "attack_kind": "strike"}}])
+add(id="storm_mastery_04", title="Storm Conductor Mastery", type="mastery", school="storm", limit_per_deck=1,
+    once_per_combat=True, free_action=True, only={"when": {"drill_school_in_play": "storm"}},
+    effects=[{"trigger": "use", "op": "discard_in_play", "who": "self", "card_type": "drill", "school": "storm",
+              "amount": 1, "choose": True,
+              "then": [E("mark_used"), SEARCH(card_type="drill", amount=2, different=True, to="play")]},
+             {"trigger": "rejuvenation", "may": True, "op": "recover", "card_type": "drill",
+              "when": {"discard_has_type": "drill"}}])

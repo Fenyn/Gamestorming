@@ -1,17 +1,14 @@
 class_name MapArt
 extends RefCounted
-## The adventure map's textures, imported from the art library by tools/import_map_art.py.
+## The adventure screens' textures, imported from the art library by tools/import_map_art.py.
 ## Every lookup is cached; a missing file answers null so a screen still draws without it.
 ##
-## The trim (panel rules, banners, buttons, filigree, brackets) is imported as neutral greys and
-## drawn through `tint`: white by default, and in the adventure the run's Mastery school colour,
-## set once by the screen with `tint_for_school`. The map board, markers and terrain keep their
-## own colours.
+## The trim (panel rules, banners, filigree, dividers) is imported as neutral greys and drawn
+## through `tint`: white by default, and in the adventure the run's Mastery school colour, set once
+## by the screen with `tint_for_school`. Buttons and the map's node markers (Kenney icons on dark
+## tiles) keep their own colours.
 
 const DIR: String = "res://assets/adventure_map"
-## The terrain canvas is square; the pointy hex ground inside it is 628 x 725 of 840, centred.
-const HEX_WIDTH_OF_CANVAS: float = 628.0 / 840.0
-const HEX_HEIGHT_OF_CANVAS: float = 725.0 / 840.0
 ## A school colour is capped at this saturation and brightness before it tints the trim, so the
 ## hot schools (Pyre, Shade, Storm) come out muted like Tide instead of loud.
 const TINT_MAX_SATURATION: float = 0.5
@@ -20,13 +17,19 @@ const TINT_MAX_VALUE: float = 0.78
 const PANEL_MARGIN: int = 24
 ## The Kenney half-divider that fades in towards a knot; `fade_divider` mirrors it.
 const FADE_DIVIDER: String = "res://assets/ui/borders/default/divider_fade/divider-fade-003.png"
+## The same double rule with its knot, unfaded: the map's rule between acts, mirrored the same way.
+const DIVIDER: String = "res://assets/ui/borders/default/divider/divider-003.png"
+## The divider's knot, in its own (doubled) pixels, kept whole when the rule stretches.
+const DIVIDER_KNOT: float = 48.0
+## Kenney's corner brackets (border 000), drawn round the node the run stands on or is scouting.
+const BRACKETS: String = "res://assets/ui/borders/default/border/panel-border-000.png"
+const BRACKET_MARGIN: int = 24
 
 static var tint: Color = Color.WHITE
 ## The same hue kept saturated, for thin or faint marks (the "here" brackets, the choice glow)
 ## where the muted `tint` would read as white.
 static var tint_strong: Color = Color.WHITE
 static var _cache: Dictionary = {}
-static var _terrain: Dictionary = {}   # act -> Array[Texture2D]
 
 
 static func texture(path: String) -> Texture2D:
@@ -67,27 +70,6 @@ static func muted(color: Color) -> Color:
 	return Color.from_hsv(color.h, minf(color.s, TINT_MAX_SATURATION), minf(color.v, TINT_MAX_VALUE))
 
 
-## Every terrain tile for an act, in a stable order. Acts past the art on disk reuse the last.
-static func terrain(act: int) -> Array[Texture2D]:
-	var key: int = clampi(act, 1, 3)
-	if _terrain.has(key):
-		return _terrain[key]
-	var out: Array[Texture2D] = []
-	var dir: String = "%s/terrain/act%d" % [DIR, key]
-	var names: PackedStringArray = ResourceLoader.list_directory(dir) if DirAccess.dir_exists_absolute(dir) else PackedStringArray()
-	var sorted: Array[String] = []
-	for n in names:
-		if n.ends_with(".png"):
-			sorted.append(n)
-	sorted.sort()
-	for n in sorted:
-		var tex: Texture2D = texture("%s/%s" % [dir, n])
-		if tex != null:
-			out.append(tex)
-	_terrain[key] = out
-	return out
-
-
 ## The button pieces' stepped corners, kept whole when the face stretches (Kenney border 022,
 ## doubled: 12 px corners become 24).
 const BUTTON_MARGIN: int = 24
@@ -100,11 +82,6 @@ const USE_TINT: Color = Color(0, 0, 0, 0)
 ## the trim tint when none is given. The shared theme asks for white so it never caches a school.
 static func panel_box(content: int, color: Color = USE_TINT) -> StyleBox:
 	return _sliced("panel", PANEL_MARGIN, content, tint if color == USE_TINT else color)
-
-
-## The map board: parchment under the same rule in ink. Never tinted.
-static func board_box(content: int) -> StyleBox:
-	return _sliced("board", PANEL_MARGIN, content, Color.WHITE)
 
 
 ## A scroll banner as a StyleBox: the curled ends kept whole, the middle stretched to the text.
@@ -165,21 +142,37 @@ static func fade_divider(width: float) -> Control:
 	return row
 
 
-## Draws `tex` across `rect` with its left and right `cap` pixels kept whole and the middle
-## stretched, so a rail with knotted ends can span any width. Drawn in the trim tint.
-static func draw_hsliced(canvas: CanvasItem, tex: Texture2D, rect: Rect2, cap: float) -> void:
+## Draws the Kenney double rule across `rect`: two halves meeting at their knots in the middle,
+## the knots kept whole and the rules stretched to fill. In `color`.
+static func draw_divider(canvas: CanvasItem, rect: Rect2, color: Color) -> void:
+	var tex: Texture2D = texture(DIVIDER)
 	if tex == null:
 		return
 	var tw: float = float(tex.get_width())
 	var th: float = float(tex.get_height())
-	var scale: float = rect.size.y / th
-	var cap_on_screen: float = cap * scale
-	var left: Rect2 = Rect2(rect.position, Vector2(cap_on_screen, rect.size.y))
-	var right: Rect2 = Rect2(rect.end.x - cap_on_screen, rect.position.y, cap_on_screen, rect.size.y)
-	var middle: Rect2 = Rect2(left.end.x, rect.position.y, maxf(0.0, rect.size.x - cap_on_screen * 2.0), rect.size.y)
-	canvas.draw_texture_rect_region(tex, left, Rect2(0, 0, cap, th), tint)
-	canvas.draw_texture_rect_region(tex, middle, Rect2(cap, 0, tw - cap * 2.0, th), tint)
-	canvas.draw_texture_rect_region(tex, right, Rect2(tw - cap, 0, cap, th), tint)
+	var knot: float = DIVIDER_KNOT * rect.size.y / th
+	var half: float = rect.size.x * 0.5
+	var center: Vector2 = Vector2(rect.get_center().x, rect.position.y)
+	for side: float in [1.0, -1.0]:
+		# The left half as drawn; the right half is the same drawing mirrored about the centre.
+		canvas.draw_set_transform(center, 0.0, Vector2(side, 1.0))
+		canvas.draw_texture_rect_region(tex, Rect2(-half, 0, maxf(0.0, half - knot), rect.size.y), Rect2(0, 0, tw - DIVIDER_KNOT, th), color)
+		canvas.draw_texture_rect_region(tex, Rect2(-knot, 0, knot, rect.size.y), Rect2(tw - DIVIDER_KNOT, 0, DIVIDER_KNOT, th), color)
+	canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## Kenney's corner brackets round `rect`, in `color`, drawn nine-slice so the corners keep their
+## size whatever the node's.
+static func draw_brackets(canvas: CanvasItem, rect: Rect2, color: Color) -> void:
+	var tex: Texture2D = texture(BRACKETS)
+	if tex == null:
+		return
+	var box: StyleBoxTexture = StyleBoxTexture.new()
+	box.texture = tex
+	box.modulate_color = color
+	box.set_texture_margin_all(BRACKET_MARGIN)
+	box.draw_center = false
+	canvas.draw_style_box(box, rect)
 
 
 ## A button face: Kenney's stepped-corner rule over a flat fill, one piece per state, composed by

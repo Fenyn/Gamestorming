@@ -1,12 +1,12 @@
 class_name MapRoute
 extends Control
-## The run's whole node map, drawn as a campaign map on plain parchment: every act stacked bottom
-## to top, act 1 at the foot, each act's boss at its crown. The parchment is the frame the map sits
-## in; this control draws no ground of its own. Nodes wear the location markers from the art
-## library, joined by inked roads; the road already walked is in the trim tint (MapArt.tint), the roads open next are red,
-## and the nodes the run may step to next glow and breathe. Clicking any node selects it for
-## scouting; only the stage screen commits a step. Sits inside a ScrollContainer: `focus_y()`
-## says where to scroll.
+## The run's whole node map on the dark Kenney board: every act stacked bottom to top, act 1 at the
+## foot, each act's boss at its crown, a Kenney double rule between acts and a small framed tag
+## naming each. The board is the frame the map sits in; this control draws no ground of its own.
+## Nodes are Kenney icons on dark tiles, joined by dashed roads: the road already walked is in the
+## trim tint (MapArt.tint), the roads open next are red, and the nodes the run may step to next
+## glow and breathe. Clicking any node selects it for scouting; only the stage screen commits a
+## step. Sits inside a ScrollContainer: `focus_y()` says where to scroll.
 
 signal node_selected(id: String)
 
@@ -24,13 +24,15 @@ const BOSS_SIZE: float = 112.0
 const FLAIR_SIZE: float = 30.0
 ## A wash over the acts the run is not in, fading out over WASH_FEATHER at the edge it shares
 ## with the current act.
-const OTHER_ACT_WASH: Color = Color(0.25, 0.17, 0.1, 0.16)
+const OTHER_ACT_WASH: Color = Color(0.0, 0.0, 0.0, 0.32)
 const WASH_FEATHER: float = 160.0
-const SHADOW: Color = Color(0.2, 0.12, 0.06, 0.3)
-## The wooden rail between acts, from the Ornate sheet.
-const RAIL_HEIGHT: float = 30.0
-const INK: Color = Color(0.2, 0.13, 0.08, 0.95)
-const INK_HALO: Color = Color(0.2, 0.13, 0.08, 0.25)
+## The Kenney double rule between acts.
+const DIVIDER_HEIGHT: float = 22.0
+## Near-black, under each road dash and round the token, so both stand off the board.
+const INK: Color = Color(0.04, 0.04, 0.05, 0.9)
+## A road nobody has walked or may walk yet: a quiet light grey on the dark board.
+const ROAD: Color = Color(0.74, 0.72, 0.68, 0.42)
+const OPEN_ROAD: Color = Color(0.86, 0.33, 0.27)
 const ROMAN: Array[String] = ["", "I", "II", "III", "IV", "V"]
 
 var act: int = 1
@@ -61,15 +63,15 @@ func setup(run: AdventureRun, map: AdventureMap) -> void:
 	for id in map.nodes.keys():
 		_buttons[id] = _make_button(str(id))
 	_marks = _overlay(_draw_marks)
-	# The Ornate banner and brackets are pixel art; keep their edges hard. Text goes on a layer of
-	# its own, since a font does not survive nearest filtering.
+	# The Kenney tags, rules and brackets are pixel art; keep their edges hard. Text goes on a layer
+	# of its own, since a font does not survive nearest filtering.
 	_marks.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	for a in range(1, map.acts + 1):
 		var label: Label = Label.new()
 		label.text = "ACT %s" % ROMAN[mini(a, ROMAN.size() - 1)]
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		label.add_theme_color_override("font_color", Color(0.24, 0.15, 0.08))
+		label.add_theme_color_override("font_color", ZenithTheme.TEXT)
 		label.add_theme_font_size_override("font_size", 20)
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(label)
@@ -172,11 +174,9 @@ func _make_button(id: String) -> TextureButton:
 	button.modulate = _tint(id)
 	button.pressed.connect(func() -> void: select(id))
 	add_child(button)
-	var badge: String = type if type in ["key", "elite", "boss"] else ""
-	if badge != "":
-		_add_flair(button, badge, true)
+	# The icon already says elite, key or boss; the one badge left marks an Aspect grant.
 	if str(duel.get("grant", "")) == "aspect":
-		_add_flair(button, "grant", false)
+		_add_flair(button, "grant", true)
 	return button
 
 
@@ -228,7 +228,7 @@ func _layout() -> void:
 			if child is TextureRect:
 				var flair: TextureRect = child
 				var right: bool = bool(flair.get_meta("right", true))
-				flair.position = Vector2(side - FLAIR_SIZE * 0.7 if right else -FLAIR_SIZE * 0.3, -FLAIR_SIZE * 0.25)
+				flair.position = Vector2(side - FLAIR_SIZE * 0.6 if right else -FLAIR_SIZE * 0.4, -FLAIR_SIZE * 0.4)
 	for i in range(_labels.size()):
 		var rect: Rect2 = _banner_rect(i + 1)
 		_labels[i].position = rect.position
@@ -279,18 +279,13 @@ func _draw_roads() -> void:
 				continue
 			var walked: bool = _walked(from, to)
 			var open: bool = from == _here and _choices.has(to)
-			_dashed(_point(from), _point(to), _side(from) * 0.45, _side(to) * 0.45, walked, open)
-	# A flat ground shadow at each marker's foot, so it stands on the sheet rather than floating.
-	for id in _buttons.keys():
-		var side: float = _side(str(id))
-		_roads.draw_set_transform(_point(str(id)) + Vector2(0, side * 0.36), 0.0, Vector2(1.0, 0.3))
-		_roads.draw_circle(Vector2.ZERO, side * 0.42, SHADOW)
-	_roads.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	# A glow under each node the run may step to.
+			_dashed(_point(from), _point(to), _side(from) * 0.5, _side(to) * 0.5, walked, open)
+	# A square glow under each node the run may step to, the shape of its tile.
 	for id in _choices:
 		if _buttons.has(id):
-			var glow: float = 0.28 + 0.14 * sin(_clock * 3.0)
-			_roads.draw_circle(_point(id), _side(id) * 0.66, Color(MapArt.tint_strong, glow))
+			var glow: float = 0.22 + 0.12 * sin(_clock * 3.0)
+			var half: float = _side(id) * 0.5
+			_roads.draw_rect(Rect2(_point(id) - Vector2.ONE * half, Vector2.ONE * half * 2.0).grow(10.0), Color(MapArt.tint_strong, glow))
 
 
 ## True when the run stepped from `from` straight to `to`.
@@ -301,7 +296,7 @@ func _walked(from: String, to: String) -> bool:
 	return false
 
 
-## A road: dashes of dark ink with a pale edge, gold where the run has walked, bright where the
+## A road: light dashes on a dark edge, in the trim tint where the run has walked, red where the
 ## run may step next.
 func _dashed(a: Vector2, b: Vector2, trim_a: float, trim_b: float, walked: bool, open: bool) -> void:
 	var length: float = a.distance_to(b)
@@ -312,7 +307,7 @@ func _dashed(a: Vector2, b: Vector2, trim_a: float, trim_b: float, walked: bool,
 	var run: float = length - trim_a - trim_b
 	var dash: float = 11.0
 	var gap: float = 7.0
-	var fill: Color = MapArt.tint if walked else (Color(0.66, 0.16, 0.1) if open else Color(INK, 0.85))
+	var fill: Color = MapArt.tint.lightened(0.15) if walked else (OPEN_ROAD if open else ROAD)
 	var edge: Color = INK if walked or open else Color(0, 0, 0, 0)
 	var width: float = 4.0 if walked or open else 3.0
 	var t: float = 0.0
@@ -325,21 +320,19 @@ func _dashed(a: Vector2, b: Vector2, trim_a: float, trim_b: float, walked: bool,
 
 
 func _banner_rect(a: int) -> Rect2:
-	return Rect2(Vector2(_content_left() + 14, _act_top(a) + 18), Vector2(168, 48))
+	return Rect2(Vector2(_content_left() + 14, _act_top(a) + 20), Vector2(128, 44))
 
 
 func _draw_marks() -> void:
-	var banner: Texture2D = MapArt.ui("banner")
-	# A wooden rail where one act meets the next, knots kept whole at both ends.
-	var rail: Texture2D = MapArt.ui("branch")
+	# The Kenney double rule where one act meets the next, its two knots meeting in the middle.
 	for a in range(1, _map.acts):
 		var y: float = _act_top(a)
-		var rail_rect: Rect2 = Rect2(_content_left() + 8.0, y - RAIL_HEIGHT * 0.5, _content_width() - 16.0, RAIL_HEIGHT)
-		MapArt.draw_hsliced(_marks, rail, rail_rect, 14.0)
+		var rule: Rect2 = Rect2(_content_left() + 16.0, y - DIVIDER_HEIGHT * 0.5, _content_width() - 32.0, DIVIDER_HEIGHT)
+		MapArt.draw_divider(_marks, rule, MapArt.tint.darkened(0.15))
+	# Each act's name on a small framed tag; the act on show is the brighter one.
 	for a in range(1, _map.acts + 1):
-		var shade: Color = MapArt.tint if a == act else MapArt.tint.darkened(0.3)
-		if banner != null:
-			_marks.draw_texture_rect(banner, _banner_rect(a), false, shade)
+		var shade: Color = MapArt.tint if a == act else MapArt.tint.darkened(0.45)
+		_marks.draw_style_box(MapArt.panel_box(0, shade), _banner_rect(a))
 	# The run's own node in the trim tint; a node being scouted in neutral white.
 	if _here != "" and _buttons.has(_here):
 		_brackets(_here, 0.0, MapArt.tint_strong)
@@ -370,18 +363,7 @@ func _draw_token() -> void:
 		_token.draw_rect(rect, Color(0.3, 0.22, 0.14))
 
 
-## The Ornate corner brackets around a node.
+## Kenney's corner brackets around a node.
 func _brackets(id: String, grow: float, tint: Color) -> void:
-	var half: float = _side(id) * 0.5 + 6.0 + grow
-	var c: Vector2 = _point(id)
-	var pieces: Dictionary = {
-		"corner_tl": Vector2(-half, -half), "corner_tr": Vector2(half, -half),
-		"corner_bl": Vector2(-half, half), "corner_br": Vector2(half, half),
-	}
-	for piece in pieces.keys():
-		var tex: Texture2D = MapArt.ui(str(piece))
-		if tex == null:
-			continue
-		var corner: Vector2 = pieces[piece]
-		var at: Vector2 = c + corner - Vector2(0.0 if corner.x < 0 else tex.get_width(), 0.0 if corner.y < 0 else tex.get_height())
-		_marks.draw_texture(tex, at, tint)
+	var half: float = _side(id) * 0.5 + 10.0 + grow
+	MapArt.draw_brackets(_marks, Rect2(_point(id) - Vector2.ONE * half, Vector2.ONE * half * 2.0), tint)

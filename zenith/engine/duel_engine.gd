@@ -995,6 +995,14 @@ func _handle_keep(cmd: Command) -> void:
 
 func _recover() -> void:
 	var p: PlayerState = state.active_player()
+	# "During your Rejuvenation Step, you may ...": the Mastery's say comes first, once a turn,
+	# whether or not the step returns a card.
+	if not p.rejuvenation_done:
+		p.rejuvenation_done = true
+		if p.mastery != null and not _forbidden(p, "mastery") and p.mastery.def.has_trigger("rejuvenation"):
+			_enqueue(p.mastery.def.effects, "rejuvenation", p.index, {}, p.mastery)
+			if not _queue.is_empty():
+				return
 	# The step always occurs; the card only returns when Combat was skipped.
 	var eligible: bool = not p.combat_declared and not p.discard.is_empty()
 	_emit(&"recover_step", {"player": p.index, "eligible": eligible})
@@ -1419,6 +1427,14 @@ func _begin_combat_end() -> void:
 			var timed: Array[Dictionary] = c.def.effects_for("end_of_combat")
 			if not timed.is_empty():
 				_enqueue(timed, "end_of_combat", seat, {}, c)
+		# "You may search your Life Deck for a Drill and place it in play at the end of Combat": a
+		# line an attack left waiting for this moment.
+		for f in state.floating.duplicate():
+			if int(f.get("owner", -1)) == seat and str(f.get("op", "")) == "at_combat_end":
+				state.floating.erase(f)
+				var waiting: Array[Dictionary] = []
+				waiting.assign(f.get("effects", []))
+				_enqueue(waiting, "secondary", seat, {}, card(int(f.get("source", -1))))
 
 
 ## Whose end-of-Combat window is open, or -1 when both are finished.
@@ -1692,7 +1708,7 @@ func _use_card(p: PlayerState, c: CardInstance, advance: bool = true) -> void:
 		_emit(&"card_used", {"player": p.index, "card": c.uid, "id": c.def.id})
 		if c.def.type == CardDef.Type.COMBAT:
 			p.combat_cards_used_combat = state.combat_count
-		var pays: int = _card_cost(p, int(c.def.only.get("duelist_pays", 0)))
+		var pays: int = 0 if _costs_waived(p, p.duelist) else _card_cost(p, int(c.def.only.get("duelist_pays", 0)))
 		if pays > 0:
 			p.duelist.energy = maxi(0, p.duelist.energy - pays)
 			_emit(&"cost_paid", {"player": p.index, "stages": pays, "life": 0, "energy": p.duelist.energy})
@@ -2262,6 +2278,16 @@ func _advance_battle() -> void:
 		13:
 			_deal_life_damage(defender, a)
 		14:
+			# "When receiving damage from a physical attack, you may ...": the defender's Drills
+			# answer the damage once, before any window opens on it.
+			if not bool(a.get("damaged_drills_done", false)):
+				a["damaged_drills_done"] = true
+				if int(a.get("stages_dealt", 0)) + int(a["life_dealt"]) > 0 and not _forbidden(defender, "drills"):
+					for dr in _active(defender.drills()):
+						if dr.def.has_trigger("on_damaged"):
+							_enqueue(dr.def.effects, "on_damaged", defender.index, {"attack": a}, dr)
+					if not _queue.is_empty():
+						return
 			# "Use immediately after you take damage from an attack": the defender's own window. It
 			# opens once the damage is on the table and before the attacker takes what critical
 			# damage allows, because the card answers the hit and not its consequences.
@@ -2317,7 +2343,9 @@ func _attack_source() -> CardInstance:
 func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
 	var spec: Dictionary = a["spec"]
 	var ic: CardInstance = _performer(a)
-	var cost_stages: int = _cost_stages(spec, attacker, card(int(a.get("source", -1))))
+	if _prompt_art_boost(attacker, a):
+		return
+	var cost_stages: int = 0 if _costs_waived(attacker, ic) else _cost_stages(spec, attacker, card(int(a.get("source", -1))), a)
 	var cost_life: int = int(spec.get("cost_life", 0))
 	# "You may discard a card from your hand to perform this attack": a cost, so it is paid before
 	# the attack and the attack is not offered at all with too few cards in hand.
@@ -2390,7 +2418,8 @@ func _handle_pay(cmd: Command) -> void:
 	var paid: int = int(cmd.value)
 	var per: int = maxi(1, int(spec["pay_stages"].get("per", 2)))
 	var ic: CardInstance = attacker.duelist if str(spec["pay_stages"].get("from", "")) == "duelist" else _performer(a)
-	ic.energy = maxi(0, ic.energy - paid)
+	if not _costs_waived(attacker, ic):
+		ic.energy = maxi(0, ic.energy - paid)
 	# A payment buys wounds, Energy damage, or both, whichever the card prints.
 	a["extra_life"] = int(a["extra_life"]) + int(paid / per) * int(spec["pay_stages"].get("life", 0))
 	a["extra_stages"] = int(a["extra_stages"]) + int(paid / per) * int(spec["pay_stages"].get("stages", 0))
@@ -2458,15 +2487,15 @@ func _handle_pay_energy(cmd: Command) -> void:
 
 ## What an attack costs in Energy. `src` is the card being performed, so a discount can name a
 ## school or a keyword the way a damage modifier does.
-func _cost_stages(spec: Dictionary, p: PlayerState, src: CardInstance = null) -> int:
+func _cost_stages(spec: Dictionary, p: PlayerState, src: CardInstance = null, a: Dictionary = {}) -> int:
 	var base: int = 0
 	if spec.has("cost_stages"):
 		base = int(spec["cost_stages"])
 	elif str(spec.get("kind", "")) == "art":
 		base = ART_COST
-	if str(spec.get("kind", "")) == "art":
-		var delta: int = _art_cost_delta(p)
-		base = maxi(1, base + delta) if (delta < 0 and base > 0) else base + delta
+	if str(spec.get("kind", "")) == "art" and _art_boost_part(p, _performer(a) if not a.is_empty() else p.in_control(), src, a) in ["both", "cost", "either"]:
+		var delta: int = int(_art_boost(p, p.duelist).get("cost", -1))
+		base = maxi(1, base + delta) if base > 0 else base
 	# Grounds can tax one kind of attack on their own, so a place where swinging a blade costs
 	# more than casting does. Stated per kind, as `strike_cost_delta` or `art_cost_delta`.
 	if state.grounds != null:
@@ -2483,6 +2512,9 @@ func _cost_stages(spec: Dictionary, p: PlayerState, src: CardInstance = null) ->
 	# come last so a waiver beats a tax, which is what "cost no Energy" says.
 	for entry in _modifiers_for(p, "cost", str(spec.get("kind", "")), src, {}):
 		var m: Dictionary = entry["m"]
+		# "Pay 1 stage instead of 2 on any energy attack": only a price of exactly that much moves.
+		if m.has("only_cost") and base != int(m["only_cost"]):
+			continue
 		if m.has("set"):
 			base = int(m["set"])
 		elif int(m.get("stages", 0)) < 0:
@@ -2507,12 +2539,59 @@ func _card_cost(p: PlayerState, n: int) -> int:
 	return maxi(1, n - less)
 
 
-## Mastery-style discounts on Arts ("cost 1 less to a minimum of 1").
-func _art_cost_delta(p: PlayerState) -> int:
-	var delta: int = 0
-	if p.mastery != null and not _forbidden(p, "mastery"):
-		delta += int(p.mastery.def.raw.get("art_cost_delta", 0))
-	return delta
+## "All energy attacks performed by your main personality do +1 life card of damage if successful
+## or cost 1 less power stage to a minimum of 1. Storm energy attacks do both instead." The
+## Mastery's `art_boost`, live only for an Art the duelist performs.
+func _art_boost(p: PlayerState, performer: CardInstance) -> Dictionary:
+	if p.mastery == null or _forbidden(p, "mastery") or performer != p.duelist:
+		return {}
+	return p.mastery.def.raw.get("art_boost", {})
+
+
+## Which half of an `art_boost` an Art takes: "both" for the school it names, otherwise the
+## attacker's pick stored on the attack ("life" or "cost"), and "either" before it is made.
+func _art_boost_part(p: PlayerState, performer: CardInstance, src: CardInstance, a: Dictionary) -> String:
+	var boost: Dictionary = _art_boost(p, performer)
+	if boost.is_empty():
+		return ""
+	if src != null and src.def.school != "" and src.def.school == str(boost.get("school", "")):
+		return "both"
+	return str(a.get("art_boost", "either"))
+
+
+## Asks which half of the `art_boost` a non-school Art takes, before its price is paid. Settles it
+## without asking when only one half can matter. True when a prompt opened.
+func _prompt_art_boost(attacker: PlayerState, a: Dictionary) -> bool:
+	var spec: Dictionary = a["spec"]
+	var src: CardInstance = card(int(a.get("source", -1)))
+	if str(spec.get("kind", "")) != "art" or _art_boost_part(attacker, _performer(a), src, a) != "either":
+		return false
+	var times: int = 2 if state.grounds != null and bool(state.grounds.def.raw.get("double_costs", false)) else 1
+	var full: int = _cost_stages(spec, attacker, src, {"art_boost": "life", "attacker": a["attacker"], "performer": _performer(a).uid})
+	var cheap: int = _cost_stages(spec, attacker, src, {"art_boost": "cost", "attacker": a["attacker"], "performer": _performer(a).uid})
+	if full == cheap:
+		a["art_boost"] = "life"
+		return false
+	if _performer(a).energy < full * times and not _costs_waived(attacker, _performer(a)):
+		a["art_boost"] = "cost"
+		return false
+	var opts: Array[Command] = [Command.new(attacker.index, &"pick_option", -1, "life"), Command.new(attacker.index, &"pick_option", -1, "cost")]
+	_choice = {"kind": "art_boost", "battle_step": 2}
+	var ctx: Dictionary = _choice_context(attacker.mastery, "art_boost")
+	ctx["full"] = full
+	ctx["cheap"] = cheap
+	_set_prompt(attacker.index, &"pick_option", opts, ctx)
+	return true
+
+
+## "While attached, your Main Personality does not have to pay costs for any card effects."
+func _costs_waived(p: PlayerState, payer: CardInstance) -> bool:
+	if payer == null or payer != p.duelist:
+		return false
+	for at in _active(p.attachments()):
+		if at.attached_to == p.duelist and bool(at.def.attachment.get("waive_costs", false)):
+			return true
+	return false
 
 
 func _expire_next_attack_tax(p: PlayerState) -> void:
@@ -2522,7 +2601,7 @@ func _expire_next_attack_tax(p: PlayerState) -> void:
 
 
 func _can_pay(ic: CardInstance, p: PlayerState, spec: Dictionary, src: CardInstance = null) -> bool:
-	var cost: int = _cost_stages(spec, p, src)
+	var cost: int = 0 if _costs_waived(p, ic) else _cost_stages(spec, p, src)
 	if state.grounds != null and bool(state.grounds.def.raw.get("double_costs", false)):
 		cost *= 2
 	if ic.energy < cost:
@@ -2697,7 +2776,7 @@ func _defense_usable(d: PlayerState, c: CardInstance, kind: String, focused: boo
 	if _hand_filtered(d, def.defense.get("cost_hand_filter", "")).size() < int(def.defense.get("cost_hand", 0)):
 		return false
 	var ic: CardInstance = d.in_control()
-	if _card_cost(d, int(def.defense.get("cost_stages", 0))) > ic.energy:
+	if not _costs_waived(d, ic) and _card_cost(d, int(def.defense.get("cost_stages", 0))) > ic.energy:
 		return false
 	if int(def.defense.get("cost_life", 0)) >= d.life_deck.size():
 		return false
@@ -2754,7 +2833,7 @@ func _play_defense(d: PlayerState, c: CardInstance) -> void:
 			_erase_from_zone(c)
 			c.zone = &"resolving"
 	var ic: CardInstance = d.in_control()
-	var cost_stages: int = _card_cost(d, int(def.defense.get("cost_stages", 0)))
+	var cost_stages: int = 0 if _costs_waived(d, ic) else _card_cost(d, int(def.defense.get("cost_stages", 0)))
 	if cost_stages > 0:
 		ic.energy = maxi(0, ic.energy - cost_stages)
 	if int(def.defense.get("cost_life", 0)) > 0:
@@ -2856,14 +2935,25 @@ func _apply_shields(defender: PlayerState, a: Dictionary) -> void:
 		_emit(&"floating_stop", {"player": defender.index, "kind": "next"})
 		if bool(a["stopped"]):
 			return
-	for s in _available_shields(defender, kind, focused):
+	# "Your Defense Shields can stop focused attacks."
+	var shield_focused: bool = focused and not _shields_stop_focused(defender)
+	for s in _available_shields(defender, kind, shield_focused):
 		s.shield_used_combat = state.combat_count
-		_emit(&"shield", {"player": defender.index, "card": s.uid, "focused": focused})
-		if not focused and not unstoppable:
+		_emit(&"shield", {"player": defender.index, "card": s.uid, "focused": shield_focused})
+		if not shield_focused and not unstoppable:
 			_register_stop(a)
 			_note_stop(a, s, "shield")
 			if bool(a["stopped"]):
 				return
+
+
+func _shields_stop_focused(defender: PlayerState) -> bool:
+	if _forbidden(defender, "drills"):
+		return false
+	for d in _active(defender.drills()):
+		if bool(d.def.raw.get("shields_stop_focused", false)):
+			return true
+	return false
 
 
 func _available_shields(defender: PlayerState, kind: String, focused: bool) -> Array[CardInstance]:
@@ -2988,6 +3078,8 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 		adds.append({"source": str(a.get("extra_source", "Energy paid")), "stages": int(a.get("extra_stages", 0)), "life": int(a.get("extra_life", 0))})
 	if bool(a["empowered"]) and src != null and src.def.empower > 0:
 		adds.append({"source": "Empower", "stages": 0, "life": src.def.empower})
+	if kind == "art" and _art_boost_part(attacker, _performer(a), src, a) in ["both", "life"]:
+		adds.append({"source": attacker.mastery.def.title, "stages": 0, "life": int(_art_boost(attacker, attacker.duelist).get("life", 1))})
 	if int(spec.get("life_per_ally", 0)) > 0 and not attacker.allies().is_empty():
 		adds.append({"source": "%d Allies" % attacker.allies().size(), "stages": 0, "life": int(spec["life_per_ally"]) * attacker.allies().size()})
 	if str(spec.get("life_per_tag", "")) != "":
@@ -3286,6 +3378,10 @@ func _modifiers_for(p: PlayerState, scope: String, kind: String, src: CardInstan
 				continue
 			if m.has("when") and not _cond(m["when"], p.index, ctx):
 				continue
+			if m.has("performer"):
+				var by: CardInstance = _performer(ctx["attack"]) if ctx.has("attack") else p.in_control()
+				if by == null or by.uid != int(m["performer"]):
+					continue
 			out.append({"m": m, "source": pool[1]})
 	return out
 
@@ -4262,7 +4358,19 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				else:
 					_enqueue(e.get("else_effects", []), "secondary", owner, ctx, source)
 		"recover":
-			_recover_top(who, int(amount), str(e.get("from", "top")))
+			# "Place the top Drill in your discard pile on the bottom of your Life Deck": the Drill
+			# nearest the top, whatever lies above it.
+			if e.has("card_type"):
+				for i in range(who.discard.size() - 1, -1, -1):
+					var back: CardInstance = who.discard[i]
+					if _search_matches(who, back, {"card_type": e["card_type"]}, "deck"):
+						who.discard.remove_at(i)
+						back.zone = &"life_deck"
+						who.life_deck.append(back)
+						_emit(&"recover", {"player": who.index, "card": back.uid})
+						break
+			else:
+				_recover_top(who, int(amount), str(e.get("from", "top")))
 		"end_combat":
 			if not _forbidden(me, "end_combat"):
 				_combat_ending = true
@@ -4283,8 +4391,12 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			var guarded: Array[int] = [owner]
 			if bool(e.get("both", false)):
 				guarded.append(1 - owner)
+			# "Stop all of your opponent's attacks of the same type": the kind of the attack just stopped.
+			var stop_kind: String = str(e.get("kind", "any"))
+			if stop_kind == "stopped" and ctx.has("attack"):
+				stop_kind = str((ctx["attack"] as Dictionary).get("kind", "any"))
 			for side in guarded:
-				_float(side, "stop_all", str(e.get("duration", "combat")), {"kind": str(e.get("kind", "any")), "source": source.uid if source != null else -1})
+				_float(side, "stop_all", str(e.get("duration", "combat")), {"kind": stop_kind, "source": source.uid if source != null else -1})
 		"float":
 			var params: Dictionary = (e.get("params", {}) as Dictionary).duplicate()
 			if source != null:
@@ -4296,6 +4408,10 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				params["from_phase"] = state.attack_phase_count
 			if bool(params.get("per_endurance_since", false)):
 				params["endurance_mark"] = who.endurance_uses
+			# "All energy attacks this personality performs for the remainder of Combat": pinned to
+			# whoever performed the attack putting it out.
+			if bool(e.get("this_personality", false)):
+				params["performer"] = _performer(state.attack).uid if not state.attack.is_empty() else who.in_control().uid
 			_float(who_index, str(e.get("what", "")), str(e.get("duration", "combat")), params)
 		"forbid":
 			_float(who_index, "forbid", str(e.get("duration", "combat")), {"what": str(e.get("what", "")), "source": source.uid if source != null else -1})
@@ -4382,7 +4498,7 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		"exile_source":
 			# "If successful ... remove this card from the game": the card in the air goes now, so
 			# the finish that follows finds it gone.
-			if source != null and source.zone == &"resolving":
+			if source != null and (source.zone == &"resolving" or source.zone == &"in_play"):
 				_remove_from_game(source)
 		"cycle_hand":
 			# "Shuffle his hand into his Life Deck, and then draw the same number of cards."
@@ -4551,6 +4667,21 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 					return false
 			"discard_top_school_not":
 				if not me.discard.is_empty() and me.discard.back().def.school == str(v):
+					return false
+			"discard_has_type":
+				var has_one: bool = false
+				for c in me.discard:
+					if _search_matches(me, c, {"card_type": v}, "deck"):
+						has_one = true
+				if not has_one:
+					return false
+			"drill_school_in_play":
+				# "Discard one of your Storm Drills in play": there has to be one to discard.
+				var drilled: bool = false
+				for d in me.drills():
+					if d.def.school == str(v):
+						drilled = true
+				if not drilled:
 					return false
 			"opponent_discard_top_not_attack":
 				# "If the top card of your opponent's discard pile is not a physical attack": a card
@@ -4910,7 +5041,7 @@ func _gate_ok(p: PlayerState, def: CardDef, gate: Dictionary) -> bool:
 		return false
 	# "Your Main Personality pays 5 power stages to ...": the duelist pays, whoever holds Combat,
 	# and pays as the card is used (`_use_card`).
-	if gate.has("duelist_pays") and p.duelist.energy < _card_cost(p, int(gate["duelist_pays"])):
+	if gate.has("duelist_pays") and not _costs_waived(p, p.duelist) and p.duelist.energy < _card_cost(p, int(gate["duelist_pays"])):
 		return false
 	# A keyword gate, "Marked only". Like the bloodline gate it reads the personality in control,
 	# not the player, so a following can reach a card its duelist cannot.
@@ -4980,11 +5111,11 @@ func _prompt_discard_choice(target: PlayerState, amount: int, chooser: int = -1,
 
 ## Offers cards in play to discard or remove. `amount` of them may go in one batch; "up to"
 ## effects also allow none.
-func _prompt_pick_in_play(chooser: int, cands: Array[CardInstance], amount: int, up_to: bool) -> void:
+func _prompt_pick_in_play(chooser: int, cands: Array[CardInstance], amount: int, up_to: bool, allow_none: bool = true) -> void:
 	var opts: Array[Command] = []
 	for c in cands:
 		opts.append(Command.new(chooser, &"pick_in_play", c.uid))
-	if up_to:
+	if up_to and allow_none:
 		opts.append(Command.new(chooser, &"pick_none"))
 	var n: int = mini(amount, cands.size())
 	_set_prompt(chooser, &"pick_in_play", opts, {"amount": n, "up_to": up_to})
@@ -5190,6 +5321,9 @@ func _discard_in_play_effect(target: PlayerState, e: Dictionary, owner: int) -> 
 		# "Remove a Seal in play": either side's, so the pool is both and the chooser decides.
 		candidates = _in_play_candidates(state.players[owner], type_name, true, remove)
 		candidates.append_array(_in_play_candidates(state.players[1 - owner], type_name, false, remove))
+	# "Discard one of your Storm Drills in play."
+	if e.has("school"):
+		candidates.assign(candidates.filter(func(c: CardInstance) -> bool: return c.def.school == str(e["school"])))
 	if candidates.is_empty():
 		return
 	var to: String = str(e.get("to", "discard"))
@@ -5200,7 +5334,8 @@ func _discard_in_play_effect(target: PlayerState, e: Dictionary, owner: int) -> 
 		_choice = {"kind": "pick_in_play", "remaining": amount, "remove": remove, "to": to, "type": type_name,
 			"target": target.index, "chooser": chooser, "up_to": bool(e.get("up_to", false)),
 			"owner": owner, "any_side": any_side}
-		_prompt_pick_in_play(chooser, candidates, amount, bool(e.get("up_to", false)))
+		# "Take 1 or 2": fewer than the most is allowed, none is not.
+		_prompt_pick_in_play(chooser, candidates, amount, bool(e.get("up_to", false)), not bool(e.get("at_least_one", false)))
 		return
 	var n: int = 0
 	for i in range(candidates.size() - 1, -1, -1):
@@ -5608,6 +5743,8 @@ func _handle_choice(cmd: Command) -> void:
 			pass
 		"silence_drill":
 			card(cmd.card).silenced = true
+		"art_boost":
+			state.attack["art_boost"] = str(cmd.value)
 		"choose_one":
 			var chosen_line: Dictionary = (_choice["choices"] as Array)[int(str(cmd.value))]
 			var chosen_effects: Array[Dictionary] = []
@@ -5667,6 +5804,12 @@ func _handle_choice(cmd: Command) -> void:
 				var remaining: int = int(_choice.get("remaining", 1)) - picked.size()
 				if remaining > 0:
 					var rest: Array[CardInstance] = _search_distinct(search_candidates(searcher, search_effect))
+					# "Search for 2 different Drills": a title already taken is not offered again.
+					if bool(search_effect.get("different", false)):
+						var taken_titles: Array[String] = []
+						for uid in searcher.search_taken:
+							taken_titles.append(card(uid).def.title)
+						rest.assign(rest.filter(func(c: CardInstance) -> bool: return not taken_titles.has(c.def.title)))
 					if not rest.is_empty():
 						_choice["remaining"] = remaining
 						_prompt_search_pick(searcher, rest, remaining, search_effect)
@@ -6084,7 +6227,9 @@ func _set_aspect(p: PlayerState, e: Dictionary, source_owner: int) -> void:
 ## Changing aspect clears the Drills. A Mastery that guards Drills stops this too: the guard is
 ## "cannot be discarded for any reason", not "cannot be discarded by the opponent".
 func _discard_drills(p: PlayerState, advancing: bool = false) -> void:
-	if _drills_protected(p):
+	# "For the remainder of Combat, you do not have to discard any Drills in play when your Main
+	# Personality advances or loses a personality level."
+	if _drills_protected(p) or _has_floating(p.index, "keep_drills"):
 		return
 	# "Whenever your duelist advances an Aspect, none of your other Drills are discarded. If your
 	# opponent's Fervor is 0 when they advance, this Drill is not discarded either." A climb only;
@@ -6429,6 +6574,9 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 	var school: String = str(e.get("school", "*"))
 	if school != "*" and c.def.school != school:
 		return false
+	# "Any colorless Drill ... any Storm Drill": one of several schools, "" being none.
+	if e.has("school_in") and not (e["school_in"] as Array).has(c.def.school):
+		return false
 	var title_contains: String = str(e.get("title_contains", ""))
 	if title_contains != "" and not c.def.title.contains(title_contains):
 		return false
@@ -6608,6 +6756,8 @@ func _search_take(p: PlayerState, hit: CardInstance, e: Dictionary) -> void:
 	elif to == "removed":
 		# "Remove 1 of them from the game": the card leaves from wherever it sits, deck included.
 		_remove_from_game(hit)
+	elif to == "discard":
+		_move_to_discard(hit)
 	elif to == "deck_bottom" or to == "deck_shuffle":
 		_move_to_deck_bottom(hit)
 	elif to == "deck_top":
@@ -6620,6 +6770,9 @@ func _search_take(p: PlayerState, hit: CardInstance, e: Dictionary) -> void:
 		_erase_from_zone(hit)
 		hit.zone = &"hand"
 		p.hand.append(hit)
+		# "Show it to your opponent, and place it in your hand."
+		if bool(e.get("show", false)):
+			_emit(&"cards_revealed", {"player": p.index, "cards": [hit.uid]})
 	p.last_searched = hit.uid
 	p.search_taken.append(hit.uid)
 	_emit(&"search", {"player": p.index, "card": hit.uid, "type": str(e.get("card_type", "")), "to": to})

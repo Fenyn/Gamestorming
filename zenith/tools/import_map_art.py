@@ -1,5 +1,5 @@
-"""Copies the adventure map's art out of the local art library into assets/adventure_map/,
-cropped and scaled for the map screen, and writes SOURCES.md naming every file's origin.
+"""Copies the adventure screens' art out of the local art library into assets/adventure_map/,
+composed and scaled for the screens, and writes SOURCES.md naming every file's origin.
 
     python tools/import_map_art.py [--art F:/UnityNVME/Art]
 
@@ -8,7 +8,6 @@ every pixel comes from a licensed pack in the library (see SOURCES.md for the li
 """
 import argparse
 import os
-import re
 import shutil
 
 from PIL import Image, ImageDraw
@@ -16,47 +15,36 @@ from PIL import Image, ImageDraw
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "assets", "adventure_map")
 
-BORDERLESS = "Sprites/HexMaps/isle-of-lore-2-hex-tiles-regular-borderless/Isle of Lore 2 - Borderless"
-HEX_OUTPUT = "Sprites/HexMaps/isle-of-lore-2-hex-tiles-regular-final/Sources/output"
 ORNATE = "Sprites/Ornate Fantasy UI Assets v1.3/Ornate Fantasy UI Assets v1.3/SpriteSheets"
+## Kenney Board Game Icons (CC0): solid white icons, 128 px.
+KENNEY_ICONS = "Sprites/UI/kenney_board-game-icons/PNG/Double (128px)"
 
-## Terrain per act: pointy hex tile folders and how many variants of each to take. The map picks
-## uniformly from the files, so the counts set the mix. Calm ground dominates so the roads and
-## markers read; the busy tiles (forest, mountains) are accents.
-ACT_TERRAIN = {
-    "act1": [("meadow_sparse.green", 6), ("meadow_clearing.green", 6), ("hills_sparse.green", 4),
-             ("oak_forest_sparse.green", 3)],
-    "act2": [("swamp_clearing.green", 6), ("swamp_sparse.green", 5), ("pine_forest_sparse.green", 3),
-             ("mixed_forest_dense.green", 2)],
-    "act3": [("hills_sparse.winter", 6), ("valley_sparse.winter", 4), ("grassland_sparse.winter", 3),
-             ("pine_forest_sparse.winter", 3), ("mountain_hills.winter", 2)],
+## Map nodes: a Kenney icon on a dark tile under the button rule (border 022), so a node reads as
+## something to click. The boss gets the Double style's rule and a larger tile. Node type -> icon.
+MARKER_ICONS = {
+    "duel": "sword",
+    "elite": "skull",
+    "key": "character",
+    "boss": "crown_b",
+    "twist": "dice_question",
+    "encounter": "campfire",
+    "sensei": "book_open",
+    "shop": "pouch",
+    "shrine": "fire",
+    "forge": "resource_iron",
+    "mystery": "hexagon_question",
 }
-## The 840 px canvas is kept whole so trees that poke past the hex still show; scaled to this.
-TILE_SIZE = 210
+MARKER_BORDER = "Default/Border/panel-border-022.png"   # 48 px, taken at 3x
+BOSS_BORDER = "Double/Border/panel-border-000.png"      # 96 px, taken at 2x
+MARKER_FILL = (40, 40, 44, 246)
+MARKER_LINE = (196, 192, 184, 255)
+MARKER_ICON = (238, 234, 226, 255)
+## The icon's share of the tile's side.
+MARKER_ICON_SHARE = 0.56
 
-## Node type -> location marker.
-MARKERS = {
-    "duel": "location_battlefield_26",
-    "elite": "location_military_tent_25",
-    "key": "location_chapel_16",
-    "boss": "location_castle_15",
-    "twist": "location_witch_hut_7",
-    "encounter": "location_campfire_22",
-    "sensei": "location_tower_10",
-    "shop": "location_inn_12",
-    "shrine": "location_sanctuary_23",
-    "forge": "location_mine_19",
-    "mystery": "location_dungeon_18",
-}
-MARKER_SIZE = 160
-
-## Badge name -> flair.
-FLAIRS = {
-    "key": "flair_exclamation_mark_3",
-    "elite": "flair_horned_skull_5",
-    "boss": "flair_crowned_skull_6",
-    "grant": "flair_sun_16",
-    "mystery": "flair_question_mark_2",
+## Badges pinned to a node's corner: a small icon on a round dark chip. Badge name -> icon.
+FLAIR_ICONS = {
+    "grant": "award",
 }
 FLAIR_SIZE = 64
 
@@ -68,17 +56,10 @@ GOLD = "GoldWoodFantasyUISheet.png"
 LIGHT = "LightFantasyUISheet.png"
 ORNATE_PIECES = {
     "banner": (GOLD, (20, 292, 112, 32)),
-    "banner_tan": (GOLD, (20, 324, 111, 32)),
-    # Filigree and wood motifs: a crest to sit over a heading, swirls for dividers, and a branch
-    # rail that tiles along a line.
+    # Filigree: a crest to sit over a heading and a swirl for the title screen.
     "crest": (GOLD, (171, 543, 34, 17)),
     "crest_small": (GOLD, (133, 547, 30, 13)),
     "swirl": (GOLD, (165, 565, 46, 15)),
-    "branch": (GOLD, (212, 485, 48, 15)),
-    "corner_tl": (GOLD, (548, 212, 12, 13)),
-    "corner_tr": (GOLD, (568, 212, 12, 13)),
-    "corner_bl": (GOLD, (548, 231, 12, 13)),
-    "corner_br": (GOLD, (568, 231, 12, 13)),
 }
 
 ## Kenney Fantasy UI Borders (CC0): white line art, made to be tinted. Every set is copied, doubled,
@@ -87,11 +68,8 @@ ORNATE_PIECES = {
 KENNEY = "Sprites/UI/kenney_fantasy-ui-borders/PNG"
 KENNEY_OUT = os.path.join(HERE, "..", "assets", "ui", "borders")
 DEFAULT_BORDER = "Default/Border/panel-border-012.png"
-## The side panels: a neutral dark fill under a white rule, both tinted together.
+## The side panels and the map board: a neutral dark fill under a white rule, both tinted together.
 PANEL_FILL = (54, 54, 58, 238)
-## The map board: parchment with an inked rule, never tinted.
-BOARD_FILL = (208, 196, 164, 255)
-BOARD_INK = (92, 64, 40, 255)
 ## Buttons: Kenney's stepped-corner rule over a flat fill, one piece per state, never tinted.
 ## Ordinary buttons are dark with a light rule; the one primary action on a screen is ivory with
 ## a dark rule. name -> (fill, line).
@@ -123,28 +101,34 @@ ICONS = {
 }
 
 
-def natural(name):
-    return [int(p) if p.isdigit() else p for p in re.split(r"(\d+)", name)]
-
-
-def crop_to_content(im, pad):
-    box = im.getchannel("A").getbbox()
-    if box is None:
-        return im
-    x0, y0, x1, y1 = box
-    return im.crop((max(0, x0 - pad), max(0, y0 - pad), min(im.width, x1 + pad), min(im.height, y1 + pad)))
-
-
 def fit(im, size):
     scale = size / max(im.width, im.height)
     return im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale))), Image.LANCZOS)
 
 
-def find_png(folder, stem):
-    for name in os.listdir(folder):
-        if name.startswith(stem) and name.endswith(".png"):
-            return os.path.join(folder, name)
-    raise FileNotFoundError("%s in %s" % (stem, folder))
+def recolour(icon, colour):
+    """A white icon in `colour`, keeping its alpha."""
+    out = Image.new("RGBA", icon.size, colour)
+    out.putalpha(Image.eval(icon.getchannel("A"), lambda a: a * colour[3] // 255))
+    return out
+
+
+def compose_marker(border, icon):
+    """A node marker: the icon centred on a dark tile under the border's rule."""
+    tile = compose_button(border, MARKER_FILL, MARKER_LINE)
+    glyph = recolour(fit(icon, round(tile.width * MARKER_ICON_SHARE)), MARKER_ICON)
+    tile.alpha_composite(glyph, ((tile.width - glyph.width) // 2, (tile.height - glyph.height) // 2))
+    return tile
+
+
+def compose_flair(icon):
+    """A badge: the icon on a round dark chip with a light edge."""
+    chip = Image.new("RGBA", (FLAIR_SIZE, FLAIR_SIZE), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(chip)
+    draw.ellipse((1, 1, FLAIR_SIZE - 2, FLAIR_SIZE - 2), fill=MARKER_FILL, outline=MARKER_LINE, width=4)
+    glyph = recolour(fit(icon, round(FLAIR_SIZE * 0.6)), MARKER_ICON)
+    chip.alpha_composite(glyph, ((FLAIR_SIZE - glyph.width) // 2, (FLAIR_SIZE - glyph.height) // 2))
+    return chip
 
 
 def neutral(im):
@@ -209,7 +193,6 @@ def import_kenney(art, rows):
     border = Image.open(os.path.join(art, KENNEY, DEFAULT_BORDER)).convert("RGBA")
     border = border.resize((border.width * UI_SCALE, border.height * UI_SCALE), Image.NEAREST)
     compose_panel(border, PANEL_FILL, (255, 255, 255, 255)).save(os.path.join(OUT, "ui", "panel.png"))
-    compose_panel(border, BOARD_FILL, BOARD_INK).save(os.path.join(OUT, "ui", "board.png"))
     button = Image.open(os.path.join(art, KENNEY, BUTTON_BORDER)).convert("RGBA")
     button = button.resize((button.width * UI_SCALE, button.height * UI_SCALE), Image.NEAREST)
     for name, (fill, line) in BUTTON_PIECES.items():
@@ -228,7 +211,24 @@ def import_kenney(art, rows):
         for name, (rel, scale) in CARD_RULES.items():
             f.write("- `%s.png`: `%s/%s` at %dx\n" % (name, KENNEY, rel, scale))
     rows.append(("ui/panel.png", "%s, over a neutral dark fill" % DEFAULT_BORDER))
-    rows.append(("ui/board.png", "%s, inked, over a parchment fill" % DEFAULT_BORDER))
+
+
+def import_markers(art, rows):
+    os.makedirs(os.path.join(OUT, "markers"))
+    tile = Image.open(os.path.join(art, KENNEY, MARKER_BORDER)).convert("RGBA")
+    tile = tile.resize((tile.width * 3, tile.height * 3), Image.NEAREST)
+    boss = Image.open(os.path.join(art, KENNEY, BOSS_BORDER)).convert("RGBA")
+    boss = boss.resize((boss.width * 2, boss.height * 2), Image.NEAREST)
+    for node_type, name in MARKER_ICONS.items():
+        rel = "%s/%s.png" % (KENNEY_ICONS, name)
+        icon = Image.open(os.path.join(art, rel)).convert("RGBA")
+        compose_marker(boss if node_type == "boss" else tile, icon).save(os.path.join(OUT, "markers", node_type + ".png"))
+        rows.append(("markers/%s.png" % node_type, "%s on %s" % (rel, BOSS_BORDER if node_type == "boss" else MARKER_BORDER)))
+    os.makedirs(os.path.join(OUT, "flairs"))
+    for badge, name in FLAIR_ICONS.items():
+        rel = "%s/%s.png" % (KENNEY_ICONS, name)
+        compose_flair(Image.open(os.path.join(art, rel)).convert("RGBA")).save(os.path.join(OUT, "flairs", badge + ".png"))
+        rows.append(("flairs/%s.png" % badge, "%s on a round chip" % rel))
 
 
 def main():
@@ -239,34 +239,8 @@ def main():
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
     rows = []
-
-    for act, folders in ACT_TERRAIN.items():
-        os.makedirs(os.path.join(OUT, "terrain", act))
-        for folder, count in folders:
-            src_dir = os.path.join(art, BORDERLESS, "pointy." + folder)
-            names = sorted([n for n in os.listdir(src_dir) if n.endswith(".png")], key=natural)
-            for name in names[:count]:
-                im = Image.open(os.path.join(src_dir, name)).convert("RGBA")
-                im = im.resize((TILE_SIZE, TILE_SIZE), Image.LANCZOS)
-                out_name = "%s_%s" % (folder.replace(".", "_"), name)
-                im.save(os.path.join(OUT, "terrain", act, out_name))
-                rows.append(("terrain/%s/%s" % (act, out_name), "%s/pointy.%s/%s" % (BORDERLESS, folder, name)))
-
-    os.makedirs(os.path.join(OUT, "markers"))
-    loc_dir = os.path.join(art, HEX_OUTPUT, "tiles", "overlay_locations.standard_full")
-    for node_type, stem in MARKERS.items():
-        path = find_png(loc_dir, stem)
-        im = fit(crop_to_content(Image.open(path).convert("RGBA"), 6), MARKER_SIZE)
-        im.save(os.path.join(OUT, "markers", node_type + ".png"))
-        rows.append(("markers/%s.png" % node_type, os.path.relpath(path, art).replace("\\", "/")))
-
-    os.makedirs(os.path.join(OUT, "flairs"))
-    flair_dir = os.path.join(art, HEX_OUTPUT, "tiles", "pointy.overlay_flairs.standard")
-    for badge, stem in FLAIRS.items():
-        path = find_png(flair_dir, stem)
-        im = fit(crop_to_content(Image.open(path).convert("RGBA"), 2), FLAIR_SIZE)
-        im.save(os.path.join(OUT, "flairs", badge + ".png"))
-        rows.append(("flairs/%s.png" % badge, os.path.relpath(path, art).replace("\\", "/")))
+    os.makedirs(OUT)
+    import_markers(art, rows)
 
     os.makedirs(os.path.join(OUT, "ui"))
     sheets = {}
@@ -288,12 +262,9 @@ def main():
         f.write("Written by `tools/import_map_art.py` from the local art library under `F:/UnityNVME/Art/`. ")
         f.write("Nothing here is generated. Re-run the tool rather than editing these files by hand.\n\n")
         f.write("Licences:\n\n")
-        f.write("- Isle of Lore 2 hex tiles, markers and flairs: Steven Colling Game Asset License 1.0. ")
-        f.write("Commercial use and modification allowed, no attribution required; the assets may not be ")
-        f.write("redistributed on their own.\n")
         f.write("- Ornate Fantasy UI Assets v1.3: personal or commercial use, modification allowed ")
         f.write("(`LICENSE.rtf` in the pack).\n")
-        f.write("- Kenney Fantasy UI Borders 1.0: CC0.\n")
+        f.write("- Kenney Fantasy UI Borders 1.0 and Kenney Board Game Icons 1.1: CC0.\n")
         f.write("- Raven Megapack (Clockwork Raven Studios): a purchased pack. It ships no licence file, only ")
         f.write("a note from the artist; check the store's terms before release.\n\n")
         f.write("| Project file | Source under `F:/UnityNVME/Art/` |\n|---|---|\n")

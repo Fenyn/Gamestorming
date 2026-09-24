@@ -2819,14 +2819,11 @@
    "type": "mastery",
    "school": "storm",
    "limit_per_deck": 1,
-   "art_cost_delta": -1,
-   "modifiers": [
-	{
-	 "scope": "own",
-	 "kind": "art",
-	 "life": 1
-	}
-   ]
+   "art_boost": {
+	"school": "storm",
+	"life": 1,
+	"cost": -1
+   }
   },
   {
    "id": "storm_mastery_02",
@@ -7125,8 +7122,7 @@
 	{
 	 "op": "float",
 	 "what": "no_prevent",
-	 "duration": "combat",
-	 "after_empower": true
+	 "duration": "combat"
 	},
 	{
 	 "trigger": "if_successful",
@@ -7163,7 +7159,8 @@
 	  {
 	   "op": "search",
 	   "card_type": "art",
-	   "to": "hand"
+	   "to": "hand",
+	   "show": true
 	  }
 	 ],
 	 "op": "energy",
@@ -7251,7 +7248,7 @@
    "effects": [
 	{
 	 "trigger": "if_successful",
-	 "op": "skip_next_attack_phase",
+	 "op": "pass_next_phase",
 	 "who": "opponent"
 	}
    ],
@@ -8887,8 +8884,8 @@
 	{
 	 "scope": "cost",
 	 "kind": "art",
-	 "stages": -1,
-	 "min": 1
+	 "only_cost": 2,
+	 "set": 1
 	}
    ]
   },
@@ -8927,6 +8924,7 @@
 	 "card_type": "seal",
 	 "amount": 2,
 	 "up_to": true,
+	 "at_least_one": true,
 	 "choose": true,
 	 "to": "deck_bottom"
 	}
@@ -8941,14 +8939,7 @@
    "use_at": "entering_combat",
    "attachment": {
 	"target": "duelist",
-	"duration": "combat",
-	"modifiers": [
-	 {
-	  "scope": "cost",
-	  "kind": "any",
-	  "set": 0
-	 }
-	]
+	"waive_costs": true
    },
    "effects": [
 	{
@@ -9130,6 +9121,7 @@
 	 "op": "float",
 	 "what": "modifier",
 	 "duration": "combat",
+	 "this_personality": true,
 	 "params": {
 	  "scope": "own",
 	  "kind": "art",
@@ -12390,6 +12382,227 @@
 	 }
 	]
    }
+  },
+  {
+   "id": "storm_drill_05",
+   "title": "Storm Backflash Drill",
+   "type": "drill",
+   "school": "storm",
+   "effects": [
+	{
+	 "trigger": "on_damaged",
+	 "may": true,
+	 "op": "draw_discard",
+	 "amount": 1,
+	 "from": "bottom",
+	 "when": {
+	  "attack_kind": "strike",
+	  "discard_min": 1
+	 }
+	}
+   ]
+  },
+  {
+   "id": "storm_drill_06",
+   "title": "Storm Seeking Spark Drill",
+   "type": "drill",
+   "school": "storm",
+   "once_per_combat": true,
+   "effects": [
+	{
+	 "trigger": "on_success",
+	 "op": "mark_used",
+	 "when": {
+	  "attack_kind": "art"
+	 }
+	},
+	{
+	 "trigger": "on_success",
+	 "op": "search",
+	 "whose": "opponent",
+	 "to": "discard",
+	 "when": {
+	  "attack_kind": "art"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "storm_drill_07",
+   "title": "Storm Grounding Drill",
+   "type": "drill",
+   "school": "storm",
+   "limit_per_deck": 2,
+   "effects": [
+	{
+	 "trigger": "on_stop",
+	 "may": true,
+	 "op": "exile_source",
+	 "then": [
+	  {
+	   "op": "stop_all",
+	   "kind": "stopped"
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "storm_drill_08",
+   "title": "Storm Stormwall Drill",
+   "type": "drill",
+   "school": "storm",
+   "surge_bonus": 1,
+   "shields_stop_focused": true
+  },
+  {
+   "id": "storm_strike_13",
+   "title": "Storm Gathering Front",
+   "type": "strike",
+   "school": "storm",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "empower": 2,
+   "effects": [
+	{
+	 "op": "look_at",
+	 "amount": 4,
+	 "pick": {
+	  "card_type": "drill"
+	 },
+	 "to": "play",
+	 "rearrange": true,
+	 "from": "top",
+	 "after_empower": true
+	}
+   ]
+  },
+  {
+   "id": "storm_strike_14",
+   "title": "Storm Lightning Rod",
+   "type": "strike",
+   "school": "storm",
+   "attack": {
+	"kind": "strike"
+   },
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "at_combat_end",
+	 "duration": "combat",
+	 "params": {
+	  "effects": [
+	   {
+		"op": "search",
+		"card_type": "drill",
+		"school_in": [
+		 "",
+		 "storm"
+		],
+		"to": "play"
+	   }
+	  ]
+	 }
+	}
+   ]
+  },
+  {
+   "id": "storm_art_24",
+   "title": "Storm Steady Current",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art",
+	"printed_life": 5
+   },
+   "endurance": 1,
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "keep_drills",
+	 "duration": "combat"
+	}
+   ]
+  },
+  {
+   "id": "storm_mastery_03",
+   "title": "Storm Gale Mastery",
+   "type": "mastery",
+   "school": "storm",
+   "limit_per_deck": 1,
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "strike",
+	 "stages": 2
+	}
+   ],
+   "effects": [
+	{
+	 "trigger": "on_success",
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "exclude_source": true,
+	 "params": {
+	  "scope": "own",
+	  "kind": "strike",
+	  "life": 1
+	 },
+	 "when": {
+	  "source_school": "storm",
+	  "attack_kind": "strike"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "storm_mastery_04",
+   "title": "Storm Conductor Mastery",
+   "type": "mastery",
+   "school": "storm",
+   "limit_per_deck": 1,
+   "once_per_combat": true,
+   "free_action": true,
+   "only": {
+	"when": {
+	 "drill_school_in_play": "storm"
+	}
+   },
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "discard_in_play",
+	 "who": "self",
+	 "card_type": "drill",
+	 "school": "storm",
+	 "amount": 1,
+	 "choose": true,
+	 "then": [
+	  {
+	   "op": "mark_used"
+	  },
+	  {
+	   "op": "search",
+	   "card_type": "drill",
+	   "amount": 2,
+	   "different": true,
+	   "to": "play"
+	  }
+	 ]
+	},
+	{
+	 "trigger": "rejuvenation",
+	 "may": true,
+	 "op": "recover",
+	 "card_type": "drill",
+	 "when": {
+	  "discard_has_type": "drill"
+	 }
+	}
+   ]
   }
  ]
 }

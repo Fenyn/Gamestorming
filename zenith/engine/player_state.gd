@@ -37,6 +37,7 @@ var worst_wound_combat: int = 0        # most life cards this player lost to one
 var entering_combat_done: bool = false # their "use when entering Combat" window is closed
 var endurance_uses: int = 0            # Endurance this player has used, all game; floats mark it
 var non_combats_placed: int = 0        # Non-Combat cards and Drills placed during their own turn
+var rejuvenation_done: bool = false    # the Mastery's Rejuvenation Step line has had its say this turn
 var used_card_combat: bool = false     # this player has used or played a card this Combat
 var search_taken: Array[int] = []      # what the search now resolving has taken, for "if all of them"
 # Cross-turn flags
@@ -86,6 +87,7 @@ func copy(cards: Dictionary) -> PlayerState:
 	p.entering_combat_done = entering_combat_done
 	p.endurance_uses = endurance_uses
 	p.non_combats_placed = non_combats_placed
+	p.rejuvenation_done = rejuvenation_done
 	p.used_card_combat = used_card_combat
 	p.search_taken = search_taken.duplicate()
 	p.seal_victory_pending = seal_victory_pending
@@ -161,6 +163,7 @@ func reset_turn_flags() -> void:
 	placed_grounds = false
 	cannot_declare_combat = false
 	non_combats_placed = 0
+	rejuvenation_done = false
 
 
 func reset_combat_flags() -> void:

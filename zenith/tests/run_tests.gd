@@ -391,6 +391,12 @@ func _init() -> void:
 		test_root_fallen_oak_and_grove_kin_spend_allies,
 		test_root_compost_and_deeproot_masteries_draw_on_a_root_card,
 		test_root_sacred_grove_exiles_other_schools_and_grants_a_hit,
+		test_storm_brewing_mastery_asks_wound_or_price,
+		test_storm_shipped_cards_match_their_printed_text,
+		test_storm_backflash_and_grounding_drills_answer_the_defense,
+		test_storm_seeking_spark_and_stormwall_drills,
+		test_storm_gathering_front_lightning_rod_and_steady_current,
+		test_storm_gale_and_conductor_masteries,
 		test_the_card_group_tells_signature_from_freestyle,
 		test_every_shipped_card_lands_in_one_group,
 		test_a_duelist_stack_is_one_character_consecutive_from_aspect_one,
@@ -6628,6 +6634,12 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 		"root_mastery_02": "mastery", "root_mastery_03": "mastery", "root_mastery_04": "mastery"}
 	eq(root2_types.size(), 15, "12 more Root cards and 3 Root Masteries were approved")
 	root_types.merge(root2_types)
+	var storm2_types: Dictionary = {
+		"storm_drill_05": "drill", "storm_drill_06": "drill", "storm_drill_07": "drill", "storm_drill_08": "drill",
+		"storm_strike_13": "strike", "storm_strike_14": "strike", "storm_art_24": "art",
+		"storm_mastery_03": "mastery", "storm_mastery_04": "mastery"}
+	eq(storm2_types.size(), 9, "7 more Storm cards and 2 Storm Masteries were approved")
+	storm_types.merge(storm2_types)
 	var pyre_types: Dictionary = {}
 	for n in range(22, 29):
 		pyre_types["pyre_strike_%d" % n] = "strike"
@@ -6639,7 +6651,7 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 		pyre_types[id] = "combat"
 	for id in ["pyre_mastery_03", "pyre_mastery_04"]:
 		pyre_types[id] = "mastery"
-	eq(storm_types.size(), 26, "26 Storm cards were approved")
+	eq(storm_types.size(), 35, "26 Storm cards, then 9 more, were approved")
 	eq(root_types.size(), 44, "29 Root cards, then 15 more, were approved")
 	eq(pyre_types.size(), 27, "25 Pyre cards and 2 Pyre Masteries were approved")
 	var steel_types: Dictionary = {}
@@ -6693,8 +6705,8 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 			eq(def.type, int(CardDef.TYPE_NAMES[str(wanted[id])]), "%s is a %s card" % [id, wanted[id]])
 			check(CardText.rules_text(def) != "" or def.type == CardDef.Type.DRILL, "%s prints something" % id)
 	# 397 before the personality split; the 27 stack cards became 62 one-Aspect cards. The Pyre
-	# expansion added 27, Steel 23, Tide 24, Shade 23 and the second Root batch 15.
-	eq(shipped().defs.size(), 550, "and the set is 488 other cards plus 62 Aspect cards")
+	# expansion added 27, Steel 23, Tide 24, Shade 23, the second Root batch 15 and Storm 9.
+	eq(shipped().defs.size(), 559, "and the set is 497 other cards plus 62 Aspect cards")
 
 
 ## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
@@ -6782,7 +6794,8 @@ func test_storm_scattering_gale_puts_their_seals_under_their_deck() -> void:
 	answer(e, &"use", uid_in_hand(e, 0, "storm_combat_01"))
 	eq(prompt_kind(e), &"pick_in_play", "the user chooses which Seals go under")
 	eq(e.prompt.player, 0, "and the choice is theirs, not the owner's")
-	check(e.prompt.find(&"pick_none") != null, "\"1 or 2\" lets one of them stay")
+	check(e.prompt.find(&"pick_none") == null, "\"1 or 2\" takes at least one")
+	eq(e.prompt.batch_min, 1, "and one alone is enough")
 	check(e.submit(Command.new(0, &"pick_in_play", -1, [first.uid, second.uid])), "both go under")
 	var theirs: Array[CardInstance] = e.player(1).life_deck
 	eq(e.card(first.uid).zone, &"life_deck", "the Seal went to the deck, not the discard pile")
@@ -6815,7 +6828,13 @@ func test_storm_free_current_waives_costs_for_a_storm_hand() -> void:
 	check(has_event(e, &"hand_revealed"), "the hand was shown before it was counted")
 	eq(me.attachments().size(), 1, "three school cards in hand, so it rode onto the duelist")
 	eq(me.attachments()[0].attached_to, me.duelist, "onto the duelist, not the card in control")
-	eq(e._cost_stages(art, me), 0, "and attacks cost nothing while it is there")
+	check(e._costs_waived(me, me.duelist), "the duelist pays no costs while it is there")
+	me.duelist.energy = 0
+	check(e._can_pay(me.duelist, me, art), "so an Art is affordable at no Energy")
+	var ally: CardInstance = real_inject(e, 0, _an_ally_id())
+	check(not e._costs_waived(me, ally), "an Ally still pays its own")
+	skip_to_turn(e, 3)
+	eq(me.attachments().size(), 1, "and it stays after Combat")
 	# A hand short of the school leaves it with nothing to do.
 	var f: DuelEngine = real_engine(real_deck([], "pact", "storm"), real_deck([], "vigil"))
 	var lone: CardInstance = real_to_hand(f, 0, "storm_combat_02")
@@ -10574,3 +10593,228 @@ func test_root_sacred_grove_exiles_other_schools_and_grants_a_hit() -> void:
 	var plain: CardInstance = e._instance(shipped().get_def("tide_strike_16"), 0, &"hand")
 	var other_built: Dictionary = e._build_attack(0, plain, plain.def.attack, plain.def.effects, false, false, false, null, true)
 	eq((other_built["effects"] as Array).size(), plain.def.effects.size(), "another school's attack gains nothing")
+
+
+# --- The Storm review, 2026-09-23 ------------------------------------------
+
+## "All energy attacks performed by your main personality do +1 life card damage if successful or
+## cost 1 less power stage to perform to a minimum of 1. Orange style energy attacks do +1 life card
+## damage if successful and cost 1 less power stage to perform to a minimum of 1, instead."
+func test_storm_brewing_mastery_asks_wound_or_price() -> void:
+	for pick in ["life", "cost", "storm"]:
+		var d: DeckList = real_deck(["tide_art_02", "storm_art_07"], "pact", "storm")
+		d.mastery_id = "storm_mastery_01"
+		var e: DuelEngine = real_engine(d, real_deck([], "vigil"))
+		var me: PlayerState = e.player(0)
+		to_attack(e, 0)
+		me.duelist.energy = 5
+		var title: String = me.mastery.def.title
+		if pick == "storm":
+			answer(e, &"attack", uid_in_hand(e, 0, "storm_art_07"))
+			check(e.prompt == null or str(e.prompt.context.get("purpose", "")) != "art_boost", "a Storm Art is not asked about")
+		else:
+			answer(e, &"attack", uid_in_hand(e, 0, "tide_art_02"))
+			eq(str(e.prompt.context.get("purpose", "")), "art_boost", "another school's Art asks which half")
+			eq(e.prompt.player, 0, "the attacker chooses")
+			answer(e, &"pick_option", -1, pick)
+		eq(me.duelist.energy, 3 if pick == "life" else 4, "%s: the price paid" % pick)
+		settle(e, 12)
+		eq(_added_by(e, title, "life"), 0 if pick == "cost" else 1, "%s: the wound added" % pick)
+	var f_deck: DeckList = real_deck([], "pact", "storm")
+	f_deck.mastery_id = "storm_mastery_01"
+	var f: DuelEngine = real_engine(f_deck, real_deck([], "vigil"))
+	var ally: CardInstance = real_inject(f, 0, _an_ally_id())
+	check(f._art_boost(f.player(0), ally).is_empty(), "an Ally's Arts get nothing")
+	f.player(0).controlling = ally
+	eq(f._cost_stages(shipped().get_def("tide_art_02").attack, f.player(0)), 2, "and pay full price")
+
+
+## The shipped Storm cards, each against the clause the review found it missing.
+func test_storm_shipped_cards_match_their_printed_text() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "storm"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	# "Allows the attacker to pay 1 stage instead of 2 on any energy attack."
+	real_inject(e, 0, "storm_drill_04")
+	eq(e._cost_stages(shipped().get_def("tide_art_02").attack, me), 1, "a 2-cost Art costs 1")
+	eq(e._cost_stages(shipped().get_def("storm_art_15").attack, me), 3, "a 3-cost Art is untouched")
+	eq(e._cost_stages(shipped().get_def("storm_art_20").attack, me), 1, "and a 1-cost Art stays 1")
+	# "Your opponent must pass in his next attack phase."
+	e._apply_effect(shipped().get_def("storm_art_10").effects[0], 0, {}, null)
+	check(e.player(1).pass_next_phase, "Stunning Bolt makes them pass, which counts toward ending Combat")
+	check(not e.player(1).skip_next_attack_phase, "not skip")
+	# "For the remainder of Combat, damage cannot be prevented. Empower 2.": printed before Empower.
+	var mael: CardInstance = real_to_hand(e, 0, "storm_strike_01")
+	var built: Dictionary = e._build_attack(0, mael, mael.def.attack, mael.def.effects, false, false, true, null, true)
+	var kept: bool = false
+	for line in built["effects"]:
+		if str(line.get("what", "")) == "no_prevent":
+			kept = true
+	check(kept, "an Empowered Maelstrom keeps its no-prevent line")
+	# "Search your Life Deck for an Energy Combat card, show it to your opponent."
+	var found: CardInstance = real_to_deck(e, 0, "storm_art_07")
+	e._search_take(me, found, shipped().get_def("storm_strike_02").effects[0]["then"][0])
+	check(has_event(e, &"cards_revealed"), "Overcharge shows the Art it found")
+	# "All energy attacks this personality performs for the remainder of Combat do +2 life cards."
+	e._apply_effect(shipped().get_def("storm_strike_09").effects[0], 0, {}, null)
+	eq(e._modifiers_for(me, "own", "art", null, {}).size(), 1, "the duelist's Arts gain it")
+	var ally: CardInstance = real_inject(e, 0, _an_ally_id())
+	me.controlling = ally
+	eq(e._modifiers_for(me, "own", "art", null, {}).size(), 0, "an Ally's do not")
+
+
+# --- The Storm expansion, 2026-09-23 ---------------------------------------
+
+## "When receiving damage from a physical attack, you may draw the bottom card of your discard pile"
+## and "you may remove this Drill from the game when you stop a physical or energy attack to stop
+## all of your opponent's attacks of the same type for the remainder of Combat."
+func test_storm_backflash_and_grounding_drills_answer_the_defense() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil", "storm"))
+	var them: PlayerState = e.player(1)
+	real_inject(e, 1, "storm_drill_05")
+	to_attack(e, 0)
+	var oldest: CardInstance = real_to_discard(e, 1, "tide_drill_05")
+	real_to_discard(e, 1, "tide_drill_06")
+	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	settle(e, 12)
+	eq(prompt_kind(e), &"pick_option", "the Strike's damage offers the Drill")
+	eq(e.prompt.player, 1, "to the one who took it")
+	answer(e, &"pick_option", -1, "yes")
+	eq(oldest.zone, &"hand", "the bottom card of the pile was drawn")
+	eq(oldest.owner, them.index, "their own")
+	var f: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil", "storm"))
+	var ground: CardInstance = real_inject(f, 1, "storm_drill_07")
+	f.prompts.clear()
+	f._enqueue(ground.def.effects, "on_stop", 1, {"attack": {"kind": "art"}}, ground)
+	f._drain()
+	eq(prompt_kind(f), &"pick_option", "the stop offers the Drill")
+	answer(f, &"pick_option", -1, "yes")
+	eq(ground.zone, &"removed", "the Drill left the game")
+	var held: Dictionary = f._floating_first(1, "stop_all")
+	eq(str(held.get("kind", "")), "art", "and every Art against them is stopped this Combat")
+	eq(shipped().get_def("storm_drill_07").limit_per_deck, 2, "two copies at most")
+
+
+## "Once per combat, after you have performed a successful energy attack, search through defender's
+## life deck for any card and discard it" and "your Main Personality's PUR is +1. Your Defense
+## Shields can stop focused attacks."
+func test_storm_seeking_spark_and_stormwall_drills() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "storm"), real_deck([], "vigil"))
+	var spark: CardInstance = real_inject(e, 0, "storm_drill_06")
+	e.prompts.clear()
+	e._enqueue(spark.def.effects, "on_success", 0, {"attack": {"kind": "strike"}}, spark)
+	e._drain()
+	check(e.prompt == null, "a Strike does not wake it")
+	e._enqueue(spark.def.effects, "on_success", 0, {"attack": {"kind": "art"}}, spark)
+	e._drain()
+	eq(prompt_kind(e), &"pick_option", "an Art does")
+	check(e.prompt.context.has("library"), "their whole deck is shown")
+	var taken: int = e.prompt.options[0].card
+	answer(e, &"pick_option", taken)
+	eq(e.card(taken).zone, &"discard", "the card was discarded")
+	eq(e.card(taken).owner, 1, "from their deck")
+	check(not e._drill_use_available(spark), "and it is spent for the Combat")
+	var f: DuelEngine = real_engine(real_deck(["storm_strike_09"], "pact", "storm"), real_deck([], "vigil"))
+	var them: PlayerState = f.player(1)
+	real_inject(f, 1, "storm_drill_01")
+	var surge: int = f.surge_of(them)
+	var focused_card: CardInstance = real_to_hand(f, 0, "storm_strike_09")
+	var a: Dictionary = f._build_attack(0, focused_card, focused_card.def.attack, focused_card.def.effects, false, false, false, null, true)
+	f._apply_shields(them, a)
+	check(not bool(a["stopped"]), "a Focused Strike walks through the Strike shield")
+	real_inject(f, 1, "storm_drill_08")
+	eq(f.surge_of(them), surge + 1, "Stormwall raises Surge by 1")
+	var b: Dictionary = f._build_attack(0, focused_card, focused_card.def.attack, focused_card.def.effects, false, false, false, null, true)
+	f.player(1).drills()[0].shield_used_combat = -1
+	f._apply_shields(them, b)
+	check(bool(b["stopped"]), "with Stormwall the shield stops it")
+
+
+## "Search the top 4 cards of your Life Deck for a Drill and place it into play if possible",
+## "you may search your Life Deck for any colorless Drill [or Storm Drill] and place it in play at the
+## end of Combat", and "you do not have to discard any Drills in play when your Main Personality
+## advances or loses a personality level."
+func test_storm_gathering_front_lightning_rod_and_steady_current() -> void:
+	var front: CardDef = shipped().get_def("storm_strike_13")
+	check(bool(front.effects[0].get("after_empower", false)), "Gathering Front's look is printed after Empower")
+	var e: DuelEngine = real_engine(real_deck(["storm_strike_14"], "pact", "storm"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	to_attack(e, 0)
+	var rod_drill: CardInstance = real_to_deck(e, 0, "storm_drill_03")
+	answer(e, &"attack", uid_in_hand(e, 0, "storm_strike_14"))
+	check(e._has_floating(0, "at_combat_end"), "the search waits for the end of Combat")
+	eq(rod_drill.zone, &"life_deck", "and nothing is placed yet")
+	e.prompts.clear()
+	e._begin_combat_end()
+	e._drain()
+	eq(prompt_kind(e), &"pick_option", "at the end of Combat the deck is searched")
+	check(e.prompt.find(&"pick_option", rod_drill.uid) != null, "a Storm Drill is offered")
+	answer(e, &"pick_option", rod_drill.uid)
+	eq(rod_drill.zone, &"in_play", "and placed")
+	var hits: Array[CardInstance] = e.search_candidates(me, shipped().get_def("storm_strike_14").effects[0]["params"]["effects"][0])
+	for c in hits:
+		check(c.def.school == "" or c.def.school == "storm", "%s is Freestyle or Storm" % c.def.title)
+	var f: DuelEngine = real_engine(real_deck([], "pact", "storm"), real_deck([], "vigil"))
+	var p: PlayerState = f.player(0)
+	var kept: CardInstance = real_inject(f, 0, "storm_drill_03")
+	f._apply_effect(shipped().get_def("storm_art_24").effects[0], 0, {}, null)
+	f._aspect_up(p)
+	eq(kept.zone, &"in_play", "a climb keeps the Drill")
+	f._lose_aspect(p, 1)
+	eq(kept.zone, &"in_play", "and so does a fall")
+
+
+## "All of your physical attacks do +2 power stages of damage. If you perform a successful Orange
+## Style physical attack, all other physical attacks you perform for the remainder of Combat do
+## additional +1 life cards of damage" and "once per Combat during your Attacker Attacks phase, you
+## may discard one of your Orange Style Drills in play to search your Life Deck for 2 different
+## Drills and place them into play. During your Rejuvenation Step, you may place the top Drill in
+## your discard pile on the bottom of your Life Deck."
+func test_storm_gale_and_conductor_masteries() -> void:
+	var d: DeckList = real_deck(["storm_strike_12"], "pact", "storm")
+	d.mastery_id = "storm_mastery_03"
+	var e: DuelEngine = real_engine(d, real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	var total: int = 0
+	for entry in e._modifiers_for(me, "own", "strike", null, {}):
+		total += int((entry["m"] as Dictionary).get("stages", 0))
+	eq(total, 2, "Strikes do +2")
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "storm_strike_12"))
+	settle(e, 12)
+	var life: int = 0
+	for f in e.state.floating:
+		if int(f.get("owner", -1)) == 0 and str(f.get("op", "")) == "modifier" and str(f.get("kind", "")) == "strike":
+			life += int(f.get("life", 0))
+	eq(life, 1, "a landed Storm Strike gives the other Strikes +1 wound")
+	var c_deck: DeckList = real_deck([], "pact", "storm")
+	c_deck.mastery_id = "storm_mastery_04"
+	var g: DuelEngine = real_engine(c_deck, real_deck([], "vigil"))
+	var p: PlayerState = g.player(0)
+	to_attack(g, 0)
+	check(g.prompt.find(&"use", p.mastery.uid) == null, "with no Storm Drill in play it is not offered")
+	var spent: CardInstance = real_inject(g, 0, "storm_drill_03")
+	var one: CardInstance = real_to_deck(g, 0, "storm_drill_01")
+	real_to_deck(g, 0, "storm_drill_01")
+	var two: CardInstance = real_to_deck(g, 0, "storm_drill_02")
+	g._prompt_attack_action(p)
+	answer(g, &"use", p.mastery.uid)
+	eq(spent.zone, &"discard", "the Storm Drill was discarded")
+	eq(prompt_kind(g), &"pick_option", "then the deck is searched")
+	check(g.submit(Command.new(0, &"pick_option", -1, [one.uid, two.uid])), "two different Drills are taken")
+	eq(one.zone, &"in_play", "the first went into play")
+	eq(two.zone, &"in_play", "and the second")
+	eq(prompt_kind(g), &"attack_action", "and the attack phase is still open")
+	check(g.prompt.find(&"use", p.mastery.uid) == null, "once per Combat")
+	# The Recover step: the top Drill of the pile, not the top card.
+	var h: DuelEngine = real_engine(c_deck, real_deck([], "vigil"))
+	var q: PlayerState = h.player(0)
+	var pile_drill: CardInstance = real_to_discard(h, 0, "storm_drill_03")
+	real_to_discard(h, 0, "root_strike_04")
+	h.prompts.clear()
+	h.state.active = 0
+	h._recover()
+	h._drain()
+	eq(prompt_kind(h), &"pick_option", "the Mastery offers its line in the Recover step")
+	answer(h, &"pick_option", -1, "yes")
+	eq(pile_drill.zone, &"life_deck", "the Drill went under the deck")
+	eq(q.life_deck.back(), pile_drill, "at the bottom")

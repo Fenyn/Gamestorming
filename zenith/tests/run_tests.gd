@@ -10769,6 +10769,26 @@ func test_storm_shipped_cards_match_their_printed_text() -> void:
 	var found: CardInstance = real_to_deck(e, 0, "storm_art_07")
 	e._search_take(me, found, shipped().get_def("storm_strike_02").effects[0]["then"][0])
 	check(has_event(e, &"cards_revealed"), "Overcharge shows the Art it found")
+	# "You may pay 2 power stages to search": a cost, which Free Current waives.
+	var pay_line: Dictionary = shipped().get_def("storm_strike_02").effects[0]
+	for case in ["short", "pays", "waived"]:
+		var g: DuelEngine = real_engine(real_deck([], "pact", "storm"), real_deck([], "vigil"))
+		var gp: PlayerState = g.player(0)
+		gp.duelist.energy = 1 if case == "short" else 5
+		if case == "waived":
+			var rider: CardInstance = real_inject(g, 0, "storm_combat_02")
+			rider.attached_to = gp.duelist
+		g.prompts.clear()
+		g._enqueue([pay_line], "secondary", 0, {}, null)
+		g._drain()
+		if case == "short":
+			check(g.prompt == null, "with 1 Energy the cost cannot be paid, so nothing is asked")
+			continue
+		eq(str(g.prompt.context.get("purpose", "")), "pay_cost", "%s: the payment is offered" % case)
+		answer(g, &"pick_option", -1, "yes")
+		eq(gp.duelist.energy, 3 if case == "pays" else 5, "%s: the Energy paid" % case)
+		eq(prompt_kind(g), &"pick_option", "%s: then the deck is searched" % case)
+		check(bool(g.prompt.context.get("search", false)), "%s: it is the search" % case)
 	# "All energy attacks this personality performs for the remainder of Combat do +2 life cards."
 	e._apply_effect(shipped().get_def("storm_strike_09").effects[0], 0, {}, null)
 	eq(e._modifiers_for(me, "own", "art", null, {}).size(), 1, "the duelist's Arts gain it")

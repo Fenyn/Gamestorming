@@ -4187,6 +4187,21 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				return
 			_choice = {"kind": "pay_energy", "per": per, "payer": payer.uid, "then": e.get("then", []), "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
 			_set_prompt(who_index, &"pay", opts, {"per": per, "source": source.uid if source != null else -1, "card_title": source.def.title if source != null else "", "effect": true})
+		"pay_cost":
+			# "You may pay 2 power stages to search ...": a cost, so it is asked only when it can be
+			# paid, and a duelist whose costs are waived pays nothing for it.
+			var cost_payer: CardInstance = who.in_control()
+			var waived: bool = _costs_waived(who, cost_payer)
+			_pending_then = {}
+			if not waived and cost_payer.energy < int(amount):
+				return
+			var pay_opts: Array[Command] = [Command.new(who_index, &"pick_option", -1, "yes"), Command.new(who_index, &"pick_option", -1, "no")]
+			_choice = {"kind": "pay_cost", "stages": 0 if waived else int(amount), "payer": cost_payer.uid,
+				"then": e.get("then", []), "owner": owner, "ctx": ctx, "source": source.uid if source != null else -1}
+			var pay_ctx: Dictionary = _choice_context(source, "pay_cost")
+			pay_ctx["yes_label"] = "Pay %d Energy" % int(amount) if not waived else "Use it (cost waived)"
+			pay_ctx["no_label"] = "Don't pay"
+			_set_prompt(who_index, &"pick_option", pay_opts, pay_ctx)
 		"look_at":
 			# `whose` names the deck; `who` is still whoever does the looking and deciding.
 			_look_at(who, e, state.players[_who_index(str(e.get("whose", "self")), owner)])
@@ -5760,6 +5775,17 @@ func _handle_choice(cmd: Command) -> void:
 			card(cmd.card).silenced = true
 		"art_boost":
 			state.attack["art_boost"] = str(cmd.value)
+		"pay_cost":
+			if str(cmd.value) == "yes":
+				var cost_payer: CardInstance = card(int(_choice["payer"]))
+				var stages: int = int(_choice["stages"])
+				if stages > 0:
+					cost_payer.energy = maxi(0, cost_payer.energy - stages)
+				_emit(&"cost_paid", {"player": cmd.player, "stages": stages, "life": 0, "energy": cost_payer.energy})
+				var paid_then: Array[Dictionary] = []
+				paid_then.assign(_choice.get("then", []))
+				_queue.insert(0, {"effects": paid_then, "index": 0, "trigger": "then", "owner": int(_choice["owner"]),
+					"ctx": _choice["ctx"], "source": card(int(_choice.get("source", -1))), "announced": true})
 		"choose_one":
 			var chosen_line: Dictionary = (_choice["choices"] as Array)[int(str(cmd.value))]
 			var chosen_effects: Array[Dictionary] = []

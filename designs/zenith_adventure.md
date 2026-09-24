@@ -637,7 +637,14 @@ Not built: `AdventureDecks.playable_starters()` still returns all 14 starters.
 ### 8.5 Storylines, the relations network and quests
 
 Decided 2026-09-23 with the lore in `zenith/docs/cast.md` (The Lodestone Heart, Storylines and
-relations). Not built.
+relations).
+
+**Built 2026-09-23:** set act bosses, act 1 joins, Encounter guests, the three open starters and
+quest unlocks. Data in `data/adventure/storylines.json` and `quests.json`, code in
+`AdventureStory`, `AdventureQuests`, `AdventureUnlocks` (`user://adventure/unlocks.json`) and
+`DuelEngine.set_guest_ally`. Random draws never meet the run's own character; a set boss may.
+Not built: Key character meetings from the network, Ally-pair introductions, story text, and quest
+conditions beyond beating a boss or finishing a run.
 
 **Each starter is a storyline.** Everyone is after the Lodestone Heart, and every run can fight
 the whole roster, friendly tests included. The three runs overlap heavily in opponents. They

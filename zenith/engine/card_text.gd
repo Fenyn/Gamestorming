@@ -1500,6 +1500,8 @@ static func _effect_body(e: Dictionary) -> String:
 				body += " Otherwise, %s" % _lc(" ".join(PackedStringArray(_texts(e.get("else_effects", [])))))
 		"pay_energy":
 			body = "Your duelist loses any amount of Energy." if str(e.get("payer", "")) == "duelist" else "Lose any amount of Energy."
+		"pay_cost":
+			body = "You may pay %d Energy." % n
 		"look_at":
 			var pick: Dictionary = e.get("pick", {})
 			var what: String = type_words(str(pick.get("card_type", "card")), false)

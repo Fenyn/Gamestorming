@@ -263,7 +263,7 @@ Masteries:
 | Storm Earthing Rod | Art | Stops an Art. Raise your Fervor 1. | Art answers |  | `storm_art_09` |
 | Storm Felling Gust | Strike | Strike doing +4 Energy. Hit: Your opponent discards an Ally in play of your choice. | Storm Arts |  | `storm_strike_10` |
 | Storm Opened Channel | Strike | Focused Strike doing +2 Energy. Hit: For the remainder of Combat, all Arts this personality performs do +2 wounds. | Storm Arts |  | `storm_strike_09` |
-| Storm Overcharge | Strike | Strike doing +4 Energy. If your duelist has 2 or more Energy, you may lose 2 Energy. If you do, search your Life Deck for an Art card and put it into your hand. Show it to your opponent. Remove from the game after use. | Storm Arts |  | `storm_strike_02` |
+| Storm Overcharge | Strike | Strike doing +4 Energy. You may pay 2 Energy. If you do, search your Life Deck for an Art card and put it into your hand. Show it to your opponent. Remove from the game after use. | Storm Arts |  | `storm_strike_02` |
 | Storm Arc Bolt | Art | Art dealing 5 wounds. Raise your Fervor 2. | Storm Arts |  | `storm_art_06` |
 | Storm Chain Lightning | Art | Art dealing 5 wounds. Remain 1. Remove from the game after use. | Storm Arts |  | `storm_art_03` |
 | Storm Cold Front | Art | Art. Lower your opponent's Fervor 2. | Storm Arts |  | `storm_art_22` |

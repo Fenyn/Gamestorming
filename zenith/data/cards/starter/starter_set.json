@@ -7154,7 +7154,6 @@
    },
    "effects": [
 	{
-	 "may": true,
 	 "then": [
 	  {
 	   "op": "search",
@@ -7163,11 +7162,8 @@
 	   "show": true
 	  }
 	 ],
-	 "op": "energy",
-	 "amount": -2,
-	 "when": {
-	  "energy_min": 2
-	 }
+	 "op": "pay_cost",
+	 "amount": 2
 	}
    ],
    "remove_after_use": true

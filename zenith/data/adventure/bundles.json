@@ -71,7 +71,7 @@
     {"id": "root_remain_and_cost", "name": "Remain and cost", "group": "root", "tier": "mid", "cards": [{"id": "root_strike_09", "count": 1}, {"id": "root_strike_05", "count": 1}]},
     {"id": "root_late", "name": "Late package", "group": "root", "tier": "late", "cards": [{"id": "root_art_09", "count": 1}, {"id": "root_art_08", "count": 1}, {"id": "root_art_03", "count": 1}]},
     {"id": "root_seal_payoff", "name": "Seal payoff", "group": "root", "tier": "late", "cards": [{"id": "root_art_04", "count": 1}, {"id": "root_strike_03", "count": 1}]},
-    {"id": "shade_hand_strip", "name": "Hand strip", "group": "shade", "tier": "early", "cards": [{"id": "shade_strike_01", "count": 1}, {"id": "shade_strike_04", "count": 2}]},
+    {"id": "shade_hand_strip", "name": "Hand strip", "group": "shade", "tier": "early", "cards": [{"id": "shade_strike_03", "count": 1}, {"id": "shade_strike_04", "count": 2}]},
     {"id": "shade_art_answer", "name": "Art answers", "group": "shade", "tier": "early", "cards": [{"id": "shade_art_08", "count": 2}, {"id": "shade_art_04", "count": 1}]},
     {"id": "shade_strike_answer", "name": "Strike answers", "group": "shade", "tier": "early", "cards": [{"id": "shade_art_01", "count": 2}, {"id": "shade_strike_03", "count": 1}]},
     {"id": "shade_hand_keep", "name": "Hand keep", "group": "shade", "tier": "early", "cards": [{"id": "shade_drill_02", "count": 2}, {"id": "shade_drill_01", "count": 1}]},

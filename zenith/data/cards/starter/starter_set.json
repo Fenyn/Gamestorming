@@ -6433,12 +6433,25 @@
 	 "choose": true
 	},
 	{
+	 "may": true,
+	 "asks": "opponent",
 	 "op": "discard_hand",
 	 "who": "opponent",
 	 "amount": 1,
-	 "random": false
+	 "random": false,
+	 "otherwise": [
+	  {
+	   "op": "discard_in_play",
+	   "who": "opponent",
+	   "card_type": "non_combat_or_ally",
+	   "amount": 1,
+	   "choose": true,
+	   "remove": true
+	  }
+	 ]
 	}
-   ]
+   ],
+   "reserve_only": true
   },
   {
    "id": "shade_combat_01",
@@ -6535,16 +6548,23 @@
   },
   {
    "id": "shade_strike_04",
-   "title": "Shade Oblivion Touch",
+   "title": "Shade Slipping Thought",
    "type": "strike",
    "school": "shade",
    "attack": {
 	"kind": "strike",
-	"stages": 3
+	"stages": 4
    },
    "effects": [
 	{
-	 "op": "remove_hand",
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1,
+	 "random": true,
+	 "to": "deck_shuffle"
+	},
+	{
+	 "op": "draw",
 	 "who": "opponent",
 	 "amount": 1
 	}
@@ -6589,7 +6609,8 @@
 	{
 	 "op": "energy",
 	 "who": "opponent",
-	 "amount": -3
+	 "amount": -3,
+	 "no_overflow": true
 	}
    ]
   },
@@ -6688,7 +6709,8 @@
 	"kind": "strike",
 	"pay_stages": {
 	 "per": 1,
-	 "stages": 1
+	 "stages": 1,
+	 "from": "duelist"
 	}
    }
   },
@@ -8417,7 +8439,6 @@
    "tags": [
 	"whisper"
    ],
-   "remove_after_use": true,
    "effects": [
 	{
 	 "op": "fervor",
@@ -8431,7 +8452,12 @@
 	 "tag": "whisper",
 	 "amount": 3,
 	 "to": "deck_top",
-	 "no_shuffle": true
+	 "no_shuffle": true,
+	 "must": true
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "exile_source"
 	}
    ]
   },
@@ -8454,7 +8480,8 @@
 	 "amount": 1,
 	 "random": false,
 	 "filter": "non_seal",
-	 "to": "removed"
+	 "to": "removed",
+	 "reveal_if_none": true
 	}
    ]
   },
@@ -8540,7 +8567,8 @@
 	 "all": true,
 	 "random": false,
 	 "filter": "non_combat",
-	 "reveal": true
+	 "reveal": true,
+	 "after_empower": true
 	}
    ]
   },
@@ -8614,14 +8642,14 @@
 	{
 	 "may": true,
 	 "op": "discard_in_play",
-	 "card_type": "non_combat_only",
+	 "card_type": "non_combat_card",
 	 "amount": 1,
 	 "choose": true,
 	 "then": [
 	  {
 	   "op": "discard_in_play",
 	   "who": "opponent",
-	   "card_type": "non_combat",
+	   "card_type": "non_combat_card",
 	   "amount": 2,
 	   "choose": true
 	  }
@@ -8639,7 +8667,7 @@
 	 "trigger": "discard_step",
 	 "may": true,
 	 "when": {
-	  "energy_min": 1
+	  "duelist_energy_min": 1
 	 },
 	 "op": "energy",
 	 "amount": -1,
@@ -8672,7 +8700,8 @@
    "effects": [
 	{
 	 "op": "attach",
-	 "to": "opponent_duelist"
+	 "to": "opponent_duelist",
+	 "after_empower": true
 	}
    ]
   },
@@ -11470,6 +11499,532 @@
 	 }
 	]
    }
+  },
+  {
+   "id": "shade_strike_18",
+   "title": "Shade Feeding Whisper",
+   "type": "strike",
+   "school": "shade",
+   "defense": {
+	"stops": "strike"
+   },
+   "tags": [
+	"whisper"
+   ],
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 2
+	}
+   ]
+  },
+  {
+   "id": "shade_strike_20",
+   "title": "Shade Opening Whisper",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 10,
+	"only_first_card": true
+   },
+   "tags": [
+	"whisper"
+   ],
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "forbid",
+	 "who": "opponent",
+	 "what": "strike_attacks",
+	 "duration": "combat"
+	},
+	{
+	 "trigger": "if_stopped",
+	 "op": "discard_life",
+	 "amount": 5
+	}
+   ]
+  },
+  {
+   "id": "shade_strike_16",
+   "title": "Shade Stilling Whisper",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "tags": [
+	"whisper"
+   ],
+   "attachment": {
+	"target": "opponent_non_combat",
+	"disables_host": true
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "attach",
+	 "to": "opponent_non_combat"
+	}
+   ]
+  },
+  {
+   "id": "shade_strike_21",
+   "title": "Shade Named Doom",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "effects": [
+	{
+	 "op": "name_card",
+	 "pool": "opponent_deck",
+	 "filter": {
+	  "non_seal": true
+	 },
+	 "strip": {
+	  "to": "discard",
+	  "amount": 1
+	 }
+	}
+   ]
+  },
+  {
+   "id": "shade_combat_03",
+   "title": "Shade Creeping Dark",
+   "type": "combat",
+   "school": "shade",
+   "effects": [
+	{
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": "owner_surge"
+	}
+   ]
+  },
+  {
+   "id": "shade_combat_02",
+   "title": "Shade Erased Name",
+   "type": "combat",
+   "school": "shade",
+   "effects": [
+	{
+	 "op": "name_card",
+	 "pool": "library",
+	 "filter": {
+	  "card_type": "hand_combat"
+	 },
+	 "strip": {
+	  "to": "removed"
+	 }
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "shade_combat_05",
+   "title": "Shade Mockery Hex",
+   "type": "combat",
+   "school": "shade",
+   "effects": [
+	{
+	 "op": "discard_life",
+	 "who": "opponent",
+	 "amount": "twice_fervor"
+	},
+	{
+	 "may": true,
+	 "op": "cycle_hand",
+	 "who": "opponent"
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "shade_noncombat_01",
+   "title": "Shade Pilfering Shadow",
+   "type": "non_combat",
+   "school": "shade",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "search",
+	 "whose": "opponent",
+	 "amount": 2,
+	 "to": "removed"
+	}
+   ]
+  },
+  {
+   "id": "shade_strike_17",
+   "title": "Shade Wasting Mark",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "attachment": {
+	"target": "opponent_duelist",
+	"discard_at_full": true,
+	"host_modifiers": [
+	 {
+	  "scope": "own",
+	  "kind": "any",
+	  "stages": -2
+	 }
+	]
+   },
+   "effects": [
+	{
+	 "op": "attach",
+	 "to": "opponent_duelist"
+	}
+   ]
+  },
+  {
+   "id": "shade_art_13",
+   "title": "Shade Dilemma Hex",
+   "type": "art",
+   "school": "shade",
+   "attack": {
+	"kind": "art",
+	"cost_stages": 3
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "may": true,
+	 "op": "discard_hand",
+	 "amount": 1,
+	 "random": false,
+	 "then": [
+	  {
+	   "may": true,
+	   "asks": "opponent",
+	   "op": "discard_hand",
+	   "who": "opponent",
+	   "amount": 1,
+	   "random": true,
+	   "otherwise": [
+		{
+		 "op": "energy",
+		 "who": "opponent",
+		 "amount": -4
+		}
+	   ]
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "shade_combat_04",
+   "title": "Shade Stolen Secret",
+   "type": "combat",
+   "school": "shade",
+   "effects": [
+	{
+	 "op": "reveal_hand",
+	 "who": "opponent",
+	 "look": true
+	},
+	{
+	 "op": "skip_next_attack_phase",
+	 "who": "opponent"
+	},
+	{
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "own",
+	  "kind": "any",
+	  "life": 2,
+	  "once": true
+	 }
+	}
+   ],
+   "endurance": 2
+  },
+  {
+   "id": "shade_drill_04",
+   "title": "Shade Clouded Mind Drill",
+   "type": "drill",
+   "school": "shade",
+   "effects": [
+	{
+	 "trigger": "on_success",
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1,
+	 "random": true,
+	 "to": "deck_shuffle"
+	},
+	{
+	 "trigger": "on_success",
+	 "op": "draw",
+	 "who": "opponent",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "shade_strike_19",
+   "title": "Shade Gathered Hexes",
+   "type": "strike",
+   "school": "shade",
+   "defense": {
+	"stops": "art"
+   },
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "op": "search",
+	 "source": "discard",
+	 "school": "shade",
+	 "amount": 3,
+	 "to": "deck_shuffle",
+	 "must": true
+	}
+   ]
+  },
+  {
+   "id": "shade_strike_22",
+   "title": "Shade Sapping Shadow",
+   "type": "strike",
+   "school": "shade",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "who": "opponent",
+	 "amount": -1,
+	 "target": "duelist"
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "shade_drill_07",
+   "title": "Shade Reclaimed Hex Drill",
+   "type": "drill",
+   "school": "shade",
+   "effects": [
+	{
+	 "trigger": "on_stop",
+	 "may": true,
+	 "op": "recover",
+	 "amount": 1,
+	 "from": "bottom"
+	}
+   ]
+  },
+  {
+   "id": "shade_drill_05",
+   "title": "Shade Umbra Drill",
+   "type": "drill",
+   "school": "shade",
+   "shield": "art"
+  },
+  {
+   "id": "shade_strike_23",
+   "title": "Shade Reaching Shadow",
+   "type": "strike",
+   "school": "shade",
+   "attack": {
+	"kind": "strike",
+	"stages": 3
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "energy",
+	 "amount": 3
+	}
+   ]
+  },
+  {
+   "id": "shade_art_12",
+   "title": "Shade Culling Hex",
+   "type": "art",
+   "school": "shade",
+   "attack": {
+	"kind": "art"
+   },
+   "endurance": 2,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "ally",
+	 "amount": 1,
+	 "choose": true
+	}
+   ]
+  },
+  {
+   "id": "shade_noncombat_02",
+   "title": "Shade Shadow Respite",
+   "type": "non_combat",
+   "school": "shade",
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "energy",
+	 "amount": "max",
+	 "target": "any"
+	},
+	{
+	 "trigger": "use",
+	 "may": true,
+	 "op": "end_combat"
+	}
+   ]
+  },
+  {
+   "id": "shade_drill_06",
+   "title": "Shade Effacing Drill",
+   "type": "drill",
+   "school": "shade",
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "on_success",
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat_card",
+	 "amount": 1,
+	 "choose": true,
+	 "remove": true,
+	 "when": {
+	  "attack_kind": "art"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "shade_mastery_02",
+   "title": "Shade Tithe Mastery",
+   "type": "mastery",
+   "school": "shade",
+   "limit_per_deck": 1,
+   "once_per_combat": true,
+   "only": {
+	"when": {
+	 "hand_min": 1
+	}
+   },
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "discard_hand",
+	 "amount": 1,
+	 "random": false,
+	 "then": [
+	  {
+	   "op": "discard_hand",
+	   "who": "opponent",
+	   "amount": 1,
+	   "random": true,
+	   "when": {
+		"discard_top_school": "shade"
+	   }
+	  },
+	  {
+	   "op": "discard_hand",
+	   "who": "opponent",
+	   "amount": 1,
+	   "random": false,
+	   "when": {
+		"discard_top_school_not": "shade"
+	   }
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "shade_mastery_03",
+   "title": "Shade Blight Mastery",
+   "type": "mastery",
+   "school": "shade",
+   "limit_per_deck": 1,
+   "grant_attack_lines": {
+	"school": "shade",
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "may": true,
+	  "op": "discard_in_play",
+	  "who": "any",
+	  "card_type": "non_combat_card",
+	  "amount": 1,
+	  "choose": true
+	 }
+	],
+	"otherwise": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "discard_in_play",
+	  "who": "any",
+	  "card_type": "drill",
+	  "amount": 1,
+	  "choose": true
+	 }
+	]
+   }
+  },
+  {
+   "id": "shade_mastery_04",
+   "title": "Shade Eclipse Mastery",
+   "type": "mastery",
+   "school": "shade",
+   "limit_per_deck": 1,
+   "stop_focused_school": "shade",
+   "free_action": true,
+   "only": {
+	"when": {
+	 "hand_school_min": {
+	  "school": "shade",
+	  "count": 1
+	 }
+	}
+   },
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "discard_hand",
+	 "amount": 1,
+	 "random": false,
+	 "filter": {
+	  "school": "shade"
+	 },
+	 "then": [
+	  {
+	   "op": "fervor",
+	   "amount": 1
+	  },
+	  {
+	   "op": "energy",
+	   "amount": 6,
+	   "target": "duelist"
+	  }
+	 ]
+	}
+   ]
   }
  ]
 }

@@ -543,7 +543,7 @@ two Non-Combats are `root_noncombat_01` and `root_noncombat_02`, neither of whic
 
 | id | name | cards | theme | wants it | tier | why |
 |---|---|---|---|---|---|---|
-| `shade_hand_strip` | Hand strip | `shade_strike_01`, `shade_strike_04` x2 | hand attack, board removal | control, allies | early | Oblivion Touch removes from hand rather than discarding, so it beats recursion |
+| `shade_hand_strip` | Hand strip | `shade_strike_03`, `shade_strike_04` x2 | hand attack, board removal | control, allies | early | Slipping Thought sends a random card from their hand back into their deck, so the card they were holding for later is gone for now |
 | `shade_art_answer` | Art answers | `shade_art_08` x2, `shade_art_04` | stop by kind | all Shade | early | Shade's Art stops, two of which also pay Fervor |
 | `shade_strike_answer` | Strike answers | `shade_art_01` x2, `shade_strike_03` | stop by kind | all Shade | early | Both are attacks on your turn and Strike stops on theirs |
 | `shade_hand_keep` | Hand keep | `shade_drill_02` x2, `shade_drill_01` | Drill engine, draw | drills, control | early | Composure Drill raises the Discard step floor to 2, which is the deck's hand size |

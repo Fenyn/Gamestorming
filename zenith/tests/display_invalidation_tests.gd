@@ -33,6 +33,7 @@ func _run() -> void:
 	display.surface.pixel_size = 0.001
 	display.life_transform.origin = Vector3(0.8, 0, 0)
 	display.readout.redraw_requested.connect(func() -> void: requests += 1)
+	display.plate_readout.redraw_requested.connect(func() -> void: requests += 1)
 	display.anchor_to_card(card, camera)
 	_check(requests > 0, "Initial anchoring requests a resource texture")
 	var initial: int = requests
@@ -50,18 +51,21 @@ func _run() -> void:
 	_check(requests == initial + 1, "Unchanged preview does not redraw")
 	display.preview_energy()
 	_check(requests == initial + 2, "Leaving a preview removes its projected cost")
+	# The fixture lies on the table: a hover lift on the card's face and any camera move leave it
+	# where it is; only the card itself moving to a new place does not.
 	var before_move: int = requests
 	card.front.position.x += 0.1
 	display.anchor_to_card(card, camera)
-	_check(requests > before_move, "Animated card geometry invalidates anchoring")
-	before_move = requests
+	_check(requests == before_move, "A hover lift on the card's face leaves the plate in place")
 	camera.position.z += 1.0
 	display.anchor_to_card(card, camera)
-	_check(requests > before_move, "Camera movement invalidates anchoring")
-	before_move = requests
+	_check(requests == before_move, "Camera movement leaves the table layout alone")
 	camera.fov += 5.0
 	display.anchor_to_card(card, camera)
-	_check(requests > before_move, "Camera projection changes invalidate anchoring")
+	_check(requests == before_move, "Camera projection changes leave the table layout alone")
+	card.position.x += 0.1
+	display.anchor_to_card(card, camera)
+	_check(requests > before_move, "The card moving on the table moves its fixture")
 	before_move = requests
 	display.life_transform.origin.x += 1.0
 	display.anchor_to_card(card, camera)

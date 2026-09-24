@@ -369,6 +369,17 @@ func _init() -> void:
 		test_tide_narrow_channel_and_parting_waters,
 		test_tide_leeching_brine_rides_their_duelist,
 		test_tide_masteries_stop_with_a_discard_and_grant_arts_a_line,
+		test_shade_prying_whisper_removes_unless_they_discard,
+		test_shade_silenced_whisper_lets_them_choose_and_shows_a_seal_hand,
+		test_shade_returning_whisper_leaves_the_game_only_on_a_hit,
+		test_shade_stilling_whisper_shuts_off_a_non_combat_card,
+		test_shade_wasting_mark_weakens_their_attacks_until_full,
+		test_shade_opening_whisper_must_be_the_first_card,
+		test_shade_searches_and_names_reach_their_life_deck,
+		test_shade_mockery_hex_and_creeping_dark_mill_by_the_numbers,
+		test_shade_stolen_secret_looks_skips_and_banks,
+		test_shade_drills_answer_hits_and_stops,
+		test_shade_masteries_discard_to_hurt_their_hand,
 		test_the_card_group_tells_signature_from_freestyle,
 		test_every_shipped_card_lands_in_one_group,
 		test_a_duelist_stack_is_one_character_consecutive_from_aspect_one,
@@ -6637,7 +6648,21 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 	for id in ["tide_mastery_03", "tide_mastery_04"]:
 		tide_types[id] = "mastery"
 	eq(tide_types.size(), 24, "22 Tide cards and 2 Tide Masteries were approved")
-	var by_school: Dictionary = {"storm": storm_types, "root": root_types, "pyre": pyre_types, "steel": steel_types, "tide": tide_types}
+	var shade_types: Dictionary = {}
+	for n in range(16, 24):
+		shade_types["shade_strike_%d" % n] = "strike"
+	for id in ["shade_art_12", "shade_art_13"]:
+		shade_types[id] = "art"
+	for n in range(2, 6):
+		shade_types["shade_combat_%02d" % n] = "combat"
+	for n in range(4, 8):
+		shade_types["shade_drill_%02d" % n] = "drill"
+	for id in ["shade_noncombat_01", "shade_noncombat_02"]:
+		shade_types[id] = "non_combat"
+	for n in range(2, 5):
+		shade_types["shade_mastery_%02d" % n] = "mastery"
+	eq(shade_types.size(), 23, "20 Shade cards and 3 Shade Masteries were approved")
+	var by_school: Dictionary = {"storm": storm_types, "root": root_types, "pyre": pyre_types, "steel": steel_types, "tide": tide_types, "shade": shade_types}
 	for school in by_school.keys():
 		var wanted: Dictionary = by_school[school]
 		for id in wanted.keys():
@@ -6649,8 +6674,8 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 			eq(def.type, int(CardDef.TYPE_NAMES[str(wanted[id])]), "%s is a %s card" % [id, wanted[id]])
 			check(CardText.rules_text(def) != "" or def.type == CardDef.Type.DRILL, "%s prints something" % id)
 	# 397 before the personality split; the 27 stack cards became 62 one-Aspect cards. The Pyre
-	# expansion added 27, the Steel expansion 23 and the Tide expansion 24.
-	eq(shipped().defs.size(), 512, "and the set is 450 other cards plus 62 Aspect cards")
+	# expansion added 27, Steel 23, Tide 24 and Shade 23.
+	eq(shipped().defs.size(), 535, "and the set is 473 other cards plus 62 Aspect cards")
 
 
 ## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
@@ -10035,3 +10060,244 @@ func test_tide_masteries_stop_with_a_discard_and_grant_arts_a_line() -> void:
 	var strike_card: CardInstance = real_to_hand(f, 0, "tide_strike_16")
 	var plain: Dictionary = f._build_attack(0, strike_card, strike_card.def.attack, strike_card.def.effects, false, false, false, null, true)
 	eq((plain["effects"] as Array).size(), 1, "a Tide Strike gains nothing")
+
+
+# --- The Shade expansion and review, 2026-09-23 ----------------------------
+
+## "Discard one of your opponent's Non-Combat cards or Allies in play. Unless your opponent discards
+## a card from his hand when you perform this attack, remove an additional one from the game."
+func test_shade_prying_whisper_removes_unless_they_discard() -> void:
+	check(bool(shipped().get_def("shade_strike_01").raw.get("reserve_only", false)), "it is Sensei Deck only, so Reserve only")
+	for answer_value in ["no", "yes"]:
+		var e: DuelEngine = real_engine(real_deck(["shade_strike_01"], "pact", "shade"), real_deck([], "vigil"))
+		var first: CardInstance = real_inject(e, 1, "storm_drill_03")
+		var second: CardInstance = real_inject(e, 1, "storm_drill_04")
+		to_attack(e, 0)
+		var held: int = e.player(1).hand.size()
+		answer(e, &"attack", uid_in_hand(e, 0, "shade_strike_01"))
+		answer(e, &"pick_in_play", first.uid)
+		eq(prompt_kind(e), &"pick_option", "the opponent is asked whether to discard")
+		eq(e.prompt.player, 1, "and it is their question")
+		answer(e, &"pick_option", -1, answer_value)
+		if prompt_kind(e) == &"discard_choice":
+			e.submit(e.prompt.options[0])
+		if answer_value == "no":
+			eq(second.zone, &"removed", "refusing costs them the second card, out of the game")
+		else:
+			eq(second.zone, &"in_play", "discarding a card saves the second")
+			eq(e.player(1).hand.size(), held - 1, "and the card came out of their hand")
+
+
+## "Your opponent must remove from the game 1 non-Dragon Ball card in his hand. If your opponent has
+## only Dragon Balls in his hand, he must show you his hand but no cards are removed."
+func test_shade_silenced_whisper_lets_them_choose_and_shows_a_seal_hand() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	e._apply_effect(shipped().get_def("shade_strike_10").effects[0], 0, {}, null)
+	eq(prompt_kind(e), &"discard_choice", "the pick is theirs")
+	eq(e.prompt.player, 1, "made by the opponent")
+	e.prompts.clear()
+	e._choice = {}
+	for c in them.hand.duplicate():
+		e._move_to_discard(c)
+	real_to_hand(e, 1, "seal_08")
+	e._apply_effect(shipped().get_def("shade_strike_10").effects[0], 0, {}, null)
+	check(has_event(e, &"hand_revealed"), "a hand of Seals is shown")
+	eq(prompt_kind(e), &"pick_option", "to the attacker, as a look")
+	eq(e.prompt.player, 0, "the attacker sees it")
+	eq(them.hand.size(), 1, "and nothing was removed")
+	var f: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var held: int = f.player(1).hand.size()
+	var deck: int = f.player(1).life_deck.size()
+	for line in shipped().get_def("shade_strike_04").effects:
+		f._apply_effect(line, 0, {}, null)
+	eq(f.player(1).hand.size(), held, "Slipping Thought leaves their hand the same size")
+	eq(f.player(1).life_deck.size(), deck, "and their deck too, one card in and one drawn")
+
+
+## "If successful, place 3 cards with 'Kick' in the title on top of your Life Deck and remove this
+## card from the game": a stopped one goes to the pile as usual.
+func test_shade_returning_whisper_leaves_the_game_only_on_a_hit() -> void:
+	var e: DuelEngine = real_engine(real_deck(["shade_strike_09"], "pact", "shade"), real_deck([], "vigil"))
+	to_attack(e, 0)
+	var whisper: int = uid_in_hand(e, 0, "shade_strike_09")
+	answer(e, &"attack", whisper)
+	settle(e, 8)
+	eq(e.card(whisper).zone, &"removed", "a hit removes it")
+	var f: DuelEngine = real_engine(real_deck(["shade_strike_09"], "pact", "shade"), real_deck([], "vigil"))
+	var guard: CardInstance = real_to_hand(f, 1, "pyre_strike_14")
+	to_attack(f, 0)
+	var stopped: int = uid_in_hand(f, 0, "shade_strike_09")
+	answer(f, &"attack", stopped)
+	answer(f, &"defend", guard.uid)
+	settle(f, 6)
+	eq(f.card(stopped).zone, &"discard", "a stopped one is discarded")
+
+
+## "If successful, attach to one of your opponent's Non-Combat cards in play. While attached, this
+## Non-Combat card cannot be used."
+func test_shade_stilling_whisper_shuts_off_a_non_combat_card() -> void:
+	var e: DuelEngine = real_engine(real_deck(["shade_strike_16"], "pact", "shade"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	var drill_card: CardInstance = real_inject(e, 1, "steel_drill_01")
+	eq(e._modifiers_for(them, "own", "strike", null, {}).size(), 1, "their Drill adds to Strikes")
+	to_attack(e, 0)
+	var still: int = uid_in_hand(e, 0, "shade_strike_16")
+	answer(e, &"attack", still)
+	settle(e, 8)
+	eq(e.card(still).attached_to, drill_card, "the hit attached it to their Drill")
+	eq(e._modifiers_for(them, "own", "strike", null, {}).size(), 0, "and the Drill does nothing while it rides there")
+	e._move_to_discard(drill_card)
+	eq(e.card(still).zone, &"discard", "when the Drill goes, the rider goes with it")
+
+
+## "Attach to your opponent's Main Personality. While attached, all attacks performed by that
+## personality do -2 power stages of damage. Discard this card when the attached personality
+## reaches his highest power stage."
+func test_shade_wasting_mark_weakens_their_attacks_until_full() -> void:
+	var e: DuelEngine = real_engine(real_deck(["shade_strike_17"], "pact", "shade"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	to_attack(e, 0)
+	var mark: int = uid_in_hand(e, 0, "shade_strike_17")
+	answer(e, &"attack", mark)
+	settle(e, 8)
+	eq(e.card(mark).attached_to, them.duelist, "it rides their duelist")
+	var total: int = 0
+	for entry in e._modifiers_for(them, "own", "strike", null, {}):
+		total += int((entry["m"] as Dictionary).get("stages", 0))
+	eq(total, -2, "their attacks do 2 less Energy")
+	them.duelist.energy = CardInstance.MAX_STAGE
+	e._sweep_full_energy_riders()
+	eq(e.card(mark).zone, &"discard", "a full duelist shakes it off")
+
+
+## "This must be the first card you use during Combat."
+func test_shade_opening_whisper_must_be_the_first_card() -> void:
+	var e: DuelEngine = real_engine(real_deck(["shade_strike_20"], "pact", "shade"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	var opening: CardDef = shipped().get_def("shade_strike_20")
+	to_attack(e, 0)
+	check(e._attack_allowed(me, opening), "nothing used yet, so it may open the Combat")
+	me.used_card_combat = true
+	check(not e._attack_allowed(me, opening), "after any card it may not")
+
+
+## "Search your opponent's Life Deck for 2 Non-Dragon Ball cards and remove them from the game",
+## "name a card ... search your opponent's Life Deck for 1 copy of that card and discard it", and
+## "name any Combat card; all of your opponents must search their Life Decks for all copies".
+func test_shade_searches_and_names_reach_their_life_deck() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "shade"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	var hits: Array[CardInstance] = e.search_candidates(e.player(0), {"whose": "opponent", "to": "removed"})
+	check(not hits.is_empty() and hits[0].owner == 1, "the search looks through their deck")
+	# Named Doom: one copy only.
+	for i in range(2):
+		real_to_deck(e, 1, "tide_strike_16")
+	var copies: int = 0
+	e._strip_named(them, "Tide Breaking Sea", {"to": "discard", "amount": 1})
+	for c in them.discard:
+		if c.def.id == "tide_strike_16":
+			copies += 1
+	eq(copies, 1, "one copy was discarded")
+	# Erased Name: the namer chooses from every Combat card and is shown nothing.
+	var erased: CardInstance = real_to_hand(e, 0, "shade_combat_02")
+	e._prompt_name_card(e.player(0), erased, erased.def.effects[0])
+	eq(prompt_kind(e), &"name_card", "a name is asked for")
+	check(e.prompt.find(&"name_card", -1, "Pyre Bonfire") != null, "any Strike card in the game may be named")
+	check(e.prompt.find(&"name_card", -1, "Steel Hardscale Drill") == null, "a Drill may not")
+	check(not e.prompt.context.has("library"), "and their deck is not shown")
+
+
+## "Your opponent discards 2 cards from the top of his Life Deck for each anger level he is at above
+## 0" and "discards an amount of cards from his Life Deck equal to your Main Personality's PUR".
+func test_shade_mockery_hex_and_creeping_dark_mill_by_the_numbers() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "shade"), real_deck([], "vigil"))
+	var them: PlayerState = e.player(1)
+	them.fervor = 2
+	var deck: int = them.life_deck.size()
+	e._apply_effect({"op": "discard_life", "who": "opponent", "amount": "twice_fervor"}, 0, {}, null)
+	eq(deck - them.life_deck.size(), 4, "Fervor 2 costs them 4 cards")
+	deck = them.life_deck.size()
+	e._apply_effect({"op": "discard_life", "who": "opponent", "amount": "owner_surge"}, 0, {}, null)
+	eq(deck - them.life_deck.size(), e.surge_of(e.player(0)), "the user's Surge in cards")
+	var held: int = them.hand.size()
+	e._apply_effect({"op": "cycle_hand", "who": "opponent"}, 0, {}, null)
+	eq(them.hand.size(), held, "their hand went into the deck and as many came back")
+
+
+## "Look at your opponent's hand. Your opponent skips his next Attacker Attacks phase. The next
+## attack you perform this Combat does +2 life cards of damage."
+func test_shade_stolen_secret_looks_skips_and_banks() -> void:
+	var e: DuelEngine = real_engine(real_deck(["shade_combat_04"], "pact", "shade"), real_deck([], "vigil"))
+	to_attack(e, 0)
+	answer(e, &"use", uid_in_hand(e, 0, "shade_combat_04"))
+	eq(prompt_kind(e), &"pick_option", "the hand is shown as a look")
+	eq((e.prompt.context.get("library", []) as Array).size(), e.player(1).hand.size(), "every card in it")
+	answer(e, &"pick_none")
+	check(has_event(e, &"attack_phase_skipped"), "their next attack phase was skipped")
+	var banked: int = 0
+	for f in e.state.floating:
+		if int(f.get("owner", -1)) == 0 and bool(f.get("once", false)):
+			banked = int(f.get("life", 0))
+	eq(banked, 2, "and the next attack does +2 wounds")
+
+
+## "Whenever you perform a successful attack, shuffle a random card from their hand into their Life
+## Deck, then they draw 1", and "whenever you stop an attack, you may put your bottom discard under
+## your Life Deck".
+func test_shade_drills_answer_hits_and_stops() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact", "shade"), real_deck([], "vigil"))
+	real_inject(e, 0, "shade_drill_04")
+	to_attack(e, 0)
+	var held: int = e.player(1).hand.size()
+	var deck: int = e.player(1).life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	settle(e, 8)
+	eq(e.player(1).hand.size(), held, "one card went into their deck and one was drawn")
+	check(has_event(e, &"hand_discarded"), "a card left their hand")
+	var f: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil", "shade"))
+	real_inject(f, 1, "shade_drill_07")
+	var guard: CardInstance = real_to_hand(f, 1, "pyre_strike_14")
+	to_attack(f, 0)
+	var oldest: CardInstance = f._instance(shipped().get_def("tide_strike_16"), 1, &"discard")
+	f.player(1).discard.insert(0, oldest)
+	answer(f, &"attack", uid_in_hand(f, 0, "root_strike_04"))
+	answer(f, &"defend", guard.uid)
+	settle(f, 4)
+	eq(prompt_kind(f), &"pick_option", "the stop offers the Drill")
+	answer(f, &"pick_option", -1, "yes")
+	eq(oldest.zone, &"life_deck", "the bottom discard went under the deck")
+
+
+## "In place of an attack, discard a card from your hand. If it is a Black Style card, discard a
+## card at random from your opponent's hand" and "you may discard a Black Style card during your
+## Attacker Attacks phase to raise your anger 1 level and have your Main Personality gain 6".
+func test_shade_masteries_discard_to_hurt_their_hand() -> void:
+	var d: DeckList = real_deck([], "pact", "shade")
+	d.mastery_id = "shade_mastery_04"
+	var e: DuelEngine = real_engine(d, real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	to_attack(e, 0)
+	check(e.prompt.find(&"use", me.mastery.uid) == null, "no Shade card in hand, so Eclipse is not offered")
+	var fuel: CardInstance = real_to_hand(e, 0, "shade_strike_18")
+	e._prompt_attack_action(me)
+	me.duelist.energy = 2
+	answer(e, &"use", me.mastery.uid)
+	if prompt_kind(e) == &"discard_choice":
+		answer(e, &"discard_choice", fuel.uid)
+	eq(fuel.zone, &"discard", "the Shade card was discarded")
+	eq(me.fervor, 1, "Fervor +1")
+	eq(me.duelist.energy, 8, "the duelist gained 6")
+	eq(prompt_kind(e), &"attack_action", "and the attack phase is still open")
+	eq(e.prompt.player, 0, "for the same player")
+	# Blight: a Shade attack's Hit may take a Non-Combat card; any other attack's takes a Drill.
+	var b: DeckList = real_deck([], "pact", "shade")
+	b.mastery_id = "shade_mastery_03"
+	var f: DuelEngine = real_engine(b, real_deck([], "vigil"))
+	var shade_card: CardInstance = real_to_hand(f, 0, "shade_strike_23")
+	var built: Dictionary = f._build_attack(0, shade_card, shade_card.def.attack, shade_card.def.effects, false, false, false, null, true)
+	var last_line: Dictionary = (built["effects"] as Array).back()
+	eq(str(last_line.get("card_type", "")), "non_combat_card", "a Shade attack gains the Non-Combat line")
+	var plain: CardInstance = real_to_hand(f, 0, "root_strike_04")
+	var other: Dictionary = f._build_attack(0, plain, plain.def.attack, plain.def.effects, false, false, false, null, true)
+	eq(str(((other["effects"] as Array).back() as Dictionary).get("card_type", "")), "drill", "any other attack gains the Drill line")

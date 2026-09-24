@@ -543,16 +543,23 @@ static func rules_text(def: CardDef) -> String:
 				host = "the personality your opponent has in control"
 			"in_control":
 				host = "the personality in control"
+			"opponent_non_combat":
+				host = "one of your opponent's Non-Combat cards"
 			_:
 				host = "your duelist"
 		var parts: PackedStringArray = PackedStringArray()
 		for m in def.attachment.get("modifiers", []):
 			parts.append(modifier_text(m))
+		for m in def.attachment.get("host_modifiers", []):
+			# The rider speaks for the personality it rides on, which is not the card's owner.
+			parts.append(modifier_text(m).replace("Your attacks", "Attacks that personality performs"))
+		if bool(def.attachment.get("disables_host", false)):
+			parts.append("That card cannot be used.")
 		parts.append_array(effects_text(def.attachment.get("effects", [])))
 		if bool(def.attachment.get("damage_removes", false)):
 			parts.append("Wounds from those attacks are removed from the game.")
 		if bool(def.attachment.get("no_prevent", false)):
-			parts.append("Damage from your attacks cannot be prevented.")
+			parts.append("Damage from your attacks cannot be prevented while that personality is in control of Combat.")
 		for t in def.attachment.get("grants_tags", []):
 			parts.append("They count as %s while this is attached." % keyword_name(str(t)))
 		var lent_line: String = str(def.attachment.get("grants_bloodline", ""))
@@ -617,6 +624,8 @@ static func rules_text(def: CardDef) -> String:
 			school_name(burn_school) if burn_school != "" else "your", int(burn.get("prevent_per", 2))])
 	if bool(def.raw.get("protect_drills", false)):
 		lines.append("Your Drills cannot be discarded for any reason, an aspect change included.")
+	if str(def.raw.get("stop_focused_school", "")) != "":
+		lines.append("Your %s cards that are not Drills and can stop attacks can also stop Focused attacks." % school_name(str(def.raw["stop_focused_school"])))
 	if bool(def.raw.get("allies_undiscardable", false)):
 		lines.append("Your Allies in play cannot be discarded.")
 	if bool(def.raw.get("mill_on_empty_fervor", false)):
@@ -628,11 +637,14 @@ static func rules_text(def: CardDef) -> String:
 	if bool(def.raw.get("no_ascension_win", false)):
 		lines.append("You cannot win by Ascension.")
 	var grant: Dictionary = def.raw.get("grant_attack_lines", {})
+	if not grant.is_empty() and grant.has("otherwise"):
+		lines.append("Your attacks gain \"%s\"" % " ".join(effects_text(grant.get("otherwise", []))))
 	if not grant.is_empty():
 		var granted: PackedStringArray = effects_text(grant.get("effects", []))
 		var granted_kind: String = str(grant.get("kind", ""))
-		lines.append("Your %s%s gain \"%s\"" % [(school_name(str(grant["school"])) + " ") if str(grant.get("school", "")) != "" else "",
-			"attacks" if granted_kind == "" else granted_kind.capitalize() + "s", " ".join(granted)])
+		lines.append("Your %s%s gain \"%s\"%s" % [(school_name(str(grant["school"])) + " ") if str(grant.get("school", "")) != "" else "",
+			"attacks" if granted_kind == "" else granted_kind.capitalize() + "s", " ".join(granted),
+			" instead." if grant.has("otherwise") else ""])
 	var rejuv: Dictionary = def.raw.get("recover_bonus", {})
 	if not rejuv.is_empty():
 		lines.append("In the Recover step, if the card you put back into your Life Deck is %s card, %s" % [
@@ -801,7 +813,8 @@ static func attack_text(a: Dictionary) -> String:
 			gains.append(_plural(int(pay["life"]), "wound", "wounds"))
 		if int(pay.get("stages", 0)) != 0:
 			gains.append("%d Energy of damage" % int(pay["stages"]))
-		s += " You may pay any amount of Energy; each %d paid adds %s." % [int(pay.get("per", 2)), " and ".join(gains)]
+		s += " You may pay any amount of %s; each %d paid adds %s." % [
+			("your duelist's Energy" if str(pay.get("from", "")) == "duelist" else "Energy"), int(pay.get("per", 2)), " and ".join(gains)]
 	if a.has("pay_life"):
 		var plife: Dictionary = a["pay_life"]
 		var adds: PackedStringArray = PackedStringArray()
@@ -832,6 +845,8 @@ static func attack_text(a: Dictionary) -> String:
 		s += " Cannot be prevented by %s cards." % str(a["no_prevent_by"]).capitalize()
 	if bool(a.get("only_first_attack", false)):
 		s += " Must be your first attack this Combat."
+	if bool(a.get("only_first_card", false)):
+		s += " Must be the first card you use this Combat."
 	if int(a.get("stops_needed", 1)) > 1:
 		s += " Takes %d stops to stop." % int(a["stops_needed"])
 	if int(a.get("life_per_opponent_seal", 0)) > 0:
@@ -955,6 +970,8 @@ static func cond_text(when: Dictionary) -> String:
 				parts.append("your discard pile has a card")
 			"energy_min":
 				parts.append("your duelist has %d or more Energy" % int(v))
+			"duelist_energy_min":
+				parts.append("your duelist has %d or more Energy" % int(v))
 			"attack_only_tag":
 				parts.append("the attack is %s only" % keyword_name(str(v)))
 			"hand_min":
@@ -1075,6 +1092,11 @@ static func _effect_body(e: Dictionary) -> String:
 			body = "Shuffle this card into your Life Deck."
 		"show_checked":
 			body = "Show it to your opponent."
+		"exile_source":
+			body = "Remove this card from the game."
+		"cycle_hand":
+			body = ("Your opponent shuffles their hand into their Life Deck; they then draw that many cards." if opp
+				else "Shuffle your hand into your Life Deck and draw that many cards.")
 		"reveal_pick":
 			var picks_self: String = ""
 			if e.has("self_picks_when"):
@@ -1102,10 +1124,17 @@ static func _effect_body(e: Dictionary) -> String:
 			body = "Remove the top %s of %s Life Deck from the game." % [
 				_plural(n, "card", "cards").trim_prefix("a ").trim_prefix("an "),
 				("your opponent's" if opp else "your")]
+		"discard_life" when str(amount) == "owner_surge":
+			body = "Your opponent takes X wounds, X = your duelist's Surge Rate." if opp else "Take X wounds, X = your duelist's Surge Rate."
+		"discard_life" when str(amount) == "twice_fervor":
+			body = "Your opponent takes 2 wounds for each point of their Fervor." if opp else "Take 2 wounds for each point of your Fervor."
 		"discard_life" when str(amount) == "five_minus_fervor":
 			body = ("Your opponent takes X wounds, X = 5 minus their Fervor." if opp else "Take X wounds, X = 5 minus your Fervor.")
 		"discard_life":
 			body = ("Your opponent takes %s." if opp else "Take %s.") % _plural(n, "wound", "wounds")
+		"discard_hand" when str(e.get("to", "")) == "deck_shuffle" and bool(e.get("random", true)):
+			body = "Choose a card at random from your opponent's hand and shuffle it into their Life Deck." if opp \
+				else "Shuffle a card at random from your hand into your Life Deck."
 		"discard_hand":
 			var how: String = " at random" if bool(e.get("random", true)) else ""
 			if e.has("down_to"):
@@ -1124,6 +1153,8 @@ static func _effect_body(e: Dictionary) -> String:
 				var kept: String = " that is not a Seal" if str(e.get("filter", "")) == "non_seal" else ""
 				body = ("Your opponent removes %s in hand%s from the game, of their choice." if opp else \
 					"Remove %s in your hand%s from the game, of your choice.") % [_plural(n, "card", "cards"), kept]
+				if bool(e.get("reveal_if_none", false)) and opp:
+					body += " If they hold only Seals, they show you their hand."
 			elif str(e.get("to", "")) == "deck":
 				body = "Look at your opponent's hand and shuffle a card of your choice into their Life Deck."
 			elif str(e.get("chooser", "")) == "owner":
@@ -1138,8 +1169,13 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "Your opponent discards %s from hand%s." % [_plural(n, "card", "cards"), how]
 			elif str(e.get("filter", "")) == "signature":
 				body = "Discard %s from your hand%s." % [_plural(n, "Signature card", "Signature cards"), how]
+			elif e.get("filter", "") is Dictionary and str((e["filter"] as Dictionary).get("school", "")) != "":
+				var discard_school: String = school_name(str((e["filter"] as Dictionary)["school"]))
+				body = "Discard %s from your hand%s." % [_plural(n, discard_school + " card", discard_school + " cards"), how]
 			else:
 				body = "Discard %s from your hand%s." % [_plural(n, "card", "cards"), how]
+		"reveal_hand" when bool(e.get("look", false)) and opp:
+			body = "Look at your opponent's hand."
 		"reveal_hand":
 			body = "Your opponent shows you their hand." if opp else "Show your hand to your opponent."
 		"remove_hand":
@@ -1338,6 +1374,8 @@ static func _effect_body(e: Dictionary) -> String:
 					body = "Attach this card to your opponent's duelist."
 				"opponent_in_control":
 					body = "Attach this card to the personality your opponent has in control."
+				"opponent_non_combat":
+					body = "Attach this card to one of your opponent's Non-Combat cards in play."
 				"in_control":
 					body = "Attach this card to the personality in control."
 				"choose":
@@ -1353,8 +1391,18 @@ static func _effect_body(e: Dictionary) -> String:
 		"name_card" when not (e.get("strip", {}) as Dictionary).is_empty():
 			var kind_named: String = str((e.get("filter", {}) as Dictionary).get("attack_kind", ""))
 			var what_named: String = "a card" if kind_named == "" else "a card that can perform %s" % _a(kind_named.capitalize())
-			var gone: String = "remove them from the game" if str((e["strip"] as Dictionary).get("to", "discard")) == "removed" else "discard them"
-			body = "Name %s. Search your opponent's Life Deck for every copy of it and %s. Shuffle their Life Deck." % [what_named, gone]
+			if str((e.get("filter", {}) as Dictionary).get("card_type", "")) == "hand_combat":
+				what_named = "a Strike, Art or Combat card"
+			elif bool((e.get("filter", {}) as Dictionary).get("non_seal", false)):
+				what_named = "a card that is not a Seal"
+			var one_copy: bool = int((e["strip"] as Dictionary).get("amount", 0)) == 1
+			var gone: String = ("remove %s from the game" if str((e["strip"] as Dictionary).get("to", "discard")) == "removed" else "discard %s") % ("it" if one_copy else "them")
+			var copies: String = "1 copy of it" if one_copy else "every copy of it"
+			if str(e.get("pool", "")) == "library":
+				# The opponent does the searching, so the namer is shown nothing.
+				body = "Name %s. Your opponent searches their Life Deck for %s and must %s." % [what_named, copies, gone]
+			else:
+				body = "Name %s. Search your opponent's Life Deck for %s and %s. Shuffle their Life Deck." % [what_named, copies, gone]
 		"name_card":
 			body = "Name a card. Neither player may play or use it while this is in play."
 		"next_attack_tax":
@@ -1496,7 +1544,7 @@ static func _effect_body(e: Dictionary) -> String:
 
 const OPPONENT_VERBS: Dictionary = {
 	"discards": "discard", "removes": "remove", "loses": "lose", "gains": "gain", "takes": "take",
-	"draws": "draw", "skips": "skip", "pays": "pay", "must": "",
+	"draws": "draw", "skips": "skip", "pays": "pay", "must": "", "shuffles": "shuffle",
 }
 
 ## Label-style triggers; their condition sits inside the instruction.
@@ -1523,6 +1571,8 @@ static func _trigger_head(e: Dictionary) -> String:
 			return "After a successful attack"
 		"on_stopped":
 			return "When your opponent stops your attack"
+		"on_stop":
+			return "Whenever you stop an attack"
 		"discard_step":
 			return "At the beginning of each Discard step"
 		"on_wound":
@@ -1778,6 +1828,8 @@ static func _search_text_body(e: Dictionary) -> String:
 			from = "your Life Deck or discard pile"
 		"reserve":
 			from = "your Reserve"
+	if str(e.get("whose", "self")) == "opponent":
+		from = "your opponent's Life Deck"
 	var card_type: String = str(e.get("card_type", "card"))
 	var qual: PackedStringArray = PackedStringArray()
 	if str(e.get("school", "*")) != "*":
@@ -1832,6 +1884,8 @@ static func _search_text_body(e: Dictionary) -> String:
 		return "Choose %s from %s and place %s on top of your Life Deck.%s" % [what, from, ("them" if plural_pick else "it"), tail]
 	if str(e.get("to", "hand")) == "attack":
 		return "Search %s for %s and perform it during this attack phase." % [from, what]
+	if str(e.get("to", "hand")) == "removed":
+		return "Search %s for %s and remove %s from the game." % [from, what, ("it" if n == 1 else "them")]
 	if must:
 		return "Choose %s from %s and put %s into %s." % [what, from, ("it" if n == 1 else "them"), dest]
 	return"Search %s for %s and put %s into %s." % [from, what, ("it" if n == 1 else "them"), dest]

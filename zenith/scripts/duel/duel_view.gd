@@ -279,16 +279,12 @@ func _layout_fixtures() -> void:
 	var size: Vector2 = get_viewport().get_visible_rect().size
 	var depth: float = 3.0
 	var units: float = camera.project_position(Vector2(1, 0), depth).distance_to(camera.project_position(Vector2.ZERO, depth))
-	var width: float = minf(460.0, size.x * 0.275)
 	for fixture: DuelistDisplay in [near_duelist, far_duelist]:
 		var card: Card3D = views.get(fixture.duelist_uid)
 		fixture.visible = card != null and card.visible and not camera.is_position_behind(card.global_position)
 		if not fixture.visible:
 			continue
 		fixture.global_position = card.global_position
-		var card_depth: float = -camera.to_local(card.global_position).z
-		var card_units: float = camera.project_position(Vector2(1, 0), card_depth).distance_to(camera.project_position(Vector2.ZERO, card_depth))
-		fixture.surface.pixel_size = width / 760.0 * card_units
 		var owner: int = view.card(fixture.duelist_uid).owner
 		var count: int = view.player(owner).life_deck.size()
 		fixture.life_transform = zones.global_transform * zones.slot(owner, &"life_deck", maxi(0, count - 1), count, viewer)
@@ -297,12 +293,8 @@ func _layout_fixtures() -> void:
 		var near_card: Card3D = views.get(near_duelist.duelist_uid)
 		var life_x: float = camera.unproject_position(near_duelist.life_transform.origin).x
 		var fighter_screen: Vector2 = camera.unproject_position(near_card.global_position)
-		var pixel_scale: float = near_duelist.surface.pixel_size * near_duelist.global_basis.get_scale().x
-		var scale_pixels: float = fighter_screen.distance_to(camera.unproject_position(near_card.global_position + camera.global_basis.x * pixel_scale))
 		near_duelist.readout.update_layout()
-		var hero_bottom: float = fighter_screen.y
-		for hit_rect: Rect2 in near_duelist.readout.stat_hit_rects:
-			hero_bottom = maxf(hero_bottom, fighter_screen.y + hit_rect.end.y * scale_pixels)
+		var hero_bottom: float = maxf(fighter_screen.y, near_duelist.screen_rect(camera).end.y)
 		hand_3d.set_hero_bounds(life_x - size.x * 0.035, fighter_screen.x + size.x * 0.09, hero_bottom)
 	var decision_rect: Rect2 = Rect2()
 	if hud.prompt_panel.visible:

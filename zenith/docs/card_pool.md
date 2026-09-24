@@ -12,7 +12,7 @@ Counts leave out Masteries and signature cards and include gated cards. Rows are
 | Steel | 50 | 0 | 28 | 14 | 2 | 2 | 4 |
 | Tide | 50 | 0 | 21 | 15 | 4 | 3 | 7 |
 | Storm | 50 | 7 | 14 | 24 | 2 | 2 | 8 |
-| Shade | 50 | 20 | 23 | 13 | 5 | 2 | 7 |
+| Shade | 50 | 0 | 23 | 13 | 5 | 2 | 7 |
 | Root | 50 | 12 | 19 | 12 | 8 | 5 | 6 |
 | Freestyle | 63 | 0 | 7 | 11 | 20 | 18 | 7 |
 
@@ -278,66 +278,66 @@ Masteries:
 
 ## Shade (shadow and hexes): 50 cards
 
-Subthemes: Whisper 13, Life Deck attack 5, Hexes 3, Hand attack 16, Paying Energy 6, Answers 11, Shade attacks 11.
+Subthemes: Whisper 13, Life Deck attack 6, Hexes 3, Hand attack 16, Paying Energy 6, Answers 11, Shade attacks 11.
 
 Masteries:
 
 - **Shade Nightfall Mastery** (`shade_mastery_01`): Your attacks do +1 Energy and +1 wound. Your Shade attacks do +2 Energy and +2 wounds instead. Limit 1 per deck.
-- **Shade Tithe Mastery** (new): Once per Combat, in place of an attack, discard a card from hand. If it is Shade, they discard one at random; otherwise they choose one to discard
-- **Shade Blight Mastery** (new): Your attacks gain "Hit: discard a Drill in play". Your Shade attacks gain "Hit: you may discard a Non-Combat in play" instead
-- **Shade Eclipse Mastery** (new): Your Shade stops that are not Drills can stop Focused attacks. In your attack phase, you may discard a Shade card from hand: Fervor +1 and gain 6 Energy
+- **Shade Tithe Mastery** (`shade_mastery_02`): Use this card only if you have a card in hand. Use in Combat: Discard a card from your hand. If you do, if the top card of your discard pile is Shade, your opponent discards a card from hand at random. if the top card of your discard pile is not Shade, your opponent discards a card from hand. Once per Combat. Limit 1 per deck.
+- **Shade Blight Mastery** (`shade_mastery_03`): Your attacks gain "Hit: Discard a Drill in play." Your Shade attacks gain "Hit: You may discard a Non-Combat card in play." instead. Limit 1 per deck.
+- **Shade Eclipse Mastery** (`shade_mastery_04`): Use this card only if 1 or more cards in your hand are Shade cards. Use in Combat: Discard a Shade card from your hand. If you do, raise your Fervor 1. gain 6 Energy. Your Shade cards that are not Drills and can stop attacks can also stop Focused attacks. Limit 1 per deck.
 
 | Title | Type | What it does | Subthemes | New | id |
 |---|---|---|---|---|---|
 | Shade Emptying Whisper | Strike | Focused Strike doing +3 Energy. Hit: Your opponent discards until they have 2 or fewer cards in hand. | Whisper, Hand attack |  | `shade_strike_11` |
-| Shade Feeding Whisper | Strike | Stops a Strike. Fervor +2 | Whisper | new |  |
+| Shade Feeding Whisper | Strike | Stops a Strike. Raise your Fervor 2. | Whisper |  | `shade_strike_18` |
 | Shade Insistent Whisper | Strike | Endurance 1. Strike doing +2 Energy. Empower 3. Your opponent discards a card from hand. Remove from the game after use. | Whisper, Hand attack |  | `shade_strike_05` |
 | Shade Lingering Whisper | Strike | Strike doing +4 Energy. The next Art performed against you during your opponent's next attack phase is stopped. Place 2 cards from the bottom of your discard pile at the bottom of your Life Deck. | Whisper |  | `shade_strike_08` |
-| Shade Opening Whisper | Strike | Must be the first card you use this Combat. +10 Energy. Hit: they cannot perform Strikes this Combat. If stopped, discard your top 5 | Whisper | new |  |
-| Shade Prying Whisper | Strike | Strike doing +3 Energy. Your opponent discards a Non-Combat card or Ally in play of your choice. Your opponent discards a card from hand. | Whisper, Hand attack |  | `shade_strike_01` |
-| Shade Returning Whisper | Strike | Strike doing +4 Energy. Lower your opponent's Fervor 1. Hit: Choose up to 3 Whisper cards from your discard pile and place them on top of your Life Deck. Remove from the game after use. | Whisper |  | `shade_strike_09` |
+| Shade Opening Whisper | Strike | Strike doing +10 Energy. Must be the first card you use this Combat. Hit: Your opponent may not perform Strikes for the remainder of Combat. If stopped, take 5 wounds. | Whisper |  | `shade_strike_20` |
+| Shade Prying Whisper | Strike | Reserve only. Strike doing +3 Energy. Your opponent discards a Non-Combat card or Ally in play of your choice. Your opponent may discard a card from hand. If they do not, your opponent removes a Non-Combat card or Ally in play of your choice from the game. | Whisper, Hand attack |  | `shade_strike_01` |
+| Shade Returning Whisper | Strike | Strike doing +4 Energy. Lower your opponent's Fervor 1. Hit: Choose 3 Whisper cards from your discard pile and place them on top of your Life Deck and remove this card from the game. | Whisper |  | `shade_strike_09` |
 | Shade Sifting Whisper | Strike | Strike doing +4 Energy. Empower 2. Hit: Look at your opponent's hand and discard every Non-Combat card in it. | Whisper, Hand attack |  | `shade_strike_12` |
-| Shade Silenced Whisper | Strike | Strike doing +3 Energy. Your opponent removes a card in hand that is not a Seal from the game, of their choice. | Whisper, Hand attack |  | `shade_strike_10` |
-| Shade Stilling Whisper | Strike | +3 Energy. Hit: attaches to one of their Non-Combats, which cannot be used | Whisper, Hexes | new |  |
+| Shade Silenced Whisper | Strike | Strike doing +3 Energy. Your opponent removes a card in hand that is not a Seal from the game, of their choice. If they hold only Seals, they show you their hand. | Whisper, Hand attack |  | `shade_strike_10` |
+| Shade Stilling Whisper | Strike | Strike doing +3 Energy. Hit: Attach this card to one of your opponent's Non-Combat cards in play. While attached to one of your opponent's Non-Combat cards: That card cannot be used. | Whisper, Hexes |  | `shade_strike_16` |
 | Shade Answering Whisper | Art | Art dealing 5 wounds. Stops a Strike. Raise your Fervor 1. | Whisper, Answers |  | `shade_art_01` |
 | Shade Swelling Whisper | Art | Art dealing 6 wounds. Costs 5 Energy to perform. Raise your Fervor 1. | Whisper, Paying Energy |  | `shade_art_09` |
 | Shade Turned Whisper | Art | Stops an Art. Raise your Fervor 1. | Whisper, Answers |  | `shade_art_08` |
-| Shade Named Doom | Strike | +3 Energy. Name a card; one copy leaves their deck for the discard pile | Life Deck attack | new |  |
-| Shade Creeping Dark | Combat | Their Life Deck loses cards equal to your Surge | Life Deck attack | new |  |
-| Shade Erased Name | Combat | Name a card. Every copy leaves their Life Deck and the game. Removed after use. **Lockout** | Life Deck attack | new |  |
-| Shade Mockery Hex | Combat | They discard their top 2 for each Fervor they have. They shuffle their hand into their deck and draw that many. Removed after use | Life Deck attack | new |  |
-| Shade Pilfering Shadow | Non-Combat | Search their Life Deck and remove 2 cards from the game. Removed after use | Life Deck attack | new |  |
-| Shade Wasting Mark | Strike | +3 Energy. Attaches to their duelist. Their attacks do -2 Energy until they reach full Energy | Hexes | new |  |
-| Shade Fixed Gaze | Art | Endurance 1. Art. Empower 3. Attach this card to your opponent's duelist. While attached to your opponent's duelist: Damage from your attacks cannot be prevented. | Hexes |  | `shade_art_10` |
+| Shade Named Doom | Strike | Strike doing +3 Energy. Name a card that is not a Seal. Search your opponent's Life Deck for 1 copy of it and discard it. Shuffle their Life Deck. | Life Deck attack |  | `shade_strike_21` |
+| Shade Slipping Thought | Strike | Strike doing +4 Energy. Choose a card at random from your opponent's hand and shuffle it into their Life Deck. Your opponent draws a card. | Life Deck attack, Hand attack |  | `shade_strike_04` |
+| Shade Creeping Dark | Combat | Your opponent takes X wounds, X = your duelist's Surge Rate. | Life Deck attack |  | `shade_combat_03` |
+| Shade Erased Name | Combat | Name a Strike, Art or Combat card. Your opponent searches their Life Deck for every copy of it and must remove them from the game. Remove from the game after use. | Life Deck attack |  | `shade_combat_02` |
+| Shade Mockery Hex | Combat | Your opponent takes 2 wounds for each point of their Fervor. You may have your opponent shuffle their hand into their Life Deck; they then draw that many cards. Remove from the game after use. | Life Deck attack |  | `shade_combat_05` |
+| Shade Pilfering Shadow | Non-Combat | Use in Combat: Search your opponent's Life Deck for up to 2 cards and remove them from the game. Remove from the game after use. | Life Deck attack |  | `shade_noncombat_01` |
+| Shade Wasting Mark | Strike | Strike doing +3 Energy. Attach this card to your opponent's duelist. While attached to your opponent's duelist: Attacks that personality performs do -2 Energy. Discard this card when the personality it is attached to is at full Energy. | Hexes |  | `shade_strike_17` |
+| Shade Fixed Gaze | Art | Endurance 1. Art. Empower 3. Attach this card to your opponent's duelist. While attached to your opponent's duelist: Damage from your attacks cannot be prevented while that personality is in control of Combat. | Hexes |  | `shade_art_10` |
 | Shade Dread Grip | Strike | Strike doing +4 Energy. Stops a Strike. Your opponent discards a card from hand at random. Remove from the game after use. | Hand attack, Answers |  | `shade_strike_03` |
 | Shade Hex Recall | Strike | Stops a Strike or an Art. Search your discard pile for a card that makes your opponent discard from hand and put it into your hand. Remove from the game after use. | Hand attack, Answers |  | `shade_strike_02` |
-| Shade Oblivion Touch | Strike | Strike doing +3 Energy. Your opponent removes a card in hand from the game. | Hand attack |  | `shade_strike_04` |
 | Shade Picking Shadow | Strike | Focused Strike doing +2 Energy. Hit: Look at your opponent's hand and choose a card. They discard it. | Hand attack |  | `shade_strike_15` |
-| Shade Dilemma Hex | Art | Costs 3 Energy. Hit: you may discard a card; if you do they discard one at random or lose 4 Energy, their choice | Hand attack, Paying Energy | new |  |
+| Shade Dilemma Hex | Art | Art. Costs 3 Energy to perform. Hit: You may discard a card from your hand. If you do, your opponent may discard a card from hand at random. If they do not, your opponent loses 4 Energy. | Hand attack, Paying Energy |  | `shade_art_13` |
 | Shade Mind Rot | Art | Art. Costs 3 Energy to perform. Hit: Your opponent discards 2 cards from hand. | Hand attack, Paying Energy |  | `shade_art_02` |
 | Shade Rebounding Hex | Art | Stops an Art. You may discard a card from your hand. If you do, your opponent discards a card from hand at random. | Hand attack, Answers |  | `shade_art_11` |
-| Shade Stolen Secret | Combat | Endurance 2. Look at their hand. They skip their next attack phase. Your next attack this Combat does +2 wounds | Hand attack | new |  |
-| Shade Clouded Mind Drill | Drill | Each successful attack puts a random card of their hand into their deck. They draw 1 | Hand attack | new |  |
+| Shade Stolen Secret | Combat | Endurance 2. Look at your opponent's hand. Your opponent skips their next attack phase. Your next attack does +2 wounds. | Hand attack |  | `shade_combat_04` |
+| Shade Clouded Mind Drill | Drill | After a successful attack, choose a card at random from your opponent's hand and shuffle it into their Life Deck and your opponent draws a card. | Hand attack |  | `shade_drill_04` |
 | Shade Forgetting Drill | Drill | At the beginning of each Discard step, if your duelist has 1 or more Energy, you may lose 1 Energy. If you do, your opponent discards their whole hand. | Hand attack |  | `shade_drill_03` |
 | Shade Hoarded Secrets Drill | Drill | You may now keep up to 2 cards in your hand at the end of each turn. | Hand attack |  | `shade_drill_02` |
-| Shade Gathering Dark | Strike | Strike. You may pay any amount of Energy; each 1 paid adds 1 Energy of damage. | Paying Energy |  | `shade_strike_07` |
+| Shade Gathering Dark | Strike | Strike. You may pay any amount of your duelist's Energy; each 1 paid adds 1 Energy of damage. | Paying Energy |  | `shade_strike_07` |
 | Shade Hungering Gloom | Art | Art dealing 4 Energy. Costs 2 Energy to perform. Hit: Gain 4 Energy. | Paying Energy |  | `shade_art_07` |
 | Shade Veil | Combat | Stops a Strike or an Art. Costs 1 Energy to use. | Paying Energy, Answers |  | `shade_combat_01` |
-| Shade Gathered Hexes | Strike | Stops an Art. Returns 3 Shade cards from your discard pile. Removed after use | Answers | new |  |
-| Shade Sapping Shadow | Strike | Stops a Strike. They lose 1 Energy. Their Fervor -1 | Answers | new |  |
+| Shade Gathered Hexes | Strike | Stops an Art. Choose 3 Shade cards from your discard pile and shuffle them into your Life Deck. Remove from the game after use. | Answers |  | `shade_strike_19` |
+| Shade Sapping Shadow | Strike | Stops a Strike. Your opponent's duelist loses 1 Energy. Lower your opponent's Fervor 1. | Answers |  | `shade_strike_22` |
 | Shade Severing Shadow | Art | Art dealing 4 wounds. Stops an Art. | Answers |  | `shade_art_04` |
-| Shade Reclaimed Hex Drill | Drill | When you stop an attack, put your bottom discard under your deck | Answers | new |  |
-| Shade Umbra Drill | Drill | Defense Shield: stops the first unstopped Art each Combat | Answers | new |  |
+| Shade Reclaimed Hex Drill | Drill | Whenever you stop an attack, you may place the bottom card of your discard pile at the bottom of your Life Deck. | Answers |  | `shade_drill_07` |
+| Shade Umbra Drill | Drill | Defense Shield: stops the first unstopped Art each Combat. | Answers |  | `shade_drill_05` |
 | Shade Binding Murk | Strike | Strike dealing 3 wounds. Hit: Your opponent may not perform Strikes for the remainder of Combat. | Shade attacks |  | `shade_strike_06` |
 | Shade Bitter Trade | Strike | Marked only. Strike doing +5 Energy. You may discard one of your Non-Combat cards in play. If you do, your opponent discards 2 Non-Combat cards in play of your choice. | Shade attacks |  | `shade_strike_14` |
 | Shade Ransoming Hand | Strike | Reserve only. Strike doing +3 Energy. For the remainder of Combat, during your attack phase you may remove 2 cards from your Reserve from the game to remove one of your opponent's Drills in play. Remove from the game after use. | Shade attacks |  | `shade_strike_13` |
-| Shade Reaching Shadow | Strike | +3 Energy. Hit: gain 3 Energy | Shade attacks | new |  |
-| Shade Culling Hex | Art | Endurance 2. Hit: discard one of their Allies | Shade attacks | new |  |
+| Shade Reaching Shadow | Strike | Strike doing +3 Energy. Hit: Gain 3 Energy. | Shade attacks |  | `shade_strike_23` |
+| Shade Culling Hex | Art | Endurance 2. Art. Hit: Your opponent discards an Ally in play of your choice. | Shade attacks |  | `shade_art_12` |
 | Shade Dusk Bolt | Art | Focused Art. Hit: Raise your Fervor 1. | Shade attacks |  | `shade_art_06` |
 | Shade Night Rend | Art | Art dealing 6 wounds. Your opponent loses 3 Energy. | Shade attacks |  | `shade_art_03` |
 | Shade Shadow Snare | Art | Art dealing 6 wounds. Hit: Your opponent may not perform Arts for the remainder of Combat. | Shade attacks |  | `shade_art_05` |
-| Shade Shadow Respite | Non-Combat | Fill a personality's Energy. You may end the Combat | Shade attacks | new |  |
-| Shade Effacing Drill | Drill | After your Art lands, remove one of their Non-Combats in play from the game. Limit 1 | Shade attacks | new |  |
+| Shade Shadow Respite | Non-Combat | Use in Combat: Raise any one personality's Energy to full. You may end Combat. | Shade attacks |  | `shade_noncombat_02` |
+| Shade Effacing Drill | Drill | After a successful attack, if the attack is an Art, your opponent removes a Non-Combat card in play of your choice from the game. Limit 1 per deck. | Shade attacks |  | `shade_drill_06` |
 | Shade Gleaning Drill | Drill | After a successful attack, you may draw a card. Once per Combat. | Shade attacks |  | `shade_drill_01` |
 
 ## Root (thorn, sap, stone and frost; needs a Verdant Duelist): 50 cards

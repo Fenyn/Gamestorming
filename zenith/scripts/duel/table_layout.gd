@@ -19,8 +19,9 @@ const ZONE_PAD: float = 0.06          # felt outline sits this far outside the c
 const LABEL_STRIP: float = 0.14       # room under the cards for the zone name
 const LINE_HEIGHT: float = 0.004
 const LABEL_HEIGHT: float = 0.003
-const LABEL_COLOR: Color = Color(0.66, 0.75, 0.81, 0.65)
-const LINE_COLOR: Color = Color(0.68, 0.54, 0.29, 0.14)
+## Ivory ink printed on the charcoal playmat, like a real mat's zone marks.
+const LABEL_COLOR: Color = Color(0.86, 0.82, 0.74, 0.72)
+const LINE_COLOR: Color = Color(0.86, 0.82, 0.74, 0.32)
 
 ## Row zones: marker, slots before cards start overlapping, and per-card scale.
 const ROWS: Dictionary = {
@@ -420,6 +421,7 @@ func _add_label(zone: StringName, r: Rect2, mirror: bool) -> void:
 	l.font_size = 24 if ROWS.has(zone) else 32
 	l.pixel_size = 0.0032 if zone == &"life_deck" or zone == &"discard" else 0.004
 	l.modulate = LABEL_COLOR
+	l.outline_size = 0   # printed ink has no halo
 	l.shaded = false
 	l.double_sided = false
 	# The Discard's caption sits just past the Life Deck, and for the far seat that stack stands

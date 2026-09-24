@@ -245,7 +245,8 @@ var inspect_uid: int = -1              # the card the inspect overlay shows, -1 
 func _ready() -> void:
 	root.theme = SanctumUI.theme()
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
-	prompt_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	# The decision column is a framed plate too, so its text never sits bare on the courtyard.
+	prompt_panel.add_theme_stylebox_override("panel", MapArt.panel_box(16, Color.WHITE))
 	# The log wears the same framed panel as the phase bar beside it, with tighter padding.
 	log_panel.add_theme_stylebox_override("panel", MapArt.panel_box(14, Color.WHITE))
 	# The inspect hint sits on a small framed panel instead of floating over the table.

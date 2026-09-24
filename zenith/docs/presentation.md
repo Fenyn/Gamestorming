@@ -177,7 +177,13 @@ demo keyboard scripts are detached, and combat effects clean up after their anim
   drift across and two faint shafts of daylight fall into the yard. Every texture and model is
   PSX library art copied in by `tools/import_courtyard_art.py` (sources and licences in
   `../assets/courtyard/SOURCES.md`). The courtyard is the same for every matchup; school colour
-  lives on the cards and the HUD. Table effects draw the HUD's defence blue and accent gold in
+  lives on the cards and the HUD. Board state sits on the board (2026-09-23): each duelist's
+  Energy / Might / Fervor tracker is a plate on a stone slab leaning back toward the viewer
+  (`DuelistDisplay`, near seat below the Out and Relic captions, far seat scaled 1.25x and
+  tilted further so it reads across the table), status lines and the rival's hand are printed
+  flat on the felt, and the Life count lies on its pile. The plate wears the Kenney inner rule in
+  the seat's muted colour over warm charcoal; zone names and outlines are ivory ink. Meta
+  information (phase strip, log, prompt, inspect) stays on screen in framed panels. Table effects draw the HUD's defence blue and accent gold in
   pale slate and old ivory (`DuelFx.tone`), because the saturated pair glowed like neon on stone.
 
 Tuning files:

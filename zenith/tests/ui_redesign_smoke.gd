@@ -209,8 +209,8 @@ func _run() -> void:
 	_check(near_resolving.origin.x > 0.0 and far_resolving.origin.x < 0.0, "Attack and response cards must retain readable owner sides in the exchange lane")
 	var controller: SeatCard = duel.view.card(duel.view.player(0).controlling)
 	_check(readout._energy == controller.energy, "Medallion Energy must belong to the controlling personality")
-	# Camera zoom changes the projected card footprint; attached resource crests must move
-	# outside that footprint and leave the physical card available for its own picking.
+	# The resource plate lies on the table, so camera zoom leaves its layout where it is, still
+	# outside the card's footprint and leaving the physical card available for its own picking.
 	var home_camera: Transform3D = duel.camera.transform
 	var home_target: Vector3 = duel.camera._target
 	var home_idle: float = duel.camera._idle
@@ -223,7 +223,7 @@ func _run() -> void:
 	duel._layout_fixtures()
 	for i in range(2):
 		var fixture: Node3D = duel.near_duelist if i == 0 else duel.far_duelist
-		_check(fixture.readout.card_bounds.get_area() > footprint_areas[i], "Zooming in must expand each measured physical card footprint")
+		_check(is_equal_approx(fixture.readout.card_bounds.get_area(), footprint_areas[i]), "Zooming in must leave each card's footprint on the table unchanged")
 		_check_fixture_geometry(duel, fixture)
 	duel.camera.transform = home_camera
 	duel.camera._target = home_target

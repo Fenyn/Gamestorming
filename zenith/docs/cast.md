@@ -17,7 +17,7 @@ reference-game names appear in this doc.
 - Seven seals carved into a gate open it for one Eidolon, an elder god waiting on the far side.
 - Duelists fight for the right to carve. Inside the duel, everything is the duelist.
 - **The Vigil** stands watch so that whatever comes through answers to someone who will hold it in check.
-- **The Pact** bargained passage for power and fights to deliver on it. Anyone can sign.
+- **The Pact** bargained passage for power and fights to deliver on it. Anyone can sign. It leans toward the demons: some of its members deal with them and the Pact does not stop them, and the Vigil holds that against the whole side.
 - **Hedge** duelists are sworn to neither and pick a side at setup.
 - An **Aspect** is how deep the duelist is attuned to the site, and what that is doing to them. Every duel starts at the first.
 - **Bloodlines** are power an ancestor's bargain left in the blood. Two exist, Draconic and Verdant. They cross both sides.
@@ -110,20 +110,22 @@ and everyone has a reason to fight everyone, friends included.
 Friendly tests are a normal part of this. Family and allies fight each other to prove something,
 and nobody is off limits, Edric's own family included.
 
-**Relations network (first draft).** Who is connected to whom. Meeting one character can bring
-their connections onto the road; how that works in play is in `../../designs/zenith_adventure.md`.
+**Relations network.** Who is connected to whom. Meeting one character can bring their
+connections onto the road; how that works in play is in `../../designs/zenith_adventure.md`. Every
+link is listed on both sides.
 
-- **Edric**: Alder (wife), Emrys and Ansel (sons), Wren (kin), Tavin (fostered), Caedan (the Vale
-  sword), Mourne (a man who serves against one who would not kneel), Ashmark (hero and monster).
+- **Edric**: Alder (wife), Emrys and Ansel (sons), Wren (kin), Tavin (fostered, Caedan's son),
+  Caedan (war companion, taught him the sword), Mourne (a man who serves against one who would not
+  kneel), Ashmark (hero and monster).
 - **Alder**: the Rooke family, Osric (taught her son), Sable (matriarch and captain).
-- **Emrys**: Caedan and Osric (his teachers), Quarr (both field Steel).
-- **Caedan**: Tavin (cousin), Emrys, Edric.
-- **Osric**: Emrys, Orvath Kell (the same Verdant line).
+- **Emrys**: Edric and Alder (parents), Caedan and Osric (his teachers), Quarr (both field Steel).
+- **Caedan**: Tavin (son), Emrys (pupil), Edric (war companion).
+- **Osric**: Emrys (pupil), Alder, Orvath Kell (the same Verdant line).
 - **Mourne**: Kell (the broken company), Marrow (her crew), Ashmark (the same toll gate), Edric,
   Sable (she wants him in the Draik Company, or as a partner for the Heart).
 - **Marrow**: Cull, Kell, Mourne, Pim, Scorn (kin), Siphon.
 - **Sable**: her crew, Pim, Alder, Mourne.
-- **Siphon**: Tithe, Cull, Pim, Marrow.
+- **Siphon**: Tithe, Cull, Pim, Marrow, Ashmark (rivals for the same feed).
 - **Ashmark**: Mourne, Siphon, Edric.
 - **Pim**: the Draiks, Marrow's crew and the Collegium; the bridge from the outlaw side to the rest.
 - **Quarr**: everyone, through the Heart.
@@ -142,7 +144,7 @@ field more than one school later; Sir Edric Rooke already does.
 | clan | fields now | side | what they are |
 |---|---|---|---|
 | The Rooke Coven | Tide, and Pyre and Steel in its sons' own lists | Vigil | An old family of water mages |
-| The Vale line | Freestyle | Vigil | A family sword art, nearly extinct, taught to blood |
+| The Vale line | Freestyle | Vigil | A family sword art, nearly extinct, taught to blood and once to a friend |
 | The Draik Company | Shade | Pact | Mercenary hexers, pirates by trade and warlocks by method |
 | The Collegium | Storm | Pact | Artificer wizardry: wrights who build, charge and repair |
 | The Thornwald Grove | Root | Vigil | Druids whose rites regrow what is cut away |
@@ -192,7 +194,9 @@ half-plate over a scorched gambeson, plain longsword with a heat shimmer.
 **Who he is.** A warlock who traded his humanity for power at the toll gate. The demon took the
 part of him that could be satisfied and left the mark. The trade was honoured in full: he has the
 power, and what remains is a hollow shell that hungers for more strength and cannot be filled, so he
-takes it wherever he can. He fields no Allies. What he traded away still exists elsewhere, and a
+takes it wherever he can. He fields no Allies. He takes in the people he beats, and they do not
+fight for him: what surfaces is memory, their whispers and pieces of who he was, coming up against
+his will. What he traded away still exists elsewhere, and a
 future character is "the humanity Ashmark traded away, returned as a person" (unplaced, origin
 undecided).
 
@@ -314,8 +318,8 @@ water raised, furious. Stops a Strike aimed at Edric or Emrys.
 
 **Who he is.** Draconic. Born a Hask, from a line he left; his elder brother Torvan Hask still
 carries it. Trained with the Kingsguard before he married into the coven, which is the coven's
-only tie to the order. The Vales made one exception to teaching their sword outside the blood, to
-a swordsman of Rooke blood, and do not discuss why. Fields Pyre in his own list and Tide beside his
+only tie to the order. Caedan Vale fought beside him in the two kings' war and taught him the Vale
+sword, the only time the Vales have taught it outside the blood. Fields Pyre in his own list and Tide beside his
 wife. He is the first character to field two schools, which settled the rule that a card's look
 comes from the card and not from a fixed element on the person.
 
@@ -367,7 +371,7 @@ cards, so any retitle has to keep them.
 **Look.** Young man, broad shoulders, blue-grey gambeson, round shield. Ally art: shield braced,
 water refilling a cracked flask at his hip.
 
-**Who he is.** The middle son, Draconic. Strike 5, refills to full Energy if stopped.
+**Who he is.** The younger son, Draconic. Strike 5, refills to full Energy if stopped.
 
 ### Wren Rooke
 
@@ -381,7 +385,8 @@ loose pages into her satchel, some floating back to her.
 **Look.** Slim young man, dark hair tied back, blue robe over a fencing doublet, hands open for
 casting. Ally art: a globe of water between his hands, pages settling into a deck at his feet.
 
-**Who he is.** A Vale cousin fostered with the Rookes, Draconic, and fielding Tide rather than the
+**Who he is.** Caedan's son, fostered with the Rookes since he was small because his father's road
+is no place for a child. He grew up beside Ansel. Draconic, and fielding Tide rather than the
 family sword. Art 6, puts two discards under the Life Deck.
 
 **Ansel and Tavin, Back to Back.** The Bond. Standing back to back, shield and water between them,
@@ -401,15 +406,19 @@ personality card.
 
 ## The Vale line
 
-A family sword art, nearly extinct, taught to blood. Caedan's mother keeps the line's measures and
+A family sword art, nearly extinct, taught to blood and once to a friend. The Vales and the Rookes
+are old friends from the two kings' war: Caedan fought beside Edric and taught him the Vale cut.
+When Emrys was born, Caedan promised the boy the same teaching, and kept the promise. Caedan's
+mother keeps the line's measures and
 records, and her rites are Vigil rites handed down with the watch. She is agreed but unnamed.
 
 ### Caedan Vale
 
-**Look.** Slight man in his late twenties, dark hair, grey fencing doublet, one longsword, no
-magic. A worn sword-school crest on the doublet.
+**Look.** Lean man in his mid forties, dark hair, grey fencing doublet, one longsword, no magic. A
+worn sword-school crest on the doublet.
 
-**Who he is.** The last of the line, Draconic, and fights with no magic at all. Deck: Blade Legacy.
+**Who he is.** The last Vale to carry the sword, Draconic, and fights with no magic at all. His son
+Tavin is fostered with the Rookes, because his father's road is no place for a child. Deck: Blade Legacy.
 Drills stack until every cut lands heavier and the signature moves punish anyone who blinks. No
 school means no crutch.
 
@@ -418,7 +427,7 @@ and by the end the air around him is clear while spells break at a distance.
 
 | Aspect | Look | Does |
 |---|---|---|
-| 1 Last Heir | Longsword in a textbook guard, chin up, young and exact | Digs a Sword card from the top 8 |
+| 1 Last Heir | Longsword in a textbook guard, chin up, exact, every angle correct | Digs a Sword card from the top 8 |
 | 2 Unparried | Mid-lunge, point leading, no wasted motion, a ribbon of displaced air | Opening Strike that takes 2 stops |
 | 3 Spellcutter | A cut finishing through a fading spell, the rival's casting hand pinned | Strike +5, hit shuts off rival Arts |
 | 4 The Quiet Blade | Standing still, point steady, grey at the temples, spells breaking at a distance | Rival may not perform Arts |
@@ -604,8 +613,8 @@ nothing else in common with it. Art 6 wounds.
 **Look.** Proud man in his thirties, scarred brow, black brigandine with a broken crest still
 riveted to the chest, a signet he has not sold, hands crackling.
 
-**Who he is.** Draconic, and marked since the toll gate. A lord with the company and its constructs
-at his disposal. The enemy king bought him and he betrayed the king who had retained him. Both
+**Who he is.** Draconic, and marked since the toll gate. Once a lord with the company and its
+constructs at his disposal. The enemy king bought him and he betrayed the king who had retained him. Both
 kings died, so nobody was left who owed him anything, and he was never paid. The title was taken
 for the betrayal, which he has never denied. A new king would have reissued grants, but that meant
 kneeling, so he went to the toll gate and traded the claim itself. No authority can restore him
@@ -656,7 +665,7 @@ each, no personality card, no deck. All field Freestyle for the Pact.
 | Name | Look | Who |
 |---|---|---|
 | Sledge | Broad pit-fighting construct of riveted plate over a squat frame, one arm heavier than the other, dents never beaten out | Built to win bouts, and named by the crowd that bet on him. Fights for purses paid in mana; the crowd feeds him. Hired muscle for anyone |
-| Mercy | Very tall construct of pale stone and worn brass, a broad blunt face, hands too big and too careful, no weapon anywhere on it | Made for work rather than war, and slow to agree to this. The friendly vampire: she will not take mana from anyone living, runs close to empty, and is the construct most likely to stand with the Vigil. The most dangerous of them if she ever breaks |
+| Mercy | Very tall construct of pale stone and worn brass, a broad blunt face, hands too big and too careful, no weapon anywhere on her | Made for work rather than war, and slow to agree to this. The friendly vampire: she will not take mana from anyone living, runs close to empty, and is the construct most likely to stand with the Vigil. The most dangerous of them if she ever breaks |
 | Scorn | Lean construct of blackened iron, hands in its pockets, head tilted, a face cast with a permanent half-smile | Kin to Marrow, and bored by all of it. Has contempt for the born, feeds on duelists for sport and takes more than it needs |
 
 ---
@@ -673,9 +682,7 @@ vibe, not by what their seals do. Names coined and unchecked.
 | Korrag the Unfinished | Marble | A half-made titan. One side flawless marble muscle, the other scaffold, bare bone and gold wire. It carries the chisel that is carving it | Proud and restless. Wants to be completed and takes material wherever it finds it |
 | Thessa, the Kind Hand (name pending) | Salt | A stooped surgeon's shape in a clean apron, taller than it should be, more arms than it should have, each ending in an instrument. A low steady lamp where the face belongs | Gentle, tireless and certain it is helping. It takes out whatever was aching without distinguishing the ache from the part of you doing the aching |
 
-The demons are a different plane and a different mechanism. They cannot come through; they reach
-through, and lay a mark on a person who lets them. The agent who lays it is a man with a toll gate
-and a yard who does this for others and takes payment in the usual way. Unnamed.
+The demons are a different plane and a different mechanism; see Two elsewheres.
 
 ---
 
@@ -703,7 +710,9 @@ an outsider duelist from no country here, and a power large enough to retain a g
 - Whether the thing behind the contracts came through a gate once, which would mean a gate has
   opened before and the premise needs a line about it.
 - The Collegium's working links to Marrow, Mercy, Sledge and the broken company (still provisional).
-- How Quarr came to hold the Lodestone Heart, and where it came from.
+- How Quarr came to hold the Lodestone Heart, and where it came from. Left open on purpose
+  (2026-09-24): Quarr stays quiet about it.
+- A formal name for the two kings' war.
 
 ## Known gaps between this doc and the code
 

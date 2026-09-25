@@ -305,7 +305,7 @@ func _test_legal_actions(hud: Node) -> void:
 		var constants: Dictionary = hud.get_script().get_script_constant_map()
 		_check(face.position.x >= decision.position.x - 1.0 and face.end.x <= decision.end.x + 1.0, "Decision shares the focused card's column at %dp" % window_size.y)
 		_check(decision.position.y >= focus_rect.end.y and decision.position.y - focus_rect.end.y <= 20.0, "The focused card stands directly on the decision at %dp" % window_size.y)
-		_check(absf(viewport.end.y - decision.end.y - float(constants["PROMPT_BOTTOM"])) < 2.0, "Decision is anchored above the hand at %dp" % window_size.y)
+		_check(is_equal_approx(focus_rect.size.x, float(constants["RAIL_CARD_WIDTH"])), "The focused card keeps one size with the decision up at %dp" % window_size.y)
 		_check(focus_rect.position.y >= float(constants["RAIL_TOP"]) - 1.0, "The focused card stays under the corner toggles at %dp" % window_size.y)
 		_check(viewport.encloses(hud.prompt_title.get_global_rect()), "Decision question stays inside viewport at %dp" % window_size.y)
 		if hud.exchange_damage.is_visible_in_tree():

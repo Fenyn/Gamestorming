@@ -59,7 +59,7 @@ const PILE_ZONES: Array[StringName] = [&"discard", &"removed", &"relic"]   # ind
 const HOLD_ZONES: Array[StringName] = [&"resolving", &"discard", &"removed", &"life_deck"]
 const ARENA_FADE: float = 0.35        # seconds for the table to dim or come back around an exchange
 const PLATE_DIM: Color = Color(0.45, 0.45, 0.45)   # the stat plaques, which stand up through the veil
-const FOCUS_POP_FROM: float = 0.9     # the centre-stage card's scale as it appears
+const FOCUS_POP_FROM: float = 0.9     # the focus card's scale as it appears during an exchange
 const FOCUS_POP_TIME: float = 0.22
 const HELD_STEP: float = 0.004       # a second held card of the same seat sits just above the first
 
@@ -246,7 +246,7 @@ func _process(_delta: float) -> void:
 	_layout_fixtures()
 	var focus_was: bool = focus_card.visible
 	focus_card.visible = hud.focus.visible and not overlay
-	# On centre stage the card arrives with a small push toward the viewer.
+	# During an exchange the card arrives with a small push toward the viewer.
 	if focus_card.visible and not focus_was and _arena_on and not _reduced_motion:
 		if _focus_pop != null and _focus_pop.is_valid():
 			_focus_pop.kill()
@@ -277,14 +277,13 @@ func _process(_delta: float) -> void:
 
 
 ## While an exchange is live the table recedes behind a veil, the camera leans in on the ring, the
-## ring pulses once, and the HUD's focus card takes centre stage over it. Reduced motion keeps the
-## dimming and the centred card and drops the moves.
+## ring pulses once. The focus card and the decision stay on the rail. Reduced motion keeps the
+## dimming and drops the moves.
 func _set_arena(on: bool) -> void:
 	camera.arena_focus = on and not _reduced_motion
 	if on == _arena_on:
 		return
 	_arena_on = on
-	hud.centre_stage = on
 	if _arena_fade != null and _arena_fade.is_valid():
 		_arena_fade.kill()
 	var veil: ShaderMaterial = arena_veil.material_override
@@ -341,29 +340,15 @@ func _layout_fixtures() -> void:
 		fixture.life_transform = zones.global_transform * zones.slot(owner, &"life_deck", maxi(0, count - 1), count, viewer)
 		fixture.anchor_to_card(card, camera)
 	if viewer >= 0 and near_duelist.visible:
-		var near_card: Card3D = views.get(near_duelist.duelist_uid)
-		var life_x: float = camera.unproject_position(near_duelist.life_transform.origin).x
-		var fighter_screen: Vector2 = camera.unproject_position(near_card.global_position)
 		near_duelist.readout.update_layout()
-		var crest: Rect2 = near_duelist.screen_rect(camera)
-		var hero_bottom: float = maxf(fighter_screen.y, crest.end.y)
-		hand_3d.set_hero_bounds(life_x - size.x * 0.035, fighter_screen.x + size.x * 0.09, hero_bottom)
-		hand_3d.set_crest_rect(crest)
-	var rival_life: Rect2 = Rect2()
-	if far_duelist.visible and not camera.is_position_behind(far_duelist.life_transform.origin):
-		rival_life = Rect2(camera.unproject_position(far_duelist.life_transform.origin), Vector2.ZERO)
-		for x: float in [-0.315, 0.315]:
-			for z: float in [-0.44, 0.44]:
-				rival_life = rival_life.expand(camera.unproject_position(far_duelist.life_transform * Vector3(x, 0, z)))
-	hud.avoid_rect = rival_life
+		hand_3d.set_crest_rect(near_duelist.screen_rect(camera))
 	var decision_rect: Rect2 = Rect2()
 	if hud.prompt_panel.visible:
 		decision_rect = hud.prompt_panel.get_global_rect()
-	# On centre stage the card sits over the table's middle; the open hand rises over its lower
-	# edge rather than stepping aside, and only the decision beside it is kept clear.
-	if hud.focus.visible and not hud.centre_stage:
+	if hud.focus.visible:
 		decision_rect = decision_rect.merge(hud.focus.get_global_rect()) if decision_rect.has_area() else hud.focus.get_global_rect()
 	hand_3d.set_decision_rect(decision_rect)
+	hand_3d.set_top_clear(hud.phase_panel.get_global_rect().end.y if hud.phase_panel.is_visible_in_tree() else 0.0)
 	if not hud.focus.visible:
 		return
 	var face_rect: Rect2 = hud.focus_face_rect()
@@ -1056,7 +1041,8 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			if delta != 0:
 				fx.resource_pulse(_card_pos(view.player(player).duelist), ZenithTheme.FERVOR, delta > 0)
 				_source_pulse(int(data.get("source", -1)))
-				await _number(view.player(player).duelist, "%+d Fervor" % delta, ZenithTheme.FERVOR_TEXT if delta > 0 else ZenithTheme.WARN)
+				var word: String = CardText.fervor_word(data.merged({"player": player}))
+				await _number(view.player(player).duelist, word if word != "" else "%+d Fervor" % delta, ZenithTheme.FERVOR_TEXT if delta > 0 else ZenithTheme.WARN)
 				await _beat(BEAT)
 		&"fervor_shielded":
 			fx.float_text(_card_pos(view.player(player).duelist), "Shielded", ZenithTheme.DEFEND, 48)

@@ -349,6 +349,7 @@ Seal capture: critical damage (battle sequence step 14), an in-control capture-t
 | Floating effect | "For the remainder of Combat / turn / game". Card discards when its last effect resolves; the effect persists |
 | Use when needed | Between battle sequence steps, or any time outside Combat. Can be answered by another Use when needed |
 | Remain N | Stays in play to be used N more times this Combat |
+| Attune N / Disrupt N | Raise your Fervor N / lower your opponent's Fervor N. Card text, prompt buttons, the log and the floating number all use the pair (2026-09-25); raising the rival's or lowering your own keeps the long form |
 | Secondary effect | Anything not the attack, its cost, Endurance, "if successful", a stop, or parenthetical text. Resolves before the opponent acts |
 | If successful | Resolves at step 15 |
 | Unstoppable / cannot be prevented / cannot be reduced | Three separate flags |

@@ -127,6 +127,10 @@ const KEYWORDS: Array[Dictionary] = [
 		"tip": "Two named Allies fold under one Bond card and fight as one at full Energy. A life card goes under it at the start of each of your turns; at five the Bond ends and both Allies return."},
 	{"key": "Stops", "pattern": "\\b[Ss]tops?\\b|\\bstopped\\b", "role": "defense",
 		"tip": "A stopped attack deals no damage and none of its 'if successful' text happens. Its other effects still resolve."},
+	{"key": "Attune", "pattern": "\\bAttune \\d+\\b", "role": "fervor",
+		"tip": "Attune N: raise your Fervor N."},
+	{"key": "Disrupt", "pattern": "\\bDisrupt \\d+\\b", "role": "fervor",
+		"tip": "Disrupt N: lower your opponent's Fervor N."},
 ]
 
 
@@ -378,7 +382,7 @@ static func _cap(s: String) -> String:
 
 ## Mid-sentence case; keyword labels keep their capital.
 static func _lc(s: String) -> String:
-	if s.begins_with("Remain ") or s.begins_with("Hit"):
+	if s.begins_with("Remain ") or s.begins_with("Hit") or s.begins_with("Attune ") or s.begins_with("Disrupt "):
 		return s
 	return s.substr(0, 1).to_lower() + s.substr(1)
 
@@ -607,18 +611,17 @@ static func rules_text(def: CardDef) -> String:
 	if def.remain >= 99:
 		lines.append("Stays on the table to be used any number of times this Combat.")
 	elif def.remain > 0:
-		# When only an Ally may take the extra uses, the card says what happens in plain words
-		# instead of the Remain shorthand, which reads as the duelist's.
+		# When only an Ally may take the extra uses, the card keeps the printed sentence instead of
+		# the Remain shorthand, which reads as the duelist's.
 		var by: String = ""
 		if def.raw.has("remain_by_tag"):
-			by = "One of your %s Allies" % keyword_name(str(def.raw["remain_by_tag"]))
+			by = "a %s Ally" % keyword_name(str(def.raw["remain_by_tag"]))
 		elif str(def.raw.get("remain_by", "")) == "ally":
-			by = "One of your Allies"
+			by = "an Ally"
 		if by == "":
 			lines.append("Remain %d." % def.remain)
 		else:
-			var times: String = "once more" if def.remain == 1 else "%d more times" % def.remain
-			lines.append("It stays on the table after use. %s may perform it %s this Combat." % [by, times])
+			lines.append("This card stays on the table to be used %d more %s by %s." % [def.remain, "time" if def.remain == 1 else "times", by])
 	if not def.remain_when.is_empty():
 		var extra: Variant = def.remain_when.get("remain", 1)
 		var how_many: String = "Remain X, where X is your duelist's Aspect." if extra is String and str(extra) == "aspect" else "Remain %d." % int(extra)
@@ -1105,11 +1108,17 @@ static func _effect_body(e: Dictionary) -> String:
 			# The side is the user's to pick, so neither is named.
 			body = "%s your or your opponent's Fervor %d." % [("Raise" if n >= 0 else "Lower"), absi(n)]
 		"fervor":
-			body = "%s %s Fervor %d." % [("Raise" if n >= 0 else "Lower"), owner, absi(n)]
+			# Raising your own Fervor is Attune, lowering the rival's is Disrupt; the rarer two
+			# directions keep the long form.
+			var verb: String = "%s %s Fervor" % [("Raise" if n >= 0 else "Lower"), owner]
+			if owner == "your" and n > 0:
+				verb = "Attune"
+			elif opp and n < 0:
+				verb = "Disrupt"
+			body = "%s %d." % [verb, absi(n)]
 			var instead: Dictionary = e.get("instead", {})
 			if not instead.is_empty():
-				body = "%s %s Fervor %d, or %d instead if %s." % [("Raise" if n >= 0 else "Lower"), owner, absi(n),
-					absi(int(instead.get("amount", n))), cond_text(instead.get("when", {}))]
+				body = "%s %d, or %d instead if %s." % [verb, absi(n), absi(int(instead.get("amount", n))), cond_text(instead.get("when", {}))]
 		"set_fervor":
 			body = "Set %s Fervor to %d." % [owner, n]
 		"fervor_needed":
@@ -1774,8 +1783,8 @@ static func may_action(e: Dictionary) -> String:
 			return "Take %s" % _plural(n, "wound", "wounds")
 		"fervor":
 			if opp:
-				return "Lower their Fervor %d" % absi(n)
-			return "Raise your Fervor %d" % n if n > 0 else "Lower your Fervor %d" % absi(n)
+				return "Disrupt %d" % absi(n) if n < 0 else "Raise their Fervor %d" % n
+			return "Attune %d" % n if n > 0 else "Lower your Fervor %d" % absi(n)
 		"energy":
 			return "Take the Energy"
 		"lose_aspect":
@@ -2385,7 +2394,7 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 		&"discard_ally":
 			return "Discard %s" % name
 		&"lower_fervor":
-			return "Lower their Fervor 1"
+			return "Disrupt 1"
 		&"no_critical":
 			return "Take nothing"
 		&"deal_damage":
@@ -2714,7 +2723,13 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 				return ""
 			var by: String = _cname(engine, int(d.get("source", -1)))
 			var lead: String = "%s: " % by if by != "a card" else ""
-			return "%s%s's Fervor %d → %d." % [lead, pname, int(d.get("from", 0)), int(d.get("to", 0))]
+			var word: String = fervor_word(d)
+			var span: String = "Fervor %d → %d" % [int(d.get("from", 0)), int(d.get("to", 0))]
+			if word.begins_with("Attune"):
+				return "%s%s Attunes %s (%s)." % [lead, pname, word.get_slice(" ", 1), span]
+			if word.begins_with("Disrupt"):
+				return "%s%s is Disrupted %s (%s)." % [lead, pname, word.get_slice(" ", 1), span]
+			return "%s%s's %s." % [lead, pname, span]
 		&"draw_check":
 			var by: String = _cname(engine, int(d.get("source", -1)))
 			var want: String = ""
@@ -3127,6 +3142,18 @@ static func _pname(engine: DuelEngine, i: int) -> String:
 
 ## A card's title for a log line. With a `seat`, the title shows only if that seat may see the card
 ## where it sits now or is the `actor` whose own play it was; otherwise "a card". Seat -1 sees all.
+## The keyword a Fervor change is, from a fervor_changed event's data: a gain is "Attune N", a
+## loss the rival caused is "Disrupt N". Anything else ("" returned) is told as the bare number.
+static func fervor_word(d: Dictionary) -> String:
+	var delta: int = int(d.get("to", 0)) - int(d.get("from", 0))
+	var owner: int = int(d.get("source_owner", -1))
+	if delta > 0:
+		return "Attune %d" % delta
+	if delta < 0 and owner >= 0 and owner != int(d.get("player", -1)):
+		return "Disrupt %d" % -delta
+	return ""
+
+
 static func _cname(engine: DuelEngine, uid: int, seat: int = -1, actor: int = -1) -> String:
 	var c: CardInstance = engine.card(uid)
 	if c == null:

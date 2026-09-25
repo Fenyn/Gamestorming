@@ -26,7 +26,7 @@ const LEFT_CLEAR: float = 24.0                     # margin the preview keeps fr
 const LEGAL_LIFT: float = 24.0                     # design pixels a card the decision takes stands up
 const LEGAL_GLOW: float = 1.6                      # the aura's `highlight` on such a card; 1.0 is a plain legal card
 const PREVIEW_MARGIN: float = 18.0
-
+const PREVIEW_NAME_ROOM: float = 40.0               # design pixels over the fan for the neighbours' names
 @export var reduced_motion: bool = false:
 	set(value):
 		if reduced_motion == value:
@@ -55,12 +55,8 @@ var _preview: Node3D
 var _preview_face: Sprite3D
 var _preview_edge: MeshInstance3D
 var _preview_border: Node3D
-var _preview_title: Label3D
-var _preview_summary: Label3D
+var _top_clear: float = 0.0
 var _handoff_rect: Rect2 = Rect2()
-var _hero_left: float = -1.0
-var _hero_right: float = -1.0
-var _hero_bottom: float = -1.0
 var _decision_rect: Rect2 = Rect2()
 var _crest_rect: Rect2 = Rect2()
 
@@ -87,24 +83,14 @@ func _ready() -> void:
 	_preview.add_child(_preview_edge)
 	_preview_border = BORDER_FX.instantiate()
 	_preview.add_child(_preview_border)
-	_preview_title = _label(24, ZenithTheme.TEXT)
-	_preview_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_preview_title.render_priority = 31
-	_preview.add_child(_preview_title)
-	_preview_summary = _label(23, ZenithTheme.MUTED)
-	_preview_summary.render_priority = 31
-	_preview.add_child(_preview_summary)
 	_preview.hide()
 
 
-## The duel scene supplies the player's projected Life-and-fighter span. The reading face
-## uses it; the physical cards keep their fan positions along the bottom edge.
-func set_hero_bounds(left: float, right: float, bottom: float) -> void:
-	if absf(_hero_left - left) < 1.0 and absf(_hero_right - right) < 1.0 and absf(_hero_bottom - bottom) < 1.0:
+## The bottom edge of the HUD strip along the top of the screen; the preview stops below it.
+func set_top_clear(y: float) -> void:
+	if absf(_top_clear - y) < 1.0:
 		return
-	_hero_left = left
-	_hero_right = right
-	_hero_bottom = bottom
+	_top_clear = y
 	if revealed:
 		_layout()
 
@@ -217,7 +203,6 @@ func _refresh_item(item: Dictionary, card: SeatCard, def: CardDef, cache: CardFa
 	(item["face"] as Sprite3D).texture = cache.face(def, card.aspect, CardFace.NO_BACKDROP, card.owner)
 	(item["title"] as Label3D).text = card.title
 	item["title_text"] = card.title
-	item["hover_title"] = "%s · %s" % [CardText.TYPE_LABELS[def.type], card.title]
 	var aura: ShaderMaterial = (item["edge"] as MeshInstance3D).material_override
 	aura.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 0.95) if playable else Color(DIM_TINT, 0.22))
 	var summary: Label3D = item["summary"]
@@ -436,7 +421,8 @@ func _layout(snap: bool = false) -> void:
 		title.width = width * 2.0 - 12.0
 		title.position = Vector3(0, height * units * 0.5 + 24.0 * units, 0.004)
 		title.text = item["title_text"]
-		title.visible = revealed
+		# The preview face above already shows the hovered card's name.
+		title.visible = revealed and not over
 		var summary: Label3D = item["summary"]
 		summary.render_priority = face.render_priority + 1
 		summary.visible = revealed
@@ -457,40 +443,26 @@ func _layout(snap: bool = false) -> void:
 	_hint.visible = revealed and not _items.is_empty() and _hovered < 0
 
 
-## The source card stays in its fan slot for direct pointer tracking. A separate face occupies
-## the safe reading lane, so moving the pointer does not leave an invisible card-shaped target.
+## The source card stays in its fan slot for direct pointer tracking. A separate face stands
+## directly above it, over the field, so the rest of the hand stays uncovered. Every card in a
+## given viewport gets the same preview size and baseline.
 func _layout_preview(item: Dictionary, width: float, height: float, units: float) -> void:
 	var source: Rect2 = item["rect"]
-	var hero_left: float = _hero_left if _hero_left >= 0.0 else _size.x * 0.40
-	var hero_right: float = _hero_right if _hero_right >= 0.0 else _size.x * 0.58
-	var preview_top: float = _size.y - minf(EXPANDED_WIDTH / width, (_size.y * 0.50) / height) * height - 58.0
+	var s: float = _size.y / 1080.0
+	var bottom: float = _size.y - height - 64.0 - (LEGAL_LIFT + PREVIEW_NAME_ROOM) * s
+	var room: float = bottom - _top_clear - PREVIEW_MARGIN
+	var scale_factor: float = maxf(0.2, minf(EXPANDED_WIDTH / width, room / height))
+	var size: Vector2 = Vector2(width, height) * scale_factor
 	var right_end: float = _size.x - 48.0
-	if _decision_rect.has_area() and _decision_rect.position.y < _size.y - 58.0 and _decision_rect.end.y > preview_top:
+	if _decision_rect.has_area() and _decision_rect.position.y < bottom and _decision_rect.end.y > bottom - size.y:
 		right_end = minf(right_end, _decision_rect.position.x - PREVIEW_MARGIN)
-	var left_end: float = minf(hero_left - PREVIEW_MARGIN, source.position.x - PREVIEW_MARGIN)
-	var right_start: float = maxf(hero_right + PREVIEW_MARGIN, source.end.x + PREVIEW_MARGIN)
-	var left_width: float = maxf(0.0, left_end - LEFT_CLEAR)
-	var right_width: float = maxf(0.0, right_end - right_start)
-	var left_lane: bool = source.get_center().x < (hero_left + hero_right) * 0.5
-	if left_lane and left_width < width and right_width > left_width:
-		left_lane = false
-	elif not left_lane and right_width < width and left_width > right_width:
-		left_lane = true
-	var lane_start: float = LEFT_CLEAR if left_lane else right_start
-	var lane_end: float = left_end if left_lane else right_end
-	var scale_factor: float = minf(EXPANDED_WIDTH / width, (_size.y * 0.50) / height)
-	scale_factor = minf(scale_factor, maxf(0.2, (lane_end - lane_start) / width))
-	var center: Vector2 = source.get_center()
-	center.y = _size.y - height * scale_factor * 0.5 - 58.0
-	center.x = clampf(center.x, lane_start + width * scale_factor * 0.5, lane_end - width * scale_factor * 0.5)
-	_expanded_rect = Rect2(center - Vector2(width, height) * scale_factor * 0.5, Vector2(width, height) * scale_factor)
-	var overlap_top: float = maxf(source.position.y, _expanded_rect.position.y)
-	var overlap_bottom: float = minf(source.end.y, _expanded_rect.end.y)
-	if overlap_bottom > overlap_top:
-		if _expanded_rect.end.x < source.position.x:
-			_handoff_rect = Rect2(Vector2(_expanded_rect.end.x, overlap_top), Vector2(source.position.x - _expanded_rect.end.x, overlap_bottom - overlap_top))
-		elif source.end.x < _expanded_rect.position.x:
-			_handoff_rect = Rect2(Vector2(source.end.x, overlap_top), Vector2(_expanded_rect.position.x - source.end.x, overlap_bottom - overlap_top))
+	var center: Vector2 = Vector2(clampf(source.get_center().x, LEFT_CLEAR + size.x * 0.5, right_end - size.x * 0.5), bottom - size.y * 0.5)
+	_expanded_rect = Rect2(center - size * 0.5, size)
+	# The strip between the two faces keeps the hover while the pointer climbs to the preview.
+	var span_left: float = maxf(source.position.x, _expanded_rect.position.x)
+	var span_right: float = minf(source.end.x, _expanded_rect.end.x)
+	if span_right > span_left and source.position.y > bottom:
+		_handoff_rect = Rect2(Vector2(span_left, bottom), Vector2(span_right - span_left, source.position.y - bottom))
 	var depth: float = DEPTH - 0.2
 	_preview.position = _camera.to_local(_camera.project_position(center, depth))
 	_preview.scale = Vector3.ONE * scale_factor * depth / DEPTH
@@ -507,15 +479,6 @@ func _layout_preview(item: Dictionary, width: float, height: float, units: float
 	aura.set_shader_parameter("border_extent", world * 0.504)
 	_preview_border.scale = Vector3(width * units / 0.63, height * units / 0.88, 1.0)
 	_preview_border.set_effect(HOVER_TINT, true, reduced_motion)
-	_preview_title.text = item["hover_title"]
-	_preview_title.pixel_size = units * 0.5 / scale_factor
-	_preview_title.width = width * 2.0 * scale_factor - 12.0
-	_preview_title.position = Vector3(0, height * units * 0.5 + 24.0 * units / scale_factor, 0.004)
-	var source_summary: Label3D = item["summary"]
-	_preview_summary.text = source_summary.text
-	_preview_summary.modulate = source_summary.modulate
-	_preview_summary.pixel_size = units * 0.5 / scale_factor
-	_preview_summary.position = Vector3(0, -height * units * 0.5 - 19.0 * units / scale_factor, 0.005)
 	_preview.show()
 
 

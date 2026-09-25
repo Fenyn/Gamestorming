@@ -6341,7 +6341,8 @@ func _change_fervor(p: PlayerState, delta: int, source_owner: int) -> void:
 			delta = mini(delta, int(state.grounds.def.raw["fervor_gain_cap"]))
 	var before: int = p.fervor
 	p.fervor = maxi(0, p.fervor + delta)
-	_emit(&"fervor_changed", {"player": p.index, "from": before, "to": p.fervor, "source": _effect_source.uid if _effect_source != null else -1})
+	_emit(&"fervor_changed", {"player": p.index, "from": before, "to": p.fervor, "source": _effect_source.uid if _effect_source != null else -1,
+		"source_owner": source_owner})
 	_check_aspect_up(p)
 
 
@@ -6354,7 +6355,8 @@ func _set_fervor(p: PlayerState, value: int, source_owner: int) -> void:
 		return
 	var before: int = p.fervor
 	p.fervor = maxi(0, value)
-	_emit(&"fervor_changed", {"player": p.index, "from": before, "to": p.fervor, "source": _effect_source.uid if _effect_source != null else -1})
+	_emit(&"fervor_changed", {"player": p.index, "from": before, "to": p.fervor, "source": _effect_source.uid if _effect_source != null else -1,
+		"source_owner": source_owner})
 	_check_aspect_up(p)
 
 

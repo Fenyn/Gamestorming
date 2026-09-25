@@ -5,26 +5,25 @@ extends RefCounted
 ##   gate:  sentences that say who may use the card ("Draconic duelists only.")
 ##   paras: the body, one entry per block. A block starts at each line of the source text, at a
 ##          lead-in ("When entering Combat," "Hit:" "Power:"), at a branch ("If you do,"
-##          "Otherwise,") which is indented under the block before it, at a Fervor rider, and at
-##          reminder text in brackets.
-##   tags:  bookkeeping and Fervor sentences as short chips, {word, role}: "LIMIT 1" and
-##          "REMOVED AFTER USE" have role "", "+1 FERVOR" and "RIVAL -2 FERVOR" role "fervor".
+##          "Otherwise,") which is indented under the block before it, at a rider (Attune,
+##          Disrupt, Empower), and at reminder text in brackets.
+##   tags:  bookkeeping and Endurance sentences as short chips, {word, role}. The role is a
+##          KeywordText colour ("removed"), or "" for plain bookkeeping ("LIMIT 1"); coloured
+##          chips lead the row.
 
 const _SENTENCE: String = "(?<=[.)\"])\\s+(?=[A-Z(\"])"
 const _COLON_LEAD: String = "^([A-Z][A-Za-z' ]{0,40}):\\s+"
 const _COMMA_LEAD: String = "^((?:When|Whenever|During|At the start of|After|If this card is) [^,:]{2,60}),\\s+"
 const _BRANCHES: Array[String] = ["If you do not,", "If you do,", "Otherwise,"]
-const _OWN_LINE: Array[String] = ["Raise your Fervor", "Lower your opponent's Fervor", "Raise your duelist's", "Empower "]
-## Pattern, chip word, role. Fervor chips come first so they lead the row.
+const _OWN_LINE: Array[String] = ["Attune ", "Disrupt ", "Raise your duelist's", "Empower "]
+## Pattern, chip word, role, in the order coloured chips show.
 const _TAGS: Array = [
-	["^Raise your Fervor (\\d+)\\.$", "+%s FERVOR", "fervor"],
-	["^Lower your opponent's Fervor (\\d+)\\.$", "RIVAL -%s FERVOR", "fervor"],
+	["^Endurance (\\d+|X)\\.$", "ENDURANCE %s", ""],
+	["^Remove from the game after use\\.$", "REMOVED AFTER USE", "removed"],
 	["^Limit (\\d+) per deck\\.$", "LIMIT %s", ""],
-	["^Remove from the game after use\\.$", "REMOVED AFTER USE", ""],
 	["^Place at the bottom of your Life Deck after use\\.$", "TO LIFE DECK AFTER USE", ""],
 	["^Once per Combat\\.$", "ONCE PER COMBAT", ""],
 	["^Remain (\\d+)\\.$", "REMAIN %s", ""],
-	["^Endurance (\\d+|X)\\.$", "ENDURANCE %s", ""],
 ]
 const _GATES: Array[String] = ["^[A-Z][A-Za-z']*(?: [A-Za-z']+){0,2} only\\.$", "^Use this card only if ", "^Adventure only:"]
 

@@ -57,23 +57,19 @@ const FILAMENT_CAP: float = 13.0          # half-width of the transverse cap on 
 const CARD_FACE: PackedScene = preload("res://scenes/duel/card_face.tscn")
 const CARD_ASPECT: float = 716.0 / 512.0
 const DECISION_GAP: float = 12.0
-const DECISION_BOTTOM_MARGIN: float = 24.0
-## The decision column on the rail: its left offset from the right edge and its width. The panel
-## sits on the bottom-right corner PROMPT_BOTTOM above the screen edge, clear of the tucked hand,
-## and grows upward; a focus card on the rail stands on top of it and shrinks before it would
-## reach RAIL_TOP, the line under the corner toggles.
+## The decision column on the rail: its left offset from the right edge and its width. The focus
+## card always has one size, RAIL_CARD_WIDTH, with its top on RAIL_TOP, the line under the corner
+## toggles. The decision hangs below that slot and grows downward, and its action list scrolls
+## before it would come within PROMPT_BOTTOM_MARGIN of the screen edge.
 const RAIL_FOCUS: Rect2 = Rect2(-454, 120, 400, 0)
 ## Padding between the decision panel's frame texture edge and its text; the rule itself sits
 ## about 8 px inside the texture edge.
-const PROMPT_PAD: int = 30
-const PROMPT_BOTTOM: float = 250.0
+const PROMPT_PAD: int = 20
+const PROMPT_BOTTOM_MARGIN: float = 24.0
 const RAIL_TOP: float = 120.0
-const RAIL_MIN_CARD_WIDTH: float = 180.0
-## The focus slot on centre stage (`centre_stage`): the card's width and the gap to the decision
-## beside it. The pair is centred on the screen across; the decision sits level with the card's
-## lower edge, below the rival's half, and drops under `avoid_rect` when it would cover it.
-const STAGE_CARD_WIDTH: float = 360.0
-const STAGE_GAP: float = 20.0
+const RAIL_CARD_WIDTH: float = 400.0
+const ACTION_HEIGHT: float = 48.0
+const SINGLE_ACTION_HEIGHT: float = 56.0   # a lone action is the whole decision, so it stands taller
 const DECISION_RESULT_HEIGHT: float = 30.0   # one line at the body size
 ## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand:
 ## the decision is about the cards themselves, as in a discard-step keep or a Reserve swap.
@@ -268,23 +264,6 @@ var _filament_target: int = -1         # the table card the current pending job 
 var _filament_uid: int = -1            # the card that job belongs to, so the stack can source it
 var _filament_state: StringName = &"pending"
 var inspect_uid: int = -1              # the card the inspect overlay shows, -1 when closed or unknown
-## While an exchange is live the focus slot is the hero: it moves off the rail to the middle of
-## the screen, over the arena, at a larger size, with the decision beside it and no filament.
-var centre_stage: bool = false:
-	set(value):
-		if centre_stage == value:
-			return
-		centre_stage = value
-		_layout_prompt_column()
-## The rival's Life Deck on screen, in HUD coordinates, set by the table each frame. The centre
-## stage decision never covers it. Empty when the table cannot say.
-var avoid_rect: Rect2 = Rect2():
-	set(value):
-		if avoid_rect.position.distance_to(value.position) < 1.0 and avoid_rect.size.distance_to(value.size) < 1.0:
-			return
-		avoid_rect = value
-		if centre_stage and focus != null and focus.visible:
-			_layout_prompt_column()
 var _staging: bool = false             # guards `_on_prompt_resized` against its own layout
 var _who_color: Color = ZenithTheme.TEXT   # the deciding seat's accent, for the tray header
 var _tray_face: Vector2 = TRAY_CARD_SIZE   # the face size of the tray being filled
@@ -425,37 +404,18 @@ func _compact_prompt() -> void:
 func _layout_prompt_column() -> void:
 	if focus == null or prompt_panel == null:
 		return
-	# Both panels hang off the right edge. The focus counts down from the top and the decision up
-	# from the bottom, so the decision grows upward as its buttons come in.
-	var stage: bool = centre_stage and focus.visible
-	var panel_height: float = prompt_panel.get_combined_minimum_size().y if prompt_panel.visible else 0.0
-	var panel_bottom: float = root.size.y - PROMPT_BOTTOM
-	var card_width: float = STAGE_CARD_WIDTH
-	var left: float = RAIL_FOCUS.position.x
-	var panel_left: float = RAIL_FOCUS.position.x
-	if stage:
-		left = root.size.x * 0.5 - (card_width + STAGE_GAP + RAIL_FOCUS.size.x) * 0.5 - root.size.x
-		focus.offset_top = (root.size.y - FOCUS_CAPTION_HEIGHT - card_width * CARD_ASPECT) * 0.5
-		panel_left = left + card_width + STAGE_GAP
-		# Level with the face's lower edge, which keeps it in the near half of the table.
-		panel_bottom = focus.offset_top + card_width * CARD_ASPECT
-		var panel: Rect2 = Rect2(root.size.x + panel_left, panel_bottom - panel_height, RAIL_FOCUS.size.x, panel_height)
-		if avoid_rect.has_area() and panel.intersects(avoid_rect.grow(DECISION_GAP)):
-			panel_bottom = minf(avoid_rect.end.y + DECISION_GAP + panel_height, root.size.y - DECISION_BOTTOM_MARGIN)
-	else:
-		var stand: float = panel_bottom - panel_height - DECISION_GAP if prompt_panel.visible else panel_bottom
-		card_width = clampf((stand - RAIL_TOP - FOCUS_CAPTION_HEIGHT) / CARD_ASPECT, RAIL_MIN_CARD_WIDTH, RAIL_FOCUS.size.x)
-		left = RAIL_FOCUS.position.x + (RAIL_FOCUS.size.x - card_width) * 0.5
-		focus.offset_top = stand - FOCUS_CAPTION_HEIGHT - card_width * CARD_ASPECT
+	# Both panels hang off the right edge at fixed places. The focus card keeps one size under the
+	# corner toggles, and the decision hangs below its slot and grows downward as buttons come in.
+	var left: float = RAIL_FOCUS.position.x + (RAIL_FOCUS.size.x - RAIL_CARD_WIDTH) * 0.5
+	focus.offset_top = RAIL_TOP
 	focus.offset_left = left
-	focus.offset_right = left + card_width
-	focus.offset_bottom = focus.offset_top + FOCUS_CAPTION_HEIGHT + card_width * CARD_ASPECT
-	focus_face.scale = Vector2.ONE * card_width / 512.0
-	prompt_panel.offset_left = panel_left
-	prompt_panel.offset_right = panel_left + RAIL_FOCUS.size.x
-	# The panel is anchored to the bottom edge and grows upward from its bottom offset to fit.
-	prompt_panel.offset_bottom = panel_bottom - root.size.y
-	prompt_panel.offset_top = prompt_panel.offset_bottom
+	focus.offset_right = left + RAIL_CARD_WIDTH
+	focus.offset_bottom = RAIL_TOP + RAIL_CARD_WIDTH * CARD_ASPECT + FOCUS_CAPTION_HEIGHT
+	focus_face.scale = Vector2.ONE * RAIL_CARD_WIDTH / 512.0
+	prompt_panel.offset_left = RAIL_FOCUS.position.x
+	prompt_panel.offset_right = RAIL_FOCUS.position.x + RAIL_FOCUS.size.x
+	prompt_panel.offset_top = _panel_top()
+	prompt_panel.offset_bottom = prompt_panel.offset_top
 	# The response stack lives inside the Focus rect, so it costs the decision column nothing.
 	_layout_stack()
 	_fit_actions()
@@ -467,7 +427,13 @@ func focus_face_rect() -> Rect2:
 	return Rect2(rect.position, Vector2(rect.size.x, rect.size.x * CARD_ASPECT))
 
 
-## The focus card stands on the decision, so a decision that changes height moves it.
+## The decision's top edge: under the focus card's slot, whether or not a card is in it, so the
+## panel never jumps when a card comes or goes.
+func _panel_top() -> float:
+	return RAIL_TOP + RAIL_CARD_WIDTH * CARD_ASPECT + FOCUS_CAPTION_HEIGHT + DECISION_GAP
+
+
+## A decision that changes height refits its action list to the space left under it.
 func _on_prompt_resized() -> void:
 	if focus.visible and not _fitting_actions and not _staging:
 		_staging = true
@@ -480,10 +446,7 @@ func _fit_actions() -> void:
 		return
 	_fitting_actions = true
 	var outside: float = maxf(0.0, prompt_panel.get_combined_minimum_size().y - actions_scroll.get_combined_minimum_size().y)
-	var ceiling: float = RAIL_TOP
-	if focus.visible and not centre_stage:
-		ceiling += FOCUS_CAPTION_HEIGHT + RAIL_MIN_CARD_WIDTH * CARD_ASPECT + DECISION_GAP
-	var available: float = maxf(0.0, root.size.y + prompt_panel.offset_bottom - ceiling - outside)
+	var available: float = maxf(0.0, root.size.y - PROMPT_BOTTOM_MARGIN - _panel_top() - outside)
 	var desired: float = minf(primary_box.get_combined_minimum_size().y, minf(260.0, available))
 	actions_scroll.custom_minimum_size.y = desired
 	actions_scroll.visible = primary_box.get_child_count() > 0
@@ -1061,7 +1024,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 		if not finals.is_empty():
 			var b: Button = Button.new()
 			b.text = "Final Strike…"
-			b.custom_minimum_size = Vector2(0, 60)
+			b.custom_minimum_size = Vector2(0, ACTION_HEIGHT)
 			b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
 			b.pressed.connect(func() -> void: _show_final_strike(finals))
 			primary_box.add_child(b)
@@ -1079,7 +1042,7 @@ func _make_single_action(p: PromptView, opt: OptionView, view: SeatView) -> void
 		return
 	var b: Button = primary_box.get_child(0)
 	b.text = _single_action_label(p, opt, view)
-	b.custom_minimum_size = Vector2(0, 60)
+	b.custom_minimum_size = Vector2(0, SINGLE_ACTION_HEIGHT)
 	b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_ROW)
 	b.tooltip_text = opt.label
 	_single_action = b
@@ -1539,7 +1502,7 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 				b.tooltip_text += "\nPrevents " + _wounds(prevented) + "."
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var text_width: float = root.get_theme_font("font", "Button").get_string_size(opt.label, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x + 48.0
-		b.custom_minimum_size = Vector2(0.0 if vertical else clampf(text_width, 300.0, minf(520.0, root.size.x - 180.0)), 60)
+		b.custom_minimum_size = Vector2(0.0 if vertical else clampf(text_width, 300.0, minf(520.0, root.size.x - 180.0)), ACTION_HEIGHT if into == primary_box else 60.0)
 		b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
 		b.pressed.connect(func() -> void: option_chosen.emit(opt))
 		if not opt.outcome.is_empty():
@@ -2444,8 +2407,7 @@ func _process(_delta: float) -> void:
 func _draw_filament() -> void:
 	if filament == null:
 		return
-	# On centre stage the card sits over the arena it would point into, so there is no filament.
-	if not focus.visible or centre_stage or _filament_target < 0 or tray.visible or inspect.visible \
+	if not focus.visible or _filament_target < 0 or tray.visible or inspect.visible \
 		or table == null or not table.has_method("screen_anchor"):
 		filament.visible = false
 		return

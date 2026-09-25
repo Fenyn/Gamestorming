@@ -78,7 +78,7 @@ def stops(c):
 
 DROWNING = {"Tide Salt Burn Drill", "Tide Dead Calm", "Tide Pounding Surf", "Tide Leeching Brine",
              "Tide Riptide", "Tide Frozen Over", "Tide Sinking Blow"}
-DENIAL = r"Lower your opponent's Fervor|opponent's Fervor to 0|[Tt]heir Fervor"
+DENIAL = r"Disrupt \d|Lower your opponent's Fervor|opponent's Fervor to 0|[Tt]heir Fervor"
 
 # Ordered (label, test) per school. A card takes every label it matches, first one is its group.
 RULES = {
@@ -89,7 +89,7 @@ RULES = {
         ("Burning the board", lambda c: has(c, r"(Drill|Ally|Allies|Non-Combat).* in play", r"in play of your choice")),
         ("Pyre Arts", lambda c: is_type(c, "Art") and has(c, r"\d wounds")),
         ("Art answers", lambda c: has(c, r"Stops an Art", r"Stops all Arts", r"any attack")),
-        ("Climbing blocks", lambda c: has(c, r"Stops a Strike", r"Stops any attack") and has(c, r"Fervor")),
+        ("Climbing blocks", lambda c: has(c, r"Stops a Strike", r"Stops any attack") and has(c, r"Fervor", r"Attune \d", r"Disrupt \d")),
         ("Fervor attacks", lambda c: True),
     ],
     "steel": [
@@ -131,7 +131,7 @@ RULES = {
         ("Recursion", lambda c: has(c, r"discard pile") and has(c, r"Life Deck|into your hand|Draw the bottom|draw the")),
         ("Seals", lambda c: has(c, r"Seal") and not has(c, r"not a Seal")),
         ("Table defense", lambda c: is_type(c, "Drill") or has(c, r"Endurance [4-9]|Endurance 10")),
-        ("Fervor denial", lambda c: has(c, r"Lower your opponent's Fervor")),
+        ("Fervor denial", lambda c: has(c, r"Disrupt \d", r"Lower your opponent's Fervor")),
         ("Board strip", lambda c: has(c, r"[Oo]pponent (removes|discards).* in play")),
         ("Costly Arts", lambda c: has(c, r"Costs \d")),
         ("Root attacks", lambda c: True),
@@ -261,7 +261,7 @@ FREE_RULES = [
     ("Recursion", lambda c: has(c, r"discard pile")),
     ("Seals", lambda c: has(c, r"Seal")),
     ("Allies", lambda c: has(c, r"Ally|Allies")),
-    ("Fervor", lambda c: has(c, r"Fervor")),
+    ("Fervor", lambda c: has(c, r"Fervor", r"Attune \d", r"Disrupt \d")),
     ("Stops", lambda c: stops(c)),
     ("Other", lambda c: True),
 ]

@@ -28,7 +28,7 @@ const ANIMATED: Dictionary = {
 	&"remain": ["card", "uses"],
 	&"power_up": ["gain", "energy", "energies"], &"recover": ["card"],
 	&"energy_changed": ["card", "from", "to", "source"], &"gain_blocked": ["card", "amount"],
-	&"fervor_changed": ["from", "to", "source"], &"fervor_shielded": [], &"aspect_up": ["aspect"], &"aspect_down": ["aspect"],
+	&"fervor_changed": ["from", "to", "source", "source_owner"], &"fervor_shielded": [], &"aspect_up": ["aspect"], &"aspect_down": ["aspect"],
 	&"trigger_fired": ["card", "trigger"], &"draw": ["card", "from"],
 	&"countered": ["card", "target"], &"game_over": ["winner", "reason"],
 	# The quiet beats: a window that opened on nothing, a decision taken without a card, a step

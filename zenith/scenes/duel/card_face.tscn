@@ -218,7 +218,37 @@ theme_override_font_sizes/font_size = 11
 text = "ENERGY"
 horizontal_alignment = 1
 
-[node name="Text" type="RichTextLabel" parent="Margin/Column"]
+[node name="Stamps" type="VBoxContainer" parent="Margin/Column/Art"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -134.0
+offset_top = -150.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/separation = 6
+alignment = 2
+
+[node name="Words" type="PanelContainer" parent="Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Col" type="VBoxContainer" parent="Margin/Column/Words"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Tags" type="HFlowContainer" parent="Margin/Column/Words/Col"]
+visible = false
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 4
+
+[node name="Text" type="RichTextLabel" parent="Margin/Column/Words/Col"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/normal_font_size = 24
@@ -227,12 +257,6 @@ text = "Rules text"
 scroll_active = false
 script = ExtResource("3_keyword")
 
-[node name="Badges" type="HFlowContainer" parent="Margin/Column"]
-custom_minimum_size = Vector2(0, 30)
-layout_mode = 2
-theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 4
-alignment = 2
 
 [node name="Person" type="MarginContainer" parent="."]
 visible = false
@@ -389,6 +413,12 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 4
 
+[node name="Tags" type="HFlowContainer" parent="Person/Column/Words/Col"]
+visible = false
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 4
+
 [node name="Text" type="RichTextLabel" parent="Person/Column/Words/Col"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -397,9 +427,3 @@ bbcode_enabled = true
 text = "Power"
 scroll_active = false
 script = ExtResource("3_keyword")
-
-[node name="Tags" type="HFlowContainer" parent="Person/Column/Words/Col"]
-visible = false
-layout_mode = 2
-theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 4

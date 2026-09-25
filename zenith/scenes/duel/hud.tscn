@@ -153,21 +153,18 @@ alignment = 1
 
 [node name="PromptPanel" type="PanelContainer" parent="Root"]
 layout_mode = 1
-anchors_preset = 3
+anchors_preset = 1
 anchor_left = 1.0
-anchor_top = 1.0
 anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -414.0
-offset_top = -250.0
+offset_left = -454.0
+offset_top = 723.0
 offset_right = -54.0
-offset_bottom = -250.0
+offset_bottom = 723.0
 grow_horizontal = 0
-grow_vertical = 0
 
 [node name="Column" type="VBoxContainer" parent="Root/PromptPanel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="Who" type="Label" parent="Root/PromptPanel/Column"]
 layout_mode = 2
@@ -178,7 +175,7 @@ autowrap_mode = 3
 [node name="Title" type="Label" parent="Root/PromptPanel/Column"]
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 text = "Waiting"
 autowrap_mode = 3
 

@@ -3339,31 +3339,45 @@ func test_card_text_condenses_repeated_branches() -> void:
 	check(shade.contains("your opponent discards a card from hand, at random if the top card of your discard pile is Shade."),
 		"a discard split on a school check reads as one line: %s" % shade)
 	var volley: String = CardText.rules_text(shipped.defs["freestyle_art_05"])
-	check(volley.contains("It stays on the table after use. One of your Draik Allies may perform it once more this Combat."),
-		"an Ally-only Remain says who performs it again, in plain words: %s" % volley)
+	check(volley.contains("This card stays on the table to be used 1 more time by a Draik Ally."),
+		"an Ally-only Remain keeps the printed sentence: %s" % volley)
 
 
 func test_rules_layout_splits_text_into_blocks_and_chips() -> void:
-	var layout: Dictionary = RulesLayout.build("Draconic duelists only.\nWhen entering Combat, draw a card. If you do, gain 2 Energy. Otherwise, raise your Fervor 1.\nRaise your Fervor 1. Lower your opponent's Fervor 2. Limit 1 per deck.")
+	var layout: Dictionary = RulesLayout.build("Draconic duelists only.\nWhen entering Combat, draw a card. If you do, gain 2 Energy. Otherwise, Attune 1.\nEndurance 2. Attune 1. Disrupt 2. Limit 1 per deck. Remove from the game after use.")
 	eq(Array(layout["gate"]), ["Draconic duelists only."], "a who-may-use sentence goes to the gate")
 	var paras: Array = layout["paras"]
-	eq(paras.size(), 3, "a lead-in block and two indented branches: %s" % str(paras))
+	eq(paras.size(), 5, "a lead-in block, two indented branches and a line per rider: %s" % str(paras))
 	eq(str(paras[0]["lead"]), "When entering Combat,", "the trigger is the lead-in")
 	check(bool(paras[1]["indent"]) and bool(paras[2]["indent"]), "If you do / Otherwise are indented")
+	eq(str(paras[3]["text"]), "Attune 1.", "a Fervor rider stays in the text on its own line")
 	var words: Array = []
 	for t in layout["tags"]:
 		words.append(str(t["word"]))
-	eq(words, ["+1 FERVOR", "RIVAL -2 FERVOR", "LIMIT 1"], "Fervor chips lead, bookkeeping follows")
-	eq(str(layout["tags"][0]["role"]), "fervor", "a Fervor chip carries its role")
+	eq(words, ["REMOVED AFTER USE", "ENDURANCE 2", "LIMIT 1"], "coloured chips lead, bookkeeping follows")
+	var raise: Dictionary = {"op": "fervor", "amount": 1}
+	eq(CardText.effect_text(raise), "Attune 1.", "raising your own Fervor is Attune")
+	var lower: Dictionary = {"op": "fervor", "who": "opponent", "amount": -2}
+	eq(CardText.effect_text(lower), "Disrupt 2.", "lowering the rival's Fervor is Disrupt")
+	eq(CardText.may_action(raise), "Attune 1", "a prompt button uses the keyword")
+	eq(CardText.may_action(lower), "Disrupt 2", "and so does the rival side")
+	eq(CardText.fervor_word({"player": 0, "from": 1, "to": 3, "source_owner": 0}), "Attune 2", "a gain reads as Attune")
+	eq(CardText.fervor_word({"player": 0, "from": 3, "to": 1, "source_owner": 1}), "Disrupt 2", "a loss the rival caused reads as Disrupt")
+	eq(CardText.fervor_word({"player": 0, "from": 3, "to": 1, "source_owner": 0}), "", "a loss of your own doing keeps the bare number")
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var gain: GameEvent = GameEvent.new(&"fervor_changed", {"player": 0, "from": 1, "to": 2, "source": -1, "source_owner": 0})
+	eq(CardText.event_line(gain, e), "%s Attunes 1 (Fervor 1 → 2)." % e.player(0).name, "the log names a gain as Attune")
+	var loss: GameEvent = GameEvent.new(&"fervor_changed", {"player": 0, "from": 3, "to": 1, "source": -1, "source_owner": 1})
+	eq(CardText.event_line(loss, e), "%s is Disrupted 2 (Fervor 3 → 1)." % e.player(0).name, "and a loss the rival caused as Disrupt")
 
 
 func test_card_text_wording() -> void:
 	var plain_gain: Dictionary = {"op": "energy", "amount": 3}
 	eq(CardText.effect_text(plain_gain), "Gain 3 Energy.", "an unconditional line reads bare")
 	var hit: Dictionary = {"trigger": "if_successful", "op": "fervor", "amount": 1}
-	eq(CardText.effect_text(hit), "Hit: Raise your Fervor 1.", "Hit label")
+	eq(CardText.effect_text(hit), "Hit: Attune 1.", "Hit label")
 	var hit_ally: Dictionary = {"trigger": "if_successful", "op": "fervor", "amount": 1, "when": {"allies_min": 1}}
-	eq(CardText.effect_text(hit_ally), "Hit: If you have an Ally in play, raise your Fervor 1.", "other conditions stay as sentences")
+	eq(CardText.effect_text(hit_ally), "Hit: If you have an Ally in play, Attune 1.", "other conditions stay as sentences")
 	var entering: Dictionary = {"trigger": "entering_combat", "op": "energy", "amount": 5}
 	eq(CardText.effect_text(entering), "When entering Combat, gain 5 Energy.", "a triggered line")
 	var remain: CardDef = CardDef.from_dict({"id": "r", "title": "R", "type": "strike", "attack": {"kind": "strike"}, "remain": 1})
@@ -3374,7 +3388,7 @@ func test_card_text_wording() -> void:
 		{"trigger": "entering_combat", "op": "fervor", "who": "opponent", "amount": -2},
 		{"trigger": "entering_combat", "op": "energy", "amount": 2, "target": "duelist"},
 	]
-	eq(CardText.effects_text(pair), PackedStringArray(["When entering Combat, lower your opponent's Fervor 2 and gain 2 Energy."]), "same trigger folds into one sentence")
+	eq(CardText.effects_text(pair), PackedStringArray(["When entering Combat, Disrupt 2 and gain 2 Energy."]), "same trigger folds into one sentence")
 	var forbids: Array = [
 		{"op": "forbid", "what": "end_combat"}, {"op": "forbid", "who": "opponent", "what": "end_combat"},
 		{"op": "forbid", "what": "stop_all"}, {"op": "forbid", "who": "opponent", "what": "stop_all"},
@@ -3425,7 +3439,7 @@ func test_keyword_table() -> void:
 		check(str(k.get("role", "")) != "" and str(k.get("tip", "")).length() > 20, "role and tip on %s" % key)
 		var r: RegEx = RegEx.new()
 		eq(r.compile(str(k.get("pattern", ""))), OK, "pattern compiles for %s" % key)
-		var phrase_only: Array[String] = ["Stops", "from the game", "Remain", "Hit", "aspect", "cannot be prevented", "Cannot be stopped", "Signature", "Limit", "Constant"]
+		var phrase_only: Array[String] = ["Stops", "from the game", "Remain", "Hit", "aspect", "cannot be prevented", "Cannot be stopped", "Signature", "Limit", "Constant", "Attune", "Disrupt"]
 		check(r.search(key) != null or key in phrase_only, "pattern finds its own key: %s" % key)
 	var r: RegEx = RegEx.new()
 	r.compile(str(CardText.KEYWORDS[1]["pattern"]))
@@ -4717,7 +4731,7 @@ func test_shade_draining_blast_deals_energy_and_refunds_its_user() -> void:
 	answer(e, &"attack", prep.uid)
 	eq(e.player(0).fervor, fervor_before + 1, "the Focused Art raised Fervor on landing")
 	var text: String = CardText.rules_text(shipped().get_def("shade_art_06"))
-	check(text.contains("Focused Art.") and text.contains("Hit: Raise your Fervor 1"), "worded as printed: %s" % text)
+	check(text.contains("Focused Art.") and text.contains("Hit: Attune 1"), "worded as printed: %s" % text)
 	var blast_text: String = CardText.rules_text(shipped().get_def("shade_art_07"))
 	check(blast_text.contains("Art dealing 4 Energy") and blast_text.contains("Costs 2 Energy"), "worded as printed: %s" % blast_text)
 
@@ -9827,7 +9841,7 @@ func test_pyre_flame_lash_keeps_its_fervor_when_empowered_and_stacks_the_rest_on
 		ops.append(str((line as Dictionary).get("op", "")))
 	check(ops.has("fervor"), "an Empowered Lash still raises the Fervor")
 	check(not ops.has("look_at"), "and drops the look printed after Empower")
-	check(CardText.rules_text(lash.def).find("Raise your Fervor 1") < CardText.rules_text(lash.def).find("Empower 2"),
+	check(CardText.rules_text(lash.def).find("Attune 1") in range(0, CardText.rules_text(lash.def).find("Empower 2")),
 		"the text prints the Fervor line before Empower: %s" % CardText.rules_text(lash.def))
 	var bottom: Array[int] = []
 	for i in range(5):

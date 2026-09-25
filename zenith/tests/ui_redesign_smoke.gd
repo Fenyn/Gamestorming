@@ -167,18 +167,14 @@ func _run() -> void:
 		var reserve_slot: Transform3D = duel.zones.slot(seat, &"relic", 1, 2, 0)
 		var relic_top: Transform3D = duel.zones.slot(seat, &"relic", 0, 2, 0)
 		_check(reserve_slot.origin.y < relic_top.origin.y and reserve_slot.origin.distance_to(relic_top.origin) > 0.01, "A Reserve card must tuck under its Relic with an edge showing")
-	# A live exchange puts the focus card on centre stage: larger, with the decision beside it, the
-	# pair centred on the screen; it goes back to the rail afterwards.
+	# The focus card always stands on the rail, a live exchange included.
 	# The HUD script reads autoloads, so it is reached through the scene rather than by class name.
 	var hud: CanvasLayer = duel.hud
 	var rail: Rect2 = hud.get_script().get_script_constant_map()["RAIL_FOCUS"]
 	var focus_shown: bool = hud.focus.visible
 	hud.focus.visible = true
-	hud.centre_stage = true
-	var staged: Rect2 = hud.focus.get_global_rect().merge(hud.prompt_panel.get_global_rect())
-	_check(absf(staged.get_center().x - hud.root.size.x * 0.5) < 2.0 and hud.focus.size.x >= rail.size.x, "Centre stage must centre the focus card and its decision on the screen")
-	hud.centre_stage = false
-	_check(is_equal_approx(hud.focus.offset_right, rail.position.x + (rail.size.x + hud.focus.size.x) * 0.5) and hud.focus.offset_top >= rail.position.y - 1.0, "Leaving centre stage must put the focus card back on the rail")
+	hud._layout_prompt_column()
+	_check(is_equal_approx(hud.focus.offset_right, rail.position.x + (rail.size.x + hud.focus.size.x) * 0.5) and hud.focus.offset_top >= rail.position.y - 1.0, "The focus card must stand on the rail")
 	hud.focus.visible = focus_shown
 	# Every off-field card is on the felt, and the screen-edge rail is gone.
 	for zone in [&"discard", &"removed", &"mastery", &"relic"]:
@@ -308,12 +304,18 @@ func _run() -> void:
 		duel._layout_fixtures()
 		var decision_area: Rect2 = Rect2(Vector2(scale_size.x * 0.66, scale_size.y * 0.14), Vector2(scale_size.x * 0.29, scale_size.y * 0.64))
 		hand.set_decision_rect(decision_area)
+		var first_preview: Rect2 = Rect2()
 		for index in range(hand._items.size()):
 			hand.preview_index(index)
 			var expanded: Rect2 = hand._expanded_rect
 			var inside_viewport: bool = expanded.position.x >= 0.0 and expanded.position.y >= 0.0 and expanded.end.x <= scale_size.x and expanded.end.y <= scale_size.y
-			var clear_of_hero: bool = expanded.end.x <= hand._hero_left - hand.PREVIEW_MARGIN + 1.0 or expanded.position.x >= hand._hero_right + hand.PREVIEW_MARGIN - 1.0
-			_check(inside_viewport and clear_of_hero and not expanded.intersects(decision_area) and not expanded.intersects(hand._items[index]["rect"]), "Every hand preview must stay onscreen and clear of its source, the hero, and the decision at %s" % str(scale_size))
+			var clear_of_hand: bool = true
+			for item in hand._items:
+				clear_of_hand = clear_of_hand and not expanded.intersects(item["rect"])
+			_check(inside_viewport and clear_of_hand and not expanded.intersects(decision_area), "Every hand preview must stay onscreen, above the whole fan, and clear of the decision at %s" % str(scale_size))
+			if index == 0:
+				first_preview = expanded
+			_check(expanded.size.is_equal_approx(first_preview.size) and is_equal_approx(expanded.end.y, first_preview.end.y), "Every hand preview must share one size and baseline at %s" % str(scale_size))
 		for item in hand._items:
 			if (item["node"] as Node3D).visible:
 				var resting_rect: Rect2 = item["rect"]

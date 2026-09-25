@@ -31,7 +31,7 @@ const ART_HEIGHTS: Dictionary = {
 	CardDef.Type.NON_COMBAT: 240, CardDef.Type.DRILL: 240, CardDef.Type.GROUNDS: 240,
 	CardDef.Type.MASTERY: 200, CardDef.Type.RELIC: 200,
 }
-const STANDARD_FIXED: float = 44.0 + 36.0 + 30.0 + 4.0 * 8.0   # title, type row, badges, gaps
+const STANDARD_FIXED: float = 44.0 + 36.0 + 3.0 * 8.0   # title, type row, gaps
 const PERSON_TEXT_HEIGHT: float = 150.0
 const RUNG_HEIGHT: float = 28.0
 ## Padding inside the text box and the ladder box.
@@ -40,8 +40,11 @@ const PAD_Y: float = 6.0
 const LADDER_PAD: float = 6.0
 const PARA_GAP: int = 6
 const INDENT_PX: float = 32.0
-const TAG_HEIGHT: float = 22.0
-const TAG_FONT: int = 16
+const TAG_HEIGHT: float = 30.0
+const TAG_FONT: int = 24
+const STAMP_WIDTH: float = 124.0
+## Endurance stamps sit in the iron of the HUD frames, off the blue that means defending.
+const STAMP_IRON: Color = Color("3d3935")
 const LEAD_INK: Color = Color("5c4128")
 const PERSON_DARK: Color = Color("3b3226")
 const LIT_FALLBACK: Color = Color("8fe0b8")
@@ -94,8 +97,10 @@ static var strike_table: StrikeTable = null
 @onready var type_icon: TypeIcon = $Margin/Column/TypeRow/TypeChip/Row/Icon
 @onready var type_name: Label = $Margin/Column/TypeRow/TypeChip/Row/Name
 @onready var type_rest: Label = $Margin/Column/TypeRow/Rest
-@onready var text_label: KeywordLabel = $Margin/Column/Text
-@onready var badges: HFlowContainer = $Margin/Column/Badges
+@onready var words_box: PanelContainer = $Margin/Column/Words
+@onready var tags_row: HFlowContainer = $Margin/Column/Words/Col/Tags
+@onready var text_label: KeywordLabel = $Margin/Column/Words/Col/Text
+@onready var stamps: VBoxContainer = $Margin/Column/Art/Stamps
 
 @onready var person: MarginContainer = $Person
 @onready var p_aspect_box: PanelContainer = $Person/Column/Head/AspectBox
@@ -112,8 +117,8 @@ static var strike_table: StrikeTable = null
 @onready var p_surge_num: Label = $Person/Column/Body/Side/Stats/Surge/Col/Num
 @onready var p_surge_word: Label = $Person/Column/Body/Side/Stats/Surge/Col/Word
 @onready var p_words: PanelContainer = $Person/Column/Words
-@onready var p_text: KeywordLabel = $Person/Column/Words/Col/Text
 @onready var p_tags: HFlowContainer = $Person/Column/Words/Col/Tags
+@onready var p_text: KeywordLabel = $Person/Column/Words/Col/Text
 
 var _rule: Panel = null
 var _stage_rows: Array[PanelContainer] = []   # the rung's own pill, stage 10 first
@@ -212,9 +217,9 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D, table_base: 
 	_fit_type_rest(def)
 	type_rest.add_theme_color_override("font_color", INK)
 	var text_box: StyleBoxFlat = _box_style(PAD_X, PAD_Y)
-	text_label.add_theme_stylebox_override("normal", text_box)
+	words_box.add_theme_stylebox_override("panel", text_box)
 	var room: float = CONTENT_HEIGHT - STANDARD_FIXED - art_height - 4.0
-	_show_tags(badges, _fit_rules(text_label, CardText.rules_text(def), room, _inset(text_box)))
+	_place_rules(text_label, CardText.rules_text(def), room, _inset(text_box), tags_row, stamps)
 	# Energy cost as a round badge over the art, where the eye checks it first.
 	var cost: int = 0
 	if def.is_attack():
@@ -278,10 +283,7 @@ func _show_person(def: CardDef, aspect: int, picture: Texture2D, energy: int = -
 	p_words.add_theme_stylebox_override("panel", words)
 	p_ladder_box.add_theme_stylebox_override("panel", _box_style(LADDER_PAD, LADDER_PAD))
 	var plain: String = "\n".join(CardText.aspect_text(def, t))
-	var text_room: float = PERSON_TEXT_HEIGHT
-	if not RulesLayout.build(plain)["tags"].is_empty():
-		text_room -= TAG_HEIGHT + 4.0
-	_show_tags(p_tags, _fit_rules(p_text, plain, text_room, _inset(words)))
+	_place_rules(p_text, plain, PERSON_TEXT_HEIGHT, _inset(words), p_tags, null)
 
 
 ## The inset panel that holds a card's words or its ladder: a shade darker than the cream, with
@@ -423,18 +425,36 @@ func ladder_rects() -> Array[Rect2]:
 	return out
 
 
-## Rules text set as RulesLayout blocks: the gate as a muted line on top, each block its own
-## paragraph with its lead-in in capitals, branches indented. Returns the chip words, which the
-## caller shows under the box. The text takes the largest size from TEXT_SIZES whose blocks fit,
-## so a wordy card and a short one share the layout and only the type size differs. `inset` is
-## the padding the box takes from the content width and from `box_height`.
-func _fit_rules(label: KeywordLabel, plain: String, box_height: float, inset: Vector2) -> Array[Dictionary]:
+## Sets a card's rules text and its chips. Chips go in `row`, the first line inside the text box.
+## A stat chip (Endurance) becomes a stamp in `stamp_box` over the art instead, where the art has
+## room for one; a personality passes null.
+func _place_rules(label: KeywordLabel, plain: String, box_height: float, inset: Vector2, row: HFlowContainer, stamp_box: VBoxContainer) -> void:
 	var layout: Dictionary = RulesLayout.build(plain)
+	var chips: Array[Dictionary] = []
+	var stamped: Array[Dictionary] = []
+	for t in layout["tags"]:
+		if stamp_box != null and _stamp_parts(t).size() > 0:
+			stamped.append(t)
+		else:
+			chips.append(t)
+	var font: Font = label.get_theme_font("normal_font")
+	box_height -= _tag_rows(chips, font, CONTENT_WIDTH - inset.x) * (TAG_HEIGHT + 6.0)
+	_fit_rules(label, layout, box_height, inset)
+	_show_tags(row, chips)
+	row.visible = not chips.is_empty()
+	if stamp_box != null:
+		_show_stamps(stamp_box, stamped)
+
+
+## Rules text set as RulesLayout blocks: the gate as a muted line on top, each block its own
+## paragraph with its lead-in in capitals, branches indented. The text takes the largest size
+## from TEXT_SIZES whose blocks fit, so a wordy card and a short one share the layout and only the
+## type size differs. `inset` is the padding the box takes from the content width and from
+## `box_height`.
+func _fit_rules(label: KeywordLabel, layout: Dictionary, box_height: float, inset: Vector2) -> void:
 	var font: Font = label.get_theme_font("normal_font")
 	var width: float = CONTENT_WIDTH - 6.0 - inset.x
-	# The caller keeps room for one row of chips; a row that wraps takes its height from the text.
-	var extra_rows: int = maxi(0, _tag_rows(layout["tags"], font) - 1)
-	var room: float = box_height - inset.y - 6.0 - extra_rows * (TAG_HEIGHT + 4.0)
+	var room: float = box_height - inset.y - 6.0
 	var chosen: int = TEXT_SIZES[TEXT_SIZES.size() - 1]
 	for size in TEXT_SIZES:
 		if _rules_height(layout, font, width, size) <= room:
@@ -461,9 +481,6 @@ func _fit_rules(label: KeywordLabel, plain: String, box_height: float, inset: Ve
 			body = "[indent]%s[/indent]" % body
 		out.append(body)
 	label.text = "\n".join(out)
-	var tags: Array[Dictionary] = []
-	tags.assign(layout["tags"])
-	return tags
 
 
 func _rules_height(layout: Dictionary, font: Font, width: float, size: int) -> float:
@@ -480,15 +497,15 @@ func _rules_height(layout: Dictionary, font: Font, width: float, size: int) -> f
 	return h + PARA_GAP * maxi(0, n - 1)
 
 
-## How many rows the chips wrap to across the content width.
-func _tag_rows(tags: Array, font: Font) -> int:
+## How many rows the chips wrap to across `width`.
+func _tag_rows(tags: Array, font: Font, width: float) -> int:
 	if tags.is_empty():
 		return 0
 	var rows: int = 1
 	var x: float = 0.0
 	for t in tags:
-		var w: float = font.get_string_size(str(t["word"]), HORIZONTAL_ALIGNMENT_LEFT, -1, TAG_FONT).x + 12.0
-		if x > 0.0 and x + 6.0 + w > CONTENT_WIDTH:
+		var w: float = font.get_string_size(str(t["word"]), HORIZONTAL_ALIGNMENT_LEFT, -1, TAG_FONT).x + 16.0
+		if x > 0.0 and x + 6.0 + w > width:
 			rows += 1
 			x = 0.0
 		x += (6.0 if x > 0.0 else 0.0) + w
@@ -496,7 +513,7 @@ func _tag_rows(tags: Array, font: Font) -> int:
 
 
 ## RulesLayout chips in `row`, reusing the chips from the last face. Bookkeeping is a quiet ink
-## chip; a Fervor chip takes the Fervor keyword colour.
+## chip; a chip with a role takes that keyword's colour.
 func _show_tags(row: Container, tags: Array[Dictionary]) -> void:
 	var pool: Array = []
 	for c in row.get_children():
@@ -519,12 +536,52 @@ func _show_tags(row: Container, tags: Array[Dictionary]) -> void:
 			var l: Label = chip.get_child(0) as Label
 			l.text = str(tags[i]["word"])
 			if role == "":
-				_round(chip, Color(INK, 0.12), 4, 6, 1)
-				l.add_theme_color_override("font_color", Color(INK, 0.75))
+				_round(chip, Color(INK, 0.16), 5, 8, 1)
+				l.add_theme_color_override("font_color", Color(INK, 0.85))
 			else:
-				_round(chip, KeywordText.color_for(role, false), 4, 6, 1)
+				_round(chip, KeywordText.color_for(role, false), 5, 8, 1)
 				l.add_theme_color_override("font_color", CREAM)
-	row.visible = row != p_tags or not tags.is_empty()
+
+
+## "ENDURANCE 2" -> ["2", "ENDURANCE"]; empty for a chip that is not a stat.
+static func _stamp_parts(tag: Dictionary) -> PackedStringArray:
+	var word: String = str(tag["word"])
+	if word.begins_with("ENDURANCE "):
+		return PackedStringArray([word.trim_prefix("ENDURANCE "), "ENDURANCE"])
+	return PackedStringArray()
+
+
+## Stat chips as round stamps over the bottom-right of the art, like the Energy cost badge.
+func _show_stamps(box: VBoxContainer, tags: Array[Dictionary]) -> void:
+	while box.get_child_count() < tags.size():
+		var stamp: PanelContainer = PanelContainer.new()
+		stamp.custom_minimum_size = Vector2(STAMP_WIDTH, 0)
+		var col: VBoxContainer = VBoxContainer.new()
+		col.add_theme_constant_override("separation", -4)
+		for size in [32, 16]:
+			var l: Label = Label.new()
+			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			l.add_theme_font_size_override("font_size", size)
+			l.add_theme_color_override("font_color", CREAM)
+			col.add_child(l)
+		stamp.add_child(col)
+		box.add_child(stamp)
+	for i in range(box.get_child_count()):
+		var stamp: PanelContainer = box.get_child(i) as PanelContainer
+		stamp.visible = i < tags.size()
+		if i < tags.size():
+			var parts: PackedStringArray = _stamp_parts(tags[i])
+			var col: VBoxContainer = stamp.get_child(0) as VBoxContainer
+			(col.get_child(0) as Label).text = parts[0]
+			(col.get_child(1) as Label).text = parts[1]
+			var box_style: StyleBoxFlat = StyleBoxFlat.new()
+			box_style.bg_color = STAMP_IRON
+			box_style.set_corner_radius_all(14)
+			box_style.border_color = CREAM
+			box_style.set_border_width_all(3)
+			box_style.content_margin_top = 4
+			box_style.content_margin_bottom = 4
+			stamp.add_theme_stylebox_override("panel", box_style)
 
 
 ## The cream body. A Signature card gets a second rule just inside the frame, a bone line no

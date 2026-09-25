@@ -227,22 +227,12 @@ text = "Rules text"
 scroll_active = false
 script = ExtResource("3_keyword")
 
-[node name="Badges" type="HBoxContainer" parent="Margin/Column"]
+[node name="Badges" type="HFlowContainer" parent="Margin/Column"]
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="Left" type="Label" parent="Margin/Column/Badges"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 22
-text = ""
-
-[node name="Right" type="Label" parent="Margin/Column/Badges"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = ""
-horizontal_alignment = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 4
+alignment = 2
 
 [node name="Person" type="MarginContainer" parent="."]
 visible = false
@@ -354,7 +344,10 @@ custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Ladder" type="VBoxContainer" parent="Person/Column/Body/Side"]
+[node name="LadderBox" type="PanelContainer" parent="Person/Column/Body/Side"]
+layout_mode = 2
+
+[node name="Ladder" type="VBoxContainer" parent="Person/Column/Body/Side/LadderBox"]
 layout_mode = 2
 theme_override_constants/separation = 2
 
@@ -388,40 +381,15 @@ theme_override_font_sizes/font_size = 16
 text = "SURGE"
 horizontal_alignment = 1
 
-[node name="Attack" type="PanelContainer" parent="Person/Column/Body/Side/Stats"]
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Col" type="VBoxContainer" parent="Person/Column/Body/Side/Stats/Attack"]
-layout_mode = 2
-theme_override_constants/separation = -4
-alignment = 1
-
-[node name="Kind" type="Label" parent="Person/Column/Body/Side/Stats/Attack/Col"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "STRIKE"
-horizontal_alignment = 1
-
-[node name="Num" type="Label" parent="Person/Column/Body/Side/Stats/Attack/Col"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "+4"
-horizontal_alignment = 1
-
-[node name="Words" type="VBoxContainer" parent="Person/Column"]
+[node name="Words" type="PanelContainer" parent="Person/Column"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
-theme_override_constants/separation = 2
 
-[node name="TypeLine" type="Label" parent="Person/Column/Words"]
+[node name="Col" type="VBoxContainer" parent="Person/Column/Words"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "DRACONIC"
-clip_text = true
+theme_override_constants/separation = 4
 
-[node name="Text" type="RichTextLabel" parent="Person/Column/Words"]
+[node name="Text" type="RichTextLabel" parent="Person/Column/Words/Col"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/normal_font_size = 22
@@ -429,3 +397,9 @@ bbcode_enabled = true
 text = "Power"
 scroll_active = false
 script = ExtResource("3_keyword")
+
+[node name="Tags" type="HFlowContainer" parent="Person/Column/Words/Col"]
+visible = false
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 4

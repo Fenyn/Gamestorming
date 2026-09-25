@@ -53,6 +53,12 @@ const SIZE_ROW: int = 30
 const SIZE_GROUP: int = 36
 const SIZE_TITLE: int = 48
 const SIZE_DISPLAY: int = 72
+## Spacing: multiples of 6.
+const GAP_XS: int = 6
+const GAP_S: int = 12
+const GAP: int = 18
+const GAP_L: int = 24
+const GAP_XL: int = 36
 
 static var _theme: Theme = null
 

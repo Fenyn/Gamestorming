@@ -190,6 +190,8 @@ func _init() -> void:
 		test_seat_view_masks_hidden_cards,
 		test_referee_gates_commands,
 		test_card_text_wording,
+		test_card_text_condenses_repeated_branches,
+		test_rules_layout_splits_text_into_blocks_and_chips,
 		test_keyword_table,
 		test_dev_effect,
 		test_attacker_ally_control,
@@ -280,6 +282,7 @@ func _init() -> void:
 		test_a_guest_ally_starts_in_play,
 		test_adventure_boss_win_joins_the_run,
 		test_adventure_achievements_track_steps,
+		test_adventure_journal_routes,
 		test_adventure_xp_levels_pay_milestones,
 		test_every_reward_bundle_is_well_formed,
 		test_an_adventure_offer_is_three_legal_bundles_the_deck_can_run,
@@ -3323,6 +3326,37 @@ func test_dev_effect() -> void:
 
 ## Generated rules text: conditions stay attached, same-trigger lines fold, both-player effects
 ## read once, and aspect cards show constants and every part of a Power.
+func test_card_text_condenses_repeated_branches() -> void:
+	var any_stop: CardDef = CardDef.from_dict({"id": "s", "title": "S", "type": "combat", "defense": {"stops": "any"}})
+	eq(CardText.rules_text(any_stop), "Stops any attack.", "a stop of either kind reads as any attack")
+	var shipped: CardLibrary = shipped_library()
+	var steel: String = CardText.rules_text(shipped.defs["steel_mastery_03"])
+	check(not steel.contains("If you do not"), "a decline that matches the miss folds into Otherwise: %s" % steel)
+	check(steel.contains("Otherwise, prevent 4 Energy"), "the miss still reads in full: %s" % steel)
+	var pyre: String = CardText.rules_text(shipped.defs["pyre_mastery_03"])
+	check(pyre.contains("Otherwise, +1 Energy."), "a branch that repeats the other one's opening states only the difference: %s" % pyre)
+	var shade: String = CardText.rules_text(shipped.defs["shade_mastery_02"])
+	check(shade.contains("your opponent discards a card from hand, at random if the top card of your discard pile is Shade."),
+		"a discard split on a school check reads as one line: %s" % shade)
+	var volley: String = CardText.rules_text(shipped.defs["freestyle_art_05"])
+	check(volley.contains("It stays on the table after use. One of your Draik Allies may perform it once more this Combat."),
+		"an Ally-only Remain says who performs it again, in plain words: %s" % volley)
+
+
+func test_rules_layout_splits_text_into_blocks_and_chips() -> void:
+	var layout: Dictionary = RulesLayout.build("Draconic duelists only.\nWhen entering Combat, draw a card. If you do, gain 2 Energy. Otherwise, raise your Fervor 1.\nRaise your Fervor 1. Lower your opponent's Fervor 2. Limit 1 per deck.")
+	eq(Array(layout["gate"]), ["Draconic duelists only."], "a who-may-use sentence goes to the gate")
+	var paras: Array = layout["paras"]
+	eq(paras.size(), 3, "a lead-in block and two indented branches: %s" % str(paras))
+	eq(str(paras[0]["lead"]), "When entering Combat,", "the trigger is the lead-in")
+	check(bool(paras[1]["indent"]) and bool(paras[2]["indent"]), "If you do / Otherwise are indented")
+	var words: Array = []
+	for t in layout["tags"]:
+		words.append(str(t["word"]))
+	eq(words, ["+1 FERVOR", "RIVAL -2 FERVOR", "LIMIT 1"], "Fervor chips lead, bookkeeping follows")
+	eq(str(layout["tags"][0]["role"]), "fervor", "a Fervor chip carries its role")
+
+
 func test_card_text_wording() -> void:
 	var plain_gain: Dictionary = {"op": "energy", "amount": 3}
 	eq(CardText.effect_text(plain_gain), "Gain 3 Energy.", "an unconditional line reads bare")
@@ -5925,6 +5959,38 @@ func test_adventure_achievements_track_steps() -> void:
 	AdventureUnlocks.path_override = ""
 
 
+## The journal's joins: deck routes leave secrets out and name a hidden one only once started,
+## a secret-only deck is known as one, and a character's milestones come back in level order.
+func test_adventure_journal_routes() -> void:
+	var u: AdventureUnlocks = AdventureUnlocks.new()
+	var p: AdventureProgress = AdventureProgress.new()
+	eq(AdventureAchievements.routes("steel_beatdown_start", u, p).size(), 0, "a secret route is never listed")
+	check(AdventureAchievements.secret_only("steel_beatdown_start"), "so Quarr's deck is secret-only")
+	check(not AdventureAchievements.secret_only("pyre_ascent_start"), "Ember Ascendant has public routes")
+	check(not AdventureAchievements.secret_only("storm_volley_start"), "a deck with no route at all is not secret")
+	var ascent: Array[Dictionary] = AdventureAchievements.routes("pyre_ascent_start", u, p)
+	var texts: Array[String] = []
+	for r in ascent:
+		texts.append(str(r["text"]))
+	check(texts.has("Achievement: The hero falls") and texts.has("Edric level 5"),
+		"both of Ember Ascendant's routes are named: %s" % str(texts))
+	p.personality_xp["Sir Edric Rooke"] = 520
+	for r in AdventureAchievements.routes("pyre_ascent_start", u, p):
+		if str(r["text"]) == "Edric level 5":
+			eq([int(r["done"]), int(r["total"])], [4, 5], "a level route counts the level reached")
+	var ms: Array[Dictionary] = p.milestones("Sir Edric Rooke")
+	eq(ms.map(func(m: Dictionary) -> int: return int(m["level"])), [2, 3, 4, 5, 7], "Edric's authored levels in order")
+	eq(ms.filter(func(m: Dictionary) -> bool: return bool(m["reached"])).size(), 3, "three reached at level 4")
+	eq(p.personality_xp_to("Sir Edric Rooke", 5), 180, "and 180 XP short of level 5")
+	eq(p.milestones("Caedan Vale").size(), 0, "a character with no track has no authored milestones")
+	var shipped: CardLibrary = shipped_library()
+	eq(AdventureProgress.reward_short({"starter": "pyre_ascent_start"}, shipped), "Deck: Ember Ascendant", "a deck reward in short")
+	eq(AdventureProgress.reward_short({"abilities": ["start_relic", "start_reserve"]}, shipped), "Starting Relic and Reserve",
+		"both run-start abilities read as one")
+	eq(AdventureProgress.reward_short({"cards": ["signature_art_04", "signature_drill_05"]}, shipped), "2 signature cards",
+		"signatures are counted")
+
+
 func _journal_row(u: AdventureUnlocks, id: String) -> Dictionary:
 	for row in AdventureAchievements.journal(u, shipped_library()):
 		if str(row["id"]) == id:
@@ -5968,6 +6034,9 @@ func test_adventure_xp_levels_pay_milestones() -> void:
 	var generic: Dictionary = p.reward_for({"kind": "personality", "key": "Tavin Vale", "level": 2}, shipped)
 	eq(int(generic.get("signatures", 0)), 2, "a character with no track gets two signatures a level")
 	var pool: Array[String] = AdventureProgress.school_pool("tide", shipped)
+	for school in ["freestyle", "tide", "pyre"]:
+		for id in AdventureProgress.school_pool(school, shipped):
+			check(not shipped.get_def(id).is_signature(), "a signature card is never in the %s pool: %s" % [school, id])
 	var first: Dictionary = p.reward_for({"kind": "school", "key": "tide", "level": 2}, shipped)
 	eq(first["cards"], pool.slice(0, 3), "a school level hands out the next three of its pool")
 	var second: Dictionary = p.reward_for({"kind": "school", "key": "tide", "level": 3}, shipped)
@@ -5998,8 +6067,9 @@ func test_adventure_xp_levels_pay_milestones() -> void:
 	check(lines.size() > 1 and str(lines[0]["kind"]) == "join" and str(lines[0]["title"]) == "Emrys Rooke",
 		"the act 1 boss win reports Emrys joining: %s" % str(lines))
 	eq(str(lines[1]["kind"]), "xp", "then the XP it paid")
-	check(AdventureAchievements.unlock_sources("steel_heir_start").has("Emrys level 2"),
-		"a locked deck names what opens it")
+	var emrys_routes: Array[Dictionary] = AdventureAchievements.routes("steel_heir_start", AdventureUnlocks.new(), fresh)
+	check(emrys_routes.size() == 1 and str(emrys_routes[0]["text"]) == "Emrys level 2",
+		"a locked deck names what opens it: %s" % str(emrys_routes))
 	eq(int(fresh.personality_xp.get("Sir Edric Rooke", 0)), 25, "Edric gains boss XP")
 	eq(int(fresh.personality_xp.get("Emrys Rooke", 0)), 15, "Emrys gains XP for being beaten at a boss")
 	eq(int(fresh.school_xp.get("tide", 0)), 25, "and Tide gains school XP")

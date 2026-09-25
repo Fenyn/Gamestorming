@@ -90,7 +90,7 @@ const KEYWORDS: Array[Dictionary] = [
 	{"key": "Empower", "pattern": "\\bEmpower(?:ed)?(?: \\d+)?\\b", "role": "focus",
 		"tip": "You may perform this attack Empowered: it deals that many extra wounds, but every other effect on the card is lost."},
 	{"key": "Focused", "pattern": "\\bFocused\\b", "role": "attack",
-		"tip": "A Focused attack gets past defenses that stop all attacks. Only a defense that says it can stop a Focused attack, or a stop-all that names Focused, can stop it."},
+		"tip": "A Focused attack pierces \"Stops any attack\", and any stop-all that covers every attack. A stop aimed at Strikes only or Arts only still stops it, as does one that says it can stop a Focused attack."},
 	{"key": "Constant", "pattern": "\\bConstant:", "role": "plain",
 		"tip": "Always in effect while this is your duelist's aspect. It needs no action and cannot be forbidden like a Power."},
 	{"key": "Power", "pattern": "\\bPowers?\\b", "role": "plain",
@@ -607,12 +607,18 @@ static func rules_text(def: CardDef) -> String:
 	if def.remain >= 99:
 		lines.append("Stays on the table to be used any number of times this Combat.")
 	elif def.remain > 0:
-		var remain_note: String = ""
+		# When only an Ally may take the extra uses, the card says what happens in plain words
+		# instead of the Remain shorthand, which reads as the duelist's.
+		var by: String = ""
 		if def.raw.has("remain_by_tag"):
-			remain_note = " The extra uses are a %s Ally's." % keyword_name(str(def.raw["remain_by_tag"]))
+			by = "One of your %s Allies" % keyword_name(str(def.raw["remain_by_tag"]))
 		elif str(def.raw.get("remain_by", "")) == "ally":
-			remain_note = " The extra uses are an Ally's."
-		lines.append("Remain %d.%s" % [def.remain, remain_note])
+			by = "One of your Allies"
+		if by == "":
+			lines.append("Remain %d." % def.remain)
+		else:
+			var times: String = "once more" if def.remain == 1 else "%d more times" % def.remain
+			lines.append("It stays on the table after use. %s may perform it %s this Combat." % [by, times])
 	if not def.remain_when.is_empty():
 		var extra: Variant = def.remain_when.get("remain", 1)
 		var how_many: String = "Remain X, where X is your duelist's Aspect." if extra is String and str(extra) == "aspect" else "Remain %d." % int(extra)
@@ -926,7 +932,7 @@ static func defense_text(d: Dictionary) -> String:
 		"none":
 			s = "Use during your attack phase or against an attack. Stops nothing."
 		_:
-			s = "Stops a Strike or an Art." if pay == "" else "%s a Strike or an Art." % pay
+			s = "Stops any attack." if pay == "" else "%s any attack." % pay
 	if d.has("when"):
 		s = _conditional(d["when"], s)
 	if str(d.get("stop_all", "")) == "stopped":
@@ -1329,9 +1335,10 @@ static func _effect_body(e: Dictionary) -> String:
 			# "...to raise your Fervor 1, or 2 if it is a Pyre card": the card that burns picks
 			# the branch, so both read off the same removal.
 			if e.has("effects") or e.has("else_effects"):
-				body += " If it is %s, %s" % [_check_name(e), _lc(" ".join(PackedStringArray(_texts(e.get("effects", [])))))]
+				var hit: String = " ".join(PackedStringArray(_texts(e.get("effects", []))))
+				body += " If it is %s, %s" % [_check_name(e), _lc(hit)]
 				if e.has("else_effects"):
-					body += " Otherwise, %s" % _lc(" ".join(PackedStringArray(_texts(e.get("else_effects", [])))))
+					body += " " + _otherwise(hit, " ".join(PackedStringArray(_texts(e.get("else_effects", [])))))
 		"shuffle_discard" when str(e.get("from", "top")) == "top_and_bottom":
 			body = "Shuffle the top and bottom cards of your discard pile into your Life Deck."
 		"shuffle_discard":
@@ -1433,7 +1440,7 @@ static func _effect_body(e: Dictionary) -> String:
 					shield_parts.append("%d Energy" % int(params["stages"]))
 				if int(params.get("life", 0)) > 0:
 					shield_parts.append(_plural(int(params["life"]), "wound", "wounds"))
-				body = "Prevent %s of damage from the first attack performed against you this Combat." % " and ".join(shield_parts)
+				body = "Prevent %s of damage from the first attack against you this Combat." % " and ".join(shield_parts)
 			elif what == "phase_drain":
 				body = "For the remainder of Combat, %s duelist loses %d Energy at the beginning of each of their attack phases." % [
 					("your opponent's" if opp else "your"), maxi(1, int(params.get("energy", 1)))]
@@ -1541,13 +1548,24 @@ static func _effect_body(e: Dictionary) -> String:
 			if bool(e.get("reveal", false)):
 				lead = lead.trim_suffix(".") + " and show it to your opponent."
 			var matched: Array = e.get("effects", [])
+			var miss: String = " ".join(PackedStringArray(_texts(e.get("else_effects", []))))
+			# A "you may" whose decline does what a miss does needs no "If you do not" of its own:
+			# the closing "Otherwise" covers both.
+			if matched.size() == 1 and (matched[0] as Dictionary).has("otherwise") and miss != "" \
+					and " ".join(PackedStringArray(_texts((matched[0] as Dictionary)["otherwise"]))) == miss:
+				var lone: Dictionary = (matched[0] as Dictionary).duplicate()
+				lone.erase("otherwise")
+				matched = [lone]
+			var hit: String = ""
 			# "If that card is a named card, show it to your opponent and draw another card."
 			if not matched.is_empty() and str((matched[0] as Dictionary).get("op", "")) == "show_checked" and not bool((matched[0] as Dictionary).get("may", false)):
-				body = "%s If it is %s, show it to your opponent and %s" % [lead, _check_name(e), _lc(" ".join(PackedStringArray(_texts(matched.slice(1)))))]
+				hit = " ".join(PackedStringArray(_texts(matched.slice(1))))
+				body = "%s If it is %s, show it to your opponent and %s" % [lead, _check_name(e), _lc(hit)]
 			else:
-				body = "%s If it is %s, %s" % [lead, _check_name(e), _lc(" ".join(PackedStringArray(_texts(matched))))]
+				hit = " ".join(PackedStringArray(_texts(matched)))
+				body = "%s If it is %s, %s" % [lead, _check_name(e), _lc(hit)]
 			if e.has("else_effects"):
-				body += " Otherwise, %s" % _lc(" ".join(PackedStringArray(_texts(e.get("else_effects", [])))))
+				body += " " + _otherwise(hit, miss)
 		"pay_energy":
 			body = "Your duelist loses any amount of Energy." if str(e.get("payer", "")) == "duelist" else "Lose any amount of Energy."
 		"pay_cost":
@@ -1647,8 +1665,7 @@ static func _effect_body(e: Dictionary) -> String:
 			body = "You may " + _lc(body)
 	if e.has("then"):
 		var follow: PackedStringArray = PackedStringArray()
-		for t in e["then"]:
-			var tt: String = effect_text(t)
+		for tt in _then_texts(e["then"]):
 			if tt != "":
 				# Only the sentence the join runs into starts lower case.
 				follow.append(_lc(tt) if follow.is_empty() else tt)
@@ -1935,6 +1952,66 @@ static func _merge_pairs(effects: Array) -> Array[Dictionary]:
 
 static func _same_frame(a: Dictionary, b: Dictionary) -> bool:
 	return str(a.get("trigger", "")) == str(b.get("trigger", "")) and JSON.stringify(a.get("when", {})) == JSON.stringify(b.get("when", {})) and bool(a.get("after_empower", false)) == bool(b.get("after_empower", false))
+
+
+## "Otherwise, ..." after a branch. When the two branches open with the same five or more words
+## ("for the remainder of Combat, your Strikes do +3 Energy" / "...+1 Energy"), only the part
+## that differs is repeated: "Otherwise, +1 Energy."
+static func _otherwise(hit: String, miss: String) -> String:
+	var a: PackedStringArray = hit.split(" ")
+	var b: PackedStringArray = miss.split(" ")
+	var same: int = 0
+	while same < mini(a.size(), b.size()) - 1 and a[same] == b[same]:
+		same += 1
+	if same >= 5:
+		return "Otherwise, %s" % " ".join(b.slice(same))
+	return "Otherwise, %s" % _lc(miss)
+
+
+## A "then" list as sentences. Two discards that differ only in being at random, split on a
+## condition and its opposite, read as one: "your opponent discards a card from hand, at random
+## if the top card of your discard pile is Shade."
+static func _then_texts(effects: Array) -> Array[String]:
+	var out: Array[String] = []
+	var skip: Dictionary = {}
+	for i in range(effects.size()):
+		if skip.has(i):
+			continue
+		var e: Dictionary = effects[i]
+		if i + 1 < effects.size():
+			var at_random: Dictionary = _random_split(e, effects[i + 1])
+			if not at_random.is_empty():
+				skip[i + 1] = true
+				out.append(effect_text(at_random["plain"]).trim_suffix(".") + ", at random if %s." % cond_text(at_random["when"]))
+				continue
+		out.append(effect_text(e))
+	return out
+
+
+## {plain, when} when `a` and `b` are the same discard, one at random under a school check and the
+## other not at random under its opposite; empty otherwise.
+static func _random_split(a: Dictionary, b: Dictionary) -> Dictionary:
+	if str(a.get("op", "")) != "discard_hand" or str(b.get("op", "")) != "discard_hand":
+		return {}
+	var ra: Dictionary = a.duplicate()
+	var rb: Dictionary = b.duplicate()
+	var wa: Dictionary = ra.get("when", {})
+	var wb: Dictionary = rb.get("when", {})
+	for w in [[wa, wb], [wb, wa]]:
+		var yes: Dictionary = w[0]
+		var no: Dictionary = w[1]
+		if yes.size() == 1 and no.size() == 1 and yes.has("discard_top_school") and str(no.get("discard_top_school_not", "")) == str(yes["discard_top_school"]):
+			var random_side: Dictionary = ra if yes == wa else rb
+			var plain_side: Dictionary = rb if yes == wa else ra
+			if not bool(random_side.get("random", false)) or bool(plain_side.get("random", false)):
+				return {}
+			for d in [ra, rb]:
+				d.erase("when")
+				d["random"] = false
+			if ra != rb:
+				return {}
+			return {"plain": plain_side, "when": yes}
+	return {}
 
 
 static func _texts(effects: Array) -> Array[String]:

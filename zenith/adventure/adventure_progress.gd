@@ -123,6 +123,80 @@ func next_milestone(character: String, library: CardLibrary, collection: Adventu
 	return {"level": levels[0], "text": reward_text(track.get(str(levels[0]), {}), library, collection, unlocks)}
 
 
+## Every authored level of a character's track, in level order: [{level, reward, reached}]. Empty
+## for a character with no authored track.
+func milestones(character: String) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var track: Dictionary = (data().get("tracks", {}) as Dictionary).get(character, {})
+	var levels: Array[int] = []
+	for key in track.keys():
+		levels.append(int(key))
+	levels.sort()
+	var now: int = personality_level(character)
+	for level in levels:
+		out.append({"level": level, "reward": track[str(level)], "reached": level <= now})
+	return out
+
+
+## XP still needed for the character to reach `level`; 0 once there.
+func personality_xp_to(character: String, level: int) -> int:
+	var d: Dictionary = data()
+	var at: int = threshold_of(level, d.get("personality_levels", [0]), int(d.get("past_end_step", 0)))
+	return maxi(0, at - int(personality_xp.get(character, 0)))
+
+
+## The school's cards the collection holds at least one copy of, and the pool's size.
+static func school_library(school: String, library: CardLibrary, collection: AdventureCollection) -> Vector2i:
+	var pool: Array[String] = school_pool(school, library)
+	var owned: int = 0
+	for id in pool:
+		if collection != null and collection.copies(id) > 0:
+			owned += 1
+	return Vector2i(owned, pool.size())
+
+
+## A reward in a few words, for a milestone tile: "Deck: Ember Ascendant", "Aspect 4 card",
+## "2 signature cards", "Starting Relic and Reserve".
+static func reward_short(reward: Dictionary, library: CardLibrary) -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	var starter: String = str(reward.get("starter", ""))
+	if starter != "":
+		parts.append("Deck: %s" % deck_name(starter))
+	var signatures: int = int(reward.get("signatures", 0))
+	for id in reward.get("cards", []):
+		if not library.has(str(id)):
+			continue
+		var def: CardDef = library.get_def(str(id))
+		if def.is_personality():
+			parts.append("Aspect %d card" % def.aspect)
+		elif def.is_signature():
+			signatures += 1
+		else:
+			parts.append(card_name(def))
+	if signatures > 0:
+		parts.append("%d signature card%s" % [signatures, "" if signatures == 1 else "s"])
+	var abilities: Array = reward.get("abilities", [])
+	if abilities.has(AdventureUnlocks.ABILITY_RELIC) and abilities.has(AdventureUnlocks.ABILITY_RESERVE):
+		parts.append("Starting Relic and Reserve")
+	else:
+		for ability in abilities:
+			parts.append(ability_name(str(ability)))
+	return ", ".join(parts)
+
+
+## The card a reward is pictured by: its first personality, else its first card. "" for none.
+static func reward_card(reward: Dictionary, library: CardLibrary) -> String:
+	var first: String = ""
+	for id in reward.get("cards", []):
+		if not library.has(str(id)):
+			continue
+		if library.get_def(str(id)).is_personality():
+			return str(id)
+		if first == "":
+			first = str(id)
+	return first
+
+
 ## What the school's next level gives, in words, without advancing the pool.
 func school_next_text(school: String, library: CardLibrary) -> String:
 	var d: Dictionary = data()
@@ -167,6 +241,8 @@ static func card_name(def: CardDef) -> String:
 		return "Signature card: %s" % def.title
 	if def.type == CardDef.Type.MASTERY:
 		return "Mastery: %s" % def.title
+	if def.type == CardDef.Type.RELIC:
+		return "Relic: %s" % def.title
 	return def.title
 
 
@@ -385,11 +461,10 @@ func reward_for(levelup: Dictionary, library: CardLibrary) -> Dictionary:
 
 ## Cards printed at higher limits first, then by id. Freestyle's pool is the cards of no school.
 static func school_pool(school: String, library: CardLibrary) -> Array[String]:
-	var wanted: String = "" if school == "freestyle" else school
 	var defs: Array[CardDef] = []
 	for id in library.all_ids():
 		var def: CardDef = library.defs[id]
-		if def.school != wanted or EXCLUDED_POOL_TYPES.has(int(def.type)):
+		if def.card_group() != school or EXCLUDED_POOL_TYPES.has(int(def.type)):
 			continue
 		defs.append(def)
 	defs.sort_custom(func(a: CardDef, b: CardDef) -> bool:
@@ -415,6 +490,11 @@ func _next_school_batch(school: String, size: int, library: CardLibrary) -> Arra
 
 
 ## The Nth mastery level gives the school's Nth Mastery by id.
+## The Mastery a school level gives, or "" when that level gives none.
+static func school_mastery(school: String, level: int, library: CardLibrary) -> String:
+	return _mastery_for(school, level, data(), library)
+
+
 static func _mastery_for(school: String, level: int, d: Dictionary, library: CardLibrary) -> String:
 	var wanted: String = "" if school == "freestyle" else school
 	var masteries: Array[String] = []

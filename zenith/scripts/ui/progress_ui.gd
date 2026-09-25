@@ -1,9 +1,13 @@
 class_name ProgressUI
 extends RefCounted
-## Builders for the repeated rows of the journal and the win results: achievement cards, XP rows
-## and result cards. Fixed layout stays in the scenes.
+## Builders for the repeated rows of the journal and the win results: rail and next-up tiles,
+## achievement rows, milestone tiles, deck rows, XP bars and result cards. Fixed layout stays in
+## the scenes.
 
-const PORTRAIT: float = 60.0
+const MILESTONE_WIDTH: float = 216.0
+const MILESTONE_ART: Vector2 = Vector2(192, 108)
+
+static var _portraits: Dictionary = {}   # character -> Texture2D, or null when no art
 
 
 static func label(text: String, variation: String, colour: Color = Color(0, 0, 0, 0)) -> Label:
@@ -16,160 +20,268 @@ static func label(text: String, variation: String, colour: Color = Color(0, 0, 0
 	return l
 
 
+## A one-line label. `clip` trims it with an ellipsis, which also drops its minimum width to
+## nothing, so a label that must show in full inside an HBox passes false.
+static func line(text: String, variation: String, colour: Color = Color(0, 0, 0, 0), clip: bool = true) -> Label:
+	var l: Label = label(text, variation, colour)
+	l.autowrap_mode = TextServer.AUTOWRAP_OFF
+	if clip:
+		l.clip_text = true
+		l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	return l
+
+
 static func chip(text: String, colour: Color, filled: bool) -> Label:
 	var l: Label = label(text, "CaptionLabel")
 	l.autowrap_mode = TextServer.AUTOWRAP_OFF
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	ZenithTheme.chip(l, colour, filled)
 	return l
 
 
-static func state_text(text: String, colour: Color) -> Label:
-	var l: Label = label(text, "CaptionLabel", colour)
-	l.autowrap_mode = TextServer.AUTOWRAP_OFF
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	return l
-
-
-static func card(edge: Color, bg: Color = ZenithTheme.RAISED_STRONG) -> PanelContainer:
+static func card(edge: Color, bg: Color = ZenithTheme.RAISED) -> PanelContainer:
 	var p: PanelContainer = PanelContainer.new()
-	p.add_theme_stylebox_override("panel", ZenithTheme.edged(edge, bg, ZenithTheme.RADIUS, 18, 12))
+	p.add_theme_stylebox_override("panel", ZenithTheme.edged(edge, bg, ZenithTheme.RADIUS, ZenithTheme.GAP, ZenithTheme.GAP_S))
 	return p
 
 
-static func portrait(character: String, library: CardLibrary) -> Control:
-	var rect: TextureRect = TextureRect.new()
-	rect.custom_minimum_size = Vector2(PORTRAIT, PORTRAIT)
-	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	rect.clip_contents = true
-	for id in library.all_ids():
-		var def: CardDef = library.defs[id]
-		if def.is_personality() and def.character == character and def.aspect == 1:
-			rect.texture = CardFace.art_texture(def, 1)
-			break
-	return rect
+static func hbox(separation: int) -> HBoxContainer:
+	var b: HBoxContainer = HBoxContainer.new()
+	b.add_theme_constant_override("separation", separation)
+	return b
 
 
-## A heading row: portrait (when there is a character), name, and a right-aligned count.
-static func group_header(title: String, count: String, character: String, library: CardLibrary) -> Control:
-	var box: VBoxContainer = VBoxContainer.new()
-	box.add_theme_constant_override("separation", 8)
-	var row: HBoxContainer = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 14)
-	if character != "":
-		var art: Control = portrait(character, library)
-		row.add_child(art)
-	var name_label: Label = label(title, "GroupLabel" if character != "" else "RowTitleLabel",
-		ZenithTheme.TEXT if character != "" else ZenithTheme.TEXT_SOFT)
+static func vbox(separation: int) -> VBoxContainer:
+	var b: VBoxContainer = VBoxContainer.new()
+	b.add_theme_constant_override("separation", separation)
+	return b
+
+
+## A page section heading: the title, an optional count on the right, and a rule under both.
+static func section(title: String, count: String = "") -> Control:
+	var box: VBoxContainer = vbox(ZenithTheme.GAP_XS)
+	var row: HBoxContainer = hbox(ZenithTheme.GAP_S)
+	var name_label: Label = line(title, "RowTitleLabel", ZenithTheme.TEXT_SOFT)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(name_label)
 	if count != "":
-		var c: Label = label(count, "BodyLabel")
-		c.autowrap_mode = TextServer.AUTOWRAP_OFF
-		c.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		row.add_child(c)
+		row.add_child(line(count, "BodyLabel", Color(0, 0, 0, 0), false))
 	box.add_child(row)
 	box.add_child(HSeparator.new())
 	return box
 
 
-## One journal row from AdventureAchievements.journal().
-static func achievement_card(row: Dictionary) -> PanelContainer:
-	var state: String = str(row["state"])
-	var edge: Color = {"complete": ZenithTheme.ACCENT, "progress": ZenithTheme.ENERGY,
-		"open": ZenithTheme.MIGHT, "unknown": ZenithTheme.MUTED}.get(state, ZenithTheme.MUTED)
-	var bg: Color = ZenithTheme.BG_ACTIVE if state == "complete" else ZenithTheme.RAISED_STRONG
-	var p: PanelContainer = card(edge, bg)
-	p.custom_minimum_size.y = 96
-	# The status sits on the title line so the hint and reward below get the card's full width.
-	var text: VBoxContainer = VBoxContainer.new()
-	text.add_theme_constant_override("separation", 6)
-	p.add_child(text)
-	var head: HBoxContainer = HBoxContainer.new()
-	head.add_theme_constant_override("separation", 12)
-	text.add_child(head)
-	var unknown: bool = state == "unknown"
-	var title: Label = label(str(row["title"]), "RowTitleLabel", Color(ZenithTheme.TEXT_SOFT, 0.6) if unknown else ZenithTheme.TEXT)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	head.add_child(title)
-	var side: HBoxContainer = HBoxContainer.new()
-	side.alignment = BoxContainer.ALIGNMENT_END
-	side.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	side.add_theme_constant_override("separation", 10)
-	head.add_child(side)
-	if str(row["hint"]) != "":
-		text.add_child(label(str(row["hint"]), "BodyLabel"))
-	if str(row["reward"]) != "":
-		var prefix: String = "Earned: " if state == "complete" else "Reward: "
-		text.add_child(label(prefix + str(row["reward"]), "BodyLabel",
-			ZenithTheme.ACCENT if state == "complete" else ZenithTheme.TEXT))
-	var total: int = int(row["total"])
-	var done: int = int(row["done"])
-	match state:
-		"complete":
-			side.add_child(chip("SECRET" if bool(row.get("secret", false)) else "DONE", ZenithTheme.ACCENT, true))
-		"unknown":
-			side.add_child(state_text("HIDDEN", ZenithTheme.MUTED))
-		_:
-			if done > 0:
-				side.add_child(chip("%d of %d" % [done, total], ZenithTheme.ENERGY, false))
-			else:
-				side.add_child(state_text("%d steps" % total if total > 1 else "OPEN", ZenithTheme.TEXT_SOFT))
-	if total > 1 and not unknown:
-		var pips: HBoxContainer = HBoxContainer.new()
-		pips.alignment = BoxContainer.ALIGNMENT_CENTER
-		pips.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		pips.add_theme_constant_override("separation", 6)
-		for i in range(total):
-			var pip: Panel = Panel.new()
-			pip.custom_minimum_size = Vector2(16, 16)
-			pip.add_theme_stylebox_override("panel", ZenithTheme.pip(i < done, ZenithTheme.ACCENT if state == "complete" else ZenithTheme.ENERGY))
-			pips.add_child(pip)
-		side.add_child(pips)
-	if unknown:
-		p.modulate.a = 0.7
-	return p
+## A rail group label: small capitals over a rule.
+static func rail_label(title: String) -> Control:
+	var box: VBoxContainer = vbox(ZenithTheme.GAP_XS)
+	box.add_child(line(title.to_upper(), "CaptionLabel"))
+	box.add_child(HSeparator.new())
+	return box
 
 
-## A character or school row: name, level chip, bar, XP numbers, and the next reward below. The
-## chip and bar are always XP; `identity` (a school colour, or clear) tints the name only.
-static func xp_row(name: String, standing: Dictionary, next_text: String, identity: Color, striped: bool) -> PanelContainer:
-	var p: PanelContainer = PanelContainer.new()
-	p.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.RAISED if striped else Color(0, 0, 0, 0),
-		Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 12, 12))
-	var column: VBoxContainer = VBoxContainer.new()
-	column.add_theme_constant_override("separation", 6)
-	p.add_child(column)
-	var row: HBoxContainer = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 16)
-	column.add_child(row)
-	var name_label: Label = label(name, "RowTitleLabel", identity.lightened(0.15) if identity.a > 0.0 else Color(0, 0, 0, 0))
-	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	name_label.clip_text = true
-	row.add_child(name_label)
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var level_chip: Label = chip("Lv %d" % int(standing["level"]), ZenithTheme.XP, true)
-	level_chip.custom_minimum_size.x = 72
-	row.add_child(level_chip)
+## The top square of a character's first Aspect art, so a tall portrait keeps its head.
+static func portrait_texture(character: String, library: CardLibrary) -> Texture2D:
+	if _portraits.has(character):
+		return _portraits[character]
+	var out: Texture2D = null
+	for id in library.all_ids():
+		var def: CardDef = library.defs[id]
+		if def.is_personality() and def.character == character and def.aspect == 1:
+			var art: Texture2D = CardFace.art_texture(def, 1)
+			if art != null:
+				var side: float = minf(art.get_width(), art.get_height())
+				var top: AtlasTexture = AtlasTexture.new()
+				top.atlas = art
+				top.region = Rect2((art.get_width() - side) * 0.5, 0.0, side, side)
+				out = top
+			break
+	_portraits[character] = out
+	return out
+
+
+## A framed square portrait. `locked` greys it for a character the player cannot start yet.
+static func portrait(character: String, library: CardLibrary, size: float, locked: bool = false) -> Control:
+	var frame: PanelContainer = PanelContainer.new()
+	frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, 1, 1))
+	frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var rect: TextureRect = TextureRect.new()
+	rect.custom_minimum_size = Vector2(size, size)
+	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	rect.clip_contents = true
+	rect.texture = portrait_texture(character, library)
+	if locked:
+		rect.modulate = ZenithTheme.TEXT_DISABLED
+	frame.add_child(rect)
+	return frame
+
+
+## The one XP bar: a sunken track with a 1 px rule, so an empty bar still reads as a bar.
+static func xp_bar(height: float) -> ProgressBar:
 	var bar: ProgressBar = ProgressBar.new()
-	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bar.custom_minimum_size.y = 12
 	bar.show_percentage = false
+	bar.custom_minimum_size.y = height
+	bar.add_theme_stylebox_override("background", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, 0, 0))
+	bar.add_theme_stylebox_override("fill", ZenithTheme.box(ZenithTheme.XP, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 0, 0))
+	return bar
+
+
+## Fills a bar to a {level, xp, from, to} standing.
+static func set_standing(bar: ProgressBar, standing: Dictionary) -> void:
 	bar.min_value = float(standing["from"])
 	bar.max_value = float(maxi(int(standing["to"]), int(standing["from"]) + 1))
 	bar.value = float(standing["xp"])
-	bar.add_theme_stylebox_override("fill", ZenithTheme.box(ZenithTheme.XP, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 0, 0))
-	var numbers: Label = label("%d / %d XP to Lv %d" % [int(standing["xp"]) - int(standing["from"]),
-		int(standing["to"]) - int(standing["from"]), int(standing["level"]) + 1], "BodyLabel")
-	numbers.autowrap_mode = TextServer.AUTOWRAP_OFF
-	numbers.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	row.add_child(numbers)
-	column.add_child(bar)
-	if next_text != "":
-		column.add_child(label(next_text, "CaptionLabel"))
+
+
+## "70 / 250 XP to Lv 5".
+static func xp_numbers(standing: Dictionary) -> String:
+	return "%d / %d XP to Lv %d" % [int(standing["xp"]) - int(standing["from"]),
+		int(standing["to"]) - int(standing["from"]), int(standing["level"]) + 1]
+
+
+## A selectable tile holding `content`: the theme's TileButton, with the content laid over it and
+## blind to the mouse so the button takes every click.
+static func tile_button(content: Control, min_height: float, toggle: bool) -> Button:
+	var b: Button = Button.new()
+	b.theme_type_variation = &"TileButton"
+	b.toggle_mode = toggle
+	b.custom_minimum_size.y = min_height
+	var pad: MarginContainer = MarginContainer.new()
+	pad.add_theme_constant_override("margin_left", ZenithTheme.GAP)
+	pad.add_theme_constant_override("margin_right", ZenithTheme.GAP)
+	pad.add_theme_constant_override("margin_top", ZenithTheme.GAP_S)
+	pad.add_theme_constant_override("margin_bottom", ZenithTheme.GAP_S)
+	pad.add_child(content)
+	b.add_child(pad)
+	pad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_ignore_mouse(pad)
+	return b
+
+
+static func _ignore_mouse(node: Control) -> void:
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for child in node.get_children():
+		if child is Control:
+			_ignore_mouse(child as Control)
+
+
+## One journal row from AdventureAchievements.journal(). The state is the edge and one chip:
+## done is a bone badge, a started chain an iron tag with its steps, an open one a muted tag.
+static func achievement_row(row: Dictionary) -> PanelContainer:
+	var state: String = str(row["state"])
+	if state == "unknown":
+		return _hidden_row(row)
+	var edge: Color = {"complete": ZenithTheme.ACCENT, "progress": ZenithTheme.FRAME}.get(state, ZenithTheme.FRAME_DIM)
+	var p: PanelContainer = card(edge)
+	var text: VBoxContainer = vbox(ZenithTheme.GAP_XS)
+	p.add_child(text)
+	var head: HBoxContainer = hbox(ZenithTheme.GAP_S)
+	text.add_child(head)
+	var title: Label = label(str(row["title"]), "RowTitleLabel")
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(title)
+	var total: int = int(row["total"])
+	match state:
+		"complete":
+			head.add_child(chip("SECRET" if bool(row.get("secret", false)) else "DONE", ZenithTheme.ACCENT, true))
+		"progress":
+			head.add_child(chip("%d of %d" % [int(row["done"]), total], ZenithTheme.FRAME, false))
+		_:
+			head.add_child(chip("%d STEPS" % total if total > 1 else "OPEN", ZenithTheme.MUTED, false))
+	if str(row["hint"]) != "":
+		text.add_child(label(str(row["hint"]), "BodyLabel"))
+	if str(row["reward"]) != "":
+		text.add_child(label(("Earned: " if state == "complete" else "Reward: ") + str(row["reward"]), "BodyLabel", ZenithTheme.TEXT))
+	return p
+
+
+## A hidden achievement before its first step: a sunken slot led by its teaser.
+static func _hidden_row(row: Dictionary) -> PanelContainer:
+	var p: PanelContainer = PanelContainer.new()
+	p.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, ZenithTheme.GAP, ZenithTheme.GAP_S))
+	var row_box: HBoxContainer = hbox(ZenithTheme.GAP_S)
+	p.add_child(row_box)
+	var teaser: Label = label(str(row["hint"]) if str(row["hint"]) != "" else "An achievement not yet found.", "BodyLabel")
+	teaser.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row_box.add_child(teaser)
+	row_box.add_child(chip("HIDDEN", ZenithTheme.MUTED, false))
+	return p
+
+
+## One level of a track, naming its reward in full. `state` is "reached", "next" or "later"; only
+## the next one is ringed. A card reward shows its art; anything else a sunken plate naming what
+## it is, in `plate_colour`.
+static func milestone_tile(level_text: String, reward: String, card_id: String, plate: String,
+		plate_colour: Color, state: String, library: CardLibrary) -> PanelContainer:
+	var p: PanelContainer = PanelContainer.new()
+	p.custom_minimum_size.x = MILESTONE_WIDTH
+	var next: bool = state == "next"
+	p.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT if state == "later" else ZenithTheme.RAISED,
+		ZenithTheme.XP if next else ZenithTheme.BORDER, ZenithTheme.RADIUS, 2 if next else 1, ZenithTheme.GAP_S, ZenithTheme.GAP_S))
+	var column: VBoxContainer = vbox(ZenithTheme.GAP_XS)
+	p.add_child(column)
+	var head: HBoxContainer = hbox(ZenithTheme.GAP_XS)
+	column.add_child(head)
+	var level_label: Label = line(level_text, "CaptionLabel", ZenithTheme.TEXT if state != "later" else ZenithTheme.MUTED)
+	level_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(level_label)
+	if state == "reached":
+		head.add_child(chip("EARNED", ZenithTheme.ACCENT, false))
+	elif next:
+		head.add_child(chip("NEXT", ZenithTheme.XP, true))
+	var texture: Texture2D = null
+	if card_id != "" and library.has(card_id):
+		texture = CardFace.art_texture(library.get_def(card_id), library.get_def(card_id).aspect)
+	if texture != null:
+		var art: TextureRect = TextureRect.new()
+		art.custom_minimum_size = MILESTONE_ART
+		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		art.clip_contents = true
+		art.texture = texture
+		if state == "later":
+			art.modulate = ZenithTheme.TEXT_DISABLED
+		column.add_child(art)
+	else:
+		var box: PanelContainer = PanelContainer.new()
+		box.custom_minimum_size = MILESTONE_ART
+		box.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, ZenithTheme.GAP_XS, ZenithTheme.GAP_XS))
+		var name_label: Label = label(plate, "CaptionLabel", plate_colour if state != "later" else ZenithTheme.MUTED)
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		box.add_child(name_label)
+		column.add_child(box)
+	column.add_child(label(reward, "CaptionLabel", ZenithTheme.TEXT_SOFT if state != "later" else ZenithTheme.MUTED))
+	return p
+
+
+## One deck of a character: its name on a school edge, OPEN or LOCKED, and each route that opens it
+## with how far along it is.
+static func deck_row(deck_name: String, school: String, open: bool, routes: Array[Dictionary]) -> PanelContainer:
+	var p: PanelContainer = card(Palette.school_ui(school))
+	var column: VBoxContainer = vbox(ZenithTheme.GAP_XS)
+	p.add_child(column)
+	var head: HBoxContainer = hbox(ZenithTheme.GAP_S)
+	column.add_child(head)
+	var title: Label = line(deck_name, "RowTitleLabel")
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(title)
+	head.add_child(chip("OPEN", ZenithTheme.ACCENT, true) if open else chip("LOCKED", ZenithTheme.MUTED, false))
+	if open:
+		return p
+	if routes.is_empty():
+		column.add_child(label("A hidden route.", "BodyLabel", ZenithTheme.MUTED))
+	for route in routes:
+		var row: HBoxContainer = hbox(ZenithTheme.GAP_S)
+		var what: Label = label(str(route["text"]), "BodyLabel", ZenithTheme.TEXT)
+		what.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(what)
+		row.add_child(line("%d of %d" % [int(route["done"]), int(route["total"])], "CaptionLabel", Color(0, 0, 0, 0), false))
+		column.add_child(row)
+		if str(route.get("hint", "")) != "":
+			column.add_child(label(str(route["hint"]), "CaptionLabel", ZenithTheme.TEXT_SOFT))
 	return p
 
 
@@ -180,7 +292,7 @@ static func result_card(entry: Dictionary, animate: bool = false, delay: float =
 		return xp_gain_card(entry.get("bars", []), animate, delay)
 	var colour: Color = {"xp": ZenithTheme.XP, "level": ZenithTheme.XP, "school": ZenithTheme.XP,
 		"achievement": ZenithTheme.ACCENT}.get(str(entry.get("kind", "")), ZenithTheme.FRAME)
-	var p: PanelContainer = card(colour)
+	var p: PanelContainer = card(colour, ZenithTheme.RAISED_STRONG)
 	var text: VBoxContainer = VBoxContainer.new()
 	text.add_theme_constant_override("separation", 4)
 	p.add_child(text)
@@ -198,7 +310,7 @@ const BAR_STAGGER: float = 0.25     # between one track's fill and the next
 ## One row per track that gained XP: name, level chip, the gain, and a bar that fills from where
 ## the track stood to where it stands now, rolling over at each level with a pulse on the chip.
 static func xp_gain_card(bars: Array, animate: bool, delay: float) -> PanelContainer:
-	var p: PanelContainer = card(ZenithTheme.XP)
+	var p: PanelContainer = card(ZenithTheme.XP, ZenithTheme.RAISED_STRONG)
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 14)
 	p.add_child(column)
@@ -230,11 +342,7 @@ static func xp_gain_card(bars: Array, animate: bool, delay: float) -> PanelConta
 		var level_chip: Label = chip("", ZenithTheme.XP, true)
 		level_chip.custom_minimum_size.x = 84
 		head.add_child(level_chip)
-		var bar: ProgressBar = ProgressBar.new()
-		bar.show_percentage = false
-		bar.custom_minimum_size.y = 14
-		bar.add_theme_stylebox_override("background", ZenithTheme.box(ZenithTheme.BG_INPUT, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 0, 0))
-		bar.add_theme_stylebox_override("fill", ZenithTheme.box(ZenithTheme.XP, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 0, 0))
+		var bar: ProgressBar = xp_bar(12)
 		rows.add_child(bar)
 		var reached: bool = int(last["end"]) >= int(last["to"])
 		var final_level: int = int(last["level"]) + (1 if reached else 0)

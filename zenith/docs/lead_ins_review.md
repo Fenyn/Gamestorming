@@ -1,13 +1,15 @@
 # Pre-duel lead-ins, draft for review
 
-Draft 2026-09-24. Nothing here is in the data or approved. Each lead-in is a narration line, then
-a short exchange with both portraits up, shown after "Enter the arena" and skippable.
+Draft 2026-09-24, second pass. Nothing here is in the data or approved. Each lead-in is a
+narration line, then a call and a response, or a call and two responses, with both portraits up.
+It shows after "Enter the arena" and is skippable.
 
 How a lead-in is picked:
 
 1. A **pair scene** when the main and the opponent are connected in `cast.md`, Storylines and
-   relations. A pair that is also an act boss has a road version and a boss version.
-2. A **general lead-in** otherwise: the opponent's opening, answered by one of the main's general
+   relations. The scene leans on that link. A pair that is also an act boss has a road version
+   and a boss version.
+2. A **general lead-in** otherwise: the opponent's call, answered by one of the main's general
    replies.
 
 Mark each one keep, cut or rewrite.
@@ -16,172 +18,170 @@ Mark each one keep, cut or rewrite.
 
 ## Sir Edric Rooke
 
-### vs Dame Alder Rooke
+### vs Dame Alder Rooke (his wife)
 
-> The coven has gathered on the shore. Alder wants to know her husband still remembers how to lose.
+> Thirty years married, and the matriarch still tests her husband before she lets him carry the coven's name toward the Heart.
 
-**Alder:** You've been on the road too long, Edric. Let's see what it's taught you.
-**Edric:** Mostly that I miss home.
-**Alder:** Then fight like it.
+**Alder:** You married into this family, Edric. Remind me why we let you.
+**Edric:** You said I was the only knight who'd lose to you gracefully.
+**Alder:** Don't make a liar of me.
 
-### vs Emrys Rooke, on the road
+### vs Emrys Rooke (his eldest son), on the road
 
-> Word came ahead: the Rooke heir is testing himself on anyone who will stand still.
+> Word came ahead that the Rooke heir is testing himself on anyone who will stand still. His father stood still.
 
-**Emrys:** I didn't think it would be you.
-**Edric:** Nor did I. Hands up, then.
+**Emrys:** You taught me to hold a sword, and I don't carry one. Does that bother you?
+**Edric:** Only that I never thought of it first.
 
-### vs Emrys Rooke, act 1 boss
+### vs Emrys Rooke (his eldest son), act 1 boss
 
-> The grove says Emrys is ready. His father has come to see for himself.
+> Caedan gave Emrys the cut and Osric gave him the rest. Before he walks the road beside his father, his father wants to see what the other two made.
 
-**Emrys:** Osric taught me more than you think.
-**Edric:** Osric isn't the one you'll be facing.
-**Emrys:** I know. That's why I asked for you.
-**Edric:** Then show me.
+**Emrys:** If I win, I'm coming with you.
+**Edric:** And if you lose?
+**Emrys:** Then I'm coming with you anyway, and you'll pretend it was your idea.
 
-### vs Caedan Vale, on the road
+### vs Caedan Vale (the Vale sword), on the road
 
-> A Vale stands in the pass with his sword drawn and no spell anywhere on him.
+> The Vales taught their sword outside the blood once, to a Rooke, and never said why. The last of the line has come to look at the exception.
 
-**Caedan:** Your cut is still ours, Sir Edric. I'd like to see what you've done to it.
-**Edric:** Kept it sharp.
+**Caedan:** My family broke its only rule for you. I'd like to see if it was worth it.
+**Edric:** I've wondered that myself.
 
-### vs Caedan Vale, act 2 boss
+### vs Caedan Vale (the Vale sword), act 2 boss
 
-> The Vales taught their sword outside the blood once. The last of them has come to decide if it was a mistake.
+> Caedan taught Emrys, and Tavin sleeps under Edric's roof. The Vales have given the Rookes a great deal, and the last of them wants something back.
 
-**Caedan:** The Heart can't be held by a man who owes his blade to someone else.
-**Edric:** Then I'll pay the debt here.
-**Caedan:** In full.
+**Caedan:** Your son carries our cut now, and you carry our name into this. Show me you haven't spent it.
+**Edric:** I've kept it better than the Kingsguard kept theirs.
+**Caedan:** That isn't an answer, Sir Edric. Draw.
 
-### vs Gideon Mourne
+### vs Gideon Mourne (the man who wouldn't kneel)
 
-> Mourne signs himself Lord still. Nobody corrects him to his face.
+> One trained with the Kingsguard and still bends the knee. The other sold his claim rather than bend it once.
 
-**Mourne:** Sir Edric. Still kneeling to whoever's wearing the crown this year?
-**Edric:** Still selling to whoever's buying?
-**Mourne:** At least I name my price.
+**Mourne:** Still kneeling, Sir Edric? Your knees must be ruined.
+**Edric:** Better my knees than my word.
+**Mourne:** My word's fine. I just charge for it now.
 
-### vs Bram Ashmark
+### vs Bram Ashmark (hero and monster)
 
-> A village burned in the night, and the fire went inward instead of out.
+> The realm's hero and the thing that burns it down. Every village between them knows both names.
 
-**Edric:** There's still a man in there somewhere.
-**Ashmark:** There's nothing in here. That's the point.
+**Edric:** You were someone's son once, Ashmark.
+**Ashmark:** He went through the toll gate. I came back.
 
 ### vs Halden Quarr, final boss
 
-> The Heart hangs from Quarr's neck on a plain chain. He hasn't moved from the gate in days.
+> Quarr was Pact before he took the Heart. The Vigil has never trusted that he stopped.
 
-**Quarr:** You'd lock it away. I know. That's what worries me.
-**Edric:** Better locked than worn.
-**Quarr:** Then take it off me.
+**Edric:** The Vigil wants it out of Pact hands. Yours included.
+**Quarr:** I'm nobody's hands now, Rooke. That's the only reason it's safe.
+**Edric:** Then you won't mind proving it.
 
 ---
 
 ## Gideon Mourne
 
-### vs Marrow, on the road
+### vs Marrow (his old crew), on the road
 
-> Marrow's crew is picking over the old battlefield. Mourne came to see what they found.
+> Marrow's crew picks the broken company's field clean, and some of what it keeps is the constructs Mourne once sent into the front rank.
 
-**Marrow:** Some of me marched under your crest, Gideon.
-**Mourne:** Then some of you should salute.
+**Marrow:** Some of me marched under your crest, my lord.
+**Mourne:** Then some of you still owes me a salute.
+**Marrow:** Some of me remembers what you did with it.
 
-### vs Marrow, act 1 boss
+### vs Marrow (his old crew), act 1 boss
 
-> The field is almost bare. What is left of the broken company is inside Marrow now.
+> Mourne has run with Marrow's crew for years. Kell walks the same field, wearing the company's last gorget, and waits to see who comes out of this one.
 
-**Marrow:** Some of me remembers you. None of it fondly.
-**Mourne:** Then the rest of you can learn.
-**Marrow:** You left us here.
-**Mourne:** I left everyone. Don't take it personally.
+**Marrow:** You want the crew for the Heart. The crew wants to know you'll share.
+**Mourne:** I've never shared anything in my life.
+**Marrow:** Then you'll have to beat us into it.
 
-### vs Sable Draik, on the road
+### vs Sable Draik (who wants him in the company), on the road
 
-> The Draik ship is anchored off the point, and its captain has been asking after a disgraced lord.
+> The Draik captain has been asking after a disgraced lord, and she doesn't ask twice for nothing.
 
-**Sable:** You'd look good in a company coat.
-**Mourne:** I've worn one. It didn't end well for the company.
+**Sable:** A lord with no land looks good in a company coat.
+**Mourne:** I had a company once. Look where it ended.
 
-### vs Sable Draik, act 2 boss
+### vs Sable Draik (who wants him in the company), act 2 boss
 
-> Sable has made her offer twice. This time she has brought the whole crew to hear his answer.
+> Sable has made her offer twice: a coat in the Draik Company, or a partner's share of the Heart. This time the whole crew has come to watch him answer.
 
-**Sable:** Join us or partner with us for the Heart. Either way, win this first.
+**Sable:** Join us or partner with me. Either way, win this first.
 **Mourne:** And if I lose?
-**Sable:** Then I'll know you were never worth the coat.
+**Sable:** Then I'll know you were never worth the coat, Gideon.
 
-### vs Sir Edric Rooke
+### vs Sir Edric Rooke (the man who kneels)
 
-> The knight who kneels, and the lord who wouldn't.
+> Mourne has hated a lot of people since the kings died. He saves something special for a man who kneels.
 
-**Edric:** Mourne. They say you sold the regret too.
-**Mourne:** Best bargain I ever made. You should try it.
+**Edric:** Mourne. They say you sold the regret along with the claim.
+**Mourne:** Best bargain I ever made. You should try it, since you're already on your knees.
 
-### vs Bram Ashmark
+### vs Bram Ashmark (the same toll gate)
 
-> Two men who went to the same toll gate, and came back as different kinds of wrong.
+> Two men went to the same toll gate, and the same demon took two different things.
 
-**Mourne:** He took my claim. What did he take from you?
+**Mourne:** It took my claim. What did it take from you, boy?
 **Ashmark:** Everything that could be full.
-**Mourne:** Then we're not alike after all.
+**Mourne:** Then we're not alike after all. Good.
 
 ### vs Halden Quarr, final boss
 
-> Quarr wears the Heart like it weighs nothing. Mourne has already worked out what it's worth.
+> Mourne was never paid for the war. Quarr is wearing the one thing that could settle every debt at once.
 
 **Mourne:** Name your price, Quarr. Everyone has one.
-**Quarr:** Mine is that nobody gets it. You included.
+**Quarr:** Mine is that nobody gets it, Lord Mourne. You included.
 
 ---
 
 ## Bram Ashmark
 
-### vs Siphon, on the road
+### vs Siphon (rivals for the same feed), on the road
 
-> The leyline under the old toll road has gone quiet. Something has been drinking from it.
+> The leyline under the old toll road has gone quiet. Ashmark burns the leylines and Siphon drinks them, and there aren't enough to go round.
 
 **Siphon:** *(the sigils brighten as he comes near)* You are burning my supply.
 **Ashmark:** Then come and take it back out of me.
 
-### vs Siphon, act 1 boss
+### vs Siphon (rivals for the same feed), act 1 boss
 
-> Siphon has drained three leylines dry. The fourth runs straight through Ashmark's path.
+> Siphon has drained three leylines dry for the Collegium. The fourth runs straight through Ashmark's path.
 
-**Siphon:** Charge. So much charge. Give it.
+**Siphon:** Charge. So much charge in you. Give it.
 **Ashmark:** You're hungry too.
-**Siphon:** Always.
-**Ashmark:** Then only one of us eats.
+**Siphon:** Always. Only one of us eats.
 
-### vs Sir Edric Rooke, on the road
+### vs Sir Edric Rooke (hero and monster), on the road
 
-> The hero of the realm stands between Ashmark and the next town.
+> The realm's hero stands between Ashmark and the next town, the way he always does.
 
 **Edric:** Turn back, Ashmark.
-**Ashmark:** Back to what?
+**Ashmark:** Back to what, knight?
 
-### vs Sir Edric Rooke, act 2 boss
+### vs Sir Edric Rooke (hero and monster), act 2 boss
 
-> Edric has found fire in himself. Ashmark can smell it from across the valley.
+> Edric has found the fire in himself, and it is costing the realm around him. Ashmark can smell it from across the valley.
 
-**Ashmark:** You burn now, knight.
+**Ashmark:** You burn now, hero.
 **Edric:** Not the way you do.
 **Ashmark:** Not yet.
 
-### vs Gideon Mourne
+### vs Gideon Mourne (the same toll gate)
 
-> Mourne is selling his craft cheap to whoever is going somewhere. Ashmark is going somewhere.
+> Mourne went through the same toll gate and came back with his pride intact. Ashmark came back with nothing to be proud of.
 
-**Mourne:** I could be useful to you.
+**Mourne:** We're the same brand, boy. I could be useful to you.
 **Ashmark:** You're more useful as fuel.
 
 ### vs Halden Quarr, final boss
 
-> Behind Quarr the gate hums. Behind the gate, something old is waiting to be eaten.
+> The Heart pulls its wearer toward himself. Ashmark has no self left for it to pull.
 
-**Quarr:** You don't want to open it. You want to swallow what's on the other side.
+**Quarr:** You don't want to open the gate. You want to eat what's behind it.
 **Ashmark:** Yes.
 **Quarr:** At least you're honest.
 
@@ -189,9 +189,9 @@ Mark each one keep, cut or rewrite.
 
 ## General lead-ins
 
-The opponent opens. The main answers with one of their general replies below.
+The opponent calls. The main answers with one of their general replies below.
 
-### Opponent openings
+### Opponent calls
 
 **Sable Draik**
 > A company ship at anchor, and a captain who fights with her crew at her back.

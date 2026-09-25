@@ -30,111 +30,105 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 28
-theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 28
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 36
+theme_override_constants/margin_bottom = 24
 
 [node name="Column" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 18
 
 [node name="TitleRow" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Margin/Column/TitleRow"]
 layout_mode = 2
-size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_type_variation = &"HeaderLabel"
 text = "Journal"
 
-[node name="Achieved" parent="Margin/Column/TitleRow" instance=ExtResource("3_stat")]
+[node name="Spacer" type="Control" parent="Margin/Column/TitleRow"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Achieved" parent="Margin/Column/TitleRow" instance=ExtResource("3_stat")]
 size_flags_horizontal = 0
+custom_minimum_size = Vector2(216, 0)
+layout_mode = 2
+
+[node name="Decks" parent="Margin/Column/TitleRow" instance=ExtResource("3_stat")]
+size_flags_horizontal = 0
+custom_minimum_size = Vector2(216, 0)
+layout_mode = 2
+
+[node name="NextUp" type="VBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="Margin/Column/NextUp"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "NEXT UP"
+
+[node name="Tiles" type="HBoxContainer" parent="Margin/Column/NextUp"]
+layout_mode = 2
+theme_override_constants/separation = 12
 
 [node name="Body" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 24
 
-[node name="AchievementsPanel" type="PanelContainer" parent="Margin/Column/Body"]
+[node name="Rail" type="PanelContainer" parent="Margin/Column/Body"]
+custom_minimum_size = Vector2(504, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.5
 
-[node name="Inner" type="MarginContainer" parent="Margin/Column/Body/AchievementsPanel"]
+[node name="Scroll" type="ScrollContainer" parent="Margin/Column/Body/Rail"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 8
-
-[node name="Achievements" type="VBoxContainer" parent="Margin/Column/Body/AchievementsPanel/Inner"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="Header" type="Label" parent="Margin/Column/Body/AchievementsPanel/Inner/Achievements"]
-layout_mode = 2
-theme_type_variation = &"GroupLabel"
-text = "Achievements"
-
-[node name="Scroll" type="ScrollContainer" parent="Margin/Column/Body/AchievementsPanel/Inner/Achievements"]
-layout_mode = 2
-size_flags_vertical = 3
+follow_focus = true
 horizontal_scroll_mode = 0
 
-[node name="Pad" type="MarginContainer" parent="Margin/Column/Body/AchievementsPanel/Inner/Achievements/Scroll"]
+[node name="Pad" type="MarginContainer" parent="Margin/Column/Body/Rail/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 6
 
-[node name="List" type="VBoxContainer" parent="Margin/Column/Body/AchievementsPanel/Inner/Achievements/Scroll/Pad"]
+[node name="List" type="VBoxContainer" parent="Margin/Column/Body/Rail/Scroll/Pad"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 28
-
-[node name="ProgressPanel" type="PanelContainer" parent="Margin/Column/Body"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Inner" type="MarginContainer" parent="Margin/Column/Body/ProgressPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 8
-
-[node name="Progress" type="VBoxContainer" parent="Margin/Column/Body/ProgressPanel/Inner"]
-layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Header" type="Label" parent="Margin/Column/Body/ProgressPanel/Inner/Progress"]
+[node name="Page" type="PanelContainer" parent="Margin/Column/Body"]
 layout_mode = 2
-theme_type_variation = &"GroupLabel"
-text = "Experience"
+size_flags_horizontal = 3
 
-[node name="Scroll" type="ScrollContainer" parent="Margin/Column/Body/ProgressPanel/Inner/Progress"]
+[node name="Scroll" type="ScrollContainer" parent="Margin/Column/Body/Page"]
 layout_mode = 2
-size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="Pad" type="MarginContainer" parent="Margin/Column/Body/ProgressPanel/Inner/Progress/Scroll"]
+[node name="Pad" type="MarginContainer" parent="Margin/Column/Body/Page/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/margin_right = 18
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 12
 
-[node name="List" type="VBoxContainer" parent="Margin/Column/Body/ProgressPanel/Inner/Progress/Scroll/Pad"]
+[node name="Content" type="VBoxContainer" parent="Margin/Column/Body/Page/Scroll/Pad"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 28
+theme_override_constants/separation = 24
 
 [node name="Footer" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
 [node name="Back" type="Button" parent="Margin/Column/Footer"]
-custom_minimum_size = Vector2(140, 52)
+custom_minimum_size = Vector2(144, 54)
 layout_mode = 2
 text = "Back"

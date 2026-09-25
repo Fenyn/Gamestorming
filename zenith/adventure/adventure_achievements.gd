@@ -106,6 +106,7 @@ static func journal(unlocks: AdventureUnlocks, library: CardLibrary) -> Array[Di
 		out.append({
 			"id": id,
 			"group": str(a.get("group", a.get("character", ""))),
+			"character": str(a.get("character", "")),
 			"title": str(a.get("title", id)) if state != "unknown" else "Undiscovered",
 			"hint": hint if state != "unknown" else str(a.get("teaser", "")),
 			"reward": AdventureProgress.reward_text(a, library) if state != "unknown" else "",
@@ -117,6 +118,48 @@ static func journal(unlocks: AdventureUnlocks, library: CardLibrary) -> Array[Di
 	return out
 
 
+## The ways to open `starter_id` the journal may show: [{text, hint, done, total}]. A secret
+## achievement is left out; a hidden one is unnamed until its first step.
+static func routes(starter_id: String, unlocks: AdventureUnlocks, progress: AdventureProgress) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for a in all():
+		if str(a.get("starter", "")) != starter_id:
+			continue
+		var id: String = str(a.get("id", ""))
+		var visibility: String = str(a.get("visibility", "public"))
+		var done: int = unlocks.steps_done(id).size()
+		if visibility == "secret":
+			continue
+		var named: bool = visibility == "public" or done > 0 or unlocks.is_complete(id)
+		var hint: String = str(a.get("hint", "")) if visibility == "public" else str(a.get("hint_revealed", ""))
+		out.append({"text": ("Achievement: %s" % str(a.get("title", id))) if named else "A hidden achievement",
+			"hint": hint if named else str(a.get("teaser", "")),
+			"done": done, "total": (a.get("steps", []) as Array).size()})
+	var tracks: Dictionary = AdventureProgress.data().get("tracks", {})
+	for character in tracks.keys():
+		for level in (tracks[character] as Dictionary).keys():
+			if str((tracks[character][level] as Dictionary).get("starter", "")) == starter_id:
+				out.append({"text": "%s level %s" % [short_name(str(character)), str(level)], "hint": "",
+					"done": mini(int(level), progress.personality_level(str(character))), "total": int(level)})
+	return out
+
+
+## True when every route to `starter_id` is a secret achievement, so the journal must not list it.
+static func secret_only(starter_id: String) -> bool:
+	var secret: bool = false
+	for a in all():
+		if str(a.get("starter", "")) == starter_id:
+			if str(a.get("visibility", "public")) != "secret":
+				return false
+			secret = true
+	var tracks: Dictionary = AdventureProgress.data().get("tracks", {})
+	for character in tracks.keys():
+		for level in (tracks[character] as Dictionary).keys():
+			if str((tracks[character][level] as Dictionary).get("starter", "")) == starter_id:
+				return false
+	return secret
+
+
 ## "Sir Edric Rooke" -> "Edric".
 static func short_name(character: String) -> String:
 	var words: PackedStringArray = character.split(" ")
@@ -125,18 +168,3 @@ static func short_name(character: String) -> String:
 	return words[0]
 
 
-## What opens `starter_id`, in words: achievement titles (or "a hidden achievement") and "<name>
-## level N". Empty for a starter nothing opens.
-static func unlock_sources(starter_id: String) -> Array[String]:
-	var out: Array[String] = []
-	for a in all():
-		if str(a.get("starter", "")) != starter_id:
-			continue
-		var visibility: String = str(a.get("visibility", "public"))
-		out.append(str(a.get("title", "")) if visibility == "public" else "a hidden achievement")
-	var tracks: Dictionary = AdventureProgress.data().get("tracks", {})
-	for character in tracks.keys():
-		for level in (tracks[character] as Dictionary).keys():
-			if str((tracks[character][level] as Dictionary).get("starter", "")) == starter_id:
-				out.append("%s level %s" % [short_name(str(character)), str(level)])
-	return out

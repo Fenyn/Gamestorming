@@ -108,8 +108,14 @@ static func sample_meta() -> void:
 	p.personality_xp = {"Sir Edric Rooke": 520, "Emrys Rooke": 130, "Dame Alder Rooke": 45,
 		"Gideon Mourne": 260, "Bram Ashmark": 90, "Caedan Vale": 20, "Siphon": 15}
 	p.school_xp = {"tide": 610, "shade": 230, "pyre": 95}
+	for a in AdventureAchievements.all():
+		if u.is_complete(str(a.get("id", ""))) and str(a.get("starter", "")) != "":
+			u.unlock(str(a["starter"]))
 	for key in p.personality_xp.keys():
 		p.paid["personality:%s" % key] = p.personality_level(str(key))
+		for m in p.milestones(str(key)):
+			if bool(m["reached"]) and str((m["reward"] as Dictionary).get("starter", "")) != "":
+				u.unlock(str(m["reward"]["starter"]))
 	for key in p.school_xp.keys():
 		p.paid["school:%s" % key] = p.school_level(str(key))
 	Session.win_results = [

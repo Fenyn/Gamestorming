@@ -3,13 +3,14 @@ extends Control
 ## Draws one card face procedurally. Rendered once per definition into a texture by CardFaceCache,
 ## and also used directly for the hover zoom.
 ##
-## Two layouts share the frame. Personalities (Duelists, Allies) get a portrait: aspect box and
-## name across the top, art filling the left, the Might ladder (stages 10 to 0, banded by the
-## Strike Table) down the right with the Surge and attack badges under it, and the type line and
-## power text in a fixed box along the bottom. Everything
-## else gets the standard face: title, type chip, an art box of a set height for that type, a
-## Energy cost badge over the art, and the rules text in the fixed box that remains, with
-## Endurance under it. Boxes never move between cards of one type; the text shrinks to fit.
+## Two layouts share the frame. Personalities (Duelists, Allies) get a portrait: aspect box, name,
+## and title with the type line across the top, art filling the left, the Might ladder (stages
+## 10 to 0, banded by the Strike Table) down the right with the Surge badge under it,
+## and the power text in a fixed box along the bottom. Everything else gets the standard face:
+## title, type chip, an art box of a set height for that type, an Energy cost badge over the art,
+## and the rules text in the fixed box that remains. Both set their text in RulesLayout blocks in
+## an inset panel, with bookkeeping chips under it. Boxes never move between cards of one type;
+## the text shrinks to fit.
 
 const ART_DIR: String = "res://assets/card_art/"
 const INK: Color = Color(0.10, 0.08, 0.06)
@@ -32,8 +33,16 @@ const ART_HEIGHTS: Dictionary = {
 }
 const STANDARD_FIXED: float = 44.0 + 36.0 + 30.0 + 4.0 * 8.0   # title, type row, badges, gaps
 const PERSON_TEXT_HEIGHT: float = 150.0
-const TYPE_LINE_HEIGHT: float = 22.0
-const RUNG_HEIGHT: float = 30.0
+const RUNG_HEIGHT: float = 28.0
+## Padding inside the text box and the ladder box.
+const PAD_X: float = 10.0
+const PAD_Y: float = 6.0
+const LADDER_PAD: float = 6.0
+const PARA_GAP: int = 6
+const INDENT_PX: float = 32.0
+const TAG_HEIGHT: float = 22.0
+const TAG_FONT: int = 16
+const LEAD_INK: Color = Color("5c4128")
 const PERSON_DARK: Color = Color("3b3226")
 const LIT_FALLBACK: Color = Color("8fe0b8")
 const LIT_LIGHTEN: float = 0.25
@@ -86,9 +95,7 @@ static var strike_table: StrikeTable = null
 @onready var type_name: Label = $Margin/Column/TypeRow/TypeChip/Row/Name
 @onready var type_rest: Label = $Margin/Column/TypeRow/Rest
 @onready var text_label: KeywordLabel = $Margin/Column/Text
-@onready var badges: HBoxContainer = $Margin/Column/Badges
-@onready var left_badge: Label = $Margin/Column/Badges/Left
-@onready var right_badge: Label = $Margin/Column/Badges/Right
+@onready var badges: HFlowContainer = $Margin/Column/Badges
 
 @onready var person: MarginContainer = $Person
 @onready var p_aspect_box: PanelContainer = $Person/Column/Head/AspectBox
@@ -99,15 +106,14 @@ static var strike_table: StrikeTable = null
 @onready var p_art: Panel = $Person/Column/Body/Art
 @onready var p_art_image: TextureRect = $Person/Column/Body/Art/Image
 @onready var p_glyph_icon: TypeIcon = $Person/Column/Body/Art/GlyphIcon
-@onready var p_ladder: VBoxContainer = $Person/Column/Body/Side/Ladder
+@onready var p_ladder_box: PanelContainer = $Person/Column/Body/Side/LadderBox
+@onready var p_ladder: VBoxContainer = $Person/Column/Body/Side/LadderBox/Ladder
 @onready var p_surge: PanelContainer = $Person/Column/Body/Side/Stats/Surge
 @onready var p_surge_num: Label = $Person/Column/Body/Side/Stats/Surge/Col/Num
 @onready var p_surge_word: Label = $Person/Column/Body/Side/Stats/Surge/Col/Word
-@onready var p_attack: PanelContainer = $Person/Column/Body/Side/Stats/Attack
-@onready var p_attack_kind: Label = $Person/Column/Body/Side/Stats/Attack/Col/Kind
-@onready var p_attack_num: Label = $Person/Column/Body/Side/Stats/Attack/Col/Num
-@onready var p_type_line: Label = $Person/Column/Words/TypeLine
-@onready var p_text: KeywordLabel = $Person/Column/Words/Text
+@onready var p_words: PanelContainer = $Person/Column/Words
+@onready var p_text: KeywordLabel = $Person/Column/Words/Col/Text
+@onready var p_tags: HFlowContainer = $Person/Column/Words/Col/Tags
 
 var _rule: Panel = null
 var _stage_rows: Array[PanelContainer] = []   # the rung's own pill, stage 10 first
@@ -197,9 +203,18 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D, table_base: 
 	_mark_type(def, picture != null)
 	title_label.text = def.title
 	title_label.add_theme_color_override("font_color", INK)
+	var title_rule: StyleBoxFlat = StyleBoxFlat.new()
+	title_rule.draw_center = false
+	title_rule.border_color = Color(INK, 0.3)
+	title_rule.border_width_bottom = 2
+	title_rule.content_margin_bottom = 2
+	title_label.add_theme_stylebox_override("normal", title_rule)
 	_fit_type_rest(def)
 	type_rest.add_theme_color_override("font_color", INK)
-	_fit_text(text_label, CardText.rules_text(def), CONTENT_HEIGHT - STANDARD_FIXED - art_height)
+	var text_box: StyleBoxFlat = _box_style(PAD_X, PAD_Y)
+	text_label.add_theme_stylebox_override("normal", text_box)
+	var room: float = CONTENT_HEIGHT - STANDARD_FIXED - art_height - 4.0
+	_show_tags(badges, _fit_rules(text_label, CardText.rules_text(def), room, _inset(text_box)))
 	# Energy cost as a round badge over the art, where the eye checks it first.
 	var cost: int = 0
 	if def.is_attack():
@@ -223,12 +238,6 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D, table_base: 
 	_round(cost_badge, ZenithTheme.ENERGY.darkened(0.35), 34)
 	cost_num.add_theme_color_override("font_color", Color.WHITE)
 	cost_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
-	left_badge.text = ""
-	right_badge.text = "Endurance %d" % def.endurance if def.endurance > 0 else ""
-	if str(def.raw.get("endurance_from", "")) != "":
-		right_badge.text = "Endurance X"
-	for l in [left_badge, right_badge]:
-		l.add_theme_color_override("font_color", INK)
 
 
 func _show_person(def: CardDef, aspect: int, picture: Texture2D, energy: int = -1, backdrop: Color = NEUTRAL_BACKDROP) -> void:
@@ -244,8 +253,13 @@ func _show_person(def: CardDef, aspect: int, picture: Texture2D, energy: int = -
 	var name_font: Font = p_name.get_theme_font("font")
 	var name_room: float = CONTENT_WIDTH - 64.0 - 10.0
 	p_name.add_theme_font_size_override("font_size", 32 if name_font.get_string_size(def.title, HORIZONTAL_ALIGNMENT_LEFT, -1, 32).x <= name_room else 16)
-	# An untitled card prints its line's word, or nothing: "Aspect 1" only repeats the box.
-	p_aspect_name.text = (def.aspect_title if def.aspect_title != "" else def.variant).to_upper()
+	# An untitled card prints its line's word, or nothing: "Aspect 1" only repeats the box. The
+	# type line rides on the same row, which leaves the Power box its full height.
+	var head_parts: PackedStringArray = PackedStringArray()
+	for part in [def.aspect_title if def.aspect_title != "" else def.variant, person_type_line(def)]:
+		if str(part) != "":
+			head_parts.append(str(part).to_upper())
+	p_aspect_name.text = "  ·  ".join(head_parts)
 	p_aspect_name.add_theme_color_override("font_color", Color(INK, 0.7))
 	_style(p_art, backdrop, FRAME_RADIUS)
 	p_art_image.texture = picture
@@ -260,26 +274,33 @@ func _show_person(def: CardDef, aspect: int, picture: Texture2D, energy: int = -
 	p_surge_num.text = str(int(td.get("surge", 0)))
 	p_surge_num.add_theme_color_override("font_color", lit_color(backdrop))
 	p_surge_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
-	# A Power that attacks carries the same badge a Strike or Art card does.
-	var power: Dictionary = td.get("power", {})
-	var badge: Dictionary = {}
-	if power.has("attack"):
-		var as_card: CardDef = CardDef.new()
-		as_card.attack = power["attack"]
-		badge = CardText.attack_badge(as_card)
-	p_attack.visible = not badge.is_empty()
-	if not badge.is_empty():
-		var art_kind: bool = str(badge["kind"]).ends_with("Art")
-		_round(p_attack, Palette.type_ink(CardDef.Type.ART if art_kind else CardDef.Type.STRIKE), 10)
-		p_attack_kind.text = str(badge["kind"]).replace("Focused ", "F. ").to_upper()
-		p_attack_num.text = str(badge["num"])
-		p_attack_kind.add_theme_color_override("font_color", Color(1, 1, 1, 0.85))
-		p_attack_num.add_theme_color_override("font_color", Color.WHITE)
-	p_type_line.text = person_type_line(def).to_upper()
-	p_type_line.visible = p_type_line.text != ""
-	p_type_line.add_theme_color_override("font_color", Color(INK, 0.6))
-	var text_room: float = PERSON_TEXT_HEIGHT - (TYPE_LINE_HEIGHT if p_type_line.visible else 0.0)
-	_fit_text(p_text, "\n".join(CardText.aspect_text(def, t)), text_room)
+	var words: StyleBoxFlat = _box_style(PAD_X, PAD_Y)
+	p_words.add_theme_stylebox_override("panel", words)
+	p_ladder_box.add_theme_stylebox_override("panel", _box_style(LADDER_PAD, LADDER_PAD))
+	var plain: String = "\n".join(CardText.aspect_text(def, t))
+	var text_room: float = PERSON_TEXT_HEIGHT
+	if not RulesLayout.build(plain)["tags"].is_empty():
+		text_room -= TAG_HEIGHT + 4.0
+	_show_tags(p_tags, _fit_rules(p_text, plain, text_room, _inset(words)))
+
+
+## The inset panel that holds a card's words or its ladder: a shade darker than the cream, with
+## a thin rule.
+func _box_style(pad_x: float, pad_y: float) -> StyleBoxFlat:
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.content_margin_left = pad_x
+	box.content_margin_right = pad_x
+	box.content_margin_top = pad_y
+	box.content_margin_bottom = pad_y
+	box.bg_color = CREAM.darkened(0.07)
+	box.border_color = Color(INK, 0.28)
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(6)
+	return box
+
+
+static func _inset(box: StyleBox) -> Vector2:
+	return Vector2(box.content_margin_left + box.content_margin_right, box.content_margin_top + box.content_margin_bottom)
 
 
 ## Stage 10 down to 0. Numbers sit in ink on the cream; a hairline and a letter tag mark where a
@@ -402,21 +423,108 @@ func ladder_rects() -> Array[Rect2]:
 	return out
 
 
-## Sets the text at the largest size from TEXT_SIZES whose wrapped height fits the box, so a
-## wordy card and a short one share the same layout and only the type size differs. The
-## keyword markup may bold a word or two, so a little headroom is kept in the measure.
-func _fit_text(label: KeywordLabel, plain: String, box_height: float) -> void:
+## Rules text set as RulesLayout blocks: the gate as a muted line on top, each block its own
+## paragraph with its lead-in in capitals, branches indented. Returns the chip words, which the
+## caller shows under the box. The text takes the largest size from TEXT_SIZES whose blocks fit,
+## so a wordy card and a short one share the layout and only the type size differs. `inset` is
+## the padding the box takes from the content width and from `box_height`.
+func _fit_rules(label: KeywordLabel, plain: String, box_height: float, inset: Vector2) -> Array[Dictionary]:
+	var layout: Dictionary = RulesLayout.build(plain)
 	var font: Font = label.get_theme_font("normal_font")
+	var width: float = CONTENT_WIDTH - 6.0 - inset.x
+	# The caller keeps room for one row of chips; a row that wraps takes its height from the text.
+	var extra_rows: int = maxi(0, _tag_rows(layout["tags"], font) - 1)
+	var room: float = box_height - inset.y - 6.0 - extra_rows * (TAG_HEIGHT + 4.0)
 	var chosen: int = TEXT_SIZES[TEXT_SIZES.size() - 1]
 	for size in TEXT_SIZES:
-		var h: float = font.get_multiline_string_size(plain, HORIZONTAL_ALIGNMENT_LEFT, CONTENT_WIDTH - 6.0, size, -1, TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND).y
-		if h <= box_height - 6.0:
+		if _rules_height(layout, font, width, size) <= room:
 			chosen = size
 			break
 	label.add_theme_font_size_override("normal_font_size", chosen)
 	label.add_theme_font_size_override("bold_font_size", chosen)
 	label.add_theme_color_override("default_color", INK)
-	label.set_plain(plain)
+	label.add_theme_constant_override("paragraph_separation", PARA_GAP)
+	label.bbcode_enabled = true
+	var muted: String = Color(INK, 0.6).to_html()
+	var out: PackedStringArray = PackedStringArray()
+	for g in layout["gate"]:
+		out.append("[color=#%s]%s[/color]" % [muted, KeywordText.escape(str(g).to_upper())])
+	for p in layout["paras"]:
+		var body: String = ""
+		if bool(p["aside"]):
+			body = "[color=#%s]%s[/color]" % [muted, KeywordText.escape(str(p["text"]))]
+		else:
+			body = KeywordText.bbcode(str(p["text"]))
+		if str(p["lead"]) != "":
+			body = "[color=#%s]%s[/color] %s" % [LEAD_INK.to_html(false), KeywordText.escape(str(p["lead"]).to_upper()), body]
+		if bool(p["indent"]):
+			body = "[indent]%s[/indent]" % body
+		out.append(body)
+	label.text = "\n".join(out)
+	var tags: Array[Dictionary] = []
+	tags.assign(layout["tags"])
+	return tags
+
+
+func _rules_height(layout: Dictionary, font: Font, width: float, size: int) -> float:
+	var flags: int = TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND
+	var h: float = 0.0
+	var n: int = 0
+	for g in layout["gate"]:
+		h += font.get_multiline_string_size(str(g).to_upper(), HORIZONTAL_ALIGNMENT_LEFT, width, size, -1, flags).y
+		n += 1
+	for p in layout["paras"]:
+		var s: String = (str(p["lead"]).to_upper() + " " + str(p["text"])).strip_edges()
+		h += font.get_multiline_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, width - (INDENT_PX if bool(p["indent"]) else 0.0), size, -1, flags).y
+		n += 1
+	return h + PARA_GAP * maxi(0, n - 1)
+
+
+## How many rows the chips wrap to across the content width.
+func _tag_rows(tags: Array, font: Font) -> int:
+	if tags.is_empty():
+		return 0
+	var rows: int = 1
+	var x: float = 0.0
+	for t in tags:
+		var w: float = font.get_string_size(str(t["word"]), HORIZONTAL_ALIGNMENT_LEFT, -1, TAG_FONT).x + 12.0
+		if x > 0.0 and x + 6.0 + w > CONTENT_WIDTH:
+			rows += 1
+			x = 0.0
+		x += (6.0 if x > 0.0 else 0.0) + w
+	return rows
+
+
+## RulesLayout chips in `row`, reusing the chips from the last face. Bookkeeping is a quiet ink
+## chip; a Fervor chip takes the Fervor keyword colour.
+func _show_tags(row: Container, tags: Array[Dictionary]) -> void:
+	var pool: Array = []
+	for c in row.get_children():
+		if c.has_meta("tag_chip"):
+			pool.append(c)
+	while pool.size() < tags.size():
+		var chip: PanelContainer = PanelContainer.new()
+		chip.set_meta("tag_chip", true)
+		chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		var l: Label = Label.new()
+		l.add_theme_font_size_override("font_size", TAG_FONT)
+		chip.add_child(l)
+		row.add_child(chip)
+		pool.append(chip)
+	for i in range(pool.size()):
+		var chip: PanelContainer = pool[i] as PanelContainer
+		chip.visible = i < tags.size()
+		if i < tags.size():
+			var role: String = str(tags[i]["role"])
+			var l: Label = chip.get_child(0) as Label
+			l.text = str(tags[i]["word"])
+			if role == "":
+				_round(chip, Color(INK, 0.12), 4, 6, 1)
+				l.add_theme_color_override("font_color", Color(INK, 0.75))
+			else:
+				_round(chip, KeywordText.color_for(role, false), 4, 6, 1)
+				l.add_theme_color_override("font_color", CREAM)
+	row.visible = row != p_tags or not tags.is_empty()
 
 
 ## The cream body. A Signature card gets a second rule just inside the frame, a bone line no

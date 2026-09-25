@@ -73,7 +73,7 @@ def is_type(c, *names):
 
 
 def stops(c):
-    return has(c, r"Stops (a|an|all) ")
+    return has(c, r"Stops (a|an|all|any) ")
 
 
 DROWNING = {"Tide Salt Burn Drill", "Tide Dead Calm", "Tide Pounding Surf", "Tide Leeching Brine",
@@ -88,8 +88,8 @@ RULES = {
         ("Ash", lambda c: has(c, r"opponent's discard pile.*from the game", r"cards of your opponent's discard pile from the game")),
         ("Burning the board", lambda c: has(c, r"(Drill|Ally|Allies|Non-Combat).* in play", r"in play of your choice")),
         ("Pyre Arts", lambda c: is_type(c, "Art") and has(c, r"\d wounds")),
-        ("Art answers", lambda c: has(c, r"Stops an Art", r"Stops all Arts", r"or an Art")),
-        ("Climbing blocks", lambda c: has(c, r"Stops a Strike") and has(c, r"Fervor")),
+        ("Art answers", lambda c: has(c, r"Stops an Art", r"Stops all Arts", r"any attack")),
+        ("Climbing blocks", lambda c: has(c, r"Stops a Strike", r"Stops any attack") and has(c, r"Fervor")),
         ("Fervor attacks", lambda c: True),
     ],
     "steel": [
@@ -114,8 +114,8 @@ RULES = {
         ("Drills", lambda c: is_type(c, "Drill")),
         ("Endurance", lambda c: has(c, r"Endurance")),
         ("Energy refill", lambda c: has(c, r"Gain \d+ Energy", r"Energy to full")),
-        ("Strike answers", lambda c: has(c, r"Stops a Strike", r"Strike cards")),
-        ("Art answers", lambda c: has(c, r"Stops an Art")),
+        ("Strike answers", lambda c: has(c, r"Stops a Strike", r"Stops any attack", r"Strike cards")),
+        ("Art answers", lambda c: has(c, r"Stops an Art", r"Stops any attack")),
         ("Storm Arts", lambda c: True),
     ],
     "shade": [

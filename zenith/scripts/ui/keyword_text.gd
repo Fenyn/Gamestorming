@@ -73,13 +73,13 @@ static func bbcode(plain: String, on_dark: bool = false) -> String:
 		var end: int = int(f["end"])
 		if start < pos:
 			continue
-		out += _escape(plain.substr(pos, start - pos))
+		out += escape(plain.substr(pos, start - pos))
 		var k: Dictionary = CardText.KEYWORDS[int(f["index"])]
 		var color: Color = color_for(str(k["role"]), on_dark)
-		var word: String = _escape(plain.substr(start, end - start))
+		var word: String = escape(plain.substr(start, end - start))
 		out += "[color=#%s][hint=%s]%s[/hint][/color]" % [color.to_html(false), _hint(str(k["tip"])), word]
 		pos = end
-	out += _escape(plain.substr(pos))
+	out += escape(plain.substr(pos))
 	return out
 
 
@@ -92,7 +92,7 @@ static func tip_for(word: String) -> String:
 	return ""
 
 
-static func _escape(s: String) -> String:
+static func escape(s: String) -> String:
 	return s.replace("[", "[lb]").replace("]", "[rb]")
 
 

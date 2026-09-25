@@ -25,7 +25,7 @@ const LINE_HEIGHT: float = 0.004
 const LABEL_HEIGHT: float = 0.003
 const FAR_LABEL_SCALE: float = 1.5
 ## Ivory ink printed on the charcoal playmat, like a real mat's zone marks.
-const LABEL_COLOR: Color = Color(0.88, 0.87, 0.82, 0.85)
+const LABEL_COLOR: Color = Color(ZenithTheme.TEXT, 0.85)
 const LINE_COLOR: Color = Color(0.86, 0.82, 0.74, 0.32)
 
 ## Row zones: marker, slots before cards start overlapping, and per-card scale.

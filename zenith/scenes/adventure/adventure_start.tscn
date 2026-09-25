@@ -23,7 +23,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.035, 0.043, 0.06, 1)
+color = Color(0.055, 0.05, 0.055, 1)
 script = ExtResource("6_backdrop")
 
 [node name="CardFaceCache" parent="." instance=ExtResource("4_faces")]
@@ -50,19 +50,22 @@ theme_override_constants/separation = 24
 
 [node name="Title" type="Label" parent="Margin/Column/TitleRow"]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_vertical = 4
 theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 24
 text = "Choose your character"
 
+[node name="Spacer" type="Control" parent="Margin/Column/TitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="Journal" type="Button" parent="Margin/Column/TitleRow"]
-custom_minimum_size = Vector2(130, 44)
+custom_minimum_size = Vector2(150, 54)
 layout_mode = 2
 size_flags_vertical = 4
 text = "Journal"
 
 [node name="Vendor" type="Button" parent="Margin/Column/TitleRow"]
-custom_minimum_size = Vector2(130, 44)
+custom_minimum_size = Vector2(150, 54)
 layout_mode = 2
 size_flags_vertical = 4
 text = "Vendor"
@@ -132,5 +135,4 @@ custom_minimum_size = Vector2(240, 52)
 layout_mode = 2
 disabled = true
 theme_type_variation = &"AccentButton"
-theme_override_font_sizes/font_size = 18
 text = "Enter the tournament"

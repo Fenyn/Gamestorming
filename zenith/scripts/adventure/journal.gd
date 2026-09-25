@@ -55,7 +55,7 @@ func _fill_achievements() -> void:
 		section.add_child(grid)
 		_grids.append(grid)
 		achievements_list.add_child(section)
-	achieved_tile.set_stat("Achievements", "%d of %d" % [completed, rows.size()], "", ZenithTheme.ACCENT)
+	achieved_tile.set_stat("Achievements", "%d of %d" % [completed, rows.size()], "", ZenithTheme.TEXT)
 
 
 func _fill_progress() -> void:
@@ -95,17 +95,17 @@ func _add_section(title: String, keys: Array[String], school: bool) -> void:
 		var key: String = keys[i]
 		var standing: Dictionary = progress.school_standing(key) if school else progress.personality_standing(key)
 		var next_text: String = ""
-		var colour: Color = ZenithTheme.ACCENT
+		var identity: Color = Color(0, 0, 0, 0)
 		if school:
 			next_text = "Level %d  ·  %s" % [progress.school_level(key) + 1, progress.school_next_text(key, Session.library)]
-			colour = Palette.school_ui(key)
+			identity = Palette.school_ui(key)
 		else:
 			var next: Dictionary = progress.next_milestone(key, Session.library, Session.collection, Session.unlocks)
 			if next.is_empty():
 				next_text = "All milestones earned"
 			elif str(next["text"]) != "":
 				next_text = "Level %d  ·  %s" % [int(next["level"]), str(next["text"])]
-		section.add_child(ProgressUI.xp_row(key.capitalize() if school else key, standing, next_text, colour, i % 2 == 0))
+		section.add_child(ProgressUI.xp_row(key.capitalize() if school else key, standing, next_text, identity, i % 2 == 0))
 	progress_list.add_child(section)
 
 

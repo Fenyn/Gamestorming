@@ -18,8 +18,10 @@ const REVEAL_FRACTION: float = 0.15
 const RESTING_VISIBLE_FRACTION: float = 0.28
 const AURA: Shader = preload("res://scripts/duel/card_aura.gdshader")
 const BORDER_FX: PackedScene = preload("res://scenes/duel/card_border_fx.tscn")
-const HOVER_TINT: Color = Color(0.48, 0.88, 1.0, 1.0)
-const DULL_FACE: Color = Color(0.42, 0.43, 0.47)   # clearly out of play, still readable up close
+const HOVER_TINT: Color = ZenithTheme.ACCENT
+const DIM_TINT: Color = Color(0.20, 0.20, 0.20)     # the aura of a card that is not a choice now
+const DULL_FACE: Color = Color(0.44, 0.44, 0.44)   # clearly out of play, still readable up close
+const LABEL_OUTLINE: Color = Color(0.03, 0.025, 0.03, 0.95)
 const LEFT_CLEAR: float = 24.0                     # margin the preview keeps from the left screen edge
 const LEGAL_LIFT: float = 24.0                     # design pixels a card the decision takes stands up
 const LEGAL_GLOW: float = 1.6                      # the aura's `highlight` on such a card; 1.0 is a plain legal card
@@ -182,7 +184,7 @@ func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dic
 	edge.mesh = QuadMesh.new()
 	var aura: ShaderMaterial = ShaderMaterial.new()
 	aura.shader = AURA
-	aura.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 0.95) if legal.has(card.uid) else Color(0.15, 0.20, 0.26, 0.22))
+	aura.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 0.95) if legal.has(card.uid) else Color(DIM_TINT, 0.22))
 	edge.material_override = aura
 	edge.position.z = -0.003
 	holder.add_child(edge)
@@ -217,7 +219,7 @@ func _refresh_item(item: Dictionary, card: SeatCard, def: CardDef, cache: CardFa
 	item["title_text"] = card.title
 	item["hover_title"] = "%s · %s" % [CardText.TYPE_LABELS[def.type], card.title]
 	var aura: ShaderMaterial = (item["edge"] as MeshInstance3D).material_override
-	aura.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 0.95) if playable else Color(0.15, 0.20, 0.26, 0.22))
+	aura.set_shader_parameter("tint", Color(ZenithTheme.ACCENT, 0.95) if playable else Color(DIM_TINT, 0.22))
 	var summary: Label3D = item["summary"]
 	summary.modulate = ZenithTheme.ATTACK if playable else ZenithTheme.MUTED
 	var forecast: Dictionary = view.forecast(card.uid)
@@ -317,7 +319,7 @@ func _label(font_size: int, color: Color) -> Label3D:
 	label.font_size = font_size * 2
 	label.modulate = color
 	label.outline_size = 12
-	label.outline_modulate = Color(0.025, 0.03, 0.045, 0.95)
+	label.outline_modulate = LABEL_OUTLINE
 	label.shaded = false
 	label.no_depth_test = true
 	label.double_sided = false
@@ -363,9 +365,15 @@ func _layout(snap: bool = false) -> void:
 	var step: float = minf(width + 14.0, (band - width) / maxf(1.0, count - 1))
 	var fan_shift: float = 0.0
 	var fan_top: float = _size.y - height - 64.0
-	var fan_right: float = _size.x * FAN_CENTRE +(count - 1) * 0.5 * step + width * 0.5
-	if _decision_rect.has_area() and _decision_rect.position.y < _size.y - 58.0 and _decision_rect.end.y > fan_top:
+	var fan_right: float = _size.x * FAN_CENTRE + (count - 1) * 0.5 * step + width * 0.5
+	var fan_left: float = fan_right - (count - 1) * step - width
+	if _decision_rect.has_area() and _decision_rect.position.y < _size.y - 58.0 and _decision_rect.end.y > fan_top \
+			and _decision_rect.position.x < fan_right and _decision_rect.end.x > fan_left:
 		fan_shift = minf(0.0, _decision_rect.position.x - PREVIEW_MARGIN - fan_right)
+		# A fan that cannot step aside without leaving the screen stays centred and rises over the
+		# decision instead.
+		if fan_left + fan_shift < PREVIEW_MARGIN:
+			fan_shift = 0.0
 	var units: float = _units_per_pixel()
 	# While the decision takes a hand card, the cards it takes stand up out of the fan.
 	var asks_hand: bool = false
@@ -387,7 +395,7 @@ func _layout(snap: bool = false) -> void:
 		var aura: ShaderMaterial = (item["edge"] as MeshInstance3D).material_override
 		aura.set_shader_parameter("motion", 0.0 if reduced_motion else 1.0)
 		aura.set_shader_parameter("selected", 1.0 if over else 0.0)
-		aura.set_shader_parameter("tint", Color(effect_tint, 1.0) if lit else Color(0.15, 0.20, 0.26, 0.16))
+		aura.set_shader_parameter("tint", Color(effect_tint, 1.0) if lit else Color(DIM_TINT, 0.16))
 		aura.set_shader_parameter("highlight", LEGAL_GLOW if enabled and bool(item["legal"]) else 0.0)
 		if not node.visible:
 			item["rect"] = Rect2()

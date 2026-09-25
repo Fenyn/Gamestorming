@@ -18,7 +18,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.06, 0.055, 0.07, 1)
+color = Color(0.055, 0.05, 0.055, 1)
 
 [node name="Center" type="CenterContainer" parent="." unique_id=806725009]
 layout_mode = 1
@@ -30,7 +30,7 @@ grow_vertical = 2
 
 [node name="Column" type="VBoxContainer" parent="Center" unique_id=747642818]
 layout_mode = 2
-theme_override_constants/separation = 28
+theme_override_constants/separation = 24
 
 [node name="Title" type="Label" parent="Center/Column" unique_id=1138640804]
 layout_mode = 2
@@ -42,26 +42,24 @@ horizontal_alignment = 1
 [node name="Sub" type="Label" parent="Center/Column" unique_id=1423663103]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 24
 text = "DUEL  AT  THE  GATE  BETWEEN  WORLDS"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="Center/Column" unique_id=2004112523]
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 
 [node name="Adventure" type="Button" parent="Center/Column" unique_id=913258647]
-custom_minimum_size = Vector2(320, 60)
+custom_minimum_size = Vector2(384, 60)
 layout_mode = 2
 theme_type_variation = &"AccentButton"
-theme_override_font_sizes/font_size = 22
 text = "Adventure"
 
 [node name="VsAi" type="Button" parent="Center/Column" unique_id=2127113464]
-custom_minimum_size = Vector2(320, 60)
+custom_minimum_size = Vector2(384, 60)
 layout_mode = 2
 theme_type_variation = &"AccentButton"
-theme_override_font_sizes/font_size = 22
 text = "Duel the AI"
 
 [node name="OnlineLabel" type="Label" parent="Center/Column" unique_id=965703908]
@@ -71,25 +69,23 @@ text = "ONLINE"
 horizontal_alignment = 1
 
 [node name="Host" type="Button" parent="Center/Column" unique_id=728342339]
-custom_minimum_size = Vector2(320, 44)
+custom_minimum_size = Vector2(384, 54)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "Host a duel"
 
 [node name="JoinRow" type="HBoxContainer" parent="Center/Column" unique_id=607592584]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
 [node name="Address" type="LineEdit" parent="Center/Column/JoinRow" unique_id=409460429]
-custom_minimum_size = Vector2(190, 44)
+custom_minimum_size = Vector2(228, 54)
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "share code or address"
 
 [node name="Join" type="Button" parent="Center/Column/JoinRow" unique_id=1139086504]
-custom_minimum_size = Vector2(122, 44)
+custom_minimum_size = Vector2(144, 54)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "Join"
 
 [node name="LocalLabel" type="Label" parent="Center/Column" unique_id=554165091]
@@ -99,9 +95,8 @@ text = "LOCAL"
 horizontal_alignment = 1
 
 [node name="Hotseat" type="Button" parent="Center/Column" unique_id=1619272361]
-custom_minimum_size = Vector2(320, 44)
+custom_minimum_size = Vector2(384, 54)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "Hotseat duel"
 
 [node name="Spacer2" type="Control" parent="Center/Column" unique_id=757704003]
@@ -109,13 +104,12 @@ custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 
 [node name="Quit" type="Button" parent="Center/Column" unique_id=176264996]
-custom_minimum_size = Vector2(320, 44)
+custom_minimum_size = Vector2(384, 54)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "Quit"
 
 [node name="Status" type="Label" parent="Center/Column" unique_id=1133121900]
-custom_minimum_size = Vector2(520, 0)
+custom_minimum_size = Vector2(540, 0)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 horizontal_alignment = 1

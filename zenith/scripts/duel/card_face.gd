@@ -4,8 +4,9 @@ extends Control
 ## and also used directly for the hover zoom.
 ##
 ## Two layouts share the frame. Personalities (Duelists, Allies) get a portrait: aspect box and
-## name across the top, art filling the left, the ten-stage Might ladder down the right with the
-## Surge badge under it, and the aspect's power text in a fixed box along the bottom. Everything
+## name across the top, art filling the left, the Might ladder (stages 10 to 0, banded by the
+## Strike Table) down the right with the Surge and attack badges under it, and the type line and
+## power text in a fixed box along the bottom. Everything
 ## else gets the standard face: title, type chip, an art box of a set height for that type, a
 ## Energy cost badge over the art, and the rules text in the fixed box that remains, with
 ## Endurance under it. Boxes never move between cards of one type; the text shrinks to fit.
@@ -31,6 +32,11 @@ const ART_HEIGHTS: Dictionary = {
 }
 const STANDARD_FIXED: float = 44.0 + 36.0 + 30.0 + 4.0 * 8.0   # title, type row, badges, gaps
 const PERSON_TEXT_HEIGHT: float = 150.0
+const TYPE_LINE_HEIGHT: float = 22.0
+const RUNG_HEIGHT: float = 30.0
+const PERSON_DARK: Color = Color("3b3226")
+const LIT_FALLBACK: Color = Color("8fe0b8")
+const LIT_LIGHTEN: float = 0.25
 ## The bone outer rule on a Signature frame, in face pixels. The face is 512 wide and drawn at
 ## about a quarter of that in the hand, so 6 here is the 1 to 2 px the player actually sees.
 const SIGNATURE_EDGE: int = 6
@@ -54,6 +60,9 @@ const BODY_RADIUS: int = 10
 const PLACEHOLDER_SEPIA: Color = Color(1.0, 0.86, 0.66)
 
 static var default_backdrop: Color = NEUTRAL_BACKDROP
+## Sets the band letters on the Might ladder. CardFaceCache hands it the session's table; with
+## none the ladder prints no bands.
+static var strike_table: StrikeTable = null
 
 @onready var frame: Panel = $Frame
 @onready var inner: Panel = $Inner
@@ -87,21 +96,24 @@ static var default_backdrop: Color = NEUTRAL_BACKDROP
 @onready var p_aspect_word: Label = $Person/Column/Head/AspectBox/Col/Word
 @onready var p_name: Label = $Person/Column/Head/Names/Name
 @onready var p_aspect_name: Label = $Person/Column/Head/Names/AspectRow/AspectName
-@onready var p_fervor: HBoxContainer = $Person/Column/Head/Names/AspectRow/Fervor
-@onready var p_type_chip: PanelContainer = $Person/Column/Head/TypeChip
-@onready var p_type_icon: TypeIcon = $Person/Column/Head/TypeChip/Row/Icon
 @onready var p_art: Panel = $Person/Column/Body/Art
 @onready var p_art_image: TextureRect = $Person/Column/Body/Art/Image
 @onready var p_glyph_icon: TypeIcon = $Person/Column/Body/Art/GlyphIcon
 @onready var p_ladder: VBoxContainer = $Person/Column/Body/Side/Ladder
-@onready var p_surge: PanelContainer = $Person/Column/Body/Side/Surge
-@onready var p_surge_num: Label = $Person/Column/Body/Side/Surge/Col/Num
-@onready var p_surge_word: Label = $Person/Column/Body/Side/Surge/Col/Word
-@onready var p_text: KeywordLabel = $Person/Column/Text
+@onready var p_surge: PanelContainer = $Person/Column/Body/Side/Stats/Surge
+@onready var p_surge_num: Label = $Person/Column/Body/Side/Stats/Surge/Col/Num
+@onready var p_surge_word: Label = $Person/Column/Body/Side/Stats/Surge/Col/Word
+@onready var p_attack: PanelContainer = $Person/Column/Body/Side/Stats/Attack
+@onready var p_attack_kind: Label = $Person/Column/Body/Side/Stats/Attack/Col/Kind
+@onready var p_attack_num: Label = $Person/Column/Body/Side/Stats/Attack/Col/Num
+@onready var p_type_line: Label = $Person/Column/Words/TypeLine
+@onready var p_text: KeywordLabel = $Person/Column/Words/Text
 
 var _rule: Panel = null
-var _stage_rows: Array[PanelContainer] = []
-var _fervor_pips: Array[Panel] = []
+var _stage_rows: Array[PanelContainer] = []   # the rung's own pill, stage 10 first
+var _stage_frames: Array[PanelContainer] = [] # the whole row, which carries the band rule
+var _stage_tags: Array[PanelContainer] = []
+var _stage_letters: Array[Label] = []
 var _stage_labels: Array[Label] = []
 var _stage_values: Array[Label] = []
 
@@ -114,35 +126,51 @@ func _ready() -> void:
 	add_child(_rule)
 	move_child(_rule, frame.get_index() + 1)
 	_rule.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	# Ten fixed rungs, top rung is stage 10. Built once; only the numbers change per face.
-	for i in range(STAGES):
-		var row: PanelContainer = PanelContainer.new()
+	# Eleven fixed rungs, stage 10 at the top down to stage 0. Built once; only the numbers change.
+	# Each row is a band tag (shown where a Strike Table band starts) and the rung's pill.
+	for i in range(STAGES + 1):
+		var frame_row: PanelContainer = PanelContainer.new()
+		frame_row.custom_minimum_size = Vector2(0, RUNG_HEIGHT)
 		var h: HBoxContainer = HBoxContainer.new()
-		h.add_theme_constant_override("separation", 6)
+		h.add_theme_constant_override("separation", 4)
+		var tag: PanelContainer = PanelContainer.new()
+		tag.custom_minimum_size = Vector2(22, 20)
+		tag.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		var letter: Label = Label.new()
+		letter.add_theme_font_size_override("font_size", 16)
+		letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tag.add_child(letter)
+		h.add_child(tag)
+		var pill: PanelContainer = PanelContainer.new()
+		pill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var inside: HBoxContainer = HBoxContainer.new()
 		var stage: Label = Label.new()
 		stage.text = str(STAGES - i)
-		stage.custom_minimum_size = Vector2(24, 0)
-		stage.add_theme_font_size_override("font_size", 14)
-		stage.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		h.add_child(stage)
+		stage.add_theme_font_size_override("font_size", 16)
+		inside.add_child(stage)
 		var value: Label = Label.new()
 		value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		value.add_theme_font_size_override("font_size", 19)
-		h.add_child(value)
-		row.add_child(h)
-		p_ladder.add_child(row)
-		_stage_rows.append(row)
+		value.add_theme_font_size_override("font_size", 24)
+		inside.add_child(value)
+		pill.add_child(inside)
+		h.add_child(pill)
+		frame_row.add_child(h)
+		p_ladder.add_child(frame_row)
+		_stage_frames.append(frame_row)
+		_stage_tags.append(tag)
+		_stage_letters.append(letter)
+		_stage_rows.append(pill)
 		_stage_labels.append(stage)
 		_stage_values.append(value)
 
 
 ## `energy` is live Energy for a personality in play (-1 for none): the rung for the current stage
-## lights up. `standing` is the owning player when the card is a duelist in play: Fervor pips
-## appear under the name, one per point needed, and the Surge badge shows the live Recover gain.
+## lights up in the deck's Mastery colour. `_standing` is kept for callers; the face prints only
+## what is on the card.
 ## `backdrop` is the deck colour behind a personality portrait (see NO_BACKDROP). `table_base` is
 ## the Strike Table result for the matchup the card is shown in, -1 outside a duel.
-func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPlayer = null, backdrop: Color = NO_BACKDROP, table_base: int = -1) -> void:
+func show_def(def: CardDef, aspect: int = 0, energy: int = -1, _standing: SeatPlayer = null, backdrop: Color = NO_BACKDROP, table_base: int = -1) -> void:
 	inner.visible = true
 	var color: Color = Palette.frame_color(def)
 	_style(frame, color, FRAME_RADIUS, Palette.frame_edge(def))
@@ -152,7 +180,7 @@ func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPla
 	if def.is_personality():
 		margin.visible = false
 		person.visible = true
-		_show_person(def, aspect, color, picture, energy, standing, resolve_backdrop(backdrop))
+		_show_person(def, aspect, picture, energy, resolve_backdrop(backdrop))
 	else:
 		person.visible = false
 		margin.visible = true
@@ -203,23 +231,22 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D, table_base: 
 		l.add_theme_color_override("font_color", INK)
 
 
-func _show_person(def: CardDef, aspect: int, color: Color, picture: Texture2D, energy: int = -1, standing: SeatPlayer = null, backdrop: Color = NEUTRAL_BACKDROP) -> void:
+func _show_person(def: CardDef, aspect: int, picture: Texture2D, energy: int = -1, backdrop: Color = NEUTRAL_BACKDROP) -> void:
 	# A personality card is one Aspect, so the card decides which number and row it shows.
 	var t: int = def.aspect if def.aspect > 0 else aspect
 	var td: Dictionary = def.aspect_data(t)
-	var dark: Color = color.darkened(0.45)
-	_round(p_aspect_box, dark, 12)
+	_round(p_aspect_box, PERSON_DARK, 12)
 	p_aspect_num.text = str(t)
 	p_aspect_num.add_theme_color_override("font_color", Color.WHITE)
 	p_aspect_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
 	p_name.text = def.title
 	p_name.add_theme_color_override("font_color", INK)
-	p_aspect_name.text = CardText.aspect_name(t, def).to_upper()
-	p_aspect_name.add_theme_color_override("font_color", Color(INK, 0.65))
-	# Icon-only chip up here; the art glyph and the HUD already say Duelist or Ally in words.
-	_round(p_type_chip, Palette.type_ink(def.type), 8, 6, 6)
-	p_type_icon.type = def.type
-	p_type_icon.color = Color.WHITE
+	var name_font: Font = p_name.get_theme_font("font")
+	var name_room: float = CONTENT_WIDTH - 64.0 - 10.0
+	p_name.add_theme_font_size_override("font_size", 32 if name_font.get_string_size(def.title, HORIZONTAL_ALIGNMENT_LEFT, -1, 32).x <= name_room else 16)
+	# An untitled card prints its line's word, or nothing: "Aspect 1" only repeats the box.
+	p_aspect_name.text = (def.aspect_title if def.aspect_title != "" else def.variant).to_upper()
+	p_aspect_name.add_theme_color_override("font_color", Color(INK, 0.7))
 	_style(p_art, backdrop, FRAME_RADIUS)
 	p_art_image.texture = picture
 	p_art_image.visible = picture != null
@@ -227,37 +254,99 @@ func _show_person(def: CardDef, aspect: int, color: Color, picture: Texture2D, e
 	p_glyph_icon.visible = picture == null
 	p_glyph_icon.type = def.type
 	p_glyph_icon.color = Color(1, 1, 1, 0.3)
-	var might: Array = td.get("might", [])
-	for i in range(STAGES):
+	_show_ladder(td.get("might", []), energy, backdrop)
+	# The printed rate only. The live gain is a fact about the player, not the card.
+	_round(p_surge, PERSON_DARK, 10)
+	p_surge_num.text = str(int(td.get("surge", 0)))
+	p_surge_num.add_theme_color_override("font_color", lit_color(backdrop))
+	p_surge_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
+	# A Power that attacks carries the same badge a Strike or Art card does.
+	var power: Dictionary = td.get("power", {})
+	var badge: Dictionary = {}
+	if power.has("attack"):
+		var as_card: CardDef = CardDef.new()
+		as_card.attack = power["attack"]
+		badge = CardText.attack_badge(as_card)
+	p_attack.visible = not badge.is_empty()
+	if not badge.is_empty():
+		var art_kind: bool = str(badge["kind"]).ends_with("Art")
+		_round(p_attack, Palette.type_ink(CardDef.Type.ART if art_kind else CardDef.Type.STRIKE), 10)
+		p_attack_kind.text = str(badge["kind"]).replace("Focused ", "F. ").to_upper()
+		p_attack_num.text = str(badge["num"])
+		p_attack_kind.add_theme_color_override("font_color", Color(1, 1, 1, 0.85))
+		p_attack_num.add_theme_color_override("font_color", Color.WHITE)
+	p_type_line.text = person_type_line(def).to_upper()
+	p_type_line.visible = p_type_line.text != ""
+	p_type_line.add_theme_color_override("font_color", Color(INK, 0.6))
+	var text_room: float = PERSON_TEXT_HEIGHT - (TYPE_LINE_HEIGHT if p_type_line.visible else 0.0)
+	_fit_text(p_text, "\n".join(CardText.aspect_text(def, t)), text_room)
+
+
+## Stage 10 down to 0. Numbers sit in ink on the cream; a hairline and a letter tag mark where a
+## Strike Table band starts; the live stage is a pill in the deck's Mastery colour.
+func _show_ladder(might: Array, energy: int, backdrop: Color) -> void:
+	var lit_fill: Color = lit_color(backdrop)
+	var lit_ink: Color = lit_ink_color(lit_fill)
+	var prev_band: int = -1
+	for i in range(STAGES + 1):
 		var stage: int = STAGES - i
+		var value: int = int(might[stage]) if might.size() > stage else 0
+		var band: int = strike_table.band(value) if strike_table != null else -1
+		var starts: bool = strike_table != null and band != prev_band
+		prev_band = band
+		var rule: StyleBoxFlat = StyleBoxFlat.new()
+		rule.draw_center = false
+		if starts and i > 0:
+			rule.border_color = Color(INK, 0.35)
+			rule.border_width_top = 2
+			rule.content_margin_top = 2
+		_stage_frames[i].add_theme_stylebox_override("panel", rule)
+		_stage_tags[i].self_modulate.a = 1.0 if starts else 0.0
+		_stage_letters[i].text = CardText.band_letter(band) if starts else ""
+		_stage_letters[i].add_theme_color_override("font_color", CREAM)
+		_round(_stage_tags[i], Color(INK, 0.75), 3, 0, 0)
 		var lit: bool = stage == energy
-		_round(_stage_rows[i], ZenithTheme.ENERGY.darkened(0.15) if lit else dark, 8, 8, 2)
-		_stage_labels[i].add_theme_color_override("font_color", Color(1, 1, 1, 0.95 if lit else 0.55))
-		_stage_values[i].text = CardText.short_number(int(might[stage])) if might.size() > stage else ""
-		_stage_values[i].add_theme_color_override("font_color", Color.WHITE)
-	var spent: bool = energy == 0
-	_round(p_surge, (ZenithTheme.WARN if spent else ZenithTheme.ENERGY).darkened(0.35), 12)
-	p_fervor.visible = standing != null
-	if standing != null:
-		_show_fervor(standing.fervor, standing.fervor_needed)
-	p_surge_num.text = str(standing.recover_gain if standing != null else int(td.get("surge", 0)))
-	p_surge_num.add_theme_color_override("font_color", Color.WHITE)
-	p_surge_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
-	_fit_text(p_text, "\n".join(CardText.aspect_text(def, t)), PERSON_TEXT_HEIGHT)
+		var pill: StyleBoxFlat = StyleBoxFlat.new()
+		pill.draw_center = lit
+		pill.bg_color = lit_fill
+		pill.set_corner_radius_all(6)
+		pill.content_margin_left = 6
+		pill.content_margin_right = 6
+		if lit:
+			pill.border_color = lit_fill.darkened(0.55)
+			pill.set_border_width_all(2)
+		_stage_rows[i].add_theme_stylebox_override("panel", pill)
+		_stage_labels[i].add_theme_color_override("font_color", Color(lit_ink, 0.9) if lit else Color(INK, 0.5))
+		_stage_values[i].text = CardText.short_number(value) if might.size() > stage else ""
+		_stage_values[i].add_theme_color_override("font_color", lit_ink if lit else INK)
 
 
-## One pip per point of Fervor needed, on the aspect-name line so the head keeps its height and
-## the art box its shape; the row grows or shrinks as effects move the mark.
-func _show_fervor(fervor: int, needed: int) -> void:
-	while _fervor_pips.size() < needed:
-		var pip: Panel = Panel.new()
-		pip.custom_minimum_size = Vector2(14, 14)
-		p_fervor.add_child(pip)
-		_fervor_pips.append(pip)
-	for i in range(_fervor_pips.size()):
-		_fervor_pips[i].visible = i < needed
-		var style: StyleBoxFlat = ZenithTheme.pip(true, ZenithTheme.ACCENT if i < fervor else Color(INK, 0.15), true)
-		_fervor_pips[i].add_theme_stylebox_override("panel", style)
+## Bloodline, alignment gate and tags, in words, over the Power text.
+static func person_type_line(def: CardDef) -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	if def.bloodline != "":
+		parts.append(CardText.bloodline_name(def.bloodline))
+	if def.alignment_only != "":
+		parts.append(def.alignment_only.capitalize() + " only")
+	for tag in def.raw.get("tags", []):
+		parts.append(CardText.keyword_name(str(tag)))
+	return " · ".join(parts)
+
+
+## The live-stage colour: the deck's Mastery hue that `backdrop` was darkened from, lifted so it
+## reads on the cream. With no deck named, a neutral mint. `deep` skips the lift: the table's
+## see-through bar washes out over the cream unless its colour starts at full depth.
+static func lit_color(backdrop: Color, deep: bool = false) -> Color:
+	var b: Color = resolve_backdrop(backdrop)
+	if b.is_equal_approx(NEUTRAL_BACKDROP):
+		return LIT_FALLBACK.darkened(LIT_LIGHTEN) if deep else LIT_FALLBACK
+	var keep: float = 1.0 - BACKDROP_DARKEN
+	var hue: Color = Color(b.r / keep, b.g / keep, b.b / keep)
+	return hue if deep else hue.lightened(LIT_LIGHTEN)
+
+
+static func lit_ink_color(fill: Color) -> Color:
+	return INK if fill.get_luminance() > 0.45 else Color.WHITE
 
 
 ## The deck's Mastery school hue, darkened for a portrait backdrop; neutral when it has none.

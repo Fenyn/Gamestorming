@@ -1,12 +1,13 @@
 class_name ArcaneBackdrop
 extends ColorRect
-## A non-interactive stone, sigil and mist backdrop shared by select and matchup.
+## A non-interactive stone, sigil and mist backdrop over the 3D hall, shared by select, matchup,
+## adventure start and the journal. The school colour only lights the sigil halo and the portal.
 
 @export var portrait: bool = false
 var _shader: ShaderMaterial
 var _clock: float = 24.0
-var _color: Color = Color(0.34, 0.74, 0.82)
-var _target: Color = Color(0.34, 0.74, 0.82)
+var _color: Color = ZenithTheme.FRAME
+var _target: Color = ZenithTheme.FRAME
 var _pulse: float = 0.0
 var _hall_viewport: SubViewport
 var _hall: Node3D

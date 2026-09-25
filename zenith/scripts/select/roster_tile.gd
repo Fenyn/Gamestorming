@@ -12,11 +12,11 @@ signal picked(index: int)
 @onready var badge: Label = $Badge
 @onready var stars: PanelContainer = $Row/Stars
 
-## Pip tint by mean stages cleared of the eight: gold from 6, green from 5, red below.
+## Pip tint by mean stages cleared of the eight: green from 6, pale steel from 5, ember below.
 const STRENGTH_COLORS: Array = [
-	[6.0, Color(0.95, 0.78, 0.35)],
-	[5.0, Color(0.55, 0.80, 0.60)],
-	[0.0, Color(0.88, 0.55, 0.45)],
+	[6.0, ZenithTheme.ENERGY],
+	[5.0, ZenithTheme.MIGHT],
+	[0.0, ZenithTheme.WARN],
 ]
 
 var index: int = 0
@@ -46,17 +46,17 @@ func setup(pos: int, d: DeckList) -> void:
 	index = pos
 	_school_color = Palette.school_ui(d.style)
 	tooltip_text = "%s\n%s\n%s" % [d.name, d.tagline, d.blurb]
-	add_theme_stylebox_override("focus", ZenithTheme.box(Color.TRANSPARENT, Color(0.8, 0.8, 0.8), 2, 2, 0, 0))
+	add_theme_stylebox_override("focus", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.FRAME, ZenithTheme.RADIUS, 2, 0, 0))
 	var duelist: CardDef = Session.library.defs.get(d.duelist_face_id())
 	thumb.texture = CardFace.art_texture(duelist, duelist.aspect) if duelist != null else null
 	var fallback: Label = $Row/Thumb/Fallback
 	fallback.visible = thumb.texture == null
 	fallback.text = duelist.title.left(1) if duelist != null else "?"
 	fallback.add_theme_color_override("font_color", _school_color.lightened(0.2))
-	fallback.add_theme_stylebox_override("normal", ZenithTheme.box(Color(_school_color, 0.12), Color(_school_color, 0.25), 12, 1))
+	fallback.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.RAISED, Color(_school_color, 0.55), ZenithTheme.RADIUS, 1))
 	# A starter's pip row says how it plays and how far it gets; the line stays for precons only.
 	$Row/Column/Difficulty.visible = d.cleared <= 0.0
-	$Row/Column/Difficulty.text = "%s to play  /  %d life cards" % [d.difficulty.capitalize(), d.cards.size()]
+	$Row/Column/Difficulty.text = "%s  ·  %d cards" % [d.difficulty.capitalize(), d.cards.size()]
 	deck_label.text = d.name
 	duelist_label.text = duelist.title if duelist != null else d.duelist_face_id()
 	school_label.text = "%s  /  %s" % [CardText.school_name(d.style).to_upper(), Archetype.label(d.archetype)]
@@ -86,11 +86,13 @@ static func strength_color(cleared: float) -> Color:
 func set_badge(state: int, _text: String, color: Color) -> void:
 	badge.visible = state > 0
 	badge.text = "READY" if state == 2 else "SELECTED"
-	var fill: Color = Color(0.17, 0.17, 0.17) if state > 0 else Color(0.075, 0.075, 0.075, 0.96)
-	var edge: Color = Color(0.65, 0.65, 0.65) if state > 0 else Color(0.22, 0.22, 0.22)
-	add_theme_stylebox_override("normal", ZenithTheme.box(fill, edge, 3, 2 if state > 0 else 1, 10, 10))
-	add_theme_stylebox_override("hover", ZenithTheme.box(Color(0.20, 0.20, 0.20), Color(0.44, 0.44, 0.44), 2, 1, 10, 10))
-	add_theme_stylebox_override("disabled", get_theme_stylebox("normal"))
+	# Opaque fills: the tile sits over the 3D hall, which would show through a translucent one.
+	var normal: StyleBoxFlat = ZenithTheme.selected_box(12, 12) if state > 0 \
+		else ZenithTheme.box(ZenithTheme.BG, ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, 12, 12)
+	add_theme_stylebox_override("normal", normal)
+	add_theme_stylebox_override("hover", normal if state > 0 \
+		else ZenithTheme.box(ZenithTheme.BG_ACTIVE, ZenithTheme.FRAME, ZenithTheme.RADIUS, 1, 12, 12))
+	add_theme_stylebox_override("disabled", normal)
 	ZenithTheme.chip(badge, color, state == 2)
 
 

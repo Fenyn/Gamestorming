@@ -21,7 +21,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.035, 0.043, 0.06, 1)
+color = Color(0.055, 0.05, 0.055, 1)
 script = ExtResource("4_atmosphere")
 
 [node name="CardFaceCache" parent="." instance=ExtResource("3_faces")]
@@ -47,17 +47,20 @@ layout_mode = 2
 theme_override_constants/separation = 24
 
 [node name="Back" type="Button" parent="Margin/Column/TitleRow"]
-custom_minimum_size = Vector2(90, 36)
+custom_minimum_size = Vector2(120, 54)
 layout_mode = 2
+size_flags_vertical = 4
 text = "Back"
 
 [node name="Title" type="Label" parent="Margin/Column/TitleRow"]
 layout_mode = 2
-size_flags_horizontal = 3
 size_flags_vertical = 4
 theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 24
 text = "Choose your duelist"
+
+[node name="Spacer" type="Control" parent="Margin/Column/TitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="Players" type="HBoxContainer" parent="Margin/Column/TitleRow"]
 visible = false
@@ -68,26 +71,25 @@ theme_override_constants/separation = 8
 [node name="PlayersTag" type="Label" parent="Margin/Column/TitleRow/Players"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 12
 text = "PLAYERS"
 
 [node name="Seat0" type="PanelContainer" parent="Margin/Column/TitleRow/Players"]
-custom_minimum_size = Vector2(170, 0)
+custom_minimum_size = Vector2(216, 0)
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Margin/Column/TitleRow/Players/Seat0"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 text = "P1  Player 1"
 horizontal_alignment = 1
 
 [node name="Seat1" type="PanelContainer" parent="Margin/Column/TitleRow/Players"]
-custom_minimum_size = Vector2(170, 0)
+custom_minimum_size = Vector2(216, 0)
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Margin/Column/TitleRow/Players/Seat1"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 text = "P2  waiting"
 horizontal_alignment = 1
 
@@ -95,7 +97,6 @@ horizontal_alignment = 1
 layout_mode = 2
 size_flags_vertical = 4
 theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 15
 text = ""
 horizontal_alignment = 2
 
@@ -111,15 +112,13 @@ alignment = 1
 [node name="Lead" type="Label" parent="Margin/Column/CodeBanner/Row"]
 layout_mode = 2
 size_flags_vertical = 4
-theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 18
+theme_type_variation = &"BodyLabel"
 text = "Waiting for a player to join. Share this room code:"
 
 [node name="Code" type="Label" parent="Margin/Column/CodeBanner/Row"]
 layout_mode = 2
 size_flags_vertical = 4
-theme_type_variation = &"AccentLabel"
-theme_override_font_sizes/font_size = 44
+theme_type_variation = &"TitleLabel"
 text = "XXXXX"
 
 [node name="Copy" type="Button" parent="Margin/Column/CodeBanner/Row"]
@@ -132,14 +131,12 @@ custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 size_flags_vertical = 4
 theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 14
 text = "on your clipboard"
 
 [node name="Subtitle" type="Label" parent="Margin/Column"]
 visible = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 18
 text = "THE CONTEST OF EIDOLARCHS     /     Choose the power you will bring to the arena"
 
 [node name="Body" type="HBoxContainer" parent="Margin/Column"]

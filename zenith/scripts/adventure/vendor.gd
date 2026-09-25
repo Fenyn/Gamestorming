@@ -35,7 +35,7 @@ var _busy: bool = false
 
 func _ready() -> void:
 	theme = SanctumUI.theme()
-	# The vendor sits outside any run: neutral trim, and the shelf framed like every other panel.
+	# The vendor sits outside any run, so its title carries no school edge.
 	MapArt.tint_for_school("")
 	SanctumUI.dress(self, $Margin/Column/TitleRow/Title as Label)
 	var shelf_frame: PanelContainer = PanelContainer.new()
@@ -91,7 +91,7 @@ func _fill_shelf() -> void:
 func _build_stall(def: CardDef) -> Control:
 	var tint: Color = Palette.card_ui(def)
 	var panel: PanelContainer = PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", ZenithTheme.edged(tint, Color(tint, 0.08), 14, 12, 12))
+	panel.add_theme_stylebox_override("panel", ZenithTheme.edged(tint, ZenithTheme.RAISED, ZenithTheme.RADIUS, 12, 12))
 
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
@@ -112,30 +112,28 @@ func _build_stall(def: CardDef) -> Control:
 
 	var title: Label = Label.new()
 	title.text = def.title
-	title.add_theme_font_size_override("font_size", 14)
+	title.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.custom_minimum_size.x = FACE_SIZE.x
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(title)
 
-	var chips: HBoxContainer = HBoxContainer.new()
-	chips.alignment = BoxContainer.ALIGNMENT_CENTER
-	chips.add_theme_constant_override("separation", 6)
-	chips.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# One chip per line, so every stall's Buy sits at the same height.
 	var band: Label = Label.new()
 	band.text = AdventureEconomy.band(def).capitalize()
-	band.add_theme_font_size_override("font_size", 12)
+	band.theme_type_variation = &"CaptionLabel"
+	band.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ZenithTheme.chip(band, tint)
-	chips.add_child(band)
+	column.add_child(band)
 	var price: Label = Label.new()
 	price.text = "%d Motes" % AdventureEconomy.price(def)
-	price.add_theme_font_size_override("font_size", 12)
+	price.theme_type_variation = &"CaptionLabel"
+	price.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	price.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ZenithTheme.chip(price, ZenithTheme.ACCENT)
-	chips.add_child(price)
-	column.add_child(chips)
+	ZenithTheme.chip(price, ZenithTheme.MOTES)
+	column.add_child(price)
 
 	var owned: Label = Label.new()
 	owned.theme_type_variation = &"MutedLabel"
@@ -146,7 +144,7 @@ func _build_stall(def: CardDef) -> Control:
 	_owned_labels.append(owned)
 
 	var buy: Button = Button.new()
-	buy.custom_minimum_size = Vector2(FACE_SIZE.x, 36)
+	buy.custom_minimum_size = Vector2(FACE_SIZE.x, 48)
 	buy.text = "Buy"
 	buy.pressed.connect(func() -> void: _on_buy(def.id))
 	column.add_child(buy)
@@ -232,7 +230,7 @@ func _disarm_dissolve() -> void:
 # --- Shared state ---------------------------------------------------------------------
 
 func _refresh() -> void:
-	motes_tile.set_stat("Motes", str(Session.wallet.motes), "", ZenithTheme.ACCENT)
+	motes_tile.set_motes(Session.wallet.motes)
 	var fee: int = AdventureEconomy.vendor_reroll_fee()
 	reroll_button.disabled = not Session.wallet.can_afford(fee)
 	reroll_button.tooltip_text = "" if not reroll_button.disabled else "%d Motes short." % (fee - Session.wallet.motes)

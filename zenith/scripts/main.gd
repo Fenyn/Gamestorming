@@ -18,7 +18,7 @@ func _ready() -> void:
 		get_tree().change_scene_to_file.call_deferred("res://scenes/server.tscn")
 		return
 	theme = SanctumUI.theme()
-	# Back at the title no run is live, so the trim returns to neutral white.
+	# Back at the title no run is live, so no screen shows a school edge.
 	MapArt.tint_for_school("")
 	_dress()
 	Net.leave()
@@ -35,8 +35,7 @@ func _ready() -> void:
 	_dev_args()
 
 
-## Library filigree around the menu: a crest over the name and a swirl under the tagline, neutral.
-## No terrain behind it (user, 2026-09-23).
+## Filigree around the menu: a crest over the name and a swirl under the tagline.
 func _dress() -> void:
 	var column: VBoxContainer = $Center/Column
 	var crest: TextureRect = MapArt.ornament("crest", 34.0)

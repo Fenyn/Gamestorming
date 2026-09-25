@@ -9,7 +9,7 @@ var _clock: float = 0.0
 var _dust: GPUParticles3D
 var _flames: Array[Node3D] = []
 var _last_school: Color = Color.TRANSPARENT
-var _school: Color = Color(0.24, 0.70, 0.68)
+var _school: Color = ZenithTheme.FRAME
 var _pointer: Vector2 = Vector2.ZERO
 
 
@@ -17,15 +17,16 @@ func _ready() -> void:
 	var env: WorldEnvironment = WorldEnvironment.new()
 	var settings: Environment = Environment.new()
 	settings.background_mode = Environment.BG_COLOR
-	settings.background_color = Color(0.008, 0.014, 0.028)
+	# Lit like the duel table: warm-neutral stone under a neutral ambient and fog.
+	settings.background_color = Color(0.022, 0.020, 0.022)
 	settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	settings.ambient_light_color = Color(0.30, 0.46, 0.62)
-	settings.ambient_light_energy = 0.65
+	settings.ambient_light_color = Color(0.62, 0.60, 0.58)
+	settings.ambient_light_energy = 0.45
 	settings.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	settings.glow_enabled = true
-	settings.glow_intensity = 0.8
+	settings.glow_intensity = 0.6
 	settings.fog_enabled = true
-	settings.fog_light_color = Color(0.055, 0.10, 0.16)
+	settings.fog_light_color = Color(0.085, 0.080, 0.078)
 	settings.fog_density = 0.008
 	env.environment = settings
 	if menu_mode:
@@ -46,19 +47,20 @@ func _ready() -> void:
 	stone.albedo_texture = load("res://assets/materials/sanctum_rock.png")
 	stone.normal_enabled = true
 	stone.normal_texture = load("res://assets/materials/sanctum_rock_normal.png")
-	stone.albedo_color = Color(0.36, 0.43, 0.49)
+	stone.albedo_color = Color(0.48, 0.46, 0.44)
 	stone.roughness = 0.86
 	stone.uv1_triplanar = true
 	stone.uv1_scale = Vector3.ONE * 0.45
 	var floor_material: StandardMaterial3D = stone.duplicate()
 	floor_material.albedo_texture = load("res://assets/materials/sanctum_stone.jpg")
 	floor_material.normal_texture = load("res://assets/materials/sanctum_stone_normal.jpg")
-	floor_material.albedo_color = Color(0.25, 0.35, 0.43)
+	# The floor texture is a brown stone; this cool tint brings it back to a warm grey.
+	floor_material.albedo_color = Color(0.22, 0.32, 0.44)
 	floor_material.uv1_scale = Vector3.ONE * 0.18
-	var bronze: StandardMaterial3D = StandardMaterial3D.new()
-	bronze.albedo_color = Color(0.40, 0.27, 0.11)
-	bronze.metallic = 0.7
-	bronze.roughness = 0.42
+	var iron: StandardMaterial3D = StandardMaterial3D.new()
+	iron.albedo_color = Color(0.30, 0.30, 0.31)
+	iron.metallic = 0.7
+	iron.roughness = 0.5
 	_box(Vector3(32, 0.3, 42), Vector3(0, -0.2, -4), floor_material)
 	for z: float in [-11.0, -5.0, 1.0, 7.0]:
 		for x: float in [-7.2, 7.2]:
@@ -70,7 +72,7 @@ func _ready() -> void:
 			shaft.radial_segments = 8
 			_mesh(shaft, Vector3(x, 4.2, z), stone)
 			for y: float in [0.7, 6.8, 7.9]:
-				_box(Vector3(1.25, 0.18, 1.25), Vector3(x, y, z), bronze)
+				_box(Vector3(1.25, 0.18, 1.25), Vector3(x, y, z), iron)
 			_box(Vector3(1.6, 0.4, 1.6), Vector3(x, 8.2, z), stone)
 	for i in range(4):
 		_box(Vector3(9.0 - i * 0.65, 0.25, 4.0 - i * 0.55), Vector3(0, i * 0.25, -9.0), stone)
@@ -80,7 +82,7 @@ func _ready() -> void:
 		circle.outer_radius = radius + 0.028
 		circle.rings = 80
 		circle.ring_segments = 6
-		_mesh(circle, Vector3(0, 0.01, -0.5), bronze)
+		_mesh(circle, Vector3(0, 0.01, -0.5), iron)
 	var arch: TorusMesh = TorusMesh.new()
 	arch.inner_radius = 2.35
 	arch.outer_radius = 2.68
@@ -92,15 +94,15 @@ func _ready() -> void:
 	rim.inner_radius = 2.33
 	rim.outer_radius = 2.38
 	rim.rings = 64
-	_mesh(rim, Vector3(0, 3.4, -9.12), bronze).rotation.x = PI * 0.5
+	_mesh(rim, Vector3(0, 3.4, -9.12), iron).rotation.x = PI * 0.5
 	_portal = EffectBlocks.make("other/portal_magic")
 	_portal.name = "EffectBlocksPortal"
 	_portal.position = Vector3(0, 3.4, -9.05)
 	_portal.scale = Vector3.ONE * 2.3
 	add_child(_portal)
-	_light(Vector3(0, 4, -6), Color(0.23, 0.76, 0.77), 8.0, 14)
+	_light(Vector3(0, 4, -6), Color(1.0, 0.96, 0.90), 5.0, 14)
 	for side: float in [-1.0, 1.0]:
-		_light(Vector3(side * 5.5, 3, 2), Color(1.0, 0.52, 0.18), 4.0, 10)
+		_light(Vector3(side * 5.5, 3, 2), Color(1.0, 0.70, 0.45), 2.0, 10)
 		_box(Vector3(0.65, 1.5, 0.65), Vector3(side * 5.5, 0.75, 2), stone)
 		_flame(Vector3(side * 5.5, 1.55, 2))
 	_dust = EffectBlocks.make("other/dust") as GPUParticles3D

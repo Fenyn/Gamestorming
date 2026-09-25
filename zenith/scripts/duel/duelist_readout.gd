@@ -11,11 +11,13 @@ enum Part { ALL, PRINT, PLATE }
 const PLAYER_STATUS: Script = preload("res://scripts/duel/player_status.gd")
 ## Warm charcoal and ivory, the table's own colours; seat colour only on the plate's rule.
 const INK: Color = Color(0.085, 0.08, 0.075, 0.96)
-const TEXT: Color = Color(0.95, 0.93, 0.87)
-const MUTED: Color = Color(0.74, 0.71, 0.66)
-const IVORY: Color = Color(0.9, 0.86, 0.76)
+const TEXT: Color = ZenithTheme.TEXT
+const MUTED: Color = ZenithTheme.TEXT_SOFT
+const IVORY: Color = ZenithTheme.ACCENT
 const ENERGY: Color = ZenithTheme.ENERGY
-const FERVOR: Color = Color(0.95, 0.59, 0.29)
+const FERVOR: Color = ZenithTheme.FERVOR
+const FERVOR_TEXT: Color = ZenithTheme.FERVOR_TEXT
+const STATUS: Color = ZenithTheme.WARN
 const TRACKER_SIZE: Vector2 = Vector2(540, 160)
 ## The plate's own canvas: the tracker inset by PLATE_PAD, with room under it for the lives tab.
 const PLATE_PAD: Vector2 = Vector2(10, 10)
@@ -27,12 +29,13 @@ const NEAR_DROP: float = 85.0
 const ASPECT_GAP: float = 34.0
 ## Status lines: centred past the far seat's plate, in a column right of the near seat's, where
 ## the tucked hand does not cover them.
-const FLAG_WIDTH: float = 690.0
+const FLAG_WIDTH: float = 1000.0
 const NEAR_FLAG_WIDTH: float = 300.0   # stops short of the Relic's outline
 const NEAR_FLAG_GAP: float = 24.0
-## Status flags are chips on 36-pixel rows.
+## Status flags are chips, one row step apart. The far seat's lie further off and more
+## foreshortened, so they are drawn larger to read at the same size on screen.
 const CHIP_FONT: int = 28
-const CHIP_HEIGHT: float = 34.0
+const CHIP_FONT_FAR: int = 44
 const CHIP_PAD: float = 12.0
 const CHIP_GAP: float = 10.0
 ## ALL draws everything on one canvas; PRINT leaves the tracker to the plate; PLATE draws only
@@ -193,7 +196,7 @@ func update_layout() -> Dictionary:
 	var tracker_y: float = card_bounds.position.y - 184.0 if far_side else card_bounds.end.y + 24.0 + NEAR_DROP
 	var tracker: Rect2 = Rect2(Vector2(middle_x - TRACKER_SIZE.x * 0.5, tracker_y), TRACKER_SIZE)
 	# The far seat's status lines sit past its standing plate, clear of the table it hides.
-	var first_row: float = tracker_y - 48.0 - flag_clearance if far_side else tracker.position.y + 48.0
+	var first_row: float = tracker_y - 12.0 - _chip_step() - flag_clearance if far_side else tracker.position.y + 48.0
 	var text_width: float = FLAG_WIDTH if far_side else NEAR_FLAG_WIDTH
 	var flag_left: float = middle_x - text_width * 0.5 if far_side else tracker.end.x + NEAR_FLAG_GAP
 	stat_hit_rects.append(tracker)
@@ -205,8 +208,10 @@ func update_layout() -> Dictionary:
 	if not _seal_sets.is_empty():
 		stat_hit_rects.append(Rect2(flag_left, first_row - 34, text_width, 42))
 	var lines: Array[PackedStringArray] = _flag_rows(text_width)
+	var font: int = _chip_font()
 	for i in range(mini(lines.size(), flag_rows)):
-		stat_hit_rects.append(Rect2(flag_left, first_row + (i + 2 - flag_rows) * 36.0 - 34, text_width, 42))
+		var baseline: float = first_row + (i + 2 - flag_rows) * _chip_step()
+		stat_hit_rects.append(Rect2(flag_left, baseline - font - 6.0, text_width, font + 20.0))
 	return {"tracker": tracker, "flags": first_row, "middle": middle_x, "flag_left": flag_left, "flag_width": text_width}
 
 
@@ -251,7 +256,7 @@ func _draw() -> void:
 				row.remove_at(row.size() - 1)
 				rest += 1
 			row.append("+%d more" % rest)
-		_draw_chip_row(row, flag_left, first_row + (i + 2 - flag_rows) * 36.0, text_width, centred)
+		_draw_chip_row(row, flag_left, first_row + (i + 2 - flag_rows) * _chip_step(), text_width, centred)
 
 
 ## The stat tracker: name, Aspect and seat along the top, then Energy, Might and Fervor. A
@@ -263,18 +268,18 @@ func _draw_tracker(tracker: Rect2) -> void:
 	draw_rect(tracker.grow(-4), INK)
 	draw_style_box(MapArt.panel_box(0, rule), tracker)
 	# The fighter's name centred along the top; the Aspect is printed under the card instead.
-	_text(_title, origin + Vector2(96, 33), 300, 29, TEXT, true)
-	_text(_control, origin + Vector2(402, 32), 132, 24, MapArt.muted(_accent).lerp(Color.WHITE, 0.45), true)
+	_text(_title, origin + Vector2(92, 35), 300, 32, TEXT, true)
+	_text(_control, origin + Vector2(372, 34), 156, 28, MapArt.muted(_accent).lerp(Color.WHITE, 0.45), true)
 	for x in [180.0, 360.0]:
 		draw_line(origin + Vector2(x, 48), origin + Vector2(x, 140), Color(MUTED, 0.25), 1, true)
 	_text("ENERGY", origin + Vector2(10, 65), 160, 34, ENERGY, true)
 	_text("MIGHT", origin + Vector2(190, 65), 160, 34, TEXT, true)
-	_text("FERVOR", origin + Vector2(370, 65), 160, 34, FERVOR, true)
+	_text("FERVOR", origin + Vector2(370, 65), 160, 34, FERVOR_TEXT, true)
 	_text("%d / 10" % _energy, origin + Vector2(10, 111), 160, 42, _stat_color(energy_delta()), true)
 	_text(CardText.short_number(_might), origin + Vector2(190, 111), 160, 44, _stat_color(might_delta()), true)
 	# Might has no printed maximum on the strip, so a moved ladder says what it moved from.
 	if might_delta() != 0:
-		_text("base %s" % CardText.short_number(_might_printed), origin + Vector2(190, 142), 160, 24, MUTED, true)
+		_text("base %s" % CardText.short_number(_might_printed), origin + Vector2(190, 146), 160, 28, MUTED, true)
 	_text("%d / %d" % [_fervor, _threshold], origin + Vector2(370, 111), 160, 40, TEXT, true)
 	for i in range(10):
 		var on: bool = i < _energy
@@ -403,9 +408,9 @@ func _draw_opponent_hand(origin: Vector2) -> void:
 		draw_rect(Rect2(-5, -5, 10, 10), Color(rule, 0.5 + 0.4 * lift))
 	draw_set_transform(size * 0.5)
 	if shown == 0:
-		_text("EMPTY", origin + Vector2(0, 69), 205, 27, MUTED, true)
-	_text(str(_hand), origin + Vector2(0, 132), 205, 42, TEXT, true)
-	_text("IN HAND", origin + Vector2(0, 162), 205, 27, MUTED, true)
+		_text("EMPTY", origin + Vector2(0, 69), 205, 36, MUTED, true)
+	_text(str(_hand), origin + Vector2(0, 146), 205, 60, TEXT, true)
+	_text("IN HAND", origin + Vector2(0, 184), 205, 36, MUTED, true)
 
 
 func _draw_seals(baseline: float, middle_x: float = 0.0, width: float = 690.0) -> void:
@@ -444,7 +449,7 @@ func _draw_lives(tracker: Rect2) -> void:
 	var tab: Rect2 = _lives_tab(tracker)
 	draw_rect(tab, INK)
 	draw_rect(tab, MapArt.muted(_accent).lerp(Color.WHITE, 0.3 + _flash * 0.4), false, 2.0)
-	_text("LIVES", tab.position + Vector2(10, 21), 80, 22, MUTED, false)
+	_text("LIVES", tab.position + Vector2(10, 21), 80, 24, MUTED, false)
 	for i in range(_lives):
 		var left: bool = i < _lives - _lives_lost
 		_heart(Vector2(tab.position.x + 96.0 + 32.0 * i, tab.get_center().y), 9.5, LIFE_RED if left else INK, LIFE_RED if left else Color(MUTED, 0.5))
@@ -491,8 +496,20 @@ func _flag_rows(width: float) -> Array[PackedStringArray]:
 	return rows
 
 
+func _chip_font() -> int:
+	return CHIP_FONT_FAR if _player_index != _viewer else CHIP_FONT
+
+
+func _chip_height() -> float:
+	return _chip_font() + 6.0
+
+
+func _chip_step() -> float:
+	return _chip_height() + 2.0
+
+
 func _chip_width(flag: String) -> float:
-	return _font.get_string_size(flag, HORIZONTAL_ALIGNMENT_LEFT, -1, CHIP_FONT).x + CHIP_PAD * 2.0
+	return _font.get_string_size(flag, HORIZONTAL_ALIGNMENT_LEFT, -1, _chip_font()).x + CHIP_PAD * 2.0
 
 
 func _row_width(row: PackedStringArray) -> float:
@@ -502,15 +519,15 @@ func _row_width(row: PackedStringArray) -> float:
 	return total
 
 
-## One row of status chips on `baseline`: dark fill, a Fervor-coloured rule, the flag inside.
+## One row of status chips on `baseline`: dark fill, a warning-coloured rule, the flag inside.
 func _draw_chip_row(row: PackedStringArray, left: float, baseline: float, width: float, centred: bool) -> void:
 	var x: float = left + (width - _row_width(row)) * 0.5 if centred else left
 	for flag in row:
 		var chip: float = minf(_chip_width(flag), width)
-		var box: Rect2 = Rect2(x, baseline - CHIP_FONT + 1.0, chip, CHIP_HEIGHT)
+		var box: Rect2 = Rect2(x, baseline - _chip_font() + 1.0, chip, _chip_height())
 		draw_rect(box, INK)
-		draw_rect(box, Color(FERVOR, 0.75), false, 2.0)
-		_text(flag, Vector2(x + CHIP_PAD, baseline), chip - CHIP_PAD * 2.0, CHIP_FONT, FERVOR)
+		draw_rect(box, Color(STATUS, 0.75), false, 2.0)
+		_text(flag, Vector2(x + CHIP_PAD, baseline), chip - CHIP_PAD * 2.0, _chip_font(), STATUS)
 		x += chip + CHIP_GAP
 
 

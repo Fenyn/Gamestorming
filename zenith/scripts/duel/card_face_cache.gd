@@ -25,6 +25,8 @@ var _mights: Array[Vector2i] = []
 func _ready() -> void:
 	CardFace.default_backdrop = CardFace.NEUTRAL_BACKDROP
 	var session: Node = get_tree().root.get_node_or_null("Session")
+	if session != null:
+		CardFace.strike_table = session.get("strike_table") as StrikeTable
 	if session == null or not bool(session.call("in_adventure")):
 		return
 	var run: AdventureRun = session.get("run") as AdventureRun

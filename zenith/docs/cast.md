@@ -21,7 +21,7 @@ reference-game names appear in this doc.
 - **Hedge** duelists are sworn to neither and pick a side at setup.
 - An **Aspect** is how deep the duelist is attuned to the site, and what that is doing to them. Every duel starts at the first.
 - **Bloodlines** are power an ancestor's bargain left in the blood. Two exist, Draconic and Verdant. They cross both sides.
-- **Constructs** are made, not born. The **marked** carry a demon's mark, laid at a toll gate, and someone on the other plane holds the far end.
+- **Constructs** are made, not born, and run on mana. The **marked** carry a demon's mark, laid at a toll gate, and someone on the other plane holds the far end.
 - A clan is a social fact. A school is what someone fields today, never what they are.
 
 ## Origins
@@ -39,10 +39,24 @@ Verdant is the old line that cut the first seals, patient, and regrows what is t
 crosses the Vigil and the Pact freely, because it is not a choice anybody made. A duelist and
 their following need not share one.
 
-**Made kinds are not a faction and not a school.** A `construct` is anything walking around that
-was made rather than born, by any tradition and out of anything. A `marked` personality is a
-living person carrying a demon's mark, and somebody on the other plane holds the far end of it. A
-construct was made whole; a marked person was taken over.
+**Made kinds are not a school.** A `construct` is anything walking around that was made rather
+than born, by any tradition and out of anything. A `marked` personality is a living person
+carrying a demon's mark, and somebody on the other plane holds the far end of it. A construct was
+made whole; a marked person was taken over.
+
+**Constructs are a loose faction of their own** (2026-09-24). Nobody leads them and they want
+different things, but they keep turning up together, and any of them slots in as a villain. What
+they share is hunger:
+
+- A construct runs on **mana**, leyline power stored as charge. It burns mana just to keep moving,
+  and faster when it fights or casts. It cannot make its own. It gets mana from the Collegium, from
+  a leyline, or by taking it out of a duelist or another construct.
+- Fed, a construct thinks clearly. Starving, it turns feral and single-minded, and it loses its
+  manners before its mind. Every construct is dangerous while it feeds.
+- They work together the way scavengers share a carcass: while the supply lasts. When it runs
+  short they turn on each other.
+- Mana is also the run currency. A duelist on the road gathers the same charge the constructs
+  hunt, and a well-stocked duelist is prey to them.
 
 **No line is a fact, not a gap.** Unlined duelists hold their own against Draconic ones, and the
 most dangerous thing about the Rooke Coven is that its matriarch has no line while every one of
@@ -113,8 +127,8 @@ their connections onto the road; how that works in play is in `../../designs/zen
 - **Ashmark**: Mourne, Siphon, Edric.
 - **Pim**: the Draiks, Marrow's crew and the Collegium; the bridge from the outlaw side to the rest.
 - **Quarr**: everyone, through the Heart.
-- **Constructs**: all loosely related to one another, since made things recognise each other. See
-  The Collegium for the closer links, which are provisional.
+- **Constructs**: all loosely related to one another, since made things recognise each other and
+  feed at the same sources. See The Collegium for the closer links.
 
 Characters without a deck (Torvan Hask, The Fortress, Corin Thrace, the toll-gate agent) stay off
 the network until they have one.
@@ -230,6 +244,10 @@ never use it himself, so he is the one safe owner. He stays Pact in the data.
 Mercenary hexers, pirates by trade and warlocks by method. They take contracts, keep what they take,
 and have no origin layer and want none. The company is the whole of what its members belong to.
 Deck: Hexbound Company. Every hex is aimed at the rival's mind.
+
+The company trades in stolen mana and pays its hired constructs in it, which makes it the easiest
+place for a starving construct to find work. Constructs work for the Draiks and never trust them:
+Sable would sell a construct's core without a second thought.
 
 ### Sable Draik
 
@@ -478,8 +496,12 @@ charge them and repair them, and treat the leylines as a supply rather than a my
 Storm because charging a construct and throwing an arc are the same craft. It builds constructs but
 does not own the idea of them, and is stiff about this. Decks: Tempest Engine, Stormlock.
 
-**Not final** (2026-09-23). The Collegium's goals are still to be decided, and none of the
-construct lore is settled. Working links for the relations network:
+**What it wants** (2026-09-24). The Collegium sells the charge, so every construct it built is on
+its leash. Its goal is to keep that monopoly on mana. That sets it against Ashmark, who burns the
+leylines it draws from, against runaways like Cull, who feed themselves, and in the end against
+the Heart, a source it cannot meter.
+
+Working links for the relations network:
 
 - Siphon and Tithe are both Collegium; Tithe works from Siphon's side.
 - Cull is the bridge between the Collegium and Marrow's crew.
@@ -487,7 +509,8 @@ construct lore is settled. Working links for the relations network:
 - Mercy may be Collegium-built and let go. The Collegium repairs Sledge for pay.
 - The Collegium may have supplied the broken company's front-rank constructs, which links it to
   Mourne and Kell. Pim already runs with it.
-- The Collegium treats the leylines as a supply, which makes it prey to Ashmark.
+- The Collegium treats the leylines as a supply, which makes it prey to Ashmark. Ashmark burns
+  the leylines and Siphon drinks them, so the two are rivals for the same feed.
 
 ### Siphon
 
@@ -495,7 +518,9 @@ construct lore is settled. Working links for the relations network:
 faceless head, a glass core at the sternum.
 
 **Who it is.** A warded construct that charges through ritual and releases all at once. In
-Stormlock it is instead built to make swinging at it expensive.
+Stormlock it is instead built to make swinging at it expensive. The hungriest of them: built to
+hold more than it is ever given, and named for what it does. It is the Collegium's showpiece and
+has outgrown the leash.
 
 **Arc.** Dormant it is a statue, charged it hums, unbound it arcs.
 
@@ -511,7 +536,8 @@ Stormlock it is instead built to make swinging at it expensive.
 repaired, a slot in its chest where cards go in. Ally art: stepping in front of the viewer,
 shoulder first, a spark at the cracked joint.
 
-**Who it is.** Works from the side and never asks to lead. It takes one, and it is paid. Strike
+**Who it is.** Works from the side and never asks to lead. It takes one, and it is paid. It feeds
+on what Siphon leaves, keeps count of its cut, and the slot in its chest is where the mana goes. Strike
 +2 wounds for a discard, usable out of control.
 
 ---
@@ -533,7 +559,9 @@ owner's name still stamped under the jaw.
 
 **Who she is.** Not one construct and never was. She reads six moves ahead because some of her has
 already been here. Nothing a spell fastens to stays fastened, and every made thing still standing
-makes the rest of them hit harder.
+makes the rest of them hit harder. Every part she took came with its old owner's hunger, so she is
+several appetites in one frame, and she salvages because the rest of her is still out there. She
+wants the name under her jaw.
 
 **Arc.** The Pact shows as more of her each Aspect: crude at Patchwork, past what any part was
 built for by Overwrought, all of it at once at the end.
@@ -554,7 +582,10 @@ spectacles wired to the face-plate, a roll of instruments open at the hip. Ally 
 instrument from the roll without looking down, mild and unhurried.
 
 **Who he is.** Collegium-trained, and put himself in a frame rather than keep building them for
-other people. The Collegium does not claim him. Art, +1 wound per construct in play.
+other people. The Collegium does not claim him. Art, +1 wound per construct in play. He now lives
+with the hunger he used to fill for others, rations himself on purpose, and is ashamed when he
+slips. He wants made things out of Collegium hands, and often ends up standing with villains
+because of it.
 
 **Named card.** Cull's Absorbing Drill.
 
@@ -624,9 +655,9 @@ each, no personality card, no deck. All field Freestyle for the Pact.
 
 | Name | Look | Who |
 |---|---|---|
-| Sledge | Broad pit-fighting construct of riveted plate over a squat frame, one arm heavier than the other, dents never beaten out | Built to win bouts, and named by the crowd that bet on him |
-| Mercy | Very tall construct of pale stone and worn brass, a broad blunt face, hands too big and too careful, no weapon anywhere on it | Made for work rather than war, and slow to agree to this |
-| Scorn | Lean construct of blackened iron, hands in its pockets, head tilted, a face cast with a permanent half-smile | Kin to Marrow, and bored by all of it |
+| Sledge | Broad pit-fighting construct of riveted plate over a squat frame, one arm heavier than the other, dents never beaten out | Built to win bouts, and named by the crowd that bet on him. Fights for purses paid in mana; the crowd feeds him. Hired muscle for anyone |
+| Mercy | Very tall construct of pale stone and worn brass, a broad blunt face, hands too big and too careful, no weapon anywhere on it | Made for work rather than war, and slow to agree to this. The friendly vampire: she will not take mana from anyone living, runs close to empty, and is the construct most likely to stand with the Vigil. The most dangerous of them if she ever breaks |
+| Scorn | Lean construct of blackened iron, hands in its pockets, head tilted, a face cast with a permanent half-smile | Kin to Marrow, and bored by all of it. Has contempt for the born, feeds on duelists for sport and takes more than it needs |
 
 ---
 
@@ -671,7 +702,7 @@ an outsider duelist from no country here, and a power large enough to retain a g
 - What Corin Thrace's cut-out mark was, and who cut it.
 - Whether the thing behind the contracts came through a gate once, which would mean a gate has
   opened before and the premise needs a line about it.
-- The Collegium's goals, and the construct lore generally (links above are provisional).
+- The Collegium's working links to Marrow, Mercy, Sledge and the broken company (still provisional).
 - How Quarr came to hold the Lodestone Heart, and where it came from.
 
 ## Known gaps between this doc and the code

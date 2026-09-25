@@ -27,8 +27,7 @@ const TRAY_HEIGHT_SHARE: float = 0.57 # of the screen height, for the rows shown
 const CHOICE_HEIGHT: float = 100.0    # a tray tile that is a wording rather than a card
 const LOG_COLLAPSED_BOTTOM: float = 306.0
 const LOG_EXPANDED_FRACTION: float = 0.72
-## Iron-grey frames: white ones out-contrasted the cards they sit beside.
-const FRAME_TINT: Color = Color(0.56, 0.57, 0.58)
+const FRAME_TINT: Color = ZenithTheme.FRAME
 const TRAY_COLUMNS: int = 6          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
 const PILE_ROWS_SHOWN: int = 3       # a browsed pile is only read, so it may be taller
@@ -63,7 +62,10 @@ const DECISION_BOTTOM_MARGIN: float = 24.0
 ## sits on the bottom-right corner PROMPT_BOTTOM above the screen edge, clear of the tucked hand,
 ## and grows upward; a focus card on the rail stands on top of it and shrinks before it would
 ## reach RAIL_TOP, the line under the corner toggles.
-const RAIL_FOCUS: Rect2 = Rect2(-414, 120, 360, 0)
+const RAIL_FOCUS: Rect2 = Rect2(-454, 120, 400, 0)
+## Padding between the decision panel's frame texture edge and its text; the rule itself sits
+## about 8 px inside the texture edge.
+const PROMPT_PAD: int = 30
 const PROMPT_BOTTOM: float = 250.0
 const RAIL_TOP: float = 120.0
 const RAIL_MIN_CARD_WIDTH: float = 180.0
@@ -72,7 +74,7 @@ const RAIL_MIN_CARD_WIDTH: float = 180.0
 ## lower edge, below the rival's half, and drops under `avoid_rect` when it would cover it.
 const STAGE_CARD_WIDTH: float = 360.0
 const STAGE_GAP: float = 20.0
-const DECISION_RESULT_HEIGHT: float = 54.0
+const DECISION_RESULT_HEIGHT: float = 30.0   # one line at the body size
 ## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand:
 ## the decision is about the cards themselves, as in a discard-step keep or a Reserve swap.
 const TRAY_KINDS: Array[StringName] = [&"reserve", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card", &"pick_discard"]
@@ -86,6 +88,8 @@ const TRAY_VERBS: Dictionary = {
 const TRAY_WHO: String = "YOUR DECISION"
 ## How long the newly lit Combat sub-chip takes to come up, when Reduced Motion is off.
 const CHIP_FADE: float = 0.15
+## The over-bright flash a chip or face takes for a beat that happened on it, bone rather than warm.
+const PULSE_BRIGHT: Color = Color(1.6, 1.58, 1.5, 1)
 const TOAST_HOLD: float = 1.1
 const QUIET_HOLD: float = 0.6
 const STEP_LABELS: Array[String] = ["Draw", "Place", "Power Up", "Declare", "Combat", "Discard", "Recover"]
@@ -290,24 +294,26 @@ func _ready() -> void:
 	root.theme = SanctumUI.theme()
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
 	# The decision column is a framed plate too, so its text never sits bare on the courtyard.
-	prompt_panel.add_theme_stylebox_override("panel", MapArt.panel_box(16, FRAME_TINT))
+	prompt_panel.add_theme_stylebox_override("panel", MapArt.panel_box(PROMPT_PAD, FRAME_TINT))
 	prompt_panel.resized.connect(_on_prompt_resized)
 	prompt_hint.add_theme_color_override("font_color", ZenithTheme.TEXT_SOFT)
 	# The log wears the same framed panel as the phase bar beside it, with tighter padding.
 	log_panel.add_theme_stylebox_override("panel", MapArt.panel_box(14, FRAME_TINT))
 	# The inspect hint sits on a small framed panel instead of floating over the table.
 	var inspect_hint: Label = $Root/Inspect/Center/Column/Hint
-	inspect_hint.add_theme_stylebox_override("normal", MapArt.panel_box(14, FRAME_TINT))
+	inspect_hint.add_theme_stylebox_override("normal", ZenithTheme.panel(24))
 	inspect_hint.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	# The caption under the focus card lands on whatever the table has there, so it gets a plate.
+	focus_caption.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.BG, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 6, 0))
 	for name in STEP_LABELS:
 		# Each step is a chip with a rule under it, so the strip reads as a progress bar across
-		# the turn: filled behind, gold on the step we are in, empty ahead.
+		# the turn: filled behind, bone on the step we are in, empty ahead.
 		var column: VBoxContainer = VBoxContainer.new()
 		column.add_theme_constant_override("separation", 4)
 		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var l: Label = Label.new()
 		l.text = name
-		l.add_theme_font_size_override("font_size", 18)
+		l.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(l)
 		var bar: ColorRect = ColorRect.new()
@@ -344,11 +350,14 @@ func _build_combat_strip() -> void:
 	_combat_strip.add_theme_constant_override("separation", SUB_GAP)
 	_combat_strip.alignment = BoxContainer.ALIGNMENT_CENTER
 	_combat_strip.visible = false
+	# The exchange count rides on the banner line, so the sub-chips keep the strip's width.
 	_exchange_chip = Label.new()
-	_exchange_chip.add_theme_font_size_override("font_size", 18)
+	_exchange_chip.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	_exchange_chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_exchange_chip.add_theme_color_override("font_color", ZenithTheme.MUTED)
-	_combat_strip.add_child(_exchange_chip)
+	_exchange_chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_exchange_chip.visible = false
+	ZenithTheme.chip(_exchange_chip, ZenithTheme.MUTED)
+	turn_who.get_parent().add_child(_exchange_chip)
 	for i in range(SUB_LABELS.size()):
 		var chip: VBoxContainer = VBoxContainer.new()
 		chip.add_theme_constant_override("separation", 1)
@@ -369,11 +378,11 @@ func _build_combat_strip() -> void:
 		head.add_child(icon)
 		var l: Label = Label.new()
 		l.text = SUB_LABELS[i]
-		l.add_theme_font_size_override("font_size", 18)
+		l.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 		head.add_child(l)
 		chip.add_child(head)
 		var note: Label = Label.new()
-		note.add_theme_font_size_override("font_size", 18)
+		note.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		note.clip_text = true
 		note.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -750,9 +759,9 @@ func _set_overflow(count: int) -> void:
 		_overflow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_overflow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_overflow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		_overflow.add_theme_font_size_override("font_size", 19)
+		_overflow.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 		_overflow.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
-		_overflow.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.ACCENT, Color(0, 0, 0, 0), 8, 0, 8, 2))
+		_overflow.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.ACCENT, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 8, 2))
 		stack.add_child(_overflow)
 	_overflow.text = "+%d" % count
 	_layout_stack()
@@ -777,8 +786,8 @@ func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
 		var on: bool = i == current and not over
 		var done: bool = current >= 0 and i < current and not over
 		l.add_theme_color_override("font_color", ZenithTheme.ACCENT if on else ZenithTheme.MUTED)
-		# 18 is the floor that still reads at 720p; only the step we are in goes above it.
-		l.add_theme_font_size_override("font_size", 18 if in_combat else (20 if on else 18))
+		# Caption size is the floor that still reads at 720p; only the step we are in goes above it.
+		l.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY if on and not in_combat else ZenithTheme.SIZE_CAPTION)
 		var bar: ColorRect = _step_bars[i]
 		if on:
 			bar.color = ZenithTheme.ACCENT
@@ -809,6 +818,7 @@ func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
 ## that the next pass closes Combat. Everything is read from the beat's own state first.
 func _refresh_combat_strip(view: SeatView, me: int, live: Dictionary, on: bool) -> void:
 	_combat_strip.visible = on
+	_exchange_chip.visible = on
 	# Inside Combat the sub-chips take the middle of the strip, so the turn's other steps keep
 	# their words and step down a size rather than falling back to bare rules. The Combat word
 	# itself goes, because the five sub-chips under it say the same thing in more detail.
@@ -846,7 +856,7 @@ func _refresh_combat_strip(view: SeatView, me: int, live: Dictionary, on: bool) 
 		elif here and i == SUB_DEFEND:
 			color = ZenithTheme.DEFEND
 		_sub_labels[i].add_theme_color_override("font_color", color)
-		_sub_labels[i].add_theme_font_size_override("font_size", 20 if here else 18)
+		_sub_labels[i].add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 		_sub_icons[i].color = color
 		_sub_notes[i].add_theme_color_override("font_color", color)
 	var attacker_name: String = "You" if att == me else view.player(att).name if att >= 0 else ""
@@ -912,7 +922,7 @@ func mark_phase_event(phase_key: StringName) -> void:
 	var running: Variant = _pulses.get(chip)
 	if running is Tween:
 		(running as Tween).kill()
-	chip.modulate = Color(1.7, 1.6, 1.2, 1)
+	chip.modulate = PULSE_BRIGHT
 	var t: Tween = create_tween()
 	t.tween_property(chip, "modulate", Color(1, 1, 1, 1), 0.32)
 	_pulses[chip] = t
@@ -923,7 +933,7 @@ func mark_phase_event(phase_key: StringName) -> void:
 func toast(text: String, color: Color) -> void:
 	_clear_toast()
 	toast_label.text = text
-	toast_label.add_theme_stylebox_override("normal", ZenithTheme.box(color, Color(0, 0, 0, 0), 10, 0, 22, 8))
+	toast_label.add_theme_stylebox_override("normal", ZenithTheme.box(color, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 24, 6))
 	toast_label.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
 	toast_label.modulate = Color(1, 1, 1, 1)
 	toast_label.scale = Vector2.ONE if reduced_motion_toggle.button_pressed else Vector2(0.7, 0.7)
@@ -943,7 +953,7 @@ func quiet_beat(text: String, color: Color) -> void:
 		_quiet.kill()
 		_quiet = null
 	quiet_label.text = text
-	quiet_label.add_theme_stylebox_override("normal", ZenithTheme.box(Color(color, 0.20), Color(0, 0, 0, 0), 8, 0, 16, 4))
+	quiet_label.add_theme_stylebox_override("normal", ZenithTheme.box(Color(color, 0.20), Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 18, 6))
 	quiet_label.add_theme_color_override("font_color", color.lightened(0.15))
 	quiet_label.modulate = Color(1, 1, 1, 1)
 	quiet_label.visible = true
@@ -970,7 +980,7 @@ func log_line(text: String) -> void:
 		log_text.clear()
 		_log_lines = 0
 	if text.begins_with("—"):
-		log_text.append_text("[color=#dbb045]%s[/color]\n" % text)
+		log_text.append_text("[color=#%s]%s[/color]\n" % [ZenithTheme.ACCENT.to_html(false), text])
 	else:
 		log_text.append_text(text + "\n")
 	_log_lines += 1
@@ -1019,7 +1029,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	_current_prompt = p
 	_owner_marks = CardText.option_side_marks(p, _viewer_seat)
 	prompt_who.text = "YOUR MOVE"
-	prompt_who.add_theme_color_override("font_color", ZenithTheme.TEXT)
+	prompt_who.add_theme_color_override("font_color", ZenithTheme.ACCENT)
 	_who_color = SeatColors.accent(view, p.player, Session.color_seed)
 	prompt_title.text = _prompt_title(p, view)
 	# The response stack stays up. It is laid over the pinned attack inside the same rect, so it
@@ -1051,8 +1061,8 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 		if not finals.is_empty():
 			var b: Button = Button.new()
 			b.text = "Final Strike…"
-			b.custom_minimum_size = Vector2(0, 40)
-			b.add_theme_font_size_override("font_size", 24)
+			b.custom_minimum_size = Vector2(0, 60)
+			b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
 			b.pressed.connect(func() -> void: _show_final_strike(finals))
 			primary_box.add_child(b)
 			_fit_actions()
@@ -1069,8 +1079,8 @@ func _make_single_action(p: PromptView, opt: OptionView, view: SeatView) -> void
 		return
 	var b: Button = primary_box.get_child(0)
 	b.text = _single_action_label(p, opt, view)
-	b.custom_minimum_size = Vector2(0, 56)
-	b.add_theme_font_size_override("font_size", 28)
+	b.custom_minimum_size = Vector2(0, 60)
+	b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_ROW)
 	b.tooltip_text = opt.label
 	_single_action = b
 	_fit_actions()
@@ -1200,7 +1210,7 @@ func _show_attack(view: SeatView, p: PromptView = null) -> void:
 
 
 func _reserve_status_height() -> void:
-	# Both labels occupy one stable two-line slot. Measuring a wrapping label before its parent has
+	# Both labels keep a one-line floor. Measuring a wrapping label before its parent has
 	# width makes a one-line result hundreds of pixels tall and can push the actions off-screen.
 	exchange_damage.custom_minimum_size.y = DECISION_RESULT_HEIGHT
 	prompt_outcome.custom_minimum_size.y = DECISION_RESULT_HEIGHT
@@ -1210,8 +1220,14 @@ func _wounds(amount: int) -> String:
 	return tr_n("%d wound", "%d wounds", amount) % amount
 
 
+## Only the parts that are not zero: "5 wounds", "3 Energy", "3 Energy, 2 wounds", "no damage".
 func _amount(stages: int, wounds: int) -> String:
-	return "%d Energy, %s" % [stages, _wounds(wounds)]
+	var parts: PackedStringArray = PackedStringArray()
+	if stages > 0:
+		parts.append("%d Energy" % stages)
+	if wounds > 0:
+		parts.append(_wounds(wounds))
+	return ", ".join(parts) if not parts.is_empty() else "no damage"
 
 
 ## The question the panel asks. A defence names the attack it answers, from the public attack.
@@ -1524,7 +1540,7 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var text_width: float = root.get_theme_font("font", "Button").get_string_size(opt.label, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x + 48.0
 		b.custom_minimum_size = Vector2(0.0 if vertical else clampf(text_width, 300.0, minf(520.0, root.size.x - 180.0)), 60)
-		b.add_theme_font_size_override("font_size", 24)
+		b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
 		b.pressed.connect(func() -> void: option_chosen.emit(opt))
 		if not opt.outcome.is_empty():
 			# Hovering a choice answers "what does this leave me with" on the number itself.
@@ -1578,7 +1594,7 @@ func _show_tray(who: String, title: String, hint: String, cards: Array[OptionVie
 		_confirm = Button.new()
 		_confirm.theme_type_variation = &"AccentButton"
 		_confirm.custom_minimum_size = Vector2(200, 60)
-		_confirm.add_theme_font_size_override("font_size", 24)
+		_confirm.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
 		_confirm.pressed.connect(func() -> void:
 			if _selected.size() >= _batch.batch_min:
 				option_chosen.emit(_batch.batch_option(_selected)))
@@ -1685,7 +1701,7 @@ func _refresh_selection() -> void:
 	for uid in _entries.keys():
 		var e: Dictionary = _entries[uid]
 		var on: bool = _selected.has(uid)
-		(e["frame"] as PanelContainer).add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), ZenithTheme.ACCENT if on else Color(0, 0, 0, 0), 10, 3, 3, 3))
+		(e["frame"] as PanelContainer).add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), ZenithTheme.ACCENT if on else Color(0, 0, 0, 0), ZenithTheme.RADIUS, 3, 3, 3))
 		(e["caption"] as Label).text = "Selected" if on else str(e["verb"])
 		(e["caption"] as Label).add_theme_color_override("font_color", ZenithTheme.ACCENT if on else ZenithTheme.MUTED)
 	if _confirm != null:
@@ -1718,7 +1734,7 @@ func _tray_choice_entry(opt: OptionView) -> Control:
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
 	var frame: PanelContainer = PanelContainer.new()
-	frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, 10, 3, 3, 3))
+	frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, ZenithTheme.RADIUS, 3, 3, 3))
 	frame.pivot_offset = _tray_face * 0.5 + Vector2(3.0, 3.0)
 	var b: Button = Button.new()
 	b.flat = true
@@ -1726,14 +1742,14 @@ func _tray_choice_entry(opt: OptionView) -> Control:
 	b.text = opt.label
 	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	b.clip_text = false
-	b.add_theme_font_size_override("font_size", 24)
+	b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
 	b.add_theme_color_override("font_color", ZenithTheme.TEXT)
 	b.pressed.connect(func() -> void: option_chosen.emit(opt))
 	b.mouse_entered.connect(func() -> void:
-		frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.ACCENT, 10, 3, 3, 3))
+		frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.ACCENT, ZenithTheme.RADIUS, 3, 3, 3))
 		_lift(frame, true))
 	b.mouse_exited.connect(func() -> void:
-		frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, 10, 3, 3, 3))
+		frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, ZenithTheme.RADIUS, 3, 3, 3))
 		_lift(frame, false))
 	frame.add_child(b)
 	column.add_child(frame)
@@ -1761,7 +1777,7 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
 	var frame: PanelContainer = PanelContainer.new()
-	frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 10, 3, 3, 3))
+	frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), ZenithTheme.RADIUS, 3, 3, 3))
 	frame.pivot_offset = _tray_face * 0.5 + Vector2(3.0, 3.0)
 	var b: TextureButton = TextureButton.new()
 	b.texture_normal = tex
@@ -1775,14 +1791,14 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 		b.pressed.connect(func() -> void: option_chosen.emit(opt))
 	b.mouse_entered.connect(func() -> void:
 		if not _selected.has(uid):
-			frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), ZenithTheme.HOVER, 10, 3, 3, 3))
+			frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), ZenithTheme.HOVER, ZenithTheme.RADIUS, 3, 3, 3))
 		_lift(frame, true)
 		show_peek(def, aspect, uid)
 		if uid >= 0:
 			card_hovered.emit(uid, true))
 	b.mouse_exited.connect(func() -> void:
 		if not _selected.has(uid):
-			frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 10, 3, 3, 3))
+			frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), ZenithTheme.RADIUS, 3, 3, 3))
 		_lift(frame, false)
 		hide_peek()
 		if uid >= 0:
@@ -1804,7 +1820,7 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 		var caption: Label = Label.new()
 		caption.text = verb
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		caption.add_theme_font_size_override("font_size", 22)
+		caption.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
 		caption.add_theme_color_override("font_color", ZenithTheme.MUTED if batch else ZenithTheme.ACCENT)
 		column.add_child(caption)
 		if batch:
@@ -1970,7 +1986,7 @@ func _pile_entry(c: SeatCard, is_top: bool) -> Control:
 	var caption: Label = Label.new()
 	caption.text = "Top" if is_top else ""
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	caption.add_theme_font_size_override("font_size", 20)
+	caption.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	caption.add_theme_color_override("font_color", ZenithTheme.ACCENT if is_top else ZenithTheme.MUTED)
 	column.add_child(caption)
 	return column
@@ -1992,7 +2008,7 @@ func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -
 		var is_legal: bool = legal.get(c.uid, false)
 		var frame: PanelContainer = PanelContainer.new()
 		var border: Color = ZenithTheme.ACCENT if is_legal else Color(0, 0, 0, 0)
-		frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), border, 10, 3, 3, 3))
+		frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), border, ZenithTheme.RADIUS, 3, 3, 3))
 		frame.pivot_offset = Vector2(HAND_CARD_SIZE.x * 0.5 + 3.0, HAND_CARD_SIZE.y + 6.0)
 		var b: TextureButton = TextureButton.new()
 		b.texture_normal = faces.face(def, c.aspect, seat_backdrop(c.owner), c.owner)
@@ -2012,13 +2028,13 @@ func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -
 			chip.text = ("Final: " if final else "") + CardText.short_damage(int(forecast.get("stages", 0)), int(forecast.get("life", 0)))
 			chip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			chip.add_theme_font_size_override("font_size", 13)
-			chip.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.RAISED_STRONG if final else ZenithTheme.ATTACK, Color(0, 0, 0, 0), 6, 0, 8, 2))
+			chip.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
+			chip.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.RAISED_STRONG if final else ZenithTheme.ATTACK, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 6, 0))
 			chip.add_theme_color_override("font_color", ZenithTheme.MUTED if final else ZenithTheme.TEXT_DARK)
 			chip.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 			chip.offset_left = 8.0
 			chip.offset_right = -8.0
-			chip.offset_top = -30.0
+			chip.offset_top = -36.0
 			chip.offset_bottom = -8.0
 			b.add_child(chip)
 		b.pressed.connect(func() -> void: card_clicked.emit(uid))
@@ -2185,8 +2201,8 @@ func _apply_caption() -> void:
 		text += " · %s to resolve" % _wounds_note
 	focus_caption.text = text.to_upper()
 	# The slot is one card wide and the caption is one clipped line, so a long one steps down to
-	# the 18 floor before it loses its end to an ellipsis.
-	var size: int = 22 if text.length() <= 26 else 18
+	# the caption floor before it loses its end to an ellipsis.
+	var size: int = ZenithTheme.SIZE_BODY if text.length() <= 24 else ZenithTheme.SIZE_CAPTION
 	focus_caption.add_theme_font_size_override("font_size", size)
 
 
@@ -2263,9 +2279,9 @@ func _recaption(entry: Control, caption: String, tint: Color) -> void:
 	entry.set_meta("attacker_side", tint == ZenithTheme.ATTACK)
 	var strip: Label = entry.get_node("Strip")
 	strip.text = caption.to_upper()
-	strip.add_theme_stylebox_override("normal", ZenithTheme.box(tint, Color(0, 0, 0, 0), 6, 0, 8, 2))
+	strip.add_theme_stylebox_override("normal", ZenithTheme.box(tint, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 8, 2))
 	var edge: Panel = entry.get_node("Edge")
-	edge.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), tint, 10, 3, 0, 0))
+	edge.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), tint, ZenithTheme.RADIUS, 3, 0, 0))
 
 
 ## One card on the stack: its face, a border in its owner's role colour, and a caption strip on the
@@ -2278,7 +2294,7 @@ func _stack_entry(caption: String, tint: Color, uid: int) -> Control:
 	var edge: Panel = Panel.new()
 	edge.name = "Edge"
 	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	edge.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), tint, 10, 3, 0, 0))
+	edge.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), tint, ZenithTheme.RADIUS, 3, 0, 0))
 	entry.add_child(edge)
 	var strip: Label = Label.new()
 	strip.name = "Strip"
@@ -2288,9 +2304,9 @@ func _stack_entry(caption: String, tint: Color, uid: int) -> Control:
 	strip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	strip.clip_text = true
 	strip.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	strip.add_theme_font_size_override("font_size", 18)
+	strip.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	strip.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
-	strip.add_theme_stylebox_override("normal", ZenithTheme.box(tint, Color(0, 0, 0, 0), 6, 0, 8, 2))
+	strip.add_theme_stylebox_override("normal", ZenithTheme.box(tint, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 8, 2))
 	entry.add_child(strip)
 	return entry
 
@@ -2409,7 +2425,7 @@ func pulse_pending(uid: int) -> bool:
 		return false
 	if reduced_motion_toggle.button_pressed:
 		return true
-	node.modulate = Color(1.7, 1.6, 1.2, 1)
+	node.modulate = PULSE_BRIGHT
 	var pulse: Tween = create_tween()
 	pulse.tween_property(node, "modulate", Color(1, 1, 1, 1), 0.3)
 	return true

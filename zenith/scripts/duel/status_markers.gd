@@ -1,31 +1,31 @@
 class_name StatusMarkers
 extends Node3D
 ## Tracking marks on a personality card, in the card's frame. Energy lights the rung of the Might
-## ladder printed on the face; a duelist also gets one Fervor pip per point needed along its top edge.
-## An Ally has no stat crest of its own, so its Energy and Might are also spelled out under the card.
+## ladder printed on the face. An Ally has no stat crest of its own, so its Energy and Might are
+## also spelled out under the card.
 
 const CARD: Vector2 = Vector2(0.63, 0.88)
 const FACE: Vector2 = Vector2(512, 716)   # face pixels the ladder rects are measured in
-const PIP: Vector3 = Vector3(0.042, 0.005, 0.024)
-const PIP_STEP: float = 0.056
-const EDGE_GAP: float = 0.03
 const LIFT: float = 0.004                 # above the card quad, no z-fight
 const BAR_HEIGHT: float = 0.004
 const BAR_GROW: float = 1.18
 const PULSE_TIME: float = 0.9
-const OFF_COLOR: Color = Color(0.22, 0.20, 0.18)
+## The lit bar breathes between these. The floor is the faintest it can be and still read on the
+## cream face.
+const BAR_ALPHA_MIN: float = 0.55
+const BAR_ALPHA_MAX: float = 0.8
+const OUTLINE: Color = Color(0.03, 0.025, 0.03, 0.95)
 
 const STAT_GAP: float = 0.13              # clear of the card's outer edge
 const STAT_STEP: float = 0.20             # caption beyond the number, clear of its own line
 
-var _fervor_pips: Array[MeshInstance3D] = []
 var _stat_value: Label3D = null
 var _stat_caption: Label3D = null
 var _bar: MeshInstance3D = null
 var _bar_mat: StandardMaterial3D = null
-var _rungs: Array[Vector3] = []           # card-local rung centres, index 0 = stage 10
+var _rungs: Array[Vector3] = []           # card-local rung centres, index 0 = stage 10, last = stage 0
+var _lit: Color = ZenithTheme.ENERGY
 var _rung_size: Vector3 = Vector3.ZERO
-var _materials: Dictionary = {}           # Color -> StandardMaterial3D
 var _pulse: Tween = null
 
 
@@ -52,7 +52,7 @@ func _stat_label(size: int, color: Color) -> Label3D:
 	l.pixel_size = 0.0042
 	l.modulate = color
 	l.outline_size = 14
-	l.outline_modulate = Color(0.025, 0.03, 0.045, 0.95)
+	l.outline_modulate = OUTLINE
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	l.shaded = false
 	l.no_depth_test = true
@@ -70,8 +70,10 @@ func _place_stats() -> void:
 	_stat_caption.position = Vector3(0.0, LIFT, CARD.y * 0.5 + STAT_GAP + STAT_STEP)
 
 
-## Rung rects in face pixels, top rung first, from the face layout.
-func setup(ladder: Array[Rect2]) -> void:
+## Rung rects in face pixels, stage 10 first down to stage 0, from the face layout. `lit` is the
+## owner's Mastery colour, the same one the face paints its live rung in.
+func setup(ladder: Array[Rect2], lit: Color = ZenithTheme.ENERGY) -> void:
+	_lit = lit
 	_rungs.clear()
 	for r in ladder:
 		var c: Vector2 = r.get_center()
@@ -80,57 +82,16 @@ func setup(ladder: Array[Rect2]) -> void:
 	(_bar.mesh as BoxMesh).size = _rung_size
 
 
-## Lays the pip row out centred along the top edge, rebuilt only when the count changes.
-func _lay_out_pips(count: int) -> void:
-	if _fervor_pips.size() == count:
-		return
-	for m in _fervor_pips:
-		m.queue_free()
-	_fervor_pips.clear()
-	var top: float = -(CARD.y * 0.5 + EDGE_GAP)
-	var span: float = PIP_STEP * (count - 1)
-	for i in range(count):
-		var m: MeshInstance3D = MeshInstance3D.new()
-		var box: BoxMesh = BoxMesh.new()
-		box.size = PIP
-		m.mesh = box
-		m.material_override = _material(OFF_COLOR)
-		m.position = Vector3(-span * 0.5 + PIP_STEP * i, LIFT, top)
-		add_child(m)
-		_fervor_pips.append(m)
-
-
-func _material(color: Color) -> StandardMaterial3D:
-	if _materials.has(color):
-		return _materials[color]
-	var mat: StandardMaterial3D = StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = color
-	_materials[color] = mat
-	return mat
-
-
-## Energy 0 drops the bar one step below the ladder in the warning colour. `standing` is the
-## owning player for a duelist (Fervor pips), null for an Ally.
-## `fervor` overrides the standing's own count while a beat replays an older state; -1 uses it.
-## `might` turns on the Ally's Energy and Might line beside the card; a duelist's stat crest
-## already carries both, so it stays off there.
-func set_status(energy: int, standing: SeatPlayer, fervor: int = -1, might: int = -1) -> void:
+## Energy 0 lights the stage 0 rung like any other. `standing` is the owning player for a
+## duelist, null for an Ally. `might` turns on the Ally's Energy and Might line beside the card; a
+## duelist's stat crest already carries both, so it stays off there.
+func set_status(energy: int, standing: SeatPlayer, might: int = -1) -> void:
 	var stages: int = CardInstance.MAX_STAGE
-	if _rungs.size() == stages:
+	if _rungs.size() == stages + 1:
 		_bar.visible = true
-		if energy >= 1:
-			_bar.position = _rungs[stages - clampi(energy, 1, stages)]
-			_bar_mat.albedo_color = Color(ZenithTheme.ENERGY, 0.55)
-		else:
-			var step: Vector3 = _rungs[stages - 1] - _rungs[stages - 2]
-			_bar.position = _rungs[stages - 1] + step
-			_bar_mat.albedo_color = Color(ZenithTheme.WARN, 0.6)
+		_bar.position = _rungs[stages - clampi(energy, 0, stages)]
+		_bar_mat.albedo_color = Color(_lit, BAR_ALPHA_MAX)
 		_start_pulse()
-	_lay_out_pips(standing.fervor_needed if standing != null else 0)
-	var lit: int = fervor if fervor >= 0 else (standing.fervor if standing != null else 0)
-	for i in range(_fervor_pips.size()):
-		_fervor_pips[i].material_override = _material(ZenithTheme.ACCENT if i < lit else OFF_COLOR)
 	var spell_out: bool = standing == null and might >= 0
 	_stat_value.visible = spell_out
 	_stat_caption.visible = spell_out
@@ -145,7 +106,6 @@ func set_status(energy: int, standing: SeatPlayer, fervor: int = -1, might: int 
 func _start_pulse() -> void:
 	if _pulse != null:
 		_pulse.kill()
-	var base: Color = _bar_mat.albedo_color
 	_pulse = create_tween().set_loops()
-	_pulse.tween_property(_bar_mat, "albedo_color:a", base.a * 0.45, PULSE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_pulse.tween_property(_bar_mat, "albedo_color:a", base.a, PULSE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_pulse.tween_property(_bar_mat, "albedo_color:a", BAR_ALPHA_MIN, PULSE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_pulse.tween_property(_bar_mat, "albedo_color:a", BAR_ALPHA_MAX, PULSE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)

@@ -407,7 +407,8 @@ func _float_stat_delta(fixture: DuelistDisplay, player: int) -> void:
 	if might != int(previous[1]):
 		var stronger: bool = might > int(previous[1])
 		# Beside, not above: the far seat's readout sits over its card, so a stacked number lands on it.
-		fx.float_text(anchor + camera.global_basis.x * 0.9, "%+d Might" % (might - int(previous[1])), ZenithTheme.ENERGY if stronger else ZenithTheme.WARN, 52)
+		# Far enough across that a wide Energy hit number on the card itself stays clear of it.
+		fx.float_text(anchor + camera.global_basis.x * 1.5 - camera.global_basis.y * 0.2,"%+d Might" % (might - int(previous[1])), ZenithTheme.ENERGY if stronger else ZenithTheme.WARN, 52)
 
 
 func _set_hand(legal: Dictionary) -> void:
@@ -1053,9 +1054,9 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 		&"fervor_changed":
 			var delta: int = int(data.get("to", 0)) - int(data.get("from", 0))
 			if delta != 0:
-				fx.resource_pulse(_card_pos(view.player(player).duelist), ZenithTheme.ACCENT, delta > 0)
+				fx.resource_pulse(_card_pos(view.player(player).duelist), ZenithTheme.FERVOR, delta > 0)
 				_source_pulse(int(data.get("source", -1)))
-				await _number(view.player(player).duelist, "%+d Fervor" % delta, ZenithTheme.ACCENT if delta > 0 else ZenithTheme.WARN)
+				await _number(view.player(player).duelist, "%+d Fervor" % delta, ZenithTheme.FERVOR_TEXT if delta > 0 else ZenithTheme.WARN)
 				await _beat(BEAT)
 		&"fervor_shielded":
 			fx.float_text(_card_pos(view.player(player).duelist), "Shielded", ZenithTheme.DEFEND, 48)
@@ -2336,17 +2337,15 @@ func _targets() -> Dictionary:
 	return out
 
 
-## Energy marks on duelists and Allies in play, Fervor on the duelist.
+## Energy marks on duelists and Allies in play. Fervor lives on the stat tracker only.
 func _refresh_markers() -> void:
 	var live_energy: Dictionary = _live.get("energy", {})
 	var live_might: Dictionary = _live.get("might", {})
-	var live_fervor: Array = _live.get("fervor", [])
-	var wanted: Dictionary = {}   # uid -> [energy, SeatPlayer or null, fervor or -1, might]
+	var wanted: Dictionary = {}   # uid -> [energy, SeatPlayer or null, might, owner]
 	for p in view.players:
-		var fervor: int = int(live_fervor[p.index]) if p.index < live_fervor.size() else -1
-		wanted[p.duelist] = [_live_energy(live_energy, p.duelist), p, fervor, -1]
+		wanted[p.duelist] = [_live_energy(live_energy, p.duelist), p, -1, p.index]
 		for uid in p.allies:
-			wanted[uid] = [_live_energy(live_energy, uid), null, -1, _live_might(live_might, uid)]
+			wanted[uid] = [_live_energy(live_energy, uid), null, _live_might(live_might, uid), p.index]
 	for uid in _markers.keys():
 		if not wanted.has(uid):
 			(_markers[uid] as StatusMarkers).queue_free()
@@ -2359,9 +2358,9 @@ func _refresh_markers() -> void:
 		if m == null:
 			m = StatusMarkers.new()
 			v.body.add_child(m)
-			m.setup(faces.ladder_rects())
+			m.setup(faces.ladder_rects(), CardFace.lit_color(hud.seat_backdrop(int(wanted[uid][3])), true))
 			_markers[uid] = m
-		m.set_status(int(wanted[uid][0]), wanted[uid][1] as SeatPlayer, int(wanted[uid][2]), int(wanted[uid][3]))
+		m.set_status(int(wanted[uid][0]), wanted[uid][1] as SeatPlayer, int(wanted[uid][2]))
 
 
 ## The Energy to draw for a card: what the beat says, else what the view ends on. The map is

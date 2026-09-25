@@ -4,10 +4,12 @@ extends Node3D
 ## free themselves after their tweens; the filament holds the public response state.
 ## Colours come from ZenithTheme roles, passed through `tone`.
 
-## On the courtyard stone the HUD's saturated defence blue and accent gold glow like neon, so the
-## table effects draw those two roles in weathered tones. The HUD keeps its own colours.
+## On the courtyard stone the HUD's saturated defence blue glows like neon and bone reads as a
+## white hole, so the table effects draw those two roles in weathered tones. The HUD keeps its own
+## colours.
 const WARD_TONE: Color = Color(0.72, 0.78, 0.82)   # pale slate
 const RISE_TONE: Color = Color(0.93, 0.87, 0.72)   # old ivory
+const OUTLINE: Color = Color(0.03, 0.025, 0.03, 0.9)
 const TEXT_RISE: float = 0.5
 const TEXT_TIME: float = 1.2
 const TEXT_LIFT: float = 0.3
@@ -121,7 +123,7 @@ func float_text(pos: Vector3, text: String, color: Color, size: int = 64) -> voi
 	l.font_size = size
 	l.pixel_size = 0.004
 	l.modulate = color
-	l.outline_modulate = Color(0.05, 0.04, 0.05, 0.9)
+	l.outline_modulate = OUTLINE
 	l.outline_size = 14
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	l.no_depth_test = true

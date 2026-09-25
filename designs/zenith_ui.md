@@ -1,6 +1,6 @@
 # Eidolarch: UI standard
 
-Draft 2026-09-24. One visual logic for every screen. The only per-deck variation is the school
+Adopted 2026-09-24. One visual logic for every screen. The only per-deck variation is the school
 colour, and it appears as an edge, a title or the card frames, never as a whole panel. Code reads
 every value below from one theme builder (`scripts/ui/zenith_theme.gd`); no screen defines its own
 colours, sizes or radii.
@@ -10,8 +10,8 @@ survives only where it means something: the defend role and Motes.
 
 ## 1. Colour tokens
 
-Values are sRGB 0 to 1. **Bold** rows were chosen by the user on 2026-09-24; the rest are
-defaults to confirm.
+Values are sRGB 0 to 1. **Bold** rows were chosen by the user on 2026-09-24; the rest were
+approved with the mockups the same day.
 
 | Token | Value | Used for |
 |---|---|---|
@@ -27,16 +27,16 @@ defaults to confirm.
 | `text.muted` | (0.60, 0.59, 0.60) | Captions, inactive steps |
 | `text.disabled` | (0.42, 0.42, 0.42) | Disabled controls |
 | `text.on_light` | (0.12, 0.10, 0.09) | Text on card faces and light fills |
-| **`accent.act`** | **copper (0.80, 0.47, 0.30)** | Act here: primary button, legal-card glow, YOUR TURN, current step |
-| `state.selected` | bone (0.93, 0.88, 0.78), 2 px ring | Selected tile, card or tab |
+| **`accent.act`** | **bone-white (0.94, 0.91, 0.84)** | Act here: primary button, legal-card glow, YOUR TURN, current step |
+| `state.selected` | bone-white 2 px ring plus a raised fill | Selected tile, card or tab |
 | `state.hover` | white at 0.12 (2D), bone glow (3D) | Hover everywhere; replaces both cyans |
-| `state.warn` | sand (0.88, 0.76, 0.56) | Warnings and refusals; no longer orange |
+| `state.warn` | ember (0.93, 0.55, 0.30) | Warnings and refusals; free now that orange is no longer Fervor |
 | `game.attack` | (0.90, 0.38, 0.30) | Attacker, Strike type |
 | `game.defend` | (0.40, 0.62, 0.92) | Defender role only (one of two blues) |
 | **`game.fervor`** | **crimson (0.86, 0.22, 0.30)** | Fervor pips, numbers and keyword, everywhere |
 | `game.energy` | (0.36, 0.76, 0.58) | Energy |
 | `game.might` | (0.78, 0.82, 0.90) | Might |
-| `game.life` | iron-black plate, bone numerals | Life Deck plates (no navy) |
+| `game.life` | the seat's Mastery colour, muted | Life Deck plates and the stat tracker's rule keep their per-seat colour shift (user, 2026-09-24) |
 | `game.xp` | (0.62, 0.55, 0.90) | XP bars and level chips |
 | **`game.motes`** | **arcane blue (0.48, 0.72, 1.00) with a soft glow** | Motes and prices only (the second blue) |
 | `identity.school` | `Palette` school colours | Card frames, school chips, one edge or title per adventure screen |
@@ -64,7 +64,8 @@ defaults to confirm.
 | Button, disabled | `frame.dim` frame, `text.disabled` |
 | Tab / toggle | One implementation: secondary button, selected shows `state.selected` ring |
 | Chip | Tag: outlined, tinted text. Badge: filled, `text.on_light`. Radius 4 |
-| Screen title | Ornate scroll banner in iron on every screen; an adventure run adds a school-coloured edge |
+| Screen title | Ornate scroll banner in iron on every screen (`SanctumUI.dress`); an adventure run adds a 4 px school-coloured edge under it (`MapArt.school`) |
+| Map roads | Walked road in the run's school colour, open roads bone, the rest iron |
 | Stat tile | Flat tile with caption and value; value in its meaning colour |
 | Progress bar | `surface.sunken` track, meaning-colour fill, radius 4 |
 | Divider | One 1 px `frame.dim` rule |
@@ -76,15 +77,13 @@ defaults to confirm.
 
 1. Mat reflections: turning them off makes the oxblood mat deeper and redder than the variant
    picked. To be shown side by side before changing.
-2. The blue 3D hall behind select, adventure start and journal: default is to relight it neutral
-   to match the duel.
-3. Defaults above not yet confirmed: iron frames on every screen, bone for selection, sand for
-   warnings, one Ornate title everywhere, defend and Motes as the only blues.
+2. The 3D hall behind select, adventure start and journal is relit neutral to match the duel.
 
 ## 5. Implementation order
 
-1. Fold `ZenithTheme` and `SanctumUI` into one builder with the tokens and type variations above;
-   `MapArt` frames take `frame.metal` only.
+1. Done 2026-09-24: `ZenithTheme` is the one builder with the tokens and type variations above
+   (`SanctumUI.theme()` returns it); `MapArt.tint` is iron; button and panel art re-exported by
+   `tools/import_map_art.py` in iron and bone.
 2. Replace the ~98 script colour literals and ~20 scene colours with tokens; merge the two hover
    cyans, the teal "no school" fallbacks, the two backgrounds and the six scrims.
 3. Components: one tab/toggle, one chip, one title, one divider; radii and font sizes to the scale.

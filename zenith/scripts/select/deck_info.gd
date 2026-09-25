@@ -46,9 +46,7 @@ func _ready() -> void:
 		space.content_margin_top = 4
 		space.content_margin_bottom = 5
 		tile.add_theme_stylebox_override("panel", space)
-		tile.name_label.add_theme_font_size_override("font_size", 13)
-		tile.value_label.add_theme_font_size_override("font_size", 34 if tile == might_tile or tile == surge_tile else 24)
-		tile.sub_label.add_theme_font_size_override("font_size", 13)
+		tile.value_label.add_theme_font_size_override("font_size", ZenithTheme.SIZE_GROUP if tile == might_tile or tile == surge_tile else ZenithTheme.SIZE_ROW)
 		tile.name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		tile.value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		tile.sub_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -176,7 +174,7 @@ func _fill_key_cards(d: DeckList, duelist: CardDef, lib: CardLibrary, faces: Car
 		caption.text = def.title
 		caption.custom_minimum_size.x = KEY_CARD_SIZE.x
 		caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		caption.add_theme_font_size_override("font_size", 16)
+		caption.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(caption)
 		var face: Texture2D = await faces.render_face(def, 0, CardFace.mastery_backdrop(d, lib))
@@ -257,24 +255,24 @@ func _fill_aspects(stack: PersonalityStack, _might_max: int) -> void:
 		chip.toggle_mode = true
 		chip.button_group = _chip_group
 		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		chip.custom_minimum_size = Vector2(72, 44)   # the labels clip, so five chips always fit the column
+		chip.custom_minimum_size = Vector2(72, 60)   # the labels clip, so five chips always fit the column
 		chip.tooltip_text = "%s\n%s\nSurge %d · Peak Might %s" % [
 			CardText.rung_label(duelist, mixed), CardText.personality_name(duelist),
 			int(t.get("surge", 0)), CardText.short_number(top)]
 		chip.pressed.connect(func() -> void: aspect_clicked.emit(aspect))
 		var col: VBoxContainer = VBoxContainer.new()
 		col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		col.offset_left = 10
-		col.offset_right = -10
-		col.offset_top = 4
-		col.offset_bottom = -4
+		col.offset_left = 12
+		col.offset_right = -12
+		col.offset_top = 6
+		col.offset_bottom = -6
 		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		col.add_theme_constant_override("separation", 0)
 		var name_label: Label = Label.new()
-		# The chip is about 52 px of text, so it carries the tier and the title only; the line
-		# word and the character's name are in the tooltip and in the Aspect block beside it.
+		# The chip is narrow, so it carries the tier and the title only; the line word and the
+		# character's name are in the tooltip and in the Aspect block beside it.
 		name_label.text = CardText.rung_label(duelist)
-		name_label.add_theme_font_size_override("font_size", 14)
+		name_label.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		col.add_child(name_label)
@@ -284,14 +282,13 @@ func _fill_aspects(stack: PersonalityStack, _might_max: int) -> void:
 		var surge: Label = Label.new()
 		surge.text = "Surge %d" % int(t.get("surge", 0))
 		surge.theme_type_variation = &"MutedLabel"
-		surge.add_theme_font_size_override("font_size", 12)
 		surge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		surge.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		surge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		nums.add_child(surge)
 		var value: Label = Label.new()
 		value.text = CardText.short_number(top)
-		value.add_theme_font_size_override("font_size", 12)
+		value.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 		value.add_theme_color_override("font_color", ZenithTheme.MIGHT)
 		value.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		nums.add_child(value)
@@ -304,16 +301,16 @@ func _fill_aspects(stack: PersonalityStack, _might_max: int) -> void:
 ## Icon plus "Strike 53", in the type's colour, so the legend matches the bar and the faces.
 func _legend_entry(type: CardDef.Type, n: int) -> Control:
 	var line: HBoxContainer = HBoxContainer.new()
-	line.add_theme_constant_override("separation", 5)
+	line.add_theme_constant_override("separation", 6)
 	var icon: TypeIcon = TypeIcon.new()
-	icon.custom_minimum_size = Vector2(14, 14)
+	icon.custom_minimum_size = Vector2(18, 18)
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	icon.type = type
 	icon.color = Palette.type_ui(type)
 	line.add_child(icon)
 	var label: Label = Label.new()
 	label.text = "%s %d" % [CardText.TYPE_LABELS[type], n]
-	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	line.add_child(label)
 	return line
 
@@ -334,7 +331,7 @@ func _fill_composition(d: DeckList, lib: CardLibrary) -> void:
 		var seg: Panel = Panel.new()
 		seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		seg.size_flags_stretch_ratio = float(n)
-		seg.add_theme_stylebox_override("panel", ZenithTheme.box(Palette.type_ui(type), Color(0, 0, 0, 0), 3, 0, 0, 0))
+		seg.add_theme_stylebox_override("panel", ZenithTheme.box(Palette.type_ui(type), Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 0, 0))
 		seg.tooltip_text = "%s %d" % [CardText.TYPE_LABELS[type], n]
 		comp_bar.add_child(seg)
 	comp_header.text = "LIFE DECK  ·  %d CARDS" % d.cards.size()

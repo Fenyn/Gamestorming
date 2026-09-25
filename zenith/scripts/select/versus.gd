@@ -27,6 +27,8 @@ var _leaving: bool = false
 
 func _ready() -> void:
 	theme = SanctumUI.theme()
+	MapArt.tint_for_school("")
+	SanctumUI.dress(self, $Margin/Column/TitleRow/Title as Label)
 	_online = Net.active()
 	_dev_setup()
 	if not Session.can_start():

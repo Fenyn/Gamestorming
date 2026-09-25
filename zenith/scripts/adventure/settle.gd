@@ -45,10 +45,9 @@ func _ready() -> void:
 	if Session.run == null:
 		Session.go_to_adventure()
 		return
-	# The run's end still wears the run's school colour, as on the map.
+	# The run's end still carries the run's school edge, as on the map.
 	var run_deck: DeckList = Session.run.deck()
 	MapArt.tint_for_school(run_deck.style if run_deck != null else "")
-	theme = SanctumUI.themed(MapArt.tint)
 	SanctumUI.dress(self, $Margin/Column/Header/TitleRow/Title as Label)
 	continue_button.pressed.connect(_on_continue)
 	($Margin/Column/Footer/Journal as Button).pressed.connect(Session.go_to_journal)
@@ -81,7 +80,7 @@ func _fill_header() -> void:
 	if won:
 		var percent: int = int(round(float(AdventureEconomy.data().get("discount_fraction", 0.0)) * 100.0))
 		discount_label.text = "Winner's price: %d%% off every card in your deck this once" % percent
-		ZenithTheme.chip(discount_label, ZenithTheme.ACCENT)
+		ZenithTheme.chip(discount_label, ZenithTheme.MOTES)
 
 
 ## The Motes tile and the kept tally, both read back off the wallet's own ledger so the run's
@@ -98,11 +97,11 @@ func _refresh_stats() -> void:
 			earned += amount
 		else:
 			spent -= amount
-	motes_tile.set_stat("Motes", str(Session.wallet.motes), "+%d this run" % earned, ZenithTheme.ACCENT)
+	motes_tile.set_motes(Session.wallet.motes, "+%d this run" % earned)
 	var copies: int = 0
 	for id in Session.run.kept.keys():
 		copies += int(Session.run.kept[id])
-	kept_tile.set_stat("Kept", str(copies), "%d Motes spent" % spent, ZenithTheme.ENERGY)
+	kept_tile.set_stat("Kept", str(copies), "%d Motes spent" % spent, ZenithTheme.TEXT)
 
 
 # --- The card grid --------------------------------------------------------------
@@ -137,12 +136,11 @@ func _fill_offers() -> void:
 ## One offered card: its face, an "xN" badge for a stack of copies, the unit price as a Mote chip
 ## with the full price struck through beside it on a won run, and the Keep control.
 func _build_cell(def: CardDef, row: Dictionary) -> Control:
-	var tint: Color = Palette.card_ui(def)
 	var panel: PanelContainer = PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", ZenithTheme.edged(tint, Color(tint, 0.08), 12, 10, 10))
+	panel.add_theme_stylebox_override("panel", ZenithTheme.edged(Palette.card_ui(def), ZenithTheme.RAISED, ZenithTheme.RADIUS, 12, 12))
 
 	var column: VBoxContainer = VBoxContainer.new()
-	column.add_theme_constant_override("separation", 4)
+	column.add_theme_constant_override("separation", 6)
 	column.custom_minimum_size.x = FACE_SIZE.x
 
 	var wrap: Control = Control.new()
@@ -161,24 +159,20 @@ func _build_cell(def: CardDef, row: Dictionary) -> Control:
 	wrap.add_child(button)
 
 	var count: int = int(row["count"])
-	var badge_label: Label = Label.new()
-	badge_label.text = "x%d" % count
-	badge_label.add_theme_font_size_override("font_size", 13)
-	badge_label.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
-	badge_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var badge: PanelContainer = PanelContainer.new()
+	var badge: Label = Label.new()
+	badge.text = "x%d" % count
+	badge.theme_type_variation = &"CaptionLabel"
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	badge.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.ACCENT, Color(0, 0, 0, 0), 6, 0, 6, 2))
-	badge.add_child(badge_label)
-	badge.position = Vector2(FACE_SIZE.x - 40.0, 6.0)
+	ZenithTheme.chip(badge, ZenithTheme.FRAME, true)
+	badge.position = Vector2(FACE_SIZE.x - 48.0, 6.0)
 	badge.visible = count > 1
 	wrap.add_child(badge)
-	_count_labels.append(badge_label)
+	_count_labels.append(badge)
 	column.add_child(wrap)
 
 	var title: Label = Label.new()
 	title.text = def.title
-	title.add_theme_font_size_override("font_size", 12)
+	title.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.custom_minimum_size.x = FACE_SIZE.x
@@ -188,7 +182,7 @@ func _build_cell(def: CardDef, row: Dictionary) -> Control:
 	column.add_child(_price_row(row))
 
 	var keep: Button = Button.new()
-	keep.custom_minimum_size = Vector2(FACE_SIZE.x, 30)
+	keep.custom_minimum_size = Vector2(FACE_SIZE.x, 48)
 	keep.text = "Keep 1"
 	keep.pressed.connect(func() -> void: _on_keep(def.id))
 	column.add_child(keep)
@@ -207,7 +201,7 @@ func _build_cell(def: CardDef, row: Dictionary) -> Control:
 	# reason beside it rather than only in a tooltip.
 	var cap: Label = Label.new()
 	cap.theme_type_variation = &"WarnLabel"
-	cap.add_theme_font_size_override("font_size", 12)
+	cap.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cap.custom_minimum_size.x = FACE_SIZE.x
 	cap.text = ""
@@ -231,9 +225,9 @@ func _price_row(row: Dictionary) -> Control:
 	var full: int = int(row["price"])
 	var chip: Label = Label.new()
 	chip.text = "%d Motes" % unit
-	chip.add_theme_font_size_override("font_size", 12)
+	chip.theme_type_variation = &"CaptionLabel"
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ZenithTheme.chip(chip, ZenithTheme.ACCENT)
+	ZenithTheme.chip(chip, ZenithTheme.MOTES)
 	box.add_child(chip)
 
 	if unit < full:
@@ -245,7 +239,7 @@ func _price_row(row: Dictionary) -> Control:
 		was.scroll_active = false
 		was.autowrap_mode = TextServer.AUTOWRAP_OFF
 		was.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		was.add_theme_font_size_override("normal_font_size", 12)
+		was.add_theme_font_size_override("normal_font_size", ZenithTheme.SIZE_CAPTION)
 		was.add_theme_color_override("default_color", ZenithTheme.MUTED)
 		was.text = "[s]%d[/s]" % full
 		box.add_child(was)
@@ -279,7 +273,7 @@ func _refresh() -> void:
 		_cap_labels[i].text = "%d max" % card_cap if at_cap else ""
 		var button: Button = _keep_buttons[i]
 		if not by_id.has(id):
-			_count_labels[i].get_parent().visible = false
+			_count_labels[i].visible = false
 			button.disabled = true
 			button.text = "Kept"
 			button.tooltip_text = "Every copy this run offered is banked."
@@ -289,7 +283,7 @@ func _refresh() -> void:
 		var unit: int = int(row["unit"])
 		var room: int = int(row["cap_remaining"])
 		_count_labels[i].text = "x%d" % left
-		_count_labels[i].get_parent().visible = left > 1
+		_count_labels[i].visible = left > 1
 		button.text = "Keep 1"
 		if room == 0:
 			button.disabled = true

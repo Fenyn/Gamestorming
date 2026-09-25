@@ -4,7 +4,7 @@ extends PanelContainer
 ## and a one-line note. Used wherever a game fundamental (Energy, Might, Life) needs to be read
 ## at a glance rather than found in a list.
 
-const PIP_SIZE: Vector2 = Vector2(7, 9)
+const PIP_SIZE: Vector2 = Vector2(8, 12)
 
 @onready var name_label: Label = $Column/Name
 @onready var value_label: Label = $Column/Value
@@ -15,7 +15,7 @@ var _pips: Array[Panel] = []
 
 
 func _ready() -> void:
-	add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.RAISED, Color(0, 0, 0, 0), 8, 0, 10, 6))
+	add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.RAISED, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 12, 6))
 
 
 func set_stat(stat_name: String, value: String, sub: String, color: Color) -> void:
@@ -24,6 +24,12 @@ func set_stat(stat_name: String, value: String, sub: String, color: Color) -> vo
 	value_label.add_theme_color_override("font_color", color)
 	sub_label.text = sub
 	sub_label.visible = sub != ""
+
+
+## The wallet's balance, in the Motes blue with its glow.
+func set_motes(motes: int, sub: String = "") -> void:
+	set_stat("Motes", str(motes), sub, ZenithTheme.MOTES)
+	ZenithTheme.motes_label(value_label)
 
 
 ## Fills `count` pips of `total` in `color`. Pass total 0 to hide the bar.

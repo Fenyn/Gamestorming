@@ -6,8 +6,8 @@ extends RefCounted
 const INK: Dictionary = {
 	"energy": Color(0.12, 0.44, 0.30),
 	"might": Color(0.30, 0.36, 0.50),
-	"fervor": Color(0.58, 0.40, 0.04),
-	"ascension": Color(0.58, 0.40, 0.04),
+	"fervor": Color(0.58, 0.10, 0.16),
+	"ascension": Color(0.58, 0.10, 0.16),
 	"focus": Color(0.74, 0.36, 0.06),
 	"attack": Color(0.66, 0.16, 0.10),
 	"defense": Color(0.12, 0.34, 0.64),
@@ -16,16 +16,16 @@ const INK: Dictionary = {
 	"plain": Color(0.10, 0.08, 0.06),
 }
 const LIGHT: Dictionary = {
-	"energy": Color(0.36, 0.76, 0.58),
-	"might": Color(0.78, 0.82, 0.90),
-	"fervor": Color(0.95, 0.80, 0.40),
-	"ascension": Color(0.95, 0.80, 0.40),
-	"focus": Color(0.95, 0.60, 0.25),
-	"attack": Color(0.90, 0.38, 0.30),
-	"defense": Color(0.40, 0.62, 0.92),
+	"energy": ZenithTheme.ENERGY,
+	"might": ZenithTheme.MIGHT,
+	"fervor": ZenithTheme.FERVOR_TEXT,
+	"ascension": ZenithTheme.FERVOR_TEXT,
+	"focus": Color(0.92, 0.76, 0.46),
+	"attack": ZenithTheme.ATTACK,
+	"defense": ZenithTheme.DEFEND,
 	"removed": Color(0.80, 0.55, 0.55),
 	"zone": Color(0.75, 0.70, 0.62),
-	"plain": Color(0.93, 0.91, 0.87),
+	"plain": ZenithTheme.TEXT,
 }
 const TYPE_ROLES: Dictionary = {
 	"strike": CardDef.Type.STRIKE, "art": CardDef.Type.ART, "combat": CardDef.Type.COMBAT,

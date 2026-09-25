@@ -12,6 +12,8 @@ const FLIP_DURATION: float = 0.25
 const FLASH_TIME: float = 0.35
 const SHAKE_TIME: float = 0.32
 const LUNGE_TIME: float = 0.18
+## Hover is a softer bone than the legal-choice glow, so the two still read apart.
+const HOVER_TINT: Color = Color(ZenithTheme.ACCENT, 0.6)
 var uid: int = -1
 var face_up: bool = true
 @export var reduced_motion: bool = false:
@@ -53,7 +55,7 @@ func _ready() -> void:
 	_glow_mat.set_shader_parameter("plane_size", Vector2(0.72, 0.97))
 	_role_mat.set_shader_parameter("plane_size", Vector2(0.80, 1.05))
 	_role_mat.set_shader_parameter("border_extent", Vector2(0.337, 0.462))
-	_glow_mat.set_shader_parameter("tint", Palette.HIGHLIGHT)
+	_glow_mat.set_shader_parameter("tint", HOVER_TINT)
 	front.material_override = _front_mat
 	back.material_override = _back_mat
 	glow.material_override = _glow_mat
@@ -77,14 +79,14 @@ func set_face_texture(front_tex: Texture2D) -> void:
 func set_ghost(on: bool) -> void:
 	for m in [_front_mat, _back_mat]:
 		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA if on else BaseMaterial3D.TRANSPARENCY_DISABLED
-		m.albedo_color = Color(0.72, 0.82, 0.92, 0.55) if on else Color.WHITE
+		m.albedo_color = Color(ZenithTheme.TEXT_SOFT, 0.55) if on else Color.WHITE
 
 
 func set_highlight(on: bool) -> void:
 	_highlighted = on
 	var presence_only: bool = not on and not _hovering and _presence_color.a > 0.0 and face_up
 	glow.visible = on or _hovering or presence_only
-	var tint: Color = Color(0.55, 0.85, 1.0, 0.85)
+	var tint: Color = HOVER_TINT
 	if on:
 		tint = Color(ZenithTheme.ACCENT, 1.0)
 	elif presence_only:
@@ -138,7 +140,7 @@ func _update_role() -> void:
 
 func _update_border() -> void:
 	var active: bool = face_up and (_highlighted or _hovering or _role_color.a > 0.0 or _presence_color.a > 0.0)
-	var color: Color = Color(0.55, 0.85, 1.0)
+	var color: Color = HOVER_TINT
 	if _role_color.a > 0.0:
 		color = _role_color
 	elif _highlighted:

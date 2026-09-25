@@ -5,7 +5,7 @@
 [ext_resource type="Script" path="res://scripts/ui/arcane_backdrop.gd" id="3_atmosphere"]
 
 [sub_resource type="Gradient" id="Gradient_fade"]
-colors = PackedColorArray(0.07, 0.07, 0.08, 0, 0.07, 0.07, 0.08, 1)
+colors = PackedColorArray(0.085, 0.078, 0.08, 0, 0.085, 0.078, 0.08, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_fade"]
 gradient = SubResource("Gradient_fade")
@@ -118,14 +118,13 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -90.0
-offset_top = -60.0
-offset_right = 90.0
-offset_bottom = -20.0
+offset_left = -108.0
+offset_top = -66.0
+offset_right = 108.0
+offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 0
-pivot_offset = Vector2(90, 20)
-theme_override_font_sizes/font_size = 20
+pivot_offset = Vector2(108, 24)
 text = "LOCKED IN"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -174,37 +173,14 @@ layout_mode = 2
 [node name="Deck" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-theme_override_font_sizes/font_size = 40
 text = ""
 autowrap_mode = 3
 
 [node name="Duelist" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 18
 text = "Choose a duelist"
 autowrap_mode = 2
-
-[node name="DeckChoice" type="VBoxContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity"]
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="Choices" type="HFlowContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/DeckChoice"]
-layout_mode = 2
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
-
-[node name="Caption" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/DeckChoice/Choices"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_type_variation = &"CaptionLabel"
-text = "DECK"
-
-[node name="Locked" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/DeckChoice"]
-layout_mode = 2
-theme_type_variation = &"CaptionLabel"
-autowrap_mode = 3
 
 [node name="Chips" type="HFlowContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity"]
 layout_mode = 2
@@ -237,16 +213,16 @@ mouse_filter = 2
 [node name="Tagline" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity"]
 visible = false
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 17
-theme_override_constants/line_spacing = 4
+theme_type_variation = &"BodyLabel"
+theme_override_font_sizes/font_size = 18
+theme_override_constants/line_spacing = 6
 text = "Pick from the roster below."
 autowrap_mode = 3
 
 [node name="Blurb" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity"]
 visible = false
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"BodyLabel"
 text = ""
 autowrap_mode = 3
 
@@ -259,14 +235,13 @@ text = "ASPECT 1 OF 3"
 [node name="AspectTitle" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity"]
 visible = false
 layout_mode = 2
-theme_type_variation = &"AccentLabel"
-theme_override_font_sizes/font_size = 20
 text = "Kindled"
 
 [node name="AspectPower" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity"]
 visible = false
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
+theme_type_variation = &"BodyLabel"
+theme_override_font_sizes/font_size = 18
 text = ""
 autowrap_mode = 3
 
@@ -285,10 +260,9 @@ mouse_filter = 2
 layout_mode = 0
 offset_left = -76.0
 offset_right = 174.0
-offset_bottom = 20.0
+offset_bottom = 24.0
 mouse_filter = 2
 theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 12
 text = "MASTERY"
 horizontal_alignment = 1
 
@@ -302,6 +276,27 @@ focus_mode = 2
 mouse_default_cursor_shape = 16
 expand_mode = 1
 stretch_mode = 5
+
+[node name="DeckChoice" type="VBoxContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary"]
+visible = false
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 204.0
+offset_top = -376.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="Caption" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/DeckChoice"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "DECK"
+
+[node name="Choices" type="VBoxContainer" parent="Row/Scroll/Content/Tabs/Overview/Summary/DeckChoice"]
+layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="Details" parent="Row/Scroll/Content/Tabs" instance=ExtResource("2_list")]
 visible = false
@@ -317,7 +312,7 @@ autowrap_mode = 3
 [node name="Details" type="Button" parent="Row"]
 layout_mode = 2
 size_flags_horizontal = 0
-custom_minimum_size = Vector2(170, 44)
+custom_minimum_size = Vector2(180, 54)
 text = "Details"
 
 [node name="Lock" type="Button" parent="Row"]
@@ -325,7 +320,6 @@ custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 disabled = true
 theme_type_variation = &"AccentButton"
-theme_override_font_sizes/font_size = 20
 text = "Lock in"
 
 [node name="Hint" type="Label" parent="Row"]

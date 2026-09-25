@@ -113,8 +113,7 @@ func show_deck(d: DeckList) -> void:
 		_paint()
 		return
 	var duelist: CardDef = Session.library.defs.get(d.duelist_face_id())
-	# The panel edge and stamp carry the player colour for this battle; the chip below still
-	# names the school.
+	# The lock stamp carries the player colour for this battle; the chip below names the school.
 	_color = Session.seat_color(seat)
 	duelist_label.text = duelist.title if duelist != null else d.duelist_face_id()
 	deck_label.text = d.name
@@ -125,10 +124,10 @@ func show_deck(d: DeckList) -> void:
 	ZenithTheme.chip(alignment_chip, ZenithTheme.MUTED)
 	archetype_chip.visible = Archetype.label(d.archetype) != ""
 	archetype_chip.text = Archetype.label(d.archetype)
-	ZenithTheme.chip(archetype_chip, ZenithTheme.DEFEND)
+	ZenithTheme.chip(archetype_chip, ZenithTheme.MUTED)
 	difficulty_chip.visible = false
 	difficulty_chip.text = "%s to play" % d.difficulty.capitalize()
-	ZenithTheme.chip(difficulty_chip, ZenithTheme.ACCENT)
+	ZenithTheme.chip(difficulty_chip, ZenithTheme.MUTED)
 	blurb_label.text = d.blurb
 	deck_list.show_cards(d.cards, Session.library, faces)
 	show_aspect(duelist.aspect if duelist != null else 1)
@@ -194,11 +193,12 @@ func set_locked(on: bool) -> void:
 	_paint()
 
 
-## School light and the lock stamp carry identity; the panel uses Godot-drawn styling.
+## The school light behind the portrait and the seat-coloured lock stamp carry identity; the panel
+## itself is the plain iron frame.
 func _paint() -> void:
 	add_theme_stylebox_override("panel", SanctumUI.panel())
 	var aura: ArcaneBackdrop = portrait_box.get_node("Aura")
-	aura.set_school(Palette.school_ui(deck.style) if deck != null else Color(0.34, 0.74, 0.82))
+	aura.set_school(Palette.school_ui(deck.style) if deck != null else ZenithTheme.FRAME)
 	if locked:
 		aura.confirm()
 	ZenithTheme.chip(stamp, _color, true)

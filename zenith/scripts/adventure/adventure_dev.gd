@@ -116,12 +116,21 @@ static func sample_meta() -> void:
 		{"kind": "join", "tag": "JOINED", "title": "Emrys Rooke",
 			"details": ["In your deck for the rest of this run"]},
 		{"kind": "xp", "tag": "XP", "title": "Sir Edric Rooke +25 XP",
-			"details": ["155 XP to level 5", "Tide +25 XP, 165 XP to level 6", "Emrys Rooke +15 XP, 105 XP to level 3"]},
+			"details": ["155 XP to level 5", "Tide +25 XP, 165 XP to level 6", "Emrys Rooke +15 XP, 105 XP to level 3"],
+			"bars": [_sample_bar(p, "personality", "Sir Edric Rooke", ""),
+				_sample_bar(p, "school", "Tide", "tide"), _sample_bar(p, "personality", "Emrys Rooke", "")]},
 		{"kind": "level", "tag": "LEVEL 4", "title": "Sir Edric Rooke",
 			"details": ["Signature card: Edric's Vow", "Signature card: Edric's Training"]},
 		{"kind": "achievement", "tag": "ACHIEVEMENT", "title": "The Vale test",
 			"details": ["Opens deck: Blade Legacy"]},
 	] as Array[Dictionary]
+
+
+## One XP bar for the sample results: a 25 XP gain that ends where the track stands now, so the
+## first track (Edric, just past a level) shows the roll-over.
+static func _sample_bar(p: AdventureProgress, kind: String, name: String, school: String) -> Dictionary:
+	var now: int = int((p.school_xp if kind == "school" else p.personality_xp).get(school if kind == "school" else name, 0))
+	return {"name": name, "school": school, "gained": 25, "segments": p.xp_segments(kind, now - 25, now)}
 
 
 ## Sets the scratch wallet's balance outright, with no ledger line: a starting balance is not
@@ -177,7 +186,8 @@ static func screenshot(node: Node) -> void:
 	var path: String = flag("--dev-screenshot=")
 	if path == "":
 		return
-	await node.get_tree().create_timer(SHOT_DELAY).timeout
+	var wait: String = flag("--dev-shot-delay=")
+	await node.get_tree().create_timer(float(wait) if wait != "" else SHOT_DELAY).timeout
 	await RenderingServer.frame_post_draw
 	node.get_viewport().get_texture().get_image().save_png(path)
 	print("screenshot saved to %s" % path)

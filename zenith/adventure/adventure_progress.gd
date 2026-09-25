@@ -67,6 +67,28 @@ func school_standing(school: String) -> Dictionary:
 	return standing(int(school_xp.get(school, 0)), d.get("school_levels", [0]), int(d.get("past_end_step", 0)))
 
 
+## The standing any XP total would have on the school or personality curve.
+func standing_of(kind: String, xp: int) -> Dictionary:
+	var d: Dictionary = data()
+	var curve: Array = d.get("school_levels", [0]) if kind == "school" else d.get("personality_levels", [0])
+	return standing(xp, curve, int(d.get("past_end_step", 0)))
+
+
+## A gain from `from_xp` to `to_xp` cut at each level it crosses, for a bar that fills level by
+## level: [{level, from, to, start, end}], `from`/`to` the level's bounds, `start`/`end` the fill.
+func xp_segments(kind: String, from_xp: int, to_xp: int) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var xp: int = from_xp
+	while true:
+		var s: Dictionary = standing_of(kind, xp)
+		var end: int = mini(to_xp, int(s["to"]))
+		out.append({"level": int(s["level"]), "from": int(s["from"]), "to": int(s["to"]), "start": xp, "end": end})
+		if end >= to_xp or int(s["to"]) <= xp:
+			break
+		xp = int(s["to"])
+	return out
+
+
 func personality_standing(character: String) -> Dictionary:
 	var d: Dictionary = data()
 	return standing(int(personality_xp.get(character, 0)), d.get("personality_levels", [0]),
@@ -197,7 +219,8 @@ static func prepare_run(run: AdventureRun, library: CardLibrary, collection: Adv
 
 ## Applies a storyline join, XP, levels and achievements, in that order, and returns what the
 ## screen after the duel shows: {kind, tag, title, details}, kind being join, xp, level, school or
-## achievement. Nothing here saves.
+## achievement. The xp entry also carries `bars`, one {name, school, gained, segments} per track
+## (see `xp_segments`). Nothing here saves.
 static func record_win(run: AdventureRun, map: AdventureMap, engine: DuelEngine,
 		library: CardLibrary, collection: AdventureCollection, unlocks: AdventureUnlocks,
 		progress: AdventureProgress, wallet: AdventureWallet) -> Array[Dictionary]:
@@ -212,20 +235,25 @@ static func record_win(run: AdventureRun, map: AdventureMap, engine: DuelEngine,
 	keys.sort_custom(func(a: Variant, b: Variant) -> bool:
 		return int(progress.last_gains[a]) > int(progress.last_gains[b]))
 	var details: Array[String] = []
+	var bars: Array[Dictionary] = []
 	var title: String = ""
 	for key in keys:
 		var kind: String = str(key).get_slice(":", 0)
 		var name: String = str(key).substr(kind.length() + 1)
 		var s: Dictionary = progress.school_standing(name) if kind == "school" else progress.personality_standing(name)
-		var gained: String = "%s +%d XP" % [name.capitalize() if kind == "school" else name, int(progress.last_gains[key])]
+		var amount: int = int(progress.last_gains[key])
+		var shown: String = name.capitalize() if kind == "school" else name
+		var gained: String = "%s +%d XP" % [shown, amount]
 		var left: String = "%d XP to level %d" % [int(s["to"]) - int(s["xp"]), int(s["level"]) + 1]
 		if title == "":
 			title = gained
 			details.append(left)
 		else:
 			details.append("%s, %s" % [gained, left])
+		bars.append({"name": shown, "school": name if kind == "school" else "", "gained": amount,
+			"segments": progress.xp_segments(kind, int(s["xp"]) - amount, int(s["xp"]))})
 	if title != "":
-		out.append({"kind": "xp", "tag": "XP", "title": title, "details": details})
+		out.append({"kind": "xp", "tag": "XP", "title": title, "details": details, "bars": bars})
 	for levelup in levelups:
 		var key: String = str(levelup["key"])
 		var school: bool = str(levelup["kind"]) == "school"

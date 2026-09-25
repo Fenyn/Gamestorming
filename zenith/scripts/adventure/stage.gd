@@ -39,17 +39,17 @@ func _ready() -> void:
 			theme = SanctumUI.theme()
 			Session.go_to_adventure()
 			return
-	# The trim takes the run's Mastery school colour; everything built below reads it.
+	# The run's school colour marks the map's walked road.
 	var run_deck: DeckList = Session.run.deck()
 	MapArt.tint_for_school(run_deck.style if run_deck != null else "")
-	theme = _screen_theme()
+	theme = SanctumUI.theme()
 	next_sheet.setup(1, faces)
 	next_sheet.portrait.custom_minimum_size = Vector2(314, 440)
 	next_sheet.portrait_caption.custom_minimum_size.x = 314
 	next_sheet.mastery.custom_minimum_size = Vector2(240, 336)
 	next_sheet.mastery_caption.custom_minimum_size.x = 240
-	# The map and the side panel's pieces are all dark panels under the Kenney inner rule (border
-	# 012) in the trim tint. Pixel frames keep hard edges; their contents stay smooth.
+	# The map and the side panel's pieces are all framed panels. Pixel frames keep hard edges;
+	# their contents stay smooth.
 	var frame: PanelContainer = PanelContainer.new()
 	frame.add_theme_stylebox_override("panel", MapArt.panel_box(22))
 	frame.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -57,32 +57,26 @@ func _ready() -> void:
 	var at: int = ladder_scroll.get_index()
 	ladder_column.add_child(frame)
 	ladder_column.move_child(frame, at)
-	# Inside the board: the legend inlaid down its left wall, a thin rule, then the scrolling map.
+	# Inside the board: the legend inlaid down its left wall, a divider, then the scrolling map.
 	var board_row: HBoxContainer = HBoxContainer.new()
 	board_row.add_theme_constant_override("separation", 18)
 	board_row.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	frame.add_child(board_row)
 	board_row.add_child(_legend())
-	var rule: ColorRect = ColorRect.new()
-	rule.color = Color(MapArt.tint, 0.35)
-	rule.custom_minimum_size = Vector2(2, 0)
-	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	board_row.add_child(rule)
+	board_row.add_child(VSeparator.new())
 	ladder_scroll.reparent(board_row)
 	ladder_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	# The preview's tag rides a cream scroll, and a Kenney rule divides the sheet's text from its
+	# The preview's tag rides the title banner, and dividers set the sheet's text off from its
 	# cards. Only this screen's copy of the sheet is dressed; the matchup screen keeps its own.
-	next_sheet.tag.add_theme_stylebox_override("normal", MapArt.banner_box("banner", 40, 14, 18))
+	next_sheet.tag.add_theme_stylebox_override("normal", MapArt.banner_box("banner", 36, 12, 16))
 	next_sheet.tag.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
-	next_sheet.tag.add_theme_font_size_override("font_size", 15)
+	next_sheet.tag.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	next_sheet.tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	next_sheet.tag.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	# A faded rule between the chips and the stats line: a Kenney half-divider and its mirror,
-	# meeting at a knot in the middle, in the tint.
-	var fade_rule: Control = MapArt.fade_divider(260.0)
-	next_sheet.chips.get_parent().add_child(fade_rule)
-	next_sheet.chips.get_parent().move_child(fade_rule, next_sheet.note_label.get_index())
-	var sheet_rule: Control = MapArt.fade_divider(200.0)
+	var chip_rule: HSeparator = HSeparator.new()
+	next_sheet.chips.get_parent().add_child(chip_rule)
+	next_sheet.chips.get_parent().move_child(chip_rule, next_sheet.note_label.get_index())
+	var sheet_rule: HSeparator = HSeparator.new()
 	next_sheet.cards.get_parent().add_child(sheet_rule)
 	next_sheet.cards.get_parent().move_child(sheet_rule, next_sheet.cards.get_index())
 	# The placeholder panel fits its content instead of stretching down the side.
@@ -91,6 +85,7 @@ func _ready() -> void:
 	_frame(run_over_panel, 30)
 	_frame(next_sheet, 26)
 	mote_icon.texture = MapArt.ui("mote")
+	ZenithTheme.motes_label(motes_label)
 	_node_icon = TextureRect.new()
 	_node_icon.custom_minimum_size = Vector2(112, 112)
 	_node_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -98,16 +93,15 @@ func _ready() -> void:
 	var note_column: VBoxContainer = run_over_panel.get_node("Center/Column")
 	note_column.add_child(_node_icon)
 	note_column.move_child(_node_icon, 0)
-	# A small crest over the heading and a Kenney rule under it.
 	var crest: TextureRect = MapArt.ornament("crest_small", 22.0)
 	note_column.add_child(crest)
 	note_column.move_child(crest, run_over_heading.get_index())
-	var note_rule: Control = MapArt.fade_divider(180.0)
+	var note_rule: HSeparator = HSeparator.new()
 	note_column.add_child(note_rule)
 	note_column.move_child(note_rule, run_over_reached.get_index())
 	_dev_note = Label.new()
 	_dev_note.theme_type_variation = &"WarnLabel"
-	_dev_note.add_theme_font_size_override("font_size", 13)
+	_dev_note.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	_dev_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	note_column.add_child(_dev_note)
 	view_deck_button.pressed.connect(_on_view_deck)
@@ -124,12 +118,7 @@ func _ready() -> void:
 	SanctumUI.wire_buttons(self)
 
 
-## The shared theme with its panels and buttons in the run's school tint.
-func _screen_theme() -> Theme:
-	return SanctumUI.themed(MapArt.tint)
-
-
-## The tinted panel on one side-panel piece, with its first child kept smooth.
+## The iron panel on one side-panel piece, with its first child kept smooth.
 func _frame(panel: PanelContainer, content: int) -> void:
 	panel.add_theme_stylebox_override("panel", MapArt.panel_box(content))
 	panel.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -214,11 +203,11 @@ func _scroll_to_focus() -> void:
 ## hovering.
 func _legend() -> VBoxContainer:
 	var row: VBoxContainer = VBoxContainer.new()
-	row.add_theme_constant_override("separation", 14)
+	row.add_theme_constant_override("separation", 12)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	for type in ["duel", "elite", "key", "boss", "sensei", "shop", "shrine", "forge"]:
 		var cell: HBoxContainer = HBoxContainer.new()
-		cell.add_theme_constant_override("separation", 10)
+		cell.add_theme_constant_override("separation", 12)
 		var icon: TextureRect = TextureRect.new()
 		icon.texture = MapArt.marker(type)
 		icon.custom_minimum_size = Vector2(44, 44)
@@ -227,8 +216,7 @@ func _legend() -> VBoxContainer:
 		cell.add_child(icon)
 		var name_label: Label = Label.new()
 		name_label.text = AdventureMap.type_name(type)
-		name_label.add_theme_font_size_override("font_size", 17)
-		name_label.add_theme_color_override("font_color", ZenithTheme.TEXT)
+		name_label.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		cell.add_child(name_label)
 		row.add_child(cell)
@@ -309,7 +297,7 @@ func _on_abandon() -> void:
 		abandon_button.text = "Confirm abandon"
 		return
 	Session.abandon_run()
-	Session.go_to_title()
+	Session.go_to_adventure()   # with no run left, this is the character select
 
 
 func _on_title() -> void:
@@ -331,7 +319,7 @@ static func _lives_text(lives: int) -> String:
 	return "%d %s (you have %d)" % [lives, "life" if lives == 1 else "lives", AdventureRules.PLAYER_LIVES]
 
 
-## A boss is called out in orange; every other tier is a quiet chip.
+## A boss is called out in the warning colour; every other tier is a quiet chip.
 static func _tier_color(boss: bool) -> Color:
 	return ZenithTheme.WARN if boss else ZenithTheme.MUTED
 

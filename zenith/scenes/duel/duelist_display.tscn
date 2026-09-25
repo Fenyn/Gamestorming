@@ -67,11 +67,11 @@ texture_filter = 1
 pixel_size = 0.0044
 font_size = 64
 outline_size = 10
-modulate = Color(0.95, 0.93, 0.87, 1)
+modulate = Color(0.93, 0.91, 0.87, 1)
 
 [node name="LifeCaption" type="Label3D" parent="."]
 pixel_size = 0.0044
 font_size = 28
 outline_size = 8
-modulate = Color(0.74, 0.71, 0.66, 1)
+modulate = Color(0.78, 0.77, 0.74, 1)
 text = "LIFE"

@@ -68,9 +68,8 @@ func _ready() -> void:
 	if _deck == null:
 		Session.go_to_adventure()
 		return
-	# The loadout is the first step of a run: it already wears the starter's school colour.
+	# The loadout is the first step of a run: its title already carries the starter's school edge.
 	MapArt.tint_for_school(_deck.style)
-	theme = SanctumUI.themed(MapArt.tint)
 	SanctumUI.dress(self, $Margin/Column/TitleRow/Title as Label)
 	deck_list.card_selected.connect(_on_deck_card_picked)
 	reset_button.pressed.connect(_on_reset)
@@ -95,7 +94,7 @@ func _ready() -> void:
 ## "Deck slots: 50 + 2 of 32" with a Buy that goes quiet when the wallet is short or the starter
 ## has bought every slot there is.
 func _refresh_upgrades() -> void:
-	motes_tile.set_stat("Motes", str(Session.wallet.motes), "", ZenithTheme.ACCENT)
+	motes_tile.set_motes(Session.wallet.motes)
 	var bought: int = Session.upgrades.slots(starter_id)
 	var base_size: int = AdventureLoadout.size_cap(_deck)
 	var most: int = AdventureLoadout.max_slots(_deck)
@@ -226,12 +225,9 @@ func _build_swap_cells(browsing: bool) -> void:
 func _build_swap_cell(def: CardDef, greyed: bool) -> Control:
 	var tint: Color = Palette.card_ui(def)
 	var panel: PanelContainer = PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", ZenithTheme.edged(tint, Color(tint, 0.08), 12, 10, 10))
-	if greyed:
-		panel.modulate = Color(1, 1, 1, UNUSABLE_ALPHA)
 
 	var column: VBoxContainer = VBoxContainer.new()
-	column.add_theme_constant_override("separation", 4)
+	column.add_theme_constant_override("separation", 6)
 	column.custom_minimum_size.x = FACE_SIZE.x
 
 	var wrap: Control = Control.new()
@@ -249,7 +245,7 @@ func _build_swap_cell(def: CardDef, greyed: bool) -> Control:
 
 	var title: Label = Label.new()
 	title.text = def.title
-	title.add_theme_font_size_override("font_size", 12)
+	title.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.custom_minimum_size.x = FACE_SIZE.x
@@ -307,11 +303,14 @@ func _usable(id: String) -> bool:
 	return false
 
 
+## A collection card's tile: the card's colour on its edge, or the bone selection ring once picked.
 func _style_swap_cell(panel: PanelContainer, tint: Color, selected: bool) -> void:
 	if selected:
-		panel.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.ACCENT_SOFT, ZenithTheme.ACCENT, 12, 2, 10, 10))
+		var ring: StyleBoxFlat = ZenithTheme.selected_box(12, 12)
+		ring.content_margin_left = 18   # the edged tile's inset, so the card does not shift
+		panel.add_theme_stylebox_override("panel", ring)
 	else:
-		panel.add_theme_stylebox_override("panel", ZenithTheme.edged(tint, Color(tint, 0.08), 12, 10, 10))
+		panel.add_theme_stylebox_override("panel", ZenithTheme.edged(tint, ZenithTheme.RAISED, ZenithTheme.RADIUS, 12, 12))
 
 
 func _on_swap_target_picked(id: String) -> void:

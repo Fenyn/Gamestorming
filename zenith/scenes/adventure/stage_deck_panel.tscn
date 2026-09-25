@@ -12,7 +12,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.02, 0.03, 0.9)
+color = Color(0.03, 0.025, 0.03, 0.88)
 script = ExtResource("1_panel")
 
 [node name="Center" type="CenterContainer" parent="."]
@@ -41,7 +41,7 @@ theme_type_variation = &"HeaderLabel"
 text = "Your deck"
 
 [node name="Close" type="Button" parent="Center/Panel/Column/Header"]
-custom_minimum_size = Vector2(100, 40)
+custom_minimum_size = Vector2(120, 54)
 layout_mode = 2
 text = "Close"
 

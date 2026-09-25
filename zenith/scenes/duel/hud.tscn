@@ -39,7 +39,7 @@ alignment = 1
 [node name="Counter" type="Label" parent="Root/PhasePanel/Column/Turn"]
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 24
 text = "TURN 1"
 
 [node name="Who" type="Label" parent="Root/PhasePanel/Column/Turn"]
@@ -66,7 +66,7 @@ offset_bottom = 164.0
 grow_horizontal = 2
 pivot_offset = Vector2(280, 24)
 mouse_filter = 2
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 30
 text = "Strike"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -111,11 +111,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
 text = "RECENT"
-theme_override_font_sizes/font_size = 20
 
 [node name="Toggle" type="Button" parent="Root/Log/Column/Header"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 18
 text = "History"
 flat = true
 custom_minimum_size = Vector2(100, 42)
@@ -129,7 +128,7 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 21
+theme_override_font_sizes/normal_font_size = 18
 bbcode_enabled = true
 fit_content = true
 scroll_following = false
@@ -168,13 +167,12 @@ grow_vertical = 0
 
 [node name="Column" type="VBoxContainer" parent="Root/PromptPanel"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
 [node name="Who" type="Label" parent="Root/PromptPanel/Column"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "YOUR MOVE"
-theme_override_font_sizes/font_size = 22
 autowrap_mode = 3
 
 [node name="Title" type="Label" parent="Root/PromptPanel/Column"]
@@ -196,7 +194,7 @@ theme_override_constants/separation = 6
 
 [node name="State" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 mouse_filter = 2
 
@@ -208,7 +206,7 @@ mouse_filter = 2
 
 [node name="Response" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 mouse_filter = 2
 
@@ -221,13 +219,13 @@ mouse_filter = 2
 [node name="Outcome" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
 visible = false
 layout_mode = 2
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 
 
 [node name="Stops" type="Label" parent="Root/PromptPanel/Column/Exchange/Lines"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 mouse_filter = 2
 
@@ -236,7 +234,6 @@ layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = ""
 autowrap_mode = 3
-theme_override_font_sizes/font_size = 21
 
 [node name="Actions" type="ScrollContainer" parent="Root/PromptPanel/Column"]
 layout_mode = 2
@@ -255,8 +252,8 @@ offset_top = 180.0
 offset_right = 350.0
 offset_bottom = 240.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.78, 0.38, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.93, 0.55, 0.3, 1)
+theme_override_font_sizes/font_size = 24
 autowrap_mode = 3
 
 [node name="PresenceLine" type="Label" parent="Root"]
@@ -268,7 +265,7 @@ offset_top = 318.0
 offset_right = 470.0
 offset_bottom = 348.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "Player 2 is viewing your Discard"
 text_overrun_behavior = 3
 
@@ -281,8 +278,8 @@ offset_top = -370.0
 offset_right = 350.0
 offset_bottom = -230.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.78, 0.38, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.93, 0.55, 0.3, 1)
+theme_override_font_sizes/font_size = 24
 autowrap_mode = 3
 
 [node name="ReducedMotion" type="CheckButton" parent="Root"]
@@ -309,7 +306,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.02, 0.03, 0.62)
+color = Color(0.03, 0.025, 0.03, 0.7)
 
 [node name="Center" type="CenterContainer" parent="Root/Tray"]
 layout_mode = 1
@@ -331,7 +328,6 @@ layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "YOUR DECISION"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 21
 
 [node name="Title" type="Label" parent="Root/Tray/Center/Panel/Column"]
 layout_mode = 2
@@ -346,7 +342,7 @@ theme_type_variation = &"MutedLabel"
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 3
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 24
 
 [node name="Scroll" type="ScrollContainer" parent="Root/Tray/Center/Panel/Column"]
 custom_minimum_size = Vector2(0, 300)
@@ -373,7 +369,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.02, 0.03, 0.62)
+color = Color(0.03, 0.025, 0.03, 0.7)
 
 [node name="Center" type="CenterContainer" parent="Root/Pile"]
 layout_mode = 1
@@ -395,7 +391,6 @@ layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "PLAYER 1"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 21
 
 [node name="Title" type="Label" parent="Root/Pile/Center/Panel/Column"]
 layout_mode = 2
@@ -410,7 +405,7 @@ theme_type_variation = &"MutedLabel"
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 3
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 24
 
 [node name="Scroll" type="ScrollContainer" parent="Root/Pile/Center/Panel/Column"]
 custom_minimum_size = Vector2(0, 300)
@@ -445,7 +440,7 @@ offset_left = -84.0
 offset_top = 86.0
 offset_right = -16.0
 offset_bottom = 114.0
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 18
 text = "Dev"
 flat = true
 
@@ -489,7 +484,7 @@ mouse_filter = 2
 [node name="Text" type="RichTextLabel" parent="Root/Peek/Forecast"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_font_sizes/normal_font_size = 21
+theme_override_font_sizes/normal_font_size = 18
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
@@ -545,12 +540,12 @@ layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -28.0
+offset_top = -30.0
 mouse_filter = 2
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 24
 text = "INCOMING"
 horizontal_alignment = 1
-vertical_alignment = 2
+vertical_alignment = 1
 clip_text = true
 text_overrun_behavior = 3
 
@@ -580,7 +575,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.62)
+color = Color(0.03, 0.025, 0.03, 0.88)
 
 [node name="Center" type="CenterContainer" parent="Root/Inspect"]
 layout_mode = 1
@@ -598,7 +593,7 @@ mouse_filter = 2
 
 [node name="Hint" type="Label" parent="Root/Inspect/Center/Column"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 18
 text = "Hover a coloured word for what it means. Click outside the card or press Esc to close."
 horizontal_alignment = 1
 mouse_filter = 2
@@ -632,7 +627,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.02, 0.03, 0.94)
+color = Color(0.055, 0.05, 0.055, 1)
 
 [node name="Center" type="CenterContainer" parent="Root/Handoff"]
 layout_mode = 1
@@ -660,11 +655,10 @@ text = "Their hand stays hidden until they are ready."
 horizontal_alignment = 1
 
 [node name="Ready" type="Button" parent="Root/Handoff/Center/Column"]
-custom_minimum_size = Vector2(240, 48)
+custom_minimum_size = Vector2(240, 60)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_type_variation = &"AccentButton"
-theme_override_font_sizes/font_size = 18
 text = "I'm ready"
 
 [node name="GameOver" type="ColorRect" parent="Root"]
@@ -675,7 +669,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.02, 0.03, 0.9)
+color = Color(0.03, 0.025, 0.03, 0.88)
 
 [node name="Center" type="CenterContainer" parent="Root/GameOver"]
 layout_mode = 1
@@ -698,7 +692,7 @@ horizontal_alignment = 1
 [node name="Reason" type="Label" parent="Root/GameOver/Center/Column"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "reason"
 horizontal_alignment = 1
 
@@ -708,16 +702,14 @@ size_flags_horizontal = 4
 theme_override_constants/separation = 16
 
 [node name="Rematch" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
-custom_minimum_size = Vector2(200, 44)
+custom_minimum_size = Vector2(240, 60)
 layout_mode = 2
 theme_type_variation = &"AccentButton"
-theme_override_font_sizes/font_size = 17
 text = "Rematch"
 
 [node name="Select" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
-custom_minimum_size = Vector2(200, 44)
+custom_minimum_size = Vector2(240, 60)
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
 text = "Choose duelists"
 
 [node name="Loading" type="ColorRect" parent="Root"]
@@ -727,7 +719,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.02, 0.03, 1)
+color = Color(0.055, 0.05, 0.055, 1)
 
 [node name="Center" type="CenterContainer" parent="Root/Loading"]
 layout_mode = 1
@@ -740,5 +732,4 @@ grow_vertical = 2
 [node name="Label" type="Label" parent="Root/Loading/Center"]
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 26
 text = "Preparing the lists…"

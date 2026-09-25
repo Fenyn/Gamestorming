@@ -22,22 +22,19 @@ horizontal_alignment = 1
 [node name="Duelist" type="Label" parent="Column"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-theme_override_font_sizes/font_size = 44
 text = "Duelist"
 autowrap_mode = 2
 horizontal_alignment = 1
 
 [node name="Deck" type="Label" parent="Column"]
 layout_mode = 2
-theme_type_variation = &"AccentLabel"
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"RowTitleLabel"
 text = "Deck"
 horizontal_alignment = 1
 
 [node name="Tagline" type="Label" parent="Column"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 16
 text = ""
 autowrap_mode = 3
 horizontal_alignment = 1
@@ -70,6 +67,7 @@ horizontal_alignment = 1
 [node name="Story" type="Label" parent="Column"]
 visible = false
 layout_mode = 2
+theme_type_variation = &"BodyLabel"
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 3

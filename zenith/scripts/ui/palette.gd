@@ -33,7 +33,7 @@ static var SIGNATURE_UI: Color = Color(0.97, 0.93, 0.80)
 ## The four non-school groups: the card frame, then the lifted colour for text and chips on the
 ## dark UI. Each pair sits at least 0.069 apart from every other group in OKLab, which is the
 ## spacing the six schools already keep among themselves.
-const PERSONALITY_FRAME: Color = Color(0.68, 0.54, 0.12)   # old gold
+const PERSONALITY_FRAME: Color = Color(0.541, 0.518, 0.486)   # pewter
 const PERSONALITY_UI: Color = Color(0.96, 0.80, 0.34)
 const SEAL_FRAME: Color = Color(0.10, 0.48, 0.40)          # verdigris on carved stone
 const SEAL_UI: Color = Color(0.40, 0.88, 0.78)

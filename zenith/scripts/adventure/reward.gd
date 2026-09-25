@@ -8,23 +8,27 @@ const ADVANCE_DELAY: float = 0.6
 const ZOOM_SIZE: Vector2 = Vector2(560, 784)
 ## The Aspect step shows one card at a time, sized to read like the versus screen's duelist card.
 const CARD_FACE_SIZE: Vector2 = Vector2(310, 430)
-## Bundle faces share one size across the whole offer, picked by the widest bundle shown: three
-## panels of three faces still have to fit 1600 px with the header and footer intact.
-const BUNDLE_FACE_SIZE_3: Vector2 = Vector2(180, 252)
-const BUNDLE_FACE_SIZE_2: Vector2 = Vector2(230, 322)
+## Bundle faces share one size across the whole offer, picked by the widest bundle shown, sized
+## so the offers and the row of win results under them fit 1080 high.
+const BUNDLE_FACE_SIZE_3: Vector2 = Vector2(170, 238)
+const BUNDLE_FACE_SIZE_2: Vector2 = Vector2(210, 294)
+const FULL_HEIGHT_SCALE: float = 1.2
+## The win results row: widest card, and the span the whole row may take.
+const RESULT_WIDTH: float = 440.0
+const RESULTS_SPAN: float = 1800.0
 
 @onready var faces: CardFaceCache = $CardFaceCache
 @onready var stage_label: Label = $Margin/Column/Header/HeaderCenter/HeaderInner/Stage
 @onready var opponent_label: Label = $Margin/Column/Header/HeaderCenter/HeaderInner/Opponent
 @onready var step_line: Label = $Margin/Column/Header/HeaderCenter/HeaderInner/StepLine
 @onready var stack_row: HFlowContainer = $Margin/Column/Header/HeaderCenter/HeaderInner/StackRow
-@onready var stats_row: HBoxContainer = $Margin/Column/Header/HeaderCenter/HeaderInner/Stats
+@onready var stats_row: HBoxContainer = $Margin/Column/Header/Stats
 @onready var aspect_row: HBoxContainer = $Margin/Column/Header/HeaderCenter/HeaderInner/AspectRow
-@onready var deck_tile: StatTile = $Margin/Column/Header/HeaderCenter/HeaderInner/Stats/Deck
-@onready var aspects_tile: StatTile = $Margin/Column/Header/HeaderCenter/HeaderInner/Stats/Aspects
+@onready var deck_tile: StatTile = $Margin/Column/Header/Stats/Deck
+@onready var aspects_tile: StatTile = $Margin/Column/Header/Stats/Aspects
 @onready var aspect_line: Label = $Margin/Column/Header/HeaderCenter/HeaderInner/AspectRow/AspectLine
-@onready var offer_row: HBoxContainer = $Margin/Column/OfferSection/OfferInner/OfferRow
-@onready var empty_label: Label = $Margin/Column/OfferSection/OfferInner/Empty
+@onready var offer_row: HBoxContainer = $Margin/Column/Body/OfferSection/OfferInner/OfferRow
+@onready var empty_label: Label = $Margin/Column/Body/OfferSection/OfferInner/Empty
 @onready var skip_button: Button = $Margin/Column/Footer/Skip
 @onready var cut_button: Button = $Margin/Column/Footer/Cut
 @onready var status_label: Label = $Margin/Column/Footer/Status
@@ -45,7 +49,6 @@ var _offer_defs: Array[CardDef] = []       # Aspect step only, index-aligned wit
 var _offer_bundles: Array[Dictionary] = [] # reward step only, index-aligned with `_offer_ids`
 var _all_faces: Array[CardDef] = []        # every face on screen in render order, for dev-inspect
 var _card_panels: Array[PanelContainer] = []   # one per offer entry, in offer order
-var _card_tints: Array[Color] = []             # matching edge colour per offer entry
 var _selected_index: int = -1
 var _cut_selected_id: String = ""
 var _zoom: TextureRect = null
@@ -60,10 +63,9 @@ func _ready() -> void:
 	_dev_setup()
 	if Session.run == null:
 		return
-	# Inside a run the trim takes the run's Mastery school colour, as on the map.
+	# Inside a run the title carries the run's Mastery school edge, as on the map.
 	var run_deck: DeckList = Session.run.deck()
 	MapArt.tint_for_school(run_deck.style if run_deck != null else "")
-	theme = SanctumUI.themed(MapArt.tint)
 	SanctumUI.dress(self, $Margin/Column/Header/TitleRow/Title as Label)
 	skip_button.pressed.connect(_on_skip)
 	cut_button.pressed.connect(_on_cut_open)
@@ -87,14 +89,14 @@ func _ready() -> void:
 
 
 func _fill_results() -> void:
-	var results: Control = $Margin/Column/Results
-	var grid: GridContainer = $Margin/Column/Results/Grid
+	# One row under the offers, centred, each result an equal-width card.
+	var results: HBoxContainer = $Margin/Column/Body/Results
 	results.visible = not Session.win_results.is_empty()
-	grid.columns = 1 if Session.win_results.size() == 1 else 2
+	var width: float = minf(RESULT_WIDTH, (RESULTS_SPAN - 12.0 * (Session.win_results.size() - 1)) / maxf(1.0, Session.win_results.size()))
 	for i in range(Session.win_results.size()):
-		var entry: PanelContainer = ProgressUI.result_card(Session.win_results[i])
-		entry.custom_minimum_size.x = 1200 if grid.columns == 1 else 593
-		grid.add_child(entry)
+		var entry: PanelContainer = ProgressUI.result_card(Session.win_results[i], not _reduced_motion, 0.5 + 0.1 * i)
+		entry.custom_minimum_size.x = width
+		results.add_child(entry)
 		if not _reduced_motion:
 			SanctumUI.enter(entry, 0.15 + 0.1 * i)
 
@@ -107,14 +109,15 @@ func _fill_header() -> void:
 	opponent_label.text = "Beat %s" % AdventureDecks.opponent_name(str(row.get("opponent", "")), Session.library)
 	step_line.visible = is_aspect_step
 	stack_row.visible = is_aspect_step
-	stats_row.visible = not is_aspect_step
+	# Faded rather than hidden: the row keeps its width so the header's middle stays centred.
+	stats_row.modulate.a = 0.0 if is_aspect_step else 1.0
 	aspect_row.visible = false
 	if is_aspect_step:
 		step_line.text = "Choose your next Aspect"
 		_fill_stack_chips()
 		return
-	deck_tile.set_stat("Deck", "%d cards" % run.cards.size(), "", ZenithTheme.MUTED)
-	aspects_tile.set_stat("Aspects", str(run.aspects()), "", ZenithTheme.MIGHT)
+	deck_tile.set_stat("Deck", "%d cards" % run.cards.size(), "", ZenithTheme.TEXT)
+	aspects_tile.set_stat("Aspects", str(run.aspects()), "", ZenithTheme.TEXT)
 	var taken: CardDef = _aspect_taken_this_stage()
 	if taken != null:
 		aspect_row.visible = true
@@ -155,7 +158,6 @@ func _fill_offer() -> void:
 		offer_row.remove_child(child)
 		child.queue_free()
 	_card_panels.clear()
-	_card_tints.clear()
 	_offer_defs.clear()
 	_offer_bundles.clear()
 	_offer_ids.clear()
@@ -174,8 +176,6 @@ func _fill_aspect_offer() -> void:
 			_offer_defs.append(def)
 	empty_label.visible = false
 	offer_row.visible = true
-	# Aspect cards are personalities, which own a group and a colour of their own since
-	# 2026-09-21. The run's deck style is no longer what tints them.
 	var tint: Color = Palette.school_ui(CardDef.GROUP_PERSONALITY)
 	for i in range(_offer_defs.size()):
 		var column: Control = await _build_aspect_card(_offer_defs[i], i, tint)
@@ -202,12 +202,12 @@ func _bundle_face_size(bundles: Array[Dictionary]) -> Vector2:
 	var max_cards: int = 1
 	for bundle in bundles:
 		max_cards = maxi(max_cards, (bundle.get("cards", []) as Array).size())
-	return BUNDLE_FACE_SIZE_3 if max_cards >= 3 else BUNDLE_FACE_SIZE_2
+	var size: Vector2 = BUNDLE_FACE_SIZE_3 if max_cards >= 3 else BUNDLE_FACE_SIZE_2
+	# Without the win results under them the offers have the whole height.
+	return size if not Session.win_results.is_empty() else size * FULL_HEIGHT_SCALE
 
 
-## Grounds and Ally bundles used to borrow Root's green and Steel's silver, because `school_ui`
-## knew only the schools plus Freestyle and Signature. Both groups have their own colour now; an
-## Ally bundle is personalities, so it takes the Personality gold.
+## A bundle's identity colour. An Ally bundle is personalities, so it takes the Personality colour.
 func _group_tint(group: String) -> Color:
 	if group == AdventureBundles.GROUP_ALLY:
 		return Palette.school_ui(CardDef.GROUP_PERSONALITY)
@@ -241,15 +241,14 @@ func _ordered_bundle_ids(bundle: Dictionary) -> Array[String]:
 	return ids
 
 
-## One offer entry during the Aspect step: a versus-size face in a panel tinted by the run's own
-## school, and its tier caption — "Aspect 3: Gorging" — since the two options of a split line share
-## one printed title and are told apart by their Aspect, not the character name. An Aspect joins
-## the Duelist stack, not the Life Deck, so there is no type chip or "in deck" count to show.
+## One offer entry during the Aspect step: a versus-size face and its tier caption, "Aspect 3:
+## Gorging", since the two options of a split line share one printed title and are told apart by
+## their Aspect, not the character name. An Aspect joins the Duelist stack, not the Life Deck, so
+## there is no type chip or "in deck" count to show.
 func _build_aspect_card(def: CardDef, index: int, tint: Color) -> Control:
-	var panel: PanelContainer = PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", _card_style(tint, false, false))
+	var panel: PanelContainer = _offer_panel(false, false)
 	var column: VBoxContainer = VBoxContainer.new()
-	column.add_theme_constant_override("separation", 8)
+	column.add_theme_constant_override("separation", 12)
 	column.custom_minimum_size.x = CARD_FACE_SIZE.x
 	var tex: Texture2D = await faces.render_face(def)
 	var button: TextureButton = TextureButton.new()
@@ -274,8 +273,7 @@ func _build_aspect_card(def: CardDef, index: int, tint: Color) -> Control:
 
 	var title: Label = Label.new()
 	title.text = _aspect_caption(def)
-	title.theme_type_variation = "HeaderLabel"
-	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_color_override("font_color", _identity_text(tint))
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.custom_minimum_size.x = CARD_FACE_SIZE.x
@@ -283,7 +281,6 @@ func _build_aspect_card(def: CardDef, index: int, tint: Color) -> Control:
 
 	panel.add_child(column)
 	_card_panels.append(panel)
-	_card_tints.append(tint)
 	_all_faces.append(def)
 	return panel
 
@@ -303,8 +300,7 @@ func _aspect_caption(def: CardDef) -> String:
 func _build_bundle_panel(bundle: Dictionary, index: int, face_size: Vector2) -> Control:
 	var group: String = str(bundle.get("group", ""))
 	var tint: Color = _group_tint(group)
-	var panel: PanelContainer = PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", _card_style(tint, false, false))
+	var panel: PanelContainer = _offer_panel(false, false)
 	panel.mouse_entered.connect(func() -> void: _hover_card(index, true))
 	panel.mouse_exited.connect(func() -> void: _hover_card(index, false))
 
@@ -323,12 +319,11 @@ func _build_bundle_panel(bundle: Dictionary, index: int, face_size: Vector2) -> 
 
 	var column: VBoxContainer = VBoxContainer.new()
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_theme_constant_override("separation", 10)
+	column.add_theme_constant_override("separation", 12)
 
 	var heading: Label = Label.new()
 	heading.text = str(bundle.get("name", ""))
-	heading.theme_type_variation = "HeaderLabel"
-	heading.add_theme_font_size_override("font_size", 18)
+	heading.add_theme_color_override("font_color", _identity_text(tint))
 	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	heading.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -339,6 +334,7 @@ func _build_bundle_panel(bundle: Dictionary, index: int, face_size: Vector2) -> 
 	chip_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var chip: Label = Label.new()
 	chip.text = CardText.group_name(group)
+	chip.theme_type_variation = &"CaptionLabel"
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ZenithTheme.chip(chip, tint)
 	chip_row.add_child(chip)
@@ -358,7 +354,6 @@ func _build_bundle_panel(bundle: Dictionary, index: int, face_size: Vector2) -> 
 
 	panel.add_child(column)
 	_card_panels.append(panel)
-	_card_tints.append(tint)
 	return panel
 
 
@@ -390,23 +385,15 @@ func _build_bundle_face(def: CardDef, count: int, face_size: Vector2, bundle_ind
 	wrap.add_child(button)
 
 	if count > 1:
-		var badge: PanelContainer = PanelContainer.new()
-		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		badge.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.ACCENT, Color(0, 0, 0, 0), 6, 0, 6, 2))
-		var badge_label: Label = Label.new()
-		badge_label.text = "x%d" % count
-		badge_label.add_theme_font_size_override("font_size", 13)
-		badge_label.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
-		badge_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		badge.add_child(badge_label)
-		badge.position = Vector2(face_size.x - 40.0, 6.0)
+		var badge: Label = _copy_badge(count)
+		badge.position = Vector2(face_size.x - 48.0, 6.0)
 		wrap.add_child(badge)
 
 	col.add_child(wrap)
 
 	var title: Label = Label.new()
 	title.text = def.title
-	title.add_theme_font_size_override("font_size", 13)
+	title.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.custom_minimum_size.x = face_size.x
@@ -416,7 +403,6 @@ func _build_bundle_face(def: CardDef, count: int, face_size: Vector2, bundle_ind
 	var copies: Label = Label.new()
 	copies.text = "In deck: %d" % Session.run.cards.count(def.id)
 	copies.theme_type_variation = "MutedLabel"
-	copies.add_theme_font_size_override("font_size", 11)
 	copies.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	copies.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(copies)
@@ -425,14 +411,33 @@ func _build_bundle_face(def: CardDef, count: int, face_size: Vector2, bundle_ind
 	return col
 
 
-## The Kenney framed panel in the card's or bundle's group colour, muted like the trim: the rule
-## and its dark fill both carry the group, so it reads at a glance. Hover brightens it. Selected:
-## the same panel in bright neutral white, which no group colour can be mistaken for.
-func _card_style(tint: Color, hover: bool, selected: bool) -> StyleBox:
+## An "xN" copy count over a card face: a filled iron badge.
+static func _copy_badge(count: int) -> Label:
+	var badge: Label = Label.new()
+	badge.text = "x%d" % count
+	badge.theme_type_variation = &"CaptionLabel"
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ZenithTheme.chip(badge, ZenithTheme.FRAME, true)
+	return badge
+
+
+## An offer's framed panel. The frame is iron, brighter on hover and bone when selected; the group
+## colour stays on the heading and the chip.
+func _offer_panel(hover: bool, selected: bool) -> PanelContainer:
+	var panel: PanelContainer = PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _card_style(hover, selected))
+	return panel
+
+
+func _card_style(hover: bool, selected: bool) -> StyleBox:
 	if selected:
-		return MapArt.panel_box(20, Color.WHITE)
-	var group: Color = MapArt.muted(tint)
-	return MapArt.panel_box(20, group.lightened(0.25) if hover else group)
+		return MapArt.panel_box(20, ZenithTheme.ACCENT)
+	return MapArt.panel_box(20, ZenithTheme.FRAME.lightened(0.3) if hover else ZenithTheme.FRAME)
+
+
+## A school or group colour lifted for text on the dark panel.
+static func _identity_text(tint: Color) -> Color:
+	return tint.lightened(0.15)
 
 
 func _select_card(index: int) -> void:
@@ -459,7 +464,7 @@ func _hover_card(index: int, over: bool) -> void:
 	if index == _selected_index:
 		return
 	var panel: PanelContainer = _card_panels[index]
-	panel.add_theme_stylebox_override("panel", _card_style(_card_tints[index], over, false))
+	panel.add_theme_stylebox_override("panel", _card_style(over, false))
 	_lift(panel, over)
 
 
@@ -467,7 +472,7 @@ func _refresh_card_styles() -> void:
 	for i in range(_card_panels.size()):
 		var panel: PanelContainer = _card_panels[i]
 		var on: bool = i == _selected_index
-		panel.add_theme_stylebox_override("panel", _card_style(_card_tints[i], false, on))
+		panel.add_theme_stylebox_override("panel", _card_style(false, on))
 		_lift(panel, on)
 
 

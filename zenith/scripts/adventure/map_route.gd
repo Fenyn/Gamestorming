@@ -4,7 +4,7 @@ extends Control
 ## foot, each act's boss at its crown, a Kenney double rule between acts and a small framed tag
 ## naming each. The board is the frame the map sits in; this control draws no ground of its own.
 ## Nodes are Kenney icons on dark tiles, joined by dashed roads: the road already walked is in the
-## trim tint (MapArt.tint), the roads open next are red, and the nodes the run may step to next
+## run's school colour (MapArt.school), the roads open next are bone-white, and the nodes the run may step to next
 ## glow and breathe. Clicking any node selects it for scouting; only the stage screen commits a
 ## step. Sits inside a ScrollContainer: `focus_y()` says where to scroll.
 
@@ -28,11 +28,11 @@ const OTHER_ACT_WASH: Color = Color(0.0, 0.0, 0.0, 0.32)
 const WASH_FEATHER: float = 160.0
 ## The Kenney double rule between acts.
 const DIVIDER_HEIGHT: float = 22.0
-## Near-black, under each road dash and round the token, so both stand off the board.
-const INK: Color = Color(0.04, 0.04, 0.05, 0.9)
-## A road nobody has walked or may walk yet: a quiet light grey on the dark board.
-const ROAD: Color = Color(0.74, 0.72, 0.68, 0.42)
-const OPEN_ROAD: Color = Color(0.86, 0.33, 0.27)
+## Under each road dash and round the token, so both stand off the board.
+const INK: Color = Color(ZenithTheme.BG_SCREEN, 0.9)
+## A road nobody has walked or may walk yet: a quiet grey on the dark board.
+const ROAD: Color = Color(ZenithTheme.TEXT_SOFT, 0.42)
+const OPEN_ROAD: Color = ZenithTheme.ACCENT
 const ROMAN: Array[String] = ["", "I", "II", "III", "IV", "V"]
 
 var act: int = 1
@@ -72,7 +72,7 @@ func setup(run: AdventureRun, map: AdventureMap) -> void:
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		label.add_theme_color_override("font_color", ZenithTheme.TEXT)
-		label.add_theme_font_size_override("font_size", 20)
+		label.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(label)
 		_labels.append(label)
@@ -296,8 +296,8 @@ func _walked(from: String, to: String) -> bool:
 	return false
 
 
-## A road: light dashes on a dark edge, in the trim tint where the run has walked, red where the
-## run may step next.
+## A road: light dashes on a dark edge, in the run's school colour where the run has walked,
+## bone-white where it may step next.
 func _dashed(a: Vector2, b: Vector2, trim_a: float, trim_b: float, walked: bool, open: bool) -> void:
 	var length: float = a.distance_to(b)
 	if length <= trim_a + trim_b:
@@ -307,7 +307,8 @@ func _dashed(a: Vector2, b: Vector2, trim_a: float, trim_b: float, walked: bool,
 	var run: float = length - trim_a - trim_b
 	var dash: float = 11.0
 	var gap: float = 7.0
-	var fill: Color = MapArt.tint.lightened(0.15) if walked else (OPEN_ROAD if open else ROAD)
+	var walked_colour: Color = MapArt.school if MapArt.school.a > 0.0 else MapArt.tint.lightened(0.15)
+	var fill: Color = walked_colour if walked else (OPEN_ROAD if open else ROAD)
 	var edge: Color = INK if walked or open else Color(0, 0, 0, 0)
 	var width: float = 4.0 if walked or open else 3.0
 	var t: float = 0.0
@@ -333,11 +334,11 @@ func _draw_marks() -> void:
 	for a in range(1, _map.acts + 1):
 		var shade: Color = MapArt.tint if a == act else MapArt.tint.darkened(0.45)
 		_marks.draw_style_box(MapArt.panel_box(0, shade), _banner_rect(a))
-	# The run's own node in the trim tint; a node being scouted in neutral white.
+	# The run's own node in bone; a node being scouted in iron.
 	if _here != "" and _buttons.has(_here):
 		_brackets(_here, 0.0, MapArt.tint_strong)
 	if _selected != "" and _selected != _here and _buttons.has(_selected):
-		_brackets(_selected, 4.0, Color.WHITE)
+		_brackets(_selected, 4.0, MapArt.tint.lightened(0.3))
 
 
 ## Where the token stands: just left of the node the run is on, or under act 1's first tier before
@@ -360,7 +361,7 @@ func _draw_token() -> void:
 		var region: Rect2 = Rect2(0.0, 0.0, w, w * TOKEN_SIZE.y / TOKEN_SIZE.x)
 		_token.draw_texture_rect_region(_portrait, rect, region)
 	else:
-		_token.draw_rect(rect, Color(0.3, 0.22, 0.14))
+		_token.draw_rect(rect, ZenithTheme.FRAME_DIM)
 
 
 ## Kenney's corner brackets around a node.

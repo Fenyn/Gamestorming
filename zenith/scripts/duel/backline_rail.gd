@@ -37,8 +37,8 @@ func refresh(view: SeatView, seat: int, viewer: int, prompt: PromptView, accent:
 	# The two rails sit one above the other, so each carries its seat's colour as a standing edge:
 	# which backline you are looking at reads without going back to the caption.
 	var edge: StyleBoxFlat = StyleBoxFlat.new()
-	edge.bg_color = Color(0.02, 0.03, 0.05, 0.18)
-	edge.set_corner_radius_all(10)
+	edge.bg_color = Color(ZenithTheme.SCRIM, 0.18)
+	edge.set_corner_radius_all(ZenithTheme.RADIUS)
 	edge.border_width_left = 3
 	edge.border_color = Color(accent, 0.85)
 	edge.content_margin_left = 12.0
@@ -61,8 +61,8 @@ func _fill_card(zone: StringName, uid: int, prompt: PromptView, reserve: int = -
 ## An empty frame: a border and a dark well, so the card pinned behind it reads through.
 func _set_frame(zone: StringName, usable: bool, occupied: bool) -> void:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.0, 0.0, 0.0, 0.25) if occupied else Color.TRANSPARENT
-	style.set_corner_radius_all(8)
+	style.bg_color = ZenithTheme.BG_INPUT if occupied else Color.TRANSPARENT
+	style.set_corner_radius_all(ZenithTheme.RADIUS)
 	style.set_border_width_all(2 if usable else (1 if occupied else 0))
 	style.border_color = ZenithTheme.ACCENT if usable else (ZenithTheme.BORDER if occupied else Color.TRANSPARENT)
 	(_frames[zone] as Panel).add_theme_stylebox_override("panel", style)

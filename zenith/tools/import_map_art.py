@@ -68,20 +68,22 @@ ORNATE_PIECES = {
 KENNEY = "Sprites/UI/kenney_fantasy-ui-borders/PNG"
 KENNEY_OUT = os.path.join(HERE, "..", "assets", "ui", "borders")
 DEFAULT_BORDER = "Default/Border/panel-border-012.png"
-## The side panels and the map board: a neutral dark fill under a white rule, both tinted together.
-PANEL_FILL = (54, 54, 58, 238)
+## The side panels and the map board: a dark fill under a white rule, both tinted together. The
+## fill is chosen so that under the iron frame tint (designs/zenith_ui.md, frame.metal) it lands on
+## surface.panel.
+PANEL_FILL = (39, 35, 35, 245)
 ## Buttons: Kenney's stepped-corner rule over a flat fill, one piece per state, never tinted.
-## Ordinary buttons are dark with a light rule; the one primary action on a screen is ivory with
-## a dark rule. name -> (fill, line).
+## Ordinary buttons are dark with an iron rule; the one primary action on a screen is bone-white
+## with a dark rule. name -> (fill, line).
 BUTTON_BORDER = "Default/Border/panel-border-022.png"
 BUTTON_PIECES = {
-    "button_normal": ((46, 46, 50, 242), (196, 192, 184, 255)),
-    "button_hover": ((72, 72, 76, 246), (255, 255, 255, 255)),
-    "button_pressed": ((32, 32, 35, 246), (255, 255, 255, 255)),
-    "button_disabled": ((40, 40, 43, 200), (96, 96, 96, 255)),
-    "accent_normal": ((208, 202, 190, 255), (58, 54, 48, 255)),
-    "accent_hover": ((230, 225, 214, 255), (36, 33, 29, 255)),
-    "accent_pressed": ((178, 172, 160, 255), (36, 33, 29, 255)),
+    "button_normal": ((34, 32, 32, 245), (143, 145, 148, 255)),
+    "button_hover": ((58, 55, 55, 248), (200, 201, 203, 255)),
+    "button_pressed": ((24, 22, 22, 248), (240, 232, 214, 255)),
+    "button_disabled": ((28, 27, 27, 210), (92, 94, 97, 255)),
+    "accent_normal": ((240, 232, 214, 255), (58, 54, 48, 255)),
+    "accent_hover": ((252, 248, 238, 255), (36, 33, 29, 255)),
+    "accent_pressed": ((206, 198, 180, 255), (36, 33, 29, 255)),
 }
 
 ## Card face rules: Kenney borders scaled up so a line survives the card face (512 px) being drawn

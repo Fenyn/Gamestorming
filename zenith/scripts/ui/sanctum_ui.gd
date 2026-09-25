@@ -1,71 +1,42 @@
 class_name SanctumUI
 extends RefCounted
-## Shared panel styling and restrained movement. Fonts inherit the project theme.
-##
-## Panels are the Kenney inner rule over a dark fill, and buttons Kenney's stepped-corner rule
-## over a flat fill, both from the art library through MapArt. Panels are neutral white here (the
-## adventure screens tint their own copy to the run's school); buttons are never tinted. Small
-## plain panels (`Panel`) and roster tiles (`TileButton`) keep the flat boxes, since a nine-slice
-## frame does not fit them.
+## Screen dressing and restrained movement over the one theme in ZenithTheme.
 
-## Text on the ivory primary button.
-const PRIMARY_TEXT: Color = Color(0.10, 0.10, 0.10)
-
-static var _theme: Theme
+const SCHOOL_EDGE: float = 4.0
 
 
 static func theme() -> Theme:
-	if _theme != null:
-		return _theme
-	_theme = ZenithTheme.get_theme().duplicate()
-	_theme.set_color("font_color", "MutedLabel", Color(0.66, 0.66, 0.66))
-	_theme.set_stylebox("panel", "PanelContainer", panel())
-	_theme.set_stylebox("panel", "Panel", flat_panel())
-	_theme.set_stylebox("panel", "TabContainer", StyleBoxEmpty.new())
-	_theme.set_color("font_color", "AccentLabel", ZenithTheme.TEXT)
-	for kind: String in ["Button", "OptionButton", "AccentButton"]:
-		var primary: bool = kind == "AccentButton"
-		var prefix: String = "accent" if primary else "button"
-		_theme.set_stylebox("normal", kind, MapArt.button_box(prefix + "_normal"))
-		_theme.set_stylebox("hover", kind, MapArt.button_box(prefix + "_hover"))
-		_theme.set_stylebox("pressed", kind, MapArt.button_box(prefix + "_pressed"))
-		_theme.set_stylebox("disabled", kind, MapArt.button_box("button_disabled"))
-		_theme.set_stylebox("focus", kind, StyleBoxEmpty.new())
-		# Ordinary buttons stay dark in every state, so their text stays light; the primary is ivory
-		# with dark text.
-		for state: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
-			_theme.set_color(state, kind, PRIMARY_TEXT if primary else ZenithTheme.TEXT)
-		_theme.set_color("font_disabled_color", kind, Color(0.42, 0.42, 0.42))
-	_theme.set_stylebox("normal", "TileButton", ZenithTheme.box(Color(0.13, 0.13, 0.13), Color(0.30, 0.30, 0.30), 2, 1, 18, 10))
-	_theme.set_stylebox("hover", "TileButton", ZenithTheme.box(Color(0.20, 0.20, 0.20), Color(0.44, 0.44, 0.44), 2, 1, 18, 10))
-	_theme.set_stylebox("pressed", "TileButton", ZenithTheme.box(Color(0.09, 0.09, 0.09), Color(0.44, 0.44, 0.44), 2, 1, 18, 10))
-	_theme.set_stylebox("disabled", "TileButton", ZenithTheme.box(Color(0.11, 0.11, 0.11), Color(0.20, 0.20, 0.20), 2, 1, 18, 10))
-	_theme.set_stylebox("focus", "TileButton", ZenithTheme.box(Color.TRANSPARENT, Color(0.8, 0.8, 0.8), 2, 2, 0, 0))
-	for state: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-		_theme.set_color(state, "TileButton", ZenithTheme.TEXT)
-	_theme.set_color("font_disabled_color", "TileButton", Color(0.42, 0.42, 0.42))
-	_theme.set_stylebox("normal", "LineEdit", ZenithTheme.box(Color(0.06, 0.06, 0.06), Color(0.22, 0.22, 0.22), 2, 1, 10, 6))
-	_theme.set_stylebox("focus", "LineEdit", ZenithTheme.box(Color.TRANSPARENT, Color(0.65, 0.65, 0.65), 2, 1, 10, 6))
-	return _theme
+	return ZenithTheme.get_theme()
 
 
-## A copy of the shared theme with its framed panels in `tint`: the adventure screens pass the
-## run's school colour (MapArt.tint after `MapArt.tint_for_school`). Buttons stay neutral.
-static func themed(tint: Color) -> Theme:
-	var t: Theme = theme().duplicate()
-	t.set_stylebox("panel", "PanelContainer", MapArt.panel_box(22, tint))
-	return t
-
-
-## Dresses a flat screen in the shared look: its screen title on a scroll banner in the trim tint.
-## The screens keep a plain dark background; the hex terrain that once sat behind them was too
-## busy (user, 2026-09-23) and is gone.
+## Dresses a flat screen in the shared look: its title on the iron scroll banner, and inside a run
+## a school-coloured edge under it (MapArt.school, set by `MapArt.tint_for_school`).
 static func dress(_screen: Control, title: Label) -> void:
-	if title != null:
-		banner_heading(title)
+	if title == null:
+		return
+	banner_heading(title)
+	var edge: ColorRect = title.get_node_or_null("SchoolEdge") as ColorRect
+	if MapArt.school.a <= 0.0:
+		if edge != null:
+			edge.queue_free()
+		return
+	if edge == null:
+		edge = ColorRect.new()
+		edge.name = "SchoolEdge"
+		edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		title.add_child(edge)
+	edge.color = MapArt.school
+	edge.anchor_left = 0.0
+	edge.anchor_right = 1.0
+	edge.anchor_top = 1.0
+	edge.anchor_bottom = 1.0
+	edge.offset_left = 22.0
+	edge.offset_right = -22.0
+	edge.offset_top = SCHOOL_EDGE
+	edge.offset_bottom = SCHOOL_EDGE * 2.0
 
 
-## A Label set on a scroll banner, in dark ink, sized to its text.
+## A Label set on the iron scroll banner, in dark ink, sized to its text.
 static func banner_heading(label: Label) -> void:
 	label.add_theme_stylebox_override("normal", MapArt.banner_box("banner", 36, 12, 16))
 	label.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
@@ -73,14 +44,12 @@ static func banner_heading(label: Label) -> void:
 	label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 
-## The shared framed panel: Kenney inner rule over a dark fill, neutral.
 static func panel() -> StyleBox:
-	return MapArt.panel_box(22, Color.WHITE)
+	return ZenithTheme.panel()
 
 
-## The flat box small panels keep.
 static func flat_panel() -> StyleBoxFlat:
-	return ZenithTheme.box(Color(0.065, 0.065, 0.065, 0.96), Color(0.20, 0.20, 0.20), 2, 1, 24, 22)
+	return ZenithTheme.flat_panel()
 
 
 static func enter(control: Control, delay: float = 0.0) -> void:

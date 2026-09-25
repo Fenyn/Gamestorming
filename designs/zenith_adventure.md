@@ -475,6 +475,10 @@ and `debtors_ring` (5).
 **Mana** is the per-run currency. It is spent at Shop nodes and is gone when the run ends. Motes
 stay the only currency outside a run (section 8.2).
 
+In the fiction it is the same charge constructs run on (`zenith/docs/cast.md`, Origins), so a
+duelist carrying a lot of it is prey to them. This is flavour only: construct opponents do not
+drain Mana (user, 2026-09-24).
+
 ### 7.7 Resonances
 
 Not built. Approved 2026-09-20. A stacking per-run layer in the Slay the Spire relic sense: small

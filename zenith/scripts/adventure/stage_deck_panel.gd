@@ -1,8 +1,7 @@
 class_name StageDeckPanel
 extends ColorRect
 ## A modal browser for the run's Life Deck: DeckInfo's stats up top and a RunDeckList below. Esc
-## or Close dismisses it. The dim scrim blocks input to everything behind it, the same as the duel
-## HUD's overlays.
+## or Close dismisses it. The scrim blocks input to everything behind it.
 
 @onready var panel: PanelContainer = $Center/Panel
 @onready var close_button: Button = $Center/Panel/Column/Header/Close

@@ -90,22 +90,22 @@ func _build_row(def: CardDef, count: int) -> Button:
 	row.theme_type_variation = &"TileButton"
 	row.toggle_mode = true
 	row.button_group = _row_group
-	row.custom_minimum_size = Vector2(0, 32)
+	row.custom_minimum_size = Vector2(0, 42)
 	row.mouse_entered.connect(func() -> void: _preview(def))
 	row.mouse_exited.connect(_revert_preview)
 	row.pressed.connect(func() -> void: _select(def))
 
 	var h: HBoxContainer = HBoxContainer.new()
 	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	h.add_theme_constant_override("separation", 8)
+	h.add_theme_constant_override("separation", 12)
 	h.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	h.offset_left = 10
-	h.offset_right = -10
+	h.offset_left = 12
+	h.offset_right = -12
 	row.add_child(h)
 
 	var tint: Color = Palette.card_ui(def)
 	var icon: TypeIcon = TypeIcon.new()
-	icon.custom_minimum_size = Vector2(16, 16)
+	icon.custom_minimum_size = Vector2(18, 18)
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.type = def.type

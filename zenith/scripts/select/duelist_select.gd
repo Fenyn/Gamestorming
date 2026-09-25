@@ -41,13 +41,11 @@ func _ready() -> void:
 	theme = SanctumUI.theme().duplicate()
 	$Margin/Column/Body.move_child(seat_panel, 0)
 	SanctumUI.enter($Margin/Column/Body)
-	theme.set_stylebox("focus", "Button", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.ACCENT, 8, 2, 0, 0))
-	theme.set_stylebox("focus", "TileButton", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.ACCENT, 8, 2, 0, 0))
-	theme.set_stylebox("panel", "TabContainer", ZenithTheme.box(Color.TRANSPARENT, Color.TRANSPARENT, 0, 0, 0, 12))
-	for state: String in ["tab_unselected", "tab_hovered", "tab_selected"]:
-		theme.set_stylebox(state, "TabContainer", ZenithTheme.box(ZenithTheme.RAISED if state == "tab_selected" else Color.TRANSPARENT, Color.TRANSPARENT, 6, 0, 18, 10))
-	theme.set_color("font_selected_color", "TabContainer", ZenithTheme.ACCENT)
-	theme.set_color("font_unselected_color", "TabContainer", ZenithTheme.MUTED)
+	# Arrow-key browsing needs a visible focus ring, which the shared theme leaves off.
+	theme.set_stylebox("focus", "Button", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.ACCENT, ZenithTheme.RADIUS, 2, 0, 0))
+	theme.set_stylebox("focus", "TileButton", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.ACCENT, ZenithTheme.RADIUS, 2, 0, 0))
+	MapArt.tint_for_school("")
+	SanctumUI.dress(self, title_label)
 	_online = Net.active()
 	if not _online and OS.get_cmdline_user_args().has("--dev-ai"):
 		Session.ai_seat = 1   # the select screen opened directly, as against the AI
@@ -205,7 +203,7 @@ func _on_connection_failed(reason: String) -> void:
 ## Tile badges for the choosing seat, the status line, and what Back does.
 func _refresh() -> void:
 	var d: DeckList = Session.chosen[_seat]
-	$Background.set_school(Palette.school_ui(d.style) if d != null else Color(0.34, 0.74, 0.82))
+	$Background.set_school(Palette.school_ui(d.style) if d != null else ZenithTheme.FRAME)
 	for tile in _tiles:
 		var state: int = 0
 		if d != null and Session.decks[tile.index] == d:
@@ -250,7 +248,7 @@ func _refresh_players() -> void:
 		if picked:
 			border = Session.seat_color(seat) if state == "locked in" else Color(Session.seat_color(seat), 0.45)
 		var fill: Color = ZenithTheme.RAISED if present else Color(1, 1, 1, 0.02)
-		(chip.get_parent() as PanelContainer).add_theme_stylebox_override("panel", ZenithTheme.box(fill, border, 6, 1, 10, 4))
+		(chip.get_parent() as PanelContainer).add_theme_stylebox_override("panel", ZenithTheme.box(fill, border, ZenithTheme.RADIUS, 1, 12, 6))
 	code_banner.visible = not filled and Net.room_code != ""
 
 

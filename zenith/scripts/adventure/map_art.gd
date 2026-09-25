@@ -4,9 +4,8 @@ extends RefCounted
 ## Every lookup is cached; a missing file answers null so a screen still draws without it.
 ##
 ## The trim (panel rules, banners, filigree, dividers) is imported as neutral greys and drawn
-## through `tint`: white by default, and in the adventure the run's Mastery school colour, set once
-## by the screen with `tint_for_school`. Buttons and the map's node markers (Kenney icons on dark
-## tiles) keep their own colours.
+## through `tint`, which is iron. Buttons and the map's node markers (Kenney icons on dark tiles)
+## keep their own colours.
 
 const DIR: String = "res://assets/adventure_map"
 ## A school colour is capped at this saturation and brightness before it tints the trim, so the
@@ -25,10 +24,13 @@ const DIVIDER_KNOT: float = 48.0
 const BRACKETS: String = "res://assets/ui/borders/default/border/panel-border-000.png"
 const BRACKET_MARGIN: int = 24
 
-static var tint: Color = Color.WHITE
-## The same hue kept saturated, for thin or faint marks (the "here" brackets, the choice glow)
-## where the muted `tint` would read as white.
-static var tint_strong: Color = Color.WHITE
+## The trim colour: iron on every screen (designs/zenith_ui.md, frame.metal).
+static var tint: Color = ZenithTheme.FRAME
+## The "act here" marks on the map (the node the run stands on, the choice glow): bone-white.
+static var tint_strong: Color = ZenithTheme.ACCENT
+## The run's school colour, muted like the trim, or clear outside a run. It appears only as the
+## edge under a screen title and on the map's walked road.
+static var school: Color = Color(0, 0, 0, 0)
 static var _cache: Dictionary = {}
 
 
@@ -52,16 +54,9 @@ static func ui(piece: String) -> Texture2D:
 	return texture("%s/ui/%s.png" % [DIR, piece])
 
 
-## Sets the trim colour from a school: the run's Mastery school in the adventure. An empty
-## school, or one Palette does not know, keeps the neutral white.
-static func tint_for_school(school: String) -> void:
-	if school == "":
-		tint = Color.WHITE
-		tint_strong = Color.WHITE
-		return
-	var c: Color = Palette.school_ui(school)
-	tint = muted(c)
-	tint_strong = Color.from_hsv(c.h, clampf(c.s, 0.65, 0.85), minf(c.v, 0.85))
+## Sets the run's school colour: the run's Mastery school in the adventure, or none for "".
+static func tint_for_school(school_id: String) -> void:
+	school = Color(0, 0, 0, 0) if school_id == "" else muted(Palette.school_ui(school_id))
 
 
 ## Any colour capped the way the trim tint is, so a loud group or school colour sits as quietly

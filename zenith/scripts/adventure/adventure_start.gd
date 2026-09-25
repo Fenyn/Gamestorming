@@ -30,6 +30,8 @@ var _advancing: bool = false
 
 func _ready() -> void:
 	theme = SanctumUI.theme()
+	MapArt.tint_for_school("")
+	SanctumUI.dress(self, $Margin/Column/TitleRow/Title as Label)
 	$Margin/Column/Body.move_child(seat_panel, 0)
 	SanctumUI.enter($Margin/Column/Body)
 	# The name field and the second seat belong to the two-seat select flow; a run has one
@@ -38,7 +40,7 @@ func _ready() -> void:
 	(seat_panel.get_node("Row/Lock") as Button).visible = false
 	(seat_panel.get_node("Row/Header/Tag") as Label).text = "CHARACTER"
 	seat_panel.faces = faces
-	motes_tile.set_stat("Motes", str(Session.wallet.motes), "", ZenithTheme.ACCENT)
+	motes_tile.set_motes(Session.wallet.motes)
 	vendor_button.pressed.connect(_on_vendor)
 	journal_button.pressed.connect(_on_journal)
 	back_button.pressed.connect(_on_back)
@@ -71,7 +73,7 @@ func _ready() -> void:
 		sub.remove_theme_font_size_override("font_size")
 		sub.text = "%d decks" % count if count > 1 else (_starters[i][0] as DeckList).name.trim_suffix(" (Starter)")
 		if count > 1:
-			sub.add_theme_color_override("font_color", ZenithTheme.ACCENT)
+			sub.add_theme_color_override("font_color", ZenithTheme.TEXT)
 	roster_scroll.resized.connect(_resize_grid)
 	_resize_grid()
 	if not _starters.is_empty():
@@ -90,41 +92,18 @@ func _pick(index: int) -> void:
 	_show_deck()
 
 
-## The picked character's decks, open ones selectable, locked ones named with what opens them.
-## Hidden when the character has a single deck and nothing locked.
+## The picked character's unlocked decks. Decks not yet unlocked are not shown at all; the
+## journal is where their routes are. Hidden when the character has a single deck.
 func _fill_deck_choice() -> void:
-	var box: VBoxContainer = seat_panel.get_node("Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/DeckChoice")
-	var choices: HFlowContainer = box.get_node("Choices")
-	var locked_label: Label = box.get_node("Locked")
+	var box: VBoxContainer = seat_panel.get_node("Row/Scroll/Content/Tabs/Overview/Summary/DeckChoice")
+	var choices: VBoxContainer = box.get_node("Choices")
 	for child in choices.get_children():
-		if child.name == "Caption":
-			continue
 		choices.remove_child(child)
 		child.queue_free()
-	var locked: Array[String] = []
-	for id in AdventureDecks.playable_starters():
-		if not (_starter_ids[_picked] as Array).has(id) \
-				and AdventureDecks.character_of(AdventureDecks.family_of(id)) == _characters[_picked]:
-			locked.append(id)
 	var open: Array = _starters[_picked]
-	box.visible = open.size() > 1 or not locked.is_empty()
+	box.visible = open.size() > 1
 	for i in range(open.size()):
-		choices.add_child(_deck_button((open[i] as DeckList).name.trim_suffix(" (Starter)"), i == _deck_index, false, i))
-	var lines: PackedStringArray = PackedStringArray()
-	for id in locked:
-		var name: String = AdventureProgress.deck_name(id)
-		var sources: Array[String] = AdventureAchievements.unlock_sources(id)
-		var how: String = ", or ".join(sources) if not sources.is_empty() else "a hidden route"
-		var button: Button = _deck_button(name, false, true, -1)
-		button.tooltip_text = "%s is locked. It opens with %s." % [name, how]
-		choices.add_child(button)
-		lines.append("%s opens with %s" % [name, how])
-	locked_label.visible = not lines.is_empty()
-	locked_label.text = "; ".join(lines)
-	locked_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	locked_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	locked_label.tooltip_text = locked_label.text
-	locked_label.mouse_filter = Control.MOUSE_FILTER_PASS
+		choices.add_child(_deck_button((open[i] as DeckList).name.trim_suffix(" (Starter)"), i == _deck_index, i))
 	_update_fade.call_deferred()
 
 
@@ -134,19 +113,16 @@ func _update_fade() -> void:
 	fade.visible = scroll.get_v_scroll_bar().max_value > scroll.size.y + 1.0
 
 
-func _deck_button(text: String, pressed: bool, locked: bool, index: int) -> Button:
+func _deck_button(text: String, pressed: bool, index: int) -> Button:
 	var button: Button = Button.new()
 	button.text = text
+	button.theme_type_variation = &"TileButton"
 	button.toggle_mode = true
 	button.button_group = _deck_group
-	button.custom_minimum_size = Vector2(0, 48)
-	button.add_theme_font_size_override("font_size", 20)
-	button.add_theme_stylebox_override("pressed", ZenithTheme.box(ZenithTheme.ACCENT_SOFT, ZenithTheme.ACCENT, 4, 2, 18, 8))
-	button.add_theme_color_override("font_pressed_color", ZenithTheme.TEXT)
-	button.disabled = locked
+	button.custom_minimum_size = Vector2(0, 54)
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.button_pressed = pressed
-	if index >= 0:
-		button.pressed.connect(_pick_deck.bind(index))
+	button.pressed.connect(_pick_deck.bind(index))
 	return button
 
 

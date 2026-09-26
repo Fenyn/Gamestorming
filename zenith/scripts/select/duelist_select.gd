@@ -47,7 +47,7 @@ func _ready() -> void:
 	MapArt.tint_for_school("")
 	SanctumUI.dress(self, title_label)
 	_online = Net.active()
-	if not _online and OS.get_cmdline_user_args().has("--dev-ai"):
+	if not _online and DevArgs.user_args().has("--dev-ai"):
 		Session.ai_seat = 1   # the select screen opened directly, as against the AI
 	Session.locked = [false, false]
 	back_button.pressed.connect(_on_back)
@@ -334,7 +334,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 ## `--dev-screenshot=<png>` saves the screen once laid out, then quits, except on an online
 ## autoplay run, where the duel further on takes it.
 func _dev_args() -> void:
-	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var args: PackedStringArray = DevArgs.user_args()
 	var lock: bool = args.has("--dev-lock") or (_online and args.has("--dev-autoplay"))
 	for arg in args:
 		if arg.begins_with("--dev-pick="):
@@ -361,7 +361,7 @@ func _dev_args() -> void:
 
 
 func _dev_screenshot_pending() -> bool:
-	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var args: PackedStringArray = DevArgs.user_args()
 	if _online and args.has("--dev-autoplay"):
 		return false   # the screenshot is of the duel, further on
 	for arg in args:

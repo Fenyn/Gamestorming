@@ -7,11 +7,22 @@ extends Node3D
 signal clicked(uid: int)
 signal hovered(uid: int, over: bool)
 signal inspected(uid: int)   # right-click: bring the card up to read
+signal motion_done           # the Body motion now running ended or was replaced
 
 const FLIP_DURATION: float = 0.25
 const FLASH_TIME: float = 0.35
 const SHAKE_TIME: float = 0.32
-const LUNGE_TIME: float = 0.18
+const WINDUP_TIME: float = 0.14
+const WINDUP_DISTANCE: float = 0.10
+const STRIKE_TIME: float = 0.08
+const RECOIL_TIME: float = 0.22
+## When a lunge's strike makes contact, for a caller timing the streak to it.
+const LUNGE_TIME: float = WINDUP_TIME + STRIKE_TIME
+## How far under the face the legal-choice glow and the role aura lie, in world units. The table
+## scales a slot's whole basis, height included, so a local offset would sink the duelist's (2.6x)
+## under the mat; `_keep_underlays` holds these fixed instead.
+const GLOW_DROP: float = 0.004
+const ROLE_DROP: float = 0.006
 ## Hover is a softer bone than the legal-choice glow, so the two still read apart.
 const HOVER_TINT: Color = Color(ZenithTheme.ACCENT, 0.6)
 var uid: int = -1
@@ -63,6 +74,20 @@ func _ready() -> void:
 	pick.input_event.connect(_on_pick_input)
 	pick.mouse_entered.connect(func() -> void: set_hovered(true); hovered.emit(uid, true))
 	pick.mouse_exited.connect(func() -> void: set_hovered(false); hovered.emit(uid, false))
+	set_notify_transform(true)
+	_keep_underlays()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSFORM_CHANGED and is_node_ready():
+		_keep_underlays()
+
+
+func _keep_underlays() -> void:
+	var height: float = maxf(0.001, global_basis.get_scale().y)
+	if not is_equal_approx(glow.position.y * height, -GLOW_DROP):
+		glow.position.y = -GLOW_DROP / height
+		role.position.y = -ROLE_DROP / height
 
 
 func set_textures(front_tex: Texture2D, back_tex: Texture2D) -> void:
@@ -140,11 +165,13 @@ func _update_role() -> void:
 
 func _update_border() -> void:
 	var active: bool = face_up and (_highlighted or _hovering or _role_color.a > 0.0 or _presence_color.a > 0.0)
+	# A legal choice outranks the fight role on the border, so a personality whose Power can be used
+	# mid-Combat still reads as clickable; the role keeps the wide aura under the card.
 	var color: Color = HOVER_TINT
-	if _role_color.a > 0.0:
-		color = _role_color
-	elif _highlighted:
+	if _highlighted:
 		color = ZenithTheme.ACCENT
+	elif _role_color.a > 0.0:
+		color = _role_color
 	elif not _hovering and _presence_color.a > 0.0:
 		color = _presence_color
 	border_fx.set_effect(Color(color, 1.0), active, reduced_motion)
@@ -165,45 +192,94 @@ func flash(color: Color) -> void:
 
 ## A short rattle of the quads, for taking a hit. Awaitable.
 func shake(strength: float = 0.05) -> void:
-	_stop_motion()
 	if reduced_motion:
+		_stop_motion()
 		return
-	_motion = create_tween()
+	var t: Tween = _start_motion()
 	var steps: int = 5
 	for i in range(steps):
 		var falloff: float = 1.0 - float(i) / steps
 		var off: Vector3 = Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)) * strength * falloff
-		_motion.tween_property(body, "position", off, SHAKE_TIME / (steps + 1))
-	_motion.tween_property(body, "position", Vector3.ZERO, SHAKE_TIME / (steps + 1))
-	await _motion.finished
+		t.tween_property(body, "position", off, SHAKE_TIME / (steps + 1))
+	t.tween_property(body, "position", Vector3.ZERO, SHAKE_TIME / (steps + 1))
+	await _motion_end(t)
 
 
-## The quads push out along `direction` (world space) and back, for attacking. Awaitable.
+## The attack: the quads draw back a little, snap out along `direction` (world space), and settle
+## home. Awaitable.
 func lunge(direction: Vector3, distance: float = 0.45) -> void:
-	_stop_motion()
 	if reduced_motion:
+		_stop_motion()
 		return
-	var local: Vector3 = global_transform.basis.inverse() * (direction.normalized() * distance) + Vector3(0, 0.15, 0)
-	_motion = create_tween()
-	_motion.tween_property(body, "position", local, LUNGE_TIME).set_ease(Tween.EASE_OUT)
-	_motion.tween_property(body, "position", Vector3.ZERO, LUNGE_TIME).set_ease(Tween.EASE_IN)
-	await _motion.finished
+	var toward: Vector3 = global_transform.basis.inverse() * direction.normalized()
+	var t: Tween = _start_motion()
+	t.tween_property(body, "position", -toward * WINDUP_DISTANCE + Vector3(0, 0.08, 0), WINDUP_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	t.tween_property(body, "position", toward * distance + Vector3(0, 0.15, 0), STRIKE_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t.tween_property(body, "position", Vector3.ZERO, RECOIL_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	await _motion_end(t)
+
+
+## The blow landing: a short jab along `direction` that holds on the contact frame for `stop`
+## seconds before it comes home, so a heavy hit reads heavier. Awaitable.
+func jab(direction: Vector3, stop: float = 0.0, distance: float = 0.2) -> void:
+	if reduced_motion:
+		_stop_motion()
+		return
+	var toward: Vector3 = global_transform.basis.inverse() * direction.normalized()
+	var t: Tween = _start_motion()
+	t.tween_property(body, "position", toward * distance + Vector3(0, 0.06, 0), STRIKE_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	if stop > 0.0:
+		t.tween_interval(stop)
+	t.tween_property(body, "position", Vector3.ZERO, RECOIL_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	await _motion_end(t)
+
+
+## Thrown back along `direction` (world space) and bouncing home, for an attacker whose blow was
+## stopped. Awaitable.
+func knock(direction: Vector3, distance: float = 0.12) -> void:
+	if reduced_motion:
+		_stop_motion()
+		return
+	var away: Vector3 = global_transform.basis.inverse() * direction.normalized()
+	var t: Tween = _start_motion()
+	t.tween_property(body, "position", away * distance, 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.tween_property(body, "position", Vector3.ZERO, 0.26).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await _motion_end(t)
 
 
 ## A small hop in place, for a card that just changed (Energy, Fervor, an aspect). Awaitable.
 func hop(height: float = 0.12) -> void:
-	_stop_motion()
 	if reduced_motion:
+		_stop_motion()
 		return
+	var t: Tween = _start_motion()
+	t.tween_property(body, "position:y", height, 0.12).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	t.tween_property(body, "position:y", 0.0, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await _motion_end(t)
+
+
+## Every Body motion replaces the last. A killed tween never emits `finished`, so each motion
+## is awaited through `motion_done`, which fires when it ends and when a newer motion cuts it off.
+func _start_motion() -> Tween:
+	_stop_motion()
 	_motion = create_tween()
-	_motion.tween_property(body, "position:y", height, 0.12).set_ease(Tween.EASE_OUT)
-	_motion.tween_property(body, "position:y", 0.0, 0.16).set_ease(Tween.EASE_IN)
-	await _motion.finished
+	var t: Tween = _motion
+	t.finished.connect(func() -> void:
+		if _motion == t:
+			motion_done.emit())
+	return t
+
+
+func _motion_end(t: Tween) -> void:
+	while _motion == t and t.is_valid() and t.is_running():
+		await motion_done
 
 
 func _stop_motion() -> void:
 	if _motion != null:
 		_motion.kill()
+		_motion = null
+		motion_done.emit()
 	body.position = Vector3.ZERO
 
 

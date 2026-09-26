@@ -16,17 +16,23 @@ const EXPANDED_WIDTH: float = 390.0
 const REVEAL_FRACTION: float = 0.15
 ## The tucked hand shows each card's title band and the top of its art.
 const RESTING_VISIBLE_FRACTION: float = 0.28
+## The open hand shows a little more: enough to pick a card, since the reading face above it
+## carries the detail.
+const OPEN_VISIBLE_FRACTION: float = 0.55
+## How much of its height the hovered card rises out of the open fan.
+const HOVER_RISE: float = 0.08
 const AURA: Shader = preload("res://scripts/duel/card_aura.gdshader")
 const BORDER_FX: PackedScene = preload("res://scenes/duel/card_border_fx.tscn")
 const HOVER_TINT: Color = ZenithTheme.ACCENT
 const DIM_TINT: Color = Color(0.20, 0.20, 0.20)     # the aura of a card that is not a choice now
 const DULL_FACE: Color = Color(0.44, 0.44, 0.44)   # clearly out of play, still readable up close
 const LABEL_OUTLINE: Color = Color(0.03, 0.025, 0.03, 0.95)
-const LEFT_CLEAR: float = 24.0                     # margin the preview keeps from the left screen edge
+const LEFT_CLEAR: float = 18.0                    # margin the preview keeps from the left screen edge
 const LEGAL_LIFT: float = 24.0                     # design pixels a card the decision takes stands up
 const LEGAL_GLOW: float = 1.6                      # the aura's `highlight` on such a card; 1.0 is a plain legal card
 const PREVIEW_MARGIN: float = 18.0
 const PREVIEW_NAME_ROOM: float = 40.0               # design pixels over the fan for the neighbours' names
+const PREVIEW_TOP: float = 144.0                    # design pixels: the phase strip at its tallest, plus a gutter
 @export var reduced_motion: bool = false:
 	set(value):
 		if reduced_motion == value:
@@ -55,9 +61,11 @@ var _preview: Node3D
 var _preview_face: Sprite3D
 var _preview_edge: MeshInstance3D
 var _preview_border: Node3D
-var _top_clear: float = 0.0
+## How far in from the right edge the HUD rail starts. The fan's band and the preview's reach stop
+## PREVIEW_MARGIN short of it at all times, whether or not the rail is showing, so neither moves
+## when a decision opens.
+var rail_clear: float = 0.0
 var _handoff_rect: Rect2 = Rect2()
-var _decision_rect: Rect2 = Rect2()
 var _crest_rect: Rect2 = Rect2()
 
 
@@ -84,23 +92,6 @@ func _ready() -> void:
 	_preview_border = BORDER_FX.instantiate()
 	_preview.add_child(_preview_border)
 	_preview.hide()
-
-
-## The bottom edge of the HUD strip along the top of the screen; the preview stops below it.
-func set_top_clear(y: float) -> void:
-	if absf(_top_clear - y) < 1.0:
-		return
-	_top_clear = y
-	if revealed:
-		_layout()
-
-
-func set_decision_rect(rect: Rect2) -> void:
-	if _decision_rect.position.distance_to(rect.position) < 1.0 and _decision_rect.size.distance_to(rect.size) < 1.0:
-		return
-	_decision_rect = rect
-	if revealed:
-		_layout()
 
 
 func set_hand(cards: Array[SeatCard], cache: CardFaceCache, legal: Dictionary, view: SeatView, prompt: PromptView = null) -> void:
@@ -340,7 +331,7 @@ func _layout(snap: bool = false) -> void:
 	# open. The tucked hand uses the same size so tucking is a pure drop.
 	var width: float = minf(CARD_WIDTH, _size.x * WIDTH_FRACTION)
 	var height: float = width * FACE_SIZE.y / FACE_SIZE.x
-	var band: float = minf(_size.x * 0.53, 1040.0)
+	var band: float = minf(minf(_size.x * 0.53, 1040.0), 2.0 * (_size.x * (1.0 - FAN_CENTRE) - rail_clear - PREVIEW_MARGIN))
 	var old_first: int = _page * _per_page
 	# Each card keeps a little over half its width clear, so seven fit on one page at any size.
 	_per_page = maxi(3, int(band / (width * 0.55)))
@@ -348,17 +339,6 @@ func _layout(snap: bool = false) -> void:
 	var first: int = _page * _per_page
 	var count: int = mini(_per_page, _items.size() - first)
 	var step: float = minf(width + 14.0, (band - width) / maxf(1.0, count - 1))
-	var fan_shift: float = 0.0
-	var fan_top: float = _size.y - height - 64.0
-	var fan_right: float = _size.x * FAN_CENTRE + (count - 1) * 0.5 * step + width * 0.5
-	var fan_left: float = fan_right - (count - 1) * step - width
-	if _decision_rect.has_area() and _decision_rect.position.y < _size.y - 58.0 and _decision_rect.end.y > fan_top \
-			and _decision_rect.position.x < fan_right and _decision_rect.end.x > fan_left:
-		fan_shift = minf(0.0, _decision_rect.position.x - PREVIEW_MARGIN - fan_right)
-		# A fan that cannot step aside without leaving the screen stays centred and rises over the
-		# decision instead.
-		if fan_left + fan_shift < PREVIEW_MARGIN:
-			fan_shift = 0.0
 	var units: float = _units_per_pixel()
 	# While the decision takes a hand card, the cards it takes stand up out of the fan.
 	var asks_hand: bool = false
@@ -386,7 +366,9 @@ func _layout(snap: bool = false) -> void:
 			item["rect"] = Rect2()
 			continue
 		var offset: float = i - first - (count - 1) * 0.5
-		var center: Vector2 = Vector2(_size.x * FAN_CENTRE + fan_shift + offset * step, _size.y - height * 0.5 - 64.0 + absf(offset) * 5.0)
+		var center: Vector2 = Vector2(_size.x * FAN_CENTRE + offset * step, _size.y + height * (0.5 - OPEN_VISIBLE_FRACTION) + absf(offset) * 5.0)
+		if over:
+			center.y -= height * HOVER_RISE
 		item["rect"] = Rect2(center - Vector2(width, height) * 0.5, Vector2(width, height)) if revealed else Rect2()
 		if not revealed:
 			# A shallow strip of real card tops advertises the tucked hand.
@@ -449,13 +431,11 @@ func _layout(snap: bool = false) -> void:
 func _layout_preview(item: Dictionary, width: float, height: float, units: float) -> void:
 	var source: Rect2 = item["rect"]
 	var s: float = _size.y / 1080.0
-	var bottom: float = _size.y - height - 64.0 - (LEGAL_LIFT + PREVIEW_NAME_ROOM) * s
-	var room: float = bottom - _top_clear - PREVIEW_MARGIN
+	var bottom: float = _size.y - height * OPEN_VISIBLE_FRACTION - (LEGAL_LIFT + PREVIEW_NAME_ROOM) * s
+	var room: float = bottom - PREVIEW_TOP
 	var scale_factor: float = maxf(0.2, minf(EXPANDED_WIDTH / width, room / height))
 	var size: Vector2 = Vector2(width, height) * scale_factor
-	var right_end: float = _size.x - 48.0
-	if _decision_rect.has_area() and _decision_rect.position.y < bottom and _decision_rect.end.y > bottom - size.y:
-		right_end = minf(right_end, _decision_rect.position.x - PREVIEW_MARGIN)
+	var right_end: float = _size.x - rail_clear - PREVIEW_MARGIN
 	var center: Vector2 = Vector2(clampf(source.get_center().x, LEFT_CLEAR + size.x * 0.5, right_end - size.x * 0.5), bottom - size.y * 0.5)
 	_expanded_rect = Rect2(center - size * 0.5, size)
 	# The strip between the two faces keeps the hover while the pointer climbs to the preview.

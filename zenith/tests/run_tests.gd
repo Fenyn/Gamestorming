@@ -25,7 +25,6 @@ func _init() -> void:
 		test_library_and_strike_table,
 		test_deck_list_and_validator,
 		test_steel_and_root_masteries_need_their_bloodline,
-		test_old_card_ids_in_a_save_become_generic_ids,
 		test_every_art_file_belongs_to_a_card_in_its_group_folder,
 		test_title_searches_still_find_their_cards,
 		test_shipped_decks_are_legal,
@@ -36,6 +35,7 @@ func _init() -> void:
 		test_drill_school_lock,
 		test_grounds_forces_skip_and_recover,
 		test_strike_damage_and_fight_back,
+		test_the_first_attacker_is_named_as_combat_opens,
 		test_drill_and_mastery_modifiers,
 		test_stage_overflow_to_life,
 		test_art_cost_and_damage,
@@ -182,6 +182,8 @@ func _init() -> void:
 		test_a_deck_that_never_attacks_still_declares_to_spend_what_it_carries,
 		test_grounds_can_tax_one_kind_of_attack,
 		test_a_restriction_can_last_one_attack_phase_not_the_whole_combat,
+		test_restrictions_list_what_the_rules_forbid,
+		test_a_barred_stop_all_does_not_skip_the_defense,
 		test_a_profile_can_pivot_on_the_matchup,
 		test_a_profile_can_pivot_on_where_the_duel_stands,
 		test_a_forced_combat_skip_says_why,
@@ -278,6 +280,11 @@ func _init() -> void:
 		test_adventure_map_paths_hold_two_to_five_fights,
 		test_adventure_map_fields_legal_opponents,
 		test_adventure_storylines_set_act_bosses,
+		test_lead_in_slots_follow_how_the_pair_met,
+		test_lead_in_general_call_gets_a_fitting_reply,
+		test_lead_in_joined_ally_and_whisper_add_a_line,
+		test_lead_in_data_is_well_formed,
+		test_story_log_records_results_and_round_trips,
 		test_adventure_encounters_bring_a_guest_from_the_storyline,
 		test_a_guest_ally_starts_in_play,
 		test_adventure_boss_win_joins_the_run,
@@ -649,20 +656,6 @@ func test_deck_list_and_validator() -> void:
 	check(bad_problems.size() >= 2, "small mixed-school deck rejected: %s" % ", ".join(bad_problems))
 
 
-func test_old_card_ids_in_a_save_become_generic_ids() -> void:
-	var saved: Dictionary = {"cards": ["steel_iron_fist", "pyre_kindling", "not_a_card"],
-		"counts": {"black_hands": 2}, "starter_id": "steel_heir_start"}
-	var out: Dictionary = CardRenames.migrate(saved) as Dictionary
-	var cards: Array = out["cards"]
-	check(str(cards[0]).begins_with("steel_strike_"), "an old Steel id maps to a generic one: %s" % cards[0])
-	eq(str(cards[2]), "not_a_card", "an unknown string passes through")
-	check((out["counts"] as Dictionary).keys()[0].begins_with("signature_"), "Dictionary keys migrate too")
-	eq(str(out["starter_id"]), "steel_heir_start", "a deck id is not a card id and is left alone")
-	var shipped: CardLibrary = shipped_library()
-	for new_id in CardRenames.ids().values():
-		check(shipped.defs.has(new_id), "the migration names a real card: %s" % new_id)
-
-
 func test_every_art_file_belongs_to_a_card_in_its_group_folder() -> void:
 	var shipped: CardLibrary = shipped_library()
 	var root: String = CardFace.ART_DIR
@@ -801,10 +794,12 @@ func test_shipped_decks_are_legal() -> void:
 			var pair: Array[DeckList] = [d, DeckList.load_from("res://data/decks".path_join(entry))]
 			e.setup(pair, shipped, table_data, 7)
 			e.start()
+			var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+			rng.seed = 7
 			var guard: int = 0
 			while not e.is_over() and guard < 4000:
 				guard += 1
-				var opt: Command = e.prompt.options[randi_range(0, e.prompt.options.size() - 1)]
+				var opt: Command = e.prompt.options[rng.randi_range(0, e.prompt.options.size() - 1)]
 				e.submit(opt)
 			check(e.is_over(), "%s random self-play finished (winner %d by %s)" % [entry, e.state.winner, e.state.win_reason])
 		entry = dir.get_next()
@@ -861,6 +856,7 @@ func test_grounds_forces_skip_and_recover() -> void:
 	eq(e.player(0).hand.size(), 1, "kept one")
 	eq(prompt_kind(e), &"recover", "recover offered after a skipped combat")
 	var top: CardInstance = e.player(0).discard.back()
+	eq(int(e.prompt.context.get("card", -1)), top.uid, "the recover prompt names the discard card it would return")
 	answer(e, &"recover")
 	eq(e.player(0).life_deck.back(), top, "recovered card sits at deck bottom")
 	eq(e.state.active, 1, "turn passed")
@@ -1819,7 +1815,7 @@ func test_events_carry_the_state_they_fired_at() -> void:
 		eq((st.get("fervor", []) as Array).size(), 2, "one Fervor count per player")
 		eq((st.get("zones", []) as Array).size(), 2, "one zone row per player")
 		# Where the turn stood, so the banner over the table cannot run ahead of the beat.
-		for key in ["turn", "step", "phase", "active", "attacker"]:
+		for key in ["step", "phase", "active", "attacker"]:
 			check(st.has(key), "the beat's state carries %s" % key)
 		check(int(st["step"]) != GameState.Step.GAME_OVER, "and it is a step of the turn it fired in")
 		if str(l.get("type", "")) == "power_up":
@@ -2240,7 +2236,7 @@ func test_damage_breakdown_in_view() -> void:
 		elif ev.type == &"modified_damage":
 			mod_line = CardText.event_line(ev, e)
 	check(base_line.begins_with("Strike Table: Might"), "base damage log line names the table: %s" % base_line)
-	check(mod_line.contains("Test Pyre Drill") and mod_line.ends_with("Total 4 stages."), "modifier log line lists sources and total: %s" % mod_line)
+	check(mod_line.contains("Test Pyre Drill") and mod_line.ends_with("Total 4 Energy."), "modifier log line lists sources and total: %s" % mod_line)
 	eq(prompt_kind(e), &"attack_action", "fight back prompt")
 	check(bool(e.prompt.context.get("fight_back", false)), "the defender's attack phase is flagged as a fight back")
 	eq(CardText.prompt_title(e.prompt), "Fight back", "fight back title")
@@ -2559,6 +2555,34 @@ func test_a_restriction_can_last_one_attack_phase_not_the_whole_combat() -> void
 	check(e._forbidden(foe, "strike_cards"), "set again, with the phase still to come")
 	e._expire_floating("combat")
 	check(not e._forbidden(foe, "strike_cards"), "and Combat ending clears one that never fired")
+
+
+## The AI and the seat view read `restrictions`, so it has to list exactly what the rules enforce,
+## a rival's Seal and a phase restriction the current phase is not bound by included.
+func test_restrictions_list_what_the_rules_forbid() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "vigil"), real_deck([], "pact"))
+	check(not e.restrictions(e.player(0)).has("mastery"), "no Seal, no forbid")
+	real_inject(e, 1, "seal_28")
+	check(e.restrictions(e.player(0)).has("mastery"), "their Seal 7 forbids my Mastery in the list too")
+	check(not e.restrictions(e.player(1)).has("mastery"), "and leaves their own alone")
+	e._float(1, "forbid", "next_attack_phase", {"what": "strike_cards", "source": -1})
+	e.state.attacker = 1
+	check(not e.restrictions(e.player(1)).has("strike_cards"), "the phase it was set in is not bound by it")
+	for p in e.state.players:
+		for what in DuelEngine.FORBID_KINDS:
+			eq(e.restrictions(p).has(what), e._forbidden(p, what), "restrictions and the rules agree on %s for player %d" % [what, p.index])
+
+
+## An attack that "may not be stopped by Strike cards" is not stopped by a stop-all a Strike left
+## earlier, so that stop-all must not skip the defender's defense window either.
+func test_a_barred_stop_all_does_not_skip_the_defense() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var src: CardInstance = inject(e, 1, "t_strike")
+	e._float(1, "stop_all", "combat", {"kind": "any", "source": src.uid})
+	var a: Dictionary = {"unstoppable": false, "stops_needed": 1, "kind": "strike", "focused": false, "stopped": false, "spec": {}}
+	check(e._standing_stop(e.player(1), a), "an open stop-all covers the attack")
+	a["spec"] = {"no_stop_by": "strike"}
+	check(not e._standing_stop(e.player(1), a), "one a Strike left does not cover an attack Strikes may not stop")
 
 
 ## Grounds could only ever double every cost at once. A place can now be heavy for one kind of
@@ -3583,7 +3607,6 @@ func test_last_attack_in_view() -> void:
 	check(int(v1.last_attack.get("stages_dealt", 0)) > 0, "and how hard")
 	eq(int(v1.last_attack.get("attacker", -1)), 0, "who attacked")
 	answer(e, &"attack", uid_in_hand(e, 1, "t_strike"))
-	eq(SeatView.of(e, 0).battle_step, 7, "the defense prompt sits at battle step 7 in the view")
 	answer(e, &"defend", uid_in_hand(e, 0, "t_parry"))
 	var v0: SeatView = SeatView.from_dict(SeatView.of(e, 0).to_dict())
 	eq(bool(v0.last_attack.get("stopped", false)), true, "the second attack was stopped")
@@ -5708,7 +5731,7 @@ const ADVENTURE_MAP_SEEDS: Array[int] = [1, 2, 3, 77, 4242]
 
 
 ## Three acts; tiers 1 to 7 joined without crossing, every node on a path from the start to the
-## act's boss; tier 1 offers a choice; the Sensei tier is all Sensei; the same seed rolls the same map.
+## act's boss; tier 1 offers a choice; the Relic tier is all Relic nodes; the same seed rolls the same map.
 func test_adventure_map_is_three_acts_of_connected_tiers() -> void:
 	for starter_id in AdventureDecks.playable_starters():
 		for run_seed in ADVENTURE_MAP_SEEDS:
@@ -5747,9 +5770,9 @@ func test_adventure_map_is_three_acts_of_connected_tiers() -> void:
 						if tier == 1:
 							eq(str(n["type"]), "duel", "%s: %s opens the act with a duel" % [tag, id])
 						if act == 1 and tier == 3:
-							eq(str(n["type"]), "sensei", "%s: %s is on the Sensei tier" % [tag, id])
-						elif str(n["type"]) == "sensei":
-							check(false, "%s: %s is a Sensei off the Sensei tier" % [tag, id])
+							eq(str(n["type"]), "relic", "%s: %s is on the Relic tier" % [tag, id])
+						elif str(n["type"]) == "relic":
+							check(false, "%s: %s is a Relic node off the Relic tier" % [tag, id])
 						for to in map.next_of(id):
 							var t: Dictionary = map.node(to)
 							if tier < AdventureMap.PATH_TIERS:
@@ -5859,6 +5882,131 @@ func test_adventure_storylines_set_act_bosses() -> void:
 			eq(str(map.duel_for(AdventureMap.boss_id_of(3)).get("opponent", "")), "steel_beatdown_boss", "%s final boss" % tag)
 	var edric: Array[String] = AdventureDecks.same_character_families("tide_deepwater")
 	check(edric.has("pyre_ascent"), "Edric's decks are one character: %s" % str(edric))
+
+
+func _lead_in_ctx(main: String, opponent: String, extra: Dictionary = {}) -> Dictionary:
+	var ctx: Dictionary = AdventureLeadIns.empty_context()
+	ctx["main"] = main
+	ctx["opponent"] = opponent
+	ctx.merge(extra, true)
+	return ctx
+
+
+func _lead_in_slot(ctx: Dictionary) -> String:
+	var key: String = str(AdventureLeadIns.pick(ctx).get("key", ""))
+	return key.get_slice("|", 2)
+
+
+## A pair's slot follows how the two have met: first, again, after a loss, act 3, level, boss.
+func test_lead_in_slots_follow_how_the_pair_met() -> void:
+	var edric: String = "Sir Edric Rooke"
+	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke")), "first", "never met plays first")
+	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"met": 1})), "again", "met before plays again")
+	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"met": 1, "last": "lost"})), "after_loss", "a loss last time plays after_loss")
+	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"met": 1, "act": 3})), "act3", "act 3 plays act3")
+	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"met": 1, "act": 3, "level": 3})), "level", "a levelled main plays level first")
+	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"met": 1, "shown": ["%s|Dame Alder Rooke|again" % edric]})), "first", "a scene shown this run gives way")
+	eq(_lead_in_slot(_lead_in_ctx(edric, "Emrys Rooke", {"boss": true})), "boss", "a boss node plays boss")
+	eq(_lead_in_slot(_lead_in_ctx(edric, "Emrys Rooke", {"boss": true, "met": 1, "last": "lost"})), "boss_again", "losing the boss plays boss_again")
+	var first_meet: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Sable Draik", {"boss": true}))
+	var met_before: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Sable Draik", {"boss": true, "met": 1}))
+	check(str(first_meet["narration"]) != str(met_before["narration"]), "Sable's boss scene has a met and an unmet variant")
+	var fire: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", edric, {"met": 1, "act": 3, "family": "pyre_ascent"}))
+	var tide: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", edric, {"met": 1, "act": 3, "family": "tide_deepwater"}))
+	check(str(fire["narration"]) != str(tide["narration"]), "Edric's fire deck has its own act 3 scene")
+	var alder: Dictionary = AdventureLeadIns.pick(_lead_in_ctx(edric, "Dame Alder Rooke"))
+	var lines: Array = alder["lines"]
+	eq(str(lines[0]["speaker"]), "Alder", "the speaker is read off the line")
+	eq(str(lines[0]["side"]), AdventureLeadIns.SIDE_OPPONENT, "the opponent speaks from the opponent's side")
+	eq(str(lines[1]["side"]), AdventureLeadIns.SIDE_MAIN, "the main speaks from the main's side")
+	check(AdventureLeadIns.pick(_lead_in_ctx(edric, "Nobody Anyone")).is_empty(), "an unknown opponent has no lead-in")
+
+
+## An opponent with no pair entry calls, and the main answers with a reply that fits the call.
+func test_lead_in_general_call_gets_a_fitting_reply() -> void:
+	var sable: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Sir Edric Rooke", "Sable Draik"))
+	eq(str(sable["key"]), "call|Sable Draik", "Sable calls Edric")
+	var lines: Array = sable["lines"]
+	eq(lines.size(), 2, "a call and a reply")
+	eq(str(lines[1]["side"]), AdventureLeadIns.SIDE_MAIN, "Edric answers")
+	check(str(lines[1]["text"]) in ["Not a chance!"], "Edric answers a demand: %s" % lines[1]["text"])
+	var siphon: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Sir Edric Rooke", "Siphon", {"construct": true, "shown": ["reply|Sir Edric Rooke|2"]}))
+	eq(str((siphon["lines"] as Array)[1]["text"]), "I'd feed you if I could...", "the construct reply answers a construct")
+	var levelled: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Sir Edric Rooke", "Sable Draik", {"level": 3}))
+	eq(str((levelled["lines"] as Array)[1]["text"]), "You fight like my brother. That's not a compliment.", "a levelled reply is preferred once reached")
+
+
+## A joined Ally adds a line once per act, its `once` line first; Ashmark hears someone he beat.
+func test_lead_in_joined_ally_and_whisper_add_a_line() -> void:
+	var first: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Sable Draik", {"joined": ["Orvath Kell"], "act": 2}))
+	var last: Dictionary = (first["lines"] as Array).back()
+	eq(str(last["side"]), AdventureLeadIns.SIDE_ALLY, "Kell speaks as the ally")
+	eq(str(last["text"]), "I still wear the gorget, my lord. Someone has to.", "Kell's first line is his once line")
+	check((first["keys"] as Array).has("joined|Orvath Kell|act2"), "the act is marked")
+	var later: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Sable Draik",
+		{"joined": ["Orvath Kell"], "act": 3, "shown": ["joined|Orvath Kell|once"]}))
+	eq(str(((later["lines"] as Array).back() as Dictionary)["text"]), "Guard up, my lord!", "after the once line Kell uses any")
+	var same_act: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Sable Draik",
+		{"joined": ["Orvath Kell"], "act": 2, "shown": ["joined|Orvath Kell|act2"]}))
+	eq((same_act["lines"] as Array).size(), 2, "Kell speaks once an act")
+	var whisper: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Bram Ashmark", "Siphon", {"beaten": ["Gideon Mourne"], "seed": 0}))
+	var sides: Array[String] = []
+	for line in whisper["lines"]:
+		sides.append(str(line["side"]))
+	check(sides.has(AdventureLeadIns.SIDE_WHISPER), "Ashmark hears someone he beat: %s" % str(sides))
+	var none: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Bram Ashmark", "Siphon", {"seed": 0}))
+	for line in none["lines"]:
+		check(str(line["side"]) != AdventureLeadIns.SIDE_WHISPER, "no whisper before a win this run")
+
+
+## Every authored line names a known speaker, stays short, and every pair names real characters.
+func test_lead_in_data_is_well_formed() -> void:
+	var data: Dictionary = AdventureLeadIns.read_data()
+	check(not data.is_empty(), "lead_ins.json parses")
+	var shipped: CardLibrary = CardLibrary.new()
+	shipped.load_dir("res://data/cards")
+	var characters: Array[String] = []
+	for id in shipped.all_ids():
+		var def: CardDef = shipped.defs[id]
+		if def.is_personality() and not characters.has(def.character):
+			characters.append(def.character)
+	var names: Dictionary = data.get("names", {})
+	for who in names.keys():
+		check(characters.has(str(who)), "%s is a character" % who)
+	var short_names: Array = names.values()
+	var scenes: Array[Dictionary] = AdventureLeadIns.all_scenes(data)
+	check(scenes.size() > 80, "every scene is listed for the preview: %d" % scenes.size())
+	for scene in scenes:
+		var title: String = str(scene["title"])
+		check(str(scene["narration"]).length() <= 120, "%s narration is short" % title)
+		check(not (scene["lines"] as Array).is_empty(), "%s has lines" % title)
+		for line in scene["lines"]:
+			check(short_names.has(str(line["speaker"])), "%s: %s is in names" % [title, line["speaker"]])
+			check(str(line["side"]) != AdventureLeadIns.SIDE_ALLY, "%s: %s is one of the pair" % [title, line["speaker"]])
+			check(str(line["text"]).length() <= 90, "%s line is short: %s" % [title, line["text"]])
+	for slots in (data.get("pairs", {}) as Dictionary).values():
+		for pair in (slots as Dictionary).values():
+			for slot in (pair as Dictionary).keys():
+				check(AdventureLeadIns.SLOT_ORDER.has(str(slot)), "%s is a known slot" % slot)
+	for who in (data.get("joined", {}) as Dictionary).keys():
+		check(names.has(str(who)), "joined %s has a short name" % who)
+
+
+func test_story_log_records_results_and_round_trips() -> void:
+	var story: AdventureStoryLog = AdventureStoryLog.new()
+	story.begin_run("run_a")
+	story.record_result("Bram Ashmark", "Siphon", true)
+	story.record_result("Bram Ashmark", "Siphon", false)
+	story.mark_shown(["Bram Ashmark|Siphon|first"])
+	eq(story.met("Bram Ashmark", "Siphon"), 2, "two duels met")
+	eq(story.last("Bram Ashmark", "Siphon"), "lost", "the last result is kept")
+	check(story.beaten.has("Siphon"), "a win adds the opponent to this run's beaten")
+	var back: AdventureStoryLog = AdventureStoryLog.from_dict(JSON.parse_string(JSON.stringify(story.to_dict())))
+	eq(back.met("Bram Ashmark", "Siphon"), 2, "met survives a save")
+	check(back.shown.has("Bram Ashmark|Siphon|first"), "shown survives a save")
+	back.begin_run("run_b")
+	check(back.beaten.is_empty() and back.shown.is_empty(), "a new run clears the run's lists")
+	eq(back.met("Bram Ashmark", "Siphon"), 2, "meetings outlive the run")
 
 
 ## An Encounter carries a guest from the run's storyline; a run with no guests has no Encounters.
@@ -6396,7 +6544,7 @@ func test_seals_can_be_put_under_their_owners_life_deck() -> void:
 	answer(e, &"use", uid_in_hand(e, 0, "t_sink_seals"))
 	eq(prompt_kind(e), &"pick_in_play", "the user chooses which Seals go under")
 	eq(e.prompt.player, 0, "and the choice is theirs, not the owner's")
-	check(e.prompt.find(&"pick_none") != null, "\"1 or 2\" lets one of them stay")
+	check(e.prompt.find(&"pick_none") == null, "\"1 or 2\" takes at least one")
 	check(e.submit(Command.new(0, &"pick_in_play", -1, [first.uid, second.uid])), "both go under")
 	var theirs: Array[CardInstance] = e.player(1).life_deck
 	eq(e.card(first.uid).zone, &"life_deck", "the Seal went to the deck, not the discard pile")
@@ -8768,16 +8916,16 @@ func test_the_collection_caps_at_three_four_or_one_and_dissolves_the_rest() -> v
 	eq(AdventureCollection.report_line(banked), "2 copies dissolved for %d Motes" % int(banked["motes"]),
 		"and the screen has a line to show")
 	eq(AdventureCollection.report_line({"copies": 0, "motes": 0}), "", "with nothing to say when nothing dissolved")
-	# A collection saved under the old caps is trimmed on load, and the overflow is paid back.
-	var old: Dictionary = {"version": 1, "cards": {
+	# A saved row above its cap (a card whose printed limit dropped) is trimmed on load, and the
+	# overflow is paid back.
+	var old: Dictionary = {"version": AdventureCollection.SAVE_VERSION, "cards": {
 		"freestyle_strike_06": 5,
 		"freestyle_combat_17": 4,
 		"personality_01": 3,
 		"pyre_strike_12": 3,
 	}}
 	var migrated: AdventureCollection = AdventureCollection.from_dict(old)
-	eq(migrated.loaded_version, 1, "the old file says which version it was written at")
-	eq(migrated.copies("freestyle_strike_06"), 5, "and loads exactly what it held")
+	eq(migrated.copies("freestyle_strike_06"), 5, "the file loads exactly what it held")
 	var purse: AdventureWallet = AdventureWallet.new()
 	var report: Dictionary = migrated.trim_to_cap(shipped, purse)
 	eq(migrated.copies("freestyle_strike_06"), 3, "the trim takes a normal row back to three")
@@ -8793,8 +8941,6 @@ func test_the_collection_caps_at_three_four_or_one_and_dissolves_the_rest() -> v
 	eq((report["rows"] as Array).size(), 3, "with one report row per card")
 	eq(int(migrated.trim_to_cap(shipped, purse)["copies"]), 0, "a second trim finds nothing to take")
 	eq(purse.motes, expected_motes, "and pays nothing more")
-	eq(int(migrated.to_dict()["version"]), AdventureCollection.SAVE_VERSION,
-		"and the file is written at the current version from then on")
 
 
 func test_keeping_and_buying_stop_at_the_collection_cap() -> void:
@@ -9240,15 +9386,26 @@ func test_the_view_counts_the_passes_that_would_end_combat() -> void:
 	var e: DuelEngine = engine(deck(filler()), deck(filler()))
 	to_combat(e)
 	var v: SeatView = SeatView.of(e, 0)
-	eq(v.combat_count, 1, "the first Combat of the duel")
 	eq(v.consecutive_passes, 0, "nobody has passed yet")
-	var phases: int = v.attack_phase_count
 	answer(e, &"pass")
 	var after: SeatView = SeatView.of(e, 0)
 	eq(after.consecutive_passes, 1, "one pass stands, so the next one ends Combat")
-	eq(after.attack_phase_count, phases + 1, "and the phase count moved on")
-	eq(after.combat_count, 1, "still the same Combat")
 	eq(SeatView.from_dict(after.to_dict()).consecutive_passes, 1, "the count goes over the wire")
+
+
+## The first attacker is named from the moment Combat is being prepared: combat_begin carries it,
+## and the view shows the active player as the attacker through the prepare phases.
+func test_the_first_attacker_is_named_as_combat_opens() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler()))
+	to_combat(e)
+	var begin_attacker: int = -1
+	for ev in e.take_events():
+		if ev.type == &"combat_begin":
+			begin_attacker = int(ev.data.get("attacker", -1))
+	eq(begin_attacker, e.state.active, "combat_begin names the first attacker")
+	e.state.phase = GameState.Phase.PREPARE_ACTIVE
+	e.state.attacker = 1 - e.state.active
+	eq(SeatView.of(e, 0).attacker, e.state.active, "while Combat is prepared the active player shows as the attacker")
 
 
 ## The client's Combat tracker reads each beat's own stamp, so a beat must carry the phase it
@@ -9261,11 +9418,10 @@ func test_combat_beats_are_stamped_with_the_phase_they_belong_to() -> void:
 	to_combat(e)
 	e.take_events()
 	var attacker_before: int = e.state.attacker
-	var exchange_before: int = e.state.attack_phase_count
 	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
 	var order: Array[StringName] = []
 	var phases: Dictionary = {}
-	var battle_seen: Array[int] = []
+	var battles: int = 0
 	var defends: int = 0
 	for ev in e.take_events():
 		if ev.type == &"prompt":
@@ -9277,25 +9433,18 @@ func test_combat_beats_are_stamped_with_the_phase_they_belong_to() -> void:
 		if phase == GameState.Phase.DEFEND:
 			defends += 1
 		if phase == GameState.Phase.BATTLE:
-			battle_seen.append(int(ev.state.get("battle_step", -1)))
-		eq(int(ev.state.get("attack_phase_count", -1)), exchange_before, "the beat names the exchange it belongs to: %s" % ev.type)
+			battles += 1
 	check(order.has(&"attack_declared"), "the attack is declared")
 	eq(phases.get(&"attack_declared", -1), GameState.Phase.ATTACK, "the declaration is stamped with the attack phase, not the battle that follows it")
 	check(defends >= 1, "the defense window gets at least one beat stamped DEFEND")
 	eq(phases.get(&"no_defense", GameState.Phase.DEFEND), GameState.Phase.DEFEND, "an undefended attack says so during DEFEND")
 	eq(phases.get(&"base_damage", -1), GameState.Phase.BATTLE, "base damage is a battle beat")
 	eq(phases.get(&"modified_damage", -1), GameState.Phase.BATTLE, "modified damage is a battle beat")
-	check(battle_seen.size() >= 2, "the battle sequence reaches the client as more than one beat")
-	var advanced: bool = false
-	for i in range(1, battle_seen.size()):
-		if battle_seen[i] > battle_seen[0]:
-			advanced = true
-	check(advanced, "the stamped battle step moves through the sequence: %s" % str(battle_seen))
+	check(battles >= 2, "the battle sequence reaches the client as more than one beat")
 	eq(phases.get(&"fight_back", -1), GameState.Phase.FIGHT_BACK, "the hand-over is its own beat, stamped FIGHT_BACK")
 	eq(order.back(), &"fight_back", "the hand-over is the last beat of the exchange")
 	eq(e.state.phase, GameState.Phase.ATTACK, "the exchange settles back on an attack phase")
 	eq(e.state.attacker, 1 - attacker_before, "and the other seat is the one attacking")
-	eq(e.state.attack_phase_count, exchange_before + 1, "which is the next exchange of this Combat")
 
 
 ## The readout carries its own baseline, so a client colours the number without doing rules maths.
@@ -11284,6 +11433,21 @@ func test_personalities_match_their_printed_cards() -> void:
 	for entry in e._modifiers_for(me, "own", "strike", null, {}):
 		total += e._modifier_amount(entry["m"], "stages", me)
 	eq(total, 2, "Sable's +1 counts every Draik Ally in play, the rival's included, and not Pim")
+	# "Your Allies get these modifiers too."
+	me.controlling = crew
+	total = 0
+	for entry in e._modifiers_for(me, "own", "strike", null, {}):
+		total += e._modifier_amount(entry["m"], "stages", me)
+	eq(total, 2, "a Draik Ally in control gets Sable's modifiers")
+	# Bram, Gnawing: "Your attacks do +1 Life", with no word for Allies, so an Ally's attacks go without.
+	var gnawing: DeckList = real_deck([], "pact")
+	gnawing.set_duelist(["personality_55", "personality_56", "personality_57"] as Array[String])
+	var b: DuelEngine = real_engine(gnawing, real_deck([], "vigil"))
+	var bram: PlayerState = b.player(0)
+	eq(bram.duelist.def.id, "personality_55", "Bram is on Gnawing")
+	eq(b._modifiers_for(bram, "own", "strike", null, {}).size(), 1, "Bram's own attacks carry his +1 Life")
+	bram.controlling = real_inject(b, 0, "personality_40")
+	eq(b._modifiers_for(bram, "own", "strike", null, {}).size(), 0, "an Ally in control does not")
 	# "When you perform an attack, raise your anger 1 level. If Goku is in play, raise your anger 2 levels instead."
 	var quarr: CardDef = shipped().get_def("personality_13")
 	var rage: Dictionary = quarr.aspect_data(1)["constant"]["on_attack"][0]

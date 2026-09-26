@@ -5,9 +5,14 @@ var checks: int = 0
 var failures: int = 0
 
 
-func _init() -> void:
-	var session: Node = load("res://scripts/autoload/session.gd").new()
-	session.call("_ready")
+func _initialize() -> void:
+	_run.call_deferred()
+
+
+## Session reads the Net autoload, so it is used as the autoload once the tree has them, not built
+## by hand in `_init` before they exist.
+func _run() -> void:
+	var session: Node = root.get_node("Session")
 	var decks: Array[DeckList] = session.get("decks")
 	_check(not decks.is_empty(), "Session loads shipped decks")
 	for deck in decks:
@@ -22,7 +27,6 @@ func _init() -> void:
 	_check(session.call("build_ai") == null, "Session without AI seat keeps human play")
 	for level in ["default", "easy", "hard"]:
 		_test_host(session, level)
-	session.free()
 	print("AI routing: %d checks, %d failures" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 

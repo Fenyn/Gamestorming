@@ -111,10 +111,10 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 				problems.append("'%s' is %s, deck Style is %s" % [id, def.school, deck.style])
 		if def.type == CardDef.Type.SEAL:
 			seal_sets[def.seal_set] = true
-		# "Sensei Deck only": legal in the Reserve and nowhere else.
+		# "Reserve only": legal in the Reserve and nowhere else.
 		if bool(def.raw.get("reserve_only", false)):
 			problems.append("'%s' is Reserve only and cannot be in the Life Deck" % id)
-		# A card on the CRD's banned list is an adventure bomb and never legal in a tournament deck.
+		# A card on the rulebook's banned list is an adventure bomb and never legal in a tournament deck.
 		if bool(def.raw.get("banned", false)) and not adventure:
 			problems.append("'%s' is banned outside adventure mode" % id)
 		if def.type == CardDef.Type.PERSONALITY:
@@ -125,7 +125,7 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 		if def.type == CardDef.Type.SEAL or def.type == CardDef.Type.PERSONALITY:
 			limit = 1
 		elif def.character != "" and def.character == duelist.character and limit >= DEFAULT_LIMIT:
-			# A card naming your Main Personality allows a fourth copy, unless the card prints a
+			# A card naming your duelist allows a fourth copy, unless the card prints a
 			# limit of its own. A printed limit is the tighter rule and wins.
 			limit = SIGNATURE_LIMIT
 		if int(counts[id]) > limit:
@@ -146,7 +146,7 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			problems.append("Deck Style must be set to the Mastery's school")
 		elif mastery.school != wanted_school:
 			problems.append("Mastery school '%s' does not match Style %s" % [mastery.school, deck.style])
-		# Heritage: only a Saiyan or Namekian Main Personality could declare that style, so a Steel
+		# Heritage: only a duelist of the right bloodline could declare that style, so a Steel
 		# or Root Mastery names the bloodline every Duelist card must carry.
 		if mastery != null:
 			var needs: String = str(mastery.raw.get("duelist_bloodline", ""))
@@ -183,7 +183,7 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 		if def.type == CardDef.Type.SEAL or def.type == CardDef.Type.PERSONALITY:
 			limit = 1
 		elif def.character != "" and def.character == duelist.character and limit >= DEFAULT_LIMIT:
-			# A card naming your Main Personality allows a fourth copy, unless the card prints a
+			# A card naming your duelist allows a fourth copy, unless the card prints a
 			# limit of its own. A printed limit is the tighter rule and wins.
 			limit = SIGNATURE_LIMIT
 		if combined > limit:

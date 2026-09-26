@@ -23,7 +23,7 @@ static func load_run() -> AdventureRun:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(file))
 	var run: AdventureRun = null
 	if parsed is Dictionary:
-		run = AdventureRun.from_dict(CardRenames.migrate(parsed) as Dictionary)
+		run = AdventureRun.from_dict(parsed as Dictionary)
 	# A save from before the current version, or one that will not parse, is dropped rather than
 	# left to offer a Continue that can never load.
 	if run == null:

@@ -9,7 +9,7 @@ const SHOT_DELAY: float = 0.5
 
 
 static func args() -> PackedStringArray:
-	return OS.get_cmdline_user_args()
+	return DevArgs.user_args()
 
 
 ## The value after `prefix`, taking the last match, or "" when no argument carries it.
@@ -86,6 +86,8 @@ static func use_scratch_saves() -> void:
 	AdventureSave.path_override = dir.path_join("run.json")
 	AdventureUnlocks.path_override = dir.path_join("unlocks.json")
 	AdventureProgress.path_override = dir.path_join("progress.json")
+	AdventureStoryLog.path_override = dir.path_join("story_log.json")
+	Session.story_log = AdventureStoryLog.new()
 	Session.unlocks = AdventureUnlocks.new()
 	Session.progress = AdventureProgress.new()
 	Session.wallet = AdventureWallet.new()

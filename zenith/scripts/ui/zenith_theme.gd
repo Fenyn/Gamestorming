@@ -59,6 +59,8 @@ const GAP_S: int = 12
 const GAP: int = 18
 const GAP_L: int = 24
 const GAP_XL: int = 36
+## How far the OptionButton arrow sits in from the button's edge: inside the frame's notched rim.
+const ARROW_INSET: int = 20
 
 static var _theme: Theme = null
 
@@ -105,6 +107,7 @@ static func build() -> Theme:
 			t.set_color(state, kind, TEXT_DARK if primary else TEXT)
 		t.set_color("font_disabled_color", kind, TEXT_DISABLED)
 	t.set_type_variation("AccentButton", "Button")
+	_balance_icon_buttons(t)
 
 	# Selectable tile: a flat tile that takes the bone ring and a raised fill when chosen.
 	t.set_type_variation("TileButton", "Button")
@@ -196,6 +199,48 @@ static func modal_panel() -> StyleBox:
 ## The selected state of a tile, row or tab: a raised fill under a 2 px bone ring.
 static func selected_box(pad_x: int = 18, pad_y: int = 12) -> StyleBoxFlat:
 	return box(BG_ACTIVE, ACCENT, RADIUS, 2, pad_x, pad_y)
+
+
+## A button that draws an icon on one side (the OptionButton arrow, the CheckButton toggle on the
+## right, the CheckBox box on the left) centres its text in what the icon leaves, so the text sits
+## off the middle of the frame. Padding the other side by the icon's width puts it back. Widths
+## come from the icons themselves, so a new icon keeps the text centred.
+static func _balance_icon_buttons(t: Theme) -> void:
+	var base: Theme = ThemeDB.get_default_theme()
+	# The arrow is placed from the button's edge, not its content margin, so without this it lands
+	# on the frame's notched corner.
+	t.set_constant("arrow_margin", "OptionButton", ARROW_INSET)
+	var sides: Dictionary = {
+		# The text keeps clear of the arrow by its width and the separation on both sides; the
+		# arrow's own inset from the edge does not move the text.
+		"OptionButton": [_icon_width(t, base, "arrow", "OptionButton") + 2 * _constant(t, base, "h_separation", "OptionButton"), true],
+		"CheckButton": [maxi(_icon_width(t, base, "checked", "CheckButton"), _icon_width(t, base, "unchecked", "CheckButton")) + _constant(t, base, "h_separation", "CheckButton"), true],
+		"CheckBox": [maxi(_icon_width(t, base, "checked", "CheckBox"), _icon_width(t, base, "unchecked", "CheckBox")) + _constant(t, base, "h_separation", "CheckBox"), false],
+	}
+	for kind: String in sides:
+		var room: int = int(sides[kind][0])
+		var icon_right: bool = bool(sides[kind][1])
+		for state: String in ["normal", "hover", "pressed", "disabled", "hover_pressed"]:
+			var src: StyleBox = t.get_stylebox(state if t.has_stylebox(state, "Button") else "normal", "Button")
+			var box: StyleBox = src.duplicate()
+			if icon_right:
+				box.content_margin_left += room
+			else:
+				box.content_margin_right += room
+			t.set_stylebox(state, kind, box)
+		t.set_stylebox("focus", kind, StyleBoxEmpty.new())
+		for color: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
+			t.set_color(color, kind, TEXT)
+		t.set_color("font_disabled_color", kind, TEXT_DISABLED)
+
+
+static func _icon_width(t: Theme, base: Theme, icon: String, kind: String) -> int:
+	var tex: Texture2D = t.get_icon(icon, kind) if t.has_icon(icon, kind) else base.get_icon(icon, kind)
+	return tex.get_width() if tex != null else 0
+
+
+static func _constant(t: Theme, base: Theme, name: String, kind: String) -> int:
+	return t.get_constant(name, kind) if t.has_constant(name, kind) else base.get_constant(name, kind)
 
 
 ## Small square used for Energy, Fervor and progress pips.

@@ -57,17 +57,22 @@ const FILAMENT_CAP: float = 13.0          # half-width of the transverse cap on 
 const CARD_FACE: PackedScene = preload("res://scenes/duel/card_face.tscn")
 const CARD_ASPECT: float = 716.0 / 512.0
 const DECISION_GAP: float = 12.0
-## The decision column on the rail: its left offset from the right edge and its width. The focus
-## card always has one size, RAIL_CARD_WIDTH, with its top on RAIL_TOP, the line under the corner
-## toggles. The decision hangs below that slot and grows downward, and its action list scrolls
-## before it would come within PROMPT_BOTTOM_MARGIN of the screen edge.
-const RAIL_FOCUS: Rect2 = Rect2(-454, 120, 400, 0)
+## The rail on the right edge, GUTTER in from it. The focus card always has one size,
+## RAIL_CARD_WIDTH, and sits centred between the screen's top and the decision's line (`rail_top`).
+## The decision frame stands on that line, PROMPT_BOTTOM up from the screen's bottom edge and level
+## with the tucked hand's top, so its buttons keep one home clear of the corner, and it is as tall
+## as what it says. A decision too tall for the room under the card lifts the card, no higher than
+## RAIL_TOP (under the corner toggles); a longer one may reach over the focus caption strip
+## (PROMPT_LONG_RISE), never over the face, and past that its action list scrolls.
+const GUTTER: float = 18.0
+const RAIL_TOP: float = 82.0
+const RAIL_CARD_WIDTH: float = 400.0
+const RAIL_LEFT: float = -GUTTER - RAIL_CARD_WIDTH   # from the right edge
+const PROMPT_BOTTOM: float = 96.0
+const PROMPT_LONG_RISE: float = FOCUS_CAPTION_HEIGHT + DECISION_GAP
 ## Padding between the decision panel's frame texture edge and its text; the rule itself sits
 ## about 8 px inside the texture edge.
 const PROMPT_PAD: int = 20
-const PROMPT_BOTTOM_MARGIN: float = 24.0
-const RAIL_TOP: float = 120.0
-const RAIL_CARD_WIDTH: float = 400.0
 const ACTION_HEIGHT: float = 48.0
 const SINGLE_ACTION_HEIGHT: float = 56.0   # a lone action is the whole decision, so it stands taller
 const DECISION_RESULT_HEIGHT: float = 30.0   # one line at the body size
@@ -82,43 +87,25 @@ const TRAY_VERBS: Dictionary = {
 }
 ## The tray only ever opens for the seat at the table, so its header needs no name.
 const TRAY_WHO: String = "YOUR DECISION"
-## How long the newly lit Combat sub-chip takes to come up, when Reduced Motion is off.
-const CHIP_FADE: float = 0.15
-## The over-bright flash a chip or face takes for a beat that happened on it, bone rather than warm.
+## The over-bright flash a face takes for a beat that happened on it, bone rather than warm.
 const PULSE_BRIGHT: Color = Color(1.6, 1.58, 1.5, 1)
-const TOAST_HOLD: float = 1.1
-const QUIET_HOLD: float = 0.6
-const STEP_LABELS: Array[String] = ["Draw", "Place", "Power Up", "Declare", "Combat", "Discard", "Recover"]
-## Keys for `mark_phase_event`, one per chip of the top strip, in STEP_LABELS order.
-const STEP_KEYS: Array[StringName] = [&"draw", &"place", &"power_up", &"declare", &"combat", &"discard", &"recover"]
-const COMBAT_INDEX: int = 4          # which STEP_LABELS chip expands into the combat sub-strip
-## The Combat step as the player meets it. Every beat of a Combat lands on one of these. Combat is
-## attack and defend back and forth, so a fight back is the same Attack chip with the other seat
-## named under it rather than a step of its own.
-const SUB_LABELS: Array[String] = ["Enter", "Attack", "Defend", "Resolve", "End"]
-const SUB_KEYS: Array[StringName] = [&"enter", &"attack", &"defend", &"resolve", &"end"]
-const SUB_PHASES: Array = [
-	[GameState.Phase.PREPARE_ACTIVE, GameState.Phase.PREPARE_OPPOSING, GameState.Phase.OPPOSING_DRAW],
-	[GameState.Phase.ATTACK, GameState.Phase.FIGHT_BACK], [GameState.Phase.DEFEND],
-	[GameState.Phase.BATTLE], [GameState.Phase.COMBAT_END],
-]
-## A glyph where one helps, `-1` where the word is the whole chip.
-const SUB_GLYPHS: Array[int] = [-1, CardDef.Type.STRIKE, CardDef.Type.COMBAT, CardDef.Type.ART, -1]
-## Index into SUB_LABELS, so the code says which chip it means.
-const SUB_ATTACK: int = 1
-const SUB_DEFEND: int = 2
-const SUB_RESOLVE: int = 3
-const SUB_END: int = 4
-## Room for the sub-chips, in canvas pixels. A chip that carries a seat name is wider, because a
-## 14-character duelist name has to sit under Attack or Defend without touching the next chip.
-const SUB_WIDTH: float = 76.0
-const SUB_NAME_WIDTH: float = 112.0
-const SUB_GAP: int = 10
-## The battle sequence in six readable groups: pay, defend, shields, damage, wounds, after.
-## Each entry is the first and last `SeatView.battle_step` inside that group.
-const BATTLE_GROUPS: Array[Vector2i] = [
-	Vector2i(2, 3), Vector2i(4, 5), Vector2i(7, 8), Vector2i(9, 12), Vector2i(13, 13), Vector2i(14, 16),
-]
+## The beat banner laid across the ring between the duelists. One home for every beat: a
+## hand-over (Combat opens, the exchange changes hands, a turn starts) sweeps in, an outcome (a
+## hit, a stop, a wound) pops, and a quiet beat (a pass, a window that opened on nothing) is a
+## thin translucent line that never cuts short a louder banner still being read. Each tier stops
+## short of the phase track's notches either side of the ring.
+enum Banner { HANDOVER, OUTCOME, QUIET }
+const BANNER_HOLD: Array[float] = [1.4, 1.1, 0.6]
+const BANNER_HEIGHT: Array[float] = [72.0, 60.0, 40.0]
+const BANNER_WIDTH: Array[float] = [640.0, 580.0, 480.0]
+const BANNER_FONT: Array[int] = [34, 30, 22]
+const BANNER_MIN_FONT: int = 18
+const BANNER_ALPHA: Array[float] = [0.92, 0.88, 0.5]
+const BANNER_SWEEP: float = 0.25
+const BANNER_POP: float = 0.16
+const BANNER_FADE: float = 0.25
+## A quiet line waits behind a louder banner until that one has been up this long.
+const BANNER_MIN_READ: float = 0.6
 ## The label one lone non-card action carries, by prompt kind then option type. A single button is
 ## the whole decision, so it says what happens rather than naming the rule it comes from.
 const ACTION_LABELS: Dictionary = {
@@ -128,35 +115,30 @@ const ACTION_LABELS: Dictionary = {
 const ACTION_LABELS_BY_KIND: Dictionary = {
 	&"combat_end": {&"done": "End Combat"}, &"declare": {&"skip": "No Combat"},
 }
-const STEP_ORDER: Array[int] = [
-	GameState.Step.DRAW, GameState.Step.NON_COMBAT, GameState.Step.POWER_UP, GameState.Step.DECLARE,
-	GameState.Step.COMBAT, GameState.Step.DISCARD, GameState.Step.RECOVER,
-]
 ## Only explicit batch confirmation gets a filled accent. Routine alternatives stay equal.
 ## Prompt kinds answered by the buttons in the panel even though their options name a card. An
 ## Endurance choice is a yes or no about one card that is already in a pile, so hunting for it on
 ## the table to click it is the wrong way to ask.
 const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 
-@onready var reduced_motion_toggle: CheckButton = $Root/ReducedMotion
+@onready var reduced_motion_toggle: CheckButton = $Root/OptionsMenu/Column/ReducedMotion
+@onready var options_button: Button = $Root/Options
+@onready var options_menu: PanelContainer = $Root/OptionsMenu
 @onready var root: Control = $Root
-@onready var phase_panel: PanelContainer = $Root/PhasePanel
-@onready var turn_counter: Label = $Root/PhasePanel/Column/Turn/Counter
-@onready var turn_who: Label = $Root/PhasePanel/Column/Turn/Who
-@onready var steps_box: HBoxContainer = $Root/PhasePanel/Column/Steps
 @onready var log_scroll: ScrollContainer = $Root/Log/Column/Scroll
 @onready var near_flags: Label = $Root/NearFlags
 @onready var far_flags: Label = $Root/FarFlags
 @onready var presence_line: Label = $Root/PresenceLine
 @onready var log_text: RichTextLabel = $Root/Log/Column/Scroll/Text
-@onready var dev_toggle: Button = $Root/DevToggle
+@onready var dev_toggle: Button = $Root/OptionsMenu/Column/DevToggle
 @onready var dev_panel: DevPanel = $Root/DevPanel
 @onready var peek: Control = $Root/Peek
 @onready var peek_face: CardFace = $Root/Peek/Face
 @onready var peek_forecast: PanelContainer = $Root/Peek/Forecast
 @onready var peek_forecast_text: RichTextLabel = $Root/Peek/Forecast/Text
-@onready var toast_label: Label = $Root/Toast
-@onready var quiet_label: Label = $Root/QuietBeat
+@onready var banner: Control = $Root/Banner
+@onready var banner_ribbon: ColorRect = $Root/Banner/Ribbon
+@onready var banner_text: Label = $Root/Banner/Text
 @onready var log_panel: PanelContainer = $Root/Log
 @onready var log_toggle: Button = $Root/Log/Column/Header/Toggle
 @onready var inspect: ColorRect = $Root/Inspect
@@ -219,8 +201,6 @@ var _viewer_seat: int = 0
 var _log_lines: int = 0
 var _current_prompt: PromptView = null
 var _view: SeatView = null
-var _step_labels: Array[Label] = []
-var _step_bars: Array[ColorRect] = []   # the progress rule under each step chip
 var _faces: CardFaceCache = null
 var _log_expanded: bool = false
 var _batch: PromptView = null          # the prompt behind a multi-select tray, else null
@@ -229,20 +209,10 @@ var _entries: Dictionary = {}          # uid -> {frame, caption, verb} for batch
 var _confirm: Button = null
 var _online: bool = false
 var _is_host: bool = false
-var _toast: Tween = null
-var _quiet: Tween = null
+var _banner: Tween = null
+var _banner_tier: int = Banner.QUIET
+var _banner_since: int = 0             # ticks when the banner now up appeared
 var _fitting_actions: bool = false
-var _step_columns: Array[VBoxContainer] = []
-var _combat_strip: HBoxContainer = null   # the five Combat sub-chips, inside the Combat chip
-var _sub_chips: Array[VBoxContainer] = []
-var _sub_labels: Array[Label] = []
-var _sub_icons: Array[TypeIcon] = []
-var _sub_notes: Array[Label] = []
-var _battle_dots: Array[ColorRect] = []
-var _exchange_chip: Label = null          # "Exchange 3", so a long Combat reads as a series
-var _last_sub_active: int = -1            # the sub-chip lit on the previous refresh, -1 when closed
-var _last_attacker: int = -1              # who was attacking then, so a hand-over can be noticed
-var _pulses: Dictionary = {}              # chip -> Tween, so a second pulse replaces the first
 var _single_action: Button = null         # the one large action button, null when there isn't one
 var _damage_available: bool = false
 var _exchange_before_preview: bool = false
@@ -264,7 +234,7 @@ var _filament_target: int = -1         # the table card the current pending job 
 var _filament_uid: int = -1            # the card that job belongs to, so the stack can source it
 var _filament_state: StringName = &"pending"
 var inspect_uid: int = -1              # the card the inspect overlay shows, -1 when closed or unknown
-var _staging: bool = false             # guards `_on_prompt_resized` against its own layout
+var _reserve_outcome: bool = false     # the open decision has option previews, so their row is kept
 var _who_color: Color = ZenithTheme.TEXT   # the deciding seat's accent, for the tray header
 var _tray_face: Vector2 = TRAY_CARD_SIZE   # the face size of the tray being filled
 
@@ -274,9 +244,9 @@ func _ready() -> void:
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
 	# The decision column is a framed plate too, so its text never sits bare on the courtyard.
 	prompt_panel.add_theme_stylebox_override("panel", MapArt.panel_box(PROMPT_PAD, FRAME_TINT))
-	prompt_panel.resized.connect(_on_prompt_resized)
+	prompt_panel.minimum_size_changed.connect(_stand_prompt)
+	prompt_panel.visibility_changed.connect(_stand_prompt)
 	prompt_hint.add_theme_color_override("font_color", ZenithTheme.TEXT_SOFT)
-	# The log wears the same framed panel as the phase bar beside it, with tighter padding.
 	log_panel.add_theme_stylebox_override("panel", MapArt.panel_box(14, FRAME_TINT))
 	# The inspect hint sits on a small framed panel instead of floating over the table.
 	var inspect_hint: Label = $Root/Inspect/Center/Column/Hint
@@ -284,25 +254,6 @@ func _ready() -> void:
 	inspect_hint.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	# The caption under the focus card lands on whatever the table has there, so it gets a plate.
 	focus_caption.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.BG, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 6, 0))
-	for name in STEP_LABELS:
-		# Each step is a chip with a rule under it, so the strip reads as a progress bar across
-		# the turn: filled behind, bone on the step we are in, empty ahead.
-		var column: VBoxContainer = VBoxContainer.new()
-		column.add_theme_constant_override("separation", 4)
-		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var l: Label = Label.new()
-		l.text = name
-		l.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
-		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		column.add_child(l)
-		var bar: ColorRect = ColorRect.new()
-		bar.custom_minimum_size = Vector2(0, 5)
-		column.add_child(bar)
-		steps_box.add_child(column)
-		_step_labels.append(l)
-		_step_bars.append(bar)
-		_step_columns.append(column)
-	_build_combat_strip()
 	table = get_parent()
 	handoff_ready.pressed.connect(func() -> void: handoff_confirmed.emit())
 	rematch_button.pressed.connect(func() -> void: rematch_requested.emit())
@@ -313,78 +264,16 @@ func _ready() -> void:
 	pile.visible = false
 	pile_close.pressed.connect(hide_pile)
 	log_toggle.pressed.connect(func() -> void: set_log_expanded(not _log_expanded))
-	dev_toggle.pressed.connect(func() -> void: dev_panel.visible = not dev_panel.visible)
+	dev_toggle.pressed.connect(func() -> void:
+		dev_panel.visible = not dev_panel.visible
+		_close_options())
+	options_button.toggled.connect(func(on: bool) -> void: options_menu.visible = on)
+	options_menu.add_theme_stylebox_override("panel", MapArt.panel_box(14, FRAME_TINT))
 	dev_panel.command.connect(func(effect: Dictionary) -> void: dev_command.emit(effect))
 	root.resized.connect(_layout_prompt_column)
 	primary_box.minimum_size_changed.connect(_fit_actions)
 	prompt_column.minimum_size_changed.connect(_fit_actions)
 	_compact_prompt()
-
-
-## The Combat chip carries the whole Combat inside it: five sub-chips in the order the engine
-## works through them, and a six-dot rule under Resolve for the battle sequence. It is built once
-## and hidden until the turn reaches Combat, where it takes the Combat chip's place.
-func _build_combat_strip() -> void:
-	_combat_strip = HBoxContainer.new()
-	_combat_strip.add_theme_constant_override("separation", SUB_GAP)
-	_combat_strip.alignment = BoxContainer.ALIGNMENT_CENTER
-	_combat_strip.visible = false
-	# The exchange count rides on the banner line, so the sub-chips keep the strip's width.
-	_exchange_chip = Label.new()
-	_exchange_chip.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
-	_exchange_chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_exchange_chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_exchange_chip.visible = false
-	ZenithTheme.chip(_exchange_chip, ZenithTheme.MUTED)
-	turn_who.get_parent().add_child(_exchange_chip)
-	for i in range(SUB_LABELS.size()):
-		var chip: VBoxContainer = VBoxContainer.new()
-		chip.add_theme_constant_override("separation", 1)
-		# Five chips share the room seven used to. Attack and Defend reserve enough width for a
-		# long seat name, the rest only need their word, and the gap keeps neighbours apart.
-		chip.custom_minimum_size = Vector2(SUB_NAME_WIDTH if i == SUB_ATTACK or i == SUB_DEFEND else SUB_WIDTH, 0)
-		var head: HBoxContainer = HBoxContainer.new()
-		head.add_theme_constant_override("separation", 3)
-		head.alignment = BoxContainer.ALIGNMENT_CENTER
-		var icon: TypeIcon = TypeIcon.new()
-		icon.custom_minimum_size = Vector2(15, 15)
-		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		if SUB_GLYPHS[i] >= 0:
-			icon.set("type", SUB_GLYPHS[i])
-		else:
-			icon.visible = false
-		head.add_child(icon)
-		var l: Label = Label.new()
-		l.text = SUB_LABELS[i]
-		l.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
-		head.add_child(l)
-		chip.add_child(head)
-		var note: Label = Label.new()
-		note.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
-		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		note.clip_text = true
-		note.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		note.visible = false
-		chip.add_child(note)
-		if SUB_PHASES[i].has(GameState.Phase.BATTLE):
-			var dots: HBoxContainer = HBoxContainer.new()
-			dots.add_theme_constant_override("separation", 3)
-			dots.alignment = BoxContainer.ALIGNMENT_CENTER
-			for d in range(BATTLE_GROUPS.size()):
-				var dot: ColorRect = ColorRect.new()
-				dot.custom_minimum_size = Vector2(5, 5)
-				dot.color = ZenithTheme.RAISED_STRONG
-				dots.add_child(dot)
-				_battle_dots.append(dot)
-			chip.add_child(dots)
-		_combat_strip.add_child(chip)
-		_sub_chips.append(chip)
-		_sub_labels.append(l)
-		_sub_icons.append(icon)
-		_sub_notes.append(note)
-	_step_columns[COMBAT_INDEX].add_child(_combat_strip)
-	_step_columns[COMBAT_INDEX].move_child(_combat_strip, 1)
 
 
 ## One bounded column: a real card, the decision and its consequence, then offered controls.
@@ -404,18 +293,12 @@ func _compact_prompt() -> void:
 func _layout_prompt_column() -> void:
 	if focus == null or prompt_panel == null:
 		return
-	# Both panels hang off the right edge at fixed places. The focus card keeps one size under the
-	# corner toggles, and the decision hangs below its slot and grows downward as buttons come in.
-	var left: float = RAIL_FOCUS.position.x + (RAIL_FOCUS.size.x - RAIL_CARD_WIDTH) * 0.5
-	focus.offset_top = RAIL_TOP
-	focus.offset_left = left
-	focus.offset_right = left + RAIL_CARD_WIDTH
-	focus.offset_bottom = RAIL_TOP + RAIL_CARD_WIDTH * CARD_ASPECT + FOCUS_CAPTION_HEIGHT
+	focus.offset_left = RAIL_LEFT
+	focus.offset_right = -GUTTER
 	focus_face.scale = Vector2.ONE * RAIL_CARD_WIDTH / 512.0
-	prompt_panel.offset_left = RAIL_FOCUS.position.x
-	prompt_panel.offset_right = RAIL_FOCUS.position.x + RAIL_FOCUS.size.x
-	prompt_panel.offset_top = _panel_top()
-	prompt_panel.offset_bottom = prompt_panel.offset_top
+	prompt_panel.offset_left = RAIL_LEFT
+	prompt_panel.offset_right = -GUTTER
+	_place_focus()
 	# The response stack lives inside the Focus rect, so it costs the decision column nothing.
 	_layout_stack()
 	_fit_actions()
@@ -427,30 +310,52 @@ func focus_face_rect() -> Rect2:
 	return Rect2(rect.position, Vector2(rect.size.x, rect.size.x * CARD_ASPECT))
 
 
-## The decision's top edge: under the focus card's slot, whether or not a card is in it, so the
-## panel never jumps when a card comes or goes.
+## The focus slot's height: the card face and its caption strip.
+func _slot_height() -> float:
+	return RAIL_CARD_WIDTH * CARD_ASPECT + FOCUS_CAPTION_HEIGHT
+
+
+## The focus card's top edge. It is centred between the screen's top and the decision's bottom
+## line. A decision too tall to fit under it lifts it only as far as it needs, never above RAIL_TOP.
+func rail_top() -> float:
+	var line: float = root.size.y - PROMPT_BOTTOM
+	var top: float = (line - _slot_height()) * 0.5
+	if prompt_panel.visible:
+		top = minf(top, line - prompt_panel.get_combined_minimum_size().y - DECISION_GAP - _slot_height())
+	return maxf(RAIL_TOP, top)
+
+
+func _place_focus() -> void:
+	focus.offset_top = rail_top()
+	focus.offset_bottom = focus.offset_top + _slot_height()
+
+
+## The highest a decision reaches, at the card's highest place; a longer one scrolls.
 func _panel_top() -> float:
-	return RAIL_TOP + RAIL_CARD_WIDTH * CARD_ASPECT + FOCUS_CAPTION_HEIGHT + DECISION_GAP
+	return RAIL_TOP + _slot_height() + DECISION_GAP
 
 
-## A decision that changes height refits its action list to the space left under it.
-func _on_prompt_resized() -> void:
-	if focus.visible and not _fitting_actions and not _staging:
-		_staging = true
-		_layout_prompt_column()
-		_staging = false
-
-
+## The action list's height. The frame stands on its bottom edge and grows up to fit, so the
+## buttons never move; a list that would push the frame past its ceiling scrolls instead.
 func _fit_actions() -> void:
 	if _fitting_actions or actions_scroll == null:
 		return
 	_fitting_actions = true
-	var outside: float = maxf(0.0, prompt_panel.get_combined_minimum_size().y - actions_scroll.get_combined_minimum_size().y)
-	var available: float = maxf(0.0, root.size.y - PROMPT_BOTTOM_MARGIN - _panel_top() - outside)
-	var desired: float = minf(primary_box.get_combined_minimum_size().y, minf(260.0, available))
-	actions_scroll.custom_minimum_size.y = desired
 	actions_scroll.visible = primary_box.get_child_count() > 0
+	var outside: float = maxf(0.0, prompt_panel.get_combined_minimum_size().y - actions_scroll.get_combined_minimum_size().y)
+	var room: float = root.size.y - PROMPT_BOTTOM - (_panel_top() - PROMPT_LONG_RISE)
+	var available: float = maxf(SINGLE_ACTION_HEIGHT, room - outside)
+	actions_scroll.custom_minimum_size.y = minf(primary_box.get_combined_minimum_size().y, available)
 	_fitting_actions = false
+	_stand_prompt()
+
+
+## The frame stands on its bottom edge at exactly its content's height. Set outright, because a
+## Control only grows to its minimum on its own, and a hidden one misses the change entirely; a
+## frame on its bottom edge that lags shows its buttons below the screen.
+func _stand_prompt() -> void:
+	prompt_panel.offset_top = prompt_panel.offset_bottom - prompt_panel.get_combined_minimum_size().y
+	_place_focus()
 
 
 func set_loading(on: bool) -> void:
@@ -481,7 +386,6 @@ func refresh_state(view: SeatView, viewer: int, live: Dictionary = {}) -> void:
 	far_flags.text = " | ".join(PLAYER_STATUS.flags(view.player(1 - me)))
 	near_flags.visible = not scene_flags and not near_flags.text.is_empty()
 	far_flags.visible = not scene_flags and not far_flags.text.is_empty()
-	_refresh_phase(view, me, live)
 	_reconcile_pending(view, live)
 	_read_filament(view)
 	_sync_pile()
@@ -730,210 +634,94 @@ func _set_overflow(count: int) -> void:
 	_layout_stack()
 
 
-## The banner over the table. Whose turn it is and which step of it, both at a size that reads
-## from across the room; the strip under them is the turn as a progress rail, and the line below
-## is the beat inside Combat, in the attack and defence colours.
-func _refresh_phase(view: SeatView, me: int, live: Dictionary = {}) -> void:
-	var over: bool = view.is_over()
-	# While an update replays, the banner reads the beat's own position in the turn. Without this
-	# it draws where the turn ends up, so an update that closes Combat says DISCARD over the
-	# combat beats still playing underneath it.
-	var turn: int = int(live.get("turn", view.turn))
-	var step: int = int(live.get("step", view.step))
-	var active: int = int(live.get("active", view.active))
-	var current: int = STEP_ORDER.find(step)
-	var in_combat: bool = current == COMBAT_INDEX and not over
-	_refresh_combat_strip(view, me, live, in_combat)
-	for i in range(_step_labels.size()):
-		var l: Label = _step_labels[i]
-		var on: bool = i == current and not over
-		var done: bool = current >= 0 and i < current and not over
-		l.add_theme_color_override("font_color", ZenithTheme.ACCENT if on else ZenithTheme.MUTED)
-		# Caption size is the floor that still reads at 720p; only the step we are in goes above it.
-		l.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY if on and not in_combat else ZenithTheme.SIZE_CAPTION)
-		var bar: ColorRect = _step_bars[i]
-		if on:
-			bar.color = ZenithTheme.ACCENT
-		elif done:
-			bar.color = ZenithTheme.ACCENT_SOFT
-		else:
-			bar.color = ZenithTheme.RAISED_STRONG
-
-	turn_counter.text = "TURN %d" % turn
-	ZenithTheme.chip(turn_counter, ZenithTheme.MUTED)
-	if over:
-		turn_who.text = "DUEL OVER"
-		turn_who.add_theme_color_override("font_color", ZenithTheme.TEXT)
-		phase_panel.add_theme_stylebox_override("panel", MapArt.panel_box(22, FRAME_TINT))
+## The beat that just happened, on the ribbon across the table (see `Banner`). A new banner
+## replaces the last at once, except that a quiet one never cuts short a louder one still inside
+## its `BANNER_MIN_READ`; the quiet beat's chip pulse and log line still happen without it.
+func show_banner(text: String, color: Color, tier: int = Banner.OUTCOME) -> void:
+	if tier == Banner.QUIET and banner.visible and _banner_tier != Banner.QUIET \
+			and _banner_age() < BANNER_MIN_READ:
 		return
-
-	var mine: bool = active == me
-	turn_who.text = ("YOUR TURN" if mine else "THEIR TURN") + "  /  " + (STEP_LABELS[current].to_upper() if current >= 0 else "")
-	if current < 0:
-		turn_counter.text = "PREPARE"
-		turn_who.text = "RESERVE"
-	turn_who.add_theme_color_override("font_color", ZenithTheme.ACCENT if mine else ZenithTheme.MUTED)
-	phase_panel.add_theme_stylebox_override("panel", MapArt.panel_box(22, FRAME_TINT))
-
-
-## While the turn is in Combat, the Combat chip becomes the whole sequence: which sub-step we are
-## in, who is attacking and who is answering, how far the battle sequence has run, and the warning
-## that the next pass closes Combat. Everything is read from the beat's own state first.
-func _refresh_combat_strip(view: SeatView, me: int, live: Dictionary, on: bool) -> void:
-	_combat_strip.visible = on
-	_exchange_chip.visible = on
-	# Inside Combat the sub-chips take the middle of the strip, so the turn's other steps keep
-	# their words and step down a size rather than falling back to bare rules. The Combat word
-	# itself goes, because the five sub-chips under it say the same thing in more detail.
-	_step_labels[COMBAT_INDEX].visible = not on
-	if not on:
-		_last_sub_active = -1
-		_last_attacker = -1
-		return
-	var phase: int = int(live.get("phase", view.phase))
-	var att: int = int(live.get("attacker", view.attacker))
-	var battle: int = int(live.get("battle_step", view.battle_step))
-	var exchange: int = int(live.get("attack_phase_count", view.attack_phase_count))
-	_exchange_chip.text = "Exchange %d" % (exchange + 1)
-	var active: int = -1
-	for i in range(SUB_PHASES.size()):
-		if SUB_PHASES[i].has(phase):
-			active = i
-	# A hand-over keeps the same Attack chip and swaps the names under Attack and Defend. Without
-	# the pulse the chip looks exactly as it did during the previous exchange, which is what made
-	# Combat look frozen.
-	var handover: bool = active == SUB_ATTACK and _last_attacker >= 0 and att != _last_attacker
-	if handover:
-		_sub_chips[SUB_ATTACK].modulate = Color(1, 1, 1, 1)
-		mark_phase_event(&"attack")
-	elif active >= 0 and active != _last_sub_active:
-		_light_sub_chip(active)
-	_last_sub_active = active
-	_last_attacker = att
-	for i in range(_sub_labels.size()):
-		var here: bool = i == active
-		var done: bool = active >= 0 and i < active
-		var color: Color = ZenithTheme.ACCENT if here else (ZenithTheme.MUTED if done else Color(ZenithTheme.MUTED, 0.55))
-		if here and i == SUB_ATTACK:
-			color = ZenithTheme.ATTACK
-		elif here and i == SUB_DEFEND:
-			color = ZenithTheme.DEFEND
-		_sub_labels[i].add_theme_color_override("font_color", color)
-		_sub_labels[i].add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
-		_sub_icons[i].color = color
-		_sub_notes[i].add_theme_color_override("font_color", color)
-	var attacker_name: String = "You" if att == me else view.player(att).name if att >= 0 else ""
-	var defender_name: String = "You" if att >= 0 and att != me else (view.player(1 - att).name if att >= 0 else "")
-	_set_sub_note(SUB_ATTACK, attacker_name, ZenithTheme.ATTACK if active == SUB_ATTACK else Color(ZenithTheme.MUTED, 0.8), "")
-	_set_sub_note(SUB_DEFEND, defender_name, ZenithTheme.DEFEND if active == SUB_DEFEND else Color(ZenithTheme.MUTED, 0.8), "")
-	var passes: int = view.consecutive_passes
-	_set_sub_note(SUB_END, "1 more pass" if passes == 1 else "", ZenithTheme.WARN,
-		"One more pass ends Combat." if passes == 1 else "")
-	for d in range(BATTLE_GROUPS.size()):
-		var group: Vector2i = BATTLE_GROUPS[d]
-		var dot: ColorRect = _battle_dots[d]
-		if active != SUB_RESOLVE:
-			dot.color = ZenithTheme.RAISED_STRONG
-		elif battle > group.y:
-			dot.color = ZenithTheme.ACCENT_SOFT
-		elif battle >= group.x:
-			dot.color = ZenithTheme.ACCENT
-		else:
-			dot.color = ZenithTheme.RAISED_STRONG
-
-
-## The beat moved to another sub-chip. It comes up rather than appearing, so the eye follows the
-## Combat along the strip. Reduced Motion gets the same chip, lit at once.
-func _light_sub_chip(index: int) -> void:
-	var chip: VBoxContainer = _sub_chips[index]
-	var running: Variant = _pulses.get(chip)
-	if running is Tween:
-		(running as Tween).kill()
-		_pulses.erase(chip)
-	if reduced_motion_toggle.button_pressed:
-		chip.modulate = Color(1, 1, 1, 1)
-		return
-	chip.modulate = Color(1, 1, 1, 0.3)
-	var t: Tween = create_tween()
-	t.tween_property(chip, "modulate", Color(1, 1, 1, 1), CHIP_FADE)
-	_pulses[chip] = t
-
-
-func _set_sub_note(index: int, text: String, color: Color, tip: String) -> void:
-	var note: Label = _sub_notes[index]
-	note.text = text
-	note.visible = text != ""
-	note.add_theme_color_override("font_color", color)
-	_sub_chips[index].tooltip_text = tip
-	_sub_chips[index].mouse_filter = Control.MOUSE_FILTER_STOP if tip != "" else Control.MOUSE_FILTER_IGNORE
-
-
-## Pulses one chip of the strip, for a beat that happened inside a step rather than moving to the
-## next one. A Combat sub-chip key wins over a turn-step key of the same name while Combat is open.
-func mark_phase_event(phase_key: StringName) -> void:
-	var chip: Control = null
-	if _combat_strip.visible:
-		var sub: int = SUB_KEYS.find(phase_key)
-		if sub >= 0:
-			chip = _sub_chips[sub]
-	if chip == null:
-		var step: int = STEP_KEYS.find(phase_key)
-		if step >= 0:
-			chip = _step_columns[step]
-	if chip == null or reduced_motion_toggle.button_pressed:
-		return
-	var running: Variant = _pulses.get(chip)
-	if running is Tween:
-		(running as Tween).kill()
-	chip.modulate = PULSE_BRIGHT
-	var t: Tween = create_tween()
-	t.tween_property(chip, "modulate", Color(1, 1, 1, 1), 0.32)
-	_pulses[chip] = t
-
-
-## A short banner over the table for the beat that just happened: the attack, what it hit for,
-## a stop, an aspect. It pops in, holds, and fades; a new one replaces the last at once.
-func toast(text: String, color: Color) -> void:
-	_clear_toast()
-	toast_label.text = text
-	toast_label.add_theme_stylebox_override("normal", ZenithTheme.box(color, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 24, 6))
-	toast_label.add_theme_color_override("font_color", ZenithTheme.TEXT_DARK)
-	toast_label.modulate = Color(1, 1, 1, 1)
-	toast_label.scale = Vector2.ONE if reduced_motion_toggle.button_pressed else Vector2(0.7, 0.7)
-	toast_label.visible = true
-	_toast = create_tween()
+	_clear_banner()
+	_banner_tier = tier
+	_banner_since = Time.get_ticks_msec()
+	banner.size = Vector2(BANNER_WIDTH[tier], BANNER_HEIGHT[tier])
+	banner.pivot_offset = banner.size * 0.5
+	_place_banner()
+	var mat: ShaderMaterial = banner_ribbon.material
+	mat.set_shader_parameter("tint", Color(color, BANNER_ALPHA[tier]))
+	mat.set_shader_parameter("rule", 0.0 if tier == Banner.QUIET else 0.05)
+	banner_text.text = text
+	# A long name steps the size down rather than running into the ribbon's faded ends.
+	var font: Font = banner_text.get_theme_font("font")
+	var size: int = BANNER_FONT[tier]
+	var room: float = banner.size.x * 0.72
+	while size > BANNER_MIN_FONT and font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > room:
+		size -= 2
+	banner_text.add_theme_font_size_override("font_size", size)
+	banner_text.add_theme_color_override("font_color", ZenithTheme.TEXT if tier == Banner.QUIET else ZenithTheme.TEXT_DARK)
+	banner.modulate = Color(1, 1, 1, 1)
+	banner.scale = Vector2.ONE
+	banner_text.modulate = Color(1, 1, 1, 1)
+	banner.visible = true
+	_banner = create_tween()
 	if not reduced_motion_toggle.button_pressed:
-		_toast.tween_property(toast_label, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_toast.tween_interval(TOAST_HOLD)
-	_toast.tween_property(toast_label, "modulate:a", 0.0, 0.3)
-	_toast.tween_callback(func() -> void: toast_label.visible = false)
-
-
-## A skipped or passed window still gets a beat, so nothing resolves silently. Quieter and shorter
-## than `toast`, it sits under the toast slot and never interrupts a toast that is still up.
-func quiet_beat(text: String, color: Color) -> void:
-	if _quiet != null:
-		_quiet.kill()
-		_quiet = null
-	quiet_label.text = text
-	quiet_label.add_theme_stylebox_override("normal", ZenithTheme.box(Color(color, 0.20), Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 18, 6))
-	quiet_label.add_theme_color_override("font_color", color.lightened(0.15))
-	quiet_label.modulate = Color(1, 1, 1, 1)
-	quiet_label.visible = true
-	_quiet = create_tween()
-	_quiet.tween_interval(QUIET_HOLD)
+		if tier == Banner.HANDOVER:
+			# Swept open from the middle of the table, the words arriving as it lands.
+			banner.scale = Vector2(0.0, 1.0)
+			banner_text.modulate = Color(1, 1, 1, 0)
+			_banner.tween_property(banner, "scale", Vector2.ONE, BANNER_SWEEP).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+			_banner.tween_property(banner_text, "modulate:a", 1.0, 0.12)
+		elif tier == Banner.OUTCOME:
+			banner.scale = Vector2(0.85, 0.85)
+			_banner.tween_property(banner, "scale", Vector2.ONE, BANNER_POP).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_banner.tween_interval(BANNER_HOLD[tier])
 	if reduced_motion_toggle.button_pressed:
-		_quiet.tween_callback(func() -> void: quiet_label.visible = false)
+		_banner.tween_callback(func() -> void: banner.visible = false)
 		return
-	_quiet.tween_property(quiet_label, "modulate:a", 0.0, 0.2)
-	_quiet.tween_callback(func() -> void: quiet_label.visible = false)
+	_banner.tween_property(banner, "modulate:a", 0.0, BANNER_FADE if tier != Banner.QUIET else 0.2)
+	_banner.tween_callback(func() -> void: banner.visible = false)
 
 
-func _clear_toast() -> void:
-	if _toast != null:
-		_toast.kill()
-		_toast = null
-	toast_label.visible = false
+## An outcome banner: the attack, what it hit for, a stop, an aspect.
+func toast(text: String, color: Color) -> void:
+	show_banner(text, color, Banner.OUTCOME)
+
+
+## A skipped or passed window still gets a beat, so nothing resolves silently.
+func quiet_beat(text: String, color: Color) -> void:
+	show_banner(text, color, Banner.QUIET)
+
+
+## A change of hands: Combat opening, the exchange passing to the other seat, a new turn.
+func handover(text: String, color: Color) -> void:
+	show_banner(text, color, Banner.HANDOVER)
+
+
+## Seconds of game time the banner now up has been showing. `--dev-fast` speeds the tweens, so the
+## age runs at the same rate.
+func _banner_age() -> float:
+	return float(Time.get_ticks_msec() - _banner_since) / 1000.0 * Engine.time_scale
+
+
+## The banner's home is the middle of the table, between the two duelists, wherever the camera
+## puts that on screen. It sits in the gap the painted ring marks and never covers the rail.
+func _place_banner() -> void:
+	var centre: Vector2 = root.size * 0.5
+	if table != null and table.has_method("table_centre_screen"):
+		var point: Vector2 = table.table_centre_screen()
+		if point.x >= 0.0:
+			centre = point
+	var right_limit: float = root.size.x + RAIL_LEFT - GUTTER
+	var half: float = banner.size.x * 0.5
+	centre.x = clampf(centre.x, half, maxf(half, right_limit - half))
+	banner.position = centre - banner.size * 0.5
+
+
+func _clear_banner() -> void:
+	if _banner != null:
+		_banner.kill()
+		_banner = null
+	banner.visible = false
 
 
 func log_line(text: String) -> void:
@@ -991,8 +779,8 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	_view = view
 	_current_prompt = p
 	_owner_marks = CardText.option_side_marks(p, _viewer_seat)
-	prompt_who.text = "YOUR MOVE"
-	prompt_who.add_theme_color_override("font_color", ZenithTheme.ACCENT)
+	# The frame's place on the rail already says the move is ours; the owner line is for waiting.
+	prompt_who.text = ""
 	_who_color = SeatColors.accent(view, p.player, Session.color_seed)
 	prompt_title.text = _prompt_title(p, view)
 	# The response stack stays up. It is laid over the pinned attack inside the same rect, so it
@@ -1001,6 +789,12 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	show_focus(_focus_uid(p), _focus_caption(p))
 	prompt_hint.text = _hint_for(p)
 	prompt_hint.visible = prompt_hint.text != ""
+	# A decision whose options carry previews keeps their row from the start, so hovering one
+	# fills a line that is already there rather than growing the frame.
+	_reserve_outcome = false
+	for o in p.options:
+		_reserve_outcome = _reserve_outcome or not o.outcome.is_empty()
+	_preview_outcome({})
 	_compact_prompt()
 	# Cards the player can already click in the hand or on the table stay there, highlighted.
 	# Cards that need browsing (a Reserve, a look at the deck, a keep) open in the tray.
@@ -1185,12 +979,7 @@ func _wounds(amount: int) -> String:
 
 ## Only the parts that are not zero: "5 wounds", "3 Energy", "3 Energy, 2 wounds", "no damage".
 func _amount(stages: int, wounds: int) -> String:
-	var parts: PackedStringArray = PackedStringArray()
-	if stages > 0:
-		parts.append("%d Energy" % stages)
-	if wounds > 0:
-		parts.append(_wounds(wounds))
-	return ", ".join(parts) if not parts.is_empty() else "no damage"
+	return CardText.damage_amount(maxi(0, stages), maxi(0, wounds))
 
 
 ## The question the panel asks. A defence names the attack it answers, from the public attack.
@@ -1254,10 +1043,13 @@ func _card_outcome(uid: int) -> Dictionary:
 func _preview_outcome(outcome: Dictionary) -> void:
 	if not prompt_outcome.visible:
 		_exchange_before_preview = exchange_rail.visible
-	prompt_outcome.visible = outcome.has("stages") or outcome.has("stopped") or outcome.has("life")
+	var previewing: bool = outcome.has("stages") or outcome.has("stopped") or outcome.has("life")
+	# With no damage line to swap with, a reserved preview row stays up empty between hovers.
+	prompt_outcome.visible = previewing or (_reserve_outcome and not _damage_available)
 	exchange_rail.visible = true if prompt_outcome.visible else _exchange_before_preview
-	exchange_damage.visible = _damage_available and not prompt_outcome.visible
-	if not prompt_outcome.visible:
+	exchange_damage.visible = _damage_available and not previewing
+	if not previewing:
+		prompt_outcome.text = ""
 		return
 	var stopped: bool = bool(outcome.get("stopped", false))
 	if stopped:
@@ -1308,10 +1100,6 @@ func _hint_for(p: PromptView) -> String:
 			return "Combat is over. These may still be used."
 		&"start_play":
 			return "This may start the game on the table."
-		&"attack_action":
-			return "Click a highlighted card, or choose below."
-		&"defense":
-			return "Click a highlighted card to stop it." if card_options > 0 else ""
 		&"keep":
 			return "Everything else goes to the discard pile."
 		&"endurance":
@@ -1354,6 +1142,7 @@ func show_waiting(player_name: String, kind: StringName, view: SeatView) -> void
 	_center_prompt_text(true)
 	_view = view
 	_current_prompt = null
+	_reserve_outcome = false
 	prompt_who.text = "%s  ·  DECIDING" % player_name.to_upper()
 	prompt_who.add_theme_color_override("font_color", ZenithTheme.MUTED)
 	prompt_title.text = "Waiting for %s" % player_name
@@ -1410,6 +1199,7 @@ func _center_prompt_text(on: bool) -> void:
 
 ## Online joiner: the choice went to the host and its answer is not back yet.
 func show_sending() -> void:
+	_reserve_outcome = false
 	for child in primary_box.get_children():
 		(child as Control).hide()
 	_fill_buttons([], primary_box, true)
@@ -2396,6 +2186,8 @@ func pulse_pending(uid: int) -> bool:
 
 func _process(_delta: float) -> void:
 	_draw_filament()
+	if banner.visible:
+		_place_banner()
 
 
 ## The thread from the pinned card to what it is aimed at, in the language the 3D link on the table
@@ -2407,7 +2199,9 @@ func _process(_delta: float) -> void:
 func _draw_filament() -> void:
 	if filament == null:
 		return
-	if not focus.visible or _filament_target < 0 or tray.visible or inspect.visible \
+	# A rail card that is the attacking duelist itself already has the table's own link to the target.
+	var performer_shown: bool = _view != null and _focus_card_uid >= 0 and _focus_card_uid == int(_view.attack.get("performer", -2))
+	if not focus.visible or performer_shown or _filament_target < 0 or tray.visible or inspect.visible \
 		or table == null or not table.has_method("screen_anchor"):
 		filament.visible = false
 		return
@@ -2476,15 +2270,17 @@ func _filament_origin() -> Vector2:
 ## attack in the air. -1 when the decision is not about a single card.
 func _focus_uid(p: PromptView) -> int:
 	if p != null:
-		if p.context.has("card"):
+		if int(p.context.get("card", -1)) >= 0:
 			return int(p.context["card"])
-		if p.context.has("source"):
+		if int(p.context.get("source", -1)) >= 0:
 			return int(p.context["source"])
 	if _view != null:
 		if _view.pending_card >= 0:
 			return _view.pending_card
 		if not _view.attack.is_empty():
-			return int(_view.attack.get("source", -1))
+			# A Final Strike has no card of its own, so the rail shows who is making it.
+			var source: int = int(_view.attack.get("source", -1))
+			return source if source >= 0 else int(_view.attack.get("performer", -1))
 		# This list is unordered. Only a single public source is unambiguous to focus.
 		if _view.resolving.size() == 1:
 			var resolving_card: SeatCard = _view.card(_view.resolving[0])
@@ -2504,11 +2300,14 @@ func _focus_caption(p: PromptView) -> String:
 		&"endurance":
 			return "Endurance"
 		&"defense", &"redirect", &"control":
-			return "Incoming"
+			# A Final Strike has no card of its own; the rail holds the duelist making it.
+			return "Final Strike" if _view != null and bool(_view.attack.get("is_final", false)) else "Incoming"
 		&"respond":
 			return "Respond"
 		&"critical", &"capture_instead":
 			return "Your attack"
+		&"recover":
+			return "Top of your discard"
 	if p.context.has("source"):
 		return "Asking"
 	return "Incoming"
@@ -2534,6 +2333,12 @@ func hover_primary(index: int) -> void:
 		(buttons[index] as Button).mouse_entered.emit()
 
 
+func _close_options() -> void:
+	options_button.set_pressed_no_signal(false)
+	options_button.queue_redraw()
+	options_menu.visible = false
+
+
 ## Debug builds only, and only where the referee lives (hotseat, host).
 func set_dev_available(on: bool) -> void:
 	dev_toggle.visible = on
@@ -2544,6 +2349,8 @@ func set_dev_available(on: bool) -> void:
 ## Drops the log down to most of the screen, or back to its strip.
 func set_log_expanded(on: bool) -> void:
 	_log_expanded = on
+	if on:
+		hide_peek()
 	log_toggle.text = "Close" if on else "History"
 	var bottom: float = root.size.y * LOG_EXPANDED_FRACTION if on else LOG_COLLAPSED_BOTTOM
 	if reduced_motion_toggle.button_pressed:
@@ -2553,17 +2360,15 @@ func set_log_expanded(on: bool) -> void:
 	t.tween_property(log_panel, "offset_bottom", bottom, 0.18)
 
 
-## Expanded rules beside the object being inspected, bounded away from the decision actions.
+## Expanded rules in the quick view's fixed home on the left, under the log, opposite the rail.
+## It never follows the pointer. The expanded log owns that column, so the quick view waits.
 func show_peek(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
-	if def == null or inspect.visible:
+	if def == null or inspect.visible or _log_expanded:
 		return
 	peek_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid), _uid_table(def, uid))
 	var forecast: String = _forecast_text(uid)
 	peek_forecast.visible = forecast != ""
 	peek_forecast_text.text = forecast
-	# Place expanded details next to the hovered object, clamped above the hand.
-	var pointer: Vector2 = root.get_local_mouse_position()
-	peek.position = Vector2(clampf(pointer.x - 390.0, 20.0, root.size.x - 800.0), clampf(pointer.y - 560.0, 116.0, root.size.y - 660.0))
 	peek.visible = true
 
 

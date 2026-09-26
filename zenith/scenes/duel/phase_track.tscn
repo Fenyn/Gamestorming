@@ -1,0 +1,134 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/phase_track.gd" id="1_track"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/draw.png" id="2_draw"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/place.png" id="3_place"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/power_up.png" id="4_power"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/declare.png" id="5_declare"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/enter.png" id="6_enter"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/attack.png" id="7_attack"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/defend.png" id="8_defend"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/resolve.png" id="9_resolve"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/end.png" id="10_end"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/discard.png" id="11_discard"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/recover.png" id="12_recover"]
+[ext_resource type="Texture2D" path="res://assets/ui/phase_icons/turn_end.png" id="13_turn_end"]
+
+[sub_resource type="Gradient" id="Gradient_halo"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(1, 1, 1, 0.85, 1, 1, 1, 0.35, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_halo"]
+gradient = SubResource("Gradient_halo")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[node name="PhaseTrack" type="Node3D"]
+script = ExtResource("1_track")
+
+[node name="Halo" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.004, 0)
+visible = false
+pixel_size = 0.0055
+shaded = false
+double_sided = false
+texture = SubResource("GradientTexture2D_halo")
+
+[node name="Draw" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -3.85, 0.006, 0)
+pixel_size = 0.00266
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("2_draw")
+
+[node name="Place" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -3.45, 0.006, 0)
+pixel_size = 0.00266
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("3_place")
+
+[node name="PowerUp" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -3.05, 0.006, 0)
+pixel_size = 0.00266
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("4_power")
+
+[node name="Declare" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -2.65, 0.006, 0)
+pixel_size = 0.00266
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("5_declare")
+
+[node name="Enter" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -0.8, 0.006, 0)
+pixel_size = 0.00234
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("6_enter")
+
+[node name="Attack" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -0.4, 0.006, 0)
+pixel_size = 0.00234
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("7_attack")
+
+[node name="Defend" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.006, 0)
+pixel_size = 0.00234
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("8_defend")
+
+[node name="Resolve" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0.4, 0.006, 0)
+pixel_size = 0.00234
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("9_resolve")
+
+[node name="End" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0.8, 0.006, 0)
+pixel_size = 0.00234
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("10_end")
+
+[node name="Discard" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 2.85, 0.006, 0)
+pixel_size = 0.00266
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("11_discard")
+
+[node name="Recover" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 3.25, 0.006, 0)
+pixel_size = 0.00266
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("12_recover")
+
+[node name="TurnEnd" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 3.65, 0.006, 0)
+pixel_size = 0.00266
+shaded = false
+double_sided = false
+texture_filter = 3
+texture = ExtResource("13_turn_end")

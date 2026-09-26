@@ -205,7 +205,7 @@ func _legend() -> VBoxContainer:
 	var row: VBoxContainer = VBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	for type in ["duel", "elite", "key", "boss", "sensei", "shop", "shrine", "forge"]:
+	for type in ["duel", "elite", "key", "boss", "relic", "shop", "shrine", "forge"]:
 		var cell: HBoxContainer = HBoxContainer.new()
 		cell.add_theme_constant_override("separation", 12)
 		var icon: TextureRect = TextureRect.new()

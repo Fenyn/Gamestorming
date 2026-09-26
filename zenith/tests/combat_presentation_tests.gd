@@ -31,6 +31,9 @@ func _run() -> void:
 	await _test_legal_actions(hud)
 	await _test_strip_and_queue(hud, defender)
 	await _test_read_holds(hud, defender)
+	await _test_beat_banner(hud)
+	_test_hit_tiers()
+	await _test_card_motion()
 	hud.free()
 	await process_frame
 	print("Combat presentation: %d checks, %d failures" % [checks, failures])
@@ -288,10 +291,9 @@ func _test_legal_actions(hud: Node) -> void:
 	hud.option_chosen.connect(func(option: OptionView) -> void: emitted.append(option.to_command(prompt.player).to_dict()))
 	await hud.show_prompt(prompt, view)
 	await process_frame
-	_check(hud.focus.visible and hud.prompt_title.visible and hud.prompt_who.visible and hud.prompt_who.text == "YOUR MOVE", "Announced card keeps the actionable decision question and says whose move it is without the owner's name")
+	_check(hud.focus.visible and hud.prompt_title.visible and not hud.prompt_who.visible, "Announced card keeps the actionable decision question, with no owner line for the local decider")
 	_check(not hud.exchange_state.visible and not hud.exchange_route.visible and not hud.exchange_response.visible, "Attached status does not repeat card identity, type and response prose")
-	_check(hud.prompt_panel.get_theme_stylebox("panel") is StyleBoxEmpty, "Attached actions have no separate boxed information panel")
-	for window_size in [Vector2i(1280, 720), Vector2i(1600, 900)]:
+	for window_size in [Vector2i(1280, 720), Vector2i(1600, 900), Vector2i(1920, 1200), Vector2i(2560, 1080)]:
 		root.size = window_size
 		await process_frame
 		hud._layout_prompt_column()
@@ -304,9 +306,11 @@ func _test_legal_actions(hud: Node) -> void:
 		var viewport: Rect2 = root.get_visible_rect()
 		var constants: Dictionary = hud.get_script().get_script_constant_map()
 		_check(face.position.x >= decision.position.x - 1.0 and face.end.x <= decision.end.x + 1.0, "Decision shares the focused card's column at %dp" % window_size.y)
-		_check(decision.position.y >= focus_rect.end.y and decision.position.y - focus_rect.end.y <= 20.0, "The focused card stands directly on the decision at %dp" % window_size.y)
+		_check(decision.position.y >= focus_rect.end.y - float(constants["PROMPT_LONG_RISE"]) - 1.0, "The decision never reaches the focused card's face at %dp" % window_size.y)
 		_check(is_equal_approx(focus_rect.size.x, float(constants["RAIL_CARD_WIDTH"])), "The focused card keeps one size with the decision up at %dp" % window_size.y)
 		_check(focus_rect.position.y >= float(constants["RAIL_TOP"]) - 1.0, "The focused card stays under the corner toggles at %dp" % window_size.y)
+		_check(absf(focus_rect.end.x - (viewport.end.x - float(constants["GUTTER"]))) < 1.0 and absf(focus_rect.position.y - hud.rail_top()) < 1.0, "The rail card sits where the rail puts it, off the right edge, at %s" % str(window_size))
+		_check(absf(decision.end.y - (viewport.end.y - float(constants["PROMPT_BOTTOM"]))) < 1.0, "The decision frame stands on one bottom edge at %s" % str(window_size))
 		_check(viewport.encloses(hud.prompt_title.get_global_rect()), "Decision question stays inside viewport at %dp" % window_size.y)
 		if hud.exchange_damage.is_visible_in_tree():
 			_check(viewport.encloses(hud.exchange_damage.get_global_rect()), "Incoming consequence stays inside viewport at %dp" % window_size.y)
@@ -399,6 +403,8 @@ func _test_legal_actions(hud: Node) -> void:
 	await process_frame
 	_check(not hud.focus.visible and hud.prompt_title.visible and hud.primary_box.get_child_count() == 1, "Cardless choice keeps its standalone question and legal action")
 	_check(root.get_visible_rect().encloses(hud.prompt_panel.get_global_rect()), "Cardless fallback stays inside viewport")
+	var gutter: float = float(hud.get_script().get_script_constant_map()["PROMPT_BOTTOM"])
+	_check(absf(hud.prompt_panel.get_global_rect().end.y - (root.get_visible_rect().end.y - gutter)) < 1.0, "A cardless decision stands on the same bottom edge as a card's decision")
 	var many: Array[OptionView] = []
 	for index in range(18):
 		var alternative: OptionView = OptionView.new()
@@ -411,7 +417,9 @@ func _test_legal_actions(hud: Node) -> void:
 	hud._fit_actions()
 	await process_frame
 	_check(hud.primary_box.get_child_count() == many.size(), "Long action list retains every offered option")
-	_check(hud.actions_scroll.size.y <= 261.0 and root.get_visible_rect().encloses(hud.actions_scroll.get_global_rect()), "Long action list scrolls within its bounded viewport slot")
+	var ceiling: float = hud._panel_top() - float(hud.get_script().get_script_constant_map()["PROMPT_LONG_RISE"])
+	_check(hud.prompt_panel.get_global_rect().position.y >= ceiling - 1.0 and root.get_visible_rect().encloses(hud.actions_scroll.get_global_rect()), "Long action list scrolls under the frame's ceiling")
+	_check(absf(hud.prompt_panel.get_global_rect().end.y - (root.get_visible_rect().end.y - gutter)) < 1.0, "A long list keeps the frame on its bottom edge")
 	_check(hud.actions_scroll.follow_focus and hud.actions_scroll.get_v_scroll_bar().max_value > hud.actions_scroll.size.y, "Clipped alternatives remain reachable by scrolling and keyboard focus")
 	var before_last: int = emitted.size()
 	hud.primary_box.get_child(many.size() - 1).pressed.emit()
@@ -446,47 +454,49 @@ func _test_endurance_action(hud: Node, view: SeatView) -> void:
 	_check(emitted.size() == before + 1 and emitted.back() == endure.to_command(prompt.player).to_dict(), "Clearer Endurance wording preserves the exact offered command")
 
 
-## The phase strip, the pending pile and the one-action button all read public state only.
+## The phase track on the table, the pending pile and the one-action button all read public
+## state only.
 func _test_strip_and_queue(hud: Node, base: SeatView) -> void:
 	var view: SeatView = SeatView.from_dict(base.to_dict().duplicate(true))
+	var track: PhaseTrack = load("res://scenes/duel/phase_track.tscn").instantiate()
+	track.reduced_motion = true
+	root.add_child(track)
 	view.step = GameState.Step.COMBAT
 	view.phase = GameState.Phase.ATTACK
-	view.attacker = 0
 	view.consecutive_passes = 1
-	hud._refresh_phase(view, 1)
-	_check(hud._combat_strip.visible and not hud._step_labels[hud.COMBAT_INDEX].visible, "Combat expands its own chip in place")
-	_check(hud._sub_labels.size() == 5 and hud.SUB_LABELS == ["Enter", "Attack", "Defend", "Resolve", "End"],
-		"Combat condenses to five sub-chips, with no fight-back step of its own")
-	_check(hud._sub_notes[hud.SUB_ATTACK].text == view.player(0).name and hud._sub_notes[hud.SUB_DEFEND].text == "You", "Attack and Defend sub-chips name the seats holding them")
-	_check(hud._sub_notes[hud.SUB_END].visible and hud._sub_chips[hud.SUB_END].tooltip_text.contains("ends Combat"), "One pass so far warns that the next one ends Combat")
-	view.attack_phase_count = 2
-	hud._refresh_phase(view, 1)
-	_check(hud._exchange_chip.text == "Exchange 3", "The strip numbers the exchange so a long Combat reads as a series")
+	track.refresh(view)
+	_check(track.lit == &"attack", "Combat lights its Attack icon in the ring")
+	_check(track.icon(&"attack").modulate == Color(ZenithTheme.ATTACK, 1.0), "The Attack icon wears the attack colour")
+	_check(is_equal_approx(track.icon(&"declare").modulate.a, track.DONE_ALPHA) and is_equal_approx(track.icon(&"discard").modulate.a, track.AHEAD_ALPHA), "Steps behind are dimmed and steps ahead are faint")
+	_check(track.icon(&"end").modulate == Color(ZenithTheme.WARN, track.WARN_ALPHA), "One pass so far warms the End icon: the next pass ends Combat")
 	view.phase = GameState.Phase.FIGHT_BACK
-	hud._refresh_phase(view, 1)
-	_check(hud._sub_labels[hud.SUB_ATTACK].get_theme_color("font_color") == ZenithTheme.ATTACK, "A fight back stays on the Attack chip rather than a step of its own")
-	view.phase = GameState.Phase.ATTACK
-	view.attacker = 1
-	view.attack_phase_count = 3
-	hud._refresh_phase(view, 1)
-	_check(hud._sub_notes[hud.SUB_ATTACK].text == "You" and hud._sub_notes[hud.SUB_DEFEND].text == view.player(0).name, "After the hand-over the two names swap")
-	_check(hud._exchange_chip.text == "Exchange 4", "and the exchange counter moves on")
-	view.attacker = 0
-	view.attack_phase_count = 0
-	view.phase = GameState.Phase.ATTACK
-	hud._refresh_phase(view, 1)
+	track.refresh(view)
+	_check(track.lit == &"attack", "A fight back stays on the Attack icon rather than a step of its own")
+	view.phase = GameState.Phase.DEFEND
+	view.consecutive_passes = 0
+	track.refresh(view)
+	_check(track.lit == &"defend" and is_equal_approx(track.icon(&"attack").modulate.a, track.DONE_ALPHA), "Defend lights and Attack falls behind it")
 	view.phase = GameState.Phase.BATTLE
-	view.battle_step = 9
-	hud._refresh_phase(view, 1)
-	_check(hud._battle_dots[0].color == ZenithTheme.ACCENT_SOFT, "A finished battle group reads as done")
-	_check(hud._battle_dots[3].color == ZenithTheme.ACCENT, "The battle group holding battle_step is the lit one")
-	_check(hud._battle_dots[5].color == ZenithTheme.RAISED_STRONG, "Battle groups still ahead stay unlit")
-	view.step = GameState.Step.DRAW
+	track.refresh(view)
+	_check(track.lit == &"resolve", "The battle sequence lights Resolve")
+	view.step = GameState.Step.POWER_UP
 	view.phase = GameState.Phase.NONE
-	hud._refresh_phase(view, 1)
-	_check(not hud._combat_strip.visible and hud._step_labels[hud.COMBAT_INDEX].visible, "Outside Combat the strip folds back to one chip")
-	for label in hud._step_labels:
-		_check(label.visible, "The other turn steps keep their words whether Combat is open or not")
+	track.refresh(view)
+	_check(track.lit == &"power_up" and is_equal_approx(track.icon(&"enter").modulate.a, track.AHEAD_ALPHA), "Outside Combat a turn step lights and the ring waits")
+	var live: Dictionary = {"step": GameState.Step.DISCARD, "phase": GameState.Phase.NONE}
+	track.refresh(view, live)
+	_check(track.lit == &"discard", "The track reads the beat's own stamp before the view")
+	# A pulse caught while an icon is fading must still settle on the faded state.
+	track.reduced_motion = false
+	view.step = GameState.Step.COMBAT
+	view.phase = GameState.Phase.BATTLE
+	track.refresh(view)
+	view.phase = GameState.Phase.DEFEND
+	track.refresh(view)
+	track.pulse(&"resolve")
+	await create_timer(0.6).timeout
+	_check(is_equal_approx(track.icon(&"resolve").modulate.a, track.AHEAD_ALPHA), "A pulsed icon settles on its state, not on the colour it had mid-fade")
+	track.queue_free()
 	# Reduced Motion so a popped face is gone by the next check instead of drifting out of it.
 	hud.reduced_motion_toggle.set_pressed_no_signal(true)
 	hud.clear_prompt()
@@ -495,7 +505,7 @@ func _test_strip_and_queue(hud: Node, base: SeatView) -> void:
 	await _test_stack_from_pending(hud, view, source)
 	hud.hide_focus()
 	hud.quiet_beat("Nothing to respond with", ZenithTheme.MUTED)
-	_check(hud.quiet_label.visible and hud.quiet_label.text == "Nothing to respond with", "A skipped window still gets its own quiet beat")
+	_check(hud.banner.visible and hud.banner_text.text == "Nothing to respond with", "A skipped window still gets its own quiet beat")
 	var cardless: SeatView = SeatView.from_dict(view.to_dict().duplicate(true))
 	cardless.attack = {}
 	cardless.pending_card = -1
@@ -745,12 +755,60 @@ func _test_read_holds(hud: Node, base: SeatView) -> void:
 		await process_frame
 		for child in hud.primary_box.get_children():
 			if child is Button and child.visible:
-				_check(root.get_visible_rect().encloses((child as Button).get_global_rect()), "The decision button stays on screen under the pinned attack at %dp" % window_size.y)
+				_check(root.get_visible_rect().encloses((child as Button).get_global_rect()), "The decision button stays on screen under the pinned attack at %dp: %s" % [window_size.y, str((child as Button).get_global_rect())])
 		_check(root.get_visible_rect().encloses(hud.prompt_panel.get_global_rect()), "The decision panel still fits under the same rect at %dp" % window_size.y)
 		hud.clear_prompt()
 		await process_frame
 		_check(hud.stack_depth() == 0 and hud.stack.get_child_count() == 0, "Clearing the decision empties the stack with the Focus")
 	hud.reduced_motion_toggle.set_pressed_no_signal(false)
+
+
+## One banner home for every beat: a quiet line never cuts short a louder banner still being read,
+## a louder one always replaces what is up, and the banner never reaches under the rail.
+func _test_beat_banner(hud: Node) -> void:
+	hud.reduced_motion_toggle.set_pressed_no_signal(true)
+	hud.toast("Hits for 3 Energy", ZenithTheme.ATTACK)
+	hud.quiet_beat("Passes", ZenithTheme.MUTED)
+	_check(hud.banner_text.text == "Hits for 3 Energy", "A quiet beat waits behind an outcome banner still being read")
+	hud.handover("Exchange 2  ·  Test attacks", ZenithTheme.ATTACK)
+	_check(hud.banner.visible and hud.banner_text.text.begins_with("Exchange 2"), "A hand-over replaces whatever banner is up")
+	_check(hud.banner.size.y > hud.BANNER_HEIGHT[hud.Banner.OUTCOME] - 1.0, "A hand-over is the tallest banner")
+	var rail_left: float = hud.root.size.x + hud.RAIL_LEFT
+	_check(hud.banner.position.x + hud.banner.size.x <= rail_left, "The banner stays clear of the rail")
+	_check(hud.banner.position.y >= 0.0 and hud.banner.position.y + hud.banner.size.y <= hud.root.size.y, "The banner stays on screen")
+	hud.reduced_motion_toggle.set_pressed_no_signal(false)
+	hud._clear_banner()
+	await process_frame
+
+
+func _test_hit_tiers() -> void:
+	var view_script: GDScript = load("res://scripts/duel/duel_view.gd")
+	_check(view_script.hit_tier(1, 0) == 0, "A one-stage hit is a chip")
+	_check(view_script.hit_tier(4, 0) == 1, "A four-stage hit is solid")
+	_check(view_script.hit_tier(7, 0) == 1, "Seven stages are still solid")
+	_check(view_script.hit_tier(1, 1) == 1, "One wound is solid, so an ordinary Art does not punch the camera")
+	_check(view_script.hit_tier(0, 3) == 2 and view_script.hit_tier(9, 0) == 2, "Three wounds' weight lands heavy")
+
+
+## A Card3D motion cut off by a newer one still releases whoever awaited it, since a killed tween
+## never emits `finished`, and the Body comes to rest at the origin.
+func _test_card_motion() -> void:
+	var card: Card3D = load("res://scenes/duel/card_3d.tscn").instantiate()
+	root.add_child(card)
+	await process_frame
+	var done: Array[bool] = [false]
+	var watch: Callable = func() -> void:
+		await card.shake(0.05)
+		done[0] = true
+	watch.call()
+	await process_frame
+	card.hop(0.1)
+	await process_frame
+	_check(done[0], "A shake cut off by a hop releases its awaiter")
+	await card.jab(Vector3.FORWARD, 0.02)
+	_check(card.body.position.is_zero_approx(), "The Body rests at the origin after a jab")
+	card.queue_free()
+	await process_frame
 
 
 func _check(ok: bool, message: String) -> void:

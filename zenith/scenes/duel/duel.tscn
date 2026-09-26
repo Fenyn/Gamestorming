@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_view.gd" id="1_view"]
 [ext_resource type="Script" path="res://scripts/duel/table_camera.gd" id="5_camera"]
@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://scripts/duel/duel_presence.gd" id="11_presence"]
 [ext_resource type="Shader" path="res://scripts/duel/playmat.gdshader" id="13_playmat_shader"]
 [ext_resource type="Shader" path="res://scripts/duel/arena_veil.gdshader" id="14_veil_shader"]
+[ext_resource type="PackedScene" path="res://scenes/duel/phase_track.tscn" id="15_track"]
 
 [sub_resource type="Environment" id="Environment_duel"]
 background_mode = 2
@@ -118,6 +119,8 @@ position = Vector3(0, 0.102, 0)
 cast_shadow = 0
 mesh = SubResource("Plane_surface")
 material_override = SubResource("Material_surface")
+
+[node name="PhaseTrack" parent="." instance=ExtResource("15_track")]
 
 [node name="CameraRig" type="Node3D" parent="."]
 

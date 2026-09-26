@@ -26,7 +26,7 @@ The spine. Everything else hangs off it.
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 1.1 | Map data model in `adventure/` (RefCounted): acts, tiers, nodes, edges, node type, seeded from `run.run_seed` | done | 2026-09-23, `adventure/adventure_map.gd`, numbers in `data/adventure/map.json`. Never saved: the seed rolls the same map |
-| 1.2 | Map generator: tiers 1 to 7 of each act with random node connections, tier 8 a single boss node; Sensei forced early in act 1; Quarr is the act 3 boss | done | 2026-09-23. 4 lanes, 4 walks, about 19 nodes an act. Fight chance 0.55 gives paths of 2 fights 8%, 3 or 4 fights 72%, 5 fights 20%. Twist and Encounter weights are 0 until phase 3. A run of `steel_beatdown` gets a random final boss until 6.7 |
+| 1.2 | Map generator: tiers 1 to 7 of each act with random node connections, tier 8 a single boss node; Relic node forced early in act 1; Quarr is the act 3 boss | done | 2026-09-23. 4 lanes, 4 walks, about 19 nodes an act. Fight chance 0.55 gives paths of 2 fights 8%, 3 or 4 fights 72%, 5 fights 20%. Twist and Encounter weights are 0 until phase 3. A run of `steel_beatdown` gets a random final boss until 6.7 |
 | 1.2a | Key character node type | done | 2026-09-23. Random opponent from the act's band, marked `# LORE` |
 | 1.3 | Run state: current node, path taken, save version bump | done | 2026-09-23. `node_id`, `path`, status `map`; `stage` counts duels won. Save version 5; an older save is dropped (user, 2026-09-23) |
 | 1.4 | Replace `AdventureLadder` / `pipeline.json` as the source of duels, keeping tier, band and AI level per duel node | done | 2026-09-23. Deck-id helpers moved to `AdventureDecks`. Motes per duel 20 / 30 / 40 by act, per boss 40 / 60 / 80, completion 50. Reward tier gates read map progress |
@@ -65,17 +65,17 @@ One per-duel options block passed from `Session` to the engine at setup, each wi
 | 3.7 | Overkill counter and knockout prize for 3.6 | blocked | Threshold and prize pending the user |
 | 3.8 | AI check: `tests/ai_arena.gd` with a guest Ally and each twist | todo | |
 
-## Phase 4: Sensei and the Reserve
+## Phase 4: Relic node and the Reserve
 
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 4.1 | Run holds a Relic and a Reserve; save, loadout and `Session.build_referee` carry them | todo | Starters have none, except `tide_companions` |
 | 4.2 | Reserve bundle group in `bundles.json`: counter tech sorted by the archetype it answers | todo | Data work; source from `docs/archetypes.md`. Lockouts stay out |
-| 4.3 | Sensei offers: Relic plus about five school-themed Reserve cards, one of three, once per run | todo | |
-| 4.4 | Sensei node screen | todo | |
+| 4.3 | Relic node offers: Relic plus about five school-themed Reserve cards, one of three, once per run | todo | |
+| 4.4 | Relic node screen | todo | |
 | 4.5 | Reserve bundles offered on reward screens as an option pack | todo | |
 | 4.6 | Reserve side of the library screen (2.8), usable once the next opponent is shown | todo | |
-| 4.7 | More Relics, each paralleling a printed Sensei card | todo | Only 4 exist. Source check and names need user approval |
+| 4.7 | More Relics, each paralleling a printed card | todo | Only 4 exist. Source check and names need user approval |
 
 ## Phase 5: Resonances
 
@@ -106,6 +106,7 @@ One per-duel options block passed from `Session` to the engine at setup, each wi
 | 6.10 | Personality variant unlocks from encounters and quest nodes | todo | Each variant needs a printed source card first |
 | 6.11 | Harder difficulty after a first clear | todo | |
 | 6.12 | Gallery and epilogue screens | todo | Epilogue text needs tone approval |
+| 6.13 | Pre-duel lead-ins | doing | 2026-09-25, first pass for testing. Text in `data/adventure/lead_ins.json` (by main, opponent and slot), picked by `AdventureLeadIns`, remembered in `AdventureStoryLog` (`user://adventure/story_log.json`), shown by `scenes/adventure/lead_in.tscn` before every duel. Draft and open lore questions in `docs/lead_ins_review.md`. 67316 checks, 0 failures |
 
 ## Phase 7: balance
 

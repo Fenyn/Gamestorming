@@ -12,7 +12,7 @@ extends RefCounted
 ## the same data goes to both seats. Any event not listed reaches clients as its line alone.
 ## A played card's id remains public for this replay beat even if its final zone is hidden.
 const ANIMATED: Dictionary = {
-	&"combat_begin": [], &"combat_end": [],
+	&"combat_begin": ["attacker"], &"combat_end": [],
 	&"attack_declared": ["kind", "source", "id", "is_power", "is_final", "focused", "empowered"],
 	&"defense_played": ["card", "id", "stopped"], &"defense_power": ["card"], &"shield": ["card"],
 	&"attack_stopped": [], &"attack_successful": [],
@@ -34,7 +34,7 @@ const ANIMATED: Dictionary = {
 	# The quiet beats: a window that opened on nothing, a decision taken without a card, a step
 	# boundary. They used to reach a client as a log line alone, so the table stood still through
 	# them. All of it is public once it has happened.
-	&"turn_start": ["turn"], &"turn_end": ["turn"], &"recover_step": ["eligible"],
+	&"turn_start": [], &"turn_end": [], &"recover_step": ["eligible"],
 	&"combat_declared": ["forced"], &"combat_skipped": ["forced", "reason"],
 	&"entering_combat": ["role"], &"pass": ["forced", "consecutive"], &"fight_back": ["next"],
 	&"attack_phase_skipped": [], &"no_defense": ["auto", "reason"], &"declined_counter": [],

@@ -13,7 +13,7 @@ var port: int = DEFAULT_PORT
 
 
 func _ready() -> void:
-	for arg in OS.get_cmdline_user_args():
+	for arg in DevArgs.user_args():
 		if arg.begins_with("--port="):
 			port = int(arg.get_slice("=", 1))
 	var problem: String = await Net.serve(port)

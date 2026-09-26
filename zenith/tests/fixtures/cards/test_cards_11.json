@@ -6,7 +6,7 @@
 
 		{"id": "t_sink_seals", "title": "Test Undertow", "type": "combat",
 			"effects": [{"op": "discard_in_play", "who": "opponent", "card_type": "seal",
-				"amount": 2, "up_to": true, "choose": true, "to": "deck_bottom"}]},
+				"amount": 2, "up_to": true, "at_least_one": true, "choose": true, "to": "deck_bottom"}]},
 
 		{"id": "t_name_strip", "title": "Test Naming", "type": "combat",
 			"effects": [{"op": "name_card", "pool": "opponent_deck",

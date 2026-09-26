@@ -104,22 +104,25 @@ referee's presentation data.
 - **Off-field cards** sit on the felt, not in a screen-edge rail: Discard under the Life Deck,
   the Mastery beside the duelist, Out and the Relic (with its Reserve under it) flanking the stat
   crest. Empty piles keep their outline and caption; every pile is browsable in one click. Recent
-  history is about two lines with full History expandable. Reduced Motion is a small peripheral
-  control.
-- **Phase strip**: one top-centre line of seven step chips, each over a rule that fills behind the
-  current step. While the step is Combat, the Combat chip expands in place into Enter, Attack,
-  Defend, Resolve and End, the other chips keep their words at a smaller size, and a six-dot row
-  under Resolve tracks the battle sequence (pay, defend, shields, damage, wounds, after) from
-  `battle_step`. Combat is attack and defend back and forth, so a fight back is not a step of its
-  own: the engine's PREPARE_ACTIVE, PREPARE_OPPOSING and OPPOSING_DRAW all read as Enter, and
-  FIGHT_BACK reads as Attack. Attack and Defend name the seat holding them, the strip counts the
-  exchange ("Exchange 3") from `attack_phase_count` so a long Combat reads as a series, and End
-  warns when one more pass ends Combat. The chip that takes over comes up across 0.15 s,
-  instantly under Reduced Motion; a hand-over swaps the two names and pulses the Attack chip
-  instead, because those names are all that otherwise changes. Sword, shield and burst glyphs
-  come from `TypeIcon`.
+  history is about two lines with full History expandable. Reduced Motion and Dev sit behind the
+  options gear at the top right.
+- **Phase track** (2026-09-25, replaced the top phase bar): the turn is printed on the table along
+  the waist between the duelists as Kenney board-game icons (`scenes/duel/phase_track.tscn`,
+  `PhaseTrack`): Draw, Place, Power Up and Declare in the left notch, Enter, Attack, Defend,
+  Resolve and End across the ring, Discard, Recover and End turn in the right notch, ordered for
+  whoever sits at the table. The step the beat stands on is lit (larger, with a halo; Attack in
+  the attack colour, Defend in the table's defence slate), steps behind are dimmed, steps ahead
+  faint, and End warms when one more pass ends Combat. PREPARE_* and OPPOSING_DRAW read as Enter,
+  FIGHT_BACK as Attack. A beat inside a step pulses its icon. There is no text: whose turn it is
+  shows as a soft light along the inside edge of the active seat's half of the mat
+  (`playmat.gdshader` `active_lobe`), which crosses the table at a turn change.
   Everything is read from the beat's own state first, so a replaying update never draws ahead of
   the cards on the table.
+- **Beat banner**: one ribbon across the ring (`Root/Banner`, `DuelHud.show_banner`), fading at
+  both ends and stopping short of the notches. Hand-overs (Combat opening with its first attacker,
+  "X attacks", "Combat over", a new turn) sweep open; outcomes (the attack's name,
+  "Stopped", a wound) pop; quiet beats are a translucent line that never cuts short a louder
+  banner younger than 0.6 s. Bone is the act-here colour, so the rival's turn banner is grey.
 - **Scale policy**: 1920x1080 canvas base, expanded across aspect ratios. At 1280x720 decision text
   is about 16 displayed pixels, supporting text about 14, click targets at least 40 high.
 
@@ -127,8 +130,11 @@ Feedback vocabulary: declaration slides and scales into the lane and pins its fa
 slot with a caption that follows the exchange to its outcome; an answering card is pushed onto the
 stack over it and drifts off again when the beat that resolves it arrives, so action and reaction
 are on screen together and the exchange reads as one pile emptying; a legal response carries an aura;
-a stop flashes defense colour; a skipped or passed window gets a short quiet banner under the toast
-slot so nothing resolves silently; a hit shakes and flashes the target with its numbers over it; a wound
+a stop flashes defense colour and knocks the attacker back; a skipped or passed window gets a quiet
+banner so nothing resolves silently; the attacker jabs as the damage lands and both fighters hold
+on the contact frame for the hit's weight (`hit_tier`: chip, solid, or heavy at three wounds'
+worth, which also punches the camera once), then the target shakes with its number over it;
+Energy that spills over slides "+N wounds" to the Life Deck; a wound
 pulses the Life number as the card lifts, reveals and flies to its pile; Second Wind returns the
 discard in one shuffle beat; ascension raises a power-up effect. Reduced Motion keeps every state
 distinction through position, border, icon and text, snaps card flights, freezes mist and inlays,
@@ -180,10 +186,12 @@ demo keyboard scripts are detached, and combat effects clean up after their anim
   lives on the cards and the HUD. Board state sits on the board (2026-09-23): each duelist's
   Energy / Might / Fervor tracker is a plate on a stone slab leaning back toward the viewer
   (`DuelistDisplay`, near seat below the Out and Relic captions, far seat scaled 1.25x and
-  tilted further so it reads across the table), status lines and the rival's hand are printed
-  flat on the felt, and the Life count lies on its pile. The plate wears the Kenney inner rule in
+  tilted further so it reads across the table), status chips and Seal sets are printed flat along
+  the seat's Ally row (beside the plate while an Ally is in play), the rival's hand is printed flat
+  on the felt, and the Life count lies on its pile. Text a banner already says is not floated on the
+  table as well: no "STOPPED", "Wound N", "Endurance", "Gain blocked" or "Shield" labels. The plate wears the Kenney inner rule in
   the seat's muted colour over warm charcoal; zone names and outlines are ivory ink. Meta
-  information (phase strip, log, prompt, inspect) stays on screen in framed panels. Table effects draw the HUD's defence blue and accent gold in
+  information (log, prompt, inspect) stays on screen in framed panels; the phase track is on the felt. Table effects draw the HUD's defence blue and accent gold in
   pale slate and old ivory (`DuelFx.tone`), because the saturated pair glowed like neon on stone.
 
 Tuning files:
@@ -194,8 +202,10 @@ Tuning files:
 - `scripts/duel/courtyard_set.gd`: the courtyard's geometry, sky, fog, sun, leaves and light shafts.
 - `scripts/ui/sanctum_set.gd` (geometry, lights, particles), `scripts/ui/sanctum_ui.gd` (theme and
   menu feedback), `scripts/adventure/tournament_route.gd` (route).
-- `scenes/duel/hud.tscn`, `scripts/duel/duel_hud.gd`: phase strip and its Combat sub-chips,
-  history, prompt, the single action button, banners (`toast`, `quiet_beat`), the `Root/Focus` slot
+- `scenes/duel/phase_track.tscn`, `scripts/duel/phase_track.gd`: the phase track on the table.
+  Its icons come from `tools/import_map_art.py` (`assets/ui/phase_icons/SOURCES.md`).
+- `scenes/duel/hud.tscn`, `scripts/duel/duel_hud.gd`: history, options gear, prompt, the single
+  action button, the beat banner (`show_banner`, `toast`, `quiet_beat`, `handover`), the `Root/Focus` slot
   and the `Root/Focus/Stack` over it (`show_focus`, `show_replay_card`, `set_focus_caption`,
   `push_response`, `pop_response`, `clear_stack`, `focus_uid`, `pulse_pending`), the reconcile of
   that stack against `SeatView.pending` (`_reconcile_pending`, `_reconcile_stack`, `STACK_MAX`, the

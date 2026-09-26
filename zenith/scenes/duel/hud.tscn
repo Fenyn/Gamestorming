@@ -1,8 +1,13 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="3_face"]
 [ext_resource type="PackedScene" path="res://scenes/duel/dev_panel.tscn" id="4_dev"]
+[ext_resource type="Shader" path="res://scripts/duel/ribbon.gdshader" id="5_ribbon"]
+[ext_resource type="Script" path="res://scripts/ui/gear_button.gd" id="6_gear"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ribbon"]
+shader = ExtResource("5_ribbon")
 
 [node name="Hud" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -16,75 +21,37 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="PhasePanel" type="PanelContainer" parent="Root"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -520.0
-offset_top = 10.0
-offset_right = 520.0
-offset_bottom = 100.0
-grow_horizontal = 2
-
-[node name="Column" type="VBoxContainer" parent="Root/PhasePanel"]
-layout_mode = 2
-theme_override_constants/separation = 2
-
-[node name="Turn" type="HBoxContainer" parent="Root/PhasePanel/Column"]
-layout_mode = 2
-theme_override_constants/separation = 16
-alignment = 1
-
-[node name="Counter" type="Label" parent="Root/PhasePanel/Column/Turn"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 24
-text = "TURN 1"
-
-[node name="Who" type="Label" parent="Root/PhasePanel/Column/Turn"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "YOUR TURN"
-vertical_alignment = 1
-
-[node name="Steps" type="HBoxContainer" parent="Root/PhasePanel/Column"]
-layout_mode = 2
-theme_override_constants/separation = 4
-alignment = 1
-
-[node name="Toast" type="Label" parent="Root"]
+[node name="Banner" type="Control" parent="Root"]
 visible = false
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -280.0
-offset_top = 116.0
-offset_right = 280.0
-offset_bottom = 164.0
-grow_horizontal = 2
-pivot_offset = Vector2(280, 24)
+layout_mode = 3
+anchors_preset = 0
+offset_left = 432.0
+offset_top = 508.0
+offset_right = 1488.0
+offset_bottom = 572.0
+pivot_offset = Vector2(528, 32)
 mouse_filter = 2
-theme_override_font_sizes/font_size = 30
-text = "Strike"
-horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="QuietBeat" type="Label" parent="Root"]
-visible = false
+[node name="Ribbon" type="ColorRect" parent="Root/Banner"]
+material = SubResource("ShaderMaterial_ribbon")
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -220.0
-offset_top = 170.0
-offset_right = 220.0
-offset_bottom = 204.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
-theme_override_font_sizes/font_size = 18
-text = "Skipped"
+
+[node name="Text" type="Label" parent="Root/Banner"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 32
+text = "Combat"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -153,14 +120,17 @@ alignment = 1
 
 [node name="PromptPanel" type="PanelContainer" parent="Root"]
 layout_mode = 1
-anchors_preset = 1
+anchors_preset = 3
 anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
-offset_left = -454.0
-offset_top = 723.0
-offset_right = -54.0
-offset_bottom = 723.0
+anchor_bottom = 1.0
+offset_left = -418.0
+offset_top = -96.0
+offset_right = -18.0
+offset_bottom = -96.0
 grow_horizontal = 0
+grow_vertical = 0
 
 [node name="Column" type="VBoxContainer" parent="Root/PromptPanel"]
 layout_mode = 2
@@ -177,6 +147,12 @@ layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 theme_override_font_sizes/font_size = 20
 text = "Waiting"
+autowrap_mode = 3
+
+[node name="Hint" type="Label" parent="Root/PromptPanel/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = ""
 autowrap_mode = 3
 
 [node name="Exchange" type="HBoxContainer" parent="Root/PromptPanel/Column"]
@@ -226,12 +202,6 @@ theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 mouse_filter = 2
 
-[node name="Hint" type="Label" parent="Root/PromptPanel/Column"]
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = ""
-autowrap_mode = 3
-
 [node name="Actions" type="ScrollContainer" parent="Root/PromptPanel/Column"]
 layout_mode = 2
 horizontal_scroll_mode = 0
@@ -257,9 +227,9 @@ autowrap_mode = 3
 visible = false
 modulate = Color(1, 1, 1, 0.9)
 layout_mode = 1
-offset_left = 22.0
+offset_left = 18.0
 offset_top = 318.0
-offset_right = 470.0
+offset_right = 466.0
 offset_bottom = 348.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 18
@@ -279,20 +249,56 @@ theme_override_colors/font_color = Color(0.93, 0.55, 0.3, 1)
 theme_override_font_sizes/font_size = 24
 autowrap_mode = 3
 
-[node name="ReducedMotion" type="CheckButton" parent="Root"]
+[node name="Options" type="Button" parent="Root"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -230.0
+offset_left = -66.0
 offset_top = 18.0
 offset_right = -18.0
-offset_bottom = 64.0
+offset_bottom = 66.0
 grow_horizontal = 0
+tooltip_text = "Options"
+toggle_mode = true
+flat = true
+script = ExtResource("6_gear")
+
+[node name="OptionsMenu" type="PanelContainer" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 74.0
+offset_right = -18.0
+offset_bottom = 214.0
+grow_horizontal = 0
+
+[node name="Column" type="VBoxContainer" parent="Root/OptionsMenu"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Root/OptionsMenu/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "OPTIONS"
+
+[node name="ReducedMotion" type="CheckButton" parent="Root/OptionsMenu/Column"]
+layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Reduced motion"
 flat = true
 tooltip_text = "Keep resource changes readable with less movement and fewer impact effects."
+
+[node name="DevToggle" type="Button" parent="Root/OptionsMenu/Column"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Dev commands"
+flat = true
+alignment = 0
 
 
 [node name="Tray" type="ColorRect" parent="Root"]
@@ -427,20 +433,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Close"
 
-[node name="DevToggle" type="Button" parent="Root"]
-visible = false
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -84.0
-offset_top = 86.0
-offset_right = -16.0
-offset_bottom = 114.0
-theme_override_font_sizes/font_size = 18
-text = "Dev"
-flat = true
-
 [node name="DevPanel" parent="Root" instance=ExtResource("4_dev")]
 visible = false
 layout_mode = 1
@@ -454,10 +446,10 @@ offset_bottom = 518.0
 visible = false
 layout_mode = 1
 anchors_preset = 0
-offset_left = 16.0
-offset_top = 216.0
-offset_right = 376.0
-offset_bottom = 720.0
+offset_left = 18.0
+offset_top = 358.0
+offset_right = 378.0
+offset_bottom = 923.0
 mouse_filter = 2
 z_index = 10
 
@@ -525,11 +517,11 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -414.0
-offset_top = 120.0
-offset_right = -54.0
-offset_bottom = 655.0
-grow_horizontal = 2
+offset_left = -418.0
+offset_top = 82.0
+offset_right = -18.0
+offset_bottom = 673.0
+grow_horizontal = 0
 mouse_filter = 2
 
 [node name="Caption" type="Label" parent="Root/Focus"]

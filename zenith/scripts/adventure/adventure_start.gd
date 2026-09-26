@@ -120,7 +120,6 @@ func _deck_button(text: String, pressed: bool, index: int) -> Button:
 	button.toggle_mode = true
 	button.button_group = _deck_group
 	button.custom_minimum_size = Vector2(0, 54)
-	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.button_pressed = pressed
 	button.pressed.connect(_pick_deck.bind(index))
 	return button

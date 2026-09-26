@@ -17,6 +17,7 @@ const ADVENTURE_SETTLE_SCENE: String = "res://scenes/adventure/settle.tscn"
 const ADVENTURE_VENDOR_SCENE: String = "res://scenes/adventure/vendor.tscn"
 const ADVENTURE_LOADOUT_SCENE: String = "res://scenes/adventure/loadout.tscn"
 const ADVENTURE_JOURNAL_SCENE: String = "res://scenes/adventure/journal.tscn"
+const ADVENTURE_LEAD_IN_SCENE: String = "res://scenes/adventure/lead_in.tscn"
 
 var library: CardLibrary = CardLibrary.new()
 var strike_table: StrikeTable = null
@@ -43,6 +44,10 @@ var upgrades: AdventureUpgrades = AdventureUpgrades.new()
 var unlocks: AdventureUnlocks = AdventureUnlocks.new()
 ## School and personality XP. Outlives a run.
 var progress: AdventureProgress = AdventureProgress.new()
+## Who the mains have met and which lead-in lines were shown. Outlives a run.
+var story_log: AdventureStoryLog = AdventureStoryLog.new()
+## The lead-in the lead-in screen shows before the next duel, {} for none.
+var lead_in: Dictionary = {}
 ## What the last won duel gave, as AdventureProgress.record_win entries. Kept until the reward
 ## screen is left, so both its Aspect step and its bundle step show them.
 var win_results: Array[Dictionary] = []
@@ -65,7 +70,8 @@ func _ready() -> void:
 	upgrades = AdventureUpgrades.load_upgrades()
 	unlocks = AdventureUnlocks.load_unlocks()
 	progress = AdventureProgress.load_progress()
-	# A collection saved under the old caps can hold rows the new ones do not. Trimming pays the
+	story_log = AdventureStoryLog.load_log()
+	# A card whose cap dropped since the collection was saved can sit above it. Trimming pays the
 	# overflow back as Motes rather than leaving copies that nothing can use.
 	var trimmed: Dictionary = collection.trim_to_cap(library, wallet)
 	if int(trimmed.get("copies", 0)) > 0:
@@ -131,7 +137,7 @@ func build_referee() -> Referee:
 		if power != "":
 			referee.engine.set_boss_power(1, power)
 	# `--dev-boss-power=<card id>` hands seat 2 a boss power in any duel, for a screenshot check.
-	for arg in OS.get_cmdline_user_args():
+	for arg in DevArgs.user_args():
 		if arg.begins_with("--dev-boss-power="):
 			referee.engine.set_boss_power(1, arg.substr("--dev-boss-power=".length()))
 	last_referee = referee
@@ -303,13 +309,35 @@ func begin_stage() -> void:
 	seed_value = run.stage_seed(run.stage)
 	player_names = [player_names[0], AdventureDecks.opponent_name(opponent_id, library)]
 	roll_colors()
-	go_to_duel()
+	lead_in = _lead_in_for_stage()
+	if lead_in.is_empty():
+		go_to_duel()
+	else:
+		get_tree().change_scene_to_file(ADVENTURE_LEAD_IN_SCENE)
+
+
+## The lead-in before the duel on the run's node. A restarted duel shows the one it showed first.
+func _lead_in_for_stage() -> Dictionary:
+	story_log.begin_run(run.run_id)
+	if str(story_log.current.get("node", "")) == run.node_id:
+		return story_log.current.get("lead_in", {})
+	var ctx: Dictionary = AdventureLeadIns.context_for(run, map, library, progress, story_log)
+	var picked: Dictionary = AdventureLeadIns.pick(ctx)
+	story_log.mark_shown(picked.get("keys", []))
+	story_log.current = {"node": run.node_id, "lead_in": picked}
+	story_log.save()
+	return picked
 
 
 ## Applies the duel result to the run, credits the Motes a win pays, and saves. A loss ends the
 ## run and goes straight to the run-end settlement, which is where the run's cards are bought.
 ## The save is kept until the settlement closes, so quitting on that screen does not lose it.
 func record_stage(won: bool) -> void:
+	var opponent_family: String = AdventureDecks.family_of(str(map.duel_for(run.node_id).get("opponent", "")))
+	story_log.begin_run(run.run_id)
+	story_log.record_result(AdventureDecks.character_of(AdventureDecks.family_of(run.starter_id)),
+		AdventureDecks.character_of(opponent_family), won)
+	story_log.save()
 	if won:
 		var engine: DuelEngine = last_referee.engine if last_referee != null else null
 		win_results = AdventureProgress.record_win(run, map, engine, library, collection,

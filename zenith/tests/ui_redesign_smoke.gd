@@ -3,6 +3,8 @@ extends SceneTree
 ## and public referee views, but placeholder face textures so the headless renderer is enough.
 ## Run: godot --headless --path zenith -s tests/ui_redesign_smoke.gd
 
+const FaceCacheFill = preload("res://tests/face_cache_fill.gd")
+
 var failures: int = 0
 var checks: int = 0
 var clicks: int = 0
@@ -28,15 +30,7 @@ func _run() -> void:
 	var scene: PackedScene = load("res://scenes/duel/duel.tscn")
 	var duel: Node3D = scene.instantiate()
 	var cache: CardFaceCache = duel.get_node("CardFaceCache")
-	var placeholder: ImageTexture = ImageTexture.create_from_image(Image.create(2, 2, false, Image.FORMAT_RGBA8))
-	cache._back = placeholder
-	for value in session.library.defs.values():
-		var def: CardDef = value
-		if def.is_personality():
-			for aspect in def.aspects:
-				cache._cache[CardFaceCache.key_for(def, int(aspect.get("aspect", 1)))] = placeholder
-		else:
-			cache._cache[CardFaceCache.key_for(def)] = placeholder
+	FaceCacheFill.fill(cache, session.library, chosen)
 	root.add_child(duel)
 	var deadline: int = Time.get_ticks_msec() + 12000
 	while (duel.view == null or duel.hud.loading.visible) and Time.get_ticks_msec() < deadline:
@@ -133,6 +127,14 @@ func _run() -> void:
 		_check(card != null and not card.hidden() and duel.view.player(0).hand.has(card.uid), "Physical hand must contain only viewer-owned visible hand cards")
 	for uid in duel.view.player(1).hand:
 		_check(duel.view.card(uid).hidden(), "Opponent hand identities must remain hidden")
+	# A legal choice's glow and the role aura lie just under each card's face. The duelist's slot
+	# is scaled 2.6x; a scaled offset used to sink both under the mat, hiding a usable Power.
+	var mat_top: float = (duel.get_node("Table/Inlay") as Node3D).global_position.y
+	for uid in duel.views.keys():
+		var table_card: Card3D = duel.views[uid]
+		if table_card.visible:
+			_check(table_card.glow.global_position.y > mat_top and table_card.role.global_position.y > mat_top,
+				"Card %d's legal glow and role aura stay above the mat" % int(uid))
 	var readout: Control = duel.near_duelist.readout
 	_check(readout._life == duel.view.player(0).life_deck.size(), "Medallion Life must match the displayed seat")
 	_check(duel.near_duelist.life_value.text == str(duel.view.player(0).life_deck.size()), "Life Deck counter must display the actual remaining deck size")
@@ -170,11 +172,11 @@ func _run() -> void:
 	# The focus card always stands on the rail, a live exchange included.
 	# The HUD script reads autoloads, so it is reached through the scene rather than by class name.
 	var hud: CanvasLayer = duel.hud
-	var rail: Rect2 = hud.get_script().get_script_constant_map()["RAIL_FOCUS"]
+	var constants: Dictionary = hud.get_script().get_script_constant_map()
 	var focus_shown: bool = hud.focus.visible
 	hud.focus.visible = true
 	hud._layout_prompt_column()
-	_check(is_equal_approx(hud.focus.offset_right, rail.position.x + (rail.size.x + hud.focus.size.x) * 0.5) and hud.focus.offset_top >= rail.position.y - 1.0, "The focus card must stand on the rail")
+	_check(is_equal_approx(hud.focus.offset_left, constants["RAIL_LEFT"]) and is_equal_approx(hud.focus.offset_top, hud.rail_top()), "The focus card must stand on the rail")
 	hud.focus.visible = focus_shown
 	# Every off-field card is on the felt, and the screen-edge rail is gone.
 	for zone in [&"discard", &"removed", &"mastery", &"relic"]:
@@ -302,8 +304,18 @@ func _run() -> void:
 		root.size = scale_size
 		root.content_scale_size = scale_size
 		duel._layout_fixtures()
-		var decision_area: Rect2 = Rect2(Vector2(scale_size.x * 0.66, scale_size.y * 0.14), Vector2(scale_size.x * 0.29, scale_size.y * 0.64))
-		hand.set_decision_rect(decision_area)
+		var decision_area: Rect2 = Rect2(Vector2(scale_size.x - hand.rail_clear, 0.0), Vector2(hand.rail_clear, scale_size.y))
+		hand.preview_index(0)
+		hand._layout(true)
+		var fan_before: Array[Rect2] = []
+		for item in hand._items:
+			fan_before.append(item["rect"])
+		_check(hand.revealed and fan_before[0].has_area(), "The fan-still check must measure an open fan at %s" % str(scale_size))
+		duel.hud.prompt_panel.visible = not duel.hud.prompt_panel.visible
+		hand._layout(true)
+		for i in range(hand._items.size()):
+			_check((hand._items[i]["rect"] as Rect2).is_equal_approx(fan_before[i]), "The fan must not move when the decision frame shows or hides at %s" % str(scale_size))
+		duel.hud.prompt_panel.visible = not duel.hud.prompt_panel.visible
 		var first_preview: Rect2 = Rect2()
 		for index in range(hand._items.size()):
 			hand.preview_index(index)

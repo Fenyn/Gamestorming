@@ -13,7 +13,7 @@ extends Control
 
 
 func _ready() -> void:
-	if OS.get_cmdline_user_args().has("--server"):
+	if DevArgs.user_args().has("--server"):
 		# The exported binary run as the duel server: no title, no window content.
 		get_tree().change_scene_to_file.call_deferred("res://scenes/server.tscn")
 		return
@@ -82,7 +82,8 @@ func _on_join() -> void:
 
 ## Seated. A room's share code is copied for the player here; the select screen shows it too.
 func _on_connected() -> void:
-	print("join code: %s" % Net.join_code())
+	if OS.is_debug_build():
+		print("join code: %s" % Net.join_code())
 	if Net.room_code != "" and Net.local_player == 0:
 		DisplayServer.clipboard_set(Net.room_code)
 	Session.go_to_select()
@@ -108,9 +109,10 @@ func _set_buttons(on: bool) -> void:
 ## alone resumes the save, or opens the start screen when there is none. `--dev-stage=N` (only
 ## with `--dev-adventure=<id>`) sets the run's stage before going on. `--dev-adventure-duel` (only
 ## with `--dev-adventure=<id>`) duels the stage straight away instead of opening the stage screen.
+## `--dev-scratch=<dir>` keeps all of it off the player's saves.
 ## `--dev-screenshot=<png>` alone saves the title once drawn, then quits.
 func _dev_args() -> void:
-	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var args: PackedStringArray = DevArgs.user_args()
 	var online: bool = false
 	var adventure: bool = false
 	for arg in args:
@@ -149,6 +151,8 @@ func _dev_adventure(args: PackedStringArray) -> void:
 			stage = int(arg.get_slice("=", 1))
 		elif arg == "--dev-adventure-duel":
 			duel = true
+	if AdventureDev.flag("--dev-scratch=") != "":
+		AdventureDev.use_scratch_saves()
 	if starter_id != "":
 		Session.abandon_run()
 		Session.start_run(starter_id)

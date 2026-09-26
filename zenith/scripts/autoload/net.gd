@@ -49,7 +49,7 @@ var _pending_updates: Array[Dictionary] = []   # updates that arrived before the
 var _in_duel: bool = false        # host and client: a started duel is on the table
 var _presence_heard: Dictionary = {}   # peer id -> [window start msec, messages in that window]
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
-var _log: bool = OS.get_cmdline_user_args().has("--dev-net-log")
+var _log: bool = DevArgs.user_args().has("--dev-net-log")
 
 
 func _ready() -> void:
@@ -116,7 +116,7 @@ func note(text: String) -> void:
 ## Where the duel server lives, from the project setting `zenith/net/duel_server`.
 static func server_address() -> String:
 	var out: String = str(ProjectSettings.get_setting("zenith/net/duel_server", "127.0.0.1:7777"))
-	for arg in OS.get_cmdline_user_args():
+	for arg in DevArgs.user_args():
 		if arg.begins_with("--dev-server="):
 			out = arg.get_slice("=", 1)
 	return out

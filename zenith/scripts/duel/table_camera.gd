@@ -34,6 +34,7 @@ var arena_focus: bool = false:
 		return_home()
 		_glide = ARENA_GLIDE
 var _idle: float = 0.0
+var _kick: Tween = null
 var _dragging: bool = false
 var hand_navigation: bool = false
 
@@ -42,6 +43,20 @@ func _ready() -> void:
 	look_at(LOOK_AT)
 	_home = transform
 	_target = position
+
+
+## A single punch of the view for a heavy hit: the lens offset jumps `strength` table units along
+## `direction` (screen right, screen up) and settles back. It moves the offsets, not the camera,
+## so the glide and the pan never see it. The caller skips it under Reduced motion.
+func kick(direction: Vector2, strength: float = 0.04) -> void:
+	if _kick != null and _kick.is_valid():
+		_kick.kill()
+	var push: Vector2 = direction.normalized() * strength
+	_kick = create_tween()
+	_kick.tween_property(self, "h_offset", push.x, 0.04).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_kick.parallel().tween_property(self, "v_offset", push.y, 0.04).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_kick.tween_property(self, "h_offset", 0.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_kick.parallel().tween_property(self, "v_offset", 0.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 ## Glide back to the home framing now (hand-offs, swings).

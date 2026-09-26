@@ -9,7 +9,6 @@ extends RefCounted
 const NO_TAGS: Array[String] = []
 
 var seat: int = 0
-var turn: int = 0
 var step: int = GameState.Step.SETUP
 var phase: int = GameState.Phase.NONE
 var active: int = 0
@@ -21,7 +20,6 @@ var points_to_win: Array = [1, 1]      # per seat, the points that seat needs to
 var deciding: int = -1                # who the pending prompt belongs to, -1 when none
 var deciding_kind: StringName = &""
 var attack: Dictionary = {}            # public summary of the attack in the air, {} when none
-var battle_step: int = 0               # where the battle sequence stands while `attack` is in the air
 var last_attack: Dictionary = {}       # outcome of the last attack this Combat, {} until one ends
 var forecasts: Dictionary = {}         # uid -> damage breakdown for each attack this seat may declare now
 var grounds: int = -1
@@ -36,11 +34,9 @@ var pending_card: int = -1             # announced card awaiting a response, bef
 ## pending. A &"hidden" item stands in for a job whose source this seat may not see: it carries
 ## the owner and nothing else, so the shape of the queue is public and the card is not.
 var pending: Array[Dictionary] = []
-# Public counts from the reference rules, so a client can say "one more pass ends Combat" without
+# A public count from the reference rules, so a client can say "one more pass ends Combat" without
 # holding a rule of its own.
 var consecutive_passes: int = 0
-var attack_phase_count: int = 0
-var combat_count: int = 0
 var players: Array[SeatPlayer] = []
 var cards: Dictionary = {}             # uid -> SeatCard
 
@@ -117,10 +113,9 @@ func to_dict() -> Dictionary:
 		pend.append(wire)
 	return {
 		"pending": pend, "consecutive_passes": consecutive_passes,
-		"attack_phase_count": attack_phase_count, "combat_count": combat_count,
-		"seat": seat, "turn": turn, "step": step, "phase": phase, "active": active, "attacker": attacker,
+		"seat": seat, "step": step, "phase": phase, "active": active, "attacker": attacker,
 		"winner": winner, "win_reason": win_reason, "points": points, "points_to_win": points_to_win, "deciding": deciding, "deciding_kind": String(deciding_kind),
-		"attack": attack, "battle_step": battle_step, "last_attack": last_attack, "forecasts": forecasts,
+		"attack": attack, "last_attack": last_attack, "forecasts": forecasts,
 		"grounds": grounds, "standing": standing, "resolving": resolving, "pending_card": pending_card, "players": ps, "cards": cs,
 	}
 
@@ -133,7 +128,6 @@ func forecast(uid: int) -> Dictionary:
 static func from_dict(d: Dictionary) -> SeatView:
 	var v: SeatView = SeatView.new()
 	v.seat = int(d.get("seat", 0))
-	v.turn = int(d.get("turn", 0))
 	v.step = int(d.get("step", 0))
 	v.phase = int(d.get("phase", 0))
 	v.active = int(d.get("active", 0))
@@ -147,7 +141,6 @@ static func from_dict(d: Dictionary) -> SeatView:
 	v.deciding = int(d.get("deciding", -1))
 	v.deciding_kind = StringName(str(d.get("deciding_kind", "")))
 	v.attack = d.get("attack", {})
-	v.battle_step = int(d.get("battle_step", 0))
 	v.last_attack = d.get("last_attack", {})
 	for k in d.get("forecasts", {}).keys():
 		v.forecasts[int(k)] = d["forecasts"][k]
@@ -165,8 +158,6 @@ static func from_dict(d: Dictionary) -> SeatView:
 			"current": bool(w.get("current", false)),
 		})
 	v.consecutive_passes = int(d.get("consecutive_passes", 0))
-	v.attack_phase_count = int(d.get("attack_phase_count", 0))
-	v.combat_count = int(d.get("combat_count", 0))
 	for pd in d.get("players", []):
 		v.players.append(SeatPlayer.from_dict(pd))
 	for cd in d.get("cards", []):
@@ -179,11 +170,10 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 	var s: GameState = engine.state
 	var v: SeatView = SeatView.new()
 	v.seat = seat
-	v.turn = s.turn
 	v.step = s.step
 	v.phase = s.phase
 	v.active = s.active
-	v.attacker = s.attacker
+	v.attacker = s.display_attacker()
 	v.winner = s.winner
 	v.win_reason = s.win_reason
 	v.points = [s.points[0], s.points[1]]
@@ -198,9 +188,6 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 	for item in engine.pending_items():
 		v.pending.append(_mask_pending(item, engine, seat))
 	v.consecutive_passes = s.consecutive_passes
-	v.attack_phase_count = s.attack_phase_count
-	v.combat_count = s.combat_count
-	v.battle_step = s.battle_step
 	v.last_attack = _last_attack_summary(engine)
 	if include_forecasts:
 		v.forecasts = engine.attack_forecasts(seat)

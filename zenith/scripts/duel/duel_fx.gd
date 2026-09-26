@@ -56,18 +56,22 @@ func show_attack_link(from: Vector3, to: Vector3, state: StringName = &"pending"
 	start.y = height
 	end.y = height
 	var middle: Vector3 = (start + end) * 0.5 + side * 0.28 + Vector3.UP * 0.14
+	# A landed attack keeps the attack colour and thickens, so the hit reads as the same line
+	# arriving rather than turning into something paler.
 	var color: Color = ZenithTheme.ATTACK.lightened(0.25)
+	var width: float = 0.021
 	if state == &"stopped":
 		color = WARD_TONE
 	elif state == &"landed":
-		color = RISE_TONE
+		color = ZenithTheme.ATTACK
+		width = 0.034
 	var mesh: ImmediateMesh = ImmediateMesh.new()
 	mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 	var previous: Vector3 = start
 	for i in range(1, 25):
 		var ratio: float = float(i) / 24.0
 		var point: Vector3 = start.lerp(middle, ratio).lerp(middle.lerp(end, ratio), ratio)
-		_link_segment(mesh, previous, point, 0.021, Color(color, 0.38 if state == &"stopped" else 0.64))
+		_link_segment(mesh, previous, point, width, Color(color, 0.38 if state == &"stopped" else (0.85 if state == &"landed" else 0.64)))
 		previous = point
 	if state == &"stopped":
 		# A transverse ward closes the path; a stopped attack never gets an arrowhead.
@@ -109,7 +113,7 @@ static func tone(color: Color) -> Color:
 	return color
 
 
-func float_text(pos: Vector3, text: String, color: Color, size: int = 64) -> void:
+func float_text(pos: Vector3, text: String, color: Color, size: int = 64, rise: float = TEXT_RISE) -> void:
 	color = tone(color)
 	# A new beat replaces lingering text at this source instead of printing over it.
 	for child in get_children():
@@ -133,9 +137,35 @@ func float_text(pos: Vector3, text: String, color: Color, size: int = 64) -> voi
 	add_child(l)
 	var t: Tween = create_tween()
 	t.tween_property(l, "scale", Vector3.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	t.parallel().tween_property(l, "position:y", l.position.y + (0.0 if reduced_motion else TEXT_RISE), TEXT_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(l, "position:y", l.position.y + (0.0 if reduced_motion else rise), TEXT_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(l, "modulate:a", 0.0, TEXT_TIME * 0.45).set_delay(TEXT_TIME * 0.55)
 	t.parallel().tween_property(l, "outline_modulate:a", 0.0, TEXT_TIME * 0.45).set_delay(TEXT_TIME * 0.55)
+	t.tween_callback(l.queue_free)
+
+
+## A word that travels from `from` to `to` and fades there, for something moving between two
+## places on the table (Energy spilling over into wounds). Reduced motion shows it at `to`.
+func slide_text(from: Vector3, to: Vector3, text: String, color: Color, time: float, size: int = 60) -> void:
+	color = tone(color)
+	var l: Label3D = Label3D.new()
+	l.text = text
+	l.font_size = size
+	l.pixel_size = 0.004
+	l.modulate = color
+	l.outline_modulate = OUTLINE
+	l.outline_size = 14
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.no_depth_test = true
+	l.shaded = false
+	var lift: Vector3 = Vector3(0, TEXT_LIFT, 0)
+	l.position = (to if reduced_motion else from) + lift
+	add_child(l)
+	var t: Tween = create_tween()
+	if not reduced_motion:
+		t.tween_property(l, "position", to + lift, time).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	t.tween_interval(0.35)
+	t.tween_property(l, "modulate:a", 0.0, 0.3)
+	t.parallel().tween_property(l, "outline_modulate:a", 0.0, 0.3)
 	t.tween_callback(l.queue_free)
 
 
@@ -229,6 +259,13 @@ func ward(pos: Vector3, color: Color, size: float = 1.0) -> void:
 	if not reduced_motion:
 		var inner: MeshInstance3D = _halo(pos + Vector3(0, 0.015, 0), color.lightened(0.3), 0.49 * size, 0.012)
 		_fade_mesh(inner, 0.45)
+
+
+## Plays each pack effect the duel uses once, shrunk to nothing at the middle of the table, so
+## their materials are ready before the first real hit instead of hitching on it.
+func prewarm() -> void:
+	for effect in ["impacts/impact_1", "impacts/impact_4", "ground_effects/ground_effect_1", "loot/power_up"]:
+		EffectBlocks.play(self, effect, Vector3.ZERO, Color.WHITE, 0.001, 0.3)
 
 
 ## Only call for resolved damage, never merely declaring an attack.

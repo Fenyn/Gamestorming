@@ -1,9 +1,10 @@
 """Copies the adventure screens' art out of the local art library into assets/adventure_map/,
 composed and scaled for the screens, and writes SOURCES.md naming every file's origin.
 
-    python tools/import_map_art.py [--art F:/UnityNVME/Art]
+    python tools/import_map_art.py [--art F:/UnityNVME/Art] [--phase-only]
 
-Run it again after changing a pick below; it rewrites the whole folder. Nothing here is generated:
+Run it again after changing a pick below; it rewrites the whole folder, .import files included,
+so `--phase-only` is the way to change a phase track icon. Nothing here is generated:
 every pixel comes from a licensed pack in the library (see SOURCES.md for the licences).
 """
 import argparse
@@ -95,6 +96,24 @@ CARD_RULES = {
     "inner_rule": ("Default/Border/panel-border-012.png", 3),
     "double": ("Double/Border/panel-border-000.png", 1),
     "notched": ("Default/Border/panel-border-003.png", 2),
+}
+
+## The duel's phase track printed on the table: step -> Kenney icon, written white for the track
+## to tint. Turn start in the left notch, Combat across the ring, turn end in the right notch.
+PHASE_OUT = os.path.join(HERE, "..", "assets", "ui", "phase_icons")
+PHASE_ICONS = {
+    "draw": "card_add",
+    "place": "card_place",
+    "power_up": "flask_full",
+    "declare": "flag_triangle",
+    "enter": "arrow_right",
+    "attack": "sword",
+    "defend": "shield",
+    "resolve": "exploding",
+    "end": "hourglass_bottom",
+    "discard": "card_remove",
+    "recover": "cards_return",
+    "turn_end": "hourglass",
 }
 
 ## Single icons copied whole: name -> path under the art library.
@@ -233,11 +252,30 @@ def import_markers(art, rows):
         rows.append(("flairs/%s.png" % badge, "%s on a round chip" % rel))
 
 
+def import_phase_icons(art):
+    # Overwritten in place, so Godot keeps each icon's .import file and UID.
+    os.makedirs(PHASE_OUT, exist_ok=True)
+    for step, name in PHASE_ICONS.items():
+        icon = Image.open(os.path.join(art, KENNEY_ICONS, name + ".png")).convert("RGBA")
+        recolour(icon, (255, 255, 255, 255)).save(os.path.join(PHASE_OUT, step + ".png"))
+    with open(os.path.join(PHASE_OUT, "SOURCES.md"), "w", encoding="utf-8") as f:
+        f.write("# Phase track icon sources\n\nWritten by `tools/import_map_art.py`: Kenney Board Game Icons 1.1 ")
+        f.write("(CC0), 128 px, written white for the track to tint.\n\n")
+        for step, name in PHASE_ICONS.items():
+            f.write("- `%s.png`: `%s/%s.png`\n" % (step, KENNEY_ICONS, name))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--art", default="F:/UnityNVME/Art")
+    parser.add_argument("--phase-only", action="store_true",
+                        help="rewrite only assets/ui/phase_icons, leaving the other folders and their .import files alone")
     args = parser.parse_args()
     art = args.art
+    if args.phase_only:
+        import_phase_icons(art)
+        print("wrote %d phase icons to %s" % (len(PHASE_ICONS), os.path.normpath(PHASE_OUT)))
+        return
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
     rows = []
@@ -254,6 +292,7 @@ def main():
         rows.append(("ui/%s.png" % piece, "%s/%s at (%d, %d), %d x %d, doubled, greyed" % (ORNATE, sheet_name, x, y, w, h)))
 
     import_kenney(art, rows)
+    import_phase_icons(art)
 
     for name, rel in ICONS.items():
         shutil.copyfile(os.path.join(art, rel), os.path.join(OUT, "ui", name + ".png"))

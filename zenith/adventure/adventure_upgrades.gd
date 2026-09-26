@@ -68,8 +68,7 @@ func to_dict() -> Dictionary:
 	return {"version": SAVE_VERSION, "starters": saved}
 
 
-## Tolerant of JSON, which hands every number back as a float. A version 1 file's `aspect_tiers`
-## are dropped.
+## Tolerant of JSON, which hands every number back as a float.
 static func from_dict(d: Dictionary) -> AdventureUpgrades:
 	var u: AdventureUpgrades = AdventureUpgrades.new()
 	var saved: Dictionary = d.get("starters", {})
@@ -92,7 +91,7 @@ static func load_upgrades() -> AdventureUpgrades:
 	if not (parsed is Dictionary):
 		push_error("AdventureUpgrades: %s is not a JSON object" % file)
 		return AdventureUpgrades.new()
-	return AdventureUpgrades.from_dict(CardRenames.migrate(parsed) as Dictionary)
+	return AdventureUpgrades.from_dict(parsed as Dictionary)
 
 
 func save() -> bool:

@@ -1076,9 +1076,6 @@ NEW_SOURCES = {
 }
 
 
-CARD_RENAMES = json.load(open("data/migrations/card_renames.json", encoding="utf-8"))["ids"]
-
-
 def load_sources(path):
     out = dict(NEW_SOURCES)
     try:
@@ -1090,8 +1087,6 @@ def load_sources(path):
         for old, new in SEAL_RENAMES.items():
             if cid.startswith(old):
                 cid = new + cid[len(old):]
-        # A roster written before the generic ids of 2026-09-23 is keyed by the old ids.
-        cid = CARD_RENAMES.get(cid, cid)
         # A source written into NEW_SOURCES is a correction or an addition and wins over the roster.
         if r.get("Source card", "") and cid not in NEW_SOURCES:
             out[cid] = r["Source card"]

@@ -902,7 +902,7 @@ static func variant_text(v: Dictionary) -> String:
 		parts.append("%+d Energy" % int(v["stages"]))
 	if int(v.get("life", 0)) != 0:
 		parts.append("%+d %s" % [int(v["life"]), "wound" if absi(int(v["life"])) == 1 else "wounds"])
-	# "This attack also does 3 power stages of damage": printed damage the attack gains outright.
+	# "This attack also does 3 Energy of damage": printed damage the attack gains outright.
 	if int(v.get("printed_stages", 0)) > 0:
 		parts.append("this attack also deals %d Energy" % int(v["printed_stages"]))
 	if int(v.get("printed_life", 0)) > 0:
@@ -2983,24 +2983,19 @@ static func might_band(might: int, band: int) -> String:
 	return "%s (%s)" % [short_number(might), band_letter(band)]
 
 
-## "4 stages, 1 wound" with the right plurals; "no damage" when both are 0.
-static func damage_amount(stages: int, life: int) -> String:
-	var parts: PackedStringArray = PackedStringArray()
-	if stages != 0:
-		parts.append("%d stage%s" % [stages, "" if absi(stages) == 1 else "s"])
-	if life != 0:
-		parts.append("%d wound%s" % [life, "" if absi(life) == 1 else "s"])
-	return ", ".join(parts) if not parts.is_empty() else "no damage"
-
-
-## Table wording for a damage total: "7 Energy", "4 wounds", "3 Energy, 2 wounds", "nothing".
-static func short_damage(stages: int, life: int) -> String:
+## "4 Energy, 1 wound" with the right plurals; `none` when both are 0.
+static func damage_amount(stages: int, life: int, none: String = "no damage") -> String:
 	var parts: PackedStringArray = PackedStringArray()
 	if stages != 0:
 		parts.append("%d Energy" % stages)
 	if life != 0:
 		parts.append("%d wound%s" % [life, "" if absi(life) == 1 else "s"])
-	return ", ".join(parts) if not parts.is_empty() else "nothing"
+	return ", ".join(parts) if not parts.is_empty() else none
+
+
+## Table wording for a damage total: "7 Energy", "4 wounds", "3 Energy, 2 wounds", "nothing".
+static func short_damage(stages: int, life: int) -> String:
+	return damage_amount(stages, life, "nothing")
 
 
 ## The Strike Table part of a card's base damage for a known matchup, doubled where the card
@@ -3107,22 +3102,22 @@ static func modified_damage_line(d: Dictionary) -> String:
 	return "Modifiers: %s. Total %s." % [", ".join(parts), damage_amount(int(d.get("stages", 0)), int(d.get("life", 0)))]
 
 
-## One breakdown entry without its source: "+2 stages", "x2", "cap 3 stages".
+## One breakdown entry without its source: "+2 Energy", "x2", "cap 3 Energy".
 static func add_text(add: Dictionary) -> String:
 	if add.has("multiply"):
 		return "x%d" % int(add["multiply"])
 	if add.has("cap_stages"):
-		return "cap %d stages" % int(add["cap_stages"])
+		return "cap %d Energy" % int(add["cap_stages"])
 	if add.has("cap_life"):
 		return "cap %d wounds" % int(add["cap_life"])
 	return signed_damage(int(add.get("stages", 0)), int(add.get("life", 0)))
 
 
-## "+2 stages", "-1 wound", "+1 stage +1 wound"; for breakdown lines.
+## "+2 Energy", "-1 wound", "+1 Energy +1 wound"; for breakdown lines.
 static func signed_damage(stages: int, life: int) -> String:
 	var parts: PackedStringArray = PackedStringArray()
 	if stages != 0:
-		parts.append("%+d stage%s" % [stages, "" if absi(stages) == 1 else "s"])
+		parts.append("%+d Energy" % stages)
 	if life != 0:
 		parts.append("%+d wound%s" % [life, "" if absi(life) == 1 else "s"])
 	return " ".join(parts)

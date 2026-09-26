@@ -58,10 +58,28 @@ const PILE_ZONES: Array[StringName] = [&"discard", &"removed", &"relic"]   # ind
 ## Drill, a Remain card) is never held: its own zone is where it is read.
 const HOLD_ZONES: Array[StringName] = [&"resolving", &"discard", &"removed", &"life_deck"]
 const ARENA_FADE: float = 0.35        # seconds for the table to dim or come back around an exchange
-const PLATE_DIM: Color = Color(0.45, 0.45, 0.45)   # the stat plaques, which stand up through the veil
-const FOCUS_POP_FROM: float = 0.9     # the focus card's scale as it appears during an exchange
-const FOCUS_POP_TIME: float = 0.22
-const HELD_STEP: float = 0.004       # a second held card of the same seat sits just above the first
+## The stat plaques stand up through the veil and their numbers change during exchanges, so they
+## only dim a little.
+const PLATE_DIM: Color = Color(0.85, 0.85, 0.85)
+const ARENA_COMBAT: float = 0.6       # the veil through a Combat, between exchanges
+const HANDOVER_BEAT: float = 0.8      # a change of hands: Combat opening, a fight back, a new turn
+const HANDOVER_FLOOR: float = 0.4     # a busy queue shortens a hand-over no further than this
+## Hit weight, from `hit_tier`: a chip, a solid hit, a heavy one. Each tier's impact size, card
+## shake, pause on the contact frame, and damage number size.
+enum { CHIP, SOLID, HEAVY }
+const HIT_IMPACT: Array[float] = [0.6, 1.0, 1.5]
+const HIT_SHAKE: Array[float] = [0.03, 0.05, 0.08]
+const HIT_STOP: Array[float] = [0.0, 0.05, 0.12]
+const HIT_FLOAT: Array[int] = [64, 80, 104]
+const LETHAL_HOLD: float = 0.6        # the wound that empties a Life Deck holds before anything moves on
+const GAME_OVER_HOLD: float = 1.0     # the table stays in view a moment before the result covers it
+const OVERFLOW_SLIDE: float = 0.4
+const LOBE_FADE: float = 0.6          # the active seat's light crossing the table at a turn change
+const FLAG_ROW_INSET: float = 0.3     # the chips start this far inside the first Ally slot's centre
+const FLAG_ROW_EDGE: float = 4.2      # and stop this far from the table's centre line, inside the mat
+const FOCUS_FADE_TIME: float = 0.18   # a new rail card's fade-in; it never changes size
+const FILAMENT_HAND_ALPHA: float = 0.3
+const TABLE_CENTRE: Vector3 = Vector3(0, 0.02, 0)
 
 @onready var rig: Node3D = $CameraRig
 @onready var camera: TableCamera = $CameraRig/Camera
@@ -76,6 +94,8 @@ const HELD_STEP: float = 0.004       # a second held card of the same seat sits 
 @onready var focus_card: Sprite3D = $CameraRig/Camera/FocusCard
 @onready var arena_veil: MeshInstance3D = $ArenaVeil
 @onready var presence: DuelPresence = $Presence
+@onready var phase_track: PhaseTrack = $PhaseTrack
+@onready var table_inlay: MeshInstance3D = $Table/Inlay
 
 var duel_host: DuelHost = null       # the rules, where they run here (hotseat, hosting)
 var view: SeatView = null            # what the viewer may see right now
@@ -102,6 +122,8 @@ var _dev_freeze: StringName = &""    # event type whose beat the screenshot catc
 var _dev_done: bool = false
 var _dev_quit_after_replay: bool = false
 var _wounds: int = 0                 # life cards flipped by the attack being replayed
+var _hit_tier: int = -1              # the replayed attack's weight once its damage is known, else -1
+var _hit_said: String = ""           # what "Hits for" banner named, so the result is not said twice
 var _replaying: StringName = &""     # the event whose beat is playing now
 var _second_wind_returning: Dictionary = {} # public cards lost and recovered in this update
 ## Cards the exchange being replayed has used, held face up in their owner's Play slot until their
@@ -135,9 +157,15 @@ var _fast_triggers: Dictionary = {}  # line index -> run length, for a batched r
 var _shown_stats: Dictionary = {}    # player -> [energy, might] as the readout last drew them
 var _reduced_motion: bool = false
 var _exchange_live: bool = false     # the exchange holds a card in play, as of the last `_targets`
-var _arena_on: bool = false          # the table is dimmed for a live exchange (`_set_arena`)
+var _arena_amount: float = 0.0       # how far the table is dimmed now (`_set_arena`)
+var _combat_opening: bool = false    # Combat was declared and its first exchange has not begun
+var _opening_attacker: int = -1      # who attacks first, when this update also opens the Combat
+var _opening_said: bool = false      # the Combat banner already named the first attacker
+var _lobe_side: float = 0.0          # which half of the mat is lit for the active seat (world z sign)
+var _lobe_fade: Tween = null
 var _arena_fade: Tween = null
-var _focus_pop: Tween = null
+var _focus_fade: Tween = null
+var _focus_faded_uid: int = -1       # the rail card that last faded in, so it fades once
 var _stall_since: int = 0           # when the viewer was first owed a decision with no panel up
 ## Online presence (`PresenceState`): what the other player is doing, drawn here, and what this
 ## one is doing, sent from here. Off in hotseat, vs AI and adventure.
@@ -159,6 +187,7 @@ func _ready() -> void:
 	hud.scene_flags = true
 	hud.reduced_motion_changed.connect(_set_reduced_motion)
 	hud.focus_face.visible = false
+	hand_3d.rail_clear = -hud.RAIL_LEFT
 	hand_3d.clicked.connect(_on_card_clicked)
 	hand_3d.inspected.connect(_on_card_inspected)
 	hand_3d.hovered.connect(_on_hand_hovered)
@@ -167,6 +196,7 @@ func _ready() -> void:
 		fixture.inspected.connect(_on_card_inspected)
 		fixture.hovered.connect(_on_card_hovered)
 	_set_reduced_motion(ArcaneBackdrop.motion_reduced())
+	fx.prewarm()
 	hud.option_chosen.connect(_on_option_chosen)
 	hud.card_clicked.connect(_on_card_clicked)
 	hud.handoff_confirmed.connect(_on_handoff_confirmed)
@@ -208,6 +238,7 @@ func _set_reduced_motion(on: bool) -> void:
 	$Atmosphere.reduced_motion = on
 	fx.reduced_motion = on
 	presence.reduced_motion = on
+	phase_track.reduced_motion = on
 	hand_3d.reduced_motion = on
 	near_duelist.reduced_motion = on
 	far_duelist.reduced_motion = on
@@ -244,15 +275,22 @@ func _process(_delta: float) -> void:
 			_presence_drawn_view = view
 			_draw_presence(false)
 	_layout_fixtures()
-	var focus_was: bool = focus_card.visible
+	# The thread to the target would cross the hand's reading preview, so it steps back while the
+	# hand is open.
+	hud.filament.modulate.a = FILAMENT_HAND_ALPHA if hand_3d.revealed else 1.0
 	focus_card.visible = hud.focus.visible and not overlay
-	# During an exchange the card arrives with a small push toward the viewer.
-	if focus_card.visible and not focus_was and _arena_on and not _reduced_motion:
-		if _focus_pop != null and _focus_pop.is_valid():
-			_focus_pop.kill()
-		focus_card.scale = Vector3.ONE * FOCUS_POP_FROM
-		_focus_pop = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		_focus_pop.tween_property(focus_card, "scale", Vector3.ONE, FOCUS_POP_TIME)
+	# A new card on the rail fades in at its full, fixed size, so it is noticed without moving. The
+	# same card coming back from under an overlay is not new.
+	if not hud.focus.visible:
+		_focus_faded_uid = -1
+	if focus_card.visible and hud._focus_card_uid != _focus_faded_uid:
+		_focus_faded_uid = hud._focus_card_uid
+		if _focus_fade != null and _focus_fade.is_valid():
+			_focus_fade.kill()
+		focus_card.modulate.a = 1.0 if _reduced_motion else 0.0
+		if not _reduced_motion:
+			_focus_fade = create_tween()
+			_focus_fade.tween_property(focus_card, "modulate:a", 1.0, FOCUS_FADE_TIME)
 	if focus_card.visible and view != null:
 		var shown_def: CardDef = _replay_focus_def
 		var aspect: int = 1
@@ -273,36 +311,54 @@ func _process(_delta: float) -> void:
 				_focus_key = key
 		else:
 			focus_card.visible = false
-	_set_arena(_exchange_live)
+	_set_arena(_arena_level())
 
 
-## While an exchange is live the table recedes behind a veil, the camera leans in on the ring, the
-## ring pulses once. The focus card and the decision stay on the rail. Reduced motion keeps the
-## dimming and drops the moves.
-func _set_arena(on: bool) -> void:
-	camera.arena_focus = on and not _reduced_motion
-	if on == _arena_on:
+## How far the table recedes, from the phase the beat belongs to: part way for the whole of a
+## Combat, fully while an exchange holds a card in play, not at all outside Combat. Following the
+## phase rather than the held card keeps the veil down between exchanges instead of pumping.
+func _arena_level() -> float:
+	if view == null or view.is_over():
+		return 0.0
+	# A Final Strike or a Power attack holds no card, so the attack in the air counts too.
+	if _exchange_live or not _attack_cue.is_empty():
+		return 1.0
+	var step: int = int(_live.get("step", view.step))
+	var phase: int = int(_live.get("phase", view.phase))
+	var in_combat: bool = step == GameState.Step.COMBAT and phase != GameState.Phase.NONE
+	return ARENA_COMBAT if in_combat or _combat_opening else 0.0
+
+
+## The table recedes behind a veil to `level`, the camera leans in on the ring at full level, and
+## the ring pulses once as Combat opens. The focus card and the decision stay on the rail. Reduced
+## motion keeps the dimming and drops the moves.
+func _set_arena(level: float) -> void:
+	camera.arena_focus = level >= 1.0 and not _reduced_motion
+	if is_equal_approx(level, _arena_amount):
 		return
-	_arena_on = on
+	var from: float = _arena_amount
+	_arena_amount = level
 	if _arena_fade != null and _arena_fade.is_valid():
 		_arena_fade.kill()
 	var veil: ShaderMaterial = arena_veil.material_override
-	var plate_tint: Color = PLATE_DIM if on else Color.WHITE
+	var plate_tint: Color = Color.WHITE.lerp(PLATE_DIM, level)
 	arena_veil.visible = true
 	if _reduced_motion:
-		veil.set_shader_parameter("amount", 1.0 if on else 0.0)
-		arena_veil.visible = on
+		veil.set_shader_parameter("amount", level)
+		arena_veil.visible = level > 0.0
 		for fixture: DuelistDisplay in [near_duelist, far_duelist]:
 			fixture.plate_face.modulate = plate_tint
 		return
+	var shown: float = float(veil.get_shader_parameter("amount")) if veil.get_shader_parameter("amount") != null else from
 	_arena_fade = create_tween().set_parallel().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_arena_fade.tween_method(func(value: float) -> void: veil.set_shader_parameter("amount", value), 0.0 if on else 1.0, 1.0 if on else 0.0, ARENA_FADE)
+	_arena_fade.tween_method(func(value: float) -> void: veil.set_shader_parameter("amount", value), shown, level, ARENA_FADE)
 	for fixture: DuelistDisplay in [near_duelist, far_duelist]:
 		_arena_fade.tween_property(fixture.plate_face, "modulate", plate_tint, ARENA_FADE)
-	if not on:
+	if level <= 0.0:
 		_arena_fade.chain().tween_callback(func() -> void: arena_veil.visible = false)
 		return
-	fx.ring(Vector3(0, 0.02, 0), ZenithTheme.ACCENT, 1.6)
+	if from <= 0.0:
+		fx.ring(TABLE_CENTRE, ZenithTheme.ACCENT, 1.6)
 
 
 ## Safety net, not a mechanism. The table runs on awaits, and a decision panel that never comes
@@ -338,22 +394,27 @@ func _layout_fixtures() -> void:
 		var owner: int = view.card(fixture.duelist_uid).owner
 		var count: int = view.player(owner).life_deck.size()
 		fixture.life_transform = zones.global_transform * zones.slot(owner, &"life_deck", maxi(0, count - 1), count, viewer)
+		fixture.flag_row = _flag_row(owner)
 		fixture.anchor_to_card(card, camera)
 	if viewer >= 0 and near_duelist.visible:
 		near_duelist.readout.update_layout()
 		hand_3d.set_crest_rect(near_duelist.screen_rect(camera))
-	var decision_rect: Rect2 = Rect2()
-	if hud.prompt_panel.visible:
-		decision_rect = hud.prompt_panel.get_global_rect()
-	if hud.focus.visible:
-		decision_rect = decision_rect.merge(hud.focus.get_global_rect()) if decision_rect.has_area() else hud.focus.get_global_rect()
-	hand_3d.set_decision_rect(decision_rect)
-	hand_3d.set_top_clear(hud.phase_panel.get_global_rect().end.y if hud.phase_panel.is_visible_in_tree() else 0.0)
 	if not hud.focus.visible:
 		return
 	var face_rect: Rect2 = hud.focus_face_rect()
 	focus_card.position = camera.to_local(camera.project_position(face_rect.get_center(), depth))
 	focus_card.pixel_size = face_rect.size.x / 512.0 * units
+
+
+## Where a seat's status chips are printed: along its Ally row, the row the fewest decks use, from
+## the inside edge of its first slot out to near the mat's edge. World points, inner end first.
+func _flag_row(owner: int) -> PackedVector3Array:
+	var first: Vector3 = zones.slot(owner, &"ally", 0, 3, viewer).origin
+	var last: Vector3 = zones.slot(owner, &"ally", 2, 3, viewer).origin
+	var outward: float = signf(last.x - first.x)
+	var inner: Vector3 = Vector3(first.x - outward * FLAG_ROW_INSET, 0.0, first.z)
+	var outer: Vector3 = Vector3(outward * FLAG_ROW_EDGE, 0.0, first.z)
+	return PackedVector3Array([zones.to_global(inner), zones.to_global(outer)])
 
 
 func _refresh_displays() -> void:
@@ -443,7 +504,7 @@ func _ready_joiner() -> void:
 
 
 func _parse_dev_args() -> void:
-	for arg in OS.get_cmdline_user_args():
+	for arg in DevArgs.user_args():
 		if arg == "--dev-autoplay":
 			_dev_autoplay = true
 		elif arg.begins_with("--dev-steps="):
@@ -491,7 +552,7 @@ func _present_prompt() -> void:
 			_held.clear()
 			_sync_layout(false)
 		_clear_highlights()
-		hud.refresh_state(view, viewer)
+		_refresh_state()
 		hud.show_game_over("%s wins" % view.player(view.winner).name, _reason_text(view.win_reason), not Session.in_adventure())
 		if _dev_autoplay:
 			if Session.in_adventure():
@@ -500,7 +561,7 @@ func _present_prompt() -> void:
 			await _dev_finish()
 		return
 	if view.deciding != viewer:
-		hud.refresh_state(view, viewer)
+		_refresh_state()
 		_clear_highlights()
 		_refresh_roles()
 		if online:
@@ -567,7 +628,7 @@ func _on_handoff_confirmed() -> void:
 
 func _show_prompt_for_viewer() -> void:
 	_replay_focus_def = null
-	hud.refresh_state(view, viewer)
+	_refresh_state()
 	_refresh_roles()
 	var legal: Dictionary = _legal_uids()
 	_set_hand(legal)
@@ -676,6 +737,7 @@ func _play_update(up: SeatUpdate) -> void:
 	# cleared to play this one, so the attack goes back in its slot before the first beat.
 	_restore_pin()
 	zones.set_viewer(viewer if viewer >= 0 else view.active)
+	phase_track.rotation.y = PI if (viewer if viewer >= 0 else view.active) == 1 else 0.0
 	var targets: Dictionary = _targets()
 	var bulk_recover_end: int = -1
 	_scan_batches(up.lines)
@@ -706,12 +768,13 @@ func _play_update(up: SeatUpdate) -> void:
 					var seat_counts: Array = counts[player]
 					if not seat_counts.is_empty():
 						seat_counts[0] = 0
-			hud.refresh_state(view, viewer, _live)
+			_refresh_state(_live)
 			_refresh_displays()
+			_refresh_roles()
 			if not bulk_cards.is_empty():
 				await _fly_recover_batch(bulk_cards, targets)
 				_live = up.lines[bulk_recover_end].get("state", {})
-				hud.refresh_state(view, viewer, _live)
+				_refresh_state(_live)
 				_refresh_displays()
 			else:
 				await _replay(_replaying, int(l.get("player", -1)), l["data"], targets, line, index)
@@ -722,7 +785,7 @@ func _play_update(up: SeatUpdate) -> void:
 		# The duel ended mid-exchange; nothing is left to finish, so the closing sync lays it all out.
 		_held.clear()
 	_attack_cue = view.attack.duplicate(true)
-	hud.refresh_state(view, viewer)
+	_refresh_state()
 	_refresh_displays()
 	_refresh_roles()
 	await _sync_layout(true)
@@ -737,6 +800,11 @@ func _play_update(up: SeatUpdate) -> void:
 func _scan_batches(lines: Array[Dictionary]) -> void:
 	_fast_triggers.clear()
 	_window_skips = 0
+	# Combat's opening and its first attacker share one banner when they arrive together.
+	_opening_attacker = -1
+	for l in lines:
+		if str(l.get("type", "")) == "combat_begin":
+			_opening_attacker = int((l.get("data", {}) as Dictionary).get("attacker", l.get("player", -1)))
 	var run_start: int = -1
 	for index in range(lines.size() + 1):
 		var is_trigger: bool = index < lines.size() and str(lines[index].get("type", "")) == "trigger_fired"
@@ -787,6 +855,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 	match type:
 		&"attack_declared":
 			_wounds = 0
+			_hit_tier = -1
 			_attack_cue = {"attacker": player, "defender": 1 - player,
 				"source": int(data.get("source", -1)), "performer": _controlling_uid(player),
 				"target": _controlling_uid(1 - player)}
@@ -802,9 +871,10 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 				head += ": " + src_def.title
 			elif bool(data.get("is_power", false)):
 				head += " from a Power"
-			hud.toast(head, ZenithTheme.ATTACK)
 			_pin_attack(int(data.get("source", -1)), player, data)
+			# The swing crosses the ring first; the banner names it once the blow is thrown.
 			await _swing(player)
+			hud.toast(head, ZenithTheme.ATTACK)
 			# The card holds here whether or not anything answers it, so an attack the defender
 			# cannot meet is still read rather than glimpsed on its way to the damage.
 			await _read_beat(ATTACK_READ_OWN if player == viewer else ATTACK_READ)
@@ -830,8 +900,6 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 				_defense_uids.append(defense_uid)
 			var defender: int = 1 - int(_live.get("attacker", view.attacker))
 			fx.ward(_card_pos(_controlling_uid(defender)), ZenithTheme.DEFEND)
-			if type != &"defense_played":
-				fx.float_text(_card_pos(int(data.get("card", -1))), "Shield", ZenithTheme.DEFEND, 48)
 			await _beat(BEAT)
 			await _release_held(&"beat", defense_uid)
 		&"remain":
@@ -844,11 +912,18 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 		&"attack_stopped":
 			_attack_cue["stopped"] = true
 			_refresh_attack_link()
-			var defender: int = 1 - int(_live.get("attacker", view.attacker))
+			var attacker_seat: int = int(_live.get("attacker", view.attacker))
+			var defender: int = 1 - attacker_seat
 			fx.ward(_card_pos(_controlling_uid(defender)), ZenithTheme.DEFEND)
-			fx.float_text(_card_pos(_controlling_uid(defender)), "STOPPED", ZenithTheme.DEFEND, 72)
-			hud.toast("Stopped", ZenithTheme.DEFEND)
 			_pin_caption(_stopped_caption(), ZenithTheme.DEFEND)
+			hud.toast("Stopped", ZenithTheme.DEFEND)
+			# The blow bounces: the attacker is thrown back from the fighter who stopped it.
+			var thrown: Card3D = views.get(_controlling_uid(attacker_seat))
+			var stopper: Card3D = views.get(_controlling_uid(defender))
+			if thrown != null and stopper != null and thrown.visible and thrown != stopper:
+				var away: Vector3 = thrown.global_position - stopper.global_position
+				away.y = 0.0
+				thrown.knock(away)
 			await _beat(TOAST_BEAT)
 			# The defense has done its job, so it leaves the stack and the table. The attack stays.
 			_pop_defenses()
@@ -860,23 +935,45 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 		&"modified_damage":
 			var stages: int = int(data.get("stages", 0))
 			var life: int = int(data.get("life", 0))
-			hud.toast("Hits for %s" % CardText.short_damage(stages, life), ZenithTheme.ATTACK)
+			_hit_tier = hit_tier(stages, life)
+			_hit_said = CardText.short_damage(stages, life)
+			# Under the attack card rather than across the ring, where the blow is about to land.
+			_pin_caption("Hits for %s" % _hit_said, ZenithTheme.ATTACK)
 			await _beat(TOAST_BEAT)
 		&"damage_stages":
 			var stages: int = int(data.get("stages", 0))
+			var overflow: int = int(data.get("overflow", 0))
 			var target: int = int(data.get("target", -1))
 			_attack_cue["target"] = target
 			_attack_cue["landed"] = true
 			_refresh_attack_link()
 			if stages <= 0:
 				return
+			var tier: int = _hit_tier if _hit_tier >= 0 else hit_tier(stages, overflow)
 			var v: Card3D = views.get(target)
 			var pos: Vector3 = _card_pos(target)
-			fx.impact(pos, ZenithTheme.ATTACK, 1.0)
-			fx.float_text(pos, "-%d Energy" % stages, ZenithTheme.WARN, 80)
+			# The blow lands here, not at the declaration: the attacker jabs, the hit holds on the
+			# contact frame for its weight, and the target takes it.
+			var attacker_card: Card3D = views.get(_controlling_uid(int(_live.get("attacker", view.attacker))))
+			if attacker_card != null and attacker_card.visible and v != null and attacker_card != v:
+				var toward: Vector3 = v.global_position - attacker_card.global_position
+				toward.y = 0.0
+				attacker_card.jab(toward, HIT_STOP[tier])
+				await get_tree().create_timer(Card3D.STRIKE_TIME).timeout
+			# Contact: the flash and the burst land, then both fighters hold for the hit's weight
+			# before the target reels and the number rises.
+			fx.impact(pos, ZenithTheme.ATTACK, HIT_IMPACT[tier])
 			if v != null:
 				v.flash(ZenithTheme.ATTACK)
-				await v.shake()
+			if tier == HEAVY and not _reduced_motion:
+				camera.kick(Vector2(0, -1) if _is_far(target) else Vector2(0, 1))
+			if HIT_STOP[tier] > 0.0 and not _reduced_motion:
+				await get_tree().create_timer(HIT_STOP[tier]).timeout
+			fx.float_text(_float_pos(target), "-%d Energy" % stages, ZenithTheme.WARN, HIT_FLOAT[tier], _float_rise(target))
+			if overflow > 0:
+				_overflow_slide(target, overflow)
+			if v != null:
+				await v.shake(HIT_SHAKE[tier])
 			_refresh_markers()
 			await _beat(BEAT)
 		&"life_card_flipped":
@@ -884,17 +981,30 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			_attack_cue["landed"] = true
 			_refresh_attack_link()
 			var uid: int = int(data.get("card", -1))
-			await _fly_life_loss(uid, player, targets, "Wound %d" % _wounds, str(data.get("id", "")))
+			var counts: Array = _live.get("zones", [])
+			var life_left: int = int((counts[player] as Array)[0]) if player >= 0 and player < counts.size() and not (counts[player] as Array).is_empty() else -1
+			# The wound that empties the Life Deck costs the duel or a point, so it lands heavier
+			# and holds.
+			var lethal: bool = life_left == 0
+			var label: String = "Wound %d" % _wounds
+			# The banner below names the wound, so the card flies without a label of its own.
+			await _fly_life_loss(uid, player, targets, "", str(data.get("id", "")))
 			var v: Card3D = views.get(uid)
 			if v != null:
 				v.flash(ZenithTheme.ATTACK)
+			if lethal:
+				fx.impact(_card_pos(view.player(player).duelist), ZenithTheme.ATTACK, HIT_IMPACT[HEAVY])
+				if not _reduced_motion:
+					camera.kick(Vector2(0, -1) if _is_far(view.player(player).duelist) else Vector2(0, 1))
 			# Wounds come in runs, so each one names the card it cost and holds long enough to
 			# read before the next lands.
 			var lost: SeatCard = view.card(uid)
 			var public_def: CardDef = Session.library.defs.get(str(data.get("id", "")))
 			var title: String = lost.title if lost != null and not lost.hidden() else (public_def.title if public_def != null else "a card")
-			hud.toast("Wound %d  ·  %s" % [_wounds, title], ZenithTheme.ATTACK)
+			hud.toast("%s  ·  %s" % [label, title], ZenithTheme.ATTACK)
 			await _beat(WOUND_BEAT)
+			if lethal:
+				await _read_beat(LETHAL_HOLD)
 		&"life_card_lost":
 			await _fly_life_loss(int(data.get("card", -1)), player, targets, "-1 Life", str(data.get("id", "")))
 		&"final_strike", &"hand_discarded", &"in_play_discarded", &"card_moved", &"critical_ally":
@@ -923,7 +1033,6 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			var defender: int = 1 - int(_live.get("attacker", view.attacker))
 			var pos: Vector3 = _card_pos(_controlling_uid(defender))
 			fx.ward(pos, ZenithTheme.DEFEND, 0.8)
-			fx.float_text(pos, "Endurance %d" % int(data.get("prevented", 0)), ZenithTheme.DEFEND, 56)
 			var card_uid: int = int(data.get("card", -1))
 			var used: SeatCard = view.card(card_uid)
 			var used_title: String = used.title if used != null and not used.hidden() else "the wound"
@@ -935,9 +1044,6 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			hud.pop_response(card_uid)
 		&"endurance_declined":
 			# The other side watched the choice being offered, so it sees the answer too.
-			var uid: int = int(data.get("card", -1))
-			var pos: Vector3 = _card_pos(uid)
-			fx.float_text(pos, "Endurance declined", ZenithTheme.MUTED, 48)
 			hud.toast("Endurance declined  ·  %d to come" % int(data.get("remaining", 0)), ZenithTheme.MUTED)
 			await _beat(TOAST_BEAT)
 		&"seal_bypassed":
@@ -959,9 +1065,12 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			var life: int = int(data.get("life_dealt", 0))
 			var was_stopped: bool = bool(data.get("stopped", false))
 			if not was_stopped and (stages > 0 or life > 0):
-				hud.toast("Dealt %s" % CardText.short_damage(stages, life), ZenithTheme.ATTACK)
-				_pin_caption("Dealt %s" % CardText.short_damage(stages, life), ZenithTheme.ATTACK)
-				await _beat(TOAST_BEAT)
+				var dealt: String = CardText.short_damage(stages, life)
+				_pin_caption("Dealt %s" % dealt, ZenithTheme.ATTACK)
+				# "Hits for" already said it unless something (an Endurance) changed the total.
+				if dealt != _hit_said:
+					hud.toast("Dealt %s" % dealt, ZenithTheme.ATTACK)
+					await _beat(TOAST_BEAT)
 			elif was_stopped:
 				_pin_caption(_stopped_caption(), ZenithTheme.DEFEND)
 			else:
@@ -971,15 +1080,22 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			# The pinned face and the card on the table are the same card, so they go together.
 			_release_pin()
 			_wounds = 0
+			_hit_tier = -1
+			_hit_said = ""
 			_attack_cue.clear()
 			fx.clear_attack_link()
 			await _release_held(&"")
+		&"game_over":
+			await _read_beat(GAME_OVER_HOLD)
 		&"combat_end":
+			_combat_opening = false
 			_release_pin()
 			await _release_held(&"")
 			_attack_cue.clear()
 			fx.clear_attack_link()
+			_live["phase"] = GameState.Phase.NONE
 			_refresh_roles()
+			await _handover("Combat over", ZenithTheme.FRAME, &"end")
 		&"trigger_fired":
 			# The card doing the work holds for a moment before its effects land, the way MTG Arena
 			# stops on a trigger. Everything after this beat is that card's doing. A card already
@@ -987,9 +1103,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			# the pile; only a card that is nowhere on the right gets the table's spotlight hop.
 			var fired: int = int(data.get("card", -1))
 			if hud.pulse_pending(fired):
-				var fired_card: SeatCard = view.card(fired)
-				if fired_card != null and not fired_card.hidden():
-					hud.toast(fired_card.title, ZenithTheme.ACCENT)
+				# The card is already on the rail with its title, so no banner repeats it.
 				await _read_beat(BATCH_SPOTLIGHT if _fast_triggers.has(index) else CARD_USE_READ)
 				hud.pop_response(fired)
 			else:
@@ -1030,7 +1144,6 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			# A gain swallowed by a standing effect. Without this the card that asked for it
 			# looks like it did nothing.
 			var uid: int = int(data.get("card", -1))
-			fx.float_text(_card_pos(uid), "Gain blocked", ZenithTheme.WARN, 52)
 			var v: Card3D = views.get(uid)
 			if v != null:
 				v.flash(ZenithTheme.WARN)
@@ -1062,17 +1175,35 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 		&"turn_start":
 			# A turn change sweeps wider than an ordinary beat, the way Arena banners one.
 			var whose: String = "Your turn" if player == viewer else "%s's turn" % view.player(player).name
-			hud.toast(whose, ZenithTheme.ACCENT)
-			_mark_phase(&"draw")   # a turn opens on its Draw step
-			await _beat(BANNER_BEAT)
+			# Bone is the act-here colour, so only the viewer's own turn wears it.
+			await _handover(whose, ZenithTheme.ACCENT if player == viewer else ZenithTheme.FRAME, &"draw")
 		&"turn_end":
-			await _quiet("Turn %d ends" % int(data.get("turn", view.turn)), ZenithTheme.MUTED, &"turn_end", QUIET_BEAT)
+			await _quiet("Turn ends", ZenithTheme.MUTED, &"turn_end", QUIET_BEAT)
 		&"recover_step":
 			var eligible: int = int(data.get("eligible", 0))
 			await _quiet("Recover" if eligible <= 0 else "Recover · %d" % eligible, ZenithTheme.ENERGY, &"recover", QUIET_BEAT)
 		&"combat_declared":
-			var declared: String = "Combat forced" if bool(data.get("forced", false)) else "Combat"
-			await _quiet(_quiet_line(line, declared), ZenithTheme.ATTACK, &"declare", QUIET_BEAT)
+			_combat_opening = true
+			var declared: String = "COMBAT  ·  forced" if bool(data.get("forced", false)) else "COMBAT"
+			# One banner for the opening when the first attacker is already known in this update.
+			_opening_said = _opening_attacker >= 0
+			if _opening_said:
+				declared += "  ·  " + _first_attacker_words(_opening_attacker)
+			await _handover(declared, ZenithTheme.ATTACK, &"declare")
+		&"combat_begin":
+			# The fighters light in their roles as the first attack phase opens. Who swings first is said
+			# here only when the opening banner could not say it.
+			_combat_opening = false
+			var first: int = int(data.get("attacker", player))
+			_live["attacker"] = first
+			_live["phase"] = GameState.Phase.ATTACK
+			_refresh_state(_live)
+			_refresh_roles()
+			if _opening_said:
+				_opening_said = false
+				_mark_phase(&"attack")
+			else:
+				await _handover(_first_attacker_words(first), ZenithTheme.ATTACK, &"attack")
 		&"combat_skipped":
 			var reason: String = str(data.get("reason", ""))
 			var why: String = "Combat skipped"
@@ -1082,7 +1213,9 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 				why = "Combat skipped · Forbidden"
 			await _quiet(why, ZenithTheme.MUTED, &"declare", QUIET_BEAT)
 		&"entering_combat":
-			await _quiet("Entering Combat", ZenithTheme.MUTED, &"enter", QUIET_BEAT)
+			# Each seat prepares in turn; the opening banner already said Combat, so the strip and
+			# the log carry this one.
+			_mark_phase(&"enter")
 		&"pass":
 			var consecutive: int = int(data.get("consecutive", 0))
 			var said: String = "Passes"
@@ -1094,13 +1227,18 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 		&"attack_phase_skipped":
 			await _quiet("Skips the attack", ZenithTheme.MUTED, &"attack", QUIET_BEAT)
 		&"fight_back":
-			# The exchange changes hands. Combat is attack and defend either way, so this pulses the
-			# same Attack chip and the state that follows swaps the names under Attack and Defend.
+			# The exchange changes hands. The beat is stamped before the engine flips the attacker,
+			# so the strip and the role glows take the next attacker from the event itself.
 			var next_seat: int = int(data.get("next", -1))
+			if next_seat >= 0:
+				_live["attacker"] = next_seat
+				_live["phase"] = GameState.Phase.ATTACK
+				_refresh_state(_live)
+				_refresh_roles()
 			var whose: String = "Your attack"
 			if next_seat != viewer:
 				whose = "%s attacks" % view.player(next_seat).name if next_seat >= 0 else "They attack"
-			await _quiet(whose, ZenithTheme.ATTACK, &"attack", QUIET_BEAT)
+			await _handover(whose, ZenithTheme.ATTACK, &"attack")
 		&"no_defense":
 			var defense_reason: String = str(data.get("reason", ""))
 			var no_defense: String = "No defense"
@@ -1176,9 +1314,50 @@ func _swing(attacker: int) -> void:
 	var dir: Vector3 = to - from
 	dir.y = 0.0
 	v.lunge(dir)
-	await get_tree().create_timer(Card3D.LUNGE_TIME * 0.8).timeout
+	# The streak leaves as the strike snaps out, after the wind-up.
+	await get_tree().create_timer(Card3D.WINDUP_TIME).timeout
 	fx.slash(from + dir.normalized() * 0.3, to - dir.normalized() * 0.3, ZenithTheme.ATTACK)
-	await _beat(Card3D.LUNGE_TIME * 1.2)
+	await _beat(Card3D.STRIKE_TIME + Card3D.RECOIL_TIME)
+
+
+## How heavy an attack's damage lands, from the Energy stages it takes and the wounds it deals.
+## Three stages of Energy weigh about one wound; only a hit worth three wounds or more is heavy,
+## so the camera punch stays rare.
+static func hit_tier(stages: int, life: int) -> int:
+	var weight: int = stages + 3 * life
+	if weight >= 9:
+		return HEAVY
+	return SOLID if weight >= 3 else CHIP
+
+
+func _is_far(uid: int) -> bool:
+	var card: SeatCard = view.card(uid)
+	return card != null and viewer >= 0 and card.controller != viewer
+
+
+## Where a number over a card starts. The far seat's stat plaque stands above its duelist on
+## screen, so a number there starts on the card's near half and rises less, and stays clear of it.
+func _float_pos(uid: int) -> Vector3:
+	var pos: Vector3 = _card_pos(uid)
+	if not _is_far(uid) or pos == Vector3.ZERO:
+		return pos
+	var toward_viewer: Vector3 = camera.global_basis.z
+	toward_viewer.y = 0.0
+	return pos + toward_viewer.normalized() * 0.45
+
+
+func _float_rise(uid: int) -> float:
+	return DuelFx.TEXT_RISE * (0.35 if _is_far(uid) else 1.0)
+
+
+## Energy the hit could not absorb spills into wounds: the spill slides from the fighter to its
+## owner's Life Deck, where the wounds are about to come from.
+func _overflow_slide(target: int, overflow: int) -> void:
+	var card: SeatCard = view.card(target)
+	if card == null:
+		return
+	var deck: Vector3 = zones.to_global(zones.slot(card.owner, &"life_deck", 0, 1, viewer if viewer >= 0 else view.active).origin)
+	fx.slide_text(_card_pos(target), deck, "+%d wound%s" % [overflow, "" if overflow == 1 else "s"], ZenithTheme.WARN, OVERFLOW_SLIDE)
 
 
 func _controlling_uid(seat: int) -> int:
@@ -1225,15 +1404,64 @@ func _quiet(text: String, color: Color, phase_key: StringName, seconds: float) -
 		await _beat(seconds)
 
 
+func _first_attacker_words(seat: int) -> String:
+	return "You attack first" if seat == viewer else "%s attacks first" % view.player(seat).name
+
+
+## A change of hands, swept across the table. A busy queue shortens it, never below
+## `HANDOVER_FLOOR`, since it is the one beat that says whose move the next one is; Space still skips.
+func _handover(text: String, color: Color, phase_key: StringName) -> void:
+	hud.handover(text, color)
+	_mark_phase(phase_key)
+	await _beat(maxf(HANDOVER_BEAT * _pending_scale(), HANDOVER_FLOOR), false)
+
+
 func _mark_phase(phase_key: StringName) -> void:
-	if hud.has_method("mark_phase_event"):
-		hud.mark_phase_event(phase_key)
+	phase_track.pulse(phase_key)
+
+
+## Everything that draws where the turn stands: the HUD, the phase track on the table, and the
+## light along the active seat's half of the mat. `live` is the beat's own stamp while replaying.
+func _refresh_state(live: Dictionary = {}) -> void:
+	hud.refresh_state(view, viewer, live)
+	if phase_track == null:
+		return   # a scriptless probe of this view has no table
+	phase_track.refresh(view, live)
+	_light_active_lobe(-1 if view.is_over() else int(live.get("active", view.active)))
+
+
+## The active seat's lobe lights; the light crosses the table when the turn changes.
+func _light_active_lobe(active: int) -> void:
+	var side: float = 0.0
+	if active >= 0:
+		var duelist: Vector3 = zones.to_global(zones.slot(active, &"duelist", 0, 1, viewer if viewer >= 0 else active).origin)
+		side = signf(duelist.z)
+	if is_equal_approx(side, _lobe_side):
+		return
+	_lobe_side = side
+	var mat: ShaderMaterial = table_inlay.material_override
+	if _lobe_fade != null and _lobe_fade.is_valid():
+		_lobe_fade.kill()
+	if _reduced_motion:
+		mat.set_shader_parameter("active_lobe", side)
+		return
+	var from: float = float(mat.get_shader_parameter("active_lobe")) if mat.get_shader_parameter("active_lobe") != null else 0.0
+	_lobe_fade = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_lobe_fade.tween_method(func(value: float) -> void: mat.set_shader_parameter("active_lobe", value), from, side, LOBE_FADE)
 
 
 ## The referee's own wording for a quiet event when it gave one, else the short form.
 func _quiet_line(line: String, fallback: String) -> String:
 	var trimmed: String = line.strip_edges()
 	return fallback if trimmed.is_empty() or trimmed.length() > 48 else trimmed
+
+
+## Where the middle of the table (the painted ring between the duelists) is on screen, for the
+## HUD's beat banner. (-1, -1) before the camera exists.
+func table_centre_screen() -> Vector2:
+	if camera == null or camera.is_position_behind(TABLE_CENTRE):
+		return Vector2(-1, -1)
+	return camera.unproject_position(TABLE_CENTRE)
 
 
 ## The screen-space centre of a card, for the HUD to point at. (-1, -1) when there is nothing
@@ -1392,15 +1620,19 @@ func _answer_card_beat(uid: int, player: int, targets: Dictionary, caption: Stri
 			v.transform = zones.slot(player, &"hand", 0, 1, seat)
 		v.visible = true
 		v.face_up = true
-		var enter: Tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		enter.tween_property(v, "transform", zones.slot(player, &"resolving", 0, 1, seat), FLY_TIME)
-		await enter.finished
+		var resolving: Transform3D = zones.slot(player, &"resolving", 0, 1, seat)
+		if _reduced_motion:
+			v.transform = resolving
+		else:
+			var enter: Tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			enter.tween_property(v, "transform", resolving, FLY_TIME)
+			await enter.finished
 	var shown: bool = _push_response(uid, caption, player, public_id)
 	if v != null and v.visible and card != null and not card.hidden():
 		v.flash(ZenithTheme.DEFEND)
 		fx.ring(v.global_position, ZenithTheme.DEFEND, 0.7)
 	if def != null:
-		hud.toast("%s %s" % ["You play" if player == viewer else "Opponent plays", def.title], ZenithTheme.DEFEND)
+		hud.toast("%s %s" % ["You play" if player == viewer else "%s plays" % view.player(player).name, def.title], ZenithTheme.DEFEND)
 	var hold: float = ANSWER_READ_OWN
 	if player != viewer:
 		hold = OPPONENT_STOP_READ if stopped else OPPONENT_DEFENSE_READ
@@ -1454,15 +1686,18 @@ func _opponent_card_beat(uid: int, player: int, targets: Dictionary, caption: St
 		v.visible = true
 		v.face_up = true
 		var exchange: Transform3D = zones.slot(player, &"resolving", 0, 1, seat)
-		var enter: Tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		enter.tween_property(v, "transform", exchange, FLY_TIME)
-		await enter.finished
+		if _reduced_motion:
+			v.transform = exchange
+		else:
+			var enter: Tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			enter.tween_property(v, "transform", exchange, FLY_TIME)
+			await enter.finished
 	_replay_focus_def = def
 	var shown: bool = hud.show_replay_card(def, caption, color, uid)
 	if v != null and v.visible and c != null and not c.hidden():
 		v.flash(color)
 		fx.ring(v.global_position, color, 0.7)
-	hud.toast("Opponent plays %s" % def.title, color)
+	hud.toast("%s plays %s" % [view.player(player).name, def.title], color)
 	if v != null and v.visible and c != null and not c.hidden():
 		await v.hop(0.16)
 	var maximum: float = 5.5 if caption == "YOUR ATTACK STOPPED" else 4.0
@@ -1624,7 +1859,8 @@ func _fly_recover_batch(cards: Array[int], targets: Dictionary) -> void:
 
 ## A lost Life card has a visible source: the top of its owner's Life Deck. Lift that same
 ## Card3D, reveal it briefly over the table, and then send it to its public pile on the felt.
-## Other destinations (notably a bypassed Seal) keep the ordinary zone transition.
+## Other destinations (notably a bypassed Seal) keep the ordinary zone transition. `label` floats
+## over the deck; "" when a banner already says it.
 func _fly_life_loss(uid: int, player: int, targets: Dictionary, label: String, public_id: String = "") -> void:
 	var card: SeatCard = view.card(uid)
 	var v: Card3D = views.get(uid)
@@ -1652,7 +1888,8 @@ func _fly_life_loss(uid: int, player: int, targets: Dictionary, label: String, p
 	v.face_up = true
 	var deck_pos: Vector3 = zones.to_global(source.origin)
 	fx.impact(deck_pos, ZenithTheme.ATTACK, 0.55)
-	fx.float_text(deck_pos + Vector3.UP * 0.65, label, ZenithTheme.ATTACK, 56)
+	if label != "":
+		fx.float_text(deck_pos + Vector3.UP * 0.65, label, ZenithTheme.ATTACK, 56)
 	var fixture: DuelistDisplay = near_duelist if near_duelist.duelist_uid == view.player(player).duelist else far_duelist
 	fixture.pulse_life_loss()
 	if _reduced_motion:
@@ -1745,26 +1982,30 @@ func _card_pos(uid: int) -> Vector3:
 func _refresh_roles() -> void:
 	if view == null:
 		return
-	var attacker: int = int(view.attack.get("attacker", -1)) if not view.attack.is_empty() else -1
-	# The roles outlive the attack dictionary: whoever is swinging and whoever is answering keep
-	# their glow for the whole of the Attack, Defend, Battle and Fight Back phases.
-	if attacker < 0 and int(view.phase) in COMBAT_ROLE_PHASES:
-		attacker = view.attacker
-	var deciding: int = view.deciding if view.deciding_kind == &"respond" else -1
+	var attacker: int = -1
+	if not _live.is_empty():
+		# Mid-replay the beat's own stamp says who is swinging; the view already holds the end.
+		if int(_live.get("phase", -1)) in COMBAT_ROLE_PHASES:
+			attacker = int(_live.get("attacker", -1))
+	else:
+		attacker = int(view.attack.get("attacker", -1)) if not view.attack.is_empty() else -1
+		# The roles outlive the attack dictionary: whoever is swinging and whoever is answering keep
+		# their glow for the whole of the Attack, Defend, Battle and Fight Back phases.
+		if attacker < 0 and int(view.phase) in COMBAT_ROLE_PHASES:
+			attacker = view.attacker
 	for p in view.players:
 		var color: Color = Color(0, 0, 0, 0)
 		if attacker >= 0:
 			color = ZenithTheme.ATTACK if p.index == attacker else ZenithTheme.DEFEND
-		# The act-here gold outranks the role colour while this seat owes a response.
-		if p.index == deciding:
-			color = ZenithTheme.ACCENT
+		# What the seat can act with in a response window wears the legal-choice border, card by
+		# card; the role aura stays the fight role.
 		var personalities: Array[int] = [p.duelist]
 		personalities.append_array(p.allies)
 		for uid in personalities:
 			var v: Card3D = views.get(uid)
 			if v == null:
 				continue
-			var carries: bool = uid == p.controlling
+			var carries: bool = uid == _controlling_uid(p.index)
 			v.set_role(color if carries else Color(0, 0, 0, 0))
 
 
@@ -1858,7 +2099,7 @@ func _drain_one_message() -> void:
 	if same_prompt:
 		return
 	if _awaiting_answer:
-		hud.refresh_state(view, viewer)
+		_refresh_state()
 		hud.show_sending()
 		return
 	_present_prompt()
@@ -2303,23 +2544,14 @@ func _targets() -> Dictionary:
 		out[view.grounds] = [zones.slot(0, &"grounds", 0, 1, vw), true, true]
 	# While the exchange holds a card in play the arena is live (`_set_arena`).
 	_exchange_live = not view.resolving.is_empty() or not _held.is_empty()
-	var in_play_slot: Array[int] = [0, 0]
+	# A card in play, or one the exchange is still using (`_held`), reads on the HUD rail and its
+	# stack, so the table keeps no second copy in the Play slot. It waits there unseen, so it
+	# leaves from the right place when it goes.
 	for uid in view.resolving:
 		if not out.has(uid):
-			var owner: int = view.card(uid).owner
-			out[uid] = [zones.slot(owner, &"resolving", 0, 1, vw), true, true]
-			if not _held.has(uid) and owner >= 0 and owner < in_play_slot.size():
-				in_play_slot[owner] += 1
-	# A card the exchange is still using stays in its owner's Play slot, face up, wherever the view
-	# says it has gone (`_held`). A second one of the same seat stacks just above the first.
+			out[uid] = [zones.slot(view.card(uid).owner, &"resolving", 0, 1, vw), true, false]
 	for key in _held.keys():
-		var entry: Dictionary = _held[key]
-		var seat: int = int(entry.get("seat", 0))
-		var held_slot: Transform3D = zones.slot(seat, &"resolving", 0, 1, vw)
-		if seat >= 0 and seat < in_play_slot.size():
-			held_slot.origin.y += HELD_STEP * in_play_slot[seat]
-			in_play_slot[seat] += 1
-		out[int(key)] = [held_slot, true, true]
+		out[int(key)] = [zones.slot(int((_held[key] as Dictionary).get("seat", 0)), &"resolving", 0, 1, vw), true, false]
 	return out
 
 
@@ -2373,6 +2605,7 @@ func _live_might(live: Dictionary, uid: int) -> int:
 func _sync_layout(animated: bool, pinned_uid: int = -1) -> void:
 	var targets: Dictionary = _targets()
 	zones.set_viewer(viewer if viewer >= 0 else view.active)
+	phase_track.rotation.y = PI if (viewer if viewer >= 0 else view.active) == 1 else 0.0
 	zones.refresh_occupancy(view)
 	_refresh_displays()
 	_refresh_markers()
@@ -2457,7 +2690,7 @@ func _dev_step() -> void:
 	if _dev_done or prompt == null or busy or _awaiting_answer:
 		return
 	if _dev_stop_kind != &"" and _dev_stop_matches():
-		for arg in OS.get_cmdline_user_args():
+		for arg in DevArgs.user_args():
 			# Open the inspect view so a face can be read at full size: the first hand card, or
 			# `--dev-zoom=duelist` for the viewer's duelist, `--dev-zoom=rival` for the other one.
 			if arg == "--dev-zoom" and not _hand_cards().is_empty():
@@ -2483,7 +2716,7 @@ func _dev_step() -> void:
 			elif arg == "--dev-panel":
 				hud.dev_panel.visible = true
 		var click: String = ""
-		for arg in OS.get_cmdline_user_args():
+		for arg in DevArgs.user_args():
 			if arg == "--dev-click" or arg.begins_with("--dev-click="):
 				click = arg.get_slice("=", 1) if arg.contains("=") else "any"
 		if click != "":
@@ -2566,7 +2799,7 @@ func _dev_finish(settle: float = 0.6, after_replay: bool = false) -> void:
 			camera.dev_set(Vector2(float(cam[0]), float(cam[1])), int(cam[2]))
 		# `--dev-pile=mine:discard` (or `theirs`, `removed`) opens the pile browser for the shot,
 		# the same view a click on that pile gives.
-		for arg in OS.get_cmdline_user_args():
+		for arg in DevArgs.user_args():
 			if arg.begins_with("--dev-pile=") and view != null:
 				var parts: PackedStringArray = arg.get_slice("=", 1).split(":")
 				var seat: int = viewer if viewer >= 0 else view.active
@@ -2576,7 +2809,7 @@ func _dev_finish(settle: float = 0.6, after_replay: bool = false) -> void:
 		await get_tree().create_timer(settle).timeout
 		# Window startup can deliver late pointer motion after the requested hand preview.
 		# Freeze only this screenshot's presentation after settling; normal input is unchanged.
-		for arg in OS.get_cmdline_user_args():
+		for arg in DevArgs.user_args():
 			var hand_preview: bool = arg == "--dev-peek" or (arg.begins_with("--dev-peek=") and arg.get_slice("=", 1).is_valid_int())
 			if hand_preview and hand_3d.visible:
 				hand_3d.preview_index(int(arg.get_slice("=", 1)) if arg.contains("=") else 0)

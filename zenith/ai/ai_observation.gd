@@ -95,6 +95,9 @@ static func _normalized(value: Variant, valid: Dictionary) -> Variant:
 		return {"card_ref": (value as CardInstance).uid}
 	if value is CardDef:
 		return {"definition": (value as CardDef).id}
+	if value is PersonalityStack:
+		# Immutable once built, so its card ids are the whole of it.
+		return {"stack": (value as PersonalityStack).card_ids()}
 	if value is Dictionary:
 		var entries: Array = []
 		var keys: Array = value.keys()

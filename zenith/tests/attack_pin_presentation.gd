@@ -5,6 +5,7 @@ extends SceneTree
 ## Run: godot --headless --path zenith -s tests/attack_pin_presentation.gd
 
 const HALDEN: String = "personality_13"
+const FaceCacheFill = preload("res://tests/face_cache_fill.gd")
 
 var checks: int = 0
 var failures: int = 0
@@ -47,10 +48,7 @@ func _run() -> void:
 	session.ai_seat = -1
 	var duel: Node3D = load("res://scenes/duel/duel.tscn").instantiate()
 	var cache: CardFaceCache = duel.get_node("CardFaceCache")
-	var placeholder: ImageTexture = ImageTexture.create_from_image(Image.create(2, 2, false, Image.FORMAT_RGBA8))
-	cache._back = placeholder
-	for value in session.library.defs.values():
-		cache._cache[CardFaceCache.key_for(value)] = placeholder
+	FaceCacheFill.fill(cache, session.library, chosen)
 	root.add_child(duel)
 	var deadline: int = Time.get_ticks_msec() + 12000
 	while (duel.view == null or duel.hud.loading.visible or duel.busy) and Time.get_ticks_msec() < deadline:
@@ -144,7 +142,7 @@ func _run() -> void:
 	watching = false
 	_check(not held_samples.is_empty(), "The replay reached the damage beats with the attack declared")
 	_check(not held_samples.has(false),
-		"The attack card sits in its owner's Play slot through the damage beats: %s" % str(held_beats))
+		"The attack card waits unseen in its owner's Play slot through the damage beats: %s" % str(held_beats))
 	_check(not duel._held.has(source), "The attack card is let go once the exchange ends")
 	var settled: Dictionary = duel._targets()
 	var card3d: Card3D = duel.views.get(source)
@@ -195,8 +193,8 @@ func _defense_hold(duel: Node3D, host: DuelHost, engine: DuelEngine, earlier: Ar
 	var v: Card3D = duel.views.get(guard)
 	var play_slot: Transform3D = duel.zones.slot(1, &"resolving", 0, 1, 0)
 	_check(duel._held.has(guard), "The defense is still held when its update ends mid-exchange")
-	_check(v != null and v.visible and v.face_up and v.transform.origin.distance_to(play_slot.origin) < 0.02,
-		"The held defense sits face up in the defender's Play slot between updates")
+	_check(v != null and not v.visible and v.transform.origin.distance_to(play_slot.origin) < 0.02,
+		"The held defense waits unseen in the defender's Play slot between updates, shown on the rail instead")
 	_check(str(duel._face_keys.get(guard, "")) == CardFaceCache.key_for(guard_def),
 		"The held defense wears the face its event named, though the view hides it")
 	var second: SeatUpdate = SeatUpdate.new()
@@ -252,5 +250,6 @@ func _watch_stop(duel: Node3D) -> void:
 func _in_play_slot(duel: Node3D, uid: int, seat: int) -> bool:
 	var v: Card3D = duel.views.get(uid)
 	var play_slot: Transform3D = duel.zones.slot(seat, &"resolving", 0, 1, 0)
-	return duel._held.has(uid) and v != null and v.visible and v.face_up \
+	# The rail shows the card, so the table keeps it unseen in the Play slot until it is released.
+	return duel._held.has(uid) and v != null and not v.visible \
 		and v.transform.origin.distance_to(play_slot.origin) < 0.02

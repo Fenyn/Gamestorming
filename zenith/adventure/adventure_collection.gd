@@ -10,13 +10,10 @@ extends RefCounted
 ##
 ## Anything past the cap dissolves into Motes on the spot rather than sitting unusable. The settle
 ## screen and the vendor stop selling at the cap instead, so nobody pays full price for a copy that
-## would dissolve for a quarter; the auto-dissolve is for migration and any other path that lands
-## copies the collection cannot hold.
+## would dissolve for a quarter; the auto-dissolve is for a saved row whose card's cap has since
+## dropped and any other path that lands copies the collection cannot hold.
 
 const PATH: String = "user://adventure/collection.json"
-## Bumped to 2 when the caps became 3 / 4 / 1 in their own right rather than DeckValidator's deck
-## limits. A version 1 file may hold rows above the new cap, so `trim_to_cap` runs on load and pays
-## the overflow back as Motes.
 const SAVE_VERSION: int = 2
 
 ## The most copies of a normal card, and of a card named for a character.
@@ -27,9 +24,6 @@ const CAP_SIGNATURE: int = 4
 static var path_override: String = ""
 
 var counts: Dictionary = {}   # id -> int copies held
-## The version the loaded file was written at, so a caller can tell a migrated file from a fresh
-## one. Not saved: `to_dict` always writes SAVE_VERSION.
-var loaded_version: int = SAVE_VERSION
 
 
 static func path() -> String:
@@ -184,7 +178,6 @@ func to_dict() -> Dictionary:
 ## Tolerant of JSON, which hands every number back as a float.
 static func from_dict(d: Dictionary) -> AdventureCollection:
 	var c: AdventureCollection = AdventureCollection.new()
-	c.loaded_version = int(d.get("version", 1))
 	var rows: Dictionary = d.get("cards", {})
 	for id in rows.keys():
 		var n: int = int(rows[id])
@@ -202,7 +195,7 @@ static func load_collection() -> AdventureCollection:
 	if not (parsed is Dictionary):
 		push_error("AdventureCollection: %s is not a JSON object" % file)
 		return AdventureCollection.new()
-	return AdventureCollection.from_dict(CardRenames.migrate(parsed) as Dictionary)
+	return AdventureCollection.from_dict(parsed as Dictionary)
 
 
 func save() -> bool:

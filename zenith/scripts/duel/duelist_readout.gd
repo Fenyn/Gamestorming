@@ -32,6 +32,7 @@ const ASPECT_GAP: float = 34.0
 const FLAG_WIDTH: float = 1000.0
 const NEAR_FLAG_WIDTH: float = 300.0   # stops short of the Relic's outline
 const NEAR_FLAG_GAP: float = 24.0
+const FLAG_ROWS_HOME: int = 3
 ## Status flags are chips, one row step apart. The far seat's lie further off and more
 ## foreshortened, so they are drawn larger to read at the same size on screen.
 const CHIP_FONT: int = 28
@@ -61,6 +62,16 @@ var flag_clearance: float = 0.0:
 		flag_clearance = value
 		update_layout()
 		request_redraw()
+## The seat's Ally row in canvas pixels (left edge, row centre line, width; height unused). While
+## the seat has no Ally in play the status chips and Seal sets print there, out of the way; with
+## an Ally in the row they fall back beside the plate. Zero width until the display sets it.
+var flag_home: Rect2 = Rect2():
+	set(value):
+		if flag_home.is_equal_approx(value):
+			return
+		flag_home = value
+		update_layout()
+		request_redraw()
 var duelist_bounds: Rect2 = Rect2(-80, -90, 160, 180):
 	set(value):
 		if duelist_bounds.is_equal_approx(value):
@@ -82,6 +93,7 @@ var _control: String = ""
 var _piles: String = ""
 var _flags: PackedStringArray = PackedStringArray()
 var _seal_sets: Dictionary = {}
+var _has_allies: bool = false
 var _reserve: int = 0
 var _lives: int = 1          # how many points the rival needs against this seat
 var _lives_lost: int = 0     # how many of them the rival has scored
@@ -167,6 +179,7 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 			held.append(seal_def.seal_number)
 		_seal_sets[seal_def.seal_set] = held
 	_flags = PLAYER_STATUS.flags(p)
+	_has_allies = not p.allies.is_empty()
 	# Lives: a seat falls when the rival scores `points_to_win[rival]` points against it.
 	var rival: int = 1 - player_index
 	_lives = maxi(1, int(view.points_to_win[rival])) if view.points_to_win.size() == 2 else 1
@@ -199,20 +212,45 @@ func update_layout() -> Dictionary:
 	var first_row: float = tracker_y - 12.0 - _chip_step() - flag_clearance if far_side else tracker.position.y + 48.0
 	var text_width: float = FLAG_WIDTH if far_side else NEAR_FLAG_WIDTH
 	var flag_left: float = middle_x - text_width * 0.5 if far_side else tracker.end.x + NEAR_FLAG_GAP
+	var at_home: bool = _flags_at_home()
+	if at_home:
+		text_width = flag_home.size.x
+		flag_left = flag_home.position.x
+		first_row = flag_home.position.y - _chip_step() * 0.5
 	stat_hit_rects.append(tracker)
 	if far_side:
 		stat_hit_rects.append(Rect2(tracker.position + Vector2(-205, 0), Vector2(185, 160)))
 	if _show_lives:
 		stat_hit_rects.append(_lives_tab(tracker))
-	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
+	var flag_rows: int = _flag_row_count(at_home)
 	if not _seal_sets.is_empty():
 		stat_hit_rects.append(Rect2(flag_left, first_row - 34, text_width, 42))
 	var lines: Array[PackedStringArray] = _flag_rows(text_width)
 	var font: int = _chip_font()
 	for i in range(mini(lines.size(), flag_rows)):
-		var baseline: float = first_row + (i + 2 - flag_rows) * _chip_step()
+		var baseline: float = _chip_baseline(i, first_row)
 		stat_hit_rects.append(Rect2(flag_left, baseline - font - 6.0, text_width, font + 20.0))
-	return {"tracker": tracker, "flags": first_row, "middle": middle_x, "flag_left": flag_left, "flag_width": text_width}
+	return {"tracker": tracker, "flags": first_row, "middle": middle_x, "flag_left": flag_left, "flag_width": text_width, "home": at_home}
+
+
+## Everything the Ally row home can hold: the Seal line and three rows of chips.
+func flag_home_area() -> Rect2:
+	var step: float = _chip_step()
+	return Rect2(flag_home.position.x, flag_home.position.y - step * 1.5 - 34.0, flag_home.size.x, step * (FLAG_ROWS_HOME + 1) + 40.0)
+
+
+func _flags_at_home() -> bool:
+	return flag_home.size.x > 0.0 and not _has_allies
+
+
+## Rows of chips shown: three in the Ally row, two beside the plate, one fewer under Seal sets.
+func _flag_row_count(at_home: bool) -> int:
+	return (FLAG_ROWS_HOME if at_home else 2) - (0 if _seal_sets.is_empty() else 1)
+
+
+## Seal sets take the first line when there are any; the chips run on below them.
+func _chip_baseline(row: int, first_row: float) -> float:
+	return first_row + (row + (0 if _seal_sets.is_empty() else 1)) * _chip_step()
 
 
 func _draw() -> void:
@@ -231,7 +269,7 @@ func _draw() -> void:
 	var first_row: float = float(layout["flags"])
 	var text_width: float = float(layout["flag_width"])
 	var flag_left: float = float(layout["flag_left"])
-	var centred: bool = _player_index != _viewer
+	var centred: bool = _player_index != _viewer or bool(layout["home"])
 	if _player_index != _viewer:
 		_draw_opponent_hand(tracker.position + Vector2(-205, 0))
 	if part == Part.ALL:
@@ -241,7 +279,7 @@ func _draw() -> void:
 	# The Aspect, printed on the felt just under the duelist card on the viewer's side.
 	_text("ASPECT %d" % _aspect, Vector2(duelist_bounds.get_center().x - 110.0, duelist_bounds.end.y + ASPECT_GAP), 220, 30, IVORY, true)
 	var rows: Array[PackedStringArray] = _flag_rows(text_width)
-	var flag_rows: int = 2 if _seal_sets.is_empty() else 1
+	var flag_rows: int = _flag_row_count(bool(layout["home"]))
 	if not _seal_sets.is_empty():
 		_draw_seals(first_row, flag_left + text_width * 0.5, text_width)
 	var hidden: int = 0
@@ -256,7 +294,7 @@ func _draw() -> void:
 				row.remove_at(row.size() - 1)
 				rest += 1
 			row.append("+%d more" % rest)
-		_draw_chip_row(row, flag_left, first_row + (i + 2 - flag_rows) * _chip_step(), text_width, centred)
+		_draw_chip_row(row, flag_left, _chip_baseline(i, first_row), text_width, centred)
 
 
 ## The stat tracker: name, Aspect and seat along the top, then Energy, Might and Fervor. A

@@ -41,7 +41,7 @@ func _ready() -> void:
 
 
 static func motion_reduced() -> bool:
-	return reduced_motion or OS.get_cmdline_user_args().has("--reduced-motion")
+	return reduced_motion or DevArgs.user_args().has("--reduced-motion")
 
 
 func set_school(color_value: Color, immediate: bool = false) -> void:

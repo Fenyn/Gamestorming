@@ -167,8 +167,8 @@ static func type_blurb(type: String) -> String:
 			return "A duel under a stated special rule."
 		"encounter":
 			return "A duel with an ally fighting beside you."
-		"sensei":
-			return "Choose your Sensei: a Relic and a starting Reserve."
+		"relic":
+			return "Choose a Relic and a starting Reserve."
 		"shop":
 			return "Spend Mana on cards and services."
 		"shrine":
@@ -308,12 +308,12 @@ static func _crosses(tier_edges: Array, a: int, b: int) -> bool:
 	return false
 
 
-## Tier 1 is always a duel, and the Sensei tier is all Sensei so every path meets one. Every other
+## Tier 1 is always a duel, and the Relic tier is all Relic nodes so every path meets one. Every other
 ## node is a fight with the act's `fight_chance`, else a rest node that differs from its parents'.
 ## An Elite waits until the act's `elite_from` tier.
 static func _roll_types(act_nodes: Dictionary, act: int, spec: Dictionary, data: Dictionary,
 		rng: RandomNumberGenerator) -> void:
-	var sensei: Dictionary = data.get("sensei", {})
+	var relic: Dictionary = data.get("relic", {})
 	var chance: float = float(spec.get("fight_chance", 0.5))
 	var fight_weights: Dictionary = data.get("fight_weights", {"duel": 1})
 	var rest_weights: Dictionary = data.get("rest_weights", {"forge": 1})
@@ -322,8 +322,8 @@ static func _roll_types(act_nodes: Dictionary, act: int, spec: Dictionary, data:
 			var type: String = ""
 			if tier == 1:
 				type = "duel"
-			elif act == int(sensei.get("act", 0)) and tier == int(sensei.get("tier", 0)):
-				type = "sensei"
+			elif act == int(relic.get("act", 0)) and tier == int(relic.get("tier", 0)):
+				type = "relic"
 			elif rng.randf() < chance:
 				var weights: Dictionary = fight_weights.duplicate()
 				if tier < int(spec.get("elite_from", 1)):

@@ -19,6 +19,10 @@ uniform float rim = 0.12;
 uniform vec4 fabric_tint : source_color = vec4(0.50, 0.20, 0.20, 1.0);
 uniform vec4 rim_tint : source_color = vec4(0.18, 0.14, 0.13, 1.0);
 uniform vec4 ink : source_color = vec4(0.90, 0.86, 0.80, 0.45);
+uniform float active_lobe = 0.0;
+uniform vec4 turn_glow : source_color = vec4(0.94, 0.91, 0.84, 1.0);
+uniform float turn_strength = 0.10;
+uniform float turn_width = 0.35;
 
 float round_box(vec2 p, vec2 half_size, float r) {
 	vec2 q = abs(p) - half_size + r;
@@ -56,6 +60,12 @@ void fragment() {
 	// One printed rule round the arena. The rim alone marks the edge, so captions near it stay clear.
 	float ink_mask = rule(length(p) - ring_radius + 0.1, 0.024);
 	col = mix(col, ink.rgb, ink_mask * ink.a);
+	// Whose turn it is: a soft light along the inside edge of the active seat's lobe. The client
+	// eases `active_lobe` between -1 (the lobe at -z) and 1 (+z), so a turn change reads as the
+	// light crossing the table.
+	float side = smoothstep(0.2, 0.9, p.y * sign(active_lobe)) * abs(active_lobe);
+	float inner = 1.0 - smoothstep(0.0, turn_width, -d);
+	col += turn_glow.rgb * turn_strength * inner * side;
 	ALBEDO = col;
 	ROUGHNESS = 1.0;
 }

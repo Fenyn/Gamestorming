@@ -101,3 +101,11 @@ func opposing_player() -> PlayerState:
 
 func is_over() -> bool:
 	return winner >= 0
+
+
+## Who a client should show as attacking. `attacker` keeps the last Combat's value until the
+## opposing draw, but the active player always attacks first, so the prepare phases name them.
+func display_attacker() -> int:
+	if phase in [Phase.PREPARE_ACTIVE, Phase.PREPARE_OPPOSING, Phase.OPPOSING_DRAW]:
+		return active
+	return attacker

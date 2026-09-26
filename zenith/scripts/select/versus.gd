@@ -112,7 +112,7 @@ func _refresh() -> void:
 		problems.append("Waiting for the host to start the duel.")
 	problems_label.text = "\n".join(problems)
 	start_button.disabled = not problems.is_empty()
-	if _online and Net.is_host() and not start_button.disabled and OS.get_cmdline_user_args().has("--dev-autoplay"):
+	if _online and Net.is_host() and not start_button.disabled and DevArgs.user_args().has("--dev-autoplay"):
 		_on_start()
 
 
@@ -163,7 +163,7 @@ func _to_select() -> void:
 func _dev_setup() -> void:
 	if _online:
 		return
-	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var args: PackedStringArray = DevArgs.user_args()
 	if args.has("--dev-ai"):
 		Session.ai_seat = 1
 	for arg in args:
@@ -179,7 +179,7 @@ func _dev_setup() -> void:
 ## `--dev-aspect=N` shows player 1's duelist at aspect N the way a click would, with the pointer
 ## left over the card so the hover lift shows too. `--dev-screenshot=<png>` saves and quits.
 func _dev_screenshot() -> void:
-	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var args: PackedStringArray = DevArgs.user_args()
 	for arg in args:
 		if arg.begins_with("--dev-aspect="):
 			sheets[0]._hover_portrait(true)

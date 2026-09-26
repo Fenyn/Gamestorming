@@ -26,7 +26,10 @@ func _run() -> void:
 	card.set_highlight(true)
 	_check(card.border_fx.sparks.emitting and card.glow.visible, "Playable cards show both border and edge particles")
 	card.set_role(ZenithTheme.DEFEND)
+	_check(card.border_fx._material.get_shader_parameter("tint") == Color(ZenithTheme.ACCENT, 1.0), "A legal choice keeps the legal border over its fight role")
+	card.set_highlight(false)
 	_check(card.border_fx._material.get_shader_parameter("tint") == Color(ZenithTheme.DEFEND, 1.0), "Defender particles use the defense color")
+	card.set_highlight(true)
 	other.set_role(ZenithTheme.ATTACK)
 	_check(card.border_fx._material != other.border_fx._material, "Cards must not share mutable particle colors")
 	_check(card.border_fx._material.get_shader_parameter("tint") != other.border_fx._material.get_shader_parameter("tint"), "Attacker and defender retain distinct colors")
@@ -42,6 +45,12 @@ func _run() -> void:
 	_check(card.border_fx.sparks.emitting, "Hover inspection works even without a legal play")
 	card.set_hovered(false)
 	_check(not card.border_fx.sparks.emitting, "Leaving an idle card ends hover particles")
+	# The duelist's slot scales the card 2.6x, height included; the glow must stay just under the
+	# face rather than sink through the mat.
+	card.transform = Transform3D(Basis().scaled(Vector3.ONE * 2.4), Vector3(0, 0.01, 0))
+	await process_frame
+	_check(is_equal_approx(card.glow.global_position.y, 0.01 - card.GLOW_DROP), "A scaled card's legal glow stays %s under its face" % card.GLOW_DROP)
+	_check(is_equal_approx(card.role.global_position.y, 0.01 - card.ROLE_DROP), "and so does its role aura")
 	card.free()
 	other.free()
 	await process_frame

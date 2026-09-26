@@ -33,7 +33,7 @@ func _run() -> void:
 		await process_frame
 		_check(root.get_visible_rect().encloses(seat.get_global_rect()), "Every deck preview must stay onscreen")
 		await process_frame
-		_check(seat.info.size.x <= seat.size.x, "Details must fit the preview width")
+		_check(seat.deck_list.size.x <= seat.size.x, "Details must fit the preview width")
 		seat.get_node("Row/Details").pressed.emit()
 	_check(seat.get_global_rect().end.x <= root.get_visible_rect().size.x + 1, "Preview must fit the viewport")
 	_check(seat.lock_button.get_global_rect().end.y <= root.get_visible_rect().size.y, "Confirm must stay onscreen")

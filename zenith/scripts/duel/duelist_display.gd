@@ -44,6 +44,7 @@ var _hovering: bool = false
 @onready var life_value: Label3D = $LifeValue
 @onready var life_caption: Label3D = $LifeCaption
 var life_transform: Transform3D = Transform3D.IDENTITY
+var flag_row: PackedVector3Array = PackedVector3Array()   # where the status chips print, inner end first
 var _anchor_inputs: Array = []
 var _life_pulse: Tween = null
 var _pixel: float = PIXEL   # world units per canvas pixel for this seat
@@ -118,7 +119,7 @@ func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
 	# Static fixtures retain their texture and layout until the card, the pile or the side moves.
 	var toward: float = 1.0 if camera.global_position.z >= 0.0 else -1.0
 	var far: bool = readout._player_index != readout._viewer
-	var inputs: Array = [global_transform, card.global_transform, life_transform, toward, far, camera.global_position]
+	var inputs: Array = [global_transform, card.global_transform, life_transform, flag_row, toward, far, camera.global_position]
 	if inputs == _anchor_inputs:
 		return
 	_anchor_inputs = inputs
@@ -149,10 +150,18 @@ func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
 	life_value.global_transform = Transform3D(flat, life_transform.origin + Vector3.UP * 0.004 - forward * LIFE_NUMBER_BACK)
 	life_caption.global_transform = Transform3D(flat, life_transform.origin + Vector3.UP * 0.004 + forward * LIFE_CAPTION_FORWARD)
 	readout.card_bounds = bounds
+	if flag_row.size() == 2:
+		var inner: Vector2 = _canvas_point(flag_row[0])
+		var outer: Vector2 = _canvas_point(flag_row[1])
+		readout.flag_home = Rect2(Vector2(minf(inner.x, outer.x), inner.y), Vector2(absf(outer.x - inner.x), 0.0))
 	_place_plate(yaw, far, camera)
 	# Expand the transparent canvas as the cluster grows; fixed textures clip wide zooms.
 	for rect: Rect2 in readout.stat_hit_rects:
 		bounds = bounds.merge(rect)
+	# The status chips' home is covered whether or not anything is printed there yet: the canvas
+	# only regrows when the card moves, and a first chip or Seal arrives without that.
+	if readout.flag_home.size.x > 0.0:
+		bounds = bounds.merge(readout.flag_home_area())
 	var extent: Vector2 = Vector2(maxf(absf(bounds.position.x), absf(bounds.end.x)), maxf(absf(bounds.position.y), absf(bounds.end.y))) + Vector2(400, 400)
 	var canvas_size: Vector2i = Vector2i(maxi(1600, ceili(extent.x * 2.0 / 128.0) * 128), maxi(1600, ceili(extent.y * 2.0 / 128.0) * 128))
 	if viewport.size != canvas_size:

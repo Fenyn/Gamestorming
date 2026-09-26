@@ -14,6 +14,8 @@ const STANDING_STEP: float = 0.42
 const STANDING_SCALE: float = 0.55
 ## Standing ghosts line up in the waist, left of the arena, on their owner's half.
 const STANDING_START: Vector3 = Vector3(-1.5, 0.001, 0.3)
+## The Grounds lie in the waist right of the ring, clear of the ring's icons and the right notch's.
+const GROUNDS_POS: Vector3 = Vector3(1.9, 0.001, 0.0)
 const HAND_STEP: float = 0.32
 const HAND_SCALE: float = 0.70
 const STACK_STEP: float = 0.0015
@@ -131,8 +133,9 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 			&"resolving":
 				pos = marker("Resolving") + Vector3(0, RESOLVING_LIFT, 0)
 			&"grounds":
-				# The shared field lies across the middle of the arena, under the cards in play.
-				pos = Vector3(0, 0.001, 0)
+				# The shared field lies across the waist beside the ring, whose middle the phase
+				# track's Combat icons hold.
+				pos = GROUNDS_POS
 				yaw = PI * 0.5
 			&"standing":
 				# An effect that outlasts the Combat has no card left on the table, so its source
@@ -223,6 +226,7 @@ func _zone_rect(zone: StringName) -> Rect2:
 		center = marker(str(row["marker"])) + Vector3(span * 0.5 * float(row.get("direction", 1)), 0, 0)
 	elif zone == &"grounds":
 		size = Vector2(CARD_SIZE.y, CARD_SIZE.x) * _card_scale(zone) * 0.92
+		center = GROUNDS_POS
 	else:
 		center = marker(str(SINGLES[zone]["marker"]))
 	# Resolving cards have no felt mark or label. Validate their visible footprint rather than

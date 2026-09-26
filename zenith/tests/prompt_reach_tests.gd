@@ -12,6 +12,7 @@ extends SceneTree
 ## Run: godot --headless --path zenith -s tests/prompt_reach_tests.gd -- --games=40
 
 const MAX_STEPS: int = 4000
+const FaceCacheFill = preload("res://tests/face_cache_fill.gd")
 
 var failures: int = 0
 var checks: int = 0
@@ -43,15 +44,7 @@ func _run() -> void:
 	var scene: PackedScene = load("res://scenes/duel/duel.tscn")
 	var duel: Node3D = scene.instantiate()
 	var cache: CardFaceCache = duel.get_node("CardFaceCache")
-	var placeholder: ImageTexture = ImageTexture.create_from_image(Image.create(2, 2, false, Image.FORMAT_RGBA8))
-	cache._back = placeholder
-	for value in session.library.defs.values():
-		var def: CardDef = value
-		if def.is_personality():
-			for aspect in def.aspects:
-				cache._cache[CardFaceCache.key_for(def, int(aspect.get("aspect", 1)))] = placeholder
-		else:
-			cache._cache[CardFaceCache.key_for(def)] = placeholder
+	FaceCacheFill.fill(cache, session.library, session.chosen)
 	root.add_child(duel)
 	var deadline: int = Time.get_ticks_msec() + 12000
 	while (duel.view == null or duel.hud.loading.visible) and Time.get_ticks_msec() < deadline:

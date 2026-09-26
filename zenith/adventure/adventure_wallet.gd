@@ -115,7 +115,7 @@ static func load_wallet() -> AdventureWallet:
 	if not (parsed is Dictionary):
 		push_error("AdventureWallet: %s is not a JSON object" % file)
 		return AdventureWallet.new()
-	return AdventureWallet.from_dict(CardRenames.migrate(parsed) as Dictionary)
+	return AdventureWallet.from_dict(parsed as Dictionary)
 
 
 func save() -> bool:

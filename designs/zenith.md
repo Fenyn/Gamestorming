@@ -130,7 +130,7 @@ Relics: the three Masters become three worn relics, none of them a weapon, so an
 2. Hedge duelists declare Vigil or Pact.
 3. Place Relic and Mastery. The Mastery's school is the deck's Style. Nothing is declared.
 4. Duelist starts at Energy 5 above 0. Fervor starts at 0.
-5. **Double Power Rule** (printed starter rulebook, adopted 2026-09-22 in place of the bracket rule). Compare the two duelists' Might at the starting stage. If one is double the other or more, it starts at Energy 2, the weaker starts at full Energy (10) and goes first. Wild Might never triggers it. Otherwise the Vigil goes first; same alignment goes random.
+5. **Double Power Rule** (printed starter rulebook, adopted 2026-09-22 in place of the bracket rule). Compare the two duelists' Might at the starting stage. If one is double the other or more, it starts at Energy 2, the weaker starts at full Energy (10) and goes first. Wild Might never triggers it. Otherwise chance decides who goes first, whatever the alignments, unless the opening seat is named in advance (a series hands it to the loser of the last game), which overrides both.
 6. Shuffle the Life Deck. Opponent may cut.
 7. Reserve swap: bring any number of Reserve cards into the Life Deck; each pushes a random Life Deck card into the Reserve. Shuffle.
 8. No opening hand. First draw happens in the Draw Step.

@@ -52,7 +52,7 @@ func _ready() -> void:
 	mastery_card.mouse_exited.connect(func() -> void: mastery_zoom.hide())
 	mastery_card.focus_exited.connect(func() -> void: mastery_zoom.hide())
 	name_edit.text_changed.connect(func(t: String) -> void:
-		Session.player_names[seat] = t if t.strip_edges() != "" else "Player %d" % (seat + 1)
+		Session.player_names[seat] = Net.clean_name(t, seat)
 		name_changed.emit(seat, Session.player_names[seat]))
 	lock_button.pressed.connect(func() -> void: lock_toggled.emit(seat, not locked))
 	portrait_box.resized.connect(_layout_portrait)

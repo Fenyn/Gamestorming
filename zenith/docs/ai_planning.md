@@ -20,7 +20,9 @@ The scorer and evaluator share contextual card values. Keeping, discarding and t
 
 The evaluator adds own-hand quality, remaining usable personality powers, available Drill/Non-Combat activations, and normalized Bond progress to existing resource and win-route terms. Duplicate hand cards receive diminishing quality credit. Spent, prohibited, unaffordable or condition-failed powers do not receive usable-power credit. Hidden opponent hand quality and hidden tutor-target availability are not treated as public facts.
 
-Profiles may set `own`/`foe` weights `power`, `engine`, and `combo_progress`, plus `own.hand_quality`. Current fallback weights are respectively 0.35, 0.25, 0.5 for own combo/0.35 for opposing combo, and 0.15 for hand quality. Existing `bond_band` enables Bond-specific strategic valuation. Generic effect-based sequence search works without named-card scripts.
+The Duelist's Energy term counts Energy the next Power Up would refill at half (`held_energy`), the hand term counts cards past the discard-step limit at half on their owner's turn (`kept_hand`), and floating modifiers a side has put out are priced by `AiScorer.modifier_value` (`standing`). Seal progress is half linear and half squared, so the first Seal is worth putting down.
+
+Profiles may set `own`/`foe` weights `power`, `engine`, `combo_progress` and `standing` (fallback 1.0), plus `own.hand_quality`. Current fallback weights are respectively 0.35, 0.25, 0.5 for own combo/0.35 for opposing combo, and 0.15 for hand quality. Existing `bond_band` enables Bond-specific strategic valuation. Generic effect-based sequence search works without named-card scripts.
 
 ## Intention and information
 

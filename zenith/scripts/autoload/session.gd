@@ -55,6 +55,14 @@ var win_results: Array[Dictionary] = []
 var journal_return: String = ADVENTURE_START_SCENE
 ## The referee of the duel in progress, read once it ends for what the achievements track.
 var last_referee: Referee = null
+## An adventure duel rebuilt from the run's saved history, held for the duel scene's
+## `build_referee` call.
+var _resumed_referee: Referee = null
+## Offline: the record begun with the last referee built, until the duel scene's host takes it.
+var _pending_record: MatchRecord = null
+var _pending_record_for: int = 0
+## Offline: the host of the duel on the table, which a concession ends.
+var _record_host: DuelHost = null
 ## What the load-time trim dissolved, in AdventureCollection's report shape. The first screen that
 ## can show it calls `take_dissolve_report()`, which hands it over and clears it, so the line is
 ## shown once and not on every screen after.
@@ -78,6 +86,10 @@ func _ready() -> void:
 		dissolve_report = trimmed
 		wallet.save()
 		collection.save()
+	# A dev run with `--dev-scratch=<dir>` keeps its match records off the player's own too.
+	var scratch: String = AdventureDev.flag("--dev-scratch=")
+	if scratch != "":
+		MatchRecord.dir_override = scratch.path_join("matches")
 
 
 func _load_decks() -> void:
@@ -115,7 +127,18 @@ func deck_problems(deck: DeckList) -> Array[String]:
 
 ## Builds a fresh referee (engine behind seat views) from the chosen decks. Rolls a seed when
 ## none is set. Only the process that runs the rules calls this; a joining client never does.
+## An adventure duel that `begin_stage` resumed gets the referee it already replayed.
 func build_referee() -> Referee:
+	if _resumed_referee != null:
+		var resumed: Referee = _resumed_referee
+		_resumed_referee = null
+		return resumed
+	var referee: Referee = _new_referee()
+	_watch_adventure_duel(referee)
+	return referee
+
+
+func _new_referee() -> Referee:
 	var referee: Referee = Referee.new()
 	last_seed = seed_value if seed_value != 0 else randi_range(1, 2147483646)
 	if color_seed == 0:
@@ -141,7 +164,69 @@ func build_referee() -> Referee:
 		if arg.begins_with("--dev-boss-power="):
 			referee.engine.set_boss_power(1, arg.substr("--dev-boss-power=".length()))
 	last_referee = referee
+	_pending_record = _begin_record(referee, pair) if Net.mode == "" else null
+	_pending_record_for = referee.get_instance_id()
 	return referee
+
+
+## The record of an offline duel, read off its referee before the deal. Only the duel server
+## signs; this one is the player's own and counts for nothing shared.
+func _begin_record(referee: Referee, pair: Array[DeckList]) -> MatchRecord:
+	var mode: String = "adventure" if in_adventure() else ("vs_ai" if ai_seat >= 0 else "hotseat")
+	var record: MatchRecord = MatchRecord.begin(referee, pair, mode, "client")
+	record.protocol = Net.PROTOCOL
+	record.catalog = Net.catalog_fingerprint()
+	record.color_seed = color_seed
+	if ai_seat >= 0:
+		record.seats[ai_seat]["ai"] = ai_profile
+	if in_adventure():
+		record.seats[0]["list"] = MatchRecord.deck_dict(pair[0])
+	return record
+
+
+## Offline: the duel scene's host keeps the record of the duel it was built for, and writes it to
+## `local.jsonl` the moment the duel ends. Online the duel server keeps the record.
+func keep_record(host: DuelHost) -> void:
+	_record_host = null
+	if _pending_record == null or host.referee.get_instance_id() != _pending_record_for:
+		return
+	host.record = _pending_record
+	host.on_result = _store_local_record
+	_pending_record = null
+	_record_host = host
+
+
+func _store_local_record(record: MatchRecord) -> void:
+	var problem: String = MatchRecord.keep_line(MatchRecord.LOCAL_FILE, record.line())
+	if problem != "":
+		push_warning("record %s failed: %s" % [record.id, problem])
+
+
+## The offline duel on the table ends in a concession by the seat at the table: the player against
+## the AI or in an adventure, the seat deciding at a hotseat table.
+func _record_concession() -> void:
+	if _record_host == null or _record_host.record == null:
+		return
+	var seat: int = 1 - ai_seat if ai_seat >= 0 else maxi(0, _record_host.deciding())
+	_record_host.end(1 - seat, "concede")
+
+
+## Binds the referee's id rather than the referee, which would keep it alive through its own signal.
+func _watch_adventure_duel(referee: Referee) -> void:
+	if in_adventure():
+		referee.command_applied.connect(_on_adventure_command.bind(referee.get_instance_id()))
+
+
+## Saves the run with the duel's history after every command, so a closed game comes back to the
+## same position, and records the result the moment the duel ends rather than on Continue.
+func _on_adventure_command(_seat: int, _command: Dictionary, referee_id: int) -> void:
+	if run == null or run.status != "stage" or last_referee == null or last_referee.get_instance_id() != referee_id:
+		return
+	run.duel_history.assign(last_referee.history)
+	if last_referee.is_over():
+		record_stage(last_referee.engine.state.winner == 1 - ai_seat)
+	else:
+		AdventureSave.store(run)
 
 
 ## The names the rules use for the two seats, in the log and on every panel. At a hotseat table the
@@ -267,21 +352,31 @@ func resume_run() -> bool:
 	return true
 
 
-## Ends the run for good: clears the save and drops it from memory.
+## Ends the run for good: clears the save, then resets the session as leaving adventure mode does.
 func abandon_run() -> void:
 	AdventureSave.clear()
-	run = null
-	map = null
+	leave_adventure()
 
 
-## Leaves adventure mode for a normal match, without touching the save.
+## Leaves adventure mode for a normal match, without touching the save. Everything the adventure
+## flow set on the way into a duel goes back to its start value, so the select screen opens with
+## no deck picked or locked.
 func leave_adventure() -> void:
 	run = null
 	map = null
+	chosen = [null, null]
+	locked = [false, false]
 	seed_value = 0
+	last_seed = 0
 	ai_seat = -1
 	ai_profile = "default"
 	player_names = ["Player 1", "Player 2"]
+	lead_in = {}
+	win_results = []
+	last_referee = null
+	_resumed_referee = null
+	_pending_record = null
+	_record_host = null
 
 
 ## Steps the run onto a map node and saves. A fight goes straight into its duel; any other node is
@@ -297,7 +392,9 @@ func enter_node(id: String) -> void:
 
 
 ## Sets up and starts the duel on the node the run stands on. The same duel always gets the same
-## seed, so quitting mid-duel restarts it unchanged.
+## seed and every command is saved as it is played, so a duel left mid-way opens again where it
+## stood, without the lead-in it already showed. A history that no longer replays is dropped and
+## the duel starts over.
 func begin_stage() -> void:
 	var row: Dictionary = map.duel_for(run.node_id)
 	var opponent_id: String = str(row.get("opponent", ""))
@@ -309,11 +406,33 @@ func begin_stage() -> void:
 	seed_value = run.stage_seed(run.stage)
 	player_names = [player_names[0], AdventureDecks.opponent_name(opponent_id, library)]
 	roll_colors()
+	if _resume_duel():
+		lead_in = {}
+		go_to_duel()
+		return
 	lead_in = _lead_in_for_stage()
 	if lead_in.is_empty():
 		go_to_duel()
 	else:
 		get_tree().change_scene_to_file(ADVENTURE_LEAD_IN_SCENE)
+
+
+## Replays the run's saved history into a referee for `build_referee` to hand over. False when
+## there is none, or when it does not replay, which drops it.
+func _resume_duel() -> bool:
+	_resumed_referee = null
+	if run.duel_history.is_empty():
+		return false
+	var referee: Referee = _new_referee()
+	var problem: String = referee.replay(run.duel_history)
+	if problem != "":
+		push_warning("Adventure duel did not replay, starting it over: %s" % problem)
+		run.duel_history.clear()
+		AdventureSave.store(run)
+		return false
+	_watch_adventure_duel(referee)
+	_resumed_referee = referee
+	return true
 
 
 ## The lead-in before the duel on the run's node. A restarted duel shows the one it showed first.
@@ -332,35 +451,39 @@ func _lead_in_for_stage() -> Dictionary:
 ## Applies the duel result to the run, credits the Motes a win pays, and saves. A loss ends the
 ## run and goes straight to the run-end settlement, which is where the run's cards are bought.
 ## The save is kept until the settlement closes, so quitting on that screen does not lose it.
+## Only the first call for a duel does anything: the result is recorded at game over, and the
+## Continue click and the autoplay path in duel_view.gd call this again.
 func record_stage(won: bool) -> void:
-	var opponent_family: String = AdventureDecks.family_of(str(map.duel_for(run.node_id).get("opponent", "")))
-	story_log.begin_run(run.run_id)
-	story_log.record_result(AdventureDecks.character_of(AdventureDecks.family_of(run.starter_id)),
-		AdventureDecks.character_of(opponent_family), won)
+	if run == null or run.status != "stage":
+		return
+	var engine: DuelEngine = last_referee.engine if last_referee != null else null
+	var results: Array[Dictionary] = AdventureRewards.record_duel(run, map, library, won, engine,
+		story_log, collection, unlocks, progress, wallet)
 	story_log.save()
 	if won:
-		var engine: DuelEngine = last_referee.engine if last_referee != null else null
-		win_results = AdventureProgress.record_win(run, map, engine, library, collection,
-			unlocks, progress, wallet)
+		win_results = results
 		unlocks.save()
 		progress.save()
 		collection.save()
-		wallet.save()
-	var payout: int = AdventureRewards.finish_stage(run, map, library, won)
-	if payout > 0:
-		wallet.earn(payout, AdventureWallet.REASON_STAGE, run.run_id, run.stage)
-		wallet.save()
-	if not won:
-		AdventureSettlement.open(run)
+	wallet.save()
 	AdventureSave.store(run)
 
 
-## Ends the duel for the current stage: records the result once, then moves on. Guarded so the
-## autoplay path in duel_view.gd, which records before this ever runs, cannot record twice.
+## Ends the duel for the current stage, recording it if game over has not already, then moves on.
 func finish_stage(won: bool) -> void:
-	if run.status == "stage":
-		record_stage(won)
+	record_stage(won)
 	get_tree().change_scene_to_file(_reward_or_stage_scene())
+
+
+## Gives up the duel in progress. In an adventure that is a loss like the duelist falling: recorded
+## now, the saved history dropped, then on to the run-end settlement. At a hotseat or vs-AI table
+## it returns to the title. An online duel concedes through Net instead.
+func concede_duel() -> void:
+	_record_concession()
+	if not in_adventure():
+		go_to_title()
+		return
+	finish_stage(false)
 
 
 ## The reward scene handles both halves of a win: the Aspect choice, then the bundle offer. A
@@ -506,9 +629,13 @@ func go_to_loadout() -> void:
 	get_tree().change_scene_to_file(_scene_or_start(ADVENTURE_LOADOUT_SCENE))
 
 
-## Resumes a run in progress, or opens the start screen for a new one.
+## Resumes a run in progress, or opens the start screen for a new one. A duel left mid-way opens
+## again where it stood.
 func go_to_adventure() -> void:
 	if run == null and not resume_run():
 		get_tree().change_scene_to_file(ADVENTURE_START_SCENE)
+		return
+	if run.status == "stage" and not run.duel_history.is_empty():
+		begin_stage()
 		return
 	get_tree().change_scene_to_file(_reward_or_stage_scene())

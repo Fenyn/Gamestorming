@@ -8,7 +8,7 @@ var failures: int = 0
 func _init() -> void:
 	var deck: DeckList = DeckList.load_from("res://data/decks/tide_companions.json")
 	for policy in ["search", "scorer", "rollout", "easy", "default", "hard"]:
-		var configured: SimSeat = SimSeat.from_legacy(policy, {"budget": "7", "samples": "1", "rollout_steps": "3"})
+		var configured: SimSeat = SimSeat.from_legacy(policy, {"budget": "7", "samples": "1", "rollout-steps": "3"})
 		var profile: AiProfile = configured.make_profile(deck)
 		var player: AiPlayer = configured.make_player(deck, 889)
 		_check(configured.error.is_empty() and player.profile.data == profile.data, policy + ": diagnostics and drivers share profile construction")

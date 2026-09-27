@@ -43,7 +43,20 @@ const ANIMATED: Dictionary = {
 	&"window_skipped": ["window"],
 }
 
+## After every command `submit` accepts and every effect `dev` applies, with the entry `history`
+## just gained.
+signal command_applied(seat: int, command: Dictionary)
+
 var engine: DuelEngine = DuelEngine.new()
+## Every accepted command in wire form, in order, with each dev effect as {"player", "dev"}. A
+## referee set up the same way and handed this through `replay` stands where this one stands.
+var history: Array[Dictionary] = []
+var _started: bool = false
+## What a replay produced from its last turn start on. The next update sends these as log lines
+## with no animation data, so the client reads how the turn got here without playing it again.
+var _replayed: Array[GameEvent] = []
+## Every event handed out from the last `turn_start` on, which `catch_up` sends again as log lines.
+var _turn_events: Array[GameEvent] = []
 var _pending_events: Array[GameEvent] = []
 ## The first bookkeeping fault this duel hit, "" while there has been none. Kept so a harness can
 ## fail the match on it; the error itself goes to the log the moment it happens.
@@ -59,8 +72,32 @@ func setup(decks: Array[DeckList], library: CardLibrary, table: StrikeTable, see
 	engine.setup(decks, library, table, seed_value, names)
 
 
+## Deals the opening. Only the first call does anything, so a host starting a referee that
+## `replay` already moved on leaves it where it stands.
 func start() -> void:
+	if _started:
+		return
+	_started = true
 	engine.start()
+
+
+## Starts the duel and runs `entries`, another referee's `history`, back through `submit` and
+## `dev`. Stops at the first entry that does not apply and returns why; "" when all of them did.
+func replay(entries: Array[Dictionary]) -> String:
+	start()
+	for i in range(entries.size()):
+		var entry: Dictionary = entries[i]
+		var seat: int = int(entry.get("player", -1))
+		var problem: String = dev({"player": seat, "effect": entry["dev"]}) if entry.has("dev") else submit(seat, entry)
+		if problem != "":
+			return "entry %d %s: %s" % [i, str(entry), problem]
+	var events: Array[GameEvent] = engine.take_events()
+	var from: int = 0
+	for i in range(events.size()):
+		if events[i].type == &"turn_start":
+			from = i
+	_replayed.assign(events.slice(from))
+	return ""
 
 
 func is_over() -> bool:
@@ -86,6 +123,9 @@ func submit(seat: int, wire: Dictionary) -> String:
 		return "That choice is not open right now."
 	engine.submit(accepted)
 	_check_integrity(accepted)
+	var entry: Dictionary = accepted.to_dict()
+	history.append(entry)
+	command_applied.emit(seat, entry)
 	return ""
 
 
@@ -103,34 +143,61 @@ func _check_integrity(cmd: Command) -> void:
 func dev(wire: Dictionary) -> String:
 	if engine.is_over():
 		return "The duel is over."
-	return engine.dev_effect(int(wire.get("player", 0)), wire.get("effect", {}))
+	var seat: int = int(wire.get("player", 0))
+	var effect: Dictionary = wire.get("effect", {})
+	var problem: String = engine.dev_effect(seat, effect)
+	if problem == "":
+		var entry: Dictionary = {"player": seat, "dev": effect.duplicate(true)}
+		history.append(entry)
+		command_applied.emit(seat, entry)
+	return problem
 
 
 ## The updates owed to both seats since the last call, index by seat.
 func take_updates() -> Array[SeatUpdate]:
-	var events: Array[GameEvent] = engine.take_events()
+	var quiet: int = _replayed.size()
+	var events: Array[GameEvent] = _replayed
+	_replayed = []
+	events.append_array(engine.take_events())
+	for ev in events:
+		if ev.type == &"turn_start":
+			_turn_events.clear()
+		_turn_events.append(ev)
 	var out: Array[SeatUpdate] = []
 	for seat in range(2):
-		var u: SeatUpdate = SeatUpdate.new()
-		# Lines are worded per seat: a card this seat may not see is never named in its log.
-		for ev in events:
-			var line: String = CardText.event_line(ev, engine, seat)
-			var entry: Dictionary = {"type": String(ev.type), "player": int(ev.data.get("player", -1)), "line": line}
-			if ANIMATED.has(ev.type):
-				var data: Dictionary = {}
-				for key in ANIMATED[ev.type]:
-					if ev.data.has(key):
-						data[key] = ev.data[key]
-				entry["data"] = data
-				# What the table read at that moment, so the beat draws the state it belongs to
-				# instead of the state at the end of the whole update.
-				if not ev.state.is_empty():
-					entry["state"] = ev.state
-			u.lines.append(entry)
-		u.view = view_for(seat)
-		u.prompt = prompt_for(seat)
-		out.append(u)
+		out.append(_update_for(seat, events, quiet))
 	return out
+
+
+## A seat whose client lost its table and came back: its view and prompt as they stand now, and
+## this turn's log lines without animation data, the same shape as the first update after
+## `replay`. It takes nothing from the engine, so neither seat's next update changes.
+func catch_up(seat: int) -> SeatUpdate:
+	return _update_for(seat, _turn_events, _turn_events.size())
+
+
+## One seat's update over `events`. The first `quiet` of them reach it as log lines only.
+func _update_for(seat: int, events: Array[GameEvent], quiet: int) -> SeatUpdate:
+	var u: SeatUpdate = SeatUpdate.new()
+	# Lines are worded per seat: a card this seat may not see is never named in its log.
+	for index in range(events.size()):
+		var ev: GameEvent = events[index]
+		var line: String = CardText.event_line(ev, engine, seat)
+		var entry: Dictionary = {"type": String(ev.type), "player": int(ev.data.get("player", -1)), "line": line}
+		if ANIMATED.has(ev.type) and index >= quiet:
+			var data: Dictionary = {}
+			for key in ANIMATED[ev.type]:
+				if ev.data.has(key):
+					data[key] = ev.data[key]
+			entry["data"] = data
+			# What the table read at that moment, so the beat draws the state it belongs to
+			# instead of the state at the end of the whole update.
+			if not ev.state.is_empty():
+				entry["state"] = ev.state
+		u.lines.append(entry)
+	u.view = view_for(seat)
+	u.prompt = prompt_for(seat)
+	return u
 
 
 ## A simulation keeps the seat's own known composition, randomizes unknown placement, and

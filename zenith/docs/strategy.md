@@ -70,7 +70,7 @@ less than the swing.
 hitting a Seal deck churns its set. A Drill that guards Seals turns capture off completely, so it is
 the piece to land first and the piece to remove first.
 
-## 3. The eleven decks
+## 3. The fourteen decks
 
 Each entry is: what it is trying to do, the lever that makes it work, the line to play, and the
 mistake that loses the game.
@@ -189,7 +189,7 @@ spent is a Tide card. It is not a damage engine; it is the reason the deck survi
 - **Mistake.** Defending the Duelist's Energy. Unlike every other deck, going to 0 is this deck's
   plan, not its failure state. Also climbing: the aspect 1 constant is the deck.
 - **Measured 2026-09-18 with `tests/ally_probe.gd`.** Allies are not held back: the first lands on
-  turn 2.5 in 99% of games and the Sensei is spent in 100%, which is right, because the aspect 1
+  turn 2.5 in 99% of games and The Debtor's Ring is spent in 100%, which is right, because the aspect 1
   constant is what keeps them safe. The deck was losing 2.5 Allies a game out of four, which is
   what kept the fusion at 4%; with the guard actually holding it loses 0.25 and fuses in 33%. The
   residual is real and not a bug: a Constant Combat Power is a power, so an opponent card that
@@ -210,14 +210,14 @@ itself, and the bodies on the table are there to make its numbers bigger.
   the ceiling of every other.
 - **Second lever.** Aspect 2's constant: no modifiers at all are added to Strikes aimed at the
   Duelist. Against Steel and Pyre, whose damage is almost entirely modifiers, that is the whole
-  matchup. Aspects 3 and 4 hit harder while The Breaker's Yard is in play, so the Coach is worth
+  matchup. Aspects 3 and 4 hit harder while The Breaker's Yard is in play, so the Yard is worth
   keeping out and not spending on an empty board.
 - **Line.** Assembly Drill down, a body or two out, the rival's following removed, then Arts. Hold
   Energy: Arts cost it and the deck has no way to make it back in bulk. The hand empties fast,
-  which is what the Composure Drill and the Takedown Drill are for.
+  which is what the Shade Hoarded Secrets Drill and the Shade Gleaning Drill are for.
 - **Mistake.** Playing it like the Draik deck and handing Combat to an Ally. Its Might ladder is
   better than theirs and the Drill pays the Duelist the most. Also spending The Breaker's Yard or
-  Dismissal with nothing worth removing; both are limited, and the Coach is a condition two of the
+  Dismissal with nothing worth removing; both are limited, and the Yard is a condition two of the
   Aspects read.
 - **Measured 2026-09-18.** 18 to 24% depending on the sample, bottom of the field alongside Tide,
   and untuned. It does do its thing: the Retinue lands 0.7 times a game, the Assembly Drill about
@@ -250,40 +250,170 @@ happens in the Combat.
 
 ### Steel — the eleventh deck, Emrys Rooke, `steel_heir` (strike_beatdown)
 
-Added 2026-09-19 from the Saiyan starter sheet. The same school and the same Mastery as Quarr, and a
+Added 2026-09-19 from a reference starter sheet. The same school and the same Mastery as Quarr, and a
 completely different deck around them. Quarr grinds with the Mastery's two cards a Combat; this
-list stacks permanent damage and then cashes it in with a duelist Power that swings twice. Five
+list stacks damage modifiers and then cashes them in with a duelist Power that swings twice. Five
 Aspects, 79 life cards, no Relic, no Reserve, one Ally, one Seal. **The distinguishing fact is that
-its damage does not come from its cards, it comes from what is already on the table** by the time
-the cards are played.
+its damage comes from what is already on the table** by the time the cards are played.
 
-- **Lever.** Permanent stacking. Three copies of The Long Year at +1 Energy each never expire and
-  never come off, and two Conditioning Drills add +2 Energy to every Strike. A deck that lands all
-  five is swinging at +7 Energy before it looks at the card in hand. Nothing else in the set builds
-  a floor like that.
-- **Second lever.** Card flow from three directions at once: the Mastery draws one a Combat and two
-  on a Steel flip, three copies of The High Watch draw on entering Combat, and Aspect 1 draws again
-  whenever he is the attacker. Aspect 2 then fetches the exact Strike or Art it wants. It sees more
-  of its deck per turn than anything except `steel_beatdown`.
-- **Third lever.** Life cards are ammunition, not life. Steel Stamp buys +3 wounds and Steel Tackle
-  buys +3 Energy, each for the top card of the Life Deck, and the Mastery eats one more every
-  Combat. With 79 cards it can afford that and the rival usually cannot punish it.
-- **Fourth lever.** Aspect 5 is a Strike doing 5 wounds usable **twice per Combat**, the only Power
-  in the set with a second use. By then the stacked modifiers are on top of both of them.
-- **Line.** Spend the early turns getting the floor down: The Long Year and a Conditioning Drill
-  before anything clever, The High Watch when the ground is free. Enter Combat every turn for the
-  draws even when the attack is poor. Save Steel Cross, which deals a flat 10 Energy and leaves the
-  game, for a turn where a full drain means the rival cannot answer at all, not for a turn where
-  they were already empty. From Aspect 4 on, the Power is the main attack and the hand is
-  support.
+- **Lever.** Stacked modifiers. Three copies of The Long Year give +1 Energy to every attack for the
+  rest of the game, and they stay through every climb. Two Steel Clawed Hands Drills add +2 Energy
+  to every Strike, but climbing an Aspect discards all Drills (`designs/zenith.md`, Fervor at 5), so
+  they pay only until the next climb. With all five down on one Aspect a Strike is at +7 Energy
+  before the card in hand counts; after a climb it is back to +3 until a Drill lands again.
+- **Second lever.** Card flow from several directions at once. The Mastery draws one a Combat and
+  two on a Steel flip, three copies of The High Watch draw on entering Combat, and Aspect 1 draws
+  again whenever he is the attacker. Mourne's Quickness Drill and Foresight pull from the discard
+  pile. Aspect 2 then fetches the exact Strike or Art it wants.
+- **Third lever.** Life cards are ammunition. Steel Clawed Heel buys +3 wounds and Steel Clawed
+  Pounce buys +3 Energy, each for the top card of the Life Deck, and the Mastery discards one more
+  every Combat. With 79 cards it can afford that for a while.
+- **Fourth lever.** Aspect 5 is a Strike dealing 5 wounds usable **twice per Combat**, and The Long
+  Year applies to both uses. Aspect 4 before it is a free Art for 4 Energy and 4 wounds, and
+  Aspect 3 is a Strike at +5 Energy that can also remove a Non-Combat card.
+- **Line.** Spend the early turns getting the floor down. The Long Year first, because it survives
+  the climb, then a Steel Clawed Hands Drill on the Aspect you expect to stay on, and The High Watch
+  when the ground is free. Enter Combat every turn for the draws even when the attack is poor. Save
+  Steel Talon Cleave, which deals a flat 10 Energy and leaves the game, for a turn where a full
+  drain means the rival cannot answer, not for a turn where they were already empty. From Aspect 4
+  on, the Power is the main attack and the hand is support.
 - **Mistake.** Holding The Long Year. It is worth the most on turn two and nothing on the last turn,
-  and the instinct to keep a removed-after-use card back is exactly wrong here. The second mistake
-  is paying a life card on an attack that was going to land anyway, the same trap as Ashmark, made
-  worse because the Mastery is eating the deck from the other end. The third is racing at Aspects 1
-  and 2, where the Power adds no damage at all and the stack is not built yet.
-- **Note on the gates.** Steel Rake, Steel Talon and Steel Plating are Draconic only. Emrys carries
-  the line and so does his one Ally, so the gate never actually bites in this deck; it matters only
-  if those cards are reused elsewhere.
+  and the instinct to keep a removed-after-use card back is wrong here. The second mistake is
+  playing a Drill just before a climb, which throws it away. The third is paying a life card on an
+  attack that was going to land anyway, the same trap as Ashmark, made worse because the Mastery is
+  eating the deck from the other end. The fourth is racing at Aspects 1 and 2, where the Power adds
+  no damage and the stack is not built yet.
+- **Note on the gates.** Steel Raking Talons, Steel Rending Talon and Steel Dragonscale Mantle are
+  Draconic only, and the gate reads the personality in control. Emrys is Draconic, so the gate
+  never bites while he is in control. His one Ally, Dame Alder Rooke, has no bloodline, so those
+  nine cards go dead in any Combat she controls. Her Power stops a Strike against him without her
+  being in control, so she rarely needs to take it.
+
+### Tide: Sir Edric Rooke, `tide_deepwater` (control)
+
+The same knight as `pyre_ascent`, fighting from the Tide school with the Fathom Mastery. Five
+Aspects, 75 life cards, The Blank Mask holding a 13-card Reserve, three Moth Seals, no Allies. Wins
+by survival, slowly. **The distinguishing fact is that almost every attack also takes Fervor off the
+rival**, so the damage race and the Fervor race are run by the same cards.
+
+- **Lever.** Fervor denial on every Combat. Twenty cards in the list Disrupt, from Tide Black Water
+  (3) down to Tide Wide Sweep (1), and the Bravado Drill Disrupts 2 each time he enters Combat.
+  Three Frostbound Moors cap any single Fervor gain at 1, so the rival gains one point at a time and
+  loses up to three at a time. Moth Seal 7 and the two uses of The Blank Mask take the rival's
+  Mastery away as well.
+- **Second lever.** The discard pile is armour. The Fathom Mastery gives every Tide Strike +2
+  wounds and, instead of defending, removes Tide cards from the discard pile to prevent 2 wounds
+  each. Every Tide card wounded off the Life Deck becomes a block for later. Tide Crushing Depth,
+  Tide Waterlogged, Tide Pull Under and Tide Welling Deep leave the game or go under the Life Deck
+  after use, so they never feed it.
+- **Third lever.** Reckless Ascent. At the end of Combat it moves Edric to the Aspect equal to his
+  Fervor and closes his own Ascension win for the rest of the game. Under his own Moor his Fervor
+  comes one point at a time, so this is how he reaches Aspect 4 (a Strike for 5 Energy and 3
+  wounds) or Aspect 5 (+5 Energy and +5 wounds) without four full climbs.
+- **Line.** Bravado Drill into play before the first turn and a Moor down. Fetch a Seal with Edric
+  Carves First, Mourne's Plans or Measure: Moth Seal 7 against a deck whose Mastery is its engine,
+  Moth Seal 4 against Allies. Enter Combat every turn and Disrupt with every attack. Take mid-sized
+  hits on the Mastery and keep Mourne's Stance, The Fortress' Iron Bulwark and Stillness for the
+  large ones. Old Trick reaches into the Reserve for Tide Heavy Swell or Tide Cresting Wave.
+- **Mistake.** Playing Reckless Ascent when his Fervor is below his current Aspect, which moves him
+  down. Against a three-Aspect rival it also gives up the Most Powerful Personality win at Aspect 4,
+  so there it has a price. The second mistake is burning the whole discard pile early: Foresight,
+  Recalled Lesson, Moth Seal 3 and the Aspect 2 Power all draw from the same pile. The third is
+  playing Emrys Gives No Quarter in a Combat that needs his own stop-all cards, because it forbids
+  them for both players.
+- **Measured 2026-09-26.** 42.7% under the scorer, 65.4% under search, 55.5% under the scorer on
+  2026-09-20. The gap between the two policies is larger than the noise and is listed as open in
+  `docs/deck_tournament_2026-09-26.md`.
+- **Profile.** `own.aspect` 7.0 (default 4.0) with `own.ascension` 7.0 (default 30) prices the climb
+  for the Aspect Powers and discounts the win, which fits Reckless Ascent. `foe.ascension` 24,
+  `effect.fervor` 2.2 and `effect.forbid` 2.2 carry the denial. `play.damage_life` 1.2 over
+  `play.damage_stage` 1.0, and `play.defend_card` 1.3 keeps hand blocks for the big hits. `own.seal`
+  0.6 against a default of 25 treats the Moth Seals as utility. `effect.fervor_foe` 3.0 prices
+  every point of the rival's Fervor taken away above the 2.2 for its own.
+
+### Pyre: Bram Ashmark, `pyre_attrition` (strike_beatdown)
+
+The second Ashmark list, on a longer road. It shares Aspect 1 with `pyre_beatdown` and the Ember
+Mastery with `pyre_ascent`, then climbs four Aspects of its own. Five Aspects, 76 life cards, The
+Severing Clasp holding a seven-card Reserve, and no Allies, Drills, Seals or Non-Combats in the main
+list. Wins by Ascension against a shorter ladder and by survival otherwise.
+
+- **Lever.** Fervor from nearly every card. The Mastery removes the top of the discard pile once a
+  Combat for Attune 1, or Attune 2 when it is Pyre. Nearly every attack and block also Attunes, and
+  Pyre Cinder Guard, Pyre Furnace Breath, Pyre Flashpoint, Ashmark's Ember Spray and Caedan's
+  Declaration pay 2. Aspect 3 adds 1 to every gain. Against a three-Aspect rival, entering Aspect 4
+  wins outright under the Most Powerful Personality rule; against a four-Aspect one, Aspect 5 does.
+- **Second lever.** Stripping the table. Pyre Firestorm can trade its damage for all the rival's
+  Allies or all their Drills, Pyre Immolation removes a Drill or Ally, Pyre Scouring Flame removes a
+  Non-Combat on a hit, Headlong Plunge discards an Ally, and Spent to the Last clears every
+  Non-Combat and Ally at once. The Severing Clasp removes two Non-Combats once a game and Riftcry
+  discards the Grounds. Three Trampled Crossroads stop both players using Non-Combats, which costs
+  the main list nothing.
+- **Third lever.** The top Aspects refill the Life Deck. Aspect 4 shuffles the top 8 cards of the
+  discard pile back in, and Aspect 5 chooses between a Focused Strike dealing 10 Energy and shuffling
+  the top 10 back. Aspects 2 and 3 add +1 and +3 wounds to every attack on the way up.
+- **Line.** Crossroads down early. Clear Allies, Drills and Non-Combats before pressing, because
+  nothing else in the list answers them. Enter Combat every turn, since the Fervor is on the
+  attacks, and use the Mastery every Combat, best with a Pyre card on top of the discard pile.
+  Against a Seal deck, bring The Watch Goes Dark in from the Reserve; it removes every Seal in play
+  and in both Life Decks. From Aspect 4 on, choose recovery or the 10-Energy Strike by how thin the
+  Life Deck is.
+- **Mistake.** Keeping Trampled Crossroads in play after swapping in The Watch Goes Dark or
+  Defacement, which are Non-Combats and are then locked out. The second is Spent to the Last with a
+  rival attack still to come: it sets his Energy to 0, so the next Strike turns into wounds one for
+  one. The third is Emrys Gives No Quarter in a Combat that needs Mourne's Stance, The Fortress'
+  Iron Bulwark or Stillness. Late in the game, each Mastery use removes a card that Aspects 4 and 5
+  could have shuffled back.
+- **Measured 2026-09-26.** 65.6% under the scorer and 80.8% under search, down from 73.8% under the
+  scorer on 2026-09-20.
+- **Profile.** `own.aspect` 8.0, double the default, carries the climb. `own.ascension` 9.0 and
+  `foe.ascension` 20 both sit under the default 30. `effect.fervor` 2.8 prices every Attune,
+  `effect.forbid` 2.4 covers Pyre Snuffing and Kept at Bay, and `play.damage_life` 1.3 and
+  `play.declare_bias` 2.4 keep it attacking. `own.seal` is 0.0 because the list has none. There is
+  no `reserve` block, so the Reserve swap runs on the defaults.
+
+### Shade: Gideon Mourne, `shade_mind_siege` (strike_beatdown)
+
+Mourne's own list, rated hard. Four Aspects, 76 life cards, The Blank Mask holding a 13-card
+Reserve, the Nightfall Mastery (+1 Energy and +1 wound on every attack, +2 and +2 on Shade attacks),
+no Allies and no Seals. Wins by survival after taking the rival's hand and table apart. **The
+distinguishing fact is that almost every attack takes something that does not come back**: a card
+from hand, a card in play, Fervor or an Aspect.
+
+- **Lever.** The hand. Twenty-one cards take from it: Marrow's Appraisal, Shade Dread Grip, Shade
+  Emptying Whisper, Shade Insistent Whisper, Shade Sifting Whisper, Shade Silenced Whisper, Shade
+  Picking Shadow and Shade Rebounding Hex. Shade Hex Recall stops an attack and fetches one of them
+  back from the discard pile. Section 2 says to press an empty hand; this deck empties it.
+- **Second lever.** Fervor and Aspect denial. The Bravado Drill Disrupts 2 each time he enters
+  Combat. Ashmark's Unmaking Whisper Disrupts 2 on a hit and then, if the rival's Fervor is 0, takes
+  an Aspect from them, which also discards their Drills.
+- **Third lever.** Marked attacks. Aspect 4 makes every Marked Strike Focused at +3 Energy. The
+  Marked Ring adds +1 Energy and +1 wound to every Marked-only attack, discards an Ally in play when
+  one is performed, and discards a Non-Combat in play on entering Combat. Aspect 3's Focused Art for
+  6 wounds can be used a second time by discarding a Marked card, and Aspect 2 moves the Strike
+  Table 2 in his favour both ways.
+- **Fourth lever.** The Reserve is a second hand. Shade Ransoming Hand, swapped in at setup, lets him
+  remove two cards left in the Reserve to remove a rival Drill in each attack phase for the rest of
+  the Combat. Shade Prying Whisper, Dismissal, Defacement, Sever the Leyline and The Watch Goes Dark
+  are answers to bring in against the decks that need them.
+- **Line.** Bravado Drill into play before the first turn and The Marked Ring down. Strip the hand
+  and the table in the early Combats, then attack into the empty hand. Keep their Fervor at 0 so each
+  Unmaking Whisper hit costs them an Aspect. Climb for Aspect 4. Against a three-Aspect rival,
+  entering it is the Most Powerful Personality win; against the rest it is where the Marked Strikes
+  get past Shields and cards that stop both attack types.
+- **Mistake.** Discarding Ashmark's Wall of Flame for Aspect 3's second use. It is the only card in
+  the list that stops a Focused attack of either kind. The second is spending Reserve cards on Shade
+  Ransoming Hand against a rival with no Drills. The third is Emrys Gives No Quarter in a Combat that
+  needs Mourne's Stance, The Fortress' Iron Bulwark, The Fortress' Arcane Aegis or Stillness.
+- **Measured 2026-09-26.** 85.5% under the scorer and 78.8% under search, first in the field under
+  the scorer and third under search.
+- **Profile.** `foe.hand` 2.4 and `effect.discard_hand` 2.6, against defaults of 1.0, make a card out
+  of hand worth more than a wound. `effect.discard_in_play` 2.8 prices the table. `own.aspect` 8.0
+  with `own.ascension` 6.0 prices the climb for the Aspect Powers. The `reserve` block (`tech` 3.4,
+  `threshold` 0.8, `toolbox_keep` 1.5, `max_swaps` 5, against 3.0, 1.0, 2.0 and 4) swaps more
+  readily than the default. `effect.remove_hand` 3.0 prices a card taken out of their hand for good
+  above `discard_hand` 2.6. `effect.fervor` is 1.2, under the default 2.0, which
+  undervalues the Disrupt that sets up Unmaking Whisper.
 
 ## 4. Where each principle lives in an AI profile
 
@@ -299,7 +429,7 @@ is usually one of these rather than new code.
 | This deck's win route | `own.seal`, `own.ascension`, `own.ally`, `own.drill` |
 | The route to police on the other side | `foe.ascension`, `foe.seal`, `foe.ally` |
 | Climb for the aspect powers, not the win | `own.aspect` up with `own.ascension` low |
-| Deny Fervor | `effect.fervor` up; `effect.fervor_self` separately if own Fervor is unwanted |
+| Deny Fervor | `effect.fervor_foe` for the rival's Fervor taken away; `effect.fervor_self` separately if own Fervor is unwanted |
 | The discard pile is a resource | `own.discard` up, `effect.recover` up, `effect.remove_discard` up |
 | Guard the Seals, or remove their guard | `own.seal_guard`, `foe.seal_guard` |
 | A plan that pays off after the opponent answers | `think.turns` above 1 |

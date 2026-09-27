@@ -2881,7 +2881,7 @@
    ],
    "effects": [
 	{
-	 "trigger": "if_successful",
+	 "trigger": "on_success",
 	 "op": "forbid",
 	 "who": "opponent",
 	 "what": "strike_cards",
@@ -4550,7 +4550,7 @@
    "id": "signature_noncombat_01",
    "character": "Mercy",
    "title": "Mercy Smiles",
-   "type": "non_combat",
+   "type": "combat",
    "school": "",
    "defense": {
 	"stops": "strike"

@@ -8,6 +8,8 @@ extends Node3D
 ## through its Referee and sends seat 1 its update; the joiner holds no engine at all.
 
 const CARD_SCENE: PackedScene = preload("res://scenes/duel/card_3d.tscn")
+## The title screen's script, which keeps which queue a client sent back to it waits in.
+const TITLE: Script = preload("res://scripts/main.gd")
 const SYNC_DURATION: float = 0.3
 const CAMERA_SWING: float = 0.7
 const FLY_TIME: float = 0.34          # a card's arc from one zone to another
@@ -50,6 +52,11 @@ const CARD_USE_READ: float = 0.8
 const DRAW_BEAT: float = 0.10         # between cards of the same draw, so they arrive one by one
 const WOUND_BEAT: float = 0.5         # between life cards, long enough to read what each one cost
 const AI_MIN_THINK: float = 0.45      # seconds the AI appears to think, so its plays do not snap
+const AI_GRACE_MS: int = 3000         # past the profile's think budget, the AI's decision falls back
+const LEAVE_FLUSH: float = 0.25       # real seconds a concession gets to go out before the connection closes
+const REJOIN_RETRY_MS: int = 3000     # between attempts to get back into a server duel after a drop
+const DEV_LINGER: float = 4.0         # real seconds a dev client stays up after its shot, so the other side's shot is not spoiled
+const DEV_CONCEDE_WAIT: float = 3.0   # `--dev-concede`: real seconds the conceding client stays connected
 const STALL_MS: int = 1200            # a hidden decision panel this long is a stall, not a beat
 const ATTACH_OFFSET: Vector3 = Vector3(0.30, 0.004, -0.22)   # a corner of the attachment peeks past its host
 const ATTACH_SCALE: float = 0.78
@@ -121,6 +128,31 @@ var _dev_policy: String = ""         # "attack": autoplay fights instead of pick
 var _dev_freeze: StringName = &""    # event type whose beat the screenshot catches mid-air
 var _dev_done: bool = false
 var _dev_quit_after_replay: bool = false
+var _dev_concede: bool = false       # `--dev-concede`: online, concede when the step budget runs out
+var _dev_find_another: bool = false  # `--dev-find-another`: a finished queue duel presses Find another duel
+var _dev_stall: int = -1             # `--dev-stall=N`: online autoplay answers N decisions, then none
+var _dev_answered: int = 0
+var _dev_clock_shot: String = ""     # `--dev-clock-shot=<phase>`: the screenshot once a clock reaches that phase
+var _dev_away_shot: String = ""      # `--dev-away-shot=<png>`: a shot when the rival drops, another when they are back
+var _dev_next_game: bool = false     # `--dev-next-game`: ranked, press Next game as soon as it shows
+var _dev_leave_match: bool = false   # `--dev-leave-match=N`: ranked, leave the match when the step budget runs out
+var _room_code: String = ""          # server room: the room this duel runs in
+## Ranked: this duel is a game of a match, and what the match has said since this game ended: the
+## score between games (`Net.game_over`: "game", "wins") and the decided match (`Net.match_over`).
+## Each waits for the game's own result to be up before it shows.
+var _ranked: bool = false
+var _series_over: Dictionary = {}
+var _match_payload: Dictionary = {}
+var _series_shown: int = 0           # ranked: 1 once the between-games panel is up, 2 the match result
+## Server room, cut off mid-duel: when this client stops trying to get back in and when it tries
+## next (ticks msec), 0 while connected.
+var _reconnect_until: int = 0
+var _reconnect_next: int = 0
+## Online: the duel ended outside the rules (a concession, the other player leaving, a lost
+## connection). The table stops where it stands and nothing presents a decision again.
+var _ended: bool = false
+var _ai_generation: int = 0          # bumped per AI decision, so a coroutine for an older one stands down
+var _ai_task: int = -1               # the AI search on the worker pool, -1 when none is running
 var _wounds: int = 0                 # life cards flipped by the attack being replayed
 var _hit_tier: int = -1              # the replayed attack's weight once its damage is known, else -1
 var _hit_said: String = ""           # what "Hits for" banner named, so the result is not said twice
@@ -177,6 +209,15 @@ var _presence_card: int = -1         # the table card carrying their highlight
 var _presence_demo: String = ""      # `--dev-presence-demo[=card|hand|look]`: a scripted pointer
 const PRESENCE_DEMO_LINGER: float = 4.0   # real seconds a demo sender stays up after its last step
 const PRESENCE_ZONES: Dictionary = {"discard": "Discard", "removed": "Out pile", "relic": "Relic pile"}
+## A recorded duel played back (`--dev-replay`): the cursor holds the only referee, and there is no
+## AI, no Net and no decision to make. The table plays the cursor's updates as it played live ones.
+var _cursor: ReplayCursor = null
+var _replay_file: String = ""        # `--dev-replay=<path>[:<record id>]`
+var _replay_id: String = ""
+var _replay_index: int = 0           # the cursor update shown: seat 0, seat 1 or ReplayCursor.ALL
+var _replay_to: int = -1             # `--dev-replay-to=N`: open at entry N
+var _replay_playing: bool = false
+const REPLAY_READ: float = 0.7       # while playing, each recorded decision stays up this long first
 
 
 func _ready() -> void:
@@ -202,15 +243,40 @@ func _ready() -> void:
 	hud.handoff_confirmed.connect(_on_handoff_confirmed)
 	hud.rematch_requested.connect(_on_rematch)
 	hud.select_requested.connect(_on_select)
+	hud.concede_requested.connect(_on_concede)
+	hud.leave_requested.connect(_on_leave)
 	hud.dev_command.connect(_on_dev_command)
 	zones.pile_clicked.connect(_on_pile_clicked)
 	hud.set_loading(true)
+	if _replay_file != "":
+		await _ready_replay()
+		return
 	if online:
 		viewer = Net.local_player
 		rig.rotation.y = 0.0 if viewer == 0 else PI
 		Net.command_rejected.connect(_on_net_rejected)
 		Net.peer_left.connect(_on_peer_left)
-		hud.set_online(authority)
+		Net.duel_ended.connect(_on_duel_ended)
+		Net.connection_failed.connect(_on_connection_failed)
+		Net.rematch_requested.connect(_on_rematch_requested)
+		Net.clock_changed.connect(_on_clock)
+		Net.peer_away.connect(_on_peer_away)
+		Net.peer_back.connect(_on_peer_back)
+		hud.give_up_requested.connect(_on_give_up)
+		hud.set_online(Net.can_rematch())
+		if Net.ranked_room():
+			_ranked = true
+			hud.set_ranked(DuelHud.series_text(maxi(1, Net.series_game), Net.RANKED_BEST_OF,
+				Net.series_wins[viewer], Net.series_wins[1 - viewer]))
+			hud.title_requested.connect(_on_title)
+			hud.next_game_requested.connect(Net.next_game_ready)
+			hud.ranked_requested.connect(_on_find_ranked)
+			Net.game_over.connect(_on_series_game_over)
+			Net.match_over.connect(_on_match_over)
+		elif Net.queue_room():
+			hud.set_queue_duel()
+			hud.title_requested.connect(_on_title)
+		_room_code = Net.room_code
 	elif Session.ai_seat >= 0:
 		ai_seat = Session.ai_seat
 		viewer = 1 - ai_seat
@@ -250,13 +316,16 @@ func _set_reduced_motion(on: bool) -> void:
 func _process(_delta: float) -> void:
 	if not is_instance_valid(hud):
 		return
-	var overlay: bool = hud.tray.visible or hud.pile.visible or hud.inspect.visible or hud.handoff.visible or hud.loading.visible or hud.game_over.visible
+	var overlay: bool = hud.tray.visible or hud.pile.visible or hud.inspect.visible or hud.handoff.visible or hud.loading.visible \
+		or hud.game_over.visible or hud.reconnect.visible
+	# The options menu takes the input (its shade the mouse, the HUD the keys) but hides nothing.
+	var menu: bool = hud.options_menu.visible
 	hand_3d.set_available(view != null and viewer >= 0 and not overlay)
 	hand_3d.enabled = _can_choose()
-	camera.hand_navigation = hand_3d.keyboard_active or overlay
+	camera.hand_navigation = hand_3d.keyboard_active or overlay or menu
 	var hand_blocks: bool = _hand_blocks_board()
 	var preview_blocks: bool = _preview_blocks_point(hud.root.get_global_mouse_position())
-	var board_interactive: bool = not overlay and not hand_blocks and not preview_blocks
+	var board_interactive: bool = not overlay and not menu and not hand_blocks and not preview_blocks
 	near_duelist.interactive = board_interactive
 	far_duelist.interactive = board_interactive
 	zones.set_pickable(board_interactive)
@@ -275,6 +344,12 @@ func _process(_delta: float) -> void:
 			_presence_drawn_view = view
 			_draw_presence(false)
 	_layout_fixtures()
+	if online and view != null and viewer >= 0:
+		var rival_clock: Dictionary = hud.plate_clock(1 - viewer, _seat_name(1 - viewer))
+		far_duelist.set_clock(str(rival_clock["label"]), str(rival_clock["time"]), bool(rival_clock["warn"]))
+		far_duelist.set_away(_away_caption())
+	if _reconnect_until > 0:
+		_keep_reconnecting()
 	# The thread to the target would cross the hand's reading preview, so it steps back while the
 	# hand is open.
 	hud.filament.modulate.a = FILAMENT_HAND_ALPHA if hand_3d.revealed else 1.0
@@ -367,7 +442,7 @@ func _set_arena(level: float) -> void:
 ## the duel stuck.
 func _watch_for_stall(overlay: bool) -> void:
 	var owed: bool = view != null and not view.is_over() and prompt != null and viewer >= 0 		and view.deciding == viewer and prompt.player == viewer
-	if not owed or busy or _awaiting_answer or overlay or _dev_done or hud.prompt_panel.visible:
+	if not owed or busy or _awaiting_answer or overlay or _dev_done or hud.prompt_panel.visible or _cursor != null:
 		_stall_since = 0
 		return
 	if _stall_since == 0:
@@ -475,6 +550,7 @@ func _on_hand_hovered(uid: int, on: bool) -> void:
 func _ready_host() -> void:
 	duel_host = DuelHost.new()
 	duel_host.setup(Session.build_referee(), Net.remote_seats(), Session.build_ai() if not online else null, Session.ai_seat)
+	Session.keep_record(duel_host)
 	duel_host.send = Net.send_update
 	duel_host.reject = Net.reject_command
 	for d in Session.chosen:
@@ -495,7 +571,11 @@ func _ready_joiner() -> void:
 	await faces.render_deck(Session.chosen[1 - viewer], Session.library, true)
 	hud.set_loading(false)
 	hud.log_line("Online duel. You are %s." % Session.player_names[viewer])
-	if _dev_autoplay and _dev_steps > 0:
+	if Net.resumed:
+		hud.log_line("You are back in the duel.")
+		if Net.away_left_ms(1 - viewer) >= 0:
+			hud.log_line("%s lost connection." % _seat_name(1 - viewer))
+	elif _dev_autoplay and _dev_steps > 0:
 		_dev_steps += 1   # the setup update is not a command; the host does not count it either
 	for u in Net.take_pending_updates():
 		_inbox.append(u)
@@ -530,8 +610,37 @@ func _parse_dev_args() -> void:
 			_dev_policy = arg.get_slice("=", 1)
 		elif arg.begins_with("--dev-freeze="):
 			_dev_freeze = StringName(arg.get_slice("=", 1))
+		elif arg == "--dev-concede" or arg.begins_with("--dev-concede="):
+			_dev_concede = true
+			if arg.contains("="):
+				_dev_steps = int(arg.get_slice("=", 1))
+		elif arg == "--dev-find-another":
+			_dev_find_another = true
+		elif arg == "--dev-next-game":
+			_dev_next_game = true
+		elif arg.begins_with("--dev-leave-match="):
+			_dev_leave_match = true
+			_dev_steps = int(arg.get_slice("=", 1))
 		elif arg == "--dev-presence-demo" or arg.begins_with("--dev-presence-demo="):
 			_presence_demo = arg.get_slice("=", 1) if arg.contains("=") else "cycle"
+		elif arg.begins_with("--dev-stall="):
+			_dev_stall = int(arg.get_slice("=", 1))
+		elif arg.begins_with("--dev-clock-shot="):
+			_dev_clock_shot = arg.get_slice("=", 1)
+		elif arg.begins_with("--dev-away-shot="):
+			_dev_away_shot = arg.get_slice("=", 1)
+		elif arg.begins_with("--dev-replay="):
+			_replay_file = arg.substr("--dev-replay=".length())
+			# A trailing ":<16 hex>" picks one record out of a `.jsonl`; a drive letter is not one.
+			var tail: String = _replay_file.get_slice(":", _replay_file.get_slice_count(":") - 1)
+			if _replay_file.get_slice_count(":") > 1 and tail.length() == 16 and tail.is_valid_hex_number():
+				_replay_id = tail
+				_replay_file = _replay_file.left(_replay_file.length() - 17)
+		elif arg.begins_with("--dev-replay-seat="):
+			var which: String = arg.get_slice("=", 1)
+			_replay_index = ReplayCursor.ALL if which == "all" else clampi(int(which) - 1, 0, 1)
+		elif arg.begins_with("--dev-replay-to="):
+			_replay_to = int(arg.get_slice("=", 1))
 		elif arg.begins_with("--dev-pick=") and not online and not Session.in_adventure():
 			# Online the lobby already agreed on both decks and the seed.
 			var picks: PackedStringArray = arg.get_slice("=", 1).split(",")
@@ -542,7 +651,7 @@ func _parse_dev_args() -> void:
 # --- Turn flow ------------------------------------------------------------
 
 func _present_prompt() -> void:
-	if _dev_done or view == null:
+	if _dev_done or view == null or _ended:
 		return
 	# A prompt draws its own card into the slot, so the replay's pinned face stops overriding it.
 	_replay_focus_def = null
@@ -553,10 +662,12 @@ func _present_prompt() -> void:
 			_sync_layout(false)
 		_clear_highlights()
 		_refresh_state()
+		if online:
+			Net.forget_rejoin()
 		hud.show_game_over("%s wins" % view.player(view.winner).name, _reason_text(view.win_reason), not Session.in_adventure())
+		_show_series_result()
 		if _dev_autoplay:
 			if Session.in_adventure():
-				Session.record_stage(view.winner == viewer)
 				print("adventure stage result: %s, status=%s" % ["won" if view.winner == viewer else "lost", Session.run.status])
 			await _dev_finish()
 		return
@@ -584,27 +695,62 @@ func _present_prompt() -> void:
 		_drain_inbox()
 
 
-## The AI seat's decision. The search runs on a worker thread so the table keeps drawing; the
-## host is not mutated from here until it returns. Browsing uses the client's public view.
+## The AI seat's decision. The search runs on a worker thread against `DuelHost.ai_snapshot`, so
+## the table keeps drawing and only this thread touches the live referee. One search runs at a
+## time, because the AiPlayer is not shared between threads: a decision that finds an older search
+## still running waits for it. An empty answer (no prompt in the sampled world, or a script error
+## in the search) or no answer by the profile's `think.budget_ms` plus AI_GRACE_MS falls back on
+## this thread to a quiet option of the current prompt, and the late result is never read.
 func _ai_turn() -> void:
 	busy = true
+	_ai_generation += 1
+	var generation: int = _ai_generation
 	var started: int = Time.get_ticks_msec()
+	var deadline: int = started + duel_host.ai.profile.think_int("budget_ms") + AI_GRACE_MS
 	var answer: Array[Dictionary] = [{}]
-	var task: int = WorkerThreadPool.add_task(func() -> void: answer[0] = duel_host.ai_choice())
-	while not WorkerThreadPool.is_task_completed(task):
+	var mine: bool = false
+	while Time.get_ticks_msec() < deadline:
+		if _ai_task >= 0 and WorkerThreadPool.is_task_completed(_ai_task):
+			WorkerThreadPool.wait_for_task_completion(_ai_task)
+			_ai_task = -1
+			if mine:
+				break
+		if _ai_task < 0:
+			var host: DuelHost = duel_host
+			var snapshot: Referee = host.ai_snapshot()
+			_ai_task = WorkerThreadPool.add_task(func() -> void: answer[0] = host.ai_choice(snapshot))
+			mine = true
 		await get_tree().process_frame
-	WorkerThreadPool.wait_for_task_completion(task)
+		if not _ai_current(generation):
+			return
+	if mine and _ai_task >= 0 and WorkerThreadPool.is_task_completed(_ai_task):
+		WorkerThreadPool.wait_for_task_completion(_ai_task)
+		_ai_task = -1
+	var finished: bool = mine and _ai_task < 0
 	var rest: float = AI_MIN_THINK - (Time.get_ticks_msec() - started) / 1000.0
 	if rest > 0.0:
 		await get_tree().create_timer(rest).timeout
+		if not _ai_current(generation):
+			return
 	busy = false
-	if answer[0].is_empty():
-		# The host answers for a stuck AI, so an empty answer here means the decision moved on
-		# while we were thinking. Present whatever is pending now instead of standing still.
-		push_warning("The AI had no answer for %s" % String(view.deciding_kind))
+	var wire: Dictionary = answer[0] if finished else {}
+	if wire.is_empty():
+		push_warning("The AI %s for %s; the host answers with a quiet option" % ["had no answer" if finished else "ran past its time", String(view.deciding_kind)])
+		wire = duel_host.fallback_choice(ai_seat)
+	if wire.is_empty():
+		# The AI seat owes nothing, so the view that sent us here is stale: read it again.
+		view = duel_host.view_for(viewer)
+		prompt = duel_host.prompt_for(viewer)
+		if view.deciding == ai_seat:
+			push_error("The AI seat's %s decision has no options" % String(view.deciding_kind))
+			return
 		_present_prompt()
 		return
-	await _apply(ai_seat, answer[0])
+	await _apply(ai_seat, wire)
+
+
+func _ai_current(generation: int) -> bool:
+	return is_inside_tree() and generation == _ai_generation
 
 
 ## Hotseat: the next player sits down, so the table re-reads the state from their seat.
@@ -633,6 +779,8 @@ func _show_prompt_for_viewer() -> void:
 	var legal: Dictionary = _legal_uids()
 	_set_hand(legal)
 	hud.show_prompt(prompt, view)
+	if online:
+		Net.prompt_shown(prompt.kind)
 	_highlight(legal)
 	# The card the decision is about is held in the middle of the screen by the HUD's focus
 	# view, so the quick view on the left stays free for whatever the player hovers.
@@ -659,7 +807,7 @@ func _hand_cards() -> Array[SeatCard]:
 
 
 func _can_choose() -> bool:
-	return not busy and not _awaiting_answer and view != null and not view.is_over() \
+	return _cursor == null and not busy and not _awaiting_answer and not _ended and _reconnect_until == 0 and view != null and not view.is_over() \
 		and prompt != null and viewer >= 0 and view.deciding == viewer and prompt.player == viewer
 
 
@@ -2049,6 +2197,206 @@ func _refresh_attack_link() -> void:
 	fx.show_attack_link(source.global_position, target.global_position, state)
 
 
+# --- Match replay ---------------------------------------------------------
+
+## "" when this client can play `record`, else the sentence the viewer shows instead.
+static func replay_refusal(record: MatchRecord) -> String:
+	return ReplayCursor.version_problem(record, Net.PROTOCOL, Net.catalog_fingerprint(),
+		str(ProjectSettings.get_setting("application/config/version", "")))
+
+
+## `--dev-replay`: a recorded duel instead of a dealt one. A record from another version stops here
+## in a release build; a debug build plays it anyway and says where it stops applying, if it does.
+func _ready_replay() -> void:
+	hud.set_dev_available(false)
+	hud.replay_command.connect(_on_replay_command)
+	var record: MatchRecord = MatchRecord.load_file(_replay_file, _replay_id)
+	if record == null:
+		hud.set_loading(false)
+		hud.show_replay_refused("This replay cannot be read: %s." % MatchRecord.file_problem(_replay_file, _replay_id))
+		return
+	var refusal: String = replay_refusal(record)
+	var decks: Array[DeckList] = ReplayCursor.decks_of(record)
+	if (refusal != "" and not OS.is_debug_build()) or decks.has(null):
+		hud.set_loading(false)
+		hud.show_replay_refused(refusal if refusal != "" else "This replay needs a deck this build does not have.")
+		return
+	_cursor = ReplayCursor.new(record, Session.library, Session.strike_table)
+	Session.chosen = decks
+	Session.color_seed = record.color_seed
+	viewer = 1 if _replay_index == 1 else 0
+	rig.rotation.y = 0.0 if viewer == 0 else PI
+	var names: Array[String] = [str(record.seats[0]["name"]), str(record.seats[1]["name"])]
+	hud.set_match_replay(names, _cursor.turns, _replay_index)
+	for d in Session.chosen:
+		await faces.render_deck(d, Session.library)
+	hud.set_loading(false)
+	hud.log_line("Seed %d" % record.seed_value)
+	if refusal != "":
+		hud.log_line(refusal)
+		hud.toast(refusal, ZenithTheme.WARN)
+	if _cursor.stopped != "":
+		hud.log_line("The replay stops applying at %s" % _cursor.stopped)
+	busy = true
+	var updates: Array[SeatUpdate] = _cursor.seek(_replay_to) if _replay_to > 0 else _cursor.opening
+	await _play_update(updates[_replay_index])
+	busy = false
+	_present_replay()
+	if _dev_screenshot == "":
+		return
+	for _i in range(_dev_steps):
+		await _replay_step()
+	await _dev_finish()
+
+
+## The decision the next step answers, read only with the choice lit, or the result once the record
+## is played out. A seat's own view shows the other seat deciding the way it saw that live.
+func _present_replay() -> void:
+	_replay_focus_def = null
+	_refresh_state()
+	_refresh_roles()
+	_clear_highlights()
+	_set_hand({})
+	var far: Array[SeatCard] = []
+	if _replay_index == ReplayCursor.ALL:
+		for uid in view.player(1 - viewer).hand:
+			far.append(view.card(uid))
+	hud.show_far_hand(far, faces)
+	hud.set_replay_state(_cursor.position, _cursor.total, _cursor.current_turn(), _replay_playing)
+	if _cursor.at_end:
+		_release_pin()
+		if not _held.is_empty():
+			_held.clear()
+			_sync_layout(false)
+		var result: PackedStringArray = _replay_result_text()
+		hud.show_replay_result(result[0], result[1])
+		return
+	var entry: Dictionary = _cursor.next_entry()
+	var seat: int = int(entry.get("player", 0))
+	if entry.has("dev") or prompt == null or prompt.player != seat:
+		hud.show_waiting(view.player(seat).name, view.deciding_kind, view)
+		return
+	hud.show_replay_decision(prompt, view, entry, "%s · DECISION" % view.player(seat).name.to_upper(), _cursor.next_gap_ms())
+	var uid: int = int(entry.get("card", -1))
+	if uid >= 0:
+		_highlight({uid: true})
+
+
+## Title and reason for the end of the record, a concession, a clock or a drop included.
+func _replay_result_text() -> PackedStringArray:
+	if _cursor.total < _cursor.record.commands.size():
+		return PackedStringArray(["The replay stops here", _cursor.stopped])
+	var result: Dictionary = _cursor.record.result
+	var winner: int = int(result.get("winner", -1))
+	if winner < 0:
+		return PackedStringArray(["No winner", "The duel ended with no winner."])
+	var loser: String = view.player(1 - winner).name
+	var reason: String = _reason_text(str(result.get("reason", "")))
+	match str(result.get("reason", "")):
+		"concede":
+			reason = "%s conceded." % loser
+		"timeout":
+			reason = "%s ran out of time." % loser
+		"left":
+			reason = "%s left the duel." % loser
+	return PackedStringArray(["%s wins" % view.player(winner).name, reason])
+
+
+## Play and Pause act at once. Everything else stops a running Play and waits for the step on the
+## table to finish first.
+func _on_replay_command(action: StringName, value: int) -> void:
+	if _cursor == null:
+		return
+	match action:
+		&"speed":
+			Engine.time_scale = float(value)
+			return
+		&"play":
+			_replay_play()
+			return
+		&"pause":
+			_replay_playing = false
+			hud.set_replay_state(_cursor.position, _cursor.total, _cursor.current_turn(), false)
+			return
+	_replay_playing = false
+	while busy and is_inside_tree():
+		await get_tree().process_frame
+	match action:
+		&"step":
+			await _replay_step()
+		&"back":
+			await _replay_seek(_cursor.position - 1)
+		&"seek":
+			await _replay_seek(value)
+		&"view":
+			await _replay_switch_view(value)
+
+
+func _replay_play() -> void:
+	if _replay_playing or _cursor.at_end:
+		return
+	_replay_playing = true
+	hud.set_replay_state(_cursor.position, _cursor.total, _cursor.current_turn(), true)
+	while _replay_playing and not _cursor.at_end and is_inside_tree():
+		await get_tree().create_timer(REPLAY_READ).timeout
+		if not _replay_playing or not is_inside_tree():
+			break
+		await _replay_step()
+	_replay_playing = false
+	if is_inside_tree():
+		hud.set_replay_state(_cursor.position, _cursor.total, _cursor.current_turn(), false)
+
+
+## One recorded entry, played with every beat the live update had.
+func _replay_step() -> void:
+	if busy or _cursor.at_end:
+		return
+	busy = true
+	hud.clear_prompt()
+	hud.hide_inspect()
+	_clear_highlights()
+	var updates: Array[SeatUpdate] = _cursor.step()
+	if not updates.is_empty():
+		await _play_update(updates[_replay_index])
+	busy = false
+	if is_inside_tree():
+		_present_replay()
+
+
+## A jump: the table drops whatever the last beats left on it and shows the catch-up, with nothing
+## to animate but the cards moving to where they now stand.
+func _replay_seek(index: int) -> void:
+	if busy:
+		return
+	busy = true
+	hud.clear_prompt()
+	hud.hide_inspect()
+	hud.clear_log()
+	_clear_highlights()
+	_release_pin()
+	_held.clear()
+	_attack_cue = {}
+	_combat_opening = false
+	var updates: Array[SeatUpdate] = _cursor.seek(index)
+	if not updates.is_empty():
+		await _play_update(updates[_replay_index])
+	busy = false
+	if is_inside_tree():
+		_present_replay()
+
+
+## Seat 1, seat 2 or both hands: the table turns to that side and shows the same moment from there.
+func _replay_switch_view(index: int) -> void:
+	if index == _replay_index:
+		return
+	_replay_index = index
+	var seat: int = 1 if index == 1 else 0
+	if seat != viewer:
+		viewer = seat
+		_swing_camera(viewer)
+	await _replay_seek(_cursor.position)
+
+
 # --- Online ---------------------------------------------------------------
 
 ## Hosting: a remote seat asks to apply a command.
@@ -2119,27 +2467,256 @@ func _on_net_rejected(reason: String) -> void:
 		_present_prompt()
 
 
+## The other player left. A result already up stays, and only loses its Rematch.
 func _on_peer_left() -> void:
 	_their_presence = {}
 	_draw_presence(false)
 	if _dev_done:
 		return
+	var other: String = _seat_name(1 - viewer)
+	if _finished():
+		# A result that already says they left the duel needs no second line saying so.
+		hud.drop_rematch("" if hud.game_over_reason.text == "%s left the duel." % other else "%s left." % other)
+		return
+	hud.drop_rematch("")
+	_end_table("%s left the duel" % other, "The connection closed.")
+
+
+## Online: the duel ended outside the rules, by a concession or on the clock.
+func _on_duel_ended(winner_seat: int, reason: String) -> void:
+	if _finished():
+		return
+	_end_table("No winner" if winner_seat < 0 else "%s wins" % _seat_name(winner_seat), _end_reason(winner_seat, reason))
+
+
+## The line under a result that names how it ended: an ending outside the rules names the player
+## who lost, and a rules finish reads as the table tells it.
+func _end_reason(winner_seat: int, reason: String) -> String:
+	if winner_seat < 0:
+		return "Both clocks ran out at the same moment."
+	var loser: String = _seat_name(1 - winner_seat)
+	match reason:
+		"concede":
+			return "%s conceded." % loser
+		"timeout":
+			return "%s ran out of time." % loser
+		"left":
+			return "%s left the duel." % loser
+		"survival", "seal", "ascension":
+			return _reason_text(reason)
+	return "The duel was called off."
+
+
+## Ranked: a game is over and the match is not. The score and the count to the next deal join the
+## game's result once it is up.
+func _on_series_game_over(game: int, wins: Array, _next_in_s: int) -> void:
+	_series_over = {"game": game, "wins": wins}
+	_show_series_result()
+
+
+## Ranked: the match is decided, after its last game's result or, for a match left between games,
+## over the between-games panel.
+func _on_match_over(payload: Dictionary) -> void:
+	_match_payload = payload
+	_show_series_result()
+
+
+## What the match has said, laid over the game's result once that is up: the match result when it
+## is decided, otherwise the between-games panel.
+func _show_series_result() -> void:
+	if not _ranked or not _finished() or not hud.game_over.visible:
+		return
+	if not _match_payload.is_empty() and _series_shown < 2:
+		_series_shown = 2
+		var p: Dictionary = _match_payload
+		var shown_before: Array = p["shown_before"]
+		var shown_after: Array = p["shown_after"]
+		var provisional: Array = p["provisional"]
+		hud.show_match_result(DuelHud.match_title(int(p["winner"]), viewer, p["wins"]),
+			_end_reason(int(p["winner"]), str(p["reason"])),
+			DuelHud.rating_change_text(int(shown_before[viewer]), int(shown_after[viewer]), bool(provisional[viewer]), bool(p["rated"])))
+		_dev_series(true)
+	elif not _series_over.is_empty() and _series_shown < 1:
+		_series_shown = 1
+		var wins: Array = _series_over["wins"]
+		hud.show_between(DuelHud.series_text(int(_series_over["game"]), Net.RANKED_BEST_OF, int(wins[viewer]), int(wins[1 - viewer])),
+			Net.next_game_at)
+		_dev_series(false)
+
+
+## Ranked match result: the same connection goes back into the ranked queue, and the title waits.
+func _on_find_ranked() -> void:
+	TITLE.set_ranked_search(true)
+	await Net.find_ranked()
+	Session.go_to_title()
+
+
+## Server room: a seat's clock. The HUD counts it down on this seat's own decision panel; the other
+## seat's countdown goes on that seat's plate (`_process`).
+func _on_clock(seat: int, left_ms: int, bank_ms: int, phase: String) -> void:
+	if _finished():
+		return
+	hud.set_clock(seat, left_ms, bank_ms, phase)
+	if _dev_clock_shot != "" and phase == _dev_clock_shot and not _dev_done:
+		_dev_finish()
+
+
+## Online: this client lost or was refused its connection, and Net has already left. In a server
+## duel it keeps trying to get back in while the server keeps its seat, which a ranked match does
+## between games too, since its next game is dealt to the same seat.
+func _on_connection_failed(reason: String) -> void:
+	hud.set_loading(false)
+	if (not _finished() or (_ranked and _match_payload.is_empty())) and _reconnecting():
+		return
+	_reconnect_until = 0
+	_series_over = {}
+	hud.drop_series()
+	hud.hide_reconnecting()
+	hud.select_button.text = "Back to title"
+	hud.title_button.visible = false
+	if _finished():
+		hud.drop_rematch(reason)
+		return
+	hud.drop_rematch("")
+	_end_table("Connection lost", reason)
+
+
+## True while this client still holds the seat's rejoin file and the seat's time is not gone; the
+## next attempt is then due in REJOIN_RETRY_MS. The first drop starts the countdown from the
+## server's grace, or from this seat's own clock when that runs out sooner.
+func _reconnecting() -> bool:
+	if _room_code == "" or not Net.can_rejoin(_room_code):
+		return false
+	var now: int = Time.get_ticks_msec()
+	if _reconnect_until == 0:
+		var left: int = Net.REJOIN_GRACE_MS
+		var own: int = hud.clock_left_ms(viewer)
+		if own >= 0:
+			left = mini(left, own)
+		_reconnect_until = now + left
+		_awaiting_answer = false
+		_clear_highlights()
+		hud.clear_prompt()
+		hud.log_line("Connection lost. Reconnecting.")
+		if _dev_away_shot != "":
+			_dev_snap(_dev_away_shot.get_basename() + "_reconnecting.png", 2.0)
+	if now >= _reconnect_until:
+		return false
+	_reconnect_next = now + REJOIN_RETRY_MS
+	return true
+
+
+## Every frame while cut off: the overlay counts down, an attempt goes out when one is due, and once
+## the time is gone the duel is over for this client.
+func _keep_reconnecting() -> void:
+	var now: int = Time.get_ticks_msec()
+	if now >= _reconnect_until:
+		Net.forget_rejoin()
+		Net.leave()
+		_on_connection_failed("Could not get back into the duel in time.")
+		return
+	hud.show_reconnecting(_reconnect_until - now)
+	if _reconnect_next > 0 and now >= _reconnect_next:
+		_reconnect_next = 0
+		_try_rejoin()
+
+
+## One attempt. It lands through `_rpc_resume`, which loads a fresh duel scene, or comes back as a
+## failed connection.
+func _try_rejoin() -> void:
+	var problem: String = await Net.rejoin()
+	if problem != "" and _reconnect_until > 0:
+		_on_connection_failed(problem)
+
+
+## The reconnect overlay's Give up: a concession when the connection is back, otherwise the seat is
+## forgotten and the server ends the duel once its time is gone.
+func _on_give_up() -> void:
+	_reconnect_until = 0
+	if Net.give_up():
+		await get_tree().create_timer(LEAVE_FLUSH, true, false, true).timeout
+	Net.leave()
+	Net.last_error = ""
+	Session.go_to_title()
+
+
+## Server room: the other seat's connection dropped. Their plate counts down how long they have.
+func _on_peer_away(seat: int, _grace_ms: int) -> void:
+	_their_presence = {}
+	_draw_presence(false)
+	hud.log_line("%s lost connection." % _seat_name(seat))
+	if _dev_away_shot != "":
+		_dev_snap(_dev_away_shot, 2.0)
+
+
+func _on_peer_back(seat: int) -> void:
+	hud.log_line("%s is back." % _seat_name(seat))
+	if _dev_away_shot != "":
+		_dev_snap(_dev_away_shot.get_basename() + "_back.png", 1.5)
+
+
+## The other seat's plate while its player is away: the server's grace for them, or their clock
+## when it runs out first. "" while they are here.
+func _away_caption() -> String:
+	var left: int = Net.away_left_ms(1 - viewer)
+	if left < 0 or _finished():
+		return ""
+	var clock: int = hud.clock_left_ms(1 - viewer)
+	if clock >= 0:
+		left = mini(left, clock)
+	return DuelHud.away_text(_seat_name(1 - viewer), left)
+
+
+func _on_rematch_requested(seat: int) -> void:
+	hud.set_game_over_note("%s wants a rematch" % _seat_name(seat))
+
+
+## The table stops where it stands and the result covers it.
+func _end_table(title: String, reason: String) -> void:
+	_ended = true
 	busy = true
+	_clear_highlights()
 	hud.clear_prompt()
-	var other: String = view.player(1 - viewer).name if view != null else "The other player"
-	hud.show_game_over("%s left the duel" % other, "The connection closed.", false)
+	hud.show_game_over(title, reason)
+	_show_series_result()
+	if _dev_autoplay and not _dev_done:
+		await _dev_finish()
 
 
+func _finished() -> bool:
+	return _ended or (view != null and view.is_over())
+
+
+func _seat_name(seat: int) -> String:
+	return view.player(seat).name if view != null else Session.player_names[seat]
+
+
+## Online, a Rematch asked for while the duel runs concedes it first, since the server only deals
+## one for a finished duel.
 func _on_rematch() -> void:
-	if online:
-		Net.rematch()
-	else:
+	if not online:
 		get_tree().reload_current_scene()
+		return
+	if not _finished():
+		Net.concede()
+	Net.rematch()
+	if Net.server_room():
+		hud.wait_for_rematch()
 
 
 func _on_select() -> void:
+	if _replay_file != "":
+		Engine.time_scale = 1.0
+		Session.go_to_title()
+		return
 	if online:
-		if Net.is_authority():
+		if Net.queue_room():
+			# Find another duel, or Find a duel after a ranked match: the same connection goes back
+			# into the casual queue, and the title waits.
+			TITLE.set_ranked_search(false)
+			await Net.find_duel()
+			Session.go_to_title()
+		elif Net.can_rematch():
 			Net.back_to_lobby()
 		else:
 			Net.leave()
@@ -2148,6 +2725,37 @@ func _on_select() -> void:
 		Session.finish_stage(view.winner == viewer)
 	else:
 		Session.go_to_select()
+
+
+## A queue duel's result: Title closes the connection, which also gives up the room.
+func _on_title() -> void:
+	Net.leave()
+	Session.go_to_title()
+
+
+func _on_concede() -> void:
+	if online:
+		Net.concede()
+	else:
+		Session.concede_duel()
+
+
+## Back to title, Leave duel, or Save and quit to title in an adventure, where the run is saved
+## after every command. Leaving an unfinished online duel concedes it, and the concession gets a
+## moment to go out before the connection closes. Leave match in a ranked match loses the match
+## and stays for its result, which carries the rating change.
+func _on_leave() -> void:
+	if _replay_file != "":
+		Engine.time_scale = 1.0
+	if online and Net.ranked_room() and _match_payload.is_empty():
+		Net.leave_match()
+		return
+	if online:
+		if not _finished():
+			Net.concede()
+			await get_tree().create_timer(LEAVE_FLUSH, true, false, true).timeout
+		Net.leave()
+	Session.go_to_title()
 
 
 # --- Presence -------------------------------------------------------------
@@ -2497,7 +3105,9 @@ func _targets() -> Dictionary:
 			out[p.removed[i]] = [zones.slot(p.index, &"removed", i, 1, vw), true, true]
 		var hn: int = p.hand.size()
 		for i in range(hn):
-			out[p.hand[i]] = [zones.slot(p.index, &"hand", i, hn, vw), false, p.index != viewer]
+			# A replay's full view carries the far hand's faces, so its fan shows them.
+			var shown: bool = _cursor != null and not view.card(p.hand[i]).hidden()
+			out[p.hand[i]] = [zones.slot(p.index, &"hand", i, hn, vw), shown, p.index != viewer]
 		for i in range(p.allies.size()):
 			out[p.allies[i]] = [zones.slot(p.index, &"ally", i, p.allies.size(), vw), true, true]
 		for i in range(p.drills.size()):
@@ -2748,6 +3358,10 @@ func _dev_step() -> void:
 		if _dev_steps == 0:
 			await _dev_finish()
 			return
+	if online and _dev_stall >= 0:
+		if _dev_answered >= _dev_stall:
+			return
+		_dev_answered += 1
 	var opts: Array[OptionView] = prompt.options
 	_on_option_chosen(_dev_pick(opts))
 
@@ -2779,7 +3393,7 @@ func _dev_stop_matches() -> bool:
 ## Online the budget counts every update played here, so two clients started with the same
 ## budget stop on the same game state. Returns true when this update was the last.
 func _dev_count_update() -> bool:
-	if not (online and _dev_autoplay and _dev_steps > 0):
+	if not (online and _dev_autoplay and _dev_steps > 0) or _dev_done:
 		return false
 	_dev_steps -= 1
 	if _dev_steps > 0:
@@ -2791,6 +3405,25 @@ func _dev_count_update() -> bool:
 
 func _dev_finish(settle: float = 0.6, after_replay: bool = false) -> void:
 	_dev_done = true
+	# A ranked match goes on past a game's result: the between-games panel and the match result
+	# take the shots and end the run (`_dev_series`).
+	if _ranked and not _finished() and (_dev_concede or _dev_leave_match):
+		if _dev_leave_match:
+			Net.leave_match()
+		else:
+			Net.concede()
+		return
+	if _ranked and _finished():
+		return
+	if _dev_concede and online and not _finished():
+		# Stay connected long enough for the other client to take its shot of the result.
+		Net.concede()
+		await get_tree().create_timer(DEV_CONCEDE_WAIT, true, false, true).timeout
+	# `--dev-find-another`: the result goes to `<png>_result.png`, and the title takes `<png>` once
+	# the client is waiting in the queue again.
+	var find_another: bool = _dev_find_another and online and Net.queue_room() and _finished()
+	if find_another and _dev_screenshot != "":
+		_dev_screenshot = _dev_screenshot.get_basename() + "_result.png"
 	if _dev_screenshot != "":
 		if _dev_hide_hud:
 			hud.visible = false
@@ -2806,6 +3439,8 @@ func _dev_finish(settle: float = 0.6, after_replay: bool = false) -> void:
 				var player: int = seat if parts[0] != "theirs" else 1 - seat
 				var zone: StringName = StringName(parts[1]) if parts.size() > 1 and parts[1] in ["removed", "relic"] else &"discard"
 				await hud.show_pile(view, player, zone)
+		if DevArgs.user_args().has("--dev-menu"):
+			hud.set_options_open(true)
 		await get_tree().create_timer(settle).timeout
 		# Window startup can deliver late pointer motion after the requested hand preview.
 		# Freeze only this screenshot's presentation after settling; normal input is unchanged.
@@ -2824,10 +3459,41 @@ func _dev_finish(settle: float = 0.6, after_replay: bool = false) -> void:
 	if _presence_on and _presence_demo != "":
 		# A demo sender stays up a little, so the other instance can screenshot what it sends.
 		await get_tree().create_timer(PRESENCE_DEMO_LINGER, true, false, true).timeout
+	elif online and Net.resumed:
+		# Leaving at once would drop the seat again under the other instance's shot of its return.
+		await get_tree().create_timer(DEV_LINGER, true, false, true).timeout
 	if after_replay:
 		_dev_quit_after_replay = true
+	elif find_another:
+		_on_select()
 	else:
 		_dev_shutdown()
+
+
+## Ranked dev runs. The between-games panel saves `<png>_game<N>.png` and, under `--dev-next-game`,
+## presses Next game; the match result saves `<png>` and, on an autoplay or screenshot run, quits
+## after DEV_LINGER, so the other client's shot of its own result is not spoiled by this one leaving.
+func _dev_series(decided: bool) -> void:
+	if decided:
+		if _dev_screenshot != "":
+			await _dev_snap(_dev_screenshot, 0.8)
+		if _dev_autoplay or _dev_screenshot != "":
+			_dev_done = true
+			await get_tree().create_timer(DEV_LINGER, true, false, true).timeout
+			_dev_shutdown()
+		return
+	if _dev_screenshot != "":
+		await _dev_snap("%s_game%d.png" % [_dev_screenshot.get_basename(), int(_series_over["game"])], 0.8)
+	if _dev_next_game and hud.next_button.visible and not hud.next_button.disabled:
+		hud.next_button.pressed.emit()
+
+
+## A screenshot `settle` real seconds from now that leaves the duel running.
+func _dev_snap(path: String, settle: float) -> void:
+	await get_tree().create_timer(settle, true, false, true).timeout
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(path)
+	print("screenshot saved to %s" % path)
 
 
 ## A CLI capture must release its scene, renderer nodes and bound tweens before the

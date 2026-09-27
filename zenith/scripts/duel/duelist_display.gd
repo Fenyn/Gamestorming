@@ -87,6 +87,18 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 	life_value.text = str(int(player_counts[0]) if not player_counts.is_empty() else view.player(player_index).life_deck.size())
 
 
+## Online: this seat's decision clock on its plate, "" to clear it.
+func set_clock(label: String, time: String, warn: bool) -> void:
+	if is_node_ready():
+		plate_readout.set_clock(label, time, warn)
+
+
+## Online: the line on this seat's plate while its player is away, "" to clear it.
+func set_away(text: String) -> void:
+	if is_node_ready():
+		plate_readout.set_away(text)
+
+
 ## Preview only: outlined Energy segments distinguish projected spending from resolution.
 func preview_energy(cost: int = 0) -> void:
 	var next_cost: int = maxi(0, cost)

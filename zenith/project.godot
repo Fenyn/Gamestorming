@@ -38,3 +38,4 @@ theme/custom_font="uid://cikisu5bac6qy"
 [zenith]
 
 net/duel_server="198.44.38.215:7777"
+net/duel_server_cert="res://data/net/duel_server.crt"

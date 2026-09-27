@@ -43,6 +43,11 @@ func choose(referee: Referee, seat: int) -> Dictionary:
 	return cmd.to_dict() if cmd != null else {}
 
 
+## The profile this seat plays with right now, for tools that explain a decision.
+func profile_for(referee: Referee, seat: int) -> AiProfile:
+	return _matchup_profile(referee, seat)
+
+
 ## The profile to play with now: the base, pivoted on who is across the table (fixed at setup, so
 ## resolved once), then pivoted on where the duel stands (recomputed, cached per distinct state).
 func _matchup_profile(referee: Referee, seat: int) -> AiProfile:

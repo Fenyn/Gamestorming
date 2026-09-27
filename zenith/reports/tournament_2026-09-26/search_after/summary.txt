@@ -1,0 +1,84 @@
+
+merged 6 shards
+
+=== matchlab, 6 shards merged ===
+side a: search / budget_ms=600.0
+side b: search / budget_ms=600.0
+364 matches, 0 unusable
+
+RECORD  (both sides, search / budget_ms=600.0)
+deck               played win% (95% range)       won by surv/seal/asc   lost to surv/seal/asc   turns
+steel_beatdown         52  88.5% (77.0-94.6)                   45/0/1                   3/0/3     5.6
+shade_mind_siege       52  78.8% (66.0-87.8)                   41/0/0                   8/1/2     7.6
+freestyle_swords       52  71.2% (57.7-81.7)                   37/0/0                  15/0/0     7.2
+pyre_attrition         52  71.2% (57.7-81.7)                  16/0/21                  13/2/0     7.2
+root_seals             52  57.7% (44.2-70.1)                  10/20/0                  20/0/2    17.9
+pyre_beatdown          52  53.8% (40.5-66.7)                   27/0/1                  17/2/5     7.6
+shade_henchmen         52  50.0% (36.9-63.1)                   26/0/0                  21/1/4     6.0
+tide_deepwater         52  42.3% (29.9-55.8)                   22/0/0                  27/3/0     9.0
+storm_unbound          52  40.4% (28.2-53.9)                   21/0/0                  26/1/4     9.9
+storm_volley           52  40.4% (28.2-53.9)                   21/0/0                  21/1/9     7.3
+pyre_ascent            52  38.5% (26.5-52.0)                   7/0/13                  29/2/1     8.3
+tide_companions        52  32.7% (21.5-46.2)                   17/0/0                  31/2/2     8.8
+steel_heir             52  21.2% (12.2-34.0)                   11/0/0                  38/2/1     7.0
+shade_salvage          52  13.5% ( 6.7-25.3)                    7/0/0                  39/3/3     7.9
+all wins by route: 308/20/36
+
+HOW CLOSE IT CAME WHEN IT LOST  (life cards left / Seals missing / share of the Fervor climb left)
+deck               losses   own distance at the end      nearest route: surv/seal/asc
+steel_beatdown          6    21.7 life / 6.7 seals /  50% asc   5/0/1
+shade_mind_siege       11     6.0 life / 7.0 seals /  96% asc   11/0/0
+freestyle_swords       15     0.0 life / 6.9 seals /  96% asc   15/0/0
+pyre_attrition         15     5.4 life / 7.0 seals /  61% asc   13/0/2
+root_seals             22     4.4 life / 3.9 seals /  97% asc   21/1/0
+pyre_beatdown          24    10.6 life / 7.0 seals /  77% asc   23/0/1
+shade_henchmen         26     8.5 life / 6.9 seals /  97% asc   26/0/0
+tide_deepwater         30     3.4 life / 6.5 seals /  99% asc   30/0/0
+storm_unbound          31     3.1 life / 6.9 seals /  84% asc   31/0/0
+storm_volley           31    13.6 life / 6.8 seals / 100% asc   31/0/0
+pyre_ascent            32     1.5 life / 6.8 seals /  63% asc   32/0/0
+tide_companions        35     3.3 life / 7.0 seals /  98% asc   35/0/0
+steel_heir             41     1.0 life / 7.0 seals /  98% asc   41/0/0
+shade_salvage          45     3.7 life / 6.9 seals /  98% asc   45/0/0
+
+WHAT IT HAD LEFT WHEN IT WON  (same three numbers, for the winner itself)
+deck                 wins   own distance at the end
+steel_beatdown         46    42.3 life / 6.4 seals /  41% asc
+shade_mind_siege       41    34.1 life / 6.9 seals /  98% asc
+freestyle_swords       37    30.9 life / 6.9 seals /  93% asc
+pyre_attrition         37    38.8 life / 6.9 seals /  33% asc
+root_seals             30    27.8 life / 0.7 seals /  95% asc
+pyre_beatdown          28    27.4 life / 6.8 seals /  54% asc
+shade_henchmen         26    35.9 life / 6.4 seals /  87% asc
+tide_deepwater         22    25.3 life / 5.9 seals /  99% asc
+storm_unbound          21    29.9 life / 6.7 seals /  73% asc
+storm_volley           21    28.3 life / 6.3 seals / 100% asc
+pyre_ascent            20    31.6 life / 6.9 seals /  37% asc
+tide_companions        17    22.0 life / 6.9 seals /  97% asc
+steel_heir             11    26.1 life / 6.5 seals /  93% asc
+shade_salvage           7    25.7 life / 6.9 seals /  99% asc
+
+MATCHUPS  (side a deck's win% against side b deck, n in brackets)
+a \ b              freestyle_sw  pyre_ascent pyre_attriti pyre_beatdow   root_seals shade_henchm shade_mind_s shade_salvag steel_beatdo   steel_heir storm_unboun storm_volley tide_compani tide_deepwat
+freestyle_swords              -      100%[2]        0%[2]       50%[2]      100%[2]       50%[2]      100%[2]       50%[2]        0%[2]      100%[2]      100%[2]      100%[2]       50%[2]       50%[2]
+pyre_ascent               0%[2]            -        0%[2]      100%[2]        0%[2]       50%[2]        0%[2]       50%[2]        0%[2]       50%[2]       50%[2]      100%[2]      100%[2]      100%[2]
+pyre_attrition           50%[2]      100%[2]            -      100%[2]        0%[2]       50%[2]        0%[2]      100%[2]       50%[2]      100%[2]      100%[2]      100%[2]       50%[2]       50%[2]
+pyre_beatdown             0%[2]      100%[2]       50%[2]            -        0%[2]       50%[2]        0%[2]      100%[2]        0%[2]      100%[2]        0%[2]      100%[2]      100%[2]      100%[2]
+root_seals                0%[2]      100%[2]        0%[2]       50%[2]            -      100%[2]       50%[2]      100%[2]        0%[2]      100%[2]       50%[2]        0%[2]      100%[2]      100%[2]
+shade_henchmen            0%[2]        0%[2]       50%[2]       50%[2]      100%[2]            -        0%[2]      100%[2]      100%[2]      100%[2]      100%[2]       50%[2]       50%[2]       50%[2]
+shade_mind_siege        100%[2]      100%[2]        0%[2]       50%[2]      100%[2]      100%[2]            -      100%[2]        0%[2]      100%[2]       50%[2]      100%[2]      100%[2]      100%[2]
+shade_salvage             0%[2]       50%[2]        0%[2]        0%[2]        0%[2]        0%[2]        0%[2]            -        0%[2]      100%[2]        0%[2]        0%[2]       50%[2]        0%[2]
+steel_beatdown          100%[2]      100%[2]        0%[2]       50%[2]      100%[2]      100%[2]      100%[2]      100%[2]            -      100%[2]      100%[2]      100%[2]      100%[2]      100%[2]
+steel_heir                0%[2]        0%[2]       50%[2]        0%[2]       50%[2]       50%[2]        0%[2]      100%[2]        0%[2]            -        0%[2]        0%[2]      100%[2]        0%[2]
+storm_unbound            50%[2]       50%[2]        0%[2]       50%[2]        0%[2]      100%[2]        0%[2]       50%[2]        0%[2]       50%[2]            -       50%[2]      100%[2]        0%[2]
+storm_volley              0%[2]       50%[2]        0%[2]       50%[2]        0%[2]        0%[2]        0%[2]      100%[2]        0%[2]       50%[2]      100%[2]            -      100%[2]        0%[2]
+tide_companions           0%[2]       50%[2]      100%[2]       50%[2]       50%[2]       50%[2]        0%[2]      100%[2]        0%[2]       50%[2]       50%[2]        0%[2]            -      100%[2]
+tide_deepwater            0%[2]      100%[2]       50%[2]        0%[2]       50%[2]       50%[2]        0%[2]      100%[2]        0%[2]      100%[2]       50%[2]        0%[2]       50%[2]            -
+
+DECISION COST
+side   policy                       decisions  mean ms   med ms   p95 ms   max ms   search: mean depth / fallbacks
+a      search / budget_ms=600.0         21826   505.10   601.42   605.25      631   1.84 / 24
+       search stops: { "completed": 2272, "time_budget": 17661 }
+b      search / budget_ms=600.0         21427   504.38   601.44   605.44      625   1.84 / 36
+       search stops: { "completed": 2252, "time_budget": 17283 }
+wrote G:/Godot/Gamestorming/zenith/reports/tournament_2026-09-26/search_after/tournament.json

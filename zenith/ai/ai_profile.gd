@@ -14,7 +14,7 @@ const DEFAULTS: Dictionary = {
 	},
 	"foe": {
 		"life": 1.0, "life_low": 1.5, "discard": 0.05, "energy": 0.6, "band": 1.0, "hand": 1.0,
-		"aspect": 4.0, "ascension": 30.0, "seal": 25.0, "seal_guard": 6.0, "ally": 2.5, "ally_energy": 0.3, "drill": 2.0,
+		"aspect": 4.0, "ascension": 30.0, "fervor": 4.0, "seal": 25.0, "seal_guard": 6.0, "ally": 2.5, "ally_energy": 0.3, "drill": 2.0,
 		"non_combat": 1.5, "attachment": 1.5, "forbid": 1.0, "grounds": 8.0,
 	},
 	"effect": {
@@ -52,8 +52,12 @@ const DEFAULTS: Dictionary = {
 		# 1 skips starting a depth that is projected not to finish before the deadline.
 		# See AiSearch._depth_will_not_fit.
 		"predict_depth": 0,
-		# Prompt kinds answered by the scorer alone. See AiProfile.scorer_decides.
-		"scorer_kinds": [],
+		# Prompt kinds answered by the scorer alone. See AiProfile.scorer_decides. Declaring Combat
+		# is a stance the profile states with `play.declare_bias`; a search that ends at this turn's
+		# discard step cannot see the Combats a stance is about, so the scorer answers it.
+		"scorer_kinds": ["declare"],
+		# See AiSearch._trust_scorer_at_depth_one.
+		"trust_margin": 1.0,
 		"rollout_steps": 4, "settle_steps": 8, "intent_margin": 0.15, "cache": false,
 		# Stop deepening once the same option has been best for this many completed depths running
 		# and leads the next by `settle_lead`. 0 spends the whole budget every time.

@@ -58,9 +58,6 @@ static func from_legacy(policy_name: String, args: Dictionary, use_styles: bool 
 			continue
 		var mapping: Array = KNOBS[suffix]
 		out.think[mapping[0]] = int(args[suffix]) if bool(mapping[1]) else float(args[suffix])
-	# ai_arena historically used an underscore for this one option.
-	if args.has("rollout_steps") and not str(args["rollout_steps"]).is_empty():
-		out.think["rollout_steps"] = int(args["rollout_steps"])
 	return out
 
 

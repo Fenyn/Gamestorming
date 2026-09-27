@@ -4,3 +4,6 @@
 
 [node name="DuelServer" type="Node"]
 script = ExtResource("1_server")
+
+[node name="ClockTick" type="Timer" parent="."]
+wait_time = 0.25

@@ -55,6 +55,7 @@ func _defense_position(pending: bool = false) -> DuelEngine:
 	var engine: DuelEngine = DuelEngine.new()
 	engine.shuffle_decks = false
 	engine.setup(decks, library, StrikeTable.load_from("res://tests/fixtures/strike_table.json"), 5)
+	engine.set_first_player(0)   # the scripted sequence below is seat 0's opening turn
 	engine.start()
 	if engine.prompt.kind == &"non_combat":
 		engine.submit(engine.prompt.find(&"done"))

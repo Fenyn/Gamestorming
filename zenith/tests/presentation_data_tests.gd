@@ -34,6 +34,7 @@ func _engine() -> DuelEngine:
 	engine.shuffle_decks = false
 	engine.record_display_state = true
 	engine.setup(decks, library, StrikeTable.load_from("res://tests/fixtures/strike_table.json"), 5)
+	engine.set_first_player(0)   # the fixtures below script seat 0's opening turn
 	engine.start()
 	return engine
 

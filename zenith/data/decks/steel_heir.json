@@ -27,16 +27,8 @@
       "count": 3
     },
     {
-      "id": "signature_combat_03",
-      "count": 3
-    },
-    {
       "id": "signature_art_09",
       "count": 1
-    },
-    {
-      "id": "freestyle_combat_17",
-      "count": 2
     },
     {
       "id": "signature_strike_06",
@@ -89,10 +81,6 @@
     {
       "id": "steel_strike_06",
       "count": 3
-    },
-    {
-      "id": "steel_drill_01",
-      "count": 2
     },
     {
       "id": "steel_strike_16",
@@ -151,10 +139,6 @@
       "count": 1
     },
     {
-      "id": "grounds_06",
-      "count": 3
-    },
-    {
       "id": "freestyle_noncombat_05",
       "count": 3
     },
@@ -167,8 +151,24 @@
       "count": 3
     },
     {
-      "id": "freestyle_combat_06",
+      "id": "signature_strike_09",
+      "count": 4
+    },
+    {
+      "id": "signature_strike_29",
+      "count": 4
+    },
+    {
+      "id": "steel_strike_25",
       "count": 3
+    },
+    {
+      "id": "seal_12",
+      "count": 1
+    },
+    {
+      "id": "seal_13",
+      "count": 1
     }
   ]
 }

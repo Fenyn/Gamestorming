@@ -37,83 +37,88 @@ static func explain(engine: DuelEngine, seat: int, profile: AiProfile) -> Dictio
 
 
 static func side_value(engine: DuelEngine, p: PlayerState, profile: AiProfile, group: String, details: Variant = null) -> float:
-	var v: float = 0.0
+	var terms: Dictionary = {}
 	var life: int = p.life_deck.size()
-	v += life * profile.w(group, "life")
-	v -= maxi(0, 10 - life) * profile.w(group, "life_low")
-	v += p.discard.size() * profile.w(group, "discard")
-	v += p.duelist.energy * profile.w(group, "energy")
-	v += engine.strike_table.band(p.in_control().might()) * profile.w(group, "band")
-	v += p.hand.size() * profile.w(group, "hand")
-	v += p.duelist.aspect * profile.w(group, "aspect")
-	v += ascension_progress(engine, p) * profile.w(group, "ascension")
-	v += climb_progress(engine, p) * profile.w(group, "fervor")
-	v += seal_progress(p) * profile.w(group, "seal")
-	v += seal_guard_value(p) * profile.w(group, "seal_guard")
-	v += handover_progress(engine, p) * profile.w(group, "ally_handover")
-	var power_weight: float = _feature_weight(profile, group, "power", 0.35)
-	var power_total: float = 0.0
+	terms["life"] = life * profile.w(group, "life")
+	terms["life_low"] = -maxi(0, 10 - life) * profile.w(group, "life_low")
+	terms["discard"] = p.discard.size() * profile.w(group, "discard")
+	terms["energy"] = held_energy(engine, p) * profile.w(group, "energy")
+	terms["band"] = engine.strike_table.band(p.in_control().might()) * profile.w(group, "band")
+	terms["hand"] = kept_hand(engine, p) * profile.w(group, "hand")
+	terms["aspect"] = p.duelist.aspect * profile.w(group, "aspect")
+	terms["ascension"] = ascension_progress(engine, p) * profile.w(group, "ascension")
+	terms["fervor"] = climb_progress(engine, p) * profile.w(group, "fervor")
+	terms["seal"] = seal_progress(p) * profile.w(group, "seal")
+	terms["seal_guard"] = seal_guard_value(p) * profile.w(group, "seal_guard")
+	terms["ally_handover"] = handover_progress(engine, p) * profile.w(group, "ally_handover")
+	var allies: float = 0.0
 	for al in p.allies():
-		v += profile.w(group, "ally") + al.energy * profile.w(group, "ally_energy")
-		if power_weight != 0.0:
-			var value: float = AiScorer.usable_power_value(engine, p, al, profile) * power_weight
-			v += value
-			power_total += value
+		allies += profile.w(group, "ally") + al.energy * profile.w(group, "ally_energy")
+	terms["allies"] = allies
+	var power_weight: float = _feature_weight(profile, group, "power", 0.35)
+	var power: float = 0.0
 	if power_weight != 0.0:
-		var value: float = AiScorer.usable_power_value(engine, p, p.duelist, profile) * power_weight
-		v += value
-		power_total += value
+		for al in p.allies():
+			power += AiScorer.usable_power_value(engine, p, al, profile)
+		power += AiScorer.usable_power_value(engine, p, p.duelist, profile)
+	terms["power"] = power * power_weight
 	# Hand identity is known only on our side. Use the same contextual value as tutor/keep/discard
 	# choices, while retaining the ordinary count term for both sides.
 	var hand_weight: float = _feature_weight(profile, group, "hand_quality", 0.15)
-	var quality_total: float = 0.0
+	var quality: float = 0.0
 	if group == "own" and hand_weight != 0.0:
-		var quality: float = 0.0
 		var seen: Dictionary = {}
 		for card in p.hand:
 			var copies: int = int(seen.get(card.def.id, 0))
 			seen[card.def.id] = copies + 1
 			quality += minf(20.0, maxf(0.0, AiScorer.card_value(engine, p, card, profile, AiScorer.TUTOR_DEPTH))) / float(1 + copies)
-		quality_total = quality * hand_weight
-		v += quality_total
+	terms["hand_quality"] = quality * hand_weight
 	var combo_weight: float = _feature_weight(profile, group, "combo_progress", 0.5 if group == "own" else 0.35)
-	var combo_total: float = 0.0
-	if combo_weight != 0.0:
-		combo_total = AiScorer.combo_progress(engine, p, profile, group != "own") * combo_weight
-		v += combo_total
-	v += p.drills().size() * profile.w(group, "drill")
-	v += p.non_combats().size() * profile.w(group, "non_combat")
-	v += p.attachments().size() * profile.w(group, "attachment")
-	v -= engine.restrictions(p).size() * profile.w(group, "forbid")
+	terms["combo_progress"] = AiScorer.combo_progress(engine, p, profile, group != "own") * combo_weight if combo_weight != 0.0 else 0.0
+	terms["drills"] = p.drills().size() * profile.w(group, "drill")
+	terms["non_combats"] = p.non_combats().size() * profile.w(group, "non_combat")
+	terms["attachments"] = p.attachments().size() * profile.w(group, "attachment")
+	terms["restrictions"] = -engine.restrictions(p).size() * profile.w(group, "forbid")
+	terms["standing"] = standing_modifier_value(engine, p, profile) * _feature_weight(profile, group, "standing", 1.0)
 	var engine_weight: float = _feature_weight(profile, group, "engine", 0.25)
-	var engine_total: float = usable_engine_value(engine, p, profile, group != "own") * engine_weight if engine_weight != 0.0 else 0.0
-	v += engine_total
+	terms["engine"] = usable_engine_value(engine, p, profile, group != "own") * engine_weight if engine_weight != 0.0 else 0.0
+	var v: float = 0.0
+	for key in terms:
+		v += float(terms[key])
 	if details is Dictionary:
-		var ally_energy: int = 0
-		for ally in p.allies():
-			ally_energy += ally.energy
-		(details as Dictionary).merge({
-			"life": life * profile.w(group, "life"),
-			"life_low": -maxi(0, 10 - life) * profile.w(group, "life_low"),
-			"discard": p.discard.size() * profile.w(group, "discard"),
-			"energy": p.duelist.energy * profile.w(group, "energy"),
-			"band": engine.strike_table.band(p.in_control().might()) * profile.w(group, "band"),
-			"hand": p.hand.size() * profile.w(group, "hand"),
-			"aspect": p.duelist.aspect * profile.w(group, "aspect"),
-			"ascension": ascension_progress(engine, p) * profile.w(group, "ascension"),
-			"fervor": climb_progress(engine, p) * profile.w(group, "fervor"),
-			"seal": seal_progress(p) * profile.w(group, "seal"),
-			"seal_guard": seal_guard_value(p) * profile.w(group, "seal_guard"),
-			"ally_handover": handover_progress(engine, p) * profile.w(group, "ally_handover"),
-			"allies": p.allies().size() * profile.w(group, "ally") + ally_energy * profile.w(group, "ally_energy"),
-			"power": power_total, "hand_quality": quality_total, "combo_progress": combo_total,
-			"drills": p.drills().size() * profile.w(group, "drill"),
-			"non_combats": p.non_combats().size() * profile.w(group, "non_combat"),
-			"attachments": p.attachments().size() * profile.w(group, "attachment"),
-			"restrictions": -engine.restrictions(p).size() * profile.w(group, "forbid"),
-			"engine": engine_total,
-		}, true)
+		(details as Dictionary).merge(terms, true)
 	return v
+
+
+## The Duelist's Energy as it carries forward. Energy the next Power Up would refill anyway is only
+## half held: it still soaks and sets Might through the opponent's turn, but it buys nothing after,
+## so spending it on an attack now costs less than the gauge says.
+static func held_energy(engine: DuelEngine, p: PlayerState) -> float:
+	var energy: int = p.duelist.energy
+	var refilled: int = maxi(0, energy + engine.recover_gain(p) - CardInstance.MAX_STAGE)
+	return float(energy) - 0.5 * float(mini(refilled, energy))
+
+
+## The hand as it will stand once it matters. On its own turn a player keeps only a few cards
+## through the discard step, so the cards past that limit count half: they can still be played
+## this turn, but whatever is left of them goes to the discard pile.
+static func kept_hand(engine: DuelEngine, p: PlayerState) -> float:
+	var held: int = p.hand.size()
+	if engine.state.active != p.index or engine.state.step >= GameState.Step.DISCARD:
+		return float(held)
+	var keep: int = engine._hand_keep(p)
+	return float(mini(held, keep)) + 0.5 * float(maxi(0, held - keep))
+
+
+## Standing modifiers this side has put out (a floating "+1 to every attack for the rest of the
+## game"), priced by what they add per attack and how many attacks they are expected to touch.
+static func standing_modifier_value(engine: DuelEngine, p: PlayerState, profile: AiProfile) -> float:
+	var total: float = 0.0
+	for f in engine.state.floating:
+		if int(f.get("owner", -1)) != p.index or str(f.get("op", "")) != "modifier" or not engine._phase_float_live(f):
+			continue
+		total += AiScorer.modifier_value(f, str(f.get("duration", "combat")), profile)
+	return total
 
 
 static func _feature_weight(profile: AiProfile, group: String, key: String, fallback: float) -> float:
@@ -143,36 +148,31 @@ static func usable_engine_value(engine: DuelEngine, p: PlayerState, profile: AiP
 
 
 static func _available_effect_value(engine: DuelEngine, p: PlayerState, source: CardInstance, effect: Dictionary, profile: AiProfile, depth: int, public_only: bool) -> float:
-	if depth <= 0:
+	# A line whose gate fails is skipped whole, as the engine skips it.
+	if depth <= 0 or not engine._cond(effect.get("when", {}), p.index, {}):
 		return 0.0
-	var branch: Array = effect.get("then", [])
+	var op: String = str(effect.get("op", ""))
+	var amount: Variant = effect.get("amount", 1)
+	if str(effect.get("who", "self")) == "self" and (amount is int or amount is float):
+		if op == "discard_hand" and int(amount) > p.hand.size():
+			return 0.0
+		if op == "remove_discard" and int(amount) > p.discard.size():
+			return 0.0
+	# Opponent deck/hand identities are not a public engine feature; retain the generic
+	# search weight without checking their hidden pool. Their discard is observable.
+	var known_pool: bool = not public_only or str(effect.get("source", "deck")) == "discard"
+	if op == "search" and known_pool and engine.search_candidates(p, effect).is_empty():
+		return 0.0
+	if op == "bond" and AiScorer._bond_value(engine, p, source.def, profile) <= 0.0:
+		return 0.0
 	var value: float = 0.0
-	if not engine._cond(effect.get("when", {}), p.index, {}):
-		branch = effect.get("else_effects", [])
-	else:
-		var op: String = str(effect.get("op", ""))
-		var amount: Variant = effect.get("amount", 1)
-		if str(effect.get("who", "self")) == "self" and (amount is int or amount is float):
-			if op == "discard_hand" and int(amount) > p.hand.size():
-				return 0.0
-			if op == "remove_discard" and int(amount) > p.discard.size():
-				return 0.0
-		# Opponent deck/hand identities are not a public engine feature; retain the generic
-		# search weight without checking their hidden pool. Their discard is observable.
-		var known_pool: bool = not public_only or str(effect.get("source", "deck")) == "discard"
-		if op == "search" and known_pool and engine.search_candidates(p, effect).is_empty():
-			return 0.0
-		if op == "bond" and AiScorer._bond_value(engine, p, source.def, profile) <= 0.0:
-			return 0.0
-		if op != "spend_source":
-			var current: Dictionary = effect.duplicate()
-			current.erase("then")
-			current.erase("else_effects")
-			current.erase("when")
-			value = AiScorer.effects_value([current], profile, [], AiEvaluator.handover_progress(engine, p))
-	for child in branch:
-		if child is Dictionary:
-			value += _available_effect_value(engine, p, source, child, profile, depth - 1, public_only)
+	if op != "spend_source":
+		var current: Dictionary = effect.duplicate()
+		for key in ["then", "effects", "else_effects", "when"]:
+			current.erase(key)
+		value = AiScorer.effects_value([current], profile, [], AiEvaluator.handover_progress(engine, p))
+	for branch in AiScorer.branches(effect, profile):
+		value += float(branch["share"]) * _available_effect_value(engine, p, source, branch["effect"], profile, depth - 1, public_only)
 	return value
 
 
@@ -315,7 +315,8 @@ static func seals_guarded(p: PlayerState) -> bool:
 	return false
 
 
-## 0 to 1, how close this player is to a full Seal set. Squared for the same reason.
+## 0 to 1, how close this player is to a full Seal set. Half linear and half squared: the last
+## Seals count most, but the first one still has to be worth putting down.
 static func seal_progress(p: PlayerState) -> float:
 	if p.seal_victory_pending:
 		return 1.5
@@ -326,4 +327,4 @@ static func seal_progress(p: PlayerState) -> float:
 		counted[set_name] = int(counted.get(set_name, 0)) + 1
 		best = maxi(best, int(counted[set_name]))
 	var part: float = float(best) / float(DuelEngine.SEALS_PER_SET)
-	return part * part
+	return 0.5 * part + 0.5 * part * part

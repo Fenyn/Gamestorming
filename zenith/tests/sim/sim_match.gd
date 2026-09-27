@@ -8,11 +8,19 @@ const REASONS: Array[String] = ["survival", "seal", "ascension"]
 var library: CardLibrary = null
 var table: StrikeTable = null
 var max_steps: int = 6000
-var points_to_win: int = 1   # 2 is the adventure rule; see DuelEngine.set_points_to_win
+var points_to_win: int = 1   # the same for both seats; the adventure's per-seat rule is `lives`
 ## Lives per seat, seat-ordered (entry 0 is seat 0, whichever side sits there). Empty leaves the
 ## symmetric `points_to_win` alone; non-empty overrides it, since a ladder stage gives the player
 ## two lives and an ordinary opponent one. See AdventureRules.lives_for.
 var lives: Array[int] = []
+## When set, every finished game is written here as a `MatchRecord` line, so `--dev-replay` can
+## play it back with both hands shown.
+var records: FileAccess = null
+## When set, one line per AI decision: the options the seat saw, what the scorer made of each, what
+## the search found, and the choice, keyed to the record id and the command's index in it.
+var decisions: FileAccess = null
+## How many option scores a decision line keeps, best first.
+const DECISION_OPTIONS: int = 8
 
 
 static func make(lib: CardLibrary, strike_table: StrikeTable, p_max_steps: int) -> SimMatch:
@@ -42,6 +50,12 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 			multi_point = multi_point or n > 1
 	# The adventure rule set: a first-to-N duel also scores a full Seal set as one point.
 	referee.engine.set_points_options(multi_point, false)
+	var record: MatchRecord = null
+	if records != null or decisions != null:
+		record = MatchRecord.begin(referee, decks, "vs_ai", "client")
+		record.seats[a_seat]["ai"] = a_side.policy
+		record.seats[1 - a_seat]["ai"] = b_side.policy
+	var dealt: int = Time.get_ticks_msec()
 	referee.start()
 	referee.engine.take_events()
 
@@ -79,11 +93,15 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 			wire = players[seat].choose(referee, seat)
 		var spent: int = Time.get_ticks_usec() - started
 		_record_timing(timing[side], spent, players[seat], referee)
+		if decisions != null and players[seat] != null and referee.engine.prompt.options.size() > 1:
+			decisions.store_line(JSON.stringify(_decision_line(referee, record, seat, decks[seat].id, players[seat], wire)))
 		steps += 1
 		problem = referee.submit(seat, wire)
 		if not problem.is_empty():
 			problem = "Rejected %s: %s" % [str(wire), problem]
 			break
+		if record != null:
+			record.add_command(referee.history[referee.history.size() - 1], Time.get_ticks_msec() - dealt)
 		# A card in two places is a broken match, never a result: fail it and say where.
 		if referee.integrity_fault != "":
 			problem = "Card integrity: %s" % referee.integrity_fault
@@ -99,6 +117,9 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 		finished = false
 	for side in range(2):
 		_close_timing(timing[side])
+	if records != null and record != null and finished:
+		record.finish(winner_seat, str(referee.engine.state.win_reason), referee.engine, Time.get_ticks_msec() - dealt)
+		records.store_line(record.line())
 	return {
 		"ok": finished and problem.is_empty(),
 		"error": problem,
@@ -117,6 +138,48 @@ func play(a_deck: DeckList, b_deck: DeckList, a_seat: int, a_side: SimSeat, b_si
 			distances(referee.engine, 1 - a_seat) if finished else {},
 		],
 	}
+
+
+## One AI decision as a reviewable line: where the duel stood, every option with the scorer's score
+## (best first, capped), the search's findings when it searched, and the option taken. `entry` is
+## the index the command will have in the record, which is also the replay's `--dev-replay-to`.
+func _decision_line(referee: Referee, record: MatchRecord, seat: int, deck_id: String, player: AiPlayer, wire: Dictionary) -> Dictionary:
+	var engine: DuelEngine = referee.engine
+	var prompt: Prompt = engine.prompt
+	var scores: Array[float] = AiScorer.scores(referee.sim_for(seat, 1), player.profile_for(referee, seat), seat)
+	var ranked: Array[Dictionary] = []
+	for i in range(prompt.options.size()):
+		ranked.append({"option": _label(engine, prompt.options[i]), "score": snappedf(scores[i] if i < scores.size() else 0.0, 0.01)})
+	ranked.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return float(x["score"]) > float(y["score"]))
+	var searched: Array[Dictionary] = []
+	for r in player.search.last_report:
+		searched.append({"option": str(r.get("option", "")), "value": snappedf(float(r.get("value", 0.0)), 0.01), "depth": int(r.get("depth", 0))})
+	var me: PlayerState = engine.player(seat)
+	var foe: PlayerState = engine.player(1 - seat)
+	return {
+		"record": record.id if record != null else "",
+		"entry": referee.history.size(),
+		"seat": seat,
+		"deck": deck_id,
+		"turn": engine.state.turn,
+		"kind": String(prompt.kind),
+		"state": {"energy": me.duelist.energy, "fervor": me.fervor, "aspect": me.duelist.aspect, "hand": me.hand.size(),
+			"life": me.life_deck.size(), "foe_energy": foe.duelist.energy, "foe_life": foe.life_deck.size()},
+		"chose": _label(engine, Command.from_dict(wire)),
+		"options": ranked.slice(0, DECISION_OPTIONS),
+		"search": searched,
+	}
+
+
+## "attack Storm Lash (#84)": a command with its card named, for a person reading the log.
+static func _label(engine: DuelEngine, cmd: Command) -> String:
+	var text: String = String(cmd.type)
+	var c: CardInstance = engine.card(cmd.card)
+	if c != null:
+		text += " %s (#%d)" % [c.def.title, cmd.card]
+	if cmd.value != null:
+		text += " %s" % str(cmd.value)
+	return text
 
 
 ## What one seat still needed on each route, at the moment the game ended. Lower is closer.

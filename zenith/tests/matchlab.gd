@@ -54,6 +54,10 @@ const SPEC_BASE: Dictionary = {
 	"shard": {"type": "str", "default": ""},
 
 	"tsv": {"type": "str", "default": ""},
+	# `--records=` writes every finished game as a match record line for `--dev-replay`, and
+	# `--decisions=` one line per AI decision with the scored options; see SimMatch.
+	"records": {"type": "str", "default": ""},
+	"decisions": {"type": "str", "default": ""},
 	"json": {"type": "str", "default": ""},
 	"verbose": {"type": "bool", "default": "off"},
 	"progress": {"type": "int", "default": 0, "min": 0, "max": 1000000},
@@ -116,6 +120,15 @@ func _init() -> void:
 	var table: StrikeTable = StrikeTable.load_from("res://data/strike_table.json")
 	var runner: SimMatch = SimMatch.make(library, table, args.int_of("max-steps"))
 	runner.points_to_win = args.int_of("points")
+	for key in ["records", "decisions"]:
+		if args.str_of(key).is_empty():
+			continue
+		var sink: FileAccess = FileAccess.open(ProjectSettings.globalize_path(args.str_of(key)), FileAccess.WRITE)
+		if sink == null:
+			print("matchlab: cannot write --%s=%s" % [key, args.str_of(key)])
+			quit(2)
+			return
+		runner.set(key, sink)
 	var report: SimReport = SimReport.new()
 	var verbose: bool = args.bool_of("verbose")
 	var progress: int = args.int_of("progress")

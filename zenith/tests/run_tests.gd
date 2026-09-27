@@ -225,6 +225,11 @@ func _init() -> void:
 		test_ai_seal_guard_and_climb_grounds,
 		test_attack_forecast_reports_energy_left,
 		test_ai_reserve_swaps,
+		test_scorer_reads_effects_the_way_the_engine_resolves_them,
+		test_scorer_prices_optional_costs_burns_and_keeps,
+		test_scorer_counts_the_mastery_lines_an_attack_triggers,
+		test_evaluator_discounts_refilled_energy_and_doomed_hand_cards,
+		test_search_defers_to_the_scorer_on_stances_and_near_ties,
 		test_archetype_label,
 		test_ai_profile_merge,
 		test_automaton_deck_is_legal,
@@ -409,6 +414,8 @@ func _init() -> void:
 		test_root_compost_and_deeproot_masteries_draw_on_a_root_card,
 		test_root_sacred_grove_exiles_other_schools_and_grants_a_hit,
 		test_storm_brewing_mastery_asks_wound_or_price,
+		test_storm_squall_mastery_locks_strikes_after_a_storm_art,
+		test_every_mastery_line_runs_on_a_mastery_trigger,
 		test_storm_shipped_cards_match_their_printed_text,
 		test_storm_backflash_and_grounding_drills_answer_the_defense,
 		test_storm_seeking_spark_and_stormwall_drills,
@@ -474,6 +481,59 @@ func _init() -> void:
 		test_presence_hand_hover_is_a_slot_and_nothing_else,
 		test_presence_never_names_a_card_the_receiver_cannot_see,
 		test_presence_caps_strings_and_refuses_unknown_looks,
+		test_a_follow_up_is_used_inside_the_attack_it_follows,
+		test_declining_a_follow_up_leaves_the_attack_as_it_was,
+		test_the_integrity_check_catches_a_card_in_no_list,
+		test_an_adventure_run_saves_its_duel_history,
+		test_a_referee_rebuilt_from_its_history_stands_in_the_same_place,
+		test_a_duel_result_is_recorded_once,
+		test_a_conceded_duel_is_a_loss_and_leaves_no_history,
+		test_a_drill_blocks_from_play_and_stays_there,
+		test_a_non_combat_blocks_only_once_placed,
+		test_a_non_combat_block_goes_where_its_text_says,
+		test_a_placed_stop_all_non_combat_stops_the_rest_of_combat,
+		test_a_combat_block_runs_its_rider_as_part_of_the_stop,
+		test_a_forbidden_non_combat_or_drill_cannot_block_from_play,
+		test_chance_picks_the_opener_from_the_seed,
+		test_a_forced_opener_overrides_double_power_and_chance,
+		test_a_match_record_comes_back_whole_from_its_line,
+		test_a_match_record_rebuilds_its_duel_for_replay,
+		test_the_match_record_loader_refuses_what_it_cannot_check,
+		test_client_match_records_keep_their_last_lines_where_they_are_pointed,
+		test_match_stats_count_each_deck_and_its_wilson_range,
+		test_match_stats_read_the_matchup_grid_the_same_from_both_seats,
+		test_match_stats_give_the_first_player_rate_overall_and_per_deck,
+		test_match_stats_bucket_concessions_and_share_out_the_endings,
+		test_match_stats_group_records_by_catalog,
+		test_match_stats_skip_dev_client_and_unverified_records,
+		test_match_stats_count_the_cards_of_two_replayed_duels,
+		test_a_decision_clock_gives_each_kind_of_prompt_its_time,
+		test_a_decision_clock_warns_then_drains_the_bank,
+		test_a_decision_clock_banks_time_at_each_own_turn_up_to_the_cap,
+		test_decision_clocks_run_per_seat_and_the_earlier_deadline_loses,
+		test_a_decision_clock_waits_for_its_panel_or_its_grace,
+		test_a_catch_up_gives_a_seat_its_view_prompt_and_this_turn,
+		test_a_replay_stepped_to_its_end_stands_where_the_duel_ended,
+		test_a_replay_jump_shows_the_table_stepping_there_shows,
+		test_a_replay_step_back_then_forward_returns_to_the_same_table,
+		test_a_full_information_replay_names_every_card,
+		test_a_replay_reads_client_and_server_records_from_their_files,
+		test_queue_pairs_two_oldest_first,
+		test_queue_ignores_duplicate_join,
+		test_queue_forgets_a_leaver,
+		test_requeue_keeps_join_time,
+		test_queue_holds_pairs_at_the_duel_cap,
+		test_queue_drops_after_max_wait,
+		test_an_identity_keeps_its_key_and_signs_only_its_own_bytes,
+		test_the_rating_port_matches_the_openskill_golden_fixture,
+		test_a_rating_shows_forty_times_its_ordinal_and_is_provisional_while_unsure,
+		test_the_ratings_store_round_trips_and_rebuilds_from_the_records,
+		test_the_leaver_ladder_climbs_and_clears_after_a_day,
+		test_the_ranked_queue_pairs_on_mu_within_a_widening_window,
+		test_the_ranked_queue_does_not_pair_the_same_two_twice_in_a_row,
+		test_a_version_2_record_carries_its_match_and_a_version_1_record_still_loads,
+		test_match_stats_count_ranked_matches_by_deck_and_by_score,
+		test_a_match_conceded_as_a_whole_loads_and_counts_like_a_concession,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -549,8 +609,28 @@ func engine(a: DeckList, b: DeckList, seed_value: int = 1, shuffle: bool = false
 	e.shuffle_decks = shuffle
 	var decks: Array[DeckList] = [a, b]
 	e.setup(decks, lib, table, seed_value)
+	vigil_opens(e, a, b)
 	e.start()
 	return e
+
+
+## Helper-built duels between a Vigil and a Pact deck open with the Vigil seat when chance would
+## decide, so every fixture test keeps its seating. Same-side pairings and Double Power stay as the
+## engine rules them.
+func vigil_opens(e: DuelEngine, a: DeckList, b: DeckList) -> void:
+	if a.alignment == b.alignment:
+		return
+	for ev in e.events:
+		if ev.type == &"setup" and str(ev.data.get("reason", "")) == "chance":
+			e.set_first_player(0 if a.alignment == "vigil" else 1)
+
+
+## The data of the engine's `setup` event, or {} when it has been taken.
+func setup_event(e: DuelEngine) -> Dictionary:
+	for ev in e.events:
+		if ev.type == &"setup":
+			return ev.data
+	return {}
 
 
 func answer(e: DuelEngine, type: StringName, card: int = -1, value: Variant = null) -> void:
@@ -744,6 +824,7 @@ func test_freestyle_mastery_searches_named_support_cards() -> void:
 		var e: DuelEngine = DuelEngine.new()
 		e.shuffle_decks = false
 		e.setup(decks, shipped, StrikeTable.load_from("res://data/strike_table.json"), 5)
+		vigil_opens(e, decks[0], decks[1])
 		e.start()
 		# Pay with a named support card, then search for the other support type.
 		var payment: CardInstance = e._instance(shipped.get_def("signature_noncombat_07" if target_id == "signature_drill_05" else "signature_drill_05"), 0, &"hand")
@@ -809,7 +890,7 @@ func test_shipped_decks_are_legal() -> void:
 
 func test_setup_and_first_turn() -> void:
 	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
-	eq(e.state.active, 0, "vigil goes first")
+	eq(e.state.active, 0, "the helper seats the Vigil deck first")
 	eq(e.player(1).duelist.energy, 5, "opposing starts at 5")
 	eq(e.player(0).hand.size(), 3, "active drew 3")
 	eq(e.player(1).hand.size(), 0, "opposing has no opening hand")
@@ -1908,7 +1989,13 @@ func test_reserve_batch() -> void:
 	eq(batch.label, "Bring in 2", "the batch option labels itself")
 	var deck_before: int = e.player(0).life_deck.size()
 	check(e.submit(batch.to_command(0)), "the batch is accepted")
-	eq(e.card(a).zone, &"life_deck", "first card entered the deck")
+	# A card brought in earlier in the batch may be the random one a later swap sends back out, so
+	# the first is read off the swap events and only the last is sure to still be in the deck.
+	var brought: Array[int] = []
+	for ev in e.events:
+		if ev.type == &"reserve_swap":
+			brought.append(int(ev.data.get("in", -1)))
+	check(brought.has(a), "first card entered the deck")
 	eq(e.card(b).zone, &"life_deck", "second card entered the deck")
 	eq(e.player(0).reserve.size(), 3, "two random cards came out")
 	eq(e.state.turn, 1, "the batch also finishes the swap")
@@ -1928,10 +2015,17 @@ func test_double_power_rule_decides_first_player() -> void:
 	eq(e.player(0).duelist.energy, 2, "the duelist with double the Might starts at Energy 2")
 	eq(e.player(1).duelist.energy, CardInstance.MAX_STAGE, "the weaker starts at full Energy")
 	check(has_event(e, &"double_power"), "Double Power event emitted")
-	# Under double: the side rule decides and nobody's Energy moves.
-	var even: DuelEngine = engine(deck(filler(), "vigil"), deck(filler(), "pact"))
-	eq(even.state.active, 0, "the Vigil goes first when the Double Power Rule does not apply")
-	eq(even.player(1).duelist.energy, 5, "and the second player keeps the usual starting stage")
+	eq(str(setup_event(e).get("reason", "")), "double_power", "the setup event says why")
+	# Under double: chance decides and nobody's Energy moves. Built by hand, since the helper seats
+	# a Vigil deck first.
+	var even: DuelEngine = DuelEngine.new()
+	even.shuffle_decks = false
+	var pair: Array[DeckList] = [deck(filler(), "vigil"), deck(filler(), "pact")]
+	even.setup(pair, lib, table, 1)
+	even.start()
+	eq(str(setup_event(even).get("reason", "")), "chance", "chance decides when the Double Power Rule does not apply")
+	eq(int(setup_event(even).get("first", -1)), even.state.active, "and the setup event names the seat it picked")
+	eq(even.player(1 - even.state.active).duelist.energy, 5, "the second player keeps the usual starting stage")
 	check(not has_event(even, &"double_power"), "no Double Power event")
 
 
@@ -2089,6 +2183,7 @@ func test_referee_gates_commands() -> void:
 	var r2: Referee = Referee.new()
 	r2.engine.shuffle_decks = false
 	r2.setup([deck(filler(["t_strike_plus2"])), deck(filler(), "pact")], lib, table, 5)
+	r2.engine.set_first_player(0)   # the seat holding the heavy Strike attacks first
 	r2.start()
 	r2.take_updates()
 	var att: int = r2.engine.prompt.player
@@ -5058,14 +5153,10 @@ func test_ai_follows_a_tutor_chain() -> void:
 	flat.merge({"play": {"bond_band": 4.0, "tutor_decay": 0.0}})
 	var chaining: AiProfile = AiProfile.default_profile()
 	chaining.merge({"play": {"bond_band": 4.0, "tutor_decay": 0.6}})
-	# The cache is only valid for one profile and one board, which is all `scores` ever asks of it.
-	AiScorer._value_cache.clear()
 	var plain: float = AiScorer.card_value(e, me, tutor, flat, AiScorer.TUTOR_DEPTH)
-	AiScorer._value_cache.clear()
 	var chained: float = AiScorer.card_value(e, me, tutor, chaining, AiScorer.TUTOR_DEPTH)
 	check(chained > plain + 4.0, "two links away, the fusion still pulls the first search: %.1f against %.1f" % [chained, plain])
 	# And the far end is worth more than the road to it, so nothing prefers the tutor to the payoff.
-	AiScorer._value_cache.clear()
 	var rite: CardInstance = to_hand(e, 0, "t_bonding_rite")
 	var payoff: float = AiScorer.card_value(e, me, rite, chaining, AiScorer.TUTOR_DEPTH)
 	check(payoff > chained, "the fusion itself outranks the card that goes to find it")
@@ -5176,12 +5267,140 @@ func test_ai_reserve_swaps() -> void:
 	check(reserve_swaps("pyre_beatdown", "tide_companions").has("pyre_art_02"), "Pyre brings its Ally answer in against Tide")
 	check(not reserve_swaps("pyre_beatdown", "steel_beatdown").has("pyre_art_02"), "and leaves it out against Steel")
 	check(reserve_swaps("steel_beatdown", "freestyle_swords").has("signature_combat_07"), "Steel brings its Drill answer in against Freestyle")
-	check(reserve_swaps("steel_beatdown", "pyre_beatdown").has("steel_strike_01"), "and its plain strong card every game")
+	# A plain card comes in when it clears the deck's average by the bar. Locking Jaws sits about a
+	# quarter above Steel's average, which is not enough, so the check uses a card far above it.
+	var steel: DuelEngine = shipped_engine("steel_beatdown", "pyre_beatdown", 5)
+	var steel_profile: AiProfile = AiProfile.for_deck(DeckList.load_from("res://data/decks/steel_beatdown.json"), "")
+	var big: CardDef = CardDef.from_dict({"id": "big", "title": "Big", "type": "strike", "school": "steel", "attack": {"kind": "strike", "printed_life": 12}})
+	check(AiReserve.score(steel, 0, steel._instance(big, 0, &"reserve"), steel_profile) > 0.0, "a plain card far above the deck's average comes in")
+	check(AiReserve.score(steel, 0, steel._instance(shipped().get_def("steel_strike_01"), 0, &"reserve"), steel_profile) < 0.0, "one a quarter above it stays out")
 	check(not reserve_swaps("steel_beatdown", "pyre_beatdown").has("freestyle_noncombat_09"), "a card that starts in play from the Reserve stays there")
 	eq(reserve_swaps("tide_companions", "shade_henchmen").size(), 0, "the Tide profile brings nothing in")
 	check(not reserve_swaps("storm_volley", "pyre_beatdown").has("freestyle_strike_03"), "Storm leaves a toolbox attack where its fetch card can reach it")
 	check(reserve_swaps("storm_volley", "tide_companions").has("freestyle_strike_03"), "unless the opponent is what it answers")
 	check(not reserve_swaps("freestyle_swords", "pyre_beatdown").has("freestyle_combat_14"), "an Ascension deck does not bring in the card that gives up the Ascension win")
+
+
+## The scorer reads a card the way the engine resolves it: a check's two branches, an effect the
+## chooser may aim at either side, a standing modifier over the attacks it touches, and an Art's
+## base wounds.
+func test_scorer_reads_effects_the_way_the_engine_resolves_them() -> void:
+	var profile: AiProfile = AiProfile.default_profile()
+	# "Remove a card from your discard pile. If it is a Pyre card, +2 Fervor; otherwise +1."
+	var mastery: Array = shipped().get_def("pyre_mastery_02").effects
+	var expected: float = -profile.w("effect", "remove_discard") + 1.5 * profile.w("effect", "fervor")
+	check(is_equal_approx(AiScorer.effects_value(mastery, profile, ["use"]), expected), "both branches of the check count as an even call: %.2f" % AiScorer.effects_value(mastery, profile, ["use"]))
+	var either: Array = shipped().get_def("freestyle_noncombat_10").effects
+	check(AiScorer.effects_value(either, profile, ["use"]) > 0.0, "a Seal either side may lose is aimed at the rival's, not read as self-harm")
+	var year: Array = shipped().get_def("freestyle_noncombat_05").effects
+	eq(AiScorer.effects_value(year, profile, ["use"]), 6.0 * profile.w("play", "damage_stage"), "+1 to every attack for the game is six attacks' worth")
+	check(is_equal_approx(AiScorer.modifier_value({"scope": "own", "stages": 1}, "game", profile), 4.0 * AiScorer.modifier_value({"scope": "own", "stages": 1}, "combat", profile)), "a game-long modifier outweighs one for the Combat")
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var art: CardInstance = real_to_hand(e, 0, "storm_art_07")
+	check(AiScorer.hold_value(art, profile) > 1.5 + 4.0 * profile.w("play", "damage_life"), "a held Art is worth its printed wounds")
+	var policing: AiProfile = AiProfile.default_profile()
+	policing.merge({"effect": {"fervor_foe": 3.0, "remove_hand": 3.0}})
+	eq(AiScorer.effects_value([{"op": "fervor", "who": "opponent", "amount": -1}], policing, []), 3.0, "`fervor_foe` prices the rival's Fervor taken away")
+	eq(AiScorer.effects_value([{"op": "remove_hand", "who": "opponent", "amount": 1}], policing, []), 3.0, "`remove_hand` prices a card taken from their hand for good")
+	eq(AiScorer.effects_value([{"op": "remove_hand", "who": "opponent", "amount": 1}], profile, []), profile.w("effect", "discard_hand"), "and falls back to a discard's weight")
+	var blank: CardDef = CardDef.from_dict({"id": "x", "title": "X", "type": "strike", "attack": {"kind": "strike"}})
+	eq(AiScorer._expected_damage_value(blank.attack, "strike", profile), AiScorer.EVEN_TABLE_STAGES * profile.w("play", "damage_stage"), "a plain Strike is read at the equal-band table result")
+
+
+## The scorer prices what a choice costs and buys, rather than taking whichever option comes first:
+## paying a life card for more damage, burning the discard pile against a hit, and which card to
+## keep through the opponent's turn.
+func test_scorer_prices_optional_costs_burns_and_keeps() -> void:
+	# Steel Clawed Heel: "You may discard the top card of your Life Deck: +3 wounds."
+	var steel: DuelEngine = real_engine(real_deck(["steel_strike_20"], "vigil", "steel", "Emrys Rooke"), real_deck([], "pact"))
+	var steps: int = 0
+	while steel.prompt != null and not (steel.prompt.kind == &"attack_action" and steel.prompt.player == 0) and steps < 20:
+		steps += 1
+		var quiet: Command = null
+		for t in [&"done", &"declare", &"decline", &"pass"]:
+			quiet = steel.prompt.find(t) if quiet == null else quiet
+		steel.submit(quiet if quiet != null else steel.prompt.options[steel.prompt.options.size() - 1])
+	answer(steel, &"attack", uid_in_hand(steel, 0, "steel_strike_20"))
+	eq(prompt_kind(steel), &"pay", "the life cost is offered")
+	var paid: Command = AiScorer.pick(steel, AiProfile.default_profile())
+	eq(paid.type, &"pay_life", "the scorer answers it")
+	eq(int(paid.value), 1, "and pays a card for three wounds")
+	# Tide Fathom Mastery: burn Tide cards from the discard pile, two wounds prevented per card.
+	var tide_deck: DeckList = real_deck([], "pact", "tide")
+	tide_deck.mastery_id = "tide_mastery_02"
+	var burn: DuelEngine = real_engine(real_deck(["storm_art_07"], "vigil", "storm"), tide_deck)
+	for i in range(4):
+		real_to_discard(burn, 1, "tide_art_02")
+	to_attack(burn, 0)
+	burn.player(0).duelist.energy = 5
+	answer(burn, &"attack", uid_in_hand(burn, 0, "storm_art_07"))
+	var guard: int = 0
+	while burn.prompt != null and burn.prompt.kind != &"defense" and guard < 6:
+		guard += 1
+		burn.submit(burn.prompt.options[0])
+	eq(prompt_kind(burn), &"defense", "the defender is asked")
+	var most: int = 0
+	for o in burn.prompt.options:
+		if o.type == &"burn_defense":
+			most = maxi(most, int(o.value))
+	check(most >= 2, "several burns are offered")
+	var burned: Command = AiScorer.pick(burn, AiProfile.default_profile())
+	check(burned.type != &"burn_defense" or int(burned.value) == most, "a burn clears the whole hit rather than one card's worth: %s" % burned.describe())
+	# Keeping one card through the opponent's turn: the block can act there, the attack cannot.
+	var k: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var me: PlayerState = k.player(k.state.active)
+	var block: CardInstance = real_to_hand(k, me.index, "steel_strike_19")
+	var swing: CardInstance = real_to_hand(k, me.index, "storm_art_07")
+	var profile: AiProfile = AiProfile.default_profile()
+	check(AiScorer.hold_value(swing, profile) > AiScorer.hold_value(block, profile), "the Art is the better card to hold in general")
+	check(AiScorer._keep_score(k, me, block, profile) > AiScorer._keep_score(k, me, swing, profile), "but the block is the one to keep through their turn")
+
+
+## What the Mastery adds to an attack counts toward that attack, when the attack meets its gate.
+func test_scorer_counts_the_mastery_lines_an_attack_triggers() -> void:
+	var d: DeckList = real_deck([], "pact", "storm")
+	d.mastery_id = "storm_mastery_02"
+	var e: DuelEngine = real_engine(d, real_deck([], "vigil"))
+	var profile: AiProfile = AiProfile.default_profile()
+	var me: PlayerState = e.player(0)
+	var storm: float = AiScorer._mastery_attack_value(e, profile, me, shipped().get_def("storm_art_07"), "art", 0.0)
+	check(storm > 0.0, "a Storm Art is worth the Strike lock it sets")
+	eq(AiScorer._mastery_attack_value(e, profile, me, shipped().get_def("tide_art_02"), "art", 0.0), 0.0, "another school's Art sets nothing")
+
+
+## The evaluator's resource terms: Energy the next Power Up refills anyway, and cards past what the
+## discard step keeps, count half.
+func test_evaluator_discounts_refilled_energy_and_doomed_hand_cards() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var p: PlayerState = e.player(e.state.active)
+	p.duelist.energy = CardInstance.MAX_STAGE
+	var gain: int = e.recover_gain(p)
+	eq(AiEvaluator.held_energy(e, p), float(CardInstance.MAX_STAGE) - 0.5 * float(mini(gain, CardInstance.MAX_STAGE)), "a full gauge counts its refilled part at half")
+	p.duelist.energy = 0
+	eq(AiEvaluator.held_energy(e, p), 0.0, "an empty one is empty")
+	while p.hand.size() < 4:
+		real_to_hand(e, p.index, "storm_art_07")
+	var keep: int = e._hand_keep(p)
+	e.state.step = GameState.Step.COMBAT
+	eq(AiEvaluator.kept_hand(e, p), float(keep) + 0.5 * float(p.hand.size() - keep), "on its own turn the cards past the limit count half")
+	e.state.step = GameState.Step.RECOVER
+	eq(AiEvaluator.kept_hand(e, p), float(p.hand.size()), "after the discard step every card counts")
+
+
+## Declaring Combat is answered by the scorer, and a single thin ply does not overrule it.
+func test_search_defers_to_the_scorer_on_stances_and_near_ties() -> void:
+	var profile: AiProfile = AiProfile.default_profile()
+	check(profile.scorer_decides(&"declare"), "the declare prompt is a stance the scorer answers")
+	var search: AiSearch = AiSearch.new()
+	search.metrics = {"completed_depth": 1}
+	var completed: Array[Dictionary] = [{"index": 0, "value": 10.4}, {"index": 1, "value": 10.0}]
+	var prior: Array[float] = [1.0, 5.0]
+	eq(search._trust_scorer_at_depth_one(profile, completed, prior, 0), 1, "a depth-1 lead under the margin keeps the scorer's pick")
+	completed[0]["value"] = 12.0
+	eq(search._trust_scorer_at_depth_one(profile, completed, prior, 0), 0, "a clear lead stands")
+	search.metrics = {"completed_depth": 2}
+	completed[0]["value"] = 10.4
+	eq(search._trust_scorer_at_depth_one(profile, completed, prior, 0), 0, "and two completed plies are trusted as they are")
 
 
 ## A deck's archetype rides from its JSON to both seats' views, the validator knows the
@@ -7066,6 +7285,7 @@ func real_engine(a: DeckList, b: DeckList, seed_value: int = 1) -> DuelEngine:
 	e.shuffle_decks = false
 	var decks: Array[DeckList] = [a, b]
 	e.setup(decks, shipped(), _shipped_table, seed_value)
+	vigil_opens(e, a, b)
 	e.start()
 	return e
 
@@ -11104,6 +11324,37 @@ func test_storm_brewing_mastery_asks_wound_or_price() -> void:
 	eq(f._cost_stages(shipped().get_def("tide_art_02").attack, f.player(0)), 2, "and pay full price")
 
 
+## "If your Storm Art is successful, your opponent may not use Strike cards during their next attack
+## phase." A Mastery's lines run on the Mastery's own triggers, so the line is `on_success`: written
+## as `if_successful` it never ran at all.
+func test_storm_squall_mastery_locks_strikes_after_a_storm_art() -> void:
+	for id in ["storm_art_07", "tide_art_02"]:
+		var d: DeckList = real_deck([id], "pact", "storm")
+		d.mastery_id = "storm_mastery_02"
+		var e: DuelEngine = real_engine(d, real_deck([], "vigil"))
+		to_attack(e, 0)
+		e.player(0).duelist.energy = 5
+		answer(e, &"attack", uid_in_hand(e, 0, id))
+		settle(e, 12)
+		var storm: bool = id.begins_with("storm")
+		eq(e._forbidden(e.player(1), "strike_cards"), storm, "%s: a landed Art locks Strikes only when it is Storm" % id)
+
+
+## Every Mastery line names a trigger the engine runs for a Mastery. Anything else sits in the data
+## and never resolves, which is how the Squall lock went missing.
+func test_every_mastery_line_runs_on_a_mastery_trigger() -> void:
+	var runs: Array[String] = ["use", "on_attack", "on_success", "on_stopped", "entering_combat", "rejuvenation", "secondary"]
+	for id in shipped().all_ids():
+		var def: CardDef = shipped().get_def(id)
+		if def.type != CardDef.Type.MASTERY:
+			continue
+		for e in def.effects:
+			var trigger: String = str(e.get("trigger", "secondary"))
+			check(runs.has(trigger), "%s: trigger '%s' never runs on a Mastery" % [id, trigger])
+			if trigger == "secondary":
+				check(not def.defense.is_empty(), "%s: a secondary line on a Mastery only runs when it defends" % id)
+
+
 ## The shipped Storm cards, each against the clause the review found it missing.
 func test_storm_shipped_cards_match_their_printed_text() -> void:
 	var e: DuelEngine = real_engine(real_deck([], "pact", "storm"), real_deck([], "vigil"))
@@ -11664,3 +11915,1724 @@ func test_freestyle_cards_match_their_printed_text() -> void:
 	eq(str(shipped().get_def("freestyle_strike_03").effects[2].get("who", "")), "any", "Headlong Plunge's Ally is either side's")
 	eq(str(shipped().get_def("freestyle_art_05").raw.get("remain_by", "")), "ally", "Knife Volley's extra use is an Ally's")
 	eq(str(shipped().get_def("freestyle_combat_16").effects[0]["effects"][0].get("op", "")), "show_checked", "Keen Eye shows the named card")
+
+
+## "Use immediately after a Strike you perform becomes successful": the card is used inside battle
+## step 8, the Strike then deals its damage and ends, and the defender's attack phase follows.
+func test_a_follow_up_is_used_inside_the_attack_it_follows() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
+	var me: PlayerState = e.player(0)
+	var follow: CardInstance = to_hand(e, 0, "t_follow_up")
+	to_combat(e)
+	var strike: CardInstance = e.card(uid_in_hand(e, 0, "t_strike"))
+	var phases: int = e.state.attack_phase_count
+	answer(e, &"attack", strike.uid)
+	eq(prompt_kind(e), &"follow_up", "the landed Strike offers the follow-up")
+	eq(str(e.prompt.context.get("window", "")), "own_successful_attack", "and names its window")
+	eq(e.state.battle_step, 8, "asked inside battle step 8")
+	eq(e.player(1).duelist.energy, 5, "before any damage is dealt")
+	eq(e.integrity_problem(), "", "the Strike in the air is not stranded")
+	var hand_before: int = me.hand.size()
+	var from: int = e.events.size()
+	answer(e, &"use", follow.uid)
+	var drew: int = -1
+	var ended: int = -1
+	for i in range(from, e.events.size()):
+		var ev: GameEvent = e.events[i]
+		if ev.type == &"draw" and int(ev.data.get("player", -1)) == 0 and drew < 0:
+			drew = i
+		elif ev.type == &"attack_end" and ended < 0:
+			ended = i
+	check(drew >= 0, "the follow-up drew its card")
+	check(ended > drew, "and the attack ended after that: draw at %d, attack_end at %d" % [drew, ended])
+	eq(me.hand.size(), hand_before, "one card used, one drawn")
+	eq(e.player(1).duelist.energy, 3, "the Strike still dealt its 2 stages")
+	eq(int(e.state.last_attack.get("stages_dealt", -1)), 2, "and its outcome says so")
+	eq(follow.zone, &"discard", "the follow-up is discarded after use")
+	eq(strike.zone, &"discard", "the Strike is discarded after use")
+	check(e.state.attack.is_empty(), "no attack is left in the air")
+	eq(e.integrity_problem(), "", "every card is where its zone says")
+	eq(prompt_kind(e), &"attack_action", "an attack phase follows")
+	eq(e.prompt.player, 1, "and it is the defender's")
+	eq(e.state.attack_phase_count, phases + 1, "only the Strike's attack phase went by")
+
+
+## Declining the follow-up keeps the card in hand and lets the Strike finish as it would have.
+func test_declining_a_follow_up_leaves_the_attack_as_it_was() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
+	var me: PlayerState = e.player(0)
+	var follow: CardInstance = to_hand(e, 0, "t_follow_up")
+	to_combat(e)
+	var strike: CardInstance = e.card(uid_in_hand(e, 0, "t_strike"))
+	answer(e, &"attack", strike.uid)
+	eq(prompt_kind(e), &"follow_up", "the window opens")
+	var hand_before: int = me.hand.size()
+	var deck_before: int = me.life_deck.size()
+	answer(e, &"decline")
+	eq(follow.zone, &"hand", "the follow-up stays in hand")
+	eq(me.hand.size(), hand_before, "the hand is unchanged")
+	eq(me.life_deck.size(), deck_before, "and nothing was drawn")
+	eq(e.player(1).duelist.energy, 3, "the Strike dealt its 2 stages")
+	check(has_event(e, &"attack_end"), "the attack ended")
+	eq(strike.zone, &"discard", "the Strike is discarded after use")
+	check(e.state.attack.is_empty(), "no attack is left in the air")
+	eq(e.integrity_problem(), "", "every card is where its zone says")
+	eq(prompt_kind(e), &"attack_action", "an attack phase follows")
+	eq(e.prompt.player, 1, "and it is the defender's")
+
+
+## A card that fell out of every list is named: one left in `resolving` with no attack in the air
+## and nothing queued to finish it, and one whose zone names a pile that no longer holds it.
+func test_the_integrity_check_catches_a_card_in_no_list() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	eq(e.integrity_problem(), "", "a fresh duel is sound")
+	var held: CardInstance = e.player(0).hand[0]
+	e._erase_from_zone(held)
+	held.zone = &"resolving"
+	check(e.integrity_problem().contains("stranded in resolving"), "a card left resolving is named: %s" % e.integrity_problem())
+	e._enqueue([{"trigger": "secondary", "op": "finish_source"}], "secondary", 0, {}, held)
+	eq(e.integrity_problem(), "", "one whose finish is still queued is mid-resolution")
+	e._queue.clear()
+	e._finish_card(held, false)
+	eq(held.zone, &"discard", "spent, it reaches the discard pile")
+	eq(e.integrity_problem(), "", "and the duel is sound again")
+	var lost: CardInstance = e.player(1).life_deck[0]
+	e.player(1).life_deck.erase(lost)
+	check(e.integrity_problem().contains("in no zone list"), "a card its pile lost is named: %s" % e.integrity_problem())
+
+
+## The duel in progress rides in the run save, and JSON's floats come back as the ints a replay has
+## to match.
+func test_an_adventure_run_saves_its_duel_history() -> void:
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 4242)
+	check(run != null, "the starter resolves into a run")
+	if run == null:
+		return
+	eq(run.duel_history.size(), 0, "a new run has no duel in progress")
+	run.status = "stage"
+	run.duel_history = [
+		{"player": 0, "type": "reserve_done", "card": -1, "value": null},
+		{"player": 1, "type": "pay", "card": -1, "value": 3},
+		{"player": 0, "type": "discard_choice", "card": -1, "value": [12, 15]},
+		{"player": 0, "dev": {"op": "draw", "amount": 1}},
+	]
+	var copy: AdventureRun = AdventureRun.from_dict(JSON.parse_string(JSON.stringify(run.to_dict())))
+	eq(copy.duel_history, run.duel_history, "the history survives JSON")
+	eq(typeof(copy.duel_history[1]["value"]), TYPE_INT, "a paid amount comes back an int")
+	eq(typeof((copy.duel_history[2]["value"] as Array)[0]), TYPE_INT, "and so do the uids of a batch")
+	eq(typeof((copy.duel_history[3]["dev"] as Dictionary)["amount"]), TYPE_INT, "and a dev effect's amount")
+	AdventureSave.path_override = ADVENTURE_SAVE_PATH
+	check(AdventureSave.store(run), "the run writes to disk")
+	var loaded: AdventureRun = AdventureSave.load_run()
+	check(loaded != null, "the save parses back into a run")
+	if loaded != null:
+		eq(loaded.duel_history, run.duel_history, "the history came back whole from the file")
+	AdventureSave.clear()
+	AdventureSave.path_override = ""
+
+
+## A referee set up the same way and fed another's history, through the run save, stands exactly
+## where that one stands, dev effects included. Its first update logs the current turn without
+## animating it, and a host's later start() leaves it in place.
+func test_a_referee_rebuilt_from_its_history_stands_in_the_same_place() -> void:
+	var decks: Array[DeckList] = [deck(filler(["t_art", "t_taunt", "t_parry", "t_seal_1", "t_pay_art", "t_empower_art"], 40)),
+		deck(filler(["t_guard", "t_ward"], 40), "pact")]
+	var original: Referee = Referee.new()
+	original.setup(decks, lib, table, 91)
+	original.start()
+	var heard: Array[Dictionary] = []
+	original.command_applied.connect(func(_seat: int, command: Dictionary) -> void: heard.append(command))
+	var picker: RandomNumberGenerator = RandomNumberGenerator.new()
+	picker.seed = 19
+	var dev_applied: bool = false
+	for step in range(80):
+		if original.is_over() or (dev_applied and original.engine.state.turn >= 3):
+			break
+		var seat: int = original.engine.prompt.player
+		if not dev_applied and step >= 10 and DuelEngine.DEV_SAFE_PROMPTS.has(original.engine.prompt.kind):
+			dev_applied = original.dev({"player": seat, "effect": {"op": "draw", "amount": 1}}) == ""
+		if original.is_over():
+			break
+		seat = original.engine.prompt.player
+		var options: Array[Command] = original.engine.prompt.options
+		eq(original.submit(seat, options[picker.randi_range(0, options.size() - 1)].to_dict()), "", "a listed option is accepted")
+	original.take_updates()
+	check(dev_applied, "a dev effect went into the history")
+	check(original.engine.state.turn > 1, "the duel is past its first turn")
+	eq(heard.size(), original.history.size(), "every entry was announced")
+	var saved: AdventureRun = AdventureRun.new()
+	saved.duel_history.assign(original.history)
+	var reloaded: AdventureRun = AdventureRun.from_dict(JSON.parse_string(JSON.stringify(saved.to_dict())))
+	var rebuilt: Referee = Referee.new()
+	rebuilt.setup(decks, lib, table, 91)
+	eq(rebuilt.replay(reloaded.duel_history), "", "the history replays after a trip through the save")
+	rebuilt.start()
+	eq(rebuilt.history, original.history, "the rebuilt referee holds the same history")
+	for seat in range(2):
+		check(JSON.stringify(rebuilt.view_for(seat).to_dict()) == JSON.stringify(original.view_for(seat).to_dict()),
+			"seat %d sees the same table" % seat)
+	check(original.engine.prompt != null and rebuilt.engine.prompt != null,
+		"both wait on a decision (over %s, turn %d)" % [str(original.is_over()), original.engine.state.turn])
+	if original.engine.prompt == null or rebuilt.engine.prompt == null:
+		return
+	eq(rebuilt.engine.prompt.describe(), original.engine.prompt.describe(), "the same decision is pending")
+	var first: Array[SeatUpdate] = rebuilt.take_updates()
+	var animated: int = 0
+	for l in first[0].lines:
+		if l.has("data"):
+			animated += 1
+	eq(animated, 0, "the replayed turn reaches the client as log lines only")
+	check(not first[0].lines.is_empty() and str(first[0].lines[0].get("type", "")) == "turn_start",
+		"starting at the current turn")
+	var seat_next: int = original.engine.prompt.player
+	var wire: Dictionary = original.engine.prompt.options[0].to_dict()
+	eq(original.submit(seat_next, wire), "", "the original takes the next command")
+	eq(rebuilt.submit(seat_next, wire), "", "and so does the rebuilt one")
+	check(JSON.stringify(rebuilt.view_for(0).to_dict()) == JSON.stringify(original.view_for(0).to_dict()),
+		"and both land on the same table")
+
+
+## Game over records the duel on the run's node; the Continue click after it records nothing more.
+func test_a_duel_result_is_recorded_once() -> void:
+	var map: AdventureMap = AdventureMap.generate("pyre_beatdown_start", 7)
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
+	check(run.walk_to_next_duel(map), "the run steps onto its first duel")
+	run.duel_history = [{"player": 0, "type": "reserve_done", "card": -1, "value": null}]
+	var story: AdventureStoryLog = AdventureStoryLog.new()
+	var collection: AdventureCollection = AdventureCollection.new()
+	var unlocks: AdventureUnlocks = AdventureUnlocks.new()
+	var progress: AdventureProgress = AdventureProgress.new()
+	var wallet: AdventureWallet = AdventureWallet.new()
+	var results: Array[Dictionary] = AdventureRewards.record_duel(run, map, shipped(), true, null,
+		story, collection, unlocks, progress, wallet)
+	eq(run.status, "reward", "the win moves the run on to its bundles")
+	check(wallet.motes > 0, "and pays Motes")
+	check(not results.is_empty(), "and reports what it gave")
+	eq(run.duel_history.size(), 0, "the finished duel's history is dropped")
+	var motes: int = wallet.motes
+	var ledger: int = wallet.ledger.size()
+	var offer: Array[String] = run.pending_offer.duplicate()
+	var pairs: String = JSON.stringify(story.pairs)
+	var again: Array[Dictionary] = AdventureRewards.record_duel(run, map, shipped(), true, null,
+		story, collection, unlocks, progress, wallet)
+	check(again.is_empty(), "a second record reports nothing")
+	eq(wallet.motes, motes, "and pays nothing more")
+	eq(wallet.ledger.size(), ledger, "with no second ledger line")
+	eq(run.pending_offer, offer, "the bundle offer is not drawn again")
+	eq(JSON.stringify(story.pairs), pairs, "the story log counts the duel once")
+	eq(run.status, "reward", "and the run stays where it was")
+
+
+## Conceding goes through the loss path: the run ends at its settlement and the duel's saved
+## history is dropped, so nothing reopens the duel.
+func test_a_conceded_duel_is_a_loss_and_leaves_no_history() -> void:
+	var map: AdventureMap = AdventureMap.generate("pyre_beatdown_start", 7)
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
+	check(run.walk_to_next_duel(map), "the run steps onto its first duel")
+	run.duel_history = [{"player": 0, "type": "reserve_done", "card": -1, "value": null},
+		{"player": 1, "type": "reserve_done", "card": -1, "value": null}]
+	var story: AdventureStoryLog = AdventureStoryLog.new()
+	var wallet: AdventureWallet = AdventureWallet.new()
+	var results: Array[Dictionary] = AdventureRewards.record_duel(run, map, shipped(), false, null,
+		story, AdventureCollection.new(), AdventureUnlocks.new(), AdventureProgress.new(), wallet)
+	check(results.is_empty(), "a loss gives nothing")
+	eq(run.status, "settle", "the run goes to its settlement")
+	eq(run.outcome, "lost", "as a loss")
+	eq(run.duel_history.size(), 0, "and the duel's history is gone")
+	eq(wallet.motes, 0, "a loss pays no Motes")
+	var row: Dictionary = story.pairs.values()[0] if story.pairs.size() == 1 else {}
+	eq(int(row.get("lost", 0)), 1, "the story log counts the loss")
+
+
+## A Drill with a defense blocks from play and is still in play afterwards, ready for the next
+## Combat. A copy still in hand is never offered, because it has not been placed.
+func test_a_drill_blocks_from_play_and_stays_there() -> void:
+	var def: CardDef = CardDef.from_dict({"id": "t_blocking_drill", "title": "Test Blocking Drill", "type": "drill", "defense": {"stops": "strike"}})
+	var e: DuelEngine = engine(deck(filler([], 20)), deck(filler([], 20), "pact"))
+	var them: PlayerState = e.player(1)
+	var held: CardInstance = e._instance(def, 1, &"hand")
+	them.hand.append(held)
+	var drill: CardInstance = e._instance(def, 1, &"in_play")
+	them.in_play.append(drill)
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(prompt_kind(e), &"defense", "the Strike opens the defence window")
+	check(e.prompt.find(&"defend", held.uid) == null, "the Drill in hand is not offered")
+	answer(e, &"defend", drill.uid)
+	check(bool(e.state.last_attack.get("stopped", false)), "the Drill in play stopped the Strike")
+	eq(drill.zone, &"in_play", "and is still in play")
+	check(them.in_play.has(drill), "in its owner's in-play list")
+	eq(held.zone, &"hand", "the copy in hand never moved")
+	eq(e.integrity_problem(), "", "every card is where its zone says")
+	var first_combat: int = e.state.combat_count
+	skip_to_turn(e, 2)
+	to_attack(e, 0)
+	check(e.state.combat_count > first_combat, "a later Combat")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(prompt_kind(e), &"defense", "the next Strike opens the window again")
+	check(e.prompt.find(&"defend", drill.uid) != null, "and the Drill is offered again")
+	answer(e, &"defend", drill.uid)
+	check(bool(e.state.last_attack.get("stopped", false)), "it stops this Strike too")
+	eq(drill.zone, &"in_play", "and stays in play")
+	check(them.in_play.has(drill), "in its owner's in-play list")
+	eq(e.integrity_problem(), "", "every card is still where its zone says")
+
+
+## A Non-Combat card that stops attacks does so from play. Placed in the Non-Combat step it is a
+## legal defense; a copy still in hand is not.
+func test_a_non_combat_blocks_only_once_placed() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_noncombat_parry", "t_noncombat_parry"], 20)), deck(filler([], 20), "pact"))
+	var me: PlayerState = e.player(0)
+	eq(prompt_kind(e), &"non_combat", "the Non-Combat step opens on the two parries")
+	var placed: CardInstance = e.card(uid_in_hand(e, 0, "t_noncombat_parry"))
+	answer(e, &"place", placed.uid)
+	eq(placed.zone, &"in_play", "one parry is placed")
+	var held: CardInstance = e.card(uid_in_hand(e, 0, "t_noncombat_parry"))
+	check(held != null, "the other is still in hand")
+	answer(e, &"done")
+	answer(e, &"declare")
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 1, "t_strike"))
+	eq(prompt_kind(e), &"defense", "their Strike opens the defence window")
+	check(e.prompt.find(&"defend", placed.uid) != null, "the placed parry is offered")
+	check(e.prompt.find(&"defend", held.uid) == null, "the one in hand is not")
+	answer(e, &"defend", placed.uid)
+	check(bool(e.state.last_attack.get("stopped", false)), "the parry stopped the Strike")
+	eq(me.fervor, 1, "its own line resolved")
+	eq(placed.zone, &"discard", "and it is discarded after use")
+	check(not me.in_play.has(placed), "no longer in play")
+	eq(held.zone, &"hand", "the copy in hand never moved")
+	eq(e.integrity_problem(), "", "every card is where its zone says")
+
+
+## Once in play, a Non-Combat that blocks is spent the way its text says: removed from the game,
+## or put on the bottom of its owner's Life Deck.
+func test_a_non_combat_block_goes_where_its_text_says() -> void:
+	var removed_def: CardDef = CardDef.from_dict({"id": "t_parry_removed", "title": "Test Vanishing Parry", "type": "non_combat",
+		"defense": {"stops": "strike"}, "remove_after_use": true})
+	var bottom_def: CardDef = CardDef.from_dict({"id": "t_parry_bottom", "title": "Test Returning Parry", "type": "non_combat",
+		"defense": {"stops": "strike"}, "bottom_after_use": true})
+	var e: DuelEngine = engine(deck(filler([], 20)), deck(filler([], 20), "pact"))
+	var them: PlayerState = e.player(1)
+	var gone: CardInstance = e._instance(removed_def, 1, &"in_play")
+	them.in_play.append(gone)
+	var back: CardInstance = e._instance(bottom_def, 1, &"in_play")
+	them.in_play.append(back)
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	answer(e, &"defend", gone.uid)
+	check(bool(e.state.last_attack.get("stopped", false)), "the first parry stopped the Strike")
+	eq(gone.zone, &"removed", "and was removed from the game")
+	check(them.removed.has(gone) and not them.in_play.has(gone), "out of play, in the removed pile")
+	eq(e.integrity_problem(), "", "every card is where its zone says")
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	answer(e, &"defend", back.uid)
+	check(bool(e.state.last_attack.get("stopped", false)), "the second parry stopped the next Strike")
+	eq(back.zone, &"life_deck", "and went back to the Life Deck")
+	eq(them.life_deck.back(), back, "at the bottom")
+	check(not them.in_play.has(back), "out of play")
+	eq(e.integrity_problem(), "", "every card is still where its zone says")
+
+
+## A placed Non-Combat that "stops all attacks for the remainder of Combat" keeps stopping them
+## after it has left play.
+func test_a_placed_stop_all_non_combat_stops_the_rest_of_combat() -> void:
+	var rescue_def: CardDef = CardDef.from_dict({"id": "t_rescue", "title": "Test Rescue", "type": "non_combat",
+		"defense": {"stops": "any", "stop_all": "any"}, "remove_after_use": true})
+	var e: DuelEngine = engine(deck(filler([], 20)), deck(filler([], 20), "pact"))
+	var them: PlayerState = e.player(1)
+	var rescue: CardInstance = e._instance(rescue_def, 1, &"in_play")
+	them.in_play.append(rescue)
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	answer(e, &"defend", rescue.uid)
+	check(bool(e.state.last_attack.get("stopped", false)), "the rescue stopped the Strike")
+	eq(rescue.zone, &"removed", "and was removed from the game")
+	eq(e.integrity_problem(), "", "every card is where its zone says")
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	check(bool(e.state.last_attack.get("stopped", false)), "the next Strike of the Combat is stopped too")
+	eq(prompt_kind(e), &"attack_action", "with no defence asked for")
+	eq(them.duelist.energy, 5, "so nothing landed all Combat")
+	eq(e.integrity_problem(), "", "every card is still where its zone says")
+
+
+## A Combat card that stops a Strike and, if the defending personality carries a keyword, takes a
+## card with that keyword back from the discard pile. It is used from hand as a defence, the rider
+## reads the defender's personality in control, and the card is removed from the game. It is never
+## an attack-phase action, because its line belongs to the stop.
+func test_a_combat_block_runs_its_rider_as_part_of_the_stop() -> void:
+	var def: CardDef = CardDef.from_dict({"id": "t_kind_block", "title": "Test Kind Block", "type": "combat",
+		"defense": {"stops": "strike"}, "remove_after_use": true, "tags": ["marked"],
+		"effects": [{"op": "search", "tag": "marked", "source": "discard", "to": "hand", "when": {"in_control_tag": "marked"}}]})
+	for tagged in [true, false]:
+		var theirs: DeckList = deck(filler([], 20), "pact", "", "", 3, "tf_marked_lord") if tagged else deck(filler([], 20), "pact")
+		var e: DuelEngine = engine(deck(filler([], 20)), theirs)
+		var them: PlayerState = e.player(1)
+		var mine: CardInstance = e._instance(def, 0, &"hand")
+		e.player(0).hand.append(mine)
+		var block: CardInstance = e._instance(def, 1, &"hand")
+		them.hand.append(block)
+		var kept: CardInstance = to_discard(e, 1, "t_marked_blow")
+		to_combat(e)
+		if e.prompt != null and e.prompt.player != 0:
+			answer(e, &"pass")   # the first-player rule handed the phase to the other side
+		eq(prompt_kind(e), &"attack_action", "our attack phase")
+		check(e.prompt.find(&"use", mine.uid) == null, "the block is not an attack-phase use")
+		answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+		eq(prompt_kind(e), &"defense", "their defence window")
+		check(e.prompt.find(&"defend", block.uid) != null, "the block is offered from hand")
+		answer(e, &"defend", block.uid)
+		check(bool(e.state.last_attack.get("stopped", false)), "it stopped the Strike")
+		eq(block.zone, &"removed", "and was removed from the game")
+		if tagged:
+			eq(kept.zone, &"hand", "a Marked defender took the Marked card back")
+		else:
+			eq(kept.zone, &"discard", "an unmarked defender took nothing")
+		eq(e.integrity_problem(), "", "every card is where its zone says")
+
+
+## A forbid on Non-Combat cards or on Drills also shuts off blocking with one already in play, for
+## as long as the forbid lasts.
+func test_a_forbidden_non_combat_or_drill_cannot_block_from_play() -> void:
+	var drill_def: CardDef = CardDef.from_dict({"id": "t_blocking_drill", "title": "Test Blocking Drill", "type": "drill", "defense": {"stops": "strike"}})
+	var e: DuelEngine = engine(deck(filler([], 20)), deck(filler([], 20), "pact"))
+	var them: PlayerState = e.player(1)
+	var parry: CardInstance = inject(e, 1, "t_noncombat_parry")
+	var drill: CardInstance = e._instance(drill_def, 1, &"in_play")
+	them.in_play.append(drill)
+	to_combat(e)
+	check(e._defense_usable(them, parry, "strike", false), "the placed parry can block")
+	check(e._defense_usable(them, drill, "strike", false), "and so can the Drill")
+	e._apply_effect({"op": "forbid", "who": "opponent", "what": "non_combats", "duration": "combat"}, 0, {}, null)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(prompt_kind(e), &"defense", "the Strike opens the defence window")
+	check(e.prompt.find(&"defend", parry.uid) == null, "a forbidden Non-Combat is not offered")
+	check(e.prompt.find(&"defend", drill.uid) != null, "the Drill still is")
+	answer(e, &"no_defense")
+	e._apply_effect({"op": "forbid", "who": "opponent", "what": "drills", "duration": "combat"}, 0, {}, null)
+	check(not e._defense_usable(them, drill, "strike", false), "a forbidden Drill cannot block")
+	skip_to_turn(e, 2)
+	check(e._defense_usable(them, parry, "strike", false), "the Non-Combat forbid lapsed with the Combat")
+	check(e._defense_usable(them, drill, "strike", false), "and so did the Drill forbid")
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(prompt_kind(e), &"defense", "the next Combat's Strike opens the window")
+	check(e.prompt.find(&"defend", parry.uid) != null, "the parry is offered again")
+	check(e.prompt.find(&"defend", drill.uid) != null, "and so is the Drill")
+	eq(e.integrity_problem(), "", "every card is where its zone says")
+
+
+## When the Double Power Rule does not decide, the opener is drawn from the duel's seeded stream:
+## the same seed opens with the same seat, and the Vigil deck has no claim on the first turn.
+func test_chance_picks_the_opener_from_the_seed() -> void:
+	var openers: Dictionary = {}
+	for s in range(1, 9):
+		var first: int = -1
+		for attempt in range(2):
+			var e: DuelEngine = DuelEngine.new()
+			e.shuffle_decks = false
+			var pair: Array[DeckList] = [deck(filler(), "vigil"), deck(filler(), "pact")]
+			e.setup(pair, lib, table, s)
+			eq(str(setup_event(e).get("reason", "")), "chance", "seed %d: chance decides" % s)
+			eq(int(setup_event(e).get("first", -1)), e.state.active, "seed %d: the setup event names the opener" % s)
+			if attempt == 0:
+				first = e.state.active
+			else:
+				eq(e.state.active, first, "seed %d opens with the same seat both times" % s)
+		openers[first] = true
+	check(openers.has(0) and openers.has(1), "across eight seeds both seats open: %s" % str(openers.keys()))
+
+
+## `set_first_player` hands the first turn to the named seat whatever Double Power or chance
+## decided, keeps the Double Power Energy change, and the setup event says it was forced.
+func test_a_forced_opener_overrides_double_power_and_chance() -> void:
+	var e: DuelEngine = DuelEngine.new()
+	e.shuffle_decks = false
+	var pair: Array[DeckList] = [deck(filler(), "vigil", "", "", 3, "tf_giant"), deck(filler(), "vigil", "", "", 3, "tf_pageboy")]
+	e.setup(pair, lib, table, 1)
+	eq(e.state.active, 1, "Double Power picks the weaker duelist")
+	e.set_first_player(0)
+	eq(e.state.active, 0, "the forced seat opens instead")
+	eq(e.player(0).duelist.energy, 2, "the Double Power Energy change still stands")
+	eq(e.player(1).duelist.energy, CardInstance.MAX_STAGE, "on both sides")
+	eq(int(setup_event(e).get("first", -1)), 0, "the setup event names the forced seat")
+	eq(str(setup_event(e).get("reason", "")), "forced", "and says why")
+	for ev in e.events:
+		if ev.type == &"setup":
+			eq(CardText.event_line(ev, e), "Test vigil opens the duel (set by the match).", "the log names the forced opener")
+	e.start()
+	eq(e.prompt.player, 0, "the first decision of the duel is theirs")
+	# Over chance, through a Referee, whose setup event also carries the table as it stood.
+	var r: Referee = Referee.new()
+	var plain: Array[DeckList] = [deck(filler(), "vigil"), deck(filler(), "pact")]
+	r.setup(plain, lib, table, 1)
+	var drawn: int = r.engine.state.active
+	r.engine.set_first_player(1 - drawn)
+	eq(r.engine.state.active, 1 - drawn, "a forced seat overrides chance too")
+	for ev in r.engine.events:
+		if ev.type == &"setup":
+			eq(str(ev.data.get("reason", "")), "forced", "the reason is forced")
+			eq(int(ev.state.get("active", -1)), 1 - drawn, "and the stamped table shows the forced seat")
+	r.start()
+	eq(r.engine.state.active, 1 - drawn, "and it opens the duel")
+
+
+# --- Match records ----------------------------------------------------------
+
+## A duel played with random legal choices behind a DuelHost that keeps its record, the way the duel
+## server and Session keep one. `force_other` hands the first turn to the seat the rules did not
+## pick; `adventure` runs it on two lives against one with the Seal point, as an adventure duel
+## does. A deck built in code goes into the record inline. Stops after `limit` commands.
+func recorded_duel(decks: Array[DeckList], library: CardLibrary, strike: StrikeTable, seed_value: int,
+		force_other: bool, adventure: bool = false, limit: int = 3000) -> DuelHost:
+	var referee: Referee = Referee.new()
+	referee.setup(decks, library, strike, seed_value, ["Ada", "Bryn"])
+	if adventure:
+		referee.engine.set_lives([2, 1])
+		referee.engine.set_points_options(true, false)
+	if force_other:
+		referee.engine.set_first_player(1 - referee.engine.state.active)
+	var host: DuelHost = DuelHost.new()
+	host.setup(referee, [])
+	host.record = MatchRecord.begin(referee, decks, "adventure" if adventure else "hotseat", "client")
+	for seat in range(2):
+		if decks[seat].id == "":
+			host.record.seats[seat]["list"] = MatchRecord.deck_dict(decks[seat])
+	host.start()
+	var picker: RandomNumberGenerator = RandomNumberGenerator.new()
+	picker.seed = seed_value
+	for step in range(limit):
+		if host.is_over():
+			break
+		var p: Prompt = referee.engine.prompt
+		host.apply(p.player, p.options[picker.randi_range(0, p.options.size() - 1)].to_dict())
+	return host
+
+
+## A record read back from its own line is the same record: every field, the ints JSON turned into
+## floats back as ints, and the canonical text a signature covers unchanged.
+func test_a_match_record_comes_back_whole_from_its_line() -> void:
+	var decks: Array[DeckList] = [deck(filler(["t_art", "t_parry"], 30)), deck(filler(["t_guard"], 30), "pact")]
+	var host: DuelHost = recorded_duel(decks, lib, table, 57, false)
+	var record: MatchRecord = host.record
+	check(host.is_over() and record.has_result(), "the random duel ran to its end")
+	eq(record.commands.size(), host.referee.history.size(), "every accepted command is in the record")
+	eq(int(record.result["winner"]), host.referee.engine.state.winner, "with the rules' winner")
+	eq(str(record.result["reason"]), host.referee.engine.state.win_reason, "and their reason")
+	eq(int(record.result["turns"]), host.referee.engine.state.turn, "and the turn it ended on")
+	eq(str(record.first["reason"]), "chance", "the opener and why come from the setup event")
+	var ordered: bool = true
+	for i in range(1, record.commands.size()):
+		ordered = ordered and int(record.commands[i]["at"]) >= int(record.commands[i - 1]["at"])
+	check(ordered, "each command carries its time since the deal, in order")
+	eq(record.id.length(), 16, "the id is 16 hex characters")
+	var text: String = record.line()
+	var parsed: Variant = JSON.parse_string(text)
+	var back: MatchRecord = MatchRecord.from_dict(parsed)
+	check(back != null, "the line loads back: %s" % MatchRecord.problem_of(parsed))
+	if back == null:
+		return
+	eq(back.line(), text, "and writes out the same line")
+	eq(MatchRecord.canonical(parsed), MatchRecord.canonical(record.to_dict()), "the signed text survives a trip through JSON")
+	check(not MatchRecord.canonical(record.to_dict()).contains("\"sig\""), "and leaves the signature out")
+	eq(typeof(back.commands[0]["card"]), TYPE_INT, "a command's card comes back an int")
+	eq(JSON.stringify(back.seats), JSON.stringify(record.seats), "the seats and their inline decks come back")
+	eq(back.first, record.first, "and so does the opener")
+
+
+## `setup_referee` and `Referee.replay` stand exactly where the recorded duel ended: catalog decks
+## by id and decks inline, a forced opener, and adventure lives with the Seal point.
+func test_a_match_record_rebuilds_its_duel_for_replay() -> void:
+	var strike: StrikeTable = StrikeTable.load_from("res://data/strike_table.json")
+	var catalog: Array[DeckList] = [DeckList.load_from("res://data/decks/steel_beatdown.json"),
+		DeckList.load_from("res://data/decks/tide_deepwater.json")]
+	eq(catalog[0].id, "steel_beatdown", "a deck loaded from its file knows its id")
+	var inline: Array[DeckList] = [deck(filler(["t_art", "t_parry", "t_seal_1"], 30)), deck(filler(["t_guard", "t_ward"], 30), "pact")]
+	var cases: Array = [["catalog", catalog, shipped(), strike, false], ["inline", inline, lib, table, true]]
+	for case in cases:
+		var label: String = case[0]
+		var host: DuelHost = recorded_duel(case[1], case[2], case[3], 811, true, case[4])
+		var record: MatchRecord = host.record
+		check(record.has_result(), "%s: the duel ran to its end" % label)
+		eq(str(record.first["reason"]), "forced", "%s: the record says the opener was forced" % label)
+		eq(str(record.seats[0].get("deck", "")), catalog[0].id if label == "catalog" else "", "%s: the deck is named by id" % label)
+		eq(record.seats[0].has("list"), label == "inline", "%s: and inline only when it has no file" % label)
+		var back: MatchRecord = MatchRecord.from_dict(JSON.parse_string(record.line()))
+		check(back != null, "%s: the record loads back" % label)
+		if back == null:
+			continue
+		var rebuilt: Referee = back.setup_referee(case[2], case[3])
+		check(rebuilt != null, "%s: the record sets up a referee" % label)
+		if rebuilt == null:
+			continue
+		eq(rebuilt.engine.state.active, int(record.first["seat"]), "%s: which opens with the recorded seat" % label)
+		eq(rebuilt.engine.state.points_to_win, host.referee.engine.state.points_to_win, "%s: on the recorded lives" % label)
+		eq(rebuilt.replay(back.commands), "", "%s: every recorded command replays" % label)
+		eq(rebuilt.engine.state.winner, int(record.result["winner"]), "%s: to the recorded winner" % label)
+		for seat in range(2):
+			check(JSON.stringify(rebuilt.view_for(seat).to_dict()) == JSON.stringify(host.referee.view_for(seat).to_dict()),
+				"%s: seat %d sees the same final table" % [label, seat])
+
+
+## The loader takes nothing it cannot check: a wrong type anywhere, a version it does not know, more
+## commands than any duel plays, a key it does not know, a signature on a client record or none on
+## a server record, a deck id that could leave the deck folders, a name with markup.
+func test_the_match_record_loader_refuses_what_it_cannot_check() -> void:
+	var decks: Array[DeckList] = [deck(filler([], 20)), deck(filler([], 20), "pact")]
+	var host: DuelHost = recorded_duel(decks, lib, table, 5, false, false, 12)
+	host.end(1, "concede")
+	var base: Dictionary = JSON.parse_string(host.record.line())
+	eq(MatchRecord.problem_of(base), "", "a conceded duel's record loads, whole numbers read as floats")
+	check(not (base["commands"] as Array).is_empty(), "with commands to tamper with")
+	if (base["commands"] as Array).is_empty():
+		return
+	var edits: Array = [
+		["a seed written as text", func(d: Dictionary) -> void: d["seed"] = "5"],
+		["a name that is a number", func(d: Dictionary) -> void: d["seats"][0]["name"] = 5],
+		["a command's card as text", func(d: Dictionary) -> void: d["commands"][0]["card"] = "x"],
+		["a winner who is no seat", func(d: Dictionary) -> void: d["result"]["winner"] = 2],
+		["a result reason it does not know", func(d: Dictionary) -> void: d["result"]["reason"] = "vibes"],
+		["a fractional turn count", func(d: Dictionary) -> void: d["result"]["turns"] = 3.5],
+		["version 3", func(d: Dictionary) -> void: d["v"] = 3],
+		["the version as text", func(d: Dictionary) -> void: d["v"] = "1"],
+		["an unknown key", func(d: Dictionary) -> void: d["extra"] = 1],
+		["an extra key on a command", func(d: Dictionary) -> void: d["commands"][0]["note"] = "x"],
+		["a batch of 129 uids", func(d: Dictionary) -> void: d["commands"][0]["value"] = range(129)],
+		["a signed client record", func(d: Dictionary) -> void: d["sig"] = "ab".repeat(32)],
+		["an unsigned server record", func(d: Dictionary) -> void: d["origin"] = "server"],
+		["a deck id with a path in it", func(d: Dictionary) -> void: d["seats"][0]["deck"] = "../decks/x"],
+		["a name with markup", func(d: Dictionary) -> void: d["seats"][1]["name"] = "[b]Bryn[/b]"],
+		["a name past the cap", func(d: Dictionary) -> void: d["seats"][1]["name"] = "x".repeat(MatchRecord.NAME_MAX + 1)],
+		["a dev entry under dev false", func(d: Dictionary) -> void: d["commands"].append({"player": 0, "dev": {"op": "draw", "amount": 1}, "at": 5})],
+		["an opener who is no seat", func(d: Dictionary) -> void: d["first"]["seat"] = 2],
+		["no lives", func(d: Dictionary) -> void: d["rules"]["lives"] = [0, 1]],
+		["a guest id with a space", func(d: Dictionary) -> void: d["rules"]["guest"] = ["bad id", ""]],
+		["one seat", func(d: Dictionary) -> void: d["seats"].pop_back()],
+	]
+	for edit in edits:
+		var copy: Dictionary = base.duplicate(true)
+		(edit[1] as Callable).call(copy)
+		check(MatchRecord.from_dict(copy) == null, "refused: %s" % edit[0])
+	var oversized: Dictionary = base.duplicate(true)
+	var many: Array = []
+	for i in range(MatchRecord.MAX_COMMANDS + 1):
+		many.append(base["commands"][0])
+	oversized["commands"] = many
+	check(MatchRecord.problem_of(oversized).begins_with("more than"), "refused: more than %d commands" % MatchRecord.MAX_COMMANDS)
+	check(MatchRecord.from_dict("a record") == null and MatchRecord.from_dict(null) == null, "refused: something that is not an object")
+
+
+## Client records land where `dir_override` points, one line each, and a file keeps only its last
+## lines. A record the client wrote about its own duel carries no signature.
+func test_client_match_records_keep_their_last_lines_where_they_are_pointed() -> void:
+	var dir: String = "user://test_match_records"
+	MatchRecord.dir_override = dir
+	for file_name in [MatchRecord.LOCAL_FILE, "trim.jsonl"]:
+		if FileAccess.file_exists(dir.path_join(file_name)):
+			DirAccess.remove_absolute(dir.path_join(file_name))
+	for i in range(5):
+		eq(MatchRecord.keep_line("trim.jsonl", "line %d" % i, 3), "", "line %d is written" % i)
+	var kept: PackedStringArray = FileAccess.get_file_as_string(dir.path_join("trim.jsonl")).split("\n", false)
+	eq(Array(kept), ["line 2", "line 3", "line 4"], "only the last three lines stay")
+	check(not FileAccess.file_exists(dir.path_join("trim.jsonl.tmp")), "and no temporary file is left behind")
+	var decks: Array[DeckList] = [deck(filler([], 20)), deck(filler([], 20), "pact")]
+	var host: DuelHost = recorded_duel(decks, lib, table, 9, false, false, 8)
+	host.end(0, "concede")
+	eq(MatchRecord.keep_line(MatchRecord.LOCAL_FILE, host.record.line()), "", "an offline record is written")
+	var local: PackedStringArray = FileAccess.get_file_as_string(dir.path_join(MatchRecord.LOCAL_FILE)).split("\n", false)
+	eq(local.size(), 1, "as one line")
+	var back: MatchRecord = MatchRecord.from_dict(JSON.parse_string(local[0])) if local.size() == 1 else null
+	check(back != null and back.origin == "client" and back.sig == "", "a client record with no signature")
+	check(back != null and str(back.result["reason"]) == "concede" and int(back.result["winner"]) == 0, "carrying its concession")
+	for file_name in [MatchRecord.LOCAL_FILE, "trim.jsonl"]:
+		DirAccess.remove_absolute(dir.path_join(file_name))
+	DirAccess.remove_absolute(dir)
+	MatchRecord.dir_override = ""
+
+
+# --- Match stats ------------------------------------------------------------
+
+## A finished record built through the MatchRecord API with no duel behind it, loaded back from its
+## own line the way the stats tool reads one. `decks` are the catalog ids in seat 0 and seat 1.
+func stats_record(decks: Array[String], winner: int, reason: String, turns: int, opener: int, catalog: String = "",
+		record_origin: String = "server", mode: String = "code", day: String = "2026-09-26") -> MatchRecord:
+	var r: MatchRecord = MatchRecord.new()
+	r.id = Crypto.new().generate_random_bytes(8).hex_encode()
+	r.origin = record_origin
+	r.mode = mode
+	r.catalog = catalog
+	r.protocol = 3
+	r.started = Time.get_unix_time_from_datetime_string(day + "T12:00:00")
+	r.first = {"seat": opener, "reason": "chance"}
+	r.rules = {"lives": [1, 1], "seal_point": false, "second_life": false, "guest": ["", ""], "boss_power": ["", ""]}
+	for seat in range(2):
+		r.seats.append({"identity": "", "name": "Test %d" % seat, "deck": decks[seat], "ai": ""})
+	for i in range(turns * 3):
+		r.add_command({"player": i % 2, "type": "pass", "card": -1, "value": null}, i * 1000)
+	r.result = {"winner": winner, "reason": reason, "turns": turns, "duration_ms": turns * 60000, "points": [0, 0]}
+	r.sig = "ab".repeat(32) if record_origin == "server" else ""
+	var parsed: Variant = JSON.parse_string(r.line())
+	var back: MatchRecord = MatchRecord.from_dict(parsed)
+	check(back != null, "the synthetic record loads: %s" % MatchRecord.problem_of(parsed))
+	return back if back != null else r
+
+
+## Each deck's duels, wins, end reasons and means, counted from whichever seat it sat in, with the
+## win rate's range from SimReport's Wilson interval, printed the way matchlab prints it.
+func test_match_stats_count_each_deck_and_its_wilson_range() -> void:
+	var ab: Array[String] = ["alpha", "beta"]
+	var ba: Array[String] = ["beta", "alpha"]
+	var stats: MatchStats = MatchStats.new()
+	for r in [stats_record(ab, 0, "survival", 6, 0), stats_record(ba, 1, "seal", 8, 0),
+			stats_record(ab, 1, "concede", 4, 1), stats_record(ab, 0, "ascension", 10, 1)]:
+		check(stats.add(r), "a signed code-room record counts by default")
+	var decks: Dictionary = stats.group_of("").get("decks", {})
+	var alpha: Dictionary = decks.get("alpha", {})
+	var beta: Dictionary = decks.get("beta", {})
+	eq(int(alpha.get("duels", 0)), 4, "alpha sat in four duels")
+	eq(int(alpha.get("won", 0)), 3, "and won three")
+	var win_by: Dictionary = alpha.get("win_by", {})
+	eq([int(win_by.get("survival", 0)), int(win_by.get("seal", 0)), int(win_by.get("ascension", 0))], [1, 1, 1], "one by each rules route")
+	eq(int((alpha.get("loss_to", {}) as Dictionary).get("concede", 0)), 1, "and lost the fourth by conceding")
+	eq(int((beta.get("win_by", {}) as Dictionary).get("concede", 0)), 1, "which beta has as a win by concession")
+	var summary: Dictionary = stats.to_json()["groups"][0]["decks"]["alpha"]
+	var bounds: Array[float] = SimReport.wilson(3, 4)
+	check(is_equal_approx(float(summary["win_low"]), bounds[0]) and is_equal_approx(float(summary["win_high"]), bounds[1]),
+		"the range is the Wilson interval for 3 of 4")
+	check(is_equal_approx(float(summary["mean_turns"]), 7.0) and is_equal_approx(float(summary["mean_minutes"]), 7.0),
+		"seven turns and seven minutes on average")
+	check(is_equal_approx(float(summary["mean_decisions"]), 21.0), "and 21 decisions, every command counted")
+	check(stats.to_text().contains("75.0% (30.1-95.4)"), "the text prints the rate and range as matchlab does")
+
+
+## The grid counts every duel from both seats: alpha against beta and beta against alpha hold the
+## same duels whichever seat each deck sat in, and their wins add up to them. A mirror stays out of
+## the grid and the deck rows, as matchlab never plays one.
+func test_match_stats_read_the_matchup_grid_the_same_from_both_seats() -> void:
+	var ab: Array[String] = ["alpha", "beta"]
+	var ba: Array[String] = ["beta", "alpha"]
+	var aa: Array[String] = ["alpha", "alpha"]
+	var ag: Array[String] = ["alpha", "gamma"]
+	var stats: MatchStats = MatchStats.new()
+	for r in [stats_record(ab, 0, "survival", 5, 0), stats_record(ab, 1, "survival", 5, 0),
+			stats_record(ba, 0, "seal", 5, 0), stats_record(ba, 1, "seal", 5, 0),
+			stats_record(ab, 0, "survival", 5, 1), stats_record(aa, 0, "survival", 5, 0), stats_record(ag, 1, "survival", 5, 0)]:
+		stats.add(r)
+	var group: Dictionary = stats.group_of("")
+	var grid: Dictionary = group.get("matchup", {})
+	var ab_cell: Array = (grid.get("alpha", {}) as Dictionary).get("beta", [0, 0])
+	var ba_cell: Array = (grid.get("beta", {}) as Dictionary).get("alpha", [0, 0])
+	eq(int(ab_cell[1]), 5, "alpha against beta holds all five duels, from either seat")
+	eq(int(ba_cell[1]), 5, "and so does beta against alpha")
+	eq(int(ab_cell[0]), 3, "alpha won three of them")
+	eq(int(ab_cell[0]) + int(ba_cell[0]), 5, "and the two cells' wins add up to the duels")
+	check(not (grid.get("alpha", {}) as Dictionary).has("alpha"), "a mirror has no cell")
+	eq(int(group.get("mirrors", 0)), 1, "it is counted as a mirror")
+	eq(int((group["decks"]["alpha"] as Dictionary)["duels"]), 6, "and left out of alpha's row, which holds the beta and gamma duels")
+	check(stats.to_text().contains("row \\ column"), "the text prints the grid")
+
+
+## The first player's rate counts the duels with a winner, mirrors included; per deck it splits by
+## whether the deck went first or second.
+func test_match_stats_give_the_first_player_rate_overall_and_per_deck() -> void:
+	var ab: Array[String] = ["alpha", "beta"]
+	var ba: Array[String] = ["beta", "alpha"]
+	var aa: Array[String] = ["alpha", "alpha"]
+	var stats: MatchStats = MatchStats.new()
+	for r in [stats_record(ab, 0, "survival", 5, 0), stats_record(ab, 1, "survival", 5, 1), stats_record(ba, 1, "seal", 5, 0),
+			stats_record(ab, -1, "abandoned", 3, 0), stats_record(aa, 1, "survival", 5, 1)]:
+		stats.add(r)
+	var group: Dictionary = stats.group_of("")
+	eq(group.get("first"), [3, 4], "the opener won three of the four duels with a winner")
+	var alpha: Dictionary = group["decks"]["alpha"]
+	var beta: Dictionary = group["decks"]["beta"]
+	eq(alpha["first"], [1, 1], "alpha won the one duel it opened")
+	eq(alpha["second"], [1, 2], "and one of the two it did not")
+	eq(beta["first"], [1, 2], "beta won one of the two it opened")
+	eq(beta["second"], [0, 1], "and lost the one it did not")
+	check(stats.to_text().contains("the seat that went first won 3 of 4"), "the text says so")
+
+
+## Concessions bucket by the turn they came on, every result reason gets its share of the duels,
+## and disconnects and reconnects read per 100 duels.
+func test_match_stats_bucket_concessions_and_share_out_the_endings() -> void:
+	var ab: Array[String] = ["alpha", "beta"]
+	var records: Array[MatchRecord] = []
+	for turn in [1, 2, 3, 5, 6, 9]:
+		records.append(stats_record(ab, 1, "concede", turn, 0))
+	records.append(stats_record(ab, 0, "timeout", 4, 0))
+	records.append(stats_record(ab, 1, "left", 4, 0))
+	records.append(stats_record(ab, -1, "abandoned", 4, 0))
+	records.append(stats_record(ab, 0, "survival", 4, 0))
+	records[6].disconnects.assign([1, 0])
+	records[7].disconnects.assign([2, 1])
+	records[7].reconnects.assign([1, 0])
+	var stats: MatchStats = MatchStats.new()
+	for r in records:
+		stats.add(r)
+	eq(stats.group_of("")["concede_turns"], [2, 2, 2], "turns 1-2, 3-5 and 6+ hold two concessions each")
+	var summary: Dictionary = stats.to_json()["groups"][0]
+	check(is_equal_approx(float(summary["disconnects_per_100"]), 40.0) and is_equal_approx(float(summary["reconnects_per_100"]), 10.0),
+		"four disconnects and one reconnect in ten duels read 40 and 10 per 100")
+	var text: String = stats.to_text()
+	for share in [["concede", 6, 60.0], ["timeout", 1, 10.0], ["left", 1, 10.0], ["abandoned", 1, 10.0], ["seal", 0, 0.0]]:
+		var line: String = "%-10s %6d %6.1f%%" % share
+		check(text.contains(line), "the endings table reads %s" % line)
+	check(text.contains("conceded on turn 1-2: 2, 3-5: 2, 6+: 2"), "the text gives the concession buckets")
+	check(text.contains("per 100 duels: 40.0 disconnects, 10.0 reconnects"), "and the connection counts")
+
+
+## Records group by catalog hash, oldest period first, and each group says how many records it
+## holds. A catalog prefix keeps one period, and the group this build runs is marked.
+func test_match_stats_group_records_by_catalog() -> void:
+	var ab: Array[String] = ["alpha", "beta"]
+	var older: String = "a".repeat(64)
+	var newer: String = "b".repeat(64)
+	var records: Array[MatchRecord] = [stats_record(ab, 0, "survival", 5, 0, newer, "server", "code", "2026-09-25"),
+		stats_record(ab, 1, "survival", 5, 0, older, "server", "code", "2026-09-20"),
+		stats_record(ab, 0, "seal", 5, 0, older, "server", "code", "2026-09-21"),
+		stats_record(ab, 1, "seal", 5, 1, newer, "server", "code", "2026-09-26"),
+		stats_record(ab, 0, "survival", 5, 1, older, "server", "code", "2026-09-22")]
+	var stats: MatchStats = MatchStats.new()
+	stats.current_catalog = newer
+	for r in records:
+		stats.add(r)
+	eq(stats.groups.size(), 2, "two catalogs make two groups")
+	eq(int(stats.group_of(older).get("records", 0)), 3, "the older one holds three records")
+	eq(int(stats.group_of(newer).get("records", 0)), 2, "the newer one two")
+	var text: String = stats.to_text()
+	var older_at: int = text.find("=== catalog aaaaaaaaaaaa: 3 records, 2026-09-20 to 2026-09-22 ===")
+	var newer_at: int = text.find("=== catalog bbbbbbbbbbbb: 2 records, 2026-09-25 to 2026-09-26, this build ===")
+	check(older_at >= 0 and newer_at > older_at, "each block opens with its count and dates, oldest first, this build's marked")
+	var one: MatchStats = MatchStats.new()
+	one.catalog_prefix = "bbb"
+	for r in records:
+		one.add(r)
+	eq(one.groups.keys(), [newer], "a catalog prefix keeps one period")
+	eq(int(one.skipped.get("another catalog", 0)), 3, "and files the rest under another catalog")
+
+
+## Left out by default, and said why: a record with a dev effect, a client's own record, a mode the
+## filter does not name, a day before --since, a line that is not JSON or not a record, and with a
+## key, a server record changed after it was signed. A client record counts once asked for.
+func test_match_stats_skip_dev_client_and_unverified_records() -> void:
+	var ab: Array[String] = ["alpha", "beta"]
+	var stats: MatchStats = MatchStats.new()
+	stats.since = "2026-09-21"
+	var dev_record: MatchRecord = stats_record(ab, 0, "survival", 5, 0)
+	dev_record.add_command({"player": 0, "dev": {"op": "draw", "amount": 1}}, 5)
+	var client: MatchRecord = stats_record(ab, 0, "survival", 5, 0, "", "client", "vs_ai")
+	check(not stats.add(dev_record), "a dev record is skipped")
+	check(not stats.add(client), "a client record is skipped by default")
+	check(not stats.add(stats_record(ab, 0, "survival", 5, 0, "", "server", "lan")), "a mode outside ranked, casual and code is skipped")
+	check(not stats.add(stats_record(ab, 0, "survival", 5, 0, "", "server", "code", "2026-09-20")), "a day before --since is skipped")
+	check(not stats.add_line("{not json"), "a broken line is skipped")
+	var named: Dictionary = JSON.parse_string(stats_record(ab, 0, "survival", 5, 0).line())
+	named["seats"][1]["name"] = "[b]Bryn[/b]"
+	check(not stats.add_line(JSON.stringify(named)), "a line the loader refuses is skipped")
+	check(stats.add_line(stats_record(ab, 0, "survival", 5, 0).line()), "a signed code-room line counts")
+	eq(stats.counted(), 1, "one record counted")
+	for reason in ["dev", "origin client", "mode lan", "before --since", "not JSON", "refused: seat name"]:
+		eq(int(stats.skipped.get(reason, 0)), 1, "one skipped as %s" % reason)
+	check(stats.to_text().contains("skipped     1  origin client"), "the text says what was skipped and why")
+
+	var mine: MatchStats = MatchStats.new()
+	mine.origin = "all"
+	mine.modes.assign(["vs_ai"])
+	check(mine.add(client), "asked for, a client vs AI record counts")
+
+	var dir: String = "user://test_match_stats"
+	var signer: MatchLog = MatchLog.new()
+	eq(signer.open(dir), "", "a signing key is made")
+	var signed: MatchRecord = stats_record(ab, 0, "survival", 5, 0)
+	signer.sign_record(signed)
+	var forged: MatchRecord = MatchRecord.from_dict(JSON.parse_string(signed.line()))
+	forged.result["winner"] = 1
+	var checked: MatchStats = MatchStats.new()
+	checked.verifier = signer
+	check(checked.add(signed), "a record the key signed counts under --secret")
+	check(not checked.add(forged), "one changed after signing does not")
+	eq(int(checked.skipped.get("signature does not match --secret", 0)), 1, "and is filed as a bad signature")
+	DirAccess.remove_absolute(dir.path_join(MatchLog.KEY_FILE))
+	DirAccess.remove_absolute(dir.path_join(MatchLog.MATCHES_DIR))
+	DirAccess.remove_absolute(dir)
+
+
+## The card pass replays each duel from its record and counts the cards put to use. Every count
+## matches what the live referee saw, a duel counts once per seat that played a card, and its win
+## rate follows that seat's result. A record made on another catalog is not replayed.
+func test_match_stats_count_the_cards_of_two_replayed_duels() -> void:
+	var decks: Array[DeckList] = [deck(filler(["t_art", "t_parry"], 30)), deck(filler(["t_guard"], 30), "pact")]
+	var full: DuelHost = recorded_duel(decks, lib, table, 57, false)
+	var short: DuelHost = recorded_duel(decks, lib, table, 23, false, false, 40)
+	short.end(1, "concede")
+	var stats: MatchStats = MatchStats.new()
+	stats.origin = "all"
+	stats.modes.assign(["hotseat"])
+	stats.library = lib
+	stats.strike_table = table
+	var elsewhere: MatchStats = MatchStats.new()
+	elsewhere.origin = "all"
+	elsewhere.modes.assign(["hotseat"])
+	elsewhere.library = lib
+	elsewhere.strike_table = table
+	elsewhere.current_catalog = "c".repeat(64)
+	var expected: Dictionary = {}
+	for host in [full, short]:
+		var record: MatchRecord = (host as DuelHost).record
+		var referee: Referee = (host as DuelHost).referee
+		check(record.has_result(), "the duel has a result")
+		var winner: int = int(record.result["winner"])
+		var seen: Array[Dictionary] = [{}, {}]
+		for entry in referee.history:
+			if entry.has("dev") or not MatchStats.PLAY_TYPES.has(str(entry["type"])):
+				continue
+			var seat: int = int(entry["player"])
+			var card: CardInstance = referee.engine.card(int(entry["card"]))
+			if card == null or card.owner != seat:
+				continue
+			if not expected.has(card.def.id):
+				expected[card.def.id] = {"played": 0, "duels": 0, "won": 0}
+			expected[card.def.id]["played"] = int(expected[card.def.id]["played"]) + 1
+			seen[seat][card.def.id] = true
+		for seat in range(2):
+			for id in seen[seat].keys():
+				expected[id]["duels"] = int(expected[id]["duels"]) + 1
+				expected[id]["won"] = int(expected[id]["won"]) + (1 if winner == seat else 0)
+		var back: MatchRecord = MatchRecord.from_dict(JSON.parse_string(record.line()))
+		check(stats.add(back), "the recorded duel counts")
+		elsewhere.add(back)
+	var group: Dictionary = stats.group_of("")
+	eq(int(group.get("cards_replayed", 0)), 2, "both duels replay")
+	eq(int(group.get("cards_failed", 0)), 0, "and neither fails")
+	check(not expected.is_empty(), "the duels put cards to use")
+	eq(JSON.stringify(group.get("cards", {}), "", true), JSON.stringify(expected, "", true), "every card's plays, duels and wins match the live duels")
+	check(stats.to_text().contains("CARDS  (2 duels replayed"), "the text has the card table")
+	eq(int(elsewhere.group_of("").get("cards_other_catalog", 0)), 2, "records on another catalog are not replayed")
+	check((elsewhere.group_of("").get("cards", {}) as Dictionary).is_empty(), "and count no cards")
+
+
+## 30 s for a decision, 45 s for one that shows a pile or takes several cards, 60 s for the
+## Reserve swap at setup.
+func test_a_decision_clock_gives_each_kind_of_prompt_its_time() -> void:
+	eq(DuelClock.decision_ms(&"defense", {}), 30000, "a plain decision")
+	eq(DuelClock.decision_ms(&"keep", {"batch_max": 1}), 30000, "one card at a time")
+	eq(DuelClock.decision_ms(&"discard_choice", {"batch_max": 2}), 45000, "several cards at once")
+	eq(DuelClock.decision_ms(&"pick_option", {"library": true}), 45000, "a look through the Life Deck")
+	eq(DuelClock.decision_ms(&"name_card", {}), 45000, "naming a card")
+	eq(DuelClock.decision_ms(&"reserve", {"batch_max": 6}), 60000, "the Reserve swap")
+
+
+## The decision timer counts down, warns for its last 10 s, then the bank drains; the seat is out
+## when both are gone. An answer on the bank keeps what is left of it.
+func test_a_decision_clock_warns_then_drains_the_bank() -> void:
+	var clock: DuelClock = DuelClock.new()
+	eq(clock.state(0, 0), {"left_ms": 0, "bank_ms": 60000, "phase": "off"}, "a seat owing nothing has no timer and a 60 s bank")
+	clock.start(0, &"attack_action", {}, 1000)
+	eq(clock.state(0, 1000), {"left_ms": 30000, "bank_ms": 60000, "phase": "run"}, "30 s on the timer")
+	eq(clock.state(0, 20999)["phase"], "run", "above 10 s it runs")
+	eq(clock.state(0, 21000), {"left_ms": 10000, "bank_ms": 60000, "phase": "warn"}, "the last 10 s warn")
+	eq(clock.state(0, 31000), {"left_ms": 0, "bank_ms": 60000, "phase": "bank"}, "then the bank takes over")
+	eq(clock.state(0, 61000)["bank_ms"], 30000, "and drains only after the timer is gone")
+	eq(clock.out_at(0), 91000, "timer and bank are gone together at 91 s")
+	eq(clock.tick(90999), [] as Array[int], "a millisecond before, nobody is out")
+	eq(clock.tick(91000), [0] as Array[int], "then the seat is out")
+	clock.stop(0, 41000)
+	eq(clock.state(0, 50000), {"left_ms": 0, "bank_ms": 50000, "phase": "off"}, "an answer 10 s into the bank keeps the other 50 s")
+	eq(clock.tick(500000), [] as Array[int], "and a stopped clock never runs out")
+	clock.start(0, &"declare", {}, 60000)
+	eq(clock.out_at(0), 60000 + 30000 + 50000, "the next decision runs on what the bank kept")
+
+
+## 60 s at the deal, 10 s more at each of the seat's own turn starts, never above 120 s, also
+## while the bank is draining.
+func test_a_decision_clock_banks_time_at_each_own_turn_up_to_the_cap() -> void:
+	var clock: DuelClock = DuelClock.new()
+	clock.bank_turn(0, 0)
+	eq(clock.bank_left(0, 0), 70000, "one turn start adds 10 s")
+	eq(clock.bank_left(1, 0), 60000, "to that seat only")
+	for i in range(10):
+		clock.bank_turn(0, 0)
+	eq(clock.bank_left(0, 0), 120000, "capped at 120 s")
+	clock.start(1, &"defense", {}, 0)
+	clock.bank_turn(1, 40000)
+	eq(clock.bank_left(1, 40000), 60000, "10 s drained, then 10 s banked")
+	eq(clock.out_at(1), 30000 + 70000, "which moves the seat's end out by the 10 s")
+	clock.bank_turn(9, 0)
+	eq([clock.bank_left(0, 0), clock.bank_left(1, 40000)], [120000, 60000], "a seat that is no seat changes nothing")
+
+
+## Each seat's clock runs on its own, as in the simultaneous Reserve swap and Discard step: one
+## answering leaves the other running, the earlier deadline is out first, and an exact tie comes
+## back as both seats with the same end.
+func test_decision_clocks_run_per_seat_and_the_earlier_deadline_loses() -> void:
+	var clock: DuelClock = DuelClock.new()
+	clock.start(0, &"keep", {}, 0)
+	clock.start(1, &"keep", {}, 5000)
+	clock.stop(0, 10000)
+	eq(clock.state(1, 10000), {"left_ms": 25000, "bank_ms": 60000, "phase": "run"}, "seat 2 runs on when seat 1 answers")
+	eq(clock.tick(95000), [1] as Array[int], "and only seat 2 can run out")
+	var race: DuelClock = DuelClock.new()
+	race.start(1, &"keep", {}, 0)
+	race.start(0, &"keep", {}, 1)
+	eq(race.tick(200000), [1, 0] as Array[int], "the earlier deadline comes first")
+	var tie: DuelClock = DuelClock.new()
+	tie.start(0, &"reserve", {}, 0)
+	tie.start(1, &"reserve", {}, 0)
+	eq(tie.tick(120000).size(), 2, "both out at once")
+	eq(tie.out_at(0), tie.out_at(1), "at the same moment, which is the tie that ends a duel with no winner")
+
+
+## An armed decision counts nothing until its panel is reported open, or its 10 s grace is over;
+## a report after the grace does not buy time back.
+func test_a_decision_clock_waits_for_its_panel_or_its_grace() -> void:
+	var clock: DuelClock = DuelClock.new()
+	clock.arm(0, &"declare", {}, 0)
+	clock.arm(1, &"declare", {}, 0)
+	eq(clock.state(0, 5000)["phase"], "off", "armed is not running")
+	clock.shown(0, 3000)
+	eq(clock.state(0, 3000), {"left_ms": 30000, "bank_ms": 60000, "phase": "run"}, "the panel starts it")
+	eq(clock.tick(9999), [] as Array[int], "within the grace")
+	eq(clock.state(1, 9999)["phase"], "off", "the other seat still waits for its panel")
+	clock.tick(12000)
+	eq(clock.state(1, 12000)["left_ms"], 28000, "the grace started it at 10 s, not when the tick came")
+	clock.arm(1, &"declare", {}, 20000)
+	clock.shown(1, 45000)
+	eq(clock.state(1, 45000)["left_ms"], 15000, "a late report starts it from the end of the grace")
+	clock.shown(0, 50000)
+	eq(clock.out_at(0), 3000 + 30000 + 60000, "a report for a running clock changes nothing")
+
+
+## A seat whose client lost its table gets it back from `Referee.catch_up`: the view and prompt its
+## last update carried, this turn's lines from its `turn_start` on with nothing to animate, and
+## nothing taken from the next update either seat gets. A referee rebuilt by `replay` catches up
+## the same way.
+func test_a_catch_up_gives_a_seat_its_view_prompt_and_this_turn() -> void:
+	var decks: Array[DeckList] = [deck(filler(["t_art", "t_parry"], 40)), deck(filler(["t_guard"], 40), "pact")]
+	var live: Referee = Referee.new()
+	live.setup(decks, lib, table, 33)
+	var twin: Referee = Referee.new()
+	twin.setup(decks, lib, table, 33)
+	live.start()
+	twin.start()
+	var last: Array[SeatUpdate] = live.take_updates()
+	twin.take_updates()
+	var picker: RandomNumberGenerator = RandomNumberGenerator.new()
+	picker.seed = 7
+	var refused: int = 0
+	for step in range(120):
+		if live.is_over() or live.engine.state.turn >= 3:
+			break
+		var p: Prompt = live.engine.prompt
+		var wire: Dictionary = p.options[picker.randi_range(0, p.options.size() - 1)].to_dict()
+		if live.submit(p.player, wire) != "" or twin.submit(p.player, wire) != "":
+			refused += 1
+		last = live.take_updates()
+		twin.take_updates()
+	eq(refused, 0, "every listed option was taken")
+	check(not live.is_over() and live.engine.state.turn >= 2, "the duel is past its first turn (turn %d)" % live.engine.state.turn)
+	for seat in range(2):
+		var caught: SeatUpdate = live.catch_up(seat)
+		eq(JSON.stringify(caught.view.to_dict()), JSON.stringify(last[seat].view.to_dict()), "seat %d gets the view it last had" % seat)
+		eq(caught.prompt.to_dict() if caught.prompt != null else {}, last[seat].prompt.to_dict() if last[seat].prompt != null else {},
+			"seat %d gets the prompt it last had" % seat)
+		var animated: int = 0
+		var turn_starts: int = 0
+		for line in caught.lines:
+			if line.has("data"):
+				animated += 1
+			if str(line.get("type", "")) == "turn_start":
+				turn_starts += 1
+		eq(animated, 0, "seat %d reads this turn as log lines only" % seat)
+		check(not caught.lines.is_empty() and str(caught.lines[0].get("type", "")) == "turn_start" and turn_starts == 1,
+			"seat %d's lines run from this turn's start" % seat)
+	var p_next: Prompt = live.engine.prompt
+	var next_wire: Dictionary = p_next.options[0].to_dict()
+	live.submit(p_next.player, next_wire)
+	twin.submit(p_next.player, next_wire)
+	var after: Array[SeatUpdate] = live.take_updates()
+	var twin_after: Array[SeatUpdate] = twin.take_updates()
+	for seat in range(2):
+		eq(JSON.stringify(after[seat].to_dict()), JSON.stringify(twin_after[seat].to_dict()),
+			"seat %d's next update is the one it would have had without a catch-up" % seat)
+	var rebuilt: Referee = Referee.new()
+	rebuilt.setup(decks, lib, table, 33)
+	eq(rebuilt.replay(live.history), "", "the history replays")
+	rebuilt.take_updates()
+	for seat in range(2):
+		eq(JSON.stringify(rebuilt.catch_up(seat).to_dict()), JSON.stringify(live.catch_up(seat).to_dict()),
+			"a referee rebuilt by replay catches seat %d up the same way" % seat)
+
+
+# --- Match replay -------------------------------------------------------------
+
+## A random duel to the end, its record read back from its own line as a replay file gives it.
+func replay_duel() -> DuelHost:
+	var decks: Array[DeckList] = [deck(filler(["t_art", "t_parry"], 30)), deck(filler(["t_guard"], 30), "pact")]
+	return recorded_duel(decks, lib, table, 57, false)
+
+
+func replay_record(host: DuelHost) -> MatchRecord:
+	return MatchRecord.from_dict(JSON.parse_string(host.record.line()))
+
+
+func final_views(views: Array[SeatView]) -> String:
+	return JSON.stringify(views[0].to_dict()) + JSON.stringify(views[1].to_dict())
+
+
+## Stepping a record to its last entry stands on the table the live duel ended on, seat by seat,
+## with the recorded result. Every step hands out both seats' updates and the full one, carrying
+## animation data and stamps as the live updates did.
+func test_a_replay_stepped_to_its_end_stands_where_the_duel_ended() -> void:
+	var host: DuelHost = replay_duel()
+	var record: MatchRecord = replay_record(host)
+	check(record != null and record.has_result(), "the duel's record loads with its result")
+	if record == null:
+		return
+	var cursor: ReplayCursor = ReplayCursor.new(record, lib, table)
+	eq(cursor.stopped, "", "every entry replays")
+	eq(cursor.total, record.commands.size(), "the silent pass counts every entry")
+	eq(cursor.opening.size(), 3, "the deal comes as both seats' updates and the full one")
+	check(not cursor.turns.is_empty() and int(cursor.turns[0]["turn"]) == 1, "the silent pass indexes the turns from turn 1")
+	var steps: int = 0
+	var animated: int = 0
+	while not cursor.at_end:
+		var updates: Array[SeatUpdate] = cursor.step()
+		if updates.size() != 3:
+			break
+		steps += 1
+		for line in updates[0].lines:
+			if line.has("data") and line.has("state"):
+				animated += 1
+	eq(steps, record.commands.size(), "one step per entry")
+	check(animated > 0, "the steps carry animation data and stamps")
+	eq(final_views([cursor.view(0), cursor.view(1)]), final_views([host.referee.view_for(0), host.referee.view_for(1)]),
+		"both seats see the table the duel ended on")
+	eq(cursor.view(0).winner, int(record.result["winner"]), "with the recorded winner")
+	eq(cursor.view(0).win_reason, str(record.result["reason"]), "and the recorded reason")
+	eq(cursor.step().size(), 0, "a step past the end does nothing")
+
+
+## A jump to a turn rebuilds silently and shows each view the table stepping there shows, with this
+## turn's lines as a catch-up that animates nothing, and plays on level with the stepped cursor.
+func test_a_replay_jump_shows_the_table_stepping_there_shows() -> void:
+	var record: MatchRecord = replay_record(replay_duel())
+	var stepped: ReplayCursor = ReplayCursor.new(record, lib, table)
+	var jumped: ReplayCursor = ReplayCursor.new(record, lib, table)
+	check(stepped.turns.size() >= 3, "the duel runs past its second turn (%d turns)" % stepped.turns.size())
+	var turn: int = int(stepped.turns[stepped.turns.size() / 2]["turn"])
+	var target: int = stepped.turn_index(turn)
+	check(target > 0, "turn %d opens at entry %d" % [turn, target])
+	var last: Array[SeatUpdate] = stepped.opening
+	while stepped.position < target:
+		last = stepped.step()
+	var caught: Array[SeatUpdate] = jumped.seek(target)
+	eq(jumped.position, target, "the jump lands on the entry asked for")
+	eq(jumped.current_turn(), turn, "in the turn asked for")
+	eq(caught.size(), 3, "with a catch-up per view")
+	for index in range(caught.size()):
+		eq(JSON.stringify(caught[index].view.to_dict()), JSON.stringify(last[index].view.to_dict()), "view %d matches stepping there" % index)
+		eq(caught[index].prompt.to_dict() if caught[index].prompt != null else {}, last[index].prompt.to_dict() if last[index].prompt != null else {},
+			"and so does its prompt")
+		var animated: bool = false
+		for line in caught[index].lines:
+			animated = animated or line.has("data")
+		check(not animated and not caught[index].lines.is_empty() and str(caught[index].lines[0].get("type", "")) == "turn_start",
+			"view %d reads this turn from its start with nothing to animate" % index)
+	eq(jumped.step().size(), 3, "the jumped cursor plays on")
+	stepped.step()
+	eq(final_views([jumped.view(0), jumped.view(1)]), final_views([stepped.view(0), stepped.view(1)]), "level with the stepped one")
+	eq(jumped.turn_index(999), -1, "a turn the record never reaches has no entry")
+
+
+## Back rebuilds one entry earlier, and the step after it hands out the updates the first pass did.
+func test_a_replay_step_back_then_forward_returns_to_the_same_table() -> void:
+	var cursor: ReplayCursor = ReplayCursor.new(replay_record(replay_duel()), lib, table)
+	var target: int = cursor.total / 2
+	var before: Array[SeatUpdate] = []
+	while cursor.position < target:
+		before = cursor.step()
+	var back: Array[SeatUpdate] = cursor.back()
+	eq(cursor.position, target - 1, "back is one entry earlier")
+	eq(back.size(), 3, "with a catch-up per view")
+	var again: Array[SeatUpdate] = cursor.step()
+	eq(cursor.position, target, "the step after it returns")
+	for index in range(mini(again.size(), before.size())):
+		eq(JSON.stringify(again[index].to_dict()), JSON.stringify(before[index].to_dict()), "update %d is the one the first pass gave" % index)
+
+
+## The full-information view fills in every card, and its lines name every card either seat's own
+## lines leave as "a card", every draw included. The seat views stay masked as their players saw.
+func test_a_full_information_replay_names_every_card() -> void:
+	var cursor: ReplayCursor = ReplayCursor.new(replay_record(replay_duel()), lib, table)
+	var masked: int = 0
+	var unnamed: int = 0
+	var draws: int = 0
+	var draws_named: int = 0
+	var updates: Array[SeatUpdate] = cursor.opening
+	while updates.size() == 3:
+		var full: SeatUpdate = updates[ReplayCursor.ALL]
+		for i in range(full.lines.size()):
+			var line: String = str(full.lines[i].get("line", ""))
+			for seat in range(2):
+				if str(updates[seat].lines[i].get("line", "")).contains("a card"):
+					masked += 1
+					if line.contains("a card"):
+						unnamed += 1
+			if str(full.lines[i].get("type", "")) == "draw":
+				draws += 1
+				if not line.ends_with(" draws."):
+					draws_named += 1
+		updates = cursor.step()
+	check(masked > 0, "the seats' own lines leave cards unnamed (%d lines)" % masked)
+	eq(unnamed, 0, "the full lines name every one of them")
+	check(draws > 0 and draws_named == draws, "and every card drawn (%d of %d)" % [draws_named, draws])
+	cursor.seek(cursor.total / 2)
+	var full_view: SeatView = cursor.view(0, true)
+	var hidden: int = 0
+	for c in full_view.cards.values():
+		if (c as SeatCard).hidden():
+			hidden += 1
+	eq(hidden, 0, "the full view fills in every card")
+	check(not full_view.player(1).hand.is_empty(), "the far hand is there to show")
+	for seat in range(2):
+		var own: SeatView = cursor.view(seat)
+		var masks: bool = not own.player(seat).life_deck.is_empty()
+		for uid in own.player(seat).life_deck + own.player(1 - seat).hand:
+			masks = masks and own.card(uid).hidden()
+		check(masks, "seat %d's own view still hides its Life Deck and the other hand" % seat)
+
+
+## A record a client wrote and the same game as the server signs it replay to the same table, and a
+## record file gives back the line asked for by id, its last line, or a whole `.replay.json`.
+func test_a_replay_reads_client_and_server_records_from_their_files() -> void:
+	var host: DuelHost = replay_duel()
+	var client_line: String = host.record.line()
+	var as_server: Dictionary = JSON.parse_string(client_line)
+	as_server["origin"] = "server"
+	as_server["sig"] = "ab".repeat(32)
+	as_server["id"] = "0123456789abcdef"
+	var dir: String = "user://test_replay_files"
+	DirAccess.make_dir_recursive_absolute(dir)
+	var jsonl: String = dir.path_join("records.jsonl")
+	var single: String = dir.path_join("%s.replay.json" % host.record.id)
+	var file: FileAccess = FileAccess.open(jsonl, FileAccess.WRITE)
+	file.store_string(client_line + "\n" + JSON.stringify(as_server) + "\n")
+	file.close()
+	file = FileAccess.open(single, FileAccess.WRITE)
+	file.store_string(client_line)
+	file.close()
+	var by_id: MatchRecord = MatchRecord.load_file(jsonl, host.record.id)
+	var last: MatchRecord = MatchRecord.load_file(jsonl)
+	var whole: MatchRecord = MatchRecord.load_file(single)
+	check(by_id != null and by_id.origin == "client", "the client line loads by its id")
+	check(last != null and last.origin == "server", "the last line loads when no id is given: %s" % MatchRecord.file_problem(jsonl))
+	check(whole != null and whole.id == host.record.id, "a .replay.json loads whole")
+	check(MatchRecord.file_problem(jsonl, "ffffffffffffffff").begins_with("no record"), "an id the file lacks is refused")
+	check(MatchRecord.file_problem(dir.path_join("none.jsonl")).begins_with("there is no file"), "and so is a file that is not there")
+	for path in [jsonl, single]:
+		DirAccess.remove_absolute(path)
+	DirAccess.remove_absolute(dir)
+	if by_id == null or last == null:
+		return
+	var finals: Array[String] = []
+	for r: MatchRecord in [by_id, last]:
+		var cursor: ReplayCursor = ReplayCursor.new(r, lib, table)
+		while not cursor.at_end and not cursor.step().is_empty():
+			pass
+		finals.append(final_views([cursor.view(0), cursor.view(1)]))
+	eq(finals[0], finals[1], "the client record and the server record replay to the same table")
+	eq(finals[0], final_views([host.referee.view_for(0), host.referee.view_for(1)]), "the one the duel ended on")
+
+
+## The peers of each pair `MatchQueue.pair` returned, in order.
+func queue_pairs(pairs: Array) -> Array:
+	var out: Array = []
+	for two: Array in pairs:
+		out.append([int(two[0]["peer"]), int(two[1]["peer"])])
+	return out
+
+
+func queue_peers(q: MatchQueue) -> Array:
+	var out: Array = []
+	for entry: Dictionary in q.entries:
+		out.append(int(entry["peer"]))
+	return out
+
+
+## Find a duel pairs the two who have waited longest, each with how long it waited.
+func test_queue_pairs_two_oldest_first() -> void:
+	var q: MatchQueue = MatchQueue.new()
+	q.join(11, 100)
+	eq(q.pair(150).size(), 0, "one player waiting is no pair")
+	q.join(12, 200)
+	q.join(13, 300)
+	var pairs: Array = q.pair(400)
+	eq(queue_pairs(pairs), [[11, 12]], "of three waiting, the two oldest pair")
+	if pairs.size() == 1:
+		eq([int(pairs[0][0]["waited_ms"]), int(pairs[0][1]["waited_ms"])], [300, 200], "each with its wait")
+	eq(queue_peers(q), [13], "and the third keeps waiting")
+
+
+func test_queue_ignores_duplicate_join() -> void:
+	var q: MatchQueue = MatchQueue.new()
+	check(q.join(21, 100), "a first join is taken")
+	check(not q.join(21, 500), "a second join from the same peer is not")
+	eq(q.size(), 1, "the peer waits once")
+	eq(q.waiting(21, 600), 500, "from its first join")
+	eq(q.pair(600).size(), 0, "and is never paired with itself")
+
+
+func test_queue_forgets_a_leaver() -> void:
+	var q: MatchQueue = MatchQueue.new()
+	q.join(31, 100)
+	q.join(32, 200)
+	check(q.leave(31), "a waiting peer leaves")
+	check(not q.leave(31), "a peer not waiting cannot leave again")
+	eq(q.waiting(31, 300), -1, "and is not waiting")
+	q.join(33, 300)
+	eq(queue_pairs(q.pair(400)), [[32, 33]], "the next two pair without it")
+
+
+## A player whose opponent left before the deal goes back in line at its first join time.
+func test_requeue_keeps_join_time() -> void:
+	var q: MatchQueue = MatchQueue.new()
+	q.join(41, 100)
+	q.join(42, 200)
+	eq(queue_pairs(q.pair(250)), [[41, 42]], "the first two pair")
+	q.join(43, 300)
+	q.join(44, 350)
+	q.requeue(41, 100)
+	eq(queue_peers(q), [41, 43, 44], "the re-queued player is ahead of those who joined after it")
+	eq(q.waiting(41, 500), 400, "counting from its first join")
+	q.requeue(41, 100)
+	eq(queue_peers(q), [41, 43, 44], "a second re-queue moves it rather than adding it twice")
+	q.requeue(45, 350)
+	eq(queue_peers(q), [41, 43, 45, 44], "a tie on the join time goes to the re-queued player")
+	eq(queue_pairs(q.pair(500)), [[41, 43], [45, 44]], "and pairing takes them in that order")
+
+
+func test_queue_holds_pairs_at_the_duel_cap() -> void:
+	var q: MatchQueue = MatchQueue.new()
+	for i in range(4):
+		q.join(51 + i, 100 * (i + 1))
+	eq(q.pair(500, 0).size(), 0, "no room under the duel cap: no pair")
+	eq(queue_peers(q), [51, 52, 53, 54], "and everyone keeps their place")
+	eq(queue_pairs(q.pair(500, 1)), [[51, 52]], "room for one duel: the oldest two pair")
+	eq(queue_pairs(q.pair(500)), [[53, 54]], "no cap: the rest pair")
+
+
+func test_queue_drops_after_max_wait() -> void:
+	var q: MatchQueue = MatchQueue.new()
+	var max_wait: int = 30 * 60 * 1000
+	q.join(61, 0)
+	q.join(62, 1000)
+	eq(q.drop_stale(max_wait - 1, max_wait).size(), 0, "nobody is dropped short of the wait")
+	var dropped: Array[int] = q.drop_stale(max_wait, max_wait)
+	eq(dropped.size() == 1 and dropped[0] == 61, true, "the first joiner is dropped at the wait")
+	eq(queue_peers(q), [62], "and the later one still waits")
+	dropped = q.drop_stale(max_wait + 1000, max_wait)
+	eq(dropped.size() == 1 and dropped[0] == 62, true, "until its own wait is up")
+	eq(q.size(), 0, "then nobody waits")
+
+
+# --- Identity -----------------------------------------------------------------
+
+const IDENTITY_DIR: String = "user://test_identity"
+
+
+func clear_identity_dir() -> void:
+	var dir: DirAccess = DirAccess.open(IDENTITY_DIR)
+	if dir == null:
+		return
+	for file_name in dir.get_files():
+		DirAccess.remove_absolute(IDENTITY_DIR.path_join(file_name))
+	DirAccess.remove_absolute(IDENTITY_DIR)
+
+
+## An install's identity is made and stored on first use and loads with the same id after; its
+## signature checks only for its own bytes under its own key; a key file that cannot be read is set
+## aside, never overwritten, and a new identity takes its place.
+func test_an_identity_keeps_its_key_and_signs_only_its_own_bytes() -> void:
+	clear_identity_dir()
+	var file: String = IDENTITY_DIR.path_join("identity.key")
+	var made: Identity = Identity.load_or_make(file)
+	check(FileAccess.file_exists(file), "a first use stores the key")
+	check(made.id().length() == 64 and made.id().is_valid_hex_number(), "the id is 64 hex characters: %s" % made.id())
+	eq(made.id(), made.public_pem().sha256_text(), "the SHA-256 of the public key as PEM")
+	eq(Identity.id_of(made.public_pem()), made.id(), "and the same when worked out from the PEM alone")
+	check(made.public_pem().begins_with("-----BEGIN PUBLIC KEY-----") and not made.public_pem().contains("PRIVATE"),
+		"the public half carries nothing private")
+	var loaded: Identity = Identity.load_or_make(file)
+	eq(loaded.id(), made.id(), "a later load gives the same identity")
+	var message: PackedByteArray = "nonce, protocol, catalog".to_utf8_buffer()
+	var sig: PackedByteArray = made.sign(message)
+	check(Identity.verify(made.public_pem(), message, sig), "a signature checks under its own key")
+	check(Identity.verify(made.public_pem(), message, loaded.sign(message)), "and the loaded key signs as the stored one")
+	var tampered: PackedByteArray = message.duplicate()
+	tampered[0] ^= 1
+	check(not Identity.verify(made.public_pem(), tampered, sig), "a changed message fails")
+	var bent: PackedByteArray = sig.duplicate()
+	bent[10] ^= 1
+	check(not Identity.verify(made.public_pem(), message, bent), "a changed signature fails")
+	var other: Identity = Identity.generate()
+	check(not Identity.verify(other.public_pem(), message, sig) and other.id() != made.id(), "another key's signature fails")
+	check(not Identity.verify("not a key", message, sig) and not Identity.verify(made.public_pem(), message, PackedByteArray()),
+		"a malformed key or an empty signature fails")
+	eq(Identity.id_of("-----BEGIN PUBLIC KEY-----\njunk\n-----END PUBLIC KEY-----\n"), "", "a malformed public key has no id")
+
+	var junk: FileAccess = FileAccess.open(file, FileAccess.WRITE)
+	junk.store_string("this is not a key")
+	junk.close()
+	var fresh: Identity = Identity.load_or_make(file)
+	check(fresh.id() != made.id() and fresh.id().length() == 64, "a corrupt key file gives way to a new identity")
+	var set_aside: Array[String] = []
+	for file_name in DirAccess.get_files_at(IDENTITY_DIR):
+		if file_name.begins_with("identity.key.bad-"):
+			set_aside.append(file_name)
+	var kept: String = FileAccess.get_file_as_string(IDENTITY_DIR.path_join(set_aside[0])) if set_aside.size() == 1 else ""
+	check(set_aside.size() == 1 and kept == "this is not a key", "the corrupt file is set aside whole, not overwritten: %s" % str(set_aside))
+	eq(Identity.load_or_make(file).id(), fresh.id(), "and the new identity is the one stored from then on")
+	clear_identity_dir()
+
+
+# --- Ranked -------------------------------------------------------------------
+
+const RATING_GOLDEN: String = "res://tests/fixtures/rating_golden.json"
+const RANKED_DIR: String = "user://test_ranked"
+
+
+func clear_ranked_dir() -> void:
+	if not DirAccess.dir_exists_absolute(RANKED_DIR):
+		return
+	for file_name in DirAccess.get_files_at(RANKED_DIR):
+		DirAccess.remove_absolute(RANKED_DIR.path_join(file_name))
+	DirAccess.remove_absolute(RANKED_DIR)
+
+
+func near(actual: float, expected: float, tolerance: float, msg: String) -> void:
+	check(absf(actual - expected) <= tolerance, "%s: expected %.12f, got %.12f" % [msg, expected, actual])
+
+
+## The port gives what openskill's PlackettLuce gives with the same constants, to 1e-9, for every
+## case the golden file holds: new players, settled ones, upsets and a run of ten matches.
+func test_the_rating_port_matches_the_openskill_golden_fixture() -> void:
+	check(FileAccess.file_exists(RATING_GOLDEN), "the golden file is there")
+	var golden: Variant = JSON.parse_string(FileAccess.get_file_as_string(RATING_GOLDEN))
+	var cases: Array = (golden as Dictionary).get("cases", []) if golden is Dictionary else []
+	check(cases.size() >= 20, "it holds at least 20 cases: %d" % cases.size())
+	for item: Variant in cases:
+		var c: Dictionary = item
+		var after: Array[Dictionary] = Rating.rate(c["winner"], c["loser"])
+		for i in range(2):
+			var want: Dictionary = (c["after"] as Array)[i]
+			var label: String = "%s, %s" % [str(c["name"]), "winner" if i == 0 else "loser"]
+			near(float(after[i]["mu"]), float(want["mu"]), 1e-9, label + " mu")
+			near(float(after[i]["sigma"]), float(want["sigma"]), 1e-9, label + " sigma")
+			near(Rating.ordinal(float(after[i]["mu"]), float(after[i]["sigma"])), float(want["ordinal"]), 1e-9, label + " ordinal")
+	var first: Array[Dictionary] = Rating.rate(Rating.fresh(), Rating.fresh())
+	near(float(first[0]["mu"]), 27.64, 0.005, "a new winner against a new loser goes to 27.64")
+	near(float(first[0]["sigma"]), 8.07, 0.005, "with sigma 8.07")
+	near(float(first[1]["mu"]), 22.36, 0.005, "and the loser to 22.36")
+
+
+func test_a_rating_shows_forty_times_its_ordinal_and_is_provisional_while_unsure() -> void:
+	var first: Array[Dictionary] = Rating.rate(Rating.fresh(), Rating.fresh())
+	eq(Rating.shown(Rating.MU, Rating.SIGMA), 0, "a new player shows 0")
+	eq(Rating.shown(float(first[0]["mu"]), float(first[0]["sigma"])), 138, "the first match won shows 138")
+	eq(Rating.shown(float(first[1]["mu"]), float(first[1]["sigma"])), 0, "the first match lost stays at 0")
+	eq(Rating.shown(30.0, 2.0), 960, "40 times mu less three sigma")
+	check(Rating.provisional(Rating.SIGMA) and Rating.provisional(6.01), "provisional while sigma is above 6")
+	check(not Rating.provisional(6.0) and not Rating.provisional(4.1), "and settled from 6 down")
+
+
+## Applied results land in the file and read back the same; a rebuild from the records in order
+## gives the same ratings, skipping games that did not decide a match, matches with no winner and
+## casual records. A file that is not a ratings file is refused, not overwritten.
+func test_the_ratings_store_round_trips_and_rebuilds_from_the_records() -> void:
+	clear_ranked_dir()
+	DirAccess.make_dir_recursive_absolute(RANKED_DIR)
+	var a: String = "a".repeat(64)
+	var b: String = "b".repeat(64)
+	var c: String = "c".repeat(64)
+	var store: RatingsStore = RatingsStore.new()
+	eq(store.open(RANKED_DIR), "", "a data directory with no ratings file opens empty")
+	eq(store.get_or_new(a), {"mu": Rating.MU, "sigma": Rating.SIGMA, "games": 0, "wins": 0, "last_played": 0}, "an unknown identity reads as new")
+	check(store.entries.is_empty(), "and is not stored by reading it")
+	var change: Dictionary = store.apply(a, b, 1000)
+	var expected: Array[Dictionary] = Rating.rate(Rating.fresh(), Rating.fresh())
+	eq(str(change.get("problem", "?")), "", "the file is written")
+	eq(change["winner"]["before"], Rating.fresh(), "the winner's rating before")
+	near(float(change["winner"]["after"]["mu"]), float(expected[0]["mu"]), 1e-12, "and after")
+	eq([int(store.entries[a]["games"]), int(store.entries[a]["wins"]), int(store.entries[b]["games"]), int(store.entries[b]["wins"])],
+		[1, 1, 1, 0], "one match each, one win to the winner")
+	eq(int(store.entries[b]["last_played"]), 1000, "both stamped with when")
+	store.apply(b, c, 2000)
+	store.apply(a, c, 3000)
+	check(store.apply(a, a, 4000).is_empty() and int(store.entries[a]["games"]) == 2, "an identity against itself is never rated")
+	var reopened: RatingsStore = RatingsStore.new()
+	eq(reopened.open(RANKED_DIR), "", "the file opens again")
+	eq(JSON.stringify(reopened.entries, "", true, true), JSON.stringify(store.entries, "", true, true), "with every rating exactly as saved")
+	check(not FileAccess.file_exists(RANKED_DIR.path_join(RatingsStore.FILE + ".tmp")), "and no temporary file left")
+
+	var records: Array = []
+	var played: Array = [[a, b, 0], [b, c, 0], [a, c, 1]]
+	for i in range(played.size()):
+		var game_one: MatchRecord = ranked_record([str(played[i][0]), str(played[i][1])], 1, 0, {}, 900 + i * 1000)
+		var deciding: MatchRecord = ranked_record([str(played[i][0]), str(played[i][1])], 2, 0,
+			{"winner": 0, "wins": [2, 0], "reason": "concede"}, 1000 + i * 1000, game_one.match_id)
+		records.append_array([game_one, deciding])
+	var no_winner: MatchRecord = ranked_record([a, c], 1, -1, {"winner": -1, "wins": [0, 0], "reason": "abandoned"}, 5000)
+	var casual: MatchRecord = ranked_record([c, a], 1, 0, {"winner": 0, "wins": [1, 0], "reason": "survival"}, 6000)
+	casual.mode = "casual"
+	records.append_array([no_winner, casual, "not a record"])
+	var rebuilt: RatingsStore = RatingsStore.new()
+	eq(rebuilt.rebuild(records), 3, "a rebuild applies the three decided matches with a winner")
+	eq(JSON.stringify(rebuilt.entries, "", true, true), JSON.stringify(store.entries, "", true, true), "and ends where the live store did")
+
+	var junk: FileAccess = FileAccess.open(RANKED_DIR.path_join(RatingsStore.FILE), FileAccess.WRITE)
+	junk.store_string("{\"%s\": {\"mu\": \"high\"}}" % a)
+	junk.close()
+	check(RatingsStore.new().open(RANKED_DIR) != "", "a malformed ratings file is refused")
+	clear_ranked_dir()
+
+
+## A ranked server record between two identities, as the tests need one: seat 0 `ids[0]`.
+func ranked_record(ids: Array[String], game: int, winner: int, match_result: Dictionary, started: int, match_id: String = "") -> MatchRecord:
+	var ab: Array[String] = ["alpha", "beta"]
+	var r: MatchRecord = stats_record(ab, winner, "concede" if winner >= 0 else "abandoned", 3, 0, "", "server", "ranked")
+	r.match_id = match_id if match_id != "" else r.id
+	r.game = game
+	r.started = started
+	r.match_result = match_result.duplicate(true)
+	for seat in range(2):
+		r.seats[seat]["identity"] = ids[seat]
+	return r
+
+
+## The first leave is a warning; each one after it keeps the identity out for longer, from 2 minutes
+## up to an hour, counted from that leave. A day without a leave clears the count, and the file
+## keeps timestamps only.
+func test_the_leaver_ladder_climbs_and_clears_after_a_day() -> void:
+	clear_ranked_dir()
+	DirAccess.make_dir_recursive_absolute(RANKED_DIR)
+	var id: String = "d".repeat(64)
+	var conduct: Conduct = Conduct.new()
+	eq(conduct.open(RANKED_DIR), "", "a data directory with no conduct file opens empty")
+	var t: int = 1_800_000_000
+	eq(conduct.cooldown_left_ms(id, t), 0, "nobody starts on a cooldown")
+	eq(conduct.leave(id, t), 0, "the first leave is a warning")
+	eq(conduct.cooldown_left_ms(id, t + 1), 0, "with no time out of the queue")
+	eq(conduct.next_cost_ms(id, t + 1), 120000, "and says the next one costs 2 minutes")
+	var costs: Array[int] = []
+	for i in range(6):
+		t += 600
+		costs.append(conduct.leave(id, t))
+	eq(costs, [120000, 300000, 900000, 1800000, 3600000, 3600000], "then 2, 5, 15, 30 and 60 minutes, and 60 after")
+	eq(conduct.cooldown_left_ms(id, t + 1), 3599000, "counted from the last leave")
+	eq(Conduct.wait_text(conduct.cooldown_left_ms(id, t + 1)), "59:59", "and read as minutes and seconds")
+	eq(Conduct.wait_text(299001), "5:00", "rounded up to the second")
+	eq(conduct.cooldown_left_ms(id, t + 3600), 0, "an hour on it is over")
+	var reopened: Conduct = Conduct.new()
+	eq(reopened.open(RANKED_DIR), "", "the file opens again")
+	eq(reopened.count(id, t + 3600), 7, "with every leave in the run")
+	var text: String = FileAccess.get_file_as_string(RANKED_DIR.path_join(Conduct.FILE))
+	check(text.contains(id) and not text.contains("mu") and not text.contains("name"), "holding the identity and its timestamps only")
+	var day_later: int = t + Conduct.CLEAR_AFTER_S
+	eq(reopened.count(id, day_later), 0, "a day without a leave clears the count")
+	eq(reopened.leave(id, day_later), 0, "so the next leave is a warning again")
+	clear_ranked_dir()
+
+
+func ranked_queue() -> MatchQueue:
+	var q: MatchQueue = MatchQueue.new()
+	q.rated = true
+	return q
+
+
+## A rated queue pairs two players only while one of them accepts the gap: 3 mu at once, 3 more for
+## each 30 seconds waited, anyone after 90 seconds. The oldest player takes the oldest opponent it
+## accepts, and an identity never meets itself.
+func test_the_ranked_queue_pairs_on_mu_within_a_widening_window() -> void:
+	var q: MatchQueue = ranked_queue()
+	near(MatchQueue.window_mu(0), 3.0, 1e-9, "a player accepts 3 mu at once")
+	near(MatchQueue.window_mu(60000), 9.0, 1e-9, "9 after a minute")
+	check(is_inf(MatchQueue.window_mu(90000)), "and anyone after 90 seconds")
+	q.join(71, 0, 25.0, "a")
+	q.join(72, 0, 34.0, "b")
+	eq(q.pair(0).size(), 0, "9 mu apart they do not pair at once")
+	eq(q.pair(59999).size(), 0, "nor a millisecond short of a minute")
+	var pairs: Array = q.pair(60000)
+	eq(queue_pairs(pairs), [[71, 72]], "at a minute the window reaches them")
+	if pairs.size() == 1:
+		eq([int(pairs[0][0]["waited_ms"]), int(pairs[0][1]["waited_ms"])], [60000, 60000], "each with its wait")
+	q.join(73, 0, 25.0, "c")
+	q.join(74, 1000, 60.0, "d")
+	eq(q.pair(89999).size(), 0, "35 mu apart nobody pairs short of 90 seconds")
+	eq(queue_pairs(q.pair(90000)), [[73, 74]], "and at 90 seconds the one who waited that long takes anyone")
+	q.join(75, 0, 25.0, "e")
+	q.join(76, 1, 40.0, "f")
+	q.join(77, 2, 26.0, "g")
+	eq(queue_pairs(q.pair(2)), [[75, 77]], "the oldest takes the oldest opponent inside its window")
+	eq(queue_peers(q), [76], "and the one outside keeps waiting")
+	q.clear()
+	q.join(78, 0, 25.0, "h")
+	q.join(79, 0, 25.0, "h")
+	eq(q.pair(200000).size(), 0, "one identity never meets itself")
+	var casual: MatchQueue = MatchQueue.new()
+	casual.join(81, 0, 25.0, "i")
+	casual.join(82, 0, 60.0, "i")
+	eq(queue_pairs(casual.pair(0)), [[81, 82]], "a casual queue still pairs the two oldest, rating or not")
+
+
+## The same two are not paired twice in a row until both have waited a minute; with anyone else to
+## pair, each meets someone new.
+func test_the_ranked_queue_does_not_pair_the_same_two_twice_in_a_row() -> void:
+	var q: MatchQueue = ranked_queue()
+	q.join(91, 0, 25.0, "a")
+	q.join(92, 0, 25.0, "b")
+	eq(queue_pairs(q.pair(0)), [[91, 92]], "two new players pair")
+	q.join(91, 1000, 25.0, "a")
+	q.join(92, 1000, 25.0, "b")
+	eq(q.pair(1000).size(), 0, "straight back in, the same two do not pair again")
+	eq(q.pair(60999).size(), 0, "nor a millisecond short of a minute")
+	eq(queue_pairs(q.pair(61000)), [[91, 92]], "after a minute with nobody else, they do")
+	q.join(91, 70000, 25.0, "a")
+	q.join(92, 70000, 25.0, "b")
+	q.join(93, 70001, 25.0, "c")
+	eq(queue_pairs(q.pair(70001)), [[91, 93]], "with a third player waiting, each meets someone new")
+	eq(queue_peers(q), [92], "and the other waits")
+
+
+## A version 2 record carries its match id, game number, and on the deciding game the match's result
+## and both ratings, and reads back whole. A version 1 line still loads and writes back as the same
+## line, so its signature still checks. Version 1 cannot carry the new fields, and a malformed match
+## or rating is refused.
+func test_a_version_2_record_carries_its_match_and_a_version_1_record_still_loads() -> void:
+	var ids: Array[String] = ["a".repeat(64), "b".repeat(64)]
+	var r: MatchRecord = ranked_record(ids, 2, 1, {"winner": 1, "wins": [0, 2], "reason": "concede"}, 1000, "0123456789abcdef")
+	var rated: Array[Dictionary] = Rating.rate(Rating.fresh(), Rating.fresh())
+	r.seats[1]["rating"] = {"before": Rating.fresh(), "after": rated[0]}
+	r.seats[0]["rating"] = {"before": Rating.fresh(), "after": rated[1]}
+	var line: String = r.line()
+	var back: MatchRecord = MatchRecord.from_dict(JSON.parse_string(line))
+	check(back != null, "a ranked record loads: %s" % MatchRecord.problem_of(JSON.parse_string(line)))
+	if back != null:
+		eq([back.v, back.match_id, back.game, back.mode], [2, "0123456789abcdef", 2, "ranked"], "with its version, match id, game and mode")
+		eq([int(back.match_result["winner"]), str(back.match_result["wins"]), str(back.match_result["reason"])], [1, "[0, 2]", "concede"],
+			"its match result")
+		near(float(back.seats[1]["rating"]["after"]["mu"]), float(rated[0]["mu"]), 1e-12, "and the winner's rating after")
+		eq(back.line(), line, "and writes back as the same line")
+	var decks: Array[String] = ["alpha", "beta"]
+	var plain: MatchRecord = stats_record(decks, 0, "survival", 3, 0)
+	var plain_dict: Dictionary = JSON.parse_string(plain.line())
+	eq([plain.v, str(plain_dict["match_id"]), int(plain_dict["game"]), plain_dict.has("match")], [2, plain.id, 1, false],
+		"a game of one is its own match, game 1, with no match object")
+	var old: Dictionary = plain_dict.duplicate(true)
+	old["v"] = 1
+	old.erase("match_id")
+	old.erase("game")
+	var old_back: MatchRecord = MatchRecord.from_dict(JSON.parse_string(JSON.stringify(old)))
+	check(old_back != null and old_back.v == 1 and old_back.game == 1 and old_back.match_id == old_back.id,
+		"a version 1 record still loads: %s" % MatchRecord.problem_of(old))
+	if old_back != null:
+		eq(MatchRecord.canonical(old_back.to_dict()), MatchRecord.canonical(old), "and writes back as version 1, so its signed text is unchanged")
+	var base: Dictionary = JSON.parse_string(line)
+	var edits: Array = [
+		["a version 1 record with a match id", func(d: Dictionary) -> void: d["v"] = 1],
+		["game 4", func(d: Dictionary) -> void: d["game"] = 4],
+		["game 0", func(d: Dictionary) -> void: d["game"] = 0],
+		["a match id that is not 16 hex", func(d: Dictionary) -> void: d["match_id"] = "match"],
+		["a match with a reason it does not know", func(d: Dictionary) -> void: d["match"]["reason"] = "vibes"],
+		["a match winner who is no seat", func(d: Dictionary) -> void: d["match"]["winner"] = 2],
+		["a match with an extra key", func(d: Dictionary) -> void: d["match"]["best_of"] = 3],
+		["a rating as text", func(d: Dictionary) -> void: d["seats"][0]["rating"]["after"]["mu"] = "high"],
+		["a rating with no sigma", func(d: Dictionary) -> void: d["seats"][0]["rating"]["before"].erase("sigma")],
+		["a rating with sigma 0", func(d: Dictionary) -> void: d["seats"][0]["rating"]["before"]["sigma"] = 0],
+	]
+	for edit in edits:
+		var copy: Dictionary = base.duplicate(true)
+		(edit[1] as Callable).call(copy)
+		check(MatchRecord.from_dict(copy) == null, "refused: %s" % edit[0])
+
+
+## Ranked records count by match as well as by game: each deck's match win rate from both seats,
+## the matches won 2-0, 2-1 and ended early, and how often the game 1 winner took the match. Other
+## records print no ranked block.
+func test_match_stats_count_ranked_matches_by_deck_and_by_score() -> void:
+	var ab: Array[String] = ["alpha", "beta"]
+	var ba: Array[String] = ["beta", "alpha"]
+	var stats: MatchStats = MatchStats.new()
+	var plays: Array = [
+		# deck order, match, game, game winner, game reason, match result on the deciding game
+		[ab, "0000000000000001", 1, 0, "survival", {}],
+		[ab, "0000000000000001", 2, 0, "seal", {"winner": 0, "wins": [2, 0], "reason": "seal"}],
+		[ab, "0000000000000002", 1, 1, "survival", {}],
+		[ab, "0000000000000002", 2, 0, "survival", {}],
+		[ab, "0000000000000002", 3, 0, "concede", {"winner": 0, "wins": [2, 1], "reason": "concede"}],
+		[ba, "0000000000000003", 1, 0, "survival", {}],
+		[ba, "0000000000000003", 2, 1, "survival", {}],
+		[ba, "0000000000000003", 3, 0, "ascension", {"winner": 0, "wins": [2, 1], "reason": "ascension"}],
+		[ab, "0000000000000004", 1, 0, "survival", {}],
+		[ab, "0000000000000004", 2, 1, "timeout", {"winner": 1, "wins": [1, 1], "reason": "timeout"}],
+	]
+	for play: Array in plays:
+		var r: MatchRecord = stats_record(play[0], int(play[3]), str(play[4]), 5, 0, "", "server", "ranked")
+		r.match_id = str(play[1])
+		r.game = int(play[2])
+		r.match_result = (play[5] as Dictionary).duplicate(true)
+		check(stats.add(MatchRecord.from_dict(JSON.parse_string(r.line()))), "a ranked record counts by default")
+	var ranked: Dictionary = stats.group_of("")["ranked"]
+	eq([int(ranked["games"]), int(ranked["matches"])], [10, 4], "ten games, four matches")
+	eq(ranked["decks"]["alpha"], [2, 4], "alpha won two of its four matches, from either seat")
+	eq(ranked["decks"]["beta"], [2, 4], "and so did beta")
+	eq([int(ranked["two_nil"]), int(ranked["two_one"]), int(ranked["short"])], [1, 2, 1], "one 2-0, two 2-1, one ended early")
+	var text: String = stats.to_text()
+	check(text.contains("RANKED  (4 matches decided from 10 games"), "the text has a ranked block")
+	check(text.contains("won 2-0: 1 (25.0%), won 2-1: 2 (50.0%), ended early: 1 (25.0%)"), "with the scores")
+	check(text.contains("the game 1 winner took the match 2 of 4"), "and the game 1 winner's share")
+	var summary: Dictionary = stats.to_json()["groups"][0]
+	check(summary.has("ranked") and int(summary["ranked"]["game_one_takes"]["won"]) == 2, "the JSON carries it too")
+	var casual: MatchStats = MatchStats.new()
+	casual.add(stats_record(ab, 0, "survival", 5, 0))
+	check(not casual.to_text().contains("RANKED") and not casual.to_json()["groups"][0].has("ranked"), "a report with no ranked record prints no ranked block")
+
+
+## A match conceded as a whole says "concede_match" in the deciding record's match while that game
+## says "concede". The loader takes the reason there and nowhere else, and the stats tool counts
+## such a match exactly as it counts one ended by a concession.
+func test_a_match_conceded_as_a_whole_loads_and_counts_like_a_concession() -> void:
+	var ab: Array[String] = ["alpha", "beta"]
+	var plays: Array = [
+		# match, game, game winner, match result on the deciding game
+		["0000000000000011", 1, 1, {}],
+		["0000000000000011", 2, 0, {}],
+		["0000000000000011", 3, 0, {"winner": 0, "wins": [2, 1], "reason": "concede_match"}],
+		["0000000000000012", 1, 0, {"winner": 0, "wins": [1, 0], "reason": "concede_match"}],
+	]
+	var whole: MatchStats = MatchStats.new()
+	var game: MatchStats = MatchStats.new()
+	for play: Array in plays:
+		for reason: String in ["concede_match", "concede"]:
+			var r: MatchRecord = stats_record(ab, int(play[2]), "concede", 5, 0, "", "server", "ranked")
+			r.match_id = str(play[0])
+			r.game = int(play[1])
+			r.match_result = (play[3] as Dictionary).duplicate(true)
+			if not r.match_result.is_empty():
+				r.match_result["reason"] = reason
+			var back: MatchRecord = MatchRecord.from_dict(JSON.parse_string(r.line()))
+			check(back != null, "a ranked record whose match ends %s loads" % reason)
+			if back != null:
+				var into: MatchStats = whole if reason == "concede_match" else game
+				check(into.add(back), "and counts")
+				if not back.match_result.is_empty():
+					eq([str(back.match_result["reason"]), str(back.result["reason"])], [reason, "concede"], "with the match's reason and the game's")
+	var ranked: Dictionary = whole.group_of("")["ranked"]
+	eq([int(ranked["matches"]), int(ranked["two_one"]), int(ranked["short"])], [2, 1, 1], "a conceded match counts by its score: one 2-1, one ended early")
+	eq(ranked["decks"]["alpha"], [2, 2], "for the deck that won it")
+	eq(whole.to_text(), game.to_text(), "the report reads the same as for matches ended by a concession")
+	var line: Dictionary = JSON.parse_string(stats_record(ab, 0, "concede", 5, 0, "", "server", "ranked").line())
+	line["result"]["reason"] = "concede_match"
+	check(MatchRecord.from_dict(line) == null, "a game's own result cannot say concede_match")

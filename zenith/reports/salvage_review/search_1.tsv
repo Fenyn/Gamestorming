@@ -1,0 +1,10 @@
+a_deck	b_deck	a_seat	winner_side	reason	turn	a_life_start	b_life_start	a_life	a_seals_missing	a_asc_left	b_life	b_seals_missing	b_asc_left	a_decisions	a_ms	b_decisions	b_ms
+shade_salvage	freestyle_swords	1	b	survival	5	80	78	4	7	1.000	50	7	0.960	29	16243.1	43	23484.7
+shade_salvage	pyre_attrition	0	b	survival	4	80	76	4	7	1.000	62	7	0.320	39	18698.9	37	15962.4
+shade_salvage	pyre_beatdown	1	b	survival	7	80	78	1	6	1.000	2	7	0.867	68	37939.5	61	25773.2
+shade_salvage	shade_henchmen	0	b	survival	9	80	80	1	6	0.900	9	6	0.800	64	35518.6	67	34621.3
+shade_salvage	shade_mind_siege	1	a	survival	7	80	76	12	4	1.000	0	7	1.000	73	38928.0	54	23949.8
+shade_salvage	steel_heir	0	b	survival	9	80	79	2	5	0.900	2	6	0.720	88	46696.2	66	36852.1
+shade_salvage	storm_unbound	1	b	survival	12	80	81	0	4	1.000	20	7	0.600	93	51200.2	59	25666.1
+shade_salvage	tide_companions	0	a	survival	8	80	78	21	6	0.958	0	7	1.000	57	31923.5	58	29710.9
+shade_salvage	tide_deepwater	1	a	survival	12	80	75	8	6	1.000	0	4	1.000	111	57759.3	107	54610.1

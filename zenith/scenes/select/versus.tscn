@@ -125,6 +125,15 @@ text = ""
 horizontal_alignment = 2
 autowrap_mode = 3
 
+[node name="Countdown" type="Label" parent="Margin/Column/Footer"]
+visible = false
+custom_minimum_size = Vector2(240, 52)
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "Duel starts in 5"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Start" type="Button" parent="Margin/Column/Footer"]
 custom_minimum_size = Vector2(240, 52)
 layout_mode = 2

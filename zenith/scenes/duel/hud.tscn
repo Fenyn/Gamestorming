@@ -101,6 +101,21 @@ fit_content = true
 scroll_following = false
 scroll_active = false
 
+[node name="FarHand" type="HBoxContainer" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -420.0
+offset_top = 14.0
+offset_right = 420.0
+offset_bottom = 154.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 1
+
 [node name="Hand" type="HBoxContainer" parent="Root"]
 layout_mode = 1
 anchors_preset = 7
@@ -135,6 +150,15 @@ grow_vertical = 0
 [node name="Column" type="VBoxContainer" parent="Root/PromptPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
+
+[node name="Clock" type="Label" parent="Root/PromptPanel/Column"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_colors/font_color = Color(0.93, 0.91, 0.87, 1)
+theme_override_font_sizes/font_size = 22
+text = "0:30"
+horizontal_alignment = 2
 
 [node name="Who" type="Label" parent="Root/PromptPanel/Column"]
 layout_mode = 2
@@ -212,6 +236,103 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
+[node name="ReplayBar" type="PanelContainer" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -418.0
+offset_top = -84.0
+offset_right = -18.0
+offset_bottom = -6.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="Column" type="VBoxContainer" parent="Root/ReplayBar"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Controls" type="HBoxContainer" parent="Root/ReplayBar/Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Back" type="Button" parent="Root/ReplayBar/Column/Controls"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+tooltip_text = "One decision back"
+text = "Back"
+
+[node name="Play" type="Button" parent="Root/ReplayBar/Column/Controls"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+text = "Play"
+
+[node name="Pause" type="Button" parent="Root/ReplayBar/Column/Controls"]
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+text = "Pause"
+
+[node name="Step" type="Button" parent="Root/ReplayBar/Column/Controls"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+tooltip_text = "One decision forward"
+text = "Step"
+
+[node name="Speed" type="OptionButton" parent="Root/ReplayBar/Column/Controls"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+tooltip_text = "Replay speed"
+selected = 0
+item_count = 3
+popup/item_0/text = "1x"
+popup/item_0/id = 0
+popup/item_1/text = "2x"
+popup/item_1/id = 1
+popup/item_2/text = "4x"
+popup/item_2/id = 2
+
+[node name="Position" type="Label" parent="Root/ReplayBar/Column/Controls"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+text = "0 / 0"
+horizontal_alignment = 1
+
+[node name="Jump" type="HBoxContainer" parent="Root/ReplayBar/Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Turn" type="OptionButton" parent="Root/ReplayBar/Column/Jump"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"CompactButton"
+tooltip_text = "Jump to the start of a turn"
+fit_to_longest_item = false
+
+[node name="View" type="OptionButton" parent="Root/ReplayBar/Column/Jump"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+tooltip_text = "Whose view to show"
+selected = 0
+item_count = 3
+popup/item_0/text = "Seat 1"
+popup/item_0/id = 0
+popup/item_1/text = "Seat 2"
+popup/item_1/id = 1
+popup/item_2/text = "Both hands"
+popup/item_2/id = 2
+
 [node name="FarFlags" type="Label" parent="Root"]
 layout_mode = 1
 offset_left = 18.0
@@ -264,42 +385,22 @@ toggle_mode = true
 flat = true
 script = ExtResource("6_gear")
 
-[node name="OptionsMenu" type="PanelContainer" parent="Root"]
+[node name="Series" type="Label" parent="Root"]
 visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -300.0
-offset_top = 74.0
-offset_right = -18.0
-offset_bottom = 214.0
+offset_left = -178.0
+offset_top = 27.0
+offset_right = -78.0
+offset_bottom = 57.0
 grow_horizontal = 0
-
-[node name="Column" type="VBoxContainer" parent="Root/OptionsMenu"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Title" type="Label" parent="Root/OptionsMenu/Column"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "OPTIONS"
-
-[node name="ReducedMotion" type="CheckButton" parent="Root/OptionsMenu/Column"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Reduced motion"
-flat = true
-tooltip_text = "Keep resource changes readable with less movement and fewer impact effects."
-
-[node name="DevToggle" type="Button" parent="Root/OptionsMenu/Column"]
-visible = false
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Dev commands"
-flat = true
-alignment = 0
-
+mouse_filter = 2
+theme_type_variation = &"CompactButton"
+text = "Game 1 of 3"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Tray" type="ColorRect" parent="Root"]
 visible = false
@@ -330,6 +431,15 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "YOUR DECISION"
+horizontal_alignment = 1
+
+[node name="Clock" type="Label" parent="Root/Tray/Center/Panel/Column"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_colors/font_color = Color(0.93, 0.91, 0.87, 1)
+theme_override_font_sizes/font_size = 26
+text = "0:30"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="Root/Tray/Center/Panel/Column"]
@@ -432,6 +542,14 @@ custom_minimum_size = Vector2(140, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Close"
+
+[node name="Fuse" type="ColorRect" parent="Root"]
+visible = false
+layout_mode = 1
+offset_right = 400.0
+offset_bottom = 4.0
+mouse_filter = 2
+color = Color(0.93, 0.55, 0.3, 1)
 
 [node name="DevPanel" parent="Root" instance=ExtResource("4_dev")]
 visible = false
@@ -672,6 +790,13 @@ grow_vertical = 2
 layout_mode = 2
 theme_override_constants/separation = 18
 
+[node name="Series" type="Label" parent="Root/GameOver/Center/Column"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "Game 1 of 3 · 1-0"
+horizontal_alignment = 1
+
 [node name="Title" type="Label" parent="Root/GameOver/Center/Column"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
@@ -685,10 +810,37 @@ theme_override_font_sizes/font_size = 24
 text = "reason"
 horizontal_alignment = 1
 
+[node name="Rating" type="Label" parent="Root/GameOver/Center/Column"]
+visible = false
+layout_mode = 2
+text = "Rating 112 → 138"
+horizontal_alignment = 1
+
+[node name="Note" type="Label" parent="Root/GameOver/Center/Column"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+
 [node name="Buttons" type="HBoxContainer" parent="Root/GameOver/Center/Column"]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 16
+
+[node name="Next" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
+visible = false
+custom_minimum_size = Vector2(240, 60)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Next game"
+
+[node name="FindRanked" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
+visible = false
+custom_minimum_size = Vector2(240, 60)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Find another ranked duel"
 
 [node name="Rematch" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
 custom_minimum_size = Vector2(240, 60)
@@ -700,6 +852,213 @@ text = "Rematch"
 custom_minimum_size = Vector2(240, 60)
 layout_mode = 2
 text = "Choose duelists"
+
+[node name="Title" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
+visible = false
+custom_minimum_size = Vector2(240, 60)
+layout_mode = 2
+text = "Title"
+
+[node name="Reconnect" type="ColorRect" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.025, 0.03, 0.88)
+
+[node name="Center" type="CenterContainer" parent="Root/Reconnect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Column" type="VBoxContainer" parent="Root/Reconnect/Center"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="Root/Reconnect/Center/Column"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "Connection lost"
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="Root/Reconnect/Center/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 24
+text = "Reconnecting 1:30"
+horizontal_alignment = 1
+
+[node name="GiveUp" type="Button" parent="Root/Reconnect/Center/Column"]
+custom_minimum_size = Vector2(240, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Give up"
+
+[node name="OptionsShade" type="ColorRect" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.025, 0.03, 0.45)
+
+[node name="OptionsMenu" type="PanelContainer" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 74.0
+offset_right = -18.0
+offset_bottom = 214.0
+grow_horizontal = 0
+
+[node name="Column" type="VBoxContainer" parent="Root/OptionsMenu"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Root/OptionsMenu/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "OPTIONS"
+
+[node name="Items" type="VBoxContainer" parent="Root/OptionsMenu/Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Resume" type="Button" parent="Root/OptionsMenu/Column/Items"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Resume"
+flat = true
+alignment = 0
+
+[node name="ReplaySpeed" type="HBoxContainer" parent="Root/OptionsMenu/Column/Items"]
+visible = false
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Root/OptionsMenu/Column/Items/ReplaySpeed"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "Speed"
+
+[node name="Choice" type="OptionButton" parent="Root/OptionsMenu/Column/Items/ReplaySpeed"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+selected = 0
+item_count = 3
+popup/item_0/text = "1x"
+popup/item_0/id = 0
+popup/item_1/text = "2x"
+popup/item_1/id = 1
+popup/item_2/text = "4x"
+popup/item_2/id = 2
+
+[node name="ReplayView" type="HBoxContainer" parent="Root/OptionsMenu/Column/Items"]
+visible = false
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Root/OptionsMenu/Column/Items/ReplayView"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "View"
+
+[node name="Choice" type="OptionButton" parent="Root/OptionsMenu/Column/Items/ReplayView"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+selected = 0
+item_count = 3
+popup/item_0/text = "Seat 1"
+popup/item_0/id = 0
+popup/item_1/text = "Seat 2"
+popup/item_1/id = 1
+popup/item_2/text = "Both hands"
+popup/item_2/id = 2
+
+[node name="Concede" type="Button" parent="Root/OptionsMenu/Column/Items"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Concede"
+flat = true
+alignment = 0
+
+[node name="Rematch" type="Button" parent="Root/OptionsMenu/Column/Items"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Rematch"
+flat = true
+alignment = 0
+
+[node name="Leave" type="Button" parent="Root/OptionsMenu/Column/Items"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Back to title"
+flat = true
+alignment = 0
+
+[node name="Rule" type="HSeparator" parent="Root/OptionsMenu/Column/Items"]
+layout_mode = 2
+
+[node name="ReducedMotion" type="CheckButton" parent="Root/OptionsMenu/Column/Items"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Reduced motion"
+flat = true
+tooltip_text = "Keep resource changes readable with less movement and fewer impact effects."
+
+[node name="Fullscreen" type="CheckButton" parent="Root/OptionsMenu/Column/Items"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Fullscreen"
+flat = true
+
+[node name="DevToggle" type="Button" parent="Root/OptionsMenu/Column/Items"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Dev commands"
+flat = true
+alignment = 0
+
+[node name="Confirm" type="VBoxContainer" parent="Root/OptionsMenu/Column"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Question" type="Label" parent="Root/OptionsMenu/Column/Confirm"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Concede the duel."
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Root/OptionsMenu/Column/Confirm"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Yes" type="Button" parent="Root/OptionsMenu/Column/Confirm/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "Concede"
+
+[node name="No" type="Button" parent="Root/OptionsMenu/Column/Confirm/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "Cancel"
 
 [node name="Loading" type="ColorRect" parent="Root"]
 layout_mode = 1

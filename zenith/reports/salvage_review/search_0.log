@@ -1,0 +1,66 @@
+Godot Engine v4.6.2.stable.mono.official.71f334935 - https://godotengine.org
+
+matchlab matrix shard 1 of 3: 9 matches
+  a field: shade_salvage
+  b field: freestyle_swords, pyre_ascent, pyre_attrition, pyre_beatdown, root_seals, shade_henchmen, shade_mind_siege, steel_beatdown, steel_heir, storm_unbound, storm_volley, tide_companions, tide_deepwater
+  a side : search / budget_ms=600
+  b side : search / budget_ms=600
+  flags  : --a-field=shade_salvage --b-field=*,!shade_salvage --budget=600 --decisions=res://reports/salvage_review/search_decisions_0.jsonl --policy=search --records=res://reports/salvage_review/search_records_0.jsonl --repeats=1 --shard=0/3 --tsv=res://reports/salvage_review/search_0.tsv
+
+=== matchlab, 660s ===
+side a: search / budget_ms=600
+side b: search / budget_ms=600
+9 matches, 0 unusable
+
+RECORD  (both sides, search / budget_ms=600)
+deck               played win% (95% range)       won by surv/seal/asc   lost to surv/seal/asc   turns
+freestyle_swords        1 100.0% (20.7-100.0)                   1/0/0                   0/0/0     7.0
+pyre_beatdown           1 100.0% (20.7-100.0)                   1/0/0                   0/0/0     5.0
+root_seals              1 100.0% (20.7-100.0)                   1/0/0                   0/0/0    24.0
+shade_mind_siege        1 100.0% (20.7-100.0)                   1/0/0                   0/0/0     4.0
+steel_beatdown          1 100.0% (20.7-100.0)                   1/0/0                   0/0/0     7.0
+storm_unbound           1 100.0% (20.7-100.0)                   1/0/0                   0/0/0    10.0
+shade_salvage           9  33.3% (12.1-64.6)                    3/0/0                   6/0/0     8.8
+pyre_ascent             1   0.0% ( 0.0-79.3)                    0/0/0                   1/0/0     5.0
+storm_volley            1   0.0% ( 0.0-79.3)                    0/0/0                   1/0/0     6.0
+tide_deepwater          1   0.0% ( 0.0-79.3)                    0/0/0                   1/0/0    11.0
+all wins by route: 9/0/0
+
+HOW CLOSE IT CAME WHEN IT LOST  (life cards left / Seals missing / share of the Fervor climb left)
+deck               losses   own distance at the end      nearest route: surv/seal/asc
+freestyle_swords        0     0.0 life / 0.0 seals /   0% asc   0/0/0
+pyre_beatdown           0     0.0 life / 0.0 seals /   0% asc   0/0/0
+root_seals              0     0.0 life / 0.0 seals /   0% asc   0/0/0
+shade_mind_siege        0     0.0 life / 0.0 seals /   0% asc   0/0/0
+steel_beatdown          0     0.0 life / 0.0 seals /   0% asc   0/0/0
+storm_unbound           0     0.0 life / 0.0 seals /   0% asc   0/0/0
+shade_salvage           6     1.8 life / 6.0 seals /  96% asc   6/0/0
+pyre_ascent             1     1.0 life / 6.0 seals /  84% asc   1/0/0
+storm_volley            1     0.0 life / 7.0 seals / 100% asc   1/0/0
+tide_deepwater          1     2.0 life / 7.0 seals / 100% asc   1/0/0
+
+WHAT IT HAD LEFT WHEN IT WON  (same three numbers, for the winner itself)
+deck                 wins   own distance at the end
+freestyle_swords        1    22.0 life / 7.0 seals /  96% asc
+pyre_beatdown           1    21.0 life / 7.0 seals /  60% asc
+root_seals              1    39.0 life / 1.0 seals /  96% asc
+shade_mind_siege        1    58.0 life / 6.0 seals / 100% asc
+steel_beatdown          1    20.0 life / 7.0 seals /  40% asc
+storm_unbound           1     6.0 life / 7.0 seals /  33% asc
+shade_salvage           3    26.3 life / 5.7 seals /  83% asc
+pyre_ascent             0     0.0 life / 0.0 seals /   0% asc
+storm_volley            0     0.0 life / 0.0 seals /   0% asc
+tide_deepwater          0     0.0 life / 0.0 seals /   0% asc
+
+MATCHUPS  (side a deck's win% against side b deck, n in brackets)
+a \ b              freestyle_sw  pyre_ascent pyre_attriti pyre_beatdow   root_seals shade_henchm shade_mind_s steel_beatdo   steel_heir storm_unboun storm_volley tide_compani tide_deepwat
+shade_salvage             0%[1]      100%[1]            -        0%[1]        0%[1]            -        0%[1]        0%[1]            -        0%[1]      100%[1]            -      100%[1]
+
+DECISION COST
+side   policy                       decisions  mean ms   med ms   p95 ms   max ms   search: mean depth / fallbacks
+a      search / budget_ms=600             662   539.08   601.32   604.74      611   1.45 / 3
+       search stops: { "time_budget": 589, "completed": 34 }
+b      search / budget_ms=600             588   504.70   601.19   604.50      616   2.05 / 1
+       search stops: { "time_budget": 470, "completed": 66 }
+
+wrote G:/Godot/Gamestorming/zenith/reports/salvage_review/search_0.tsv (9 matches)

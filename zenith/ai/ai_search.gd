@@ -161,6 +161,7 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 		if _has_settled(profile, depth, settled_for, completed):
 			metrics["cutoff"] = "settled"
 			break
+	best_index = _trust_scorer_at_depth_one(profile, completed, prior, best_index)
 	if completed.is_empty():
 		last_report.append({"option": prompt.options[best_index].describe(), "prior": prior[best_index],
 			"value": prior[best_index], "samples": 0, "depth": 0, "line": []})
@@ -187,6 +188,27 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 	intent[root_key] = prompt.options[best_index].to_dict()
 	_finish()
 	return prompt.options[best_index]
+
+
+## One completed ply over a couple of sampled worlds is thin evidence. When that is all the budget
+## bought and it disagrees with the scorer by less than `think.trust_margin`, the scorer's pick
+## stands: a near tie at depth 1 is sampling noise, and the scorer has read the whole card.
+func _trust_scorer_at_depth_one(profile: AiProfile, completed: Array[Dictionary], prior: Array[float], chosen: int) -> int:
+	if int(metrics.get("completed_depth", 0)) != 1 or completed.size() < 2:
+		return chosen
+	var values: Dictionary = {}
+	var scorer_pick: int = -1
+	for result in completed:
+		var i: int = int(result["index"])
+		values[i] = float(result["value"])
+		if scorer_pick < 0 or prior[i] > prior[scorer_pick]:
+			scorer_pick = i
+	if scorer_pick == chosen or absf(float(values[chosen])) >= AiEvaluator.WIN:
+		return chosen
+	if float(values[chosen]) - float(values[scorer_pick]) < profile.w("think", "trust_margin"):
+		metrics["trusted_scorer"] = true
+		return scorer_pick
+	return chosen
 
 
 ## Iterative deepening keeps only whole depths, so a depth that runs out of time is thrown away.
@@ -388,6 +410,17 @@ func _group(worlds: Array[DuelEngine], depth: int, steps: int, observation: Stri
 				metrics["cache_hits"] = int(metrics["cache_hits"]) + 1
 				return _transpositions[cache_key]
 	var scores: Array[float] = _scores(worlds)
+	# A kind the scorer answers at the table is answered the same way in the plan, so the line
+	# searched is the line that will be played.
+	if _profile.scorer_decides(prompt.kind):
+		var pick: int = 0
+		for i in range(scores.size()):
+			if scores[i] > scores[pick]:
+				pick = i
+		var decided: Array[DuelEngine] = _advance(worlds, prompt.options[pick].to_dict())
+		var decided_result: Dictionary = _visit(decided, depth, steps + 1)
+		_recycle(decided)
+		return decided_result
 	var width: int = _profile.think_int("branch_width")
 	var candidates: Array[int] = _candidates(sim, prompt, scores, maxi(1, width))
 	if observation != "own":

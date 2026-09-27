@@ -3,8 +3,8 @@ extends RefCounted
 ## The one UI theme and its colour tokens, built once at runtime and applied to every screen. The
 ## standard it implements is designs/zenith_ui.md; no screen defines its own colours, sizes or radii.
 ##
-## Type variations: AccentButton, TileButton, TitleLabel, GroupLabel, HeaderLabel, RowTitleLabel,
-## BodyLabel, CaptionLabel, MutedLabel, AccentLabel, WarnLabel, StatLabel, Chip (Panel).
+## Type variations: AccentButton, TileButton, CompactButton, TitleLabel, GroupLabel, HeaderLabel,
+## RowTitleLabel, BodyLabel, CaptionLabel, MutedLabel, AccentLabel, WarnLabel, StatLabel, Chip (Panel).
 ##
 ## Colour roles. Bone-white is "act here": the primary button, legal cards, YOUR TURN, the current
 ## step, the selection ring. Iron frames every panel and button. Meaning colours (Energy, Might,
@@ -119,6 +119,23 @@ static func build() -> Theme:
 	for state: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
 		t.set_color(state, "TileButton", TEXT)
 	t.set_color("font_disabled_color", "TileButton", TEXT_DISABLED)
+
+	# Compact button: a quiet control in a strip of them, caption size under a 1 px edge. It also
+	# serves an OptionButton, whose arrow then sits just inside that edge instead of the frame's rim.
+	t.set_type_variation("CompactButton", "Button")
+	t.set_stylebox("normal", "CompactButton", box(RAISED, BORDER, RADIUS, 1, GAP_S, 0))
+	t.set_stylebox("hover", "CompactButton", box(HOVER, FRAME_DIM, RADIUS, 1, GAP_S, 0))
+	t.set_stylebox("pressed", "CompactButton", box(RAISED_STRONG, FRAME, RADIUS, 1, GAP_S, 0))
+	t.set_stylebox("hover_pressed", "CompactButton", box(RAISED_STRONG, FRAME, RADIUS, 1, GAP_S, 0))
+	t.set_stylebox("disabled", "CompactButton", box(Color.TRANSPARENT, Color(BORDER, 0.3), RADIUS, 1, GAP_S, 0))
+	t.set_stylebox("focus", "CompactButton", StyleBoxEmpty.new())
+	t.set_font_size("font_size", "CompactButton", SIZE_CAPTION)
+	t.set_constant("arrow_margin", "CompactButton", GAP_XS)
+	for state: String in ["font_color", "font_focus_color"]:
+		t.set_color(state, "CompactButton", TEXT_SOFT)
+	for state: String in ["font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
+		t.set_color(state, "CompactButton", TEXT)
+	t.set_color("font_disabled_color", "CompactButton", TEXT_DISABLED)
 
 	t.set_color("font_color", "Label", TEXT)
 	_label(t, "TitleLabel", SIZE_TITLE, TEXT)

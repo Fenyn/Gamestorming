@@ -40,6 +40,7 @@ layout_mode = 2
 size_flags_horizontal = 10
 text = "Player 1"
 placeholder_text = "Name"
+max_length = 20
 
 [node name="Scroll" type="VBoxContainer" parent="Row"]
 layout_mode = 2

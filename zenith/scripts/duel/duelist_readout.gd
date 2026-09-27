@@ -99,6 +99,17 @@ var _lives: int = 1          # how many points the rival needs against this seat
 var _lives_lost: int = 0     # how many of them the rival has scored
 var _show_lives: bool = false  # only when either side has more than one (adventure duels)
 const LIFE_RED: Color = Color(0.93, 0.36, 0.36)
+## Online: the tab along the plate's foot while this seat decides, "who is deciding" or "Time bank"
+## beside the time left, warning-coloured once little is left. Empty when no clock runs.
+const CLOCK_TAB: Vector2 = Vector2(440, 36)
+var _clock_label: String = ""
+var _clock_time: String = ""
+var _clock_warn: bool = false
+## Online: "X lost connection. 1:12 to return." across the plate's foot in place of the clock tab
+## while this seat's player is away, "" while they are here.
+var _away: String = ""
+const AWAY_FONT: int = 26
+const AWAY_FONT_MIN: int = 16
 var _accent: Color = IVORY
 var _initialized: bool = false
 var _player_index: int = -1
@@ -261,6 +272,10 @@ func _draw() -> void:
 		_draw_tracker(plate)
 		if _show_lives:
 			_draw_lives(plate)
+		if _away != "":
+			_draw_away(plate)
+		elif _clock_label != "":
+			_draw_clock(plate)
 		return
 	draw_set_transform(size * 0.5)
 	var layout: Dictionary = update_layout()
@@ -491,6 +506,53 @@ func _draw_lives(tracker: Rect2) -> void:
 	for i in range(_lives):
 		var left: bool = i < _lives - _lives_lost
 		_heart(Vector2(tab.position.x + 96.0 + 32.0 * i, tab.get_center().y), 9.5, LIFE_RED if left else INK, LIFE_RED if left else Color(MUTED, 0.5))
+
+
+func set_clock(label: String, time: String, warn: bool) -> void:
+	if label == _clock_label and time == _clock_time and warn == _clock_warn:
+		return
+	_clock_label = label
+	_clock_time = time
+	_clock_warn = warn
+	request_redraw()
+
+
+func clock_text() -> String:
+	return "%s %s" % [_clock_label, _clock_time] if _clock_label != "" else ""
+
+
+func set_away(text: String) -> void:
+	if text == _away:
+		return
+	_away = text
+	request_redraw()
+
+
+func away_text() -> String:
+	return _away
+
+
+## The away line takes the clock tab's place at nearly the plate's width, in the warning colour,
+## its type stepping down until the whole sentence fits.
+func _draw_away(tracker: Rect2) -> void:
+	var tab: Rect2 = Rect2(tracker.position.x + 10.0, tracker.end.y - 14.0, tracker.size.x - 20.0, CLOCK_TAB.y)
+	var room: float = tab.size.x - 24.0
+	var font_size: int = AWAY_FONT
+	while font_size > AWAY_FONT_MIN and _font.get_string_size(_away, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > room:
+		font_size -= 1
+	draw_rect(tab, INK)
+	draw_rect(tab, ZenithTheme.WARN, false, 2.0)
+	_text(_away, tab.position + Vector2(12, 27), room, font_size, ZenithTheme.WARN, true)
+
+
+## The clock tab straddles the plate's bottom border like the lives tab, which online never shows.
+func _draw_clock(tracker: Rect2) -> void:
+	var tab: Rect2 = Rect2(tracker.get_center().x - CLOCK_TAB.x * 0.5, tracker.end.y - 14.0, CLOCK_TAB.x, CLOCK_TAB.y)
+	var color: Color = ZenithTheme.WARN if _clock_warn else TEXT
+	draw_rect(tab, INK)
+	draw_rect(tab, ZenithTheme.WARN if _clock_warn else MapArt.muted(_accent).lerp(Color.WHITE, 0.3), false, 2.0)
+	_text(_clock_label, tab.position + Vector2(12, 27), tab.size.x - 120.0, 26, MUTED if not _clock_warn else color)
+	_text(_clock_time, Vector2(tab.end.x - 100.0, tab.position.y + 29), 88, 30, color, true)
 
 
 ## A small heart: two lobes and a point, filled or hollow.

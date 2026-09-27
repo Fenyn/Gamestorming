@@ -3,6 +3,8 @@ extends RefCounted
 ## A deck as a player builds it. Card ids only; the engine instantiates them.
 
 var name: String = "Deck"
+## The file stem `load_from` read it from; "" for a deck built in code.
+var id: String = ""
 ## The Duelist's Aspect stack, one card id per tier, lowest first. Each Aspect is its own card
 ## since 2026-09-21, so a deck names a list and not a single personality.
 var duelist_ids: Array[String] = []
@@ -119,7 +121,9 @@ static func load_from(path: String) -> DeckList:
 	var text: String = FileAccess.get_file_as_string(path)
 	var parsed: Variant = JSON.parse_string(text)
 	assert(parsed is Dictionary, "Deck %s is not a JSON object" % path)
-	return DeckList.from_dict(parsed)
+	var deck: DeckList = DeckList.from_dict(parsed)
+	deck.id = path.get_file().get_basename()
+	return deck
 
 
 ## Cards that count toward deck size: Life Deck, Duelist aspects, Mastery, Relic.

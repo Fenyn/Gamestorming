@@ -97,7 +97,7 @@ func print_all(roster: SimRoster, a_side: SimSeat, b_side: SimSeat, header: Stri
 		var b_total: int = _total(side_rows[1], "played")
 		print("")
 		print("SIDES  side a %s, side b %s" % [
-			_rate_text(side_wins[0], a_total), _rate_text(side_wins[1], b_total)])
+			rate_text(side_wins[0], a_total), rate_text(side_wins[1], b_total)])
 		_print_closeness(_merged_rows())
 
 	_print_matchups(roster)
@@ -115,7 +115,7 @@ func _print_record(title: String, rows: Dictionary) -> void:
 		for r in REASONS:
 			totals[r] = int(totals.get(r, 0)) + int((t["win"] as Dictionary).get(r, 0))
 		print("%-18s %6d %-20s   %20s   %21s   %5.1f" % [
-			name, int(t["played"]), _rate_text(int(t["won"]), int(t["played"])),
+			name, int(t["played"]), rate_text(int(t["won"]), int(t["played"])),
 			_counts_of(t["win"]), _counts_of(t["loss"]),
 			float(int(t["turns"])) / float(maxi(1, int(t["played"]))),
 		])
@@ -406,7 +406,7 @@ func _rate(t: Dictionary) -> float:
 	return float(int(t["won"])) / float(maxi(1, int(t["played"])))
 
 
-func _rate_text(wins: int, n: int) -> String:
+static func rate_text(wins: int, n: int) -> String:
 	if n <= 0:
 		return "     - "
 	var bounds: Array[float] = wilson(wins, n)

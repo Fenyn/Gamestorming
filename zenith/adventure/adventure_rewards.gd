@@ -314,6 +314,32 @@ static func finish_stage(run: AdventureRun, map: AdventureMap, library: CardLibr
 	return payout
 
 
+## The whole result of the duel on the run's node, applied once: the story log's tally, on a win
+## the join, XP and achievements, the Motes it pays (credited to `wallet`) and, on a loss, the
+## run-end settlement. The duel is over, so its saved history goes too. Returns what a win gave, as
+## `AdventureProgress.record_win` entries. A run that is not waiting on a duel is left as it is, so
+## recording the same duel twice changes nothing. Nothing here saves.
+static func record_duel(run: AdventureRun, map: AdventureMap, library: CardLibrary, won: bool,
+		engine: DuelEngine, story_log: AdventureStoryLog, collection: AdventureCollection,
+		unlocks: AdventureUnlocks, progress: AdventureProgress, wallet: AdventureWallet) -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	if run.status != "stage":
+		return results
+	var opponent_family: String = AdventureDecks.family_of(str(map.duel_for(run.node_id).get("opponent", "")))
+	story_log.begin_run(run.run_id)
+	story_log.record_result(AdventureDecks.character_of(AdventureDecks.family_of(run.starter_id)),
+		AdventureDecks.character_of(opponent_family), won)
+	if won:
+		results = AdventureProgress.record_win(run, map, engine, library, collection, unlocks, progress, wallet)
+	var payout: int = finish_stage(run, map, library, won)
+	if payout > 0:
+		wallet.earn(payout, AdventureWallet.REASON_STAGE, run.run_id, run.stage)
+	if not won:
+		AdventureSettlement.open(run)
+	run.duel_history.clear()
+	return results
+
+
 ## Leaves the Aspect step for the bundle offer, which is built from the deck as it now stands.
 static func finish_aspect(run: AdventureRun, map: AdventureMap, library: CardLibrary) -> void:
 	run.pending_aspects.clear()

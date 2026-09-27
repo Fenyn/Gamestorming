@@ -47,6 +47,9 @@ var kept: Dictionary = {}
 ## {stage, kind, id} for every kind, plus "cards" on a bundle pick.
 ## kind: bundle | aspect | aspect_skipped | skip | cut | joined (a storyline boss's card)
 var picks: Array[Dictionary] = []
+## The duel in progress as `Referee.history`, saved after every command so a closed game comes
+## back to the same position. Empty between duels.
+var duel_history: Array[Dictionary] = []
 
 
 static func begin(starter_id_value: String, run_seed_value: int) -> AdventureRun:
@@ -227,7 +230,7 @@ static func _mix(a: int, b: int) -> int:
 
 ## An older save is not migrated: `from_dict` refuses it and the run is dropped, since a run in
 ## flight is not worth carrying across (user, 2026-09-23).
-const SAVE_VERSION: int = 6
+const SAVE_VERSION: int = 7
 
 
 func to_dict() -> Dictionary:
@@ -253,6 +256,7 @@ func to_dict() -> Dictionary:
 		"settled": settled,
 		"kept": kept.duplicate(),
 		"picks": picks.duplicate(true),
+		"duel_history": duel_history.duplicate(true),
 	}
 
 
@@ -308,4 +312,26 @@ static func from_dict(d: Dictionary) -> AdventureRun:
 		run.starter_cards.append(str(id))
 	for id in d.get("starter_duelist", []):
 		run.starter_duelist.append(str(id))
+	for entry in d.get("duel_history", []):
+		if entry is Dictionary:
+			var command: Dictionary = _whole_numbers(entry)
+			run.duel_history.append(command)
 	return run
+
+
+## A command names uids, counts and amounts, never a fraction, so every whole float JSON hands back
+## goes back to an int and the replay matches the options it was taken from exactly.
+static func _whole_numbers(value: Variant) -> Variant:
+	if value is float and float(value) == floorf(float(value)):
+		return int(value)
+	if value is Dictionary:
+		var fields: Dictionary = {}
+		for key in (value as Dictionary).keys():
+			fields[key] = _whole_numbers((value as Dictionary)[key])
+		return fields
+	if value is Array:
+		var items: Array = []
+		for item in value:
+			items.append(_whole_numbers(item))
+		return items
+	return value

@@ -13,8 +13,21 @@ signal dev_command(effect: Dictionary)
 signal handoff_confirmed
 signal rematch_requested
 signal select_requested
+signal title_requested
+signal concede_requested
+signal leave_requested
+signal give_up_requested
+## Ranked between games: this player is ready for the next game.
+signal next_game_requested
+## Ranked match result: back into the ranked queue.
+signal ranked_requested
+## The replay bar and its twins in the options menu: &"play", &"pause", &"step", &"back", &"seek"
+## (value: the entry to jump to), &"speed" (value: the time scale), &"view" (value: seat 0 or 1, or
+## 2 for both hands).
+signal replay_command(action: StringName, value: int)
 
 const HAND_CARD_SIZE: Vector2 = Vector2(126, 176)
+const FAR_HAND_CARD: Vector2 = Vector2(100, 140)   # a replay's far hand, in the strip over the far crest
 const HAND_LIFT: float = 26.0
 const MAX_LOG_LINES: int = 300
 ## The smallest tray face; a short tray widens its faces up to TRAY_CARD_MAX_WIDTH.
@@ -120,17 +133,30 @@ const ACTION_LABELS_BY_KIND: Dictionary = {
 ## Endurance choice is a yes or no about one card that is already in a pile, so hunting for it on
 ## the table to click it is the wrong way to ask.
 const BUTTON_KINDS: Array[StringName] = [&"endurance"]
+## The confirm button of each options-menu item that asks first.
+const MENU_VERBS: Dictionary = {&"concede": "Concede", &"rematch": "Rematch", &"leave": "Leave"}
 
-@onready var reduced_motion_toggle: CheckButton = $Root/OptionsMenu/Column/ReducedMotion
+@onready var reduced_motion_toggle: CheckButton = $Root/OptionsMenu/Column/Items/ReducedMotion
 @onready var options_button: Button = $Root/Options
 @onready var options_menu: PanelContainer = $Root/OptionsMenu
+@onready var options_shade: ColorRect = $Root/OptionsShade
+@onready var menu_items: VBoxContainer = $Root/OptionsMenu/Column/Items
+@onready var menu_resume: Button = $Root/OptionsMenu/Column/Items/Resume
+@onready var menu_concede: Button = $Root/OptionsMenu/Column/Items/Concede
+@onready var menu_rematch: Button = $Root/OptionsMenu/Column/Items/Rematch
+@onready var menu_leave: Button = $Root/OptionsMenu/Column/Items/Leave
+@onready var fullscreen_toggle: CheckButton = $Root/OptionsMenu/Column/Items/Fullscreen
+@onready var menu_confirm: VBoxContainer = $Root/OptionsMenu/Column/Confirm
+@onready var menu_question: Label = $Root/OptionsMenu/Column/Confirm/Question
+@onready var menu_yes: Button = $Root/OptionsMenu/Column/Confirm/Buttons/Yes
+@onready var menu_no: Button = $Root/OptionsMenu/Column/Confirm/Buttons/No
 @onready var root: Control = $Root
 @onready var log_scroll: ScrollContainer = $Root/Log/Column/Scroll
 @onready var near_flags: Label = $Root/NearFlags
 @onready var far_flags: Label = $Root/FarFlags
 @onready var presence_line: Label = $Root/PresenceLine
 @onready var log_text: RichTextLabel = $Root/Log/Column/Scroll/Text
-@onready var dev_toggle: Button = $Root/OptionsMenu/Column/DevToggle
+@onready var dev_toggle: Button = $Root/OptionsMenu/Column/Items/DevToggle
 @onready var dev_panel: DevPanel = $Root/DevPanel
 @onready var peek: Control = $Root/Peek
 @onready var peek_face: CardFace = $Root/Peek/Face
@@ -189,9 +215,35 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 @onready var game_over: ColorRect = $Root/GameOver
 @onready var game_over_title: Label = $Root/GameOver/Center/Column/Title
 @onready var game_over_reason: Label = $Root/GameOver/Center/Column/Reason
+@onready var game_over_note: Label = $Root/GameOver/Center/Column/Note
 @onready var rematch_button: Button = $Root/GameOver/Center/Column/Buttons/Rematch
 @onready var select_button: Button = $Root/GameOver/Center/Column/Buttons/Select
+@onready var title_button: Button = $Root/GameOver/Center/Column/Buttons/Title
+@onready var game_over_series: Label = $Root/GameOver/Center/Column/Series
+@onready var game_over_rating: Label = $Root/GameOver/Center/Column/Rating
+@onready var next_button: Button = $Root/GameOver/Center/Column/Buttons/Next
+@onready var ranked_button: Button = $Root/GameOver/Center/Column/Buttons/FindRanked
+@onready var series_line: Label = $Root/Series
 @onready var loading: ColorRect = $Root/Loading
+@onready var prompt_clock: Label = $Root/PromptPanel/Column/Clock
+@onready var tray_clock: Label = $Root/Tray/Center/Panel/Column/Clock
+@onready var tray_panel: PanelContainer = $Root/Tray/Center/Panel
+@onready var fuse: ColorRect = $Root/Fuse
+@onready var reconnect: ColorRect = $Root/Reconnect
+@onready var reconnect_status: Label = $Root/Reconnect/Center/Column/Status
+@onready var reconnect_give_up: Button = $Root/Reconnect/Center/Column/GiveUp
+@onready var far_hand: HBoxContainer = $Root/FarHand
+@onready var replay_bar: PanelContainer = $Root/ReplayBar
+@onready var replay_back: Button = $Root/ReplayBar/Column/Controls/Back
+@onready var replay_play: Button = $Root/ReplayBar/Column/Controls/Play
+@onready var replay_pause: Button = $Root/ReplayBar/Column/Controls/Pause
+@onready var replay_step: Button = $Root/ReplayBar/Column/Controls/Step
+@onready var replay_speed: OptionButton = $Root/ReplayBar/Column/Controls/Speed
+@onready var replay_position: Label = $Root/ReplayBar/Column/Controls/Position
+@onready var replay_turn: OptionButton = $Root/ReplayBar/Column/Jump/Turn
+@onready var replay_view: OptionButton = $Root/ReplayBar/Column/Jump/View
+@onready var menu_replay_speed: OptionButton = $Root/OptionsMenu/Column/Items/ReplaySpeed/Choice
+@onready var menu_replay_view: OptionButton = $Root/OptionsMenu/Column/Items/ReplayView/Choice
 
 var external_hand: bool = false
 var scene_flags: bool = false
@@ -208,7 +260,16 @@ var _selected: Array[int] = []
 var _entries: Dictionary = {}          # uid -> {frame, caption, verb} for batch trays
 var _confirm: Button = null
 var _online: bool = false
-var _is_host: bool = false
+var _can_rematch: bool = false         # online: this client may ask for a rematch (`Net.can_rematch`)
+var _adventure: bool = false
+var _duel_over: bool = false           # the result is up, whether the rules or a concession ended it
+var _ranked: bool = false              # a ranked match: Concede loses a game, Leave match the match
+## Ranked: a game's result waits for the match to say what follows (`show_between`,
+## `show_match_result`) before it offers a button. Off once the connection is gone.
+var _series_open: bool = false
+var _match_decided: bool = false       # ranked: the match result is up
+var _next_at: int = 0                  # ranked between games: ticks msec of the next deal, 0 otherwise
+var _menu_action: StringName = &""     # the menu item waiting on its confirm, &"" when none
 var _banner: Tween = null
 var _banner_tier: int = Banner.QUIET
 var _banner_since: int = 0             # ticks when the banner now up appeared
@@ -237,6 +298,16 @@ var inspect_uid: int = -1              # the card the inspect overlay shows, -1 
 var _reserve_outcome: bool = false     # the open decision has option previews, so their row is kept
 var _who_color: Color = ZenithTheme.TEXT   # the deciding seat's accent, for the tray header
 var _tray_face: Vector2 = TRAY_CARD_SIZE   # the face size of the tray being filled
+## Online, per seat: the server's last clock state (`Net.clock_changed`), when it arrived, and for
+## the bank the amount it started from, which the fuse burns down from.
+var _clocks: Array[Dictionary] = [{}, {}]
+var _clock_warned: bool = false
+## A recorded duel played back: nothing here answers a decision, and the menu offers the replay's
+## own controls instead of Concede and Rematch.
+var _match_replay: bool = false
+## Inside the panel frame's texture edge, where its rule runs; the fuse burns along it.
+const FUSE_INSET: float = 8.0
+const FUSE_HEIGHT: float = 4.0
 
 
 func _ready() -> void:
@@ -258,6 +329,10 @@ func _ready() -> void:
 	handoff_ready.pressed.connect(func() -> void: handoff_confirmed.emit())
 	rematch_button.pressed.connect(func() -> void: rematch_requested.emit())
 	select_button.pressed.connect(func() -> void: select_requested.emit())
+	title_button.pressed.connect(func() -> void: title_requested.emit())
+	next_button.pressed.connect(_on_next_game)
+	ranked_button.pressed.connect(func() -> void: ranked_requested.emit())
+	reconnect_give_up.pressed.connect(func() -> void: give_up_requested.emit())
 	log_text.add_theme_color_override("default_color", ZenithTheme.MUTED)
 	inspect.visible = false
 	inspect.gui_input.connect(_on_inspect_input)
@@ -266,10 +341,32 @@ func _ready() -> void:
 	log_toggle.pressed.connect(func() -> void: set_log_expanded(not _log_expanded))
 	dev_toggle.pressed.connect(func() -> void:
 		dev_panel.visible = not dev_panel.visible
-		_close_options())
-	options_button.toggled.connect(func(on: bool) -> void: options_menu.visible = on)
+		set_options_open(false))
+	options_button.toggled.connect(set_options_open)
 	options_menu.add_theme_stylebox_override("panel", MapArt.panel_box(14, FRAME_TINT))
+	options_shade.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+			set_options_open(false))
+	menu_resume.pressed.connect(set_options_open.bind(false))
+	menu_concede.pressed.connect(_ask.bind(&"concede"))
+	menu_rematch.pressed.connect(_ask.bind(&"rematch"))
+	menu_leave.pressed.connect(_ask.bind(&"leave"))
+	menu_yes.pressed.connect(func() -> void: _menu_act(_menu_action))
+	menu_no.pressed.connect(_show_menu_question.bind(&""))
+	fullscreen_toggle.toggled.connect(func(on: bool) -> void:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if on else DisplayServer.WINDOW_MODE_WINDOWED))
 	dev_panel.command.connect(func(effect: Dictionary) -> void: dev_command.emit(effect))
+	# A transport strip rather than a framed dialog: the flat panel's fill and 1 px edge, tight.
+	replay_bar.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG, ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, ZenithTheme.GAP_XS, ZenithTheme.GAP_XS))
+	replay_back.pressed.connect(func() -> void: replay_command.emit(&"back", 0))
+	replay_play.pressed.connect(func() -> void: replay_command.emit(&"play", 0))
+	replay_pause.pressed.connect(func() -> void: replay_command.emit(&"pause", 0))
+	replay_step.pressed.connect(func() -> void: replay_command.emit(&"step", 0))
+	replay_turn.item_selected.connect(func(index: int) -> void: replay_command.emit(&"seek", replay_turn.get_item_id(index)))
+	for choice: OptionButton in [replay_speed, menu_replay_speed]:
+		choice.item_selected.connect(_on_replay_speed)
+	for choice: OptionButton in [replay_view, menu_replay_view]:
+		choice.item_selected.connect(_on_replay_view)
 	root.resized.connect(_layout_prompt_column)
 	primary_box.minimum_size_changed.connect(_fit_actions)
 	prompt_column.minimum_size_changed.connect(_fit_actions)
@@ -280,10 +377,11 @@ func _ready() -> void:
 ## Printed identity and rules remain on the face. The question and terse instruction stay visible
 ## because a readable card is not enough to say what input the game is waiting for.
 func _compact_prompt() -> void:
-	# The owner line is only ever "YOUR MOVE": a waiting panel's title already names who decides.
-	prompt_who.visible = _current_prompt != null and not prompt_who.text.is_empty()
+	# The owner line is only ever "YOUR MOVE": a waiting panel's title already names who decides. A
+	# replay says whose decision it was and how it went, so it keeps both lines.
+	prompt_who.visible = (_current_prompt != null or _match_replay) and not prompt_who.text.is_empty()
 	prompt_title.visible = _current_prompt != null or not focus.visible
-	prompt_hint.visible = _current_prompt != null and not prompt_hint.text.is_empty()
+	prompt_hint.visible = (_current_prompt != null or _match_replay) and not prompt_hint.text.is_empty()
 	exchange_state.hide()
 	exchange_route.hide()
 	exchange_response.hide()
@@ -362,15 +460,114 @@ func set_loading(on: bool) -> void:
 	loading.visible = on
 
 
-## Online duel: only the host can call a rematch, and the other button leaves the table.
-func set_online(is_host: bool) -> void:
+## Online duel: Rematch and Back to lobby where this client can ask for them (`Net.can_rematch`),
+## otherwise the other button leaves the table.
+func set_online(can_rematch: bool) -> void:
 	_online = true
-	_is_host = is_host
-	select_button.text = "Back to lobby" if is_host else "Leave duel"
+	_can_rematch = can_rematch
+	select_button.text = "Back to lobby" if can_rematch else "Leave duel"
+
+
+## A duel Find a duel paired: the result offers Rematch, Find another duel and Title.
+func set_queue_duel() -> void:
+	select_button.text = "Find another duel"
+	title_button.visible = true
+
+
+## A game of a ranked match. The menu concedes this game or leaves the match, there is no rematch,
+## and `series` ("Game 2 of 3 · 1-0") stands beside the options gear.
+func set_ranked(series: String) -> void:
+	_ranked = true
+	_series_open = true
+	series_line.text = series
+	series_line.visible = true
+
+
+## "Game 2 of 3 · 1-0", the viewer's games first. The score is left off until a game has been won.
+static func series_text(game: int, best_of: int, mine: int, theirs: int) -> String:
+	var text: String = "Game %d of %d" % [game, best_of]
+	if mine + theirs > 0:
+		text += " · %d-%d" % [mine, theirs]
+	return text
+
+
+## "You win the match 2-1", "You lose the match 0-2", the viewer's games first, or "No result".
+static func match_title(winner: int, viewer: int, wins: Array) -> String:
+	if winner < 0:
+		return "No result"
+	var score: String = "%d-%d" % [int(wins[viewer]), int(wins[1 - viewer])]
+	return ("You win the match " if winner == viewer else "You lose the match ") + score
+
+
+## "Rating 112 → 138", or the rating as it stands for a match that was not rated, then
+## " · Provisional" while the server says so.
+static func rating_change_text(before: int, after: int, provisional: bool, rated: bool) -> String:
+	var text: String = "Rating %d → %d" % [before, after] if rated else "Rating %d, not rated" % after
+	return text + (" · Provisional" if provisional else "")
+
+
+## Ranked between games: the result gains the match score over it, a count to the next deal, and
+## Next game, which the server deals on at once when both players have pressed it.
+func show_between(series: String, next_at: int) -> void:
+	game_over_series.text = series
+	game_over_series.visible = true
+	_next_at = next_at
+	next_button.text = "Next game"
+	next_button.disabled = false
+	next_button.visible = true
+	_show_next_count()
+
+
+func _on_next_game() -> void:
+	next_button.disabled = true
+	next_button.text = "Waiting for the other player"
+	next_game_requested.emit()
+
+
+## "Next game in 18" while the server's wait runs, then that it is dealing.
+func _show_next_count() -> void:
+	if _next_at <= 0 or not next_button.visible:
+		return
+	var seconds: int = ceili(maxi(0, _next_at - Time.get_ticks_msec()) / 1000.0)
+	set_game_over_note("Next game in %d" % seconds if seconds > 0 else "Dealing the next game…")
+
+
+## Ranked: the match is decided. The result becomes the match's, with the rating line, and offers
+## Find another ranked duel, Find a duel and Title.
+func show_match_result(title: String, reason: String, rating: String) -> void:
+	_match_decided = true
+	_series_open = false
+	_next_at = 0
+	game_over_title.text = title
+	game_over_reason.text = reason
+	game_over_series.visible = false
+	game_over_rating.text = rating
+	game_over_rating.visible = true
+	set_game_over_note("")
+	next_button.visible = false
+	rematch_button.visible = false
+	ranked_button.visible = true
+	select_button.text = "Find a duel"
+	select_button.visible = true
+	title_button.visible = true
+	if options_menu.visible:
+		set_options_open(true)
+
+
+## The connection is gone, so neither a next game nor a search can follow from this result: only
+## its way back to the title stays, on the select button the table renames.
+func drop_series() -> void:
+	_series_open = false
+	_next_at = 0
+	next_button.visible = false
+	ranked_button.visible = false
+	title_button.visible = false
+	select_button.visible = true
 
 
 ## Adventure duel: the select button leads back to the stage screen, not duelist select.
 func set_adventure() -> void:
+	_adventure = true
 	select_button.text = "Continue"
 
 
@@ -1309,6 +1506,169 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 		_fit_actions()
 
 
+# --- Match replay ---------------------------------------------------------
+
+## A recorded duel played back: the replay bar shows at the foot of the rail, under the decision
+## it steps through, where neither the hand nor the stat crest reaches. Its turn list is filled,
+## the view switch names the two players, and the result panel's way out leads to the title.
+func set_match_replay(names: Array[String], turns: Array[Dictionary], view_index: int) -> void:
+	_match_replay = true
+	replay_bar.visible = true
+	select_button.text = "Back to title"
+	replay_turn.clear()
+	for t in turns:
+		replay_turn.add_item("Turn %d · %s" % [int(t["turn"]), names[int(t["player"])]], int(t["index"]))
+		replay_turn.set_item_metadata(replay_turn.item_count - 1, int(t["turn"]))
+	for choice: OptionButton in [replay_view, menu_replay_view]:
+		for seat in range(2):
+			choice.set_item_text(seat, names[seat])
+		choice.select(view_index)
+
+
+## Where the replay stands: the entry count, Play or Pause, and the turn it is in.
+func set_replay_state(position: int, total: int, turn: int, playing: bool) -> void:
+	replay_position.text = "%d / %d" % [position, total]
+	replay_play.visible = not playing
+	replay_pause.visible = playing
+	replay_play.disabled = position >= total
+	replay_step.disabled = position >= total
+	replay_back.disabled = position <= 0
+	for i in range(replay_turn.item_count):
+		if int(replay_turn.get_item_metadata(i)) == turn:
+			replay_turn.select(i)
+
+
+func _on_replay_speed(index: int) -> void:
+	for choice: OptionButton in [replay_speed, menu_replay_speed]:
+		choice.select(index)
+	replay_command.emit(&"speed", 1 << index)
+
+
+func _on_replay_view(index: int) -> void:
+	for choice: OptionButton in [replay_view, menu_replay_view]:
+		choice.select(index)
+	replay_command.emit(&"view", index)
+
+
+## A recorded decision, read only: the question as its player saw it, every option they had as a
+## row that takes no input, and the one they took lit. `who` heads it; `gap_ms` is how long they
+## took over it.
+func show_replay_decision(p: PromptView, view: SeatView, entry: Dictionary, who: String, gap_ms: int) -> void:
+	hide_pile()
+	prompt_panel.show()
+	_center_prompt_text(false)
+	_view = view
+	_current_prompt = p
+	_owner_marks = CardText.option_side_marks(p, p.player)
+	prompt_who.text = who
+	prompt_who.add_theme_color_override("font_color", ZenithTheme.MUTED)
+	prompt_title.text = _prompt_title(p, view)
+	_show_attack(view, p)
+	show_focus(_focus_uid(p), _focus_caption(p))
+	prompt_hint.text = "Took %.1f s" % (gap_ms / 1000.0) if gap_ms > 0 else ""
+	_reserve_outcome = false
+	_preview_outcome({})
+	_compact_prompt()
+	_hide_tray()
+	_fill_buttons([], primary_box, true)
+	var taken: Command = Command.from_dict(entry)
+	var batch: Array[int] = []
+	if entry.get("value") is Array:
+		for uid in (entry["value"] as Array):
+			batch.append(int(uid))
+	var lit: Button = null
+	if p.has_batch() and taken.type == p.batch_type and entry.get("value") is Array:
+		lit = _recorded_row(p.batch_option(batch).label, true)
+	for opt in p.options:
+		var chosen: bool = taken.matches(opt.to_command(p.player)) or (opt.type == taken.type and batch.has(opt.card))
+		var row: Button = _recorded_row(opt.label + str(_owner_marks.get(opt.card, "")), chosen)
+		if chosen and lit == null:
+			lit = row
+	_fit_actions()
+	if lit != null:
+		_scroll_to_row(lit)
+
+
+## Scrolls a long option list to the row taken, once it is laid out and while it is still listed:
+## a replay playing on can clear the panel before then.
+func _scroll_to_row(row: Control) -> void:
+	await get_tree().process_frame
+	if is_instance_valid(row) and actions_scroll.is_ancestor_of(row):
+		actions_scroll.ensure_control_visible(row)
+
+
+func _recorded_row(text: String, lit: bool) -> Button:
+	var b: Button = Button.new()
+	b.text = text
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.custom_minimum_size = Vector2(0.0, ACTION_HEIGHT)
+	b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if lit:
+		b.theme_type_variation = &"AccentButton"
+	else:
+		b.disabled = true
+	primary_box.add_child(b)
+	return b
+
+
+## The end of a replay on the decision panel, with the table still up behind it: who won and how,
+## a concession, a clock or a drop included.
+func show_replay_result(title: String, reason: String) -> void:
+	hide_pile()
+	prompt_panel.show()
+	_center_prompt_text(true)
+	_current_prompt = null
+	exchange_rail.hide()
+	prompt_outcome.hide()
+	_hide_tray()
+	_fill_buttons([], primary_box, true)
+	prompt_who.text = "RESULT"
+	prompt_who.add_theme_color_override("font_color", ZenithTheme.MUTED)
+	prompt_title.text = title
+	prompt_hint.text = reason
+	# A duel can end with wounds still owed; the result, not the attack left pending, is the read.
+	hide_focus()
+
+
+## A replay this client cannot play: the result panel says why, with only the way back to the title.
+func show_replay_refused(reason: String) -> void:
+	show_game_over("Cannot play this replay", reason, false)
+	select_button.text = "Back to title"
+
+
+func clear_log() -> void:
+	log_text.clear()
+	_log_lines = 0
+
+
+## A replay's full view: the other seat's hand face up along the top edge, since the fan beside
+## their crest only ever draws backs. Hovering a card reads it in the quick view. [] hides it.
+func show_far_hand(cards: Array[SeatCard], faces: CardFaceCache) -> void:
+	for child in far_hand.get_children():
+		far_hand.remove_child(child)
+		child.queue_free()
+	for c in cards:
+		var def: CardDef = _def(c.def_id)
+		if def == null:
+			continue
+		var face: TextureRect = TextureRect.new()
+		face.texture = faces.face(def, c.aspect, seat_backdrop(c.owner), c.owner)
+		face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		face.stretch_mode = TextureRect.STRETCH_SCALE
+		face.custom_minimum_size = FAR_HAND_CARD
+		var uid: int = c.uid
+		var aspect: int = c.aspect
+		face.mouse_entered.connect(func() -> void: show_peek(def, aspect, uid))
+		face.mouse_exited.connect(hide_peek)
+		face.gui_input.connect(func(event: InputEvent) -> void:
+			if _is_inspect_click(event):
+				show_inspect(def, aspect, uid))
+		far_hand.add_child(face)
+	far_hand.visible = far_hand.get_child_count() > 0
+
+
 # --- Tray -----------------------------------------------------------------
 
 ## A centred browser over the table: one face per card option with the action as its caption,
@@ -2188,6 +2548,122 @@ func _process(_delta: float) -> void:
 	_draw_filament()
 	if banner.visible:
 		_place_banner()
+	_show_clock()
+	_show_next_count()
+
+
+# --- Decision clock (online) --------------------------------------------------
+
+## A seat's clock from the server. Offline nothing calls this, and a result already up ignores it.
+func set_clock(seat: int, left_ms: int, bank_ms: int, phase: String) -> void:
+	if not _online or _duel_over or seat < 0 or seat > 1:
+		return
+	var span: int = int(_clocks[seat].get("span", bank_ms))
+	if phase == DuelClock.BANK and str(_clocks[seat].get("phase", "")) != DuelClock.BANK:
+		span = bank_ms
+	_clocks[seat] = {"left_ms": left_ms, "bank_ms": bank_ms, "phase": phase, "at": Time.get_ticks_msec(), "span": maxi(1, span)}
+
+
+func clear_clocks() -> void:
+	_clocks = [{}, {}]
+	_show_clock()
+
+
+## `{phase, ms, fraction}`: a seat's clock counted down from the last state the server sent, with
+## the fraction the fuse shows (of the warning phase, or of the bank it started from).
+func clock_now(seat: int) -> Dictionary:
+	var c: Dictionary = _clocks[seat] if seat == 0 or seat == 1 else {}
+	var phase: String = str(c.get("phase", DuelClock.OFF))
+	if phase == DuelClock.OFF:
+		return {"phase": DuelClock.OFF, "ms": 0, "fraction": 0.0}
+	var elapsed: int = Time.get_ticks_msec() - int(c["at"])
+	if phase == DuelClock.BANK:
+		var bank: int = maxi(0, int(c["bank_ms"]) - elapsed)
+		return {"phase": phase, "ms": bank, "fraction": float(bank) / float(int(c["span"]))}
+	var left: int = maxi(0, int(c["left_ms"]) - elapsed)
+	return {"phase": DuelClock.WARN if left <= DuelClock.WARN_MS else DuelClock.RUN, "ms": left,
+		"fraction": float(left) / float(DuelClock.WARN_MS)}
+
+
+## "0:23", whole seconds rounded up, so the last second reads 0:01 rather than 0:00.
+static func clock_text(ms: int) -> String:
+	var seconds: int = ceili(maxi(0, ms) / 1000.0)
+	return "%d:%02d" % [floori(seconds / 60.0), seconds % 60]
+
+
+## All the time a seat has left on the decision it owes, timer and bank together, counted from the
+## last state the server sent; -1 while no clock runs for it.
+func clock_left_ms(seat: int) -> int:
+	var c: Dictionary = clock_now(seat)
+	var phase: String = str(c["phase"])
+	if phase == DuelClock.OFF:
+		return -1
+	if phase == DuelClock.BANK:
+		return int(c["ms"])
+	return int(c["ms"]) + int(_clocks[seat]["bank_ms"])
+
+
+## The other seat's plate while its player is away: `ms` is how long they have to come back.
+static func away_text(player_name: String, ms: int) -> String:
+	return "%s lost connection. %s to return." % [player_name, clock_text(ms)]
+
+
+## Server room: this client's connection dropped and it is trying to get back into the duel. The
+## overlay covers the table with the time the seat has left and a Give up button.
+func show_reconnecting(ms: int) -> void:
+	var text: String = "Reconnecting %s" % clock_text(ms)
+	if reconnect_status.text != text:
+		reconnect_status.text = text
+	if reconnect.visible:
+		return
+	reconnect.visible = true
+	set_options_open(false)
+	hide_inspect()
+	hide_pile()
+	hide_peek()
+
+
+func hide_reconnecting() -> void:
+	reconnect.visible = false
+
+
+## What the other seat's plate says while that seat decides: `{label, time, warn}`, an empty
+## label when no clock runs for it.
+func plate_clock(seat: int, player_name: String) -> Dictionary:
+	var c: Dictionary = clock_now(seat)
+	var phase: String = str(c["phase"])
+	if phase == DuelClock.OFF:
+		return {"label": "", "time": "", "warn": false}
+	var label: String = "Time bank" if phase == DuelClock.BANK else "%s is deciding" % player_name
+	return {"label": label, "time": clock_text(int(c["ms"])), "warn": phase != DuelClock.RUN}
+
+
+## This seat's own countdown, on whichever decision panel is up: the prompt panel, or the tray
+## when the decision is about cards. In the warning phase and on the bank it turns warning orange
+## and a fuse burns along the panel's top edge.
+func _show_clock() -> void:
+	var c: Dictionary = clock_now(_current_prompt.player) if _current_prompt != null else clock_now(-1)
+	var phase: String = str(c["phase"])
+	var on: bool = phase != DuelClock.OFF
+	var warn: bool = on and phase != DuelClock.RUN
+	var text: String = clock_text(int(c["ms"]))
+	if phase == DuelClock.BANK:
+		text = "Time bank " + text
+	for label: Label in [prompt_clock, tray_clock]:
+		var shown: bool = on and (label == tray_clock) == tray.visible
+		if label.visible != shown:
+			label.visible = shown
+		if shown and label.text != text:
+			label.text = text
+		if warn != _clock_warned:
+			label.add_theme_color_override("font_color", ZenithTheme.WARN if warn else ZenithTheme.TEXT)
+	_clock_warned = warn
+	var panel: Control = tray_panel if tray.visible else prompt_panel
+	fuse.visible = warn and panel.is_visible_in_tree()
+	if fuse.visible:
+		var rect: Rect2 = panel.get_global_rect()
+		fuse.position = rect.position - root.global_position + Vector2(FUSE_INSET, FUSE_INSET - FUSE_HEIGHT * 0.5)
+		fuse.size = Vector2((rect.size.x - FUSE_INSET * 2.0) * clampf(float(c["fraction"]), 0.0, 1.0), FUSE_HEIGHT)
 
 
 ## The thread from the pinned card to what it is aimed at, in the language the 3D link on the table
@@ -2333,10 +2809,86 @@ func hover_primary(index: int) -> void:
 		(buttons[index] as Button).mouse_entered.emit()
 
 
-func _close_options() -> void:
-	options_button.set_pressed_no_signal(false)
+## The options menu, from the gear or Esc. While it is open the shade under it takes the mouse, so
+## nothing on the table or the panels answers, and a click on the shade closes it.
+func set_options_open(on: bool) -> void:
+	options_button.set_pressed_no_signal(on)
 	options_button.queue_redraw()
-	options_menu.visible = false
+	options_menu.visible = on
+	options_shade.visible = on
+	_show_menu_question(&"")
+	if on:
+		_refresh_menu()
+
+
+## Read each time the menu opens: Concede only while the duel runs, Rematch outside an adventure
+## and a ranked match and, once the result is up, only where its panel offers one too, and one way
+## out per mode. A ranked match concedes a game and leaves the match until the match is decided.
+func _refresh_menu() -> void:
+	menu_concede.visible = not _duel_over and not _match_replay
+	menu_concede.text = "Concede this game" if _ranked else "Concede"
+	menu_rematch.visible = not _match_replay and not _adventure and not _ranked and (not _online or _can_rematch) and (not _duel_over or rematch_button.visible)
+	if _adventure:
+		menu_leave.text = "Save and quit to title"
+	elif _ranked and not _match_decided:
+		menu_leave.text = "Leave match"
+	else:
+		menu_leave.text = "Leave duel" if _online else "Back to title"
+	for row: Control in [menu_replay_speed.get_parent(), menu_replay_view.get_parent()]:
+		row.visible = _match_replay
+	var mode: DisplayServer.WindowMode = DisplayServer.window_get_mode()
+	fullscreen_toggle.set_pressed_no_signal(mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
+
+
+## What a menu item asks before it acts, "" when it acts at once. Rematch and leaving only ask
+## while the duel runs, and Save and quit never does: the run is saved after every command.
+func _menu_question(action: StringName) -> String:
+	match action:
+		&"concede":
+			if _adventure:
+				return "Concede: this ends the run."
+			if _ranked:
+				return "Concede: this loses the game, not the match."
+			return "Concede the duel." if _online else "Concede and return to the title."
+		&"rematch":
+			if _duel_over:
+				return ""
+			return "Concede this duel and ask for a rematch." if _online else "Abandon this duel and deal a new one."
+		&"leave":
+			if _ranked and not _match_decided:
+				return "Leave the match. This loses it."
+			if _duel_over or _adventure or _match_replay:
+				return ""
+			return "Leave the duel. This concedes it." if _online else "Abandon this duel and return to the title."
+	return ""
+
+
+func _ask(action: StringName) -> void:
+	if _menu_question(action) == "":
+		_menu_act(action)
+	else:
+		_show_menu_question(action)
+
+
+## The confirm in place of the items, or the items again for &"".
+func _show_menu_question(action: StringName) -> void:
+	_menu_action = action
+	menu_items.visible = action == &""
+	menu_confirm.visible = action != &""
+	if action != &"":
+		menu_question.text = _menu_question(action)
+		menu_yes.text = str(MENU_VERBS[action])
+
+
+func _menu_act(action: StringName) -> void:
+	set_options_open(false)
+	match action:
+		&"concede":
+			concede_requested.emit()
+		&"rematch":
+			rematch_requested.emit()
+		&"leave":
+			leave_requested.emit()
 
 
 ## Debug builds only, and only where the referee lives (hotseat, host).
@@ -2438,12 +2990,24 @@ func _on_inspect_input(event: InputEvent) -> void:
 		hide_inspect()
 
 
+## Esc closes the options menu, then an inspect view or the pile browser, and otherwise opens the
+## menu, unless a tray is open or the hand is raised, which lowers itself on Esc. While the menu is
+## open no other key reaches the table: the hand's keys would act on the cards behind it.
 func _unhandled_input(event: InputEvent) -> void:
-	if inspect.visible and event.is_action_pressed("ui_cancel"):
+	var cancel: bool = event.is_action_pressed("ui_cancel")
+	if cancel and options_menu.visible:
+		set_options_open(false)
+		get_viewport().set_input_as_handled()
+	elif options_menu.visible and event is InputEventKey:
+		get_viewport().set_input_as_handled()
+	elif inspect.visible and cancel:
 		hide_inspect()
 		get_viewport().set_input_as_handled()
-	elif pile.visible and event.is_action_pressed("ui_cancel"):
+	elif pile.visible and cancel:
 		hide_pile()
+		get_viewport().set_input_as_handled()
+	elif cancel and not tray.visible and not loading.visible and not reconnect.visible and not _hand_raised():
+		set_options_open(true)
 		get_viewport().set_input_as_handled()
 	elif _space_takes_single_action(event):
 		_single_action.pressed.emit()
@@ -2461,7 +3025,7 @@ func _space_takes_single_action(event: InputEvent) -> bool:
 		return false
 	if not _single_action.is_visible_in_tree() or _single_action.disabled:
 		return false
-	if tray.visible or pile.visible or inspect.visible or handoff.visible or game_over.visible:
+	if tray.visible or pile.visible or inspect.visible or handoff.visible or game_over.visible or options_menu.visible or reconnect.visible:
 		return false
 	if get_viewport().gui_get_focus_owner() != null:
 		return false
@@ -2479,6 +3043,12 @@ func _hand_browsing() -> bool:
 	return bool((raw as Node).get("keyboard_active"))
 
 
+func _hand_raised() -> bool:
+	var parent: Node = get_parent()
+	var raw: Variant = parent.get("hand_3d") if parent != null else null
+	return raw is Node3D and (raw as Node3D).is_visible_in_tree() and bool((raw as Node3D).get("revealed"))
+
+
 func show_handoff(player_name: String) -> void:
 	handoff_title.text = "Pass the table to %s" % player_name
 	handoff.visible = true
@@ -2493,12 +3063,38 @@ func hide_handoff() -> void:
 
 
 func show_game_over(title: String, reason: String, rematch_possible: bool = true) -> void:
+	_duel_over = true
+	clear_clocks()
+	hide_reconnecting()
 	game_over_title.text = title
 	game_over_reason.text = reason
 	game_over.visible = true
 	SanctumUI.enter($Root/GameOver/Center/Column)
-	rematch_button.visible = rematch_possible and (not _online or _is_host)
-	if _online and not _is_host and rematch_possible:
-		game_over_reason.text += "\nThe host can call a rematch."
+	rematch_button.visible = rematch_possible and (not _online or _can_rematch) and not _ranked
+	if _series_open:
+		select_button.visible = false
+		title_button.visible = false
 	clear_prompt()
 	clear_hand()
+	if options_menu.visible:
+		set_options_open(true)
+
+
+## A line under the result, such as who wants a rematch; "" hides it.
+func set_game_over_note(text: String) -> void:
+	game_over_note.text = text
+	game_over_note.visible = text != ""
+
+
+## Server room: this seat asked for a rematch and waits for the other one to ask too.
+func wait_for_rematch() -> void:
+	rematch_button.disabled = true
+	set_game_over_note("Waiting for the other player")
+
+
+## The other player left or the connection dropped, so no rematch can be dealt: Rematch leaves the
+## panel and the menu, now and whenever the panel comes up.
+func drop_rematch(note: String) -> void:
+	_can_rematch = false
+	rematch_button.visible = false
+	set_game_over_note(note)

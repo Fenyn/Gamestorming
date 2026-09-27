@@ -1,7 +1,10 @@
 extends Control
 ## The matchup after both seats lock in: the two decks side by side, seed and AI level, and
-## Start. Hotseat and vs AI start from here. Online, both clients arrive when both are locked,
-## the host starts, and either side's Back sends both back to the select screen.
+## Start. Hotseat and vs AI start from here. Online, both clients arrive when both are locked. In
+## a server room there is no Back, and the server deals once both clients have shown the matchup
+## for `MATCHUP_SECONDS`; a queue room shows only the decks and "Duel starts in 5", and the server
+## deals on its own clock. A ranked room also names the game of the match. On the LAN dev path
+## either side's Back sends both back to the select screen and the host presses Start.
 
 @onready var sheets: Array[DeckSheet] = [$Margin/Column/Sides/S0, $Margin/Column/Sides/S1]
 @onready var faces: CardFaceCache = $CardFaceCache
@@ -14,11 +17,13 @@ extends Control
 @onready var problems_label: Label = $Margin/Column/Footer/Problems
 @onready var start_button: Button = $Margin/Column/Footer/Start
 @onready var back_button: Button = $Margin/Column/Footer/Back
+@onready var countdown_label: Label = $Margin/Column/Footer/Countdown
 @onready var vs_mark: Label = $VsMark
 
 ## Profile file names behind the AiLevel items, in item order.
 const AI_LEVELS: Array[String] = ["easy", "default", "hard"]
 const SLIDE: float = 360.0
+const MATCHUP_SECONDS: float = 3.0
 
 var _online: bool = false
 var _started: bool = false
@@ -52,6 +57,17 @@ func _ready() -> void:
 		Net.lobby_changed.connect(_on_lobby_changed)
 		Net.peer_left.connect(_on_peer_left)
 		Net.connection_failed.connect(_on_connection_failed)
+		if Net.queue_room():
+			back_button.visible = false
+			countdown_label.visible = true
+			if Net.ranked_room():
+				var me: int = Net.local_player
+				status_label.text = DuelHud.series_text(maxi(1, Net.series_game), Net.RANKED_BEST_OF,
+					Net.series_wins[me], Net.series_wins[1 - me])
+		elif Net.server_room():
+			# Both decks are on show now, and the server refuses any pick change from here on.
+			back_button.visible = false
+			get_tree().create_timer(MATCHUP_SECONDS).timeout.connect(_on_matchup_shown)
 	elif Session.ai_seat >= 0:
 		ai_label.visible = true
 		ai_level.visible = true
@@ -61,6 +77,14 @@ func _ready() -> void:
 	_enter()
 	_dev_screenshot()
 	SanctumUI.wire_buttons(self)
+
+
+## Queue room: the seconds to the server's deal, counted from when this client saw both picks.
+func _process(_delta: float) -> void:
+	if not countdown_label.visible:
+		return
+	var seconds: int = ceili(maxi(0, Net.deal_at - Time.get_ticks_msec()) / 1000.0)
+	countdown_label.text = "Duel starts in %d" % seconds if seconds > 0 else "Dealing…"
 
 
 func _tag(seat: int) -> String:
@@ -108,8 +132,8 @@ func _refresh() -> void:
 	for i in range(2):
 		for p in Session.deck_problems(Session.chosen[i]):
 			problems.append("Player %d: %s" % [i + 1, p])
-	if _online and not Net.is_host() and problems.is_empty():
-		problems.append("Waiting for the host to start the duel.")
+	if _online and not Net.is_host() and problems.is_empty() and not Net.queue_room():
+		problems.append("Both locked in. The duel server deals in a moment." if Net.server_room() else "Waiting for the host to start the duel.")
 	problems_label.text = "\n".join(problems)
 	start_button.disabled = not problems.is_empty()
 	if _online and Net.is_host() and not start_button.disabled and DevArgs.user_args().has("--dev-autoplay"):
@@ -122,16 +146,20 @@ func _on_lobby_changed() -> void:
 		_to_select()
 
 
+## The other player left; the select screen waits for a new one and says who left.
 func _on_peer_left() -> void:
-	Net.leave()
+	_to_select()
+
+
+## The title shows why, from `Net.last_error`.
+func _on_connection_failed(_reason: String) -> void:
 	Session.player_names = ["Player 1", "Player 2"]
 	Session.go_to_title()
 
 
-func _on_connection_failed(reason: String) -> void:
-	push_warning(reason)
-	Session.player_names = ["Player 1", "Player 2"]
-	Session.go_to_title()
+func _on_matchup_shown() -> void:
+	if not _leaving:
+		Net.ready_to_deal()
 
 
 func _on_start() -> void:
@@ -178,8 +206,15 @@ func _dev_setup() -> void:
 
 ## `--dev-aspect=N` shows player 1's duelist at aspect N the way a click would, with the pointer
 ## left over the card so the hover lift shows too. `--dev-screenshot=<png>` saves and quits.
+## Online, `--dev-matchup-shot=<png>` saves the matchup 1 second in and the duel goes on.
 func _dev_screenshot() -> void:
 	var args: PackedStringArray = DevArgs.user_args()
+	for arg in args:
+		if arg.begins_with("--dev-matchup-shot=") and _online:
+			await get_tree().create_timer(1.0).timeout
+			await RenderingServer.frame_post_draw
+			get_viewport().get_texture().get_image().save_png(arg.get_slice("=", 1))
+			print("matchup screenshot saved to %s" % arg.get_slice("=", 1))
 	for arg in args:
 		if arg.begins_with("--dev-aspect="):
 			sheets[0]._hover_portrait(true)

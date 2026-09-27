@@ -30,7 +30,7 @@ grow_vertical = 2
 
 [node name="Column" type="VBoxContainer" parent="Center" unique_id=747642818]
 layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 18
 
 [node name="Title" type="Label" parent="Center/Column" unique_id=1138640804]
 layout_mode = 2
@@ -67,6 +67,53 @@ layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "ONLINE"
 horizontal_alignment = 1
+
+[node name="RejoinNote" type="Label" parent="Center/Column" unique_id=1466203917]
+visible = false
+custom_minimum_size = Vector2(540, 0)
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="RejoinRow" type="HBoxContainer" parent="Center/Column" unique_id=1874520361]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Rejoin" type="Button" parent="Center/Column/RejoinRow" unique_id=302948176]
+custom_minimum_size = Vector2(228, 54)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"AccentButton"
+text = "Rejoin"
+
+[node name="GiveUp" type="Button" parent="Center/Column/RejoinRow" unique_id=1203385742]
+custom_minimum_size = Vector2(144, 54)
+layout_mode = 2
+text = "Give up"
+
+[node name="FindDuel" type="Button" parent="Center/Column"]
+custom_minimum_size = Vector2(384, 54)
+layout_mode = 2
+text = "Find a duel"
+
+[node name="RankedRow" type="HBoxContainer" parent="Center/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Ranked" type="Button" parent="Center/Column/RankedRow"]
+custom_minimum_size = Vector2(228, 54)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Ranked duel"
+
+[node name="Rating" type="Label" parent="Center/Column/RankedRow"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 24
+text = "Rating 0 · Provisional"
 
 [node name="Host" type="Button" parent="Center/Column" unique_id=728342339]
 custom_minimum_size = Vector2(384, 54)
@@ -108,7 +155,27 @@ custom_minimum_size = Vector2(384, 54)
 layout_mode = 2
 text = "Quit"
 
-[node name="Status" type="Label" parent="Center/Column" unique_id=1133121900]
+[node name="StatusRow" type="HBoxContainer" parent="Center/Column"]
+custom_minimum_size = Vector2(540, 0)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Status" type="Label" parent="Center/Column/StatusRow" unique_id=1133121900]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"MutedLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Cancel" type="Button" parent="Center/Column/StatusRow" unique_id=1830266013]
+visible = false
+custom_minimum_size = Vector2(144, 54)
+layout_mode = 2
+text = "Cancel"
+
+[node name="SearchNote" type="Label" parent="Center/Column"]
+visible = false
 custom_minimum_size = Vector2(540, 0)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"

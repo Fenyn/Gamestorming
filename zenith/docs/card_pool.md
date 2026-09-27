@@ -219,7 +219,7 @@ Subthemes: Art cost engine 5, Art boosts 3, Table defense 3, Drills 11, Enduranc
 Masteries:
 
 - **Storm Brewing Mastery** (`storm_mastery_01`): Arts your duelist performs do +1 wound or cost 1 less Energy to perform, to a minimum of 1, your choice. Your Storm Arts do both instead. Limit 1 per deck.
-- **Storm Squall Mastery** (`storm_mastery_02`): Hit: If the attack is Storm and the attack is an Art, your opponent may not use Strike cards during their next attack phase. Your Arts do +1 wound. Limit 1 per deck.
+- **Storm Squall Mastery** (`storm_mastery_02`): After a successful attack, if the attack is Storm and the attack is an Art, your opponent may not use Strike cards during their next attack phase. Your Arts do +1 wound. Limit 1 per deck.
 - **Storm Gale Mastery** (`storm_mastery_03`): After a successful attack, if the attack is Storm and the attack is a Strike, for the remainder of Combat, your other Strikes do +1 wound. Your Strikes do +2 Energy. Limit 1 per deck.
 - **Storm Conductor Mastery** (`storm_mastery_04`): Use this card only if you have a Storm Drill in play. Use in Combat: Discard one of your Storm Drills in play. If you do, search your Life Deck for up to 2 different Drills and put them into play. During your Recover step, if your discard pile has a Drill, you may place the top Drill in your discard pile at the bottom of your Life Deck. Once per Combat. Limit 1 per deck.
 
@@ -550,7 +550,7 @@ Tied to a named character, schoolless unless noted. Listed by character, largest
 | Cull | Cull's Absorbing Drill | Drill | Stops an Art. Costs 2 life cards to use. | `signature_drill_02` |
 | Dame Alder Rooke | Alder's Deluge | Combat | Dame Alder Rooke only. Your opponent discards all Non-Combat cards in play. Remove from the game after use. | `signature_combat_05` |
 | Halvard Draik | Halvard's Twin Cut | Strike | Focused Strike doing +4 Energy. If Halvard Draik is in control, your opponent discards a card from hand. If Halvard Draik is in control, stops a Strike. Hit: Search your Life Deck for an Ally and put it into play at Energy 4. | `signature_strike_17` |
-| Mercy | Mercy Smiles | Non-Combat | Stops a Strike. If a Construct personality is in control, search your discard pile for a Construct card and put it into your hand. Remove from the game after use. | `signature_noncombat_01` |
+| Mercy | Mercy Smiles | Combat | Stops a Strike. If a Construct personality is in control, search your discard pile for a Construct card and put it into your hand. Remove from the game after use. | `signature_noncombat_01` |
 | Scorn | Scorn Smirks | Combat | Your opponent removes all Drills in play from the game. Remove from the game after use. Limit 1 per deck. | `signature_combat_07` |
 | Sledge | Sledge's Set Stance | Art | Art. If performed by your duelist and your duelist is a Construct personality, search your Life Deck for a Construct card other than "Sledge's Set Stance" and put it into your hand. Remove from the game after use. | `signature_art_11` |
 | Torvan Hask | Hask's Flying Kick | Strike | Strike doing triple the Base Damage. | `signature_strike_07` |

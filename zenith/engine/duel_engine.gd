@@ -84,8 +84,23 @@ func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable,
 		state.players.append(_build_player(i, decks[i]))
 		if i < names.size() and names[i] != "":
 			state.players[i].name = names[i]
-	_apply_first_player_rule()
-	_emit(&"setup", {"first": state.active, "seed": seed_value})
+	var first_reason: String = _apply_first_player_rule()
+	_emit(&"setup", {"first": state.active, "reason": first_reason, "seed": seed_value})
+
+
+## `seat` opens the duel whatever the Double Power Rule or chance decided; a series hands the first
+## turn to the loser of the game before. The Double Power Energy change still stands. The `setup`
+## event then says `reason` "forced". Call between `setup()` and `start()`.
+func set_first_player(seat: int) -> void:
+	assert(state.step == GameState.Step.SETUP and state.turn == 0, "set_first_player() after start()")
+	assert(seat == 0 or seat == 1, "set_first_player() takes seat 0 or 1")
+	state.active = seat
+	for ev in events:
+		if ev.type == &"setup":
+			ev.data["first"] = seat
+			ev.data["reason"] = "forced"
+			if record_display_state:
+				ev.state = _display_state()
 
 
 ## Call between `setup()` and `start()`. 1 is the printed game; adventure duels use 2 for both.
@@ -177,10 +192,16 @@ func submit(cmd: Command) -> bool:
 	return true
 
 
+## Zones whose cards must be found in a player's list. `none` is a card in transit, never at rest.
+const LISTED_ZONES: Array[StringName] = [&"hand", &"discard", &"life_deck", &"removed", &"reserve", &"in_play", &"none"]
+
+
 ## Card bookkeeping check, "" when sound. Every card may sit in one zone list only, and a card in
 ## the hand, discard, Life Deck, removed pile or Reserve must say so in its own `zone`. A card in
 ## two places is how a spent card came back for free use (2026-09-22, the Watchful Eye loop), so
-## the Referee runs this after every command and the sim harness fails the match on it.
+## the Referee runs this after every command and the sim harness fails the match on it. A card
+## whose zone names a list must be in it, and one left in `resolving` with no attack in the air and
+## no queued job to finish it is lost to the duel.
 func integrity_problem() -> String:
 	var seen: Dictionary = {}   # uid -> where it was first found
 	for p in state.players:
@@ -194,6 +215,25 @@ func integrity_problem() -> String:
 				seen[c.uid] = where
 				if zone != &"in_play" and c.zone != zone:
 					return "%s #%d sits in %s but its zone says %s" % [c.def.id, c.uid, where, c.zone]
+	# A finished duel drops its effect queue, so a card mid-resolution stays where it stood.
+	if state.is_over():
+		return ""
+	for uid in _cards:
+		var c: CardInstance = _cards[uid]
+		if seen.has(c.uid):
+			continue
+		if c.zone == &"resolving":
+			if not state.attack.is_empty():
+				continue
+			var queued: bool = false
+			for job in _queue:
+				if job.get("source") == c:
+					queued = true
+					break
+			if not queued:
+				return "%s #%d is stranded in resolving with no attack in the air" % [c.def.id, c.uid]
+		elif LISTED_ZONES.has(c.zone):
+			return "%s #%d is in no zone list, though its zone says %s" % [c.def.id, c.uid, c.zone]
 	return ""
 
 
@@ -501,13 +541,12 @@ func _instance(def: CardDef, owner: int, zone: StringName) -> CardInstance:
 	return c
 
 
-## Bracket rule from the later rulings: if only one duelist's starting Might sits in band D or
-## above, the weaker duelist goes first. Otherwise the Vigil first, or a coin flip. No stage changes.
 ## Double Power Rule, from the printed starter rulebook: compare the two duelists' Might at the
 ## starting stage. If one is double the other or more, it starts at 2 Energy, the weaker starts
-## at its highest stage and goes first. Wild Might never triggers it. Otherwise the Vigil goes
-## first, and two duelists of the same side go first at random.
-func _apply_first_player_rule() -> void:
+## at its highest stage and goes first. Wild Might never triggers it. Otherwise chance decides,
+## drawn from the duel's own seeded stream so a seed still replays the same game. Returns why
+## that seat opens: "double_power" or "chance".
+func _apply_first_player_rule() -> String:
 	var a: PlayerState = state.players[0]
 	var b: PlayerState = state.players[1]
 	var wild: bool = a.duelist.is_wild() or b.duelist.is_wild()
@@ -525,10 +564,9 @@ func _apply_first_player_rule() -> void:
 		state.players[weaker].duelist.energy = CardInstance.MAX_STAGE
 		state.active = weaker
 		_emit(&"double_power", {"stronger": stronger, "weaker": weaker, "energy": DOUBLE_POWER_ENERGY})
-	elif a.alignment != b.alignment:
-		state.active = 0 if a.alignment == "vigil" else 1
-	else:
-		state.active = rng.randi_range(0, 1)
+		return "double_power"
+	state.active = rng.randi_range(0, 1)
+	return "chance"
 
 
 # --- Reserve swap (setup) --------------------------------------------------
@@ -1333,7 +1371,7 @@ func _prompt_entering_combat(player_index: int) -> bool:
 		return false
 	var opts: Array[Command] = []
 	for c in p.hand:
-		if str(c.def.raw.get("use_at", "")) != "entering_combat":
+		if str(c.def.raw.get("use_at", "")) != "entering_combat" or not c.def.is_hand_combat_card():
 			continue
 		if not _can_play(p, c.def) or not _use_allowed(p, c.def) or _band_forbidden(p, c.def):
 			continue
@@ -1381,7 +1419,8 @@ func _damage_window_matches(def: CardDef, stages: int, wounds: int) -> bool:
 ## just hit. It opens once per attack, only when the attack actually landed something, and it is
 ## always declinable. A card used here comes straight out of hand: a Non-Combat answering this
 ## timing is never placed first, it resolves and goes to the discard pile like any card used from
-## hand. One already on the table answers here too, through its `use` trigger.
+## hand. One already on the table answers here too, through its `use` trigger. A Drill answers only
+## from the table.
 func _prompt_after_damage(defender: PlayerState, a: Dictionary) -> bool:
 	if bool(a.get("after_damage_done", false)):
 		return false
@@ -1397,7 +1436,8 @@ func _prompt_after_damage(defender: PlayerState, a: Dictionary) -> bool:
 		if str(c.def.raw.get("place_at", "")) == "after_damage" and _can_place(defender, c):
 			opts.append(Command.new(defender.index, &"use", c.uid, "place"))
 			continue
-		if str(c.def.raw.get("use_at", "")) != "after_damage" or not _has_trigger(c.def.effects, "secondary"):
+		if str(c.def.raw.get("use_at", "")) != "after_damage" or not _has_trigger(c.def.effects, "secondary") \
+				or c.def.type == CardDef.Type.DRILL:
 			continue
 		if not _damage_window_matches(c.def, stages, wounds):
 			continue
@@ -1522,7 +1562,7 @@ func _prompt_combat_end() -> void:
 	var p: PlayerState = state.players[seat]
 	var opts: Array[Command] = []
 	for c in p.hand:
-		if str(c.def.raw.get("use_at", "")) == "end_of_combat" and _use_allowed(p, c.def) and _can_play(p, c.def):
+		if str(c.def.raw.get("use_at", "")) == "end_of_combat" and c.def.is_hand_combat_card() and _use_allowed(p, c.def) and _can_play(p, c.def):
 			opts.append(Command.new(seat, &"use", c.uid))
 	if opts.is_empty():
 		state.end_combat_done[seat] = true
@@ -1792,8 +1832,8 @@ func _handle_attack_action(cmd: Command) -> void:
 
 
 ## Uses a non-attack card (Combat card from hand, Non-Combat in play, activated Drill, Mastery,
-## Relic). `advance` is false in the end-of-Combat window, where using a card does not take the
-## place of an attack and so does not hand the phase over.
+## Relic). `advance` is false wherever using a card does not take the place of an attack (the
+## end-of-Combat window and the `follow_up` windows), so it does not hand the phase over.
 func _use_card(p: PlayerState, c: CardInstance, advance: bool = true) -> void:
 	# A hand card whose zone says elsewhere would fall through to the in-play branch below, which
 	# does nothing for a Combat card and never spends it: the free-reuse loop. Say so loudly.
@@ -2202,7 +2242,7 @@ func _open_counter_window(c: CardInstance, mode: String, control_taken: bool = f
 	var opts: Array[Command] = []
 	if c.zone == &"hand" and c.def.type == CardDef.Type.COMBAT:
 		for k in opp.hand:
-			if k.def.counter == "combat" and _can_play(opp, k.def) and not _forbidden(opp, "combat_cards"):
+			if k.def.counter == "combat" and k.def.is_hand_combat_card() and _can_play(opp, k.def) and not _forbidden(opp, "combat_cards"):
 				opts.append(Command.new(opp.index, &"counter", k.uid))
 	# "Stop the effect of any non-Seal card ... This card does not affect personalities":
 	# a Non-Combat in play that answers any card at all but a Seal.
@@ -2877,6 +2917,10 @@ func _defense_usable(d: PlayerState, c: CardInstance, kind: String, focused: boo
 	var def: CardDef = c.def
 	if not def.is_defense():
 		return false
+	# Only Strikes, Arts and Combat cards block out of the hand. A Drill or Non-Combat card blocks
+	# from play, and one still in hand has not been placed.
+	if c.zone == &"hand" and not def.is_hand_combat_card():
+		return false
 	if def.is_end_combat_card():
 		return false   # cards that end Combat can only be played as an attack action
 	var timing: String = str(def.raw.get("use_at", ""))
@@ -2887,11 +2931,7 @@ func _defense_usable(d: PlayerState, c: CardInstance, kind: String, focused: boo
 		return false   # and a card that names its own timing waits for that moment
 	if not _can_play(d, def):
 		return false
-	if def.type == CardDef.Type.COMBAT and _forbidden(d, "combat_cards"):
-		return false
-	if def.type == CardDef.Type.STRIKE and _forbidden(d, "strike_cards"):
-		return false
-	if def.type == CardDef.Type.ART and _forbidden(d, "art_cards"):
+	if _band_forbidden(d, def):
 		return false
 	if def.is_stop_all_card() and _forbidden(d, "stop_all"):
 		return false
@@ -3158,6 +3198,16 @@ func _modify_damage(attacker: PlayerState, defender: PlayerState, a: Dictionary)
 ## Table lookup (or the Art base, or printed numbers), then each addition and subtraction with
 ## the card it comes from. Views show it before the defense so the defender knows what is
 ## coming; the battle sequence applies the same numbers at steps 9 and 10. No side effects.
+## The part of an attack's base damage the card fixes on its own, as {stages, life}: its printed
+## numbers, or an Art's base wounds. A plain Strike's base comes from the Strike Table and reads 0.
+static func printed_base(spec: Dictionary, kind: String) -> Dictionary:
+	if spec.has("printed_stages") or spec.has("printed_life"):
+		return {"stages": int(spec.get("printed_stages", 0)), "life": int(spec.get("printed_life", 0))}
+	if kind == "art":
+		return {"stages": 0, "life": ART_BASE_LIFE}
+	return {"stages": 0, "life": 0}
+
+
 func damage_breakdown(a: Dictionary) -> Dictionary:
 	if a.is_empty():
 		return {}
@@ -3196,15 +3246,11 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 		table -= int(_constant(defender).get("strike_table_against", 0))
 		table = maxi(0, table)
 	var printed: bool = spec.has("printed_stages") or spec.has("printed_life")
-	var base_stages: int = 0
-	var base_life: int = 0
-	if printed:
-		base_stages = int(spec.get("printed_stages", 0))
-		base_life = int(spec.get("printed_life", 0))
-	elif kind == "strike":
+	var fixed: Dictionary = printed_base(spec, kind)
+	var base_stages: int = int(fixed["stages"])
+	var base_life: int = int(fixed["life"])
+	if not printed and kind == "strike":
 		base_stages = table
-	else:
-		base_life = ART_BASE_LIFE
 	if bool(spec.get("stages_from_table", false)):
 		base_stages += table
 	# "If the personality performing this attack has a higher Might than the personality
@@ -3708,12 +3754,10 @@ func _handle_capture_instead(cmd: Command) -> void:
 	_capture_seal(cmd.player, card(cmd.card))
 
 
-## "Use immediately after a physical attack you perform becomes successful." Offered once per
-## attack, to the attacker, for cards in hand that name this timing and match the attack's kind.
-## The three optional "use one card now" windows answer here: the attacker's after a successful
-## attack, the defender's after taking damage, and either player's as Combat is entered. The
-## attacker's takes the place of an action and hands the phase over; the other two are asked in the
-## middle of a step and must leave it where it was.
+## The optional "use one card now" windows answer here: the attacker's as an attack is performed,
+## as it connects and after it is successful, the defender's after taking damage, and either
+## player's as Combat is entered. Each is asked in the middle of a step and leaves it where it was,
+## so the attack it sits in still finishes and no card used here costs an attack phase.
 func _handle_follow_up(cmd: Command, context: Dictionary) -> void:
 	var window: String = str(context.get("window", ""))
 	if window == "attack_boost":
@@ -3729,7 +3773,7 @@ func _handle_follow_up(cmd: Command, context: Dictionary) -> void:
 	if cmd.value != null and str(cmd.value) == "place":
 		_place(state.players[cmd.player], card(cmd.card))
 		return
-	_use_card(state.players[cmd.player], card(cmd.card), window == "")
+	_use_card(state.players[cmd.player], card(cmd.card), false)
 
 
 ## "When you perform a physical attack you may discard this card from your hand to have that attack
@@ -3776,7 +3820,7 @@ func _prompt_performing_attack(attacker: PlayerState, a: Dictionary) -> bool:
 	a["performing_done"] = true
 	var opts: Array[Command] = []
 	for c in attacker.hand:
-		if str(c.def.raw.get("use_at", "")) != "performing_attack" or not _can_play(attacker, c.def):
+		if str(c.def.raw.get("use_at", "")) != "performing_attack" or not c.def.is_hand_combat_card() or not _can_play(attacker, c.def):
 			continue
 		if not _band_forbidden(attacker, c.def):
 			opts.append(Command.new(attacker.index, &"use", c.uid))
@@ -3787,13 +3831,16 @@ func _prompt_performing_attack(attacker: PlayerState, a: Dictionary) -> bool:
 	return true
 
 
+## "Use immediately after a physical attack you perform becomes successful." Offered once per
+## attack, to the attacker, for cards in hand that name this timing and match the attack's kind.
+## The card is used inside battle step 8 and the attack then deals its damage as usual.
 func _prompt_follow_up(attacker: PlayerState, a: Dictionary) -> bool:
 	if bool(a.get("follow_up_done", false)):
 		return false
 	a["follow_up_done"] = true
 	var opts: Array[Command] = []
 	for c in attacker.hand:
-		if str(c.def.raw.get("use_at", "")) != "own_successful_attack":
+		if str(c.def.raw.get("use_at", "")) != "own_successful_attack" or not c.def.is_hand_combat_card():
 			continue
 		var wants: String = str(c.def.raw.get("use_after_kind", ""))
 		if wants != "" and wants != str(a["kind"]):
@@ -3812,7 +3859,7 @@ func _prompt_follow_up(attacker: PlayerState, a: Dictionary) -> bool:
 	if opts.is_empty():
 		return false
 	opts.append(Command.new(attacker.index, &"decline"))
-	_set_prompt(attacker.index, &"follow_up", opts, {"source": int(a.get("source", -1))})
+	_set_prompt(attacker.index, &"follow_up", opts, {"window": "own_successful_attack", "source": int(a.get("source", -1))})
 	return true
 
 

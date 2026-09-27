@@ -2592,9 +2592,12 @@ static func attack_end_line(engine: DuelEngine, d: Dictionary, seat: int = -1) -
 	return line
 
 
-## One line per engine event for the log. Empty string means do not log.
-static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> String:
+## One line per engine event for the log. Empty string means do not log. `reveal_all` words it for
+## a replay's full-information view: every card is named, the ones drawn and recovered included.
+static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1, reveal_all: bool = false) -> String:
 	var d: Dictionary = ev.data
+	if reveal_all:
+		seat = -1
 	var actor: int = int(d.get("player", -1))
 	var pname: String = _pname(engine, int(d.get("player", -1)))
 	match ev.type:
@@ -2603,6 +2606,8 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 		&"dev":
 			return "Dev: %s runs %s on %s." % [pname, str(d.get("op", "")), ("the rival" if str(d.get("who", "self")) == "opponent" else "themselves")]
 		&"draw":
+			if reveal_all:
+				return "%s draws %s." % [pname, _cname(engine, int(d.get("card", -1)))]
 			return "%s draws." % pname
 		&"card_placed":
 			return "%s places %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
@@ -2711,6 +2716,8 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 			return "%s keeps %s and takes the remaining %d." % [
 				pname, _cname(engine, int(d.get("card", -1)), seat, actor), int(d.get("remaining", 0))]
 		&"seal_bypassed":
+			if reveal_all:
+				return "%s surfaces and returns to the deck." % _cname(engine, int(d.get("card", -1)))
 			return "A Seal surfaces and returns to the deck."
 		&"seal_captured":
 			return "%s captures %s!" % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
@@ -2814,6 +2821,8 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 			return "%s loses %d copies of \"%s\"." % [pname, stripped, str(d.get("name", ""))] if stripped > 1 \
 				else "%s loses a copy of \"%s\"." % [pname, str(d.get("name", ""))]
 		&"recover":
+			if reveal_all:
+				return "%s returns %s to the Life Deck." % [pname, _cname(engine, int(d.get("card", -1)))]
 			return "%s returns a card to the Life Deck." % pname
 		&"final_strike":
 			return "%s commits to a Final Strike." % pname
@@ -2822,7 +2831,15 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1) -> Str
 		&"redirect":
 			return "%s takes the damage." % _cname(engine, int(d.get("card", -1)), seat, actor)
 		&"double_power":
-			return "Double Power: the stronger duelist starts at Energy %d; the weaker starts at full Energy and goes first." % int(d.get("energy", 2))
+			return "Double Power: the stronger duelist starts at Energy %d; the weaker starts at full Energy." % int(d.get("energy", 2))
+		&"setup":
+			var opener: String = _pname(engine, int(d.get("first", -1)))
+			match str(d.get("reason", "")):
+				"double_power":
+					return "%s opens the duel (Double Power)." % opener
+				"forced":
+					return "%s opens the duel (set by the match)." % opener
+			return "%s opens the duel." % opener
 		&"reserve_swap":
 			return "%s brings %s in from the Reserve." % [pname, _cname(engine, int(d.get("in", -1)), seat, actor)]
 		&"guest_ally":

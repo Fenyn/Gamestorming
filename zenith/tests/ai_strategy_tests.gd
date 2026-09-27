@@ -71,6 +71,7 @@ func _referee() -> CountingReferee:
 		pair.append(deck)
 	var referee: CountingReferee = CountingReferee.new()
 	referee.setup(pair, library, StrikeTable.load_from("res://tests/fixtures/strike_table.json"), 11)
+	referee.engine.set_first_player(0)   # these fixtures script seat 0 as the active player
 	referee.engine.shuffle_decks = false
 	referee.start()
 	if referee.engine.prompt.kind == &"non_combat":
@@ -304,7 +305,10 @@ func _simulated_pivot() -> void:
 	_card(referee, 0, "ai_strategy_attack")
 	referee.engine._prompt_attack_action(referee.engine.player(0))
 	var profile: AiProfile = _profile(5, 6000)
-	profile.merge({"when": {"fervor_min:1": {"play": {"damage_life": 8.0, "attack_cost": 0.0}}}})
+	# The pivot speaks to both halves: `play` is what the scorer weighs, `foe.life` what the search's
+	# leaf weighs. A play weight alone also raises what holding the attack is worth, so it says
+	# nothing about when to swing.
+	profile.merge({"when": {"fervor_min:1": {"play": {"damage_life": 8.0, "attack_cost": 0.0}, "foe": {"life": 3.0}}}})
 	var ai: AiPlayer = AiPlayer.new(profile, 24)
 	ai.choose(referee, 0)
 	_check(int(ai.search.metrics.get("state_pivots", 0)) > 0, "Search must resolve state-dependent profiles inside hypothetical continuations")

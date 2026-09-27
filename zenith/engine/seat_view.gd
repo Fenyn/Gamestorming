@@ -166,7 +166,9 @@ static func from_dict(d: Dictionary) -> SeatView:
 	return v
 
 
-static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) -> SeatView:
+## `reveal_all` is the full-information view a replay shows: every card's definition and every
+## pending job, whoever holds them. A seat's own view never takes it.
+static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true, reveal_all: bool = false) -> SeatView:
 	var s: GameState = engine.state
 	var v: SeatView = SeatView.new()
 	v.seat = seat
@@ -186,7 +188,7 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 	v.attack = _attack_summary(engine)
 	v.pending_card = int(s.pending_play.get("card", -1))
 	for item in engine.pending_items():
-		v.pending.append(_mask_pending(item, engine, seat))
+		v.pending.append(item.duplicate() if reveal_all else _mask_pending(item, engine, seat))
 	v.consecutive_passes = s.consecutive_passes
 	v.last_attack = _last_attack_summary(engine)
 	if include_forecasts:
@@ -205,7 +207,7 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true) ->
 	for c in engine.all_cards():
 		# An announced play is public during its response window even while its physical
 		# card remains in hand. Reveal only that card, never the rest of the owner's hand.
-		v.cards[c.uid] = SeatCard.of(c, seat, c.uid == v.pending_card, engine.tags_of(c) if c.def.is_personality() else NO_TAGS)
+		v.cards[c.uid] = SeatCard.of(c, seat, reveal_all or c.uid == v.pending_card, engine.tags_of(c) if c.def.is_personality() else NO_TAGS)
 		if c.zone == &"resolving":
 			v.resolving.append(c.uid)
 	# A seat choosing among cards may see them, wherever they sit (a search through the Life Deck,

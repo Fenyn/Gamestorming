@@ -2,7 +2,9 @@ extends Control
 ## Deck selection, one seat at a time: a searchable library beside a tabbed preview. Nothing about the other seat shows here; the matchup screen
 ## comes after both lock in. Hotseat: Player 1 locks in, then Player 2 on the same screen. Vs AI:
 ## the person picks their own duelist, then the AI's. Online: this client's seat only, and the
-## lobby waits for the other client's lock.
+## lobby waits for the other client's lock. A queue room (Find a duel) has no code banner, counts
+## down the lock-in time, names the other player only by their duelist once both have locked, and
+## its Back reads Leave. A ranked room's header says so and that the match is best of 3.
 
 const ROSTER_TILE: PackedScene = preload("res://scenes/select/roster_tile.tscn")
 const ADVANCE_DELAY: float = 0.6
@@ -119,6 +121,8 @@ func _show_seat(seat: int) -> void:
 	_reset_filters()
 	if seat == Session.ai_seat:
 		title_label.text = "Choose the opponent's deck"
+	elif _online and Net.ranked_room():
+		title_label.text = "Ranked · best of %d" % Net.RANKED_BEST_OF
 	elif _online or Session.ai_seat >= 0:
 		title_label.text = "Choose your deck"
 	else:
@@ -188,16 +192,34 @@ func _on_lobby_changed() -> void:
 		_advance()
 
 
+## The other player left. This client keeps its seat and the room its code, so a new player can
+## take the empty seat; `Net.lobby_notice` says who left.
 func _on_peer_left() -> void:
-	Net.leave()
+	var other: int = Net.remote_player()
+	Session.player_names[other] = "Player %d" % (other + 1)
+	Session.chosen[other] = null
+	Session.locked[other] = false
+	_refresh()
+
+
+## The title shows why, from `Net.last_error`.
+func _on_connection_failed(_reason: String) -> void:
 	Session.player_names = ["Player 1", "Player 2"]
 	Session.go_to_title()
 
 
-func _on_connection_failed(reason: String) -> void:
-	push_warning(reason)
-	Session.player_names = ["Player 1", "Player 2"]
-	Session.go_to_title()
+## Queue room, until this seat locks: the lock-in time left, in the warning style for its last
+## 10 seconds.
+func _process(_delta: float) -> void:
+	if _online and Net.queue_room() and not Session.locked[_seat]:
+		_show_lock_countdown()
+
+
+func _show_lock_countdown() -> void:
+	var left: int = maxi(0, Net.pick_until - Time.get_ticks_msec())
+	var seconds: int = ceili(left / 1000.0)
+	status_label.text = "Lock in within %d:%02d" % [floori(seconds / 60.0), seconds % 60]
+	status_label.theme_type_variation = &"WarnLabel" if left < 10000 else &"MutedLabel"
 
 
 ## Tile badges for the choosing seat, the status line, and what Back does.
@@ -212,15 +234,24 @@ func _refresh() -> void:
 		tile.disabled = Session.locked[_seat]
 	if _online:
 		_refresh_players()
+	status_label.theme_type_variation = &"MutedLabel"
 	if _online and not Net.seats_filled():
-		status_label.text = "Waiting for the other player to connect." if Net.room_code == "" else ""
+		if Net.lobby_notice != "":
+			status_label.text = Net.lobby_notice
+		else:
+			status_label.text = "Waiting for the other player to connect." if Net.room_code == "" else ""
 	elif _online and Session.locked[_seat]:
 		status_label.text = "Locked in. Waiting for the other player."
+	elif _online and Net.queue_room():
+		_show_lock_countdown()
 	elif Session.locked[_seat]:
 		status_label.text = "Both locked in."
 	else:
 		status_label.text = ""
-	back_button.text = "Back" if _order.find(_seat) == 0 else "Back to Player %d" % (_order[0] + 1)
+	if _online and Net.queue_room():
+		back_button.text = "Leave"
+	else:
+		back_button.text = "Back" if _order.find(_seat) == 0 else "Back to Player %d" % (_order[0] + 1)
 
 
 ## The players strip in the top row: each seat's name and state, and the room code banner
@@ -239,9 +270,13 @@ func _refresh_players() -> void:
 		else:
 			state = "choosing"
 		var who: String = str(Net.lobby[seat]["name"]) if present else "empty seat"
+		var picked: bool = present and int(Net.lobby[seat]["deck"]) >= 0
+		# The other seat's deck arrives only once both have locked.
+		if Net.queue_room() and seat != me and picked:
+			var duelist: String = Session.duelist_name(Session.decks[int(Net.lobby[seat]["deck"])])
+			who = duelist if duelist != "" else who
 		if seat == me:
 			who += " (you)"
-		var picked: bool = present and int(Net.lobby[seat]["deck"]) >= 0
 		chip.text = "P%d  %s  ·  %s" % [seat + 1, who, state]
 		chip.add_theme_color_override("font_color", Session.seat_color(seat) if picked else (ZenithTheme.TEXT if present else ZenithTheme.MUTED))
 		var border: Color = ZenithTheme.BORDER
@@ -249,7 +284,7 @@ func _refresh_players() -> void:
 			border = Session.seat_color(seat) if state == "locked in" else Color(Session.seat_color(seat), 0.45)
 		var fill: Color = ZenithTheme.RAISED if present else Color(1, 1, 1, 0.02)
 		(chip.get_parent() as PanelContainer).add_theme_stylebox_override("panel", ZenithTheme.box(fill, border, ZenithTheme.RADIUS, 1, 12, 6))
-	code_banner.visible = not filled and Net.room_code != ""
+	code_banner.visible = not filled and Net.room_code != "" and not Net.queue_room()
 
 
 func _advance() -> void:
@@ -327,7 +362,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 ## `--dev-pick=A,B` picks deck A for player 1 and B for player 2 (online: only this client's
-## seat). `--dev-lock` locks each seat in turn as picked, so a hotseat run lands on player 2
+## seat, and a single `--dev-pick=A` picks A for whichever seat this client got). `--dev-lock`
+## locks each seat in turn as picked, so a hotseat run lands on player 2
 ## choosing with one pick or on "both locked" with two; `--dev-autoplay` locks online so both
 ## clients reach the matchup. `--dev-aspect=N` shows the choosing seat's duelist at Aspect N.
 ## `--dev-details` opens the deck detail tab on that seat's panel.
@@ -340,10 +376,10 @@ func _dev_args() -> void:
 		if arg.begins_with("--dev-pick="):
 			var picks: PackedStringArray = arg.get_slice("=", 1).split(",")
 			for i in range(mini(2, picks.size())):
-				if i == _seat:
+				if i == _seat or (_online and picks.size() == 1):
 					_pick(int(picks[i]))
 					if lock:
-						_on_lock_toggled(i, true)
+						_on_lock_toggled(_seat, true)
 	for arg in args:
 		if arg.begins_with("--dev-aspect=") and Session.chosen[_seat] != null:
 			seat_panel.show_aspect(int(arg.get_slice("=", 1)))

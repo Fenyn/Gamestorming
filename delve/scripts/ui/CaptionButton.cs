@@ -49,6 +49,12 @@ public partial class CaptionButton : Button
         FitToContent();
     }
 
+    public void SetActionText(string text)
+    {
+        ActionText = text;
+        if (ActionLabel != null) ActionLabel.Text = text;
+    }
+
     /// <summary>Size the button to its Content row plus the normal stylebox margins, never below
     /// the height the scene authored.</summary>
     private void FitToContent()

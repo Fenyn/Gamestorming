@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/ActionBar.cs" id="1_ab"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="2_pr"]
@@ -7,8 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/chip_flyout.tscn" id="5_fly"]
 [ext_resource type="Resource" path="res://assets/ui/spell_icons.tres" id="6_icons"]
 [ext_resource type="Resource" path="res://assets/ui/ability_icons.tres" id="7_icons"]
-
-[sub_resource type="StyleBoxEmpty" id="signature_clear"]
+[ext_resource type="PackedScene" path="res://scenes/ui/decision_slot.tscn" id="8_slot"]
 
 [node name="ActionBar" type="Control"]
 layout_mode = 3
@@ -16,14 +15,15 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -500.0
-offset_right = 500.0
+offset_left = -560.0
+offset_right = 560.0
 grow_horizontal = 2
 grow_vertical = 0
-mouse_filter = 1
+mouse_filter = 2
 script = ExtResource("1_ab")
 SpellIcons = ExtResource("6_icons")
 AbilityIcons = ExtResource("7_icons")
+ResourcePipScene = ExtResource("2_pr")
 
 [node name="Stack" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -35,92 +35,12 @@ anchor_bottom = 1.0
 offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_constants/separation = 6
-
-[node name="PreviewCard" type="PanelContainer" parent="Stack"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-size_flags_horizontal = 4
-custom_minimum_size = Vector2(620, 0)
-theme_type_variation = &"HudInset"
-
-[node name="PreviewCol" type="VBoxContainer" parent="Stack/PreviewCard"]
-layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="HeaderRow" type="HBoxContainer" parent="Stack/PreviewCard/PreviewCol"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="PreviewHeaderLabel" type="Label" parent="Stack/PreviewCard/PreviewCol/HeaderRow"]
+[node name="DecisionSlot" parent="Stack" instance=ExtResource("8_slot")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-text = ""
-theme_override_font_sizes/font_size = 20
-autowrap_mode = 3
-
-[node name="OffGuardTag" type="Label" parent="Stack/PreviewCard/PreviewCol/HeaderRow"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-text = "OFF-GUARD"
-theme_type_variation = &"ChipLabel"
-
-[node name="PreviewStatsLabel" type="Label" parent="Stack/PreviewCard/PreviewCol"]
-unique_name_in_owner = true
-layout_mode = 2
-text = ""
-theme_type_variation = &"HeadingLabel"
-theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(0.94, 0.82, 0.57, 1)
-autowrap_mode = 3
-
-[node name="PreviewDetailLabel" type="Label" parent="Stack/PreviewCard/PreviewCol"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-autowrap_mode = 3
-
-[node name="HintRow" type="HBoxContainer" parent="Stack"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_constants/separation = 6
-
-[node name="TargetingHint" type="Label" parent="Stack/HintRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = ""
-horizontal_alignment = 1
-theme_type_variation = &"HintLabel"
-
-[node name="ConfirmTargets" type="Button" parent="Stack/HintRow"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-focus_mode = 0
-text = "Cast [Enter]"
-
-[node name="MoveCostPips" parent="Stack/HintRow" instance=ExtResource("2_pr")]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-size_flags_vertical = 4
-PipSize = Vector2(10, 10)
-
-[node name="SignatureActions" parent="Stack" instance=ExtResource("5_fly")]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_styles/panel = SubResource("signature_clear")
-ChipScene = ExtResource("4_chip")
-
-[node name="Flyout" parent="Stack" instance=ExtResource("5_fly")]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-ChipScene = ExtResource("4_chip")
 
 [node name="ControlOptions" type="PanelContainer" parent="Stack"]
 unique_name_in_owner = true
@@ -131,7 +51,7 @@ theme_type_variation = &"HudInset"
 
 [node name="ToggleCol" type="HBoxContainer" parent="Stack/ControlOptions"]
 layout_mode = 2
-theme_override_constants/separation = 0
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="AiToggle" type="CheckBox" parent="Stack/ControlOptions/ToggleCol"]
@@ -147,12 +67,41 @@ focus_mode = 0
 tooltip_text = "ON: this ally uses reactions automatically. OFF: ask with a prompt."
 text = "Automatic reactions"
 
+[node name="StageOrders" type="CheckBox" parent="Stack/ControlOptions/ToggleCol"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Stage a destination or single target before confirming. Escape cancels."
+text = "Plan orders"
+
+[node name="Overview" type="Button" parent="Stack/ControlOptions/ToggleCol"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Toggle the full battlefield view"
+text = "Overview"
+
+[node name="Flyout" parent="Stack" instance=ExtResource("5_fly")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+ChipScene = ExtResource("4_chip")
+
+[node name="SignatureActions" parent="Stack" instance=ExtResource("5_fly")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"ClearPanel"
+ChipScene = ExtResource("4_chip")
+
 [node name="BarBlock" type="VBoxContainer" parent="Stack"]
 layout_mode = 2
 size_flags_horizontal = 4
+mouse_filter = 2
 theme_override_constants/separation = 0
 
 [node name="Bar" type="PanelContainer" parent="Stack/BarBlock"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HudPanel"
 
@@ -160,45 +109,50 @@ theme_type_variation = &"HudPanel"
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Identity" type="VBoxContainer" parent="Stack/BarBlock/Bar/Row"]
-layout_mode = 2
-theme_override_constants/separation = 0
-
-[node name="ActorLabel" type="Label" parent="Stack/BarBlock/Bar/Row/Identity"]
+[node name="Portrait" type="TextureRect" parent="Stack/BarBlock/Bar/Row"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 0)
+custom_minimum_size = Vector2(48, 64)
 layout_mode = 2
-text = "â€”"
-vertical_alignment = 1
-theme_type_variation = &"HeadingLabel"
+texture_filter = 1
+expand_mode = 1
+stretch_mode = 5
 
-[node name="VitalsLabel" type="Label" parent="Stack/BarBlock/Bar/Row/Identity"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 0)
-layout_mode = 2
-text = ""
-
-[node name="ActionPips" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("2_pr")]
-unique_name_in_owner = true
+[node name="Economy" type="VBoxContainer" parent="Stack/BarBlock/Bar/Row"]
 layout_mode = 2
 size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="ActionPips" parent="Stack/BarBlock/Bar/Row/Economy" instance=ExtResource("2_pr")]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 0
 PipSize = Vector2(14, 14)
+
+[node name="Resources" type="VBoxContainer" parent="Stack/BarBlock/Bar/Row/Economy"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 0
+theme_override_constants/separation = 2
 
 [node name="StrikeButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 4
 ActionText = "Strike"
 InputAction = &"combat_action_1"
 
 [node name="ShieldButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 4
 ActionText = "Shield"
 InputAction = &"combat_action_2"
 
 [node name="SpellsButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 4
 toggle_mode = true
 ActionText = "Spells"
 InputAction = &"combat_spells"
@@ -206,6 +160,7 @@ InputAction = &"combat_spells"
 [node name="SkillsButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 4
 toggle_mode = true
 ActionText = "Abilities"
 InputAction = &"combat_skills"
@@ -213,6 +168,7 @@ InputAction = &"combat_skills"
 [node name="DelayButton" parent="Stack/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 4
 ActionText = "Delay"
 InputAction = &"combat_delay"
 
@@ -228,6 +184,7 @@ InputAction = &"combat_end_turn"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
+focus_mode = 0
 text = "Control"
 toggle_mode = true
-tooltip_text = "Automation preferences for the active ally"
+tooltip_text = "Automation preferences, planned orders and the battlefield overview"

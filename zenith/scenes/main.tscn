@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://dyp2cr7uxqvd7"]
 
 [ext_resource type="Script" uid="uid://cy0qqx343kttc" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Texture2D" uid="uid://7ii4oktqk84n" path="res://assets/adventure_map/ui/crest.png" id="2_crest"]
+[ext_resource type="Texture2D" uid="uid://wradh0chy244" path="res://assets/adventure_map/ui/swirl.png" id="3_swirl"]
 
 [node name="Main" type="Control" unique_id=1531571586]
 layout_mode = 3
@@ -18,7 +20,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.055, 0.05, 0.055, 1)
+
+[node name="Tick" type="Timer" parent="."]
+autostart = true
 
 [node name="Center" type="CenterContainer" parent="." unique_id=806725009]
 layout_mode = 1
@@ -29,94 +33,216 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Column" type="VBoxContainer" parent="Center" unique_id=747642818]
+custom_minimum_size = Vector2(540, 0)
 layout_mode = 2
 theme_override_constants/separation = 18
+
+[node name="Crest" type="TextureRect" parent="Center/Column"]
+texture_filter = 1
+custom_minimum_size = Vector2(68, 34)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("2_crest")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Title" type="Label" parent="Center/Column" unique_id=1138640804]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-theme_override_font_sizes/font_size = 72
 text = "Eidolarch"
 horizontal_alignment = 1
 
 [node name="Sub" type="Label" parent="Center/Column" unique_id=1423663103]
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 24
+theme_type_variation = &"CaptionLabel"
 text = "DUEL  AT  THE  GATE  BETWEEN  WORLDS"
 horizontal_alignment = 1
+
+[node name="Swirl" type="TextureRect" parent="Center/Column"]
+texture_filter = 1
+custom_minimum_size = Vector2(80, 26)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("3_swirl")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Spacer" type="Control" parent="Center/Column" unique_id=2004112523]
 custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 
 [node name="Adventure" type="Button" parent="Center/Column" unique_id=913258647]
-custom_minimum_size = Vector2(384, 60)
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 theme_type_variation = &"AccentButton"
 text = "Adventure"
 
 [node name="VsAi" type="Button" parent="Center/Column" unique_id=2127113464]
-custom_minimum_size = Vector2(384, 60)
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 theme_type_variation = &"AccentButton"
 text = "Duel the AI"
 
-[node name="OnlineLabel" type="Label" parent="Center/Column" unique_id=965703908]
+[node name="Hotseat" type="Button" parent="Center/Column" unique_id=1619272361]
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = "ONLINE"
-horizontal_alignment = 1
+text = "Hotseat duel"
 
-[node name="RejoinNote" type="Label" parent="Center/Column" unique_id=1466203917]
-visible = false
-custom_minimum_size = Vector2(540, 0)
-layout_mode = 2
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="RejoinRow" type="HBoxContainer" parent="Center/Column" unique_id=1874520361]
-visible = false
+[node name="OnlineHeader" type="HBoxContainer" parent="Center/Column"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Rejoin" type="Button" parent="Center/Column/RejoinRow" unique_id=302948176]
-custom_minimum_size = Vector2(228, 54)
+[node name="OnlineLabel" type="Label" parent="Center/Column/OnlineHeader" unique_id=965703908]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"CaptionLabel"
+text = "ONLINE"
+
+[node name="Rating" type="Label" parent="Center/Column/OnlineHeader"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Rating 0"
+horizontal_alignment = 2
+
+[node name="OnlineSlot" type="Control" parent="Center/Column"]
+custom_minimum_size = Vector2(540, 126)
+layout_mode = 2
+
+[node name="Idle" type="VBoxContainer" parent="Center/Column/OnlineSlot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 18
+
+[node name="FindDuel" type="Button" parent="Center/Column/OnlineSlot/Idle"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+text = "Find a duel"
+
+[node name="Ranked" type="Button" parent="Center/Column/OnlineSlot/Idle"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+text = "Ranked match"
+
+[node name="Search" type="VBoxContainer" parent="Center/Column/OnlineSlot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Row" type="HBoxContainer" parent="Center/Column/OnlineSlot/Search"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Label" type="Label" parent="Center/Column/OnlineSlot/Search/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"BodyLabel"
+text = "Looking for an opponent"
+text_overrun_behavior = 3
+
+[node name="Elapsed" type="Label" parent="Center/Column/OnlineSlot/Search/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"RowTitleLabel"
+text = "0:00"
+horizontal_alignment = 2
+
+[node name="Cancel" type="Button" parent="Center/Column/OnlineSlot/Search/Row"]
+custom_minimum_size = Vector2(120, 42)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"CompactButton"
+text = "Cancel"
+
+[node name="Note" type="Label" parent="Center/Column/OnlineSlot/Search"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="Rejoin" type="VBoxContainer" parent="Center/Column/OnlineSlot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="Note" type="Label" parent="Center/Column/OnlineSlot/Rejoin" unique_id=1466203917]
+custom_minimum_size = Vector2(0, 66)
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = "Your duel against Player 2 is still running."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+max_lines_visible = 2
+text_overrun_behavior = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Center/Column/OnlineSlot/Rejoin" unique_id=1874520361]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Rejoin" type="Button" parent="Center/Column/OnlineSlot/Rejoin/Buttons" unique_id=302948176]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"AccentButton"
 text = "Rejoin"
 
-[node name="GiveUp" type="Button" parent="Center/Column/RejoinRow" unique_id=1203385742]
-custom_minimum_size = Vector2(144, 54)
+[node name="Concede" type="Button" parent="Center/Column/OnlineSlot/Rejoin/Buttons" unique_id=1203385742]
+custom_minimum_size = Vector2(144, 42)
 layout_mode = 2
-text = "Give up"
+size_flags_vertical = 4
+theme_type_variation = &"CompactButton"
+text = "Concede"
 
-[node name="FindDuel" type="Button" parent="Center/Column"]
-custom_minimum_size = Vector2(384, 54)
-layout_mode = 2
-text = "Find a duel"
-
-[node name="RankedRow" type="HBoxContainer" parent="Center/Column"]
+[node name="Confirm" type="HBoxContainer" parent="Center/Column/OnlineSlot/Rejoin"]
+visible = false
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Ranked" type="Button" parent="Center/Column/RankedRow"]
-custom_minimum_size = Vector2(228, 54)
+[node name="Question" type="Label" parent="Center/Column/OnlineSlot/Rejoin/Confirm"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Ranked duel"
+size_flags_vertical = 4
+theme_type_variation = &"BodyLabel"
+text = "Concede the duel?"
 
-[node name="Rating" type="Label" parent="Center/Column/RankedRow"]
-visible = false
+[node name="Yes" type="Button" parent="Center/Column/OnlineSlot/Rejoin/Confirm"]
+custom_minimum_size = Vector2(120, 42)
 layout_mode = 2
 size_flags_vertical = 4
-theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 24
-text = "Rating 0 · Provisional"
+theme_type_variation = &"CompactButton"
+text = "Concede"
+
+[node name="No" type="Button" parent="Center/Column/OnlineSlot/Rejoin/Confirm"]
+custom_minimum_size = Vector2(120, 42)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"CompactButton"
+text = "Cancel"
 
 [node name="Host" type="Button" parent="Center/Column" unique_id=728342339]
-custom_minimum_size = Vector2(384, 54)
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 text = "Host a duel"
 
@@ -125,7 +251,7 @@ layout_mode = 2
 theme_override_constants/separation = 12
 
 [node name="Address" type="LineEdit" parent="Center/Column/JoinRow" unique_id=409460429]
-custom_minimum_size = Vector2(228, 54)
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "share code or address"
@@ -135,49 +261,18 @@ custom_minimum_size = Vector2(144, 54)
 layout_mode = 2
 text = "Join"
 
-[node name="LocalLabel" type="Label" parent="Center/Column" unique_id=554165091]
+[node name="Status" type="Label" parent="Center/Column" unique_id=1133121900]
+custom_minimum_size = Vector2(540, 54)
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "LOCAL"
 horizontal_alignment = 1
-
-[node name="Hotseat" type="Button" parent="Center/Column" unique_id=1619272361]
-custom_minimum_size = Vector2(384, 54)
-layout_mode = 2
-text = "Hotseat duel"
-
-[node name="Spacer2" type="Control" parent="Center/Column" unique_id=757704003]
-custom_minimum_size = Vector2(0, 6)
-layout_mode = 2
+vertical_alignment = 1
+autowrap_mode = 3
+clip_text = true
+max_lines_visible = 2
+text_overrun_behavior = 3
 
 [node name="Quit" type="Button" parent="Center/Column" unique_id=176264996]
-custom_minimum_size = Vector2(384, 54)
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 text = "Quit"
-
-[node name="StatusRow" type="HBoxContainer" parent="Center/Column"]
-custom_minimum_size = Vector2(540, 0)
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="Status" type="Label" parent="Center/Column/StatusRow" unique_id=1133121900]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-theme_type_variation = &"MutedLabel"
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="Cancel" type="Button" parent="Center/Column/StatusRow" unique_id=1830266013]
-visible = false
-custom_minimum_size = Vector2(144, 54)
-layout_mode = 2
-text = "Cancel"
-
-[node name="SearchNote" type="Label" parent="Center/Column"]
-visible = false
-custom_minimum_size = Vector2(540, 0)
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-horizontal_alignment = 1
-autowrap_mode = 3

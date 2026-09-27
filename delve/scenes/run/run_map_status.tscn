@@ -2,11 +2,9 @@
 
 [ext_resource type="Script" uid="uid://dl1sk8c3lq1nw" path="res://scripts/flow/RunMapStatus.cs" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/run/map_party_member.tscn" id="2_member"]
-[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="map_theme"]
 [ext_resource type="PackedScene" path="res://scenes/run/run_map_recovery.tscn" id="recovery"]
 
 [node name="RunMapStatus" type="VBoxContainer" unique_id=295572526]
-theme = ExtResource("map_theme")
 theme_override_constants/separation = 16
 script = ExtResource("1")
 MemberScene = ExtResource("2_member")

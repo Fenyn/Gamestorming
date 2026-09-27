@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Delve.Run;
+using Delve.UI;
 using Godot;
 using PF2e.Core;
 
@@ -54,11 +55,13 @@ public partial class ShortRestPanel : Control
         _confirm.Visible = true;
         _backButton.Text = "Cancel";
         var ward = state.Wardstone;
-        _clockLabel.Text = $"Day {state.Clock.Day} | Ward {ward.Ward}/{ward.Rules.MaxWard}\nOne activity per character. Everyone acts during the same ten minutes.\n{WardLines.RestPreview(ward)}";
-        _confirm.Text = $"Begin ten-minute rest - {ward.Rules.ShortRestBurn} ward total";
+        _clockLabel.Text = $"Day {state.Clock.Day} · Ward {ward.Ward}/{ward.Rules.MaxWard}\nOne activity per character. Everyone acts during the same ten minutes.\n{WardLines.RestPreview(ward)}";
+        _confirm.Text = $"Begin ten-minute rest (−{ward.Rules.ShortRestBurn} ward)";
         BuildRows();
         ValidateSchedule();
         Visible = true;
+        // Enter must never spend ward by accident.
+        UiFocus.Grab(_backButton);
     }
 
     private void BuildRows()
@@ -128,8 +131,9 @@ public partial class ShortRestPanel : Control
         _submitted = true;
         _activityBox.Visible = false;
         _confirm.Visible = false;
-        _clockLabel.Text = $"Ten minutes passed | Ward {state.Wardstone.Ward}/{state.Wardstone.Rules.MaxWard} | {wardBefore - state.Wardstone.Ward} ward spent";
+        _clockLabel.Text = $"Ten minutes passed. {wardBefore - state.Wardstone.Ward} ward spent, {state.Wardstone.Ward}/{state.Wardstone.Rules.MaxWard} remains.";
         _backButton.Text = "Continue exploring";
+        UiFocus.Grab(_backButton);
         _resultLabel.Text = string.Join("\n", result.Lines) + "\n\n" + string.Join("\n", state.Party.Living().Select(PartyLines.Describe));
     }
 }

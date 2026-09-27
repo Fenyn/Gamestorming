@@ -225,8 +225,8 @@ var cooldown_until_msec: int = 0
 ## Client of the server: the last facts a scene may need after their signal has gone, for a scene
 ## built later. `last_match` is the last `match_over` payload. `last_game_over` is the last
 ## `game_over`, {"game", "wins", "next_in_s", "at_msec"} (`at_msec` the ticks it arrived at).
-## `last_duel_ended` is the last `duel_ended`, {"winner", "reason"}. The next deal or resume clears
-## all three, and so does `leave()`; a dropped connection keeps them for the scene still up.
+## `last_duel_ended` is the last `duel_ended`, {"winner", "reason"}. Only the next deal or resume
+## and a new queue join clear them; `leave()` and a dropped connection keep them.
 var last_match: Dictionary = {}
 var last_game_over: Dictionary = {}
 var last_duel_ended: Dictionary = {}
@@ -517,6 +517,7 @@ func find_ranked() -> String:
 
 
 func _find(ranked: bool) -> String:
+	_forget_results()
 	if server_room() and multiplayer.get_peers().has(HOST_ID):
 		_forget_room()
 		_queue_ranked = ranked
@@ -531,6 +532,13 @@ func _find(ranked: bool) -> String:
 	_queue_ranked = ranked
 	queue_state = "connecting"
 	return await _connect_to_server("")
+
+
+## Client: the last result facts go, at a new queue join and at each deal or resume.
+func _forget_results() -> void:
+	last_match = {}
+	last_game_over = {}
+	last_duel_ended = {}
 
 
 ## Client: this seat's room is behind it and the connection stays open.
@@ -561,7 +569,7 @@ func _connect_to_server(request: String, address: String = "") -> String:
 	var where: String = address if address != "" else server_address()
 	var tls: TLSOptions = server_tls(where)
 	if tls == null and server_cert_path() != "":
-		_disconnect()
+		leave()
 		return CERT_MISSING
 	identity()
 	var lan: LanTransport = LanTransport.new()
@@ -570,7 +578,7 @@ func _connect_to_server(request: String, address: String = "") -> String:
 	add_child(lan)
 	var problem: String = await transport.join(where)
 	if problem != "":
-		_disconnect()
+		leave()
 		return problem
 	if tls != null:
 		_start_cert_probe(where, tls)
@@ -619,13 +627,12 @@ func _drop_cert_probe() -> void:
 ## Ask the duel server for this client's seat back in the duel its `RejoinFile` names, on the
 ## server that runs it. The duel scene loads on `_rpc_resume`; anything else comes back through
 ## `connection_failed`, and a refusal deletes the file first. A coroutine returning "" or a message.
-## The last result facts stay for the duel scene that is trying to get back in.
 func rejoin() -> String:
 	var ticket: Dictionary = RejoinFile.read()
 	if not RejoinFile.live(ticket, int(Time.get_unix_time_from_system())):
 		RejoinFile.clear()
 		return REJOIN_OVER
-	_disconnect()
+	leave()
 	_rejoin = ticket
 	return await _connect_to_server("", str(ticket["server"]))
 
@@ -781,11 +788,10 @@ func _timeout_reason() -> String:
 	return "The duel server did not answer in time. Try again in a moment."
 
 
-## Drop the connection and tell whoever listens why. The last result facts stay for the scene that
-## is still up.
+## Drop the connection and tell whoever listens why.
 func _fail(reason: String) -> void:
 	note("failed: " + reason)
-	_disconnect()
+	leave()
 	last_error = reason
 	connection_failed.emit(reason)
 
@@ -824,18 +830,9 @@ func hosting_text() -> String:
 	return transport.hosting_text() if is_host() and transport != null else ""
 
 
-## Closes any connection and forgets it, the last result facts included. `last_error` and
-## `cooldown_until_msec` are left for the title.
+## Closes any connection and forgets it. `last_error`, `cooldown_until_msec` and the last result
+## facts are left for the screens: a disconnect in the same frame as a result still shows it.
 func leave() -> void:
-	_disconnect()
-	last_match = {}
-	last_game_over = {}
-	last_duel_ended = {}
-
-
-## `leave()` without forgetting the last result facts: a dropped connection and a rejoin attempt,
-## while the duel scene is still up.
-func _disconnect() -> void:
 	if multiplayer.multiplayer_peer != null and not (multiplayer.multiplayer_peer is OfflineMultiplayerPeer):
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
@@ -2815,9 +2812,7 @@ func _on_rejoin_failed(reason: String) -> void:
 ## updates held for the duel scene. The last game's result facts go, since this game has none yet.
 ## False, after `_fail`, when a deck does not match.
 func _take_deal(deck0: int, deck1: int, name0: String, name1: String, player0: String, player1: String, color_seed: int) -> bool:
-	last_match = {}
-	last_game_over = {}
-	last_duel_ended = {}
+	_forget_results()
 	var picks: Array[int] = [deck0, deck1]
 	var names: Array[String] = [name0, name1]
 	for i in range(2):
@@ -2844,7 +2839,7 @@ func _keep_rejoin(token: String) -> void:
 	var names: Array[String] = Session.seat_names()
 	var problem: String = RejoinFile.write({"server": _server_address, "code": room_code, "seat": local_player,
 		"token": token, "names": [names[0], names[1]],
-		"decks": [Session.chosen[0].id, Session.chosen[1].id], "kind": _room_kind,
+		"decks": [Session.chosen[0].id, Session.chosen[1].id], "kind": _room_kind, "ranked": _ranked,
 		"expires": int(Time.get_unix_time_from_system()) + RejoinFile.KEEP_SECONDS})
 	_renewed_at = Time.get_ticks_msec()
 	if problem != "":

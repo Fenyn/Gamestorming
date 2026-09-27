@@ -12,7 +12,7 @@ public partial class VictoryBanner
 
     private void WirePartyDetails()
     {
-        GetNode<CharacterDetailsOverlay>("%ResultDetails").GetNode<Button>("%CloseDetails").Text = "Return to results  [Esc]";
+        GetNode<CharacterDetailsOverlay>("%ResultDetails").GetNode<CaptionButton>("%CloseDetails").SetActionText("Return to results");
         GetNode<Button>("%DetailsButton").Pressed += () =>
         {
             int index = GetNode<OptionButton>("%PartyMember").Selected;

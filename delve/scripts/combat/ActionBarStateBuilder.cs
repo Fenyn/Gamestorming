@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using PF2e.Core;
 using PF2e.Data;
 using PF2e.Utilities;
@@ -27,11 +29,15 @@ internal static class ActionBarStateBuilder
         return new ActionBarState
         {
             ActorName = current.Name,
+            ActorId = current.CreatureStats == null ? current.Id : "",
             Resources = Delve.Rules.ClassStatus.Resources(current),
+            ResourcePips = Delve.Rules.ClassStatus.ResourcePips(current)
+                .Select(r => new ResourcePipView(r.Name, r.Current, r.Max)).ToArray(),
             ActionsRemaining = actions,
             MaxActions = current.Actions?.MaxBaseActions ?? 3,
             CanStrike = canStrike,
             CanRaiseShield = canRaiseShield,
+            HasShield = current.Equipment?.EquippedShield != null,
             CanDelay = canDelay,
             Hp = inspect?.Hp ?? 0,
             MaxHp = inspect?.MaxHp ?? 0,
@@ -72,9 +78,19 @@ internal static class ActionBarStateBuilder
             data.TargetCreatureId, CreatureKnowledgeField.AC);
         int hit = (int)Math.Round(data.HitChance);
         int crit = (int)Math.Round(data.CritChance);
+        string hitText = acKnown ? $"{hit}%" : "?%";
+        string critText = acKnown ? $"{crit}%" : "?%";
+        var figures = new List<FigureView> { new("Hit", hitText), new("Crit", critText) };
+        if (!string.IsNullOrEmpty(data.DamageFormula)) figures.Add(new("Damage", data.DamageFormula));
+        var tags = new List<string>();
+        if (data.MAP < 0) tags.Add($"MAP {data.MAP}");
+        if (data.TargetIsOffGuard) tags.Add("Off-guard");
+        if (data.CoverLevel != CoverLevel.None) tags.Add($"{data.CoverLevel} cover");
 
         return new AttackPreviewView
         {
+            Figures = figures,
+            Tags = tags,
             AttackerName = data.AttackerName,
             TargetName = data.TargetName,
             WeaponName = data.WeaponName,
@@ -82,8 +98,8 @@ internal static class ActionBarStateBuilder
             DamageFormula = data.DamageFormula ?? "",
             TargetOffGuard = data.TargetIsOffGuard,
             TargetAcText = acKnown ? data.TargetAC.ToString() : "?",
-            HitChanceText = acKnown ? $"{hit}%" : "?%",
-            CritChanceText = acKnown ? $"{crit}%" : "?%",
+            HitChanceText = hitText,
+            CritChanceText = critText,
         };
     }
 }

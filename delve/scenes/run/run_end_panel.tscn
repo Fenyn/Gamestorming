@@ -1,10 +1,7 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/flow/RunEndPanel.cs" id="1_end"]
-
-[ext_resource type="StyleBox" path="res://assets/ui/result_panel.tres" id="report"]
-[ext_resource type="Texture2D" path="res://assets/ui/result_rule.svg" id="rule"]
-[ext_resource type="FontFile" path="res://assets/fonts/alagard/alagard.ttf" id="display"]
+[ext_resource type="Texture2D" path="res://assets/ui/kenney/rule_ornament.png" id="rule"]
 
 [node name="RunEndPanel" type="Control"]
 layout_mode = 3
@@ -48,7 +45,7 @@ grow_vertical = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(620, 0)
 layout_mode = 2
-theme_override_styles/panel = ExtResource("report")
+theme_type_variation = &"ResultFrame"
 
 [node name="Box" type="VBoxContainer" parent="Scroll/Center/Frame"]
 layout_mode = 2
@@ -58,24 +55,21 @@ theme_override_constants/separation = 24
 layout_mode = 2
 text = "EXPEDITION'S END"
 horizontal_alignment = 1
-theme_override_fonts/font = ExtResource("display")
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.772549, 0.713725, 0.784314, 1)
+theme_type_variation = &"RowLabel"
 
 [node name="OutcomeLabel" type="Label" parent="Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
 horizontal_alignment = 1
-theme_override_fonts/font = ExtResource("display")
-theme_override_font_sizes/font_size = 40
+theme_type_variation = &"BannerLabel"
 
 [node name="Rule" type="TextureRect" parent="Scroll/Center/Frame/Box"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 14)
 texture = ExtResource("rule")
 expand_mode = 1
-stretch_mode = 0
+stretch_mode = 3
 mouse_filter = 2
 
 [node name="DetailLabel" type="Label" parent="Scroll/Center/Frame/Box"]
@@ -94,5 +88,3 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_type_variation = &"AccentButton"
 text = "Return to the outpost"
-theme_override_fonts/font = ExtResource("display")
-theme_override_font_sizes/font_size = 20

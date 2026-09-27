@@ -26,6 +26,8 @@ signal name_changed(seat: int, player_name: String)
 @onready var aspect_title: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/AspectTitle
 @onready var aspect_power: Label = $Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity/AspectPower
 @onready var lock_button: Button = $Row/Lock
+@onready var countdown_label: Label = $Row/DetailsRow/Countdown
+@onready var details_button: Button = $Row/DetailsRow/Details
 @onready var hint_label: Label = $Row/Hint
 @onready var deck_list: RunDeckList = $Row/Scroll/Content/Tabs/Details
 
@@ -38,6 +40,7 @@ var seat: int = 0
 var faces: CardFaceCache = null   # set by the screen before the first set_seat
 var deck: DeckList = null
 var locked: bool = false
+var online: bool = false
 var _aspect: int = 1              # the Aspect the portrait and the Aspect block show
 var _color: Color = ZenithTheme.MUTED
 var _tween: Tween = null
@@ -57,12 +60,12 @@ func _ready() -> void:
 	lock_button.pressed.connect(func() -> void: lock_toggled.emit(seat, not locked))
 	portrait_box.resized.connect(_layout_portrait)
 	portrait.gui_input.connect(_on_portrait_input)
-	$Row/Details.pressed.connect(func() -> void:
+	details_button.pressed.connect(func() -> void:
 		var tabs: TabContainer = $Row/Scroll/Content/Tabs
 		tabs.current_tab = 1 - tabs.current_tab
 	)
 	$Row/Scroll/Content/Tabs.tab_changed.connect(func(tab_index: int) -> void:
-		$Row/Details.text = "Back to duelist" if tab_index == 1 else "Details"
+		details_button.text = "Back to duelist" if tab_index == 1 else "Details"
 		$Row/Selection.visible = tab_index == 1
 		mastery_zoom.hide())
 
@@ -89,8 +92,8 @@ func show_deck(d: DeckList) -> void:
 	_show_mastery(d)
 	$Row/Selection.text = d.name if d != null else "No deck selected"
 	$Row/Scroll/Content/Tabs.current_tab = 0
-	$Row/Details.text = "Details"
-	$Row/Details.disabled = d == null
+	details_button.text = "Details"
+	details_button.disabled = d == null
 	var has: bool = d != null
 	portrait.visible = has
 	$Row/Scroll/Content/Tabs/Overview/Hero.visible = has
@@ -182,10 +185,28 @@ func _on_portrait_input(event: InputEvent) -> void:
 			show_aspect(aspects[(aspects.find(_aspect) + 1) % aspects.size()])
 
 
+## Online the button reads "Lock in". In a queue room the name field goes, since strangers see each
+## other by duelist name only, and the lock-in countdown shows left of Details.
+func set_online(on: bool, queue: bool) -> void:
+	online = on
+	name_edit.visible = not queue
+	countdown_label.visible = queue
+	set_locked(locked)
+
+
+## The lock-in countdown left of Details, in the warning style when `warn`.
+func set_countdown(text: String, warn: bool) -> void:
+	countdown_label.text = text
+	countdown_label.theme_type_variation = &"WarnLabel" if warn else &"BodyLabel"
+
+
 func set_locked(on: bool) -> void:
 	locked = on
 	stamp.visible = on
-	lock_button.text = "Change champion" if on else "Confirm champion"
+	if online:
+		lock_button.text = "Change deck" if on else "Lock in"
+	else:
+		lock_button.text = "Change champion" if on else "Confirm champion"
 	lock_button.theme_type_variation = &"Button" if on else &"AccentButton"
 	name_edit.editable = not on
 	if on:

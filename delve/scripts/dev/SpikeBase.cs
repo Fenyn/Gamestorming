@@ -85,6 +85,16 @@ public abstract partial class SpikeBase : Node
         return new Scope(() => ReactionEvents.OnDamageReactionCheck -= handler);
     }
 
+    /// <summary>With hdr_2d on, the viewport texture holds linear values. The root window's
+    /// UseHdr2D does not reflect the project setting, so read the setting.</summary>
+    protected Error SaveViewportCapture(string path)
+    {
+        using var image = GetViewport().GetTexture().GetImage();
+        if (GetViewport().UseHdr2D || ProjectSettings.GetSetting("rendering/viewport/hdr_2d").AsBool())
+            image.LinearToSrgb();
+        return image.SavePng(path);
+    }
+
     /// <summary>Print the counts + result banner and quit with the gating exit code.</summary>
     protected void FinishAndQuit(string tag)
     {

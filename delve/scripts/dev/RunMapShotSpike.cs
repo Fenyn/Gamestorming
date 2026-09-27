@@ -54,8 +54,6 @@ public partial class RunMapShotSpike : SpikeBase
         AddChild(layer);
         var panel = MapScene.Instantiate<RunMapPanel>();
         layer.AddChild(panel);
-        var sharedTheme = panel.Theme;
-        var sharedWard = sharedTheme.GetStylebox("fill", "MapWardBar");
 
         var party = Party.Build(
             PresetCharacters.PlayerId,
@@ -191,30 +189,14 @@ public partial class RunMapShotSpike : SpikeBase
             rest.Disabled && rest.TooltipText.Contains("ward is out")
             && costLabel.Text.Contains("ward is out"));
 
-        foreach (var def in CharacterCatalog.All)
-        {
-            var themedParty = Party.Build(def.Id, System.Array.Empty<string>(), new UnlockState(new[] { def.Id }), Party.DefaultLevel);
-            var themedRun = RunState.Start(BaseSeed, themedParty, cfg);
-            panel.Render(themedRun);
-            var accent = Delve.UI.UiColors.CharacterAccent(def.Id);
-            var wardFill = (StyleBoxFlat)status.GetNode<ProgressBar>("%WardBar").GetThemeStylebox("fill");
-            Check($"{def.Id} ward uses the party accent", wardFill.BgColor.IsEqualApprox(accent));
-            Check($"{def.Id} recovery inherits the map theme",
-                recoveryButton.GetThemeStylebox("normal") == panel.Theme.GetStylebox("normal", "MapRestButton"));
-            foreach (var (font, surface) in new[] {
-                ("font_color", "normal"), ("font_hover_color", "hover"),
-                ("font_pressed_color", "pressed"), ("font_disabled_color", "disabled") })
-                Check($"{def.Id} {surface} rest contrast >= 4.5:1",
-                    Contrast(rest.GetThemeColor(font), ButtonSurface(rest.GetThemeStylebox(surface))) >= 4.5);
-            var localTheme = panel.Theme;
-            panel.Render(themedRun);
-            Check($"{def.Id} redraw reuses its theme", panel.Theme == localTheme);
-            await Settle();
-            Capture($"run_map_{def.Id}.png");
-        }
-        Check("party changes leave the shared theme intact",
-            sharedTheme.GetStylebox("fill", "MapWardBar") == sharedWard
-            && sharedTheme != panel.Theme);
+        var wardFill = (StyleBoxFlat)status.GetNode<ProgressBar>("%WardBar").GetThemeStylebox("fill");
+        Check("map ward uses the ward token", wardFill.BgColor.IsEqualApprox(Delve.UI.UiColors.Ward));
+        Check("map carries no local theme", panel.Theme == null && status.Theme == null);
+        foreach (var (font, surface) in new[] {
+            ("font_color", "normal"), ("font_hover_color", "hover"),
+            ("font_pressed_color", "pressed"), ("font_disabled_color", "disabled") })
+            Check($"depleted {surface} rest contrast >= 4.5:1",
+                Contrast(rest.GetThemeColor(font), ButtonSurface(rest.GetThemeStylebox(surface))) >= 4.5);
 
         panel.Render(state);
         await Settle();

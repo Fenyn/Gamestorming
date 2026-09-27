@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using PF2e.Actions;
 using PF2e.Core;
 using PF2e.Data;
@@ -33,15 +34,29 @@ internal static class TargetPreviewFactory
         {
             var save = CombatPreviewCalculator.CalculateSavePreview(actor, target, spell);
             bool known = Known(target, SaveField(spell.Spell.SaveType));
-            return View(actor, target, spell.ActionName,
-                $"{Percent(save.TargetFailChance, known)} target fails · {Percent(save.TargetCritFailChance, known)} critical failure",
+            bool basic = spell.Spell.DefenseType == SpellDefenseType.BasicSave;
+            string fails = Percent(save.TargetFailChance, known);
+            string critFails = Percent(save.TargetCritFailChance, known);
+            var view = View(actor, target, spell.ActionName,
+                $"{fails} target fails · {critFails} critical failure",
                 $"{save.SaveName} {(known ? save.SaveBonus.ToString("+0;-0;0") : "?")} vs spell DC {save.SpellDC}"
                 + (string.IsNullOrEmpty(save.DamageFormula) ? "" : $" · {save.DamageFormula} damage")
-                + (spell.Spell.DefenseType == SpellDefenseType.BasicSave ? " · Basic save" : ""));
+                + (basic ? " · Basic save" : ""));
+            return view with
+            {
+                Figures = string.IsNullOrEmpty(save.DamageFormula)
+                    ? new FigureView[] { new("Fails", fails), new("Crit fail", critFails) }
+                    : new FigureView[] { new("Fails", fails), new("Crit fail", critFails), new("Damage", save.DamageFormula) },
+                Tags = basic ? new[] { $"{save.SaveName} DC {save.SpellDC}", "Basic save" } : new[] { $"{save.SaveName} DC {save.SpellDC}" },
+            };
         }
-        string effect = spell.Spell.IsHealing ? $"{variant?.GetEffectiveHealing(spell.Spell, spell.GetCastLevel(actor)) ?? spell.Spell.GetEffectiveHealing(spell.GetCastLevel(actor))} healing"
-            : spell.Spell.IsDamaging ? $"{spell.Spell.GetEffectiveDamage(spell.GetCastLevel(actor))} damage" : "Applies to a valid target";
-        return View(actor, target, spell.ActionName, "No roll required", effect);
+        bool healing = spell.Spell.IsHealing;
+        string amount = healing ? $"{variant?.GetEffectiveHealing(spell.Spell, spell.GetCastLevel(actor)) ?? spell.Spell.GetEffectiveHealing(spell.GetCastLevel(actor))}"
+            : spell.Spell.IsDamaging ? $"{spell.Spell.GetEffectiveDamage(spell.GetCastLevel(actor))}" : "";
+        string effect = healing ? $"{amount} healing" : amount.Length > 0 ? $"{amount} damage" : "Applies to a valid target";
+        var noRoll = View(actor, target, spell.ActionName, "No roll required", effect);
+        return amount.Length == 0 ? noRoll
+            : noRoll with { Figures = new[] { new FigureView(healing ? "Healing" : "Damage", amount) }, Tags = new[] { "No roll" } };
     }
 
     public static AttackPreviewView? Ability(ICharacter actor, ICharacter target, BaseAction action)
@@ -51,9 +66,16 @@ internal static class TargetPreviewFactory
             var check = CombatPreviewCalculator.CalculateSkillCheckPreview(actor, target, skill);
             if (check == null) return null;
             bool known = !skill.PreviewTargetSave.HasValue || Known(target, SaveField(skill.PreviewTargetSave.Value));
+            string success = Percent(check.SuccessChance, known);
+            string crit = Percent(check.CritSuccessChance, known);
+            string dc = known ? check.DC.ToString() : "?";
             return View(actor, target, action.ActionName,
-                $"{Percent(check.SuccessChance, known)} success · {Percent(check.CritSuccessChance, known)} critical success",
-                $"{check.SkillName} {check.TotalBonus:+0;-0;0} vs {check.DefenseLabel} DC {(known ? check.DC.ToString() : "?")}");
+                $"{success} success · {crit} critical success",
+                $"{check.SkillName} {check.TotalBonus:+0;-0;0} vs {check.DefenseLabel} DC {dc}") with
+            {
+                Figures = new FigureView[] { new("Success", success), new("Crit", crit) },
+                Tags = new[] { $"{check.SkillName} {check.TotalBonus:+0;-0;0}", $"{check.DefenseLabel} DC {dc}" },
+            };
         }
         // These actions begin with a weapon Strike. Label its forecast explicitly; subsequent
         // strikes, bonus damage and conditional riders are not folded into a made-up combined chance.
@@ -63,7 +85,8 @@ internal static class TargetPreviewFactory
             var attack = ActionBarStateBuilder.BuildPreview(CombatPreviewCalculator.CalculateAttackPreview(actor, target));
             return attack with { WeaponName = action.ActionName,
                 OutcomeText = $"{attack.HitChanceText} hit · {attack.CritChanceText} critical hit",
-                DetailText = $"Opening Strike · Attack {attack.TotalAttackBonus:+0;-0;0} vs AC {attack.TargetAcText} · {attack.DamageFormula} weapon damage" };
+                DetailText = $"Opening Strike · Attack {attack.TotalAttackBonus:+0;-0;0} vs AC {attack.TargetAcText} · {attack.DamageFormula} weapon damage",
+                Tags = new[] { "Opening Strike" }.Concat(attack.Tags).ToArray() };
         }
         return View(actor, target, action.ActionName, "Effect preview", action.Description ?? "");
     }

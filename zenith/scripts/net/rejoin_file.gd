@@ -4,8 +4,8 @@ extends RefCounted
 ## connection or a closed game can take it back: `user://online/rejoin.json`, written at the deal,
 ## renewed while the server's messages arrive, deleted at the result or a concession. Fields: `server` (the
 ## address the duel runs on), `code`, `seat`, `token` (the seat's rejoin secret), `names` and
-## `decks` (deck ids) per seat, `kind` (`DuelRoom.kind`, "code" when missing) and `expires` (Unix
-## seconds). `--dev-scratch=<dir>` moves it to
+## `decks` (deck ids) per seat, `kind` (`DuelRoom.kind`, "code" when missing), `ranked` (the seat
+## plays a ranked match, false when missing) and `expires` (Unix seconds). `--dev-scratch=<dir>` moves it to
 ## `<dir>/online/rejoin.json`, so two clients on one machine keep one each.
 
 const FILE: String = "user://online/rejoin.json"
@@ -73,7 +73,14 @@ static func read() -> Dictionary:
 		return {}
 	return {"server": server, "code": code, "seat": int(seat), "token": token,
 		"names": [str(names[0]), str(names[1])], "decks": [str(decks[0]), str(decks[1])],
-		"kind": "queue" if str(d.get("kind", "")) == "queue" else "code", "expires": int(expires)}
+		"kind": "queue" if str(d.get("kind", "")) == "queue" else "code", "ranked": ranked(d),
+		"expires": int(expires)}
+
+
+## Whether the seat `ticket` names plays a ranked match; false for a file written before the flag.
+static func ranked(ticket: Dictionary) -> bool:
+	var flag: Variant = ticket.get("ranked", false)
+	return flag is bool and bool(flag)
 
 
 static func live(ticket: Dictionary, now_unix: int) -> bool:

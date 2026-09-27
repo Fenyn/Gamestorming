@@ -1688,6 +1688,12 @@ func _prompt_attacker_control(p: PlayerState) -> bool:
 	return true
 
 func _prompt_attack_action(p: PlayerState) -> void:
+	_set_prompt(p.index, &"attack_action", attack_phase_options(p), {"fight_back": p.index != state.active})
+
+
+## What `p` may do in an attack phase as the table stands, always ending in a pass. Public so the AI
+## can ask, before declaring Combat, whether a Combat would give it anything to do.
+func attack_phase_options(p: PlayerState) -> Array[Command]:
 	var opts: Array[Command] = []
 	var ic: CardInstance = p.in_control()
 	for c in p.hand:
@@ -1759,7 +1765,7 @@ func _prompt_attack_action(p: PlayerState) -> void:
 	if not _ransom_options(p).is_empty():
 		opts.append(Command.new(p.index, &"ransom"))
 	opts.append(Command.new(p.index, &"pass"))
-	_set_prompt(p.index, &"attack_action", opts, {"fight_back": p.index != state.active})
+	return opts
 
 
 func _perform_card_attack(c: CardInstance, empowered: bool) -> void:
@@ -2123,8 +2129,6 @@ func attack_forecasts(seat: int) -> Dictionary:
 				effects.assign(pw.get("effects", []))
 				a = _build_attack(seat, c, pw["attack"], effects, true, false, false, c, first)
 			&"final_strike":
-				if out.has(o.card):
-					continue   # the card's own attack is the number that matters
 				a = _build_attack(seat, null, {"kind": "strike"}, [], false, true, false, null, first)
 			_:
 				continue
@@ -2138,16 +2142,26 @@ func attack_forecasts(seat: int) -> Dictionary:
 		var b: Dictionary = _damage_calc(a)
 		performer.energy = energy_before
 		b.erase("spent")
+		# Energy past what the defender in control stands on becomes wounds, as `damage_breakdown` says.
+		var absorbs: int = state.players[1 - seat].in_control().energy
+		b["overflow"] = maxi(0, int(b["stages"]) - absorbs)
+		b["wounds"] = int(b["life"]) + int(b["overflow"])
 		b["is_final"] = bool(a["is_final"])
 		b["cost_stages"] = cost
 		b["energy_left"] = maxi(0, energy_before - cost)
+		var part: Dictionary = {"stages": int(b["stages"]), "life": int(b["life"]), "wounds": int(b["wounds"]), "overflow": int(b["overflow"]), "cost_stages": cost}
 		if o.type == &"attack" and str(o.value) == "empower" and out.has(o.card):
-			(out[o.card] as Dictionary)["empowered"] = {"stages": int(b["stages"]), "life": int(b["life"])}
+			(out[o.card] as Dictionary)["empowered"] = part
 			continue
 		# The second Power of an Aspect that prints two, forecast beside the first rather than
 		# over the top of it.
 		if o.type == &"power" and o.value != null and str(o.value) == "alt" and out.has(o.card):
-			(out[o.card] as Dictionary)["alt"] = {"stages": int(b["stages"]), "life": int(b["life"])}
+			(out[o.card] as Dictionary)["alt"] = part
+			continue
+		# A card that is itself an attack keeps its own forecast; the bare Strike its Final Strike
+		# would make rides beside it.
+		if o.type == &"final_strike" and out.has(o.card):
+			(out[o.card] as Dictionary)["final"] = part
 			continue
 		out[o.card] = b
 	return out
@@ -3198,6 +3212,25 @@ func _modify_damage(attacker: PlayerState, defender: PlayerState, a: Dictionary)
 ## Table lookup (or the Art base, or printed numbers), then each addition and subtraction with
 ## the card it comes from. Views show it before the defense so the defender knows what is
 ## coming; the battle sequence applies the same numbers at steps 9 and 10. No side effects.
+## An effect's `amount` as it would resolve now: a number, or a count read off the table ("X = 5
+## minus his Fervor", "equal to your duelist's Surge", "2 for each Fervor he is at", "1 for each of
+## his Allies"). `who` is the player the line acts on, `owner` the one who played it.
+func effect_amount(e: Dictionary, who: PlayerState, owner: PlayerState) -> int:
+	var amount: Variant = e.get("amount", e.get("n", 0))
+	if amount is int or amount is float:
+		return int(amount)
+	match str(amount):
+		"five_minus_fervor":
+			return maxi(0, 5 - who.fervor)
+		"owner_surge":
+			return surge_of(owner)
+		"twice_fervor":
+			return 2 * who.fervor
+		"per_ally":
+			return who.allies().size()
+	return 0
+
+
 ## The part of an attack's base damage the card fixes on its own, as {stages, life}: its printed
 ## numbers, or an Art's base wounds. A plain Strike's base comes from the Strike Table and reads 0.
 static func printed_base(spec: Dictionary, kind: String) -> Dictionary:
@@ -4322,16 +4355,7 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		"discard_life":
 			# A card effect taking cards off the top of a Life Deck, not damage. A card in the
 			# loser's hand may answer it, so they get the offer before any card is turned over.
-			# "X = 5 minus his Fervor", read as the line resolves, never below 0.
-			if amount is String and str(amount) == "five_minus_fervor":
-				amount = maxi(0, 5 - who.fervor)
-			# "Equal to your duelist's Surge" and "2 cards for each Fervor he is at".
-			elif amount is String and str(amount) == "owner_surge":
-				amount = surge_of(me)
-			elif amount is String and str(amount) == "twice_fervor":
-				amount = 2 * who.fervor
-			elif amount is String and str(amount) == "per_ally":
-				amount = who.allies().size()
+			amount = effect_amount(e, who, me)
 			if int(amount) <= 0:
 				return
 			if _offer_deck_loss_guard(who, int(amount), owner):

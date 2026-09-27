@@ -99,12 +99,12 @@ static func held_energy(engine: DuelEngine, p: PlayerState) -> float:
 	return float(energy) - 0.5 * float(mini(refilled, energy))
 
 
-## The hand as it will stand once it matters. On its own turn a player keeps only a few cards
-## through the discard step, so the cards past that limit count half: they can still be played
-## this turn, but whatever is left of them goes to the discard pile.
+## The hand as it will stand once it matters. Both players keep only a few cards through this
+## turn's discard step, so until it has passed the cards past that limit count half: they can still
+## be played, but whatever is left of them goes to the discard pile.
 static func kept_hand(engine: DuelEngine, p: PlayerState) -> float:
 	var held: int = p.hand.size()
-	if engine.state.active != p.index or engine.state.step >= GameState.Step.DISCARD:
+	if engine.state.step >= GameState.Step.DISCARD:
 		return float(held)
 	var keep: int = engine._hand_keep(p)
 	return float(mini(held, keep)) + 0.5 * float(maxi(0, held - keep))
@@ -170,7 +170,8 @@ static func _available_effect_value(engine: DuelEngine, p: PlayerState, source: 
 		var current: Dictionary = effect.duplicate()
 		for key in ["then", "effects", "else_effects", "when"]:
 			current.erase(key)
-		value = AiScorer.effects_value([current], profile, [], AiEvaluator.handover_progress(engine, p))
+		# Priced against the table only for our own side: a board-aware search reads the deck it fetches from.
+		value = AiScorer.effects_value([current], profile, [], AiEvaluator.handover_progress(engine, p), null if public_only else engine, p.index)
 	for branch in AiScorer.branches(effect, profile):
 		value += float(branch["share"]) * _available_effect_value(engine, p, source, branch["effect"], profile, depth - 1, public_only)
 	return value

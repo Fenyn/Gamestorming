@@ -17,8 +17,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_vertical = 0
-theme_type_variation = &"CombatLogToggle"
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"LogDisclosure"
 text = "+"
 toggle_mode = true
 

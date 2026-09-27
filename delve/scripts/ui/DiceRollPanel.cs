@@ -27,7 +27,7 @@ public partial class DiceRollPanel : PanelContainer
     [Export] public float SumDelaySeconds { get; set; } = 0.15f;
     [Export] public float SumFadeSeconds { get; set; } = 0.15f;
     /// <summary>Font size of the two numbers that decide the roll: the total and the target it meets.</summary>
-    [Export] public int SumFontSize { get; set; } = 48;
+    [Export] public int SumFontSize { get; set; } = 36;
     /// <summary>Font size of the arithmetic around them ("19+10 =", "vs AC").</summary>
     [Export] public int SumDetailFontSize { get; set; } = 18;
     /// <summary>Pause after the sum before the outcome word pops in.</summary>

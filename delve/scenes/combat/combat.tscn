@@ -20,9 +20,7 @@
 [ext_resource type="PackedScene" path="res://scenes/props/tree_bush.tscn" id="17_tree_bush"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_dead.tscn" id="18_tree_dead"]
 [ext_resource type="PackedScene" path="res://scenes/props/tree_giant.tscn" id="19_tree_giant"]
-[ext_resource type="Theme" uid="uid://c1eifvbfehkmj" path="res://assets/ui/combat_theme.tres" id="combat_theme"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dice_roll_panel.tscn" id="dice_roll"]
-[ext_resource type="PackedScene" path="res://scenes/ui/active_character_panel.tscn" id="active_character"]
 [ext_resource type="Shader" uid="uid://brto6821irko8" path="res://assets/shaders/combat_outskirts_mist.gdshader" id="outskirts_mist"]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/squad_panel.tscn" id="squad"]
@@ -87,7 +85,8 @@ surface_material_override/0 = SubResource("ShaderMaterial_floor")
 [node name="MoveBands" type="Node3D" parent="." unique_id=406402735]
 unique_name_in_owner = true
 script = ExtResource("2_bands")
-BandEdgeAlpha = 0.42
+BandEdgeWidth = 0.08
+BandEdgeAlpha = 0.8
 
 [node name="GridOverlay" type="Node3D" parent="." unique_id=1537565848]
 unique_name_in_owner = true
@@ -135,7 +134,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme = ExtResource("combat_theme")
 script = ExtResource("13_hudroot")
 
 [node name="SquadPanel" parent="HUD/HudRoot" instance=ExtResource("squad")]
@@ -151,46 +149,36 @@ offset_top = 0.0
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 11
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
+offset_left = -416.0
+offset_top = 80.0
+offset_right = -16.0
+offset_bottom = -180.0
 grow_vertical = 2
 
 [node name="DiceRoll" parent="HUD/HudRoot" unique_id=2036442695 instance=ExtResource("dice_roll")]
 unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
+anchors_preset = 2
 anchor_top = 1.0
-anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -190.0
-offset_top = -422.0
-offset_right = 190.0
-offset_bottom = -210.0
-grow_horizontal = 2
+offset_left = 200.0
+offset_top = -276.0
+offset_right = 640.0
+offset_bottom = -116.0
 grow_vertical = 0
 
 [node name="UnitInspect" parent="HUD/HudRoot" unique_id=1867311933 instance=ExtResource("11_inspect")]
 unique_name_in_owner = true
 layout_mode = 1
-anchor_top = 0.0
-anchor_bottom = 0.0
-offset_left = 12.0
-offset_top = 196.0
-offset_right = 342.0
-offset_bottom = 196.0
-grow_vertical = 1
+offset_left = 16.0
+offset_top = 408.0
+offset_right = 304.0
+offset_bottom = 408.0
 
 [node name="ActionBar" parent="HUD/HudRoot" unique_id=1546362475 instance=ExtResource("7_ab")]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 7
-
-[node name="ActiveCharacter" parent="HUD/HudRoot" instance=ExtResource("active_character")]
-unique_name_in_owner = true
-layout_mode = 1
 
 [node name="HelpOverlay" parent="HUD/HudRoot" unique_id=1754253256 instance=ExtResource("10_help")]
 unique_name_in_owner = true
@@ -239,10 +227,7 @@ offset_top = 78.0
 offset_right = 320.0
 offset_bottom = 134.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.94, 0.82, 0.57, 1)
-theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.04, 1)
-theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 42
+theme_type_variation = &"IntroTitle"
 text = "ENCOUNTER"
 horizontal_alignment = 1
 
@@ -256,9 +241,7 @@ offset_top = 136.0
 offset_right = 320.0
 offset_bottom = 170.0
 mouse_filter = 2
-theme_override_colors/font_outline_color = Color(0.04, 0.025, 0.04, 1)
-theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"IntroSubtitle"
 horizontal_alignment = 1
 
 [node name="DestinationPreview" parent="." instance=ExtResource("destination")]

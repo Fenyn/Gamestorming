@@ -2,9 +2,6 @@
 
 [ext_resource type="Script" uid="uid://brgtk8iga0hea" path="res://scripts/flow/RunMapPanel.cs" id="1_map"]
 [ext_resource type="PackedScene" uid="uid://rn7d5nbf5a40" path="res://scenes/run/run_map_status.tscn" id="3_status"]
-[ext_resource type="Theme" uid="uid://clsn1ia4xf7iu" path="res://assets/ui/ui_theme.tres" id="map_theme"]
-
-[ext_resource type="Resource" path="res://assets/ui/run_map_accent.tres" id="5_accent"]
 [ext_resource type="PackedScene" path="res://scenes/run/map_scenery.tscn" id="scenery"]
 [ext_resource type="Script" path="res://scripts/flow/MapTravelLight.cs" id="travel"]
 [ext_resource type="PackedScene" path="res://scenes/run/character_details_overlay.tscn" id="details"]
@@ -16,9 +13,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("map_theme")
 script = ExtResource("1_map")
-AccentTheme = ExtResource("5_accent")
 LaneSpacing = 168.0
 FloorSpacing = 106.0
 

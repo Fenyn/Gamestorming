@@ -1,42 +1,5 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=2 format=3]
 [ext_resource type="Script" path="res://scripts/dungeon/DungeonHud.cs" id="1"]
-[ext_resource type="FontFile" path="res://assets/fonts/pixeloid/PixeloidSans.ttf" id="ward_font"]
-[sub_resource type="Theme" id="ward_theme"]
-default_font = ExtResource("ward_font")
-default_font_size = 16
-[sub_resource type="StyleBoxFlat" id="ward_panel"]
-content_margin_left = 16.0
-content_margin_top = 12.0
-content_margin_right = 16.0
-content_margin_bottom = 12.0
-bg_color = Color(0.10, 0.12, 0.15, 0.96)
-border_width_left = 3
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.50, 0.75, 0.68, 0.8)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_left = 6
-corner_radius_bottom_right = 6
-[sub_resource type="StyleBoxFlat" id="ward_track"]
-bg_color = Color(0.04, 0.06, 0.08, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_left = 4
-corner_radius_bottom_right = 4
-[sub_resource type="StyleBoxFlat" id="ward_fill"]
-bg_color = Color(0.5, 0.85, 0.78, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_left = 4
-corner_radius_bottom_right = 4
-[sub_resource type="StyleBoxFlat" id="rooms_fill"]
-bg_color = Color(0.90, 0.78, 0.51, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_left = 3
-corner_radius_bottom_right = 3
 [node name="DungeonHud" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -53,38 +16,36 @@ theme_override_constants/separation = 8
 [node name="Expedition" type="PanelContainer" parent="Top"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(400, 0)
+custom_minimum_size = Vector2(460, 0)
 size_flags_horizontal = 0
-theme = SubResource("ward_theme")
-theme_override_styles/panel = SubResource("ward_panel")
+theme_type_variation = &"WardPanel"
 [node name="Content" type="VBoxContainer" parent="Top/Expedition"]
 layout_mode = 2
 theme_override_constants/separation = 10
 [node name="Heading" type="HBoxContainer" parent="Top/Expedition/Content"]
 layout_mode = 2
+theme_override_constants/separation = 16
 [node name="Title" type="Label" parent="Top/Expedition/Content/Heading"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"HeadingLabel"
 text = "Wardstone"
 [node name="WardValue" type="Label" parent="Top/Expedition/Content/Heading"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_type_variation = &"WardValue"
 text = "100 / 100"
 [node name="WardBar" type="ProgressBar" parent="Top/Expedition/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 18)
 mouse_filter = 2
-theme_override_styles/background = SubResource("ward_track")
-theme_override_styles/fill = SubResource("ward_fill")
+theme_type_variation = &"WardBar"
 value = 100.0
 show_percentage = false
 [node name="WardDanger" type="Label" parent="Top/Expedition/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
 [node name="Progress" type="HBoxContainer" parent="Top/Expedition/Content"]
 layout_mode = 2
 theme_override_constants/separation = 16
@@ -92,16 +53,14 @@ theme_override_constants/separation = 16
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.90, 0.78, 0.51, 1)
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"RoomsLabel"
 [node name="RoomsBar" type="ProgressBar" parent="Top/Expedition/Content/Progress"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(100, 8)
 size_flags_vertical = 4
 mouse_filter = 2
-theme_override_styles/background = SubResource("ward_track")
-theme_override_styles/fill = SubResource("rooms_fill")
+theme_type_variation = &"RoomsBar"
 show_percentage = false
 [node name="Status" type="Label" parent="Top"]
 unique_name_in_owner = true

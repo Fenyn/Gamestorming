@@ -165,7 +165,7 @@ public partial class HeroSelectPanel : Control
             else if (GetNode<Button>("%DetailsButton").HasFocus()) OpenDetails();
             else if (_hovered != null) Pick(_hovered);
         }
-        else if (@event.IsActionPressed(InputNames.Decline) && _selected.Count > 0) Unpick();
+        else if (@event.IsActionPressed(InputNames.Decline) && _selected.Count > 0) Pick(_selected[^1]);
         else return;
 
         GetViewport().SetInputAsHandled();

@@ -1,14 +1,14 @@
 extends Control
 ## The matchup after both seats lock in: the two decks side by side, seed and AI level, and
 ## Start. Hotseat and vs AI start from here. Online, both clients arrive when both are locked. In
-## a server room there is no Back, and the server deals once both clients have shown the matchup
-## for `MATCHUP_SECONDS`; a queue room shows only the decks and "Duel starts in 5", and the server
-## deals on its own clock. A ranked room also names the game of the match. On the LAN dev path
-## either side's Back sends both back to the select screen and the host presses Start.
+## a server room there is no Back, Start, Advanced or seed, and the server deals once both clients
+## have shown the matchup for `MATCHUP_SECONDS`; a queue room shows only the decks and one line,
+## "Starting in 5 seconds." ("Game 1 starts in 5 seconds." in a ranked match), and the server deals
+## on its own clock. On the LAN dev path either side's Back sends both back to the select screen
+## and the host presses Start.
 
 @onready var sheets: Array[DeckSheet] = [$Margin/Column/Sides/S0, $Margin/Column/Sides/S1]
 @onready var faces: CardFaceCache = $CardFaceCache
-@onready var status_label: Label = $Margin/Column/TitleRow/Status
 @onready var seed_label: Label = $Margin/Column/Footer/SeedLabel
 @onready var seed_edit: LineEdit = $Margin/Column/Footer/Seed
 @onready var advanced: CheckButton = $Margin/Column/Footer/Advanced
@@ -50,6 +50,8 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back)
 	for i in range(2):
 		sheets[i].setup(i, faces)
+		# Nothing on a server room's matchup waits for a click, so the cards do not invite one.
+		sheets[i].aspect_hint = not (_online and Net.server_room())
 		sheets[i].show_deck(Session.chosen[i], _tag(i))
 	if _online:
 		advanced.visible = Net.is_host()
@@ -57,16 +59,20 @@ func _ready() -> void:
 		Net.lobby_changed.connect(_on_lobby_changed)
 		Net.peer_left.connect(_on_peer_left)
 		Net.connection_failed.connect(_on_connection_failed)
-		if Net.queue_room():
-			back_button.visible = false
-			countdown_label.visible = true
-			if Net.ranked_room():
-				var me: int = Net.local_player
-				status_label.text = DuelHud.series_text(maxi(1, Net.series_game), Net.RANKED_BEST_OF,
-					Net.series_wins[me], Net.series_wins[1 - me])
-		elif Net.server_room():
+		if Net.server_room():
 			# Both decks are on show now, and the server refuses any pick change from here on.
 			back_button.visible = false
+			start_button.visible = false
+			advanced.visible = false
+			seed_label.visible = false
+			seed_edit.visible = false
+		if Net.queue_room():
+			countdown_label.visible = true
+			problems_label.visible = false
+			$Tick.timeout.connect(_show_countdown)
+			$Tick.start()
+			_show_countdown()
+		elif Net.server_room():
 			get_tree().create_timer(MATCHUP_SECONDS).timeout.connect(_on_matchup_shown)
 	elif Session.ai_seat >= 0:
 		ai_label.visible = true
@@ -79,12 +85,22 @@ func _ready() -> void:
 	SanctumUI.wire_buttons(self)
 
 
-## Queue room: the seconds to the server's deal, counted from when this client saw both picks.
-func _process(_delta: float) -> void:
-	if not countdown_label.visible:
+## Queue room: the seconds to the server's deal, counted from when this client saw both picks. The
+## Tick timer calls it four times a second.
+func _show_countdown() -> void:
+	if not is_inside_tree():
 		return
-	var seconds: int = ceili(maxi(0, Net.deal_at - Time.get_ticks_msec()) / 1000.0)
-	countdown_label.text = "Duel starts in %d" % seconds if seconds > 0 else "Dealing…"
+	countdown_label.text = matchup_text(Net.ranked_room(), Net.series_game, Net.deal_at - Time.get_ticks_msec())
+
+
+## "Game 1 starts in 5 seconds." in a ranked match, "Starting in 5 seconds." otherwise, for `left_ms`
+## to the deal. The count stops at one second, so nothing new shows while the deal is on its way.
+static func matchup_text(ranked: bool, game: int, left_ms: int) -> String:
+	var seconds: int = maxi(1, ceili(left_ms / 1000.0))
+	var when: String = "%d second%s" % [seconds, "" if seconds == 1 else "s"]
+	if ranked:
+		return "Game %d starts in %s." % [maxi(1, game), when]
+	return "Starting in %s." % when
 
 
 func _tag(seat: int) -> String:

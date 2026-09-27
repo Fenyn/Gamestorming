@@ -101,8 +101,9 @@ static func portrait_texture(character: String, library: CardLibrary) -> Texture
 	return out
 
 
-## A framed square portrait. `locked` greys it for a character the player cannot start yet.
-static func portrait(character: String, library: CardLibrary, size: float, locked: bool = false) -> Control:
+## A framed square portrait. `locked` greys it for a character the player cannot start yet;
+## `mirrored` flips it to face left.
+static func portrait(character: String, library: CardLibrary, size: float, locked: bool = false, mirrored: bool = false) -> Control:
 	var frame: PanelContainer = PanelContainer.new()
 	frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, 1, 1))
 	frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -112,6 +113,7 @@ static func portrait(character: String, library: CardLibrary, size: float, locke
 	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	rect.clip_contents = true
 	rect.texture = portrait_texture(character, library)
+	rect.flip_h = mirrored
 	if locked:
 		rect.modulate = ZenithTheme.TEXT_DISABLED
 	frame.add_child(rect)

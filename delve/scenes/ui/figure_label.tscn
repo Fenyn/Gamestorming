@@ -1,0 +1,40 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/FigureLabel.cs" id="1_fig"]
+
+[node name="FigureLabel" type="HBoxContainer"]
+mouse_filter = 2
+theme_override_constants/separation = 8
+script = ExtResource("1_fig")
+
+[node name="Caption" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 8
+mouse_filter = 2
+theme_type_variation = &"HintLabel"
+text = "Hit"
+
+[node name="Before" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 8
+mouse_filter = 2
+theme_type_variation = &"FigureBefore"
+
+[node name="Arrow" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 8
+mouse_filter = 2
+theme_type_variation = &"FigureBefore"
+text = "→"
+
+[node name="Value" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 8
+mouse_filter = 2
+theme_type_variation = &"SheetKeyValue"

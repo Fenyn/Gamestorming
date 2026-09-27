@@ -56,7 +56,7 @@ func _init() -> void:
 
 ## Everything that shapes the schedule has to match, or the shards are not one run. Which slice a
 ## shard played and where it wrote its own files are the only differences allowed.
-const PER_SHARD: Array[String] = ["shard", "json", "tsv", "progress", "verbose"]
+const PER_SHARD: Array[String] = ["shard", "json", "tsv", "records", "decisions", "progress", "verbose"]
 
 
 func _same_run(a: Dictionary, b: Dictionary) -> bool:

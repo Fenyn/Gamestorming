@@ -12,10 +12,8 @@ Imported from `F:/UnityNVME/Art/Fonts`. Each face uses its TrueType version; dup
 
 ## Theme selection
 
-Open `res://assets/ui/ui_theme.tres` in the Inspector and assign **Default Font**. Drag a `.ttf` from this folder into that field. **Default Font Size** controls the fallback size. The theme is already assigned under Project Settings > GUI > Theme > Custom and directly on the run-map scenes.
+`res://assets/ui/ui_theme.tres` is the project theme (Project Settings > GUI > Theme > Custom) and the only theme. Its default font is Pixeloid Sans at 18 px. Bold variations use Pixeloid Sans Bold; `TitleLabel`, `CampTitle` and `BannerLabel` use Alagard. The size ladder is in `design/ui_guidelines.md` §4.2.
 
-A control inherits the default unless its theme type or local overrides specify another font. All four run-map sidebar headings use **MapHeading**. Its **Fonts > Font** resource is named **Map sidebar headings**; change its **Base Font** to update Wardstone, Your party, Recovery, and the destination title together. This resource is separate from buttons, the ward value, and screen titles. Assigning a font directly to MapHeading's font slot also updates all four headings.
+Pixeloid and Alagard import with antialiasing, hinting and subpixel positioning off, so they render as crisp pixels at whole-multiple sizes. Scenes carry no font or font-size overrides; change a font on its theme variation.
 
-Other display text still uses the shared `fv_display` FontVariation. Changing that resource affects its consumers, but does not change the four sidebar headings. Font-size overrides remain independent.
-
-Importing fonts does not select a replacement. The existing UI font choices are unchanged.
+Knightwood, Compass 9 and Pixel Bastarda are on disk but unused. Credits are in `CREDITS.md`.

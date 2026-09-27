@@ -12,6 +12,8 @@ grow_horizontal = 2
 mouse_filter = 2
 script = ExtResource("1_turn")
 ChipScene = ExtResource("2_chip")
+MaxWidth = 1200.0
+ActiveChipHeight = 56.0
 
 [node name="Row" type="HBoxContainer" parent="."]
 unique_name_in_owner = true

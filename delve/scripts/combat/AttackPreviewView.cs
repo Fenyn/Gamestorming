@@ -1,13 +1,15 @@
+using System.Collections.Generic;
+
 namespace Delve.Combat;
 
 /// <summary>
-/// UI-facing snapshot of an attack preview. Pure Delve data — deliberately carries no PF2e
-/// engine types so it can be consumed by passive Control scripts.
+/// UI-facing snapshot of an attack, spell or skill forecast. Pure Delve data.
 ///
-/// The three <c>*Text</c> lines are BESTIARY-MASKED by <c>PlayerTurnController.BuildPreview</c>:
-/// until Recall Knowledge reveals the target species' AC, the defender-derived numbers (target AC,
-/// hit chance, crit chance) read "?" while everything the attacker owns — weapon, attack bonus,
-/// damage formula, the off-guard tag — stays visible.
+/// The <c>*Text</c> fields and <see cref="Figures"/> are BESTIARY-MASKED by their builders: until
+/// Recall Knowledge reveals the target's defence, defender-derived numbers read "?" while
+/// everything the attacker owns stays visible. The decision slot draws <see cref="Figures"/> and
+/// <see cref="Tags"/>; the sentences in <see cref="OutcomeText"/> and <see cref="DetailText"/>
+/// are the hover.
 /// </summary>
 public sealed record AttackPreviewView
 {
@@ -29,4 +31,10 @@ public sealed record AttackPreviewView
 
     /// <summary>Crit chance as drawn: "5%", or "?%" when the target's AC is unknown.</summary>
     public string CritChanceText { get; init; } = "";
+
+    /// <summary>Labelled numbers: "Hit 65%", "Crit 10%", "Damage 1d8+4".</summary>
+    public IReadOnlyList<FigureView> Figures { get; init; } = System.Array.Empty<FigureView>();
+
+    /// <summary>Short modifiers drawn as tags: "MAP -5", "Off-guard", "Reflex DC 20".</summary>
+    public IReadOnlyList<string> Tags { get; init; } = System.Array.Empty<string>();
 }

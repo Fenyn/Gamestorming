@@ -1,9 +1,19 @@
 # Font credits & licensing
 
-## Cinzel (display face)
-- Source: Google Fonts, https://fonts.google.com/specimen/Cinzel (variable `Cinzel[wght].ttf`,
-  vendored as `Cinzel-SemiBold.ttf`; the theme instantiates it at weight 600).
-- Designer: Natanael Gama. License: SIL Open Font License 1.1 — free for commercial use,
-  redistribution allowed with the license notice; do not sell the font by itself.
-- Used for display text only (names, titles, headings, tags, sheet captions); body text stays on
-  Godot's default font for readability.
+Fonts the UI theme (`assets/ui/ui_theme.tres`) uses.
+
+## Pixeloid Sans, Pixeloid Sans Bold (body, values, headings)
+- Folder: `pixeloid/`. Designer: GGBotNet, https://ggbot.net/fonts/.
+- License: SIL Open Font License 1.1, copy in `pixeloid/License.txt`. Reserved Font Name "Pixeloid".
+- Free for commercial use and redistribution with the licence; do not sell the font by itself.
+
+## Alagard (screen titles, victory/defeat banner)
+- Folder: `alagard/`. Font name table: "Pix3M", "Alagard", version 001.000 (Hewett Tsoi).
+- No licence file shipped with the font (`F:/UnityNVME/Art/Fonts/alagard.zip` holds only the .ttf).
+  Confirm the terms at the author's download page before release.
+
+## On disk, not used by the UI
+- Knightwood (`knightwood/`): TJ Trewin, full commercial licence, no redistribution of the files.
+  See `knightwood/Knightwood-16-pixel-font__tjtrewin-itch-io__license.txt`.
+- Compass 9 (`compass_9/`), Pixel Bastarda (`pixel_bastarda/`), Cinzel (`Cinzel-SemiBold.ttf`, OFL 1.1,
+  Natanael Gama). Check each folder's readme before using one.

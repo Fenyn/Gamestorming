@@ -16,7 +16,7 @@ public static class CampaignSummary
             {
                 int old = before.Recruitment.GetValueOrDefault($"{arc.CharacterId}/{step.Id}");
                 int now = campaign.RecruitmentCount(arc.CharacterId, step.Id);
-                if (now > old) lines.Add($"{name}: {step.Description} {now}/{step.Required}");
+                if (now > old) lines.Add(step.Required > 1 ? $"{step.Description} ({now} of {step.Required})" : $"{step.Description} Done.");
             }
             if (campaign.CanBindAtOutpost(arc.CharacterId))
                 lines.Add($"{name} is ready to join. Invite them to stay through the outpost's unlock journal.");

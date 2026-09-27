@@ -97,7 +97,6 @@ public partial class RunPresentationSpike : SpikeBase
         if (DisplayServer.GetName() == "headless") return;
         await ToSignal(GetTree().CreateTimer(0.4), SceneTreeTimer.SignalName.Timeout);
         await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
-        using var image = GetViewport().GetTexture().GetImage();
-        Check($"{name} captured", image.SavePng($"res://.godot/{name}.png") == Error.Ok);
+        Check($"{name} captured", SaveViewportCapture($"res://.godot/{name}.png") == Error.Ok);
     }
 }

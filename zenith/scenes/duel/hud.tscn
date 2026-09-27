@@ -151,25 +151,46 @@ grow_vertical = 0
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Clock" type="Label" parent="Root/PromptPanel/Column"]
-visible = false
+[node name="Head" type="VBoxContainer" parent="Root/PromptPanel/Column"]
 layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-theme_override_colors/font_color = Color(0.93, 0.91, 0.87, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_constants/separation = 6
+
+[node name="Row" type="HBoxContainer" parent="Root/PromptPanel/Column/Head"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Who" type="Label" parent="Root/PromptPanel/Column/Head/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+text = "YOUR MOVE"
+clip_text = true
+text_overrun_behavior = 3
+
+[node name="Clock" type="Label" parent="Root/PromptPanel/Column/Head/Row"]
+visible = false
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"ClockLabel"
 text = "0:30"
 horizontal_alignment = 2
 
-[node name="Who" type="Label" parent="Root/PromptPanel/Column"]
+[node name="Fuse" type="ProgressBar" parent="Root/PromptPanel/Column/Head"]
+visible = false
+custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = "YOUR MOVE"
-autowrap_mode = 3
+mouse_filter = 2
+theme_type_variation = &"FuseBar"
+max_value = 1.0
+step = 0.0
+value = 1.0
+show_percentage = false
 
 [node name="Title" type="Label" parent="Root/PromptPanel/Column"]
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "Waiting"
 autowrap_mode = 3
 
@@ -340,8 +361,7 @@ offset_top = 180.0
 offset_right = 350.0
 offset_bottom = 240.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.93, 0.55, 0.3, 1)
-theme_override_font_sizes/font_size = 24
+theme_type_variation = &"WarnLabel"
 autowrap_mode = 3
 
 [node name="PresenceLine" type="Label" parent="Root"]
@@ -366,8 +386,7 @@ offset_top = -370.0
 offset_right = 350.0
 offset_bottom = -230.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.93, 0.55, 0.3, 1)
-theme_override_font_sizes/font_size = 24
+theme_type_variation = &"WarnLabel"
 autowrap_mode = 3
 
 [node name="Options" type="Button" parent="Root"]
@@ -391,13 +410,13 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -178.0
-offset_top = 27.0
+offset_left = -78.0
+offset_top = 24.0
 offset_right = -78.0
-offset_bottom = 57.0
+offset_bottom = 60.0
 grow_horizontal = 0
 mouse_filter = 2
-theme_type_variation = &"CompactButton"
+theme_type_variation = &"ChipLabel"
 text = "Game 1 of 3"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -410,7 +429,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.03, 0.025, 0.03, 0.7)
 
 [node name="Center" type="CenterContainer" parent="Root/Tray"]
 layout_mode = 1
@@ -427,20 +445,46 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Who" type="Label" parent="Root/Tray/Center/Panel/Column"]
+[node name="Head" type="VBoxContainer" parent="Root/Tray/Center/Panel/Column"]
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Row" type="HBoxContainer" parent="Root/Tray/Center/Panel/Column/Head"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Balance" type="Control" parent="Root/Tray/Center/Panel/Column/Head/Row"]
+visible = false
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Who" type="Label" parent="Root/Tray/Center/Panel/Column/Head/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
 text = "YOUR DECISION"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Clock" type="Label" parent="Root/Tray/Center/Panel/Column"]
+[node name="Clock" type="Label" parent="Root/Tray/Center/Panel/Column/Head/Row"]
 visible = false
+custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-theme_override_colors/font_color = Color(0.93, 0.91, 0.87, 1)
-theme_override_font_sizes/font_size = 26
+theme_type_variation = &"ClockLabel"
 text = "0:30"
-horizontal_alignment = 1
+horizontal_alignment = 2
+
+[node name="Fuse" type="ProgressBar" parent="Root/Tray/Center/Panel/Column/Head"]
+visible = false
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"FuseBar"
+max_value = 1.0
+step = 0.0
+value = 1.0
+show_percentage = false
 
 [node name="Title" type="Label" parent="Root/Tray/Center/Panel/Column"]
 layout_mode = 2
@@ -451,11 +495,10 @@ horizontal_alignment = 1
 
 [node name="Hint" type="Label" parent="Root/Tray/Center/Panel/Column"]
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
+theme_type_variation = &"BodyLabel"
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 3
-theme_override_font_sizes/font_size = 24
 
 [node name="Scroll" type="ScrollContainer" parent="Root/Tray/Center/Panel/Column"]
 custom_minimum_size = Vector2(0, 300)
@@ -482,7 +525,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.03, 0.025, 0.03, 0.7)
 
 [node name="Center" type="CenterContainer" parent="Root/Pile"]
 layout_mode = 1
@@ -514,11 +556,10 @@ horizontal_alignment = 1
 
 [node name="Hint" type="Label" parent="Root/Pile/Center/Panel/Column"]
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
+theme_type_variation = &"BodyLabel"
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 3
-theme_override_font_sizes/font_size = 24
 
 [node name="Scroll" type="ScrollContainer" parent="Root/Pile/Center/Panel/Column"]
 custom_minimum_size = Vector2(0, 300)
@@ -542,14 +583,6 @@ custom_minimum_size = Vector2(140, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Close"
-
-[node name="Fuse" type="ColorRect" parent="Root"]
-visible = false
-layout_mode = 1
-offset_right = 400.0
-offset_bottom = 4.0
-mouse_filter = 2
-color = Color(0.93, 0.55, 0.3, 1)
 
 [node name="DevPanel" parent="Root" instance=ExtResource("4_dev")]
 visible = false
@@ -608,25 +641,21 @@ mouse_filter = 2
 
 [node name="Thread" type="Line2D" parent="Root/FocusFilament"]
 width = 3.0
-default_color = Color(0.9, 0.38, 0.3, 0.64)
 antialiased = true
 
 [node name="Cap" type="Line2D" parent="Root/FocusFilament"]
 visible = false
 width = 4.0
-default_color = Color(0.9, 0.38, 0.3, 0.9)
 antialiased = true
 
 [node name="Head" type="Line2D" parent="Root/FocusFilament"]
 visible = false
 width = 4.0
-default_color = Color(0.9, 0.38, 0.3, 0.95)
 antialiased = true
 
 [node name="HeadTrail" type="Line2D" parent="Root/FocusFilament"]
 visible = false
 width = 4.0
-default_color = Color(0.9, 0.38, 0.3, 0.95)
 antialiased = true
 
 [node name="Focus" type="Control" parent="Root"]
@@ -682,7 +711,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.03, 0.025, 0.03, 0.88)
 
 [node name="Center" type="CenterContainer" parent="Root/Inspect"]
 layout_mode = 1
@@ -734,7 +762,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.055, 0.05, 0.055, 1)
 
 [node name="Center" type="CenterContainer" parent="Root/Handoff"]
 layout_mode = 1
@@ -757,7 +784,6 @@ horizontal_alignment = 1
 [node name="Sub" type="Label" parent="Root/Handoff/Center/Column"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 18
 text = "Their hand stays hidden until they are ready."
 horizontal_alignment = 1
 
@@ -768,7 +794,7 @@ size_flags_horizontal = 4
 theme_type_variation = &"AccentButton"
 text = "I'm ready"
 
-[node name="GameOver" type="ColorRect" parent="Root"]
+[node name="Modal" type="ColorRect" parent="Root"]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -776,9 +802,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.03, 0.025, 0.03, 0.88)
 
-[node name="Center" type="CenterContainer" parent="Root/GameOver"]
+[node name="Center" type="CenterContainer" parent="Root/Modal"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -786,119 +811,136 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Column" type="VBoxContainer" parent="Root/GameOver/Center"]
+[node name="Card" type="PanelContainer" parent="Root/Modal/Center"]
+custom_minimum_size = Vector2(612, 0)
+layout_mode = 2
+
+[node name="GameOver" type="VBoxContainer" parent="Root/Modal/Center/Card"]
+visible = false
+custom_minimum_size = Vector2(540, 0)
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="Series" type="Label" parent="Root/GameOver/Center/Column"]
-visible = false
-layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-text = "Game 1 of 3 · 1-0"
-horizontal_alignment = 1
-
-[node name="Title" type="Label" parent="Root/GameOver/Center/Column"]
+[node name="Title" type="Label" parent="Root/Modal/Center/Card/GameOver"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-text = "Player 1 wins"
+text = "You win"
 horizontal_alignment = 1
+autowrap_mode = 3
+max_lines_visible = 2
 
-[node name="Reason" type="Label" parent="Root/GameOver/Center/Column"]
+[node name="Body" type="Label" parent="Root/Modal/Center/Card/GameOver"]
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 24
-text = "reason"
+theme_type_variation = &"BodyLabel"
 horizontal_alignment = 1
+autowrap_mode = 3
+max_lines_visible = 2
 
-[node name="Rating" type="Label" parent="Root/GameOver/Center/Column"]
+[node name="Rating" type="Label" parent="Root/Modal/Center/Card/GameOver"]
 visible = false
 layout_mode = 2
-text = "Rating 112 → 138"
+theme_type_variation = &"RatingLabel"
+text = "Your rating is unchanged."
 horizontal_alignment = 1
+autowrap_mode = 3
+max_lines_visible = 2
 
-[node name="Note" type="Label" parent="Root/GameOver/Center/Column"]
-visible = false
+[node name="Note" type="Label" parent="Root/Modal/Center/Card/GameOver"]
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 24
+theme_type_variation = &"BodyLabel"
 horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+max_lines_visible = 2
 
-[node name="Buttons" type="HBoxContainer" parent="Root/GameOver/Center/Column"]
+[node name="Ready" type="Button" parent="Root/Modal/Center/Card/GameOver"]
+visible = false
+custom_minimum_size = Vector2(144, 42)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_constants/separation = 16
+theme_type_variation = &"CompactButton"
+text = "Ready"
 
-[node name="Next" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
+[node name="Primary" type="Button" parent="Root/Modal/Center/Card/GameOver"]
 visible = false
-custom_minimum_size = Vector2(240, 60)
+custom_minimum_size = Vector2(540, 60)
 layout_mode = 2
+size_flags_horizontal = 4
 theme_type_variation = &"AccentButton"
-text = "Next game"
+text = "Find another duel"
 
-[node name="FindRanked" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
+[node name="Actions" type="HBoxContainer" parent="Root/Modal/Center/Card/GameOver"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Rematch" type="Button" parent="Root/Modal/Center/Card/GameOver/Actions"]
 visible = false
-custom_minimum_size = Vector2(240, 60)
+custom_minimum_size = Vector2(264, 54)
 layout_mode = 2
-theme_type_variation = &"AccentButton"
-text = "Find another ranked duel"
-
-[node name="Rematch" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
-custom_minimum_size = Vector2(240, 60)
-layout_mode = 2
-theme_type_variation = &"AccentButton"
 text = "Rematch"
 
-[node name="Select" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
-custom_minimum_size = Vector2(240, 60)
-layout_mode = 2
-text = "Choose duelists"
-
-[node name="Title" type="Button" parent="Root/GameOver/Center/Column/Buttons"]
+[node name="Leave" type="Button" parent="Root/Modal/Center/Card/GameOver/Actions"]
 visible = false
-custom_minimum_size = Vector2(240, 60)
+custom_minimum_size = Vector2(264, 54)
 layout_mode = 2
-text = "Title"
+text = "Back to title"
 
-[node name="Reconnect" type="ColorRect" parent="Root"]
+[node name="Reconnect" type="VBoxContainer" parent="Root/Modal/Center/Card"]
 visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.03, 0.025, 0.03, 0.88)
-
-[node name="Center" type="CenterContainer" parent="Root/Reconnect"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Column" type="VBoxContainer" parent="Root/Reconnect/Center"]
+custom_minimum_size = Vector2(540, 0)
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="Title" type="Label" parent="Root/Reconnect/Center/Column"]
+[node name="Title" type="Label" parent="Root/Modal/Center/Card/Reconnect"]
 layout_mode = 2
-theme_type_variation = &"TitleLabel"
+theme_type_variation = &"GroupLabel"
 text = "Connection lost"
 horizontal_alignment = 1
 
-[node name="Status" type="Label" parent="Root/Reconnect/Center/Column"]
+[node name="Status" type="Label" parent="Root/Modal/Center/Card/Reconnect"]
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 24
-text = "Reconnecting 1:30"
+theme_type_variation = &"BodyLabel"
+text = "You lose if you are not back in 1:30."
 horizontal_alignment = 1
+autowrap_mode = 3
+max_lines_visible = 2
 
-[node name="GiveUp" type="Button" parent="Root/Reconnect/Center/Column"]
-custom_minimum_size = Vector2(240, 60)
+[node name="GiveUp" type="Button" parent="Root/Modal/Center/Card/Reconnect"]
+custom_minimum_size = Vector2(264, 54)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "Give up"
+text = "Concede"
+
+[node name="Confirm" type="VBoxContainer" parent="Root/Modal/Center/Card/Reconnect"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Question" type="Label" parent="Root/Modal/Center/Card/Reconnect/Confirm"]
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = "Concede the duel?"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Root/Modal/Center/Card/Reconnect/Confirm"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Yes" type="Button" parent="Root/Modal/Center/Card/Reconnect/Confirm/Buttons"]
+custom_minimum_size = Vector2(264, 54)
+layout_mode = 2
+text = "Concede"
+
+[node name="No" type="Button" parent="Root/Modal/Center/Card/Reconnect/Confirm/Buttons"]
+custom_minimum_size = Vector2(264, 54)
+layout_mode = 2
+text = "Keep trying"
+
+[node name="Tick" type="Timer" parent="."]
+autostart = true
 
 [node name="OptionsShade" type="ColorRect" parent="Root"]
 visible = false
@@ -908,7 +950,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.03, 0.025, 0.03, 0.45)
 
 [node name="OptionsMenu" type="PanelContainer" parent="Root"]
 visible = false
@@ -995,6 +1036,14 @@ text = "Concede"
 flat = true
 alignment = 0
 
+[node name="ConcedeMatch" type="Button" parent="Root/OptionsMenu/Column/Items"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Concede match"
+flat = true
+alignment = 0
+
 [node name="Rematch" type="Button" parent="Root/OptionsMenu/Column/Items"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
@@ -1041,7 +1090,7 @@ theme_override_constants/separation = 12
 [node name="Question" type="Label" parent="Root/OptionsMenu/Column/Confirm"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "Concede the duel."
+text = "Concede the duel?"
 autowrap_mode = 3
 
 [node name="Buttons" type="HBoxContainer" parent="Root/OptionsMenu/Column/Confirm"]
@@ -1049,15 +1098,17 @@ layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="Yes" type="Button" parent="Root/OptionsMenu/Column/Confirm/Buttons"]
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
+theme_type_variation = &"CompactButton"
 text = "Concede"
 
 [node name="No" type="Button" parent="Root/OptionsMenu/Column/Confirm/Buttons"]
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
+theme_type_variation = &"CompactButton"
 text = "Cancel"
 
 [node name="Loading" type="ColorRect" parent="Root"]
@@ -1067,7 +1118,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.055, 0.05, 0.055, 1)
 
 [node name="Center" type="CenterContainer" parent="Root/Loading"]
 layout_mode = 1

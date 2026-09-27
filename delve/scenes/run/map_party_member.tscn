@@ -1,11 +1,8 @@
-[gd_scene load_steps=3 format=3]
-
-[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="map_theme"]
+[gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/flow/MapPartyMember.cs" id="1"]
 
 [node name="MapPartyMember" type="VBoxContainer"]
-theme = ExtResource("map_theme")
 layout_mode = 2
 theme_override_constants/separation = 6
 script = ExtResource("1")

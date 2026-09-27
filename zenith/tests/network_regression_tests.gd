@@ -964,6 +964,24 @@ func _rejoin_client_tests(net: Node, session: Node) -> void:
 		and ticket["token"] == token, "The deal leaves a rejoin file with the server, the room, the seat and its token")
 	_check(ticket.get("decks", []) == [session.decks[0].id, session.decks[2].id] and ticket.get("names", []) == ["Ada", "Bryn"],
 		"and both decks and names")
+	_check(ticket.get("ranked", true) == false and not RejoinFile.ranked(ticket), "A seat outside a ranked match is written unranked")
+	net._ranked = true
+	net._keep_rejoin(token)
+	var ranked_ticket: Dictionary = RejoinFile.read()
+	RejoinFile.renew(int(Time.get_unix_time_from_system()))
+	_check(RejoinFile.ranked(ranked_ticket) and RejoinFile.ranked(RejoinFile.read()),
+		"A ranked seat is written ranked, so the title knows after a relaunch, and a renewal keeps it")
+	var legacy: Dictionary = ranked_ticket.duplicate()
+	legacy.erase("ranked")
+	RejoinFile.write(legacy)
+	var legacy_read: Dictionary = RejoinFile.read()
+	RejoinFile.write(ranked_ticket.merged({"ranked": "yes"}, true))
+	_check(not legacy_read.is_empty() and not RejoinFile.ranked(legacy_read) and not RejoinFile.ranked(RejoinFile.read()),
+		"A file from before the flag, or with a malformed one, reads as unranked")
+	net._ranked = false
+	net._keep_rejoin(token)
+	ticket = RejoinFile.read()
+	now = int(Time.get_unix_time_from_system())
 	_check(RejoinFile.live(ticket, now) and not RejoinFile.live(ticket, int(ticket.get("expires", 0))) and net.can_rejoin("K7QMR")
 		and not net.can_rejoin("ZZZZZ"), "It is good until its expiry, for its own room")
 	_check(RejoinFile.KEEP_SECONDS == 150 and RejoinFile.KEEP_SECONDS * 1000 == net.REJOIN_GRACE_MS + RejoinFile.MARGIN_SECONDS * 1000,
@@ -2125,8 +2143,11 @@ func _presentation_tests(net: Node, session: Node) -> void:
 	net._fail("The duel server closed the connection.")
 	_check(net.mode == "" and not net.last_match.is_empty() and not net.last_game_over.is_empty() and not net.last_duel_ended.is_empty(),
 		"A dropped connection keeps them for the scene still showing the duel")
+	_client_in_ranked_room(net)
+	net._on_match_over(net.HOST_ID, payload)
 	net.leave()
-	_check(net.last_match.is_empty() and net.last_game_over.is_empty() and net.last_duel_ended.is_empty(), "Leaving forgets them")
+	_check(net.last_match == net.clean_match_payload(payload) and not net.last_game_over.is_empty() and not net.last_duel_ended.is_empty(),
+		"and so does leaving, so a disconnect in the same frame as the result still shows it")
 	_client_in_ranked_room(net)
 	net._on_duel_ended(net.HOST_ID, 0, "concede")
 	net._on_game_over(net.HOST_ID, 1, [1, 0], 20)
@@ -2178,9 +2199,16 @@ func _presentation_tests(net: Node, session: Node) -> void:
 	var cert: Variant = ProjectSettings.get_setting("zenith/net/duel_server_cert", "")
 	ProjectSettings.set_setting("zenith/net/duel_server", "127.0.0.1:9")
 	ProjectSettings.set_setting("zenith/net/duel_server_cert", "")
+	_client_in_ranked_room(net)
+	net._on_duel_ended(net.HOST_ID, 0, "concede")
+	net._on_game_over(net.HOST_ID, 1, [1, 0], 20)
+	net._on_match_over(net.HOST_ID, payload)
+	net.leave()
 	var problem: String = await net.find_duel()
 	_check(problem == "" and net.queue_state == "connecting" and net._queue_request and not net._queue_ranked,
 		"Find a duel asks for the casual queue, --dev-ranked or not (this run: %s)" % str(DevArgs.user_args().has("--dev-ranked")))
+	_check(net.last_match.is_empty() and net.last_game_over.is_empty() and net.last_duel_ended.is_empty(),
+		"A new queue join forgets the last results")
 	net.leave()
 	problem = await net.find_ranked()
 	_check(problem == "" and net._queue_request and net._queue_ranked, "and Ranked match for the ranked one")

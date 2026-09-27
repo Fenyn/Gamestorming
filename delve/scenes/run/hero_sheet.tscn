@@ -8,7 +8,7 @@
 [node name="HeroSheet" type="PanelContainer"]
 offset_right = 1113.0
 offset_bottom = 850.0
-theme_type_variation = &"HudPanel"
+theme_type_variation = &"SheetPanel"
 script = ExtResource("1_sheet")
 StatBoxScene = ExtResource("2_stat")
 SectionScene = ExtResource("3_row")

@@ -59,7 +59,6 @@ public partial class CombatScene : Node3D
     }
 
     private ActionBar _actionBar = null!;
-    private ActiveCharacterPanel _activeCharacter = null!;
     private CombatLogPanel _log = null!;
     private TurnOrderBar _turnBar = null!;
     private VictoryBanner _victoryBanner = null!;
@@ -124,7 +123,6 @@ public partial class CombatScene : Node3D
         _dice = GetNode<DiceRollPanel>("%DiceRoll");
         _log.RollObserved += _dice.ShowRoll;
         _actionBar = GetNode<ActionBar>("%ActionBar");
-        _activeCharacter = GetNode<ActiveCharacterPanel>("%ActiveCharacter");
         _victoryBanner = GetNode<VictoryBanner>("%VictoryBanner");
         _victoryBanner.Continued += () => ResultsContinued?.Invoke();
         _reactionPrompt = GetNode<ReactionPromptPanel>("%ReactionPrompt");
@@ -300,21 +298,24 @@ public partial class CombatScene : Node3D
             logBridge.Present(evt);
             if (evt.Type is BattleEventType.AttackRolled or BattleEventType.SpellCast
                 && evt.Source != null && evt.Target != null)
+            {
+                NoteBoardTarget(evt.Target);
                 _cameraRig.FrameAction(GridSpace.CreatureToWorld(evt.Source.GridPosition, evt.Source.TileWidth, SurfaceHeights),
                     GridSpace.CreatureToWorld(evt.Target.GridPosition, evt.Target.TileWidth, SurfaceHeights));
+            }
             await presenter.Present(evt);
             if (evt.Type is BattleEventType.DamageDealt or BattleEventType.Healed
                 or BattleEventType.CreatureDied
                 || evt.Type == BattleEventType.AttackRolled && evt.Degree < PF2e.Data.DegreeOfSuccess.Success)
                 _cameraRig.RestorePlanningView();
-            _activeCharacter.Render(ActiveCharacterView.From(session.CurrentActor));
+            RefreshCard();
         });
         // Interactive reaction prompts: the session suspends combat on this Task until the modal
-        // panel resolves Use/Skip (works mid-enemy-turn too — the enemy's strike awaits it).
+        // panel resolves (works mid-enemy-turn too — the enemy's strike awaits it).
         _session.ReactionPromptHandler = async view =>
         {
             await _dice.WaitForResultsAsync(presenter.CancellationToken);
-            return await _reactionPrompt.ShowAsync(view);
+            return await ShowReactionPrompt(view);
         };
         _input.Setup(_cameraRig.Camera, setup.GridWidth, setup.GridHeight, SurfaceHeights);
         // One click-vs-drag threshold for the whole gesture: the rig's value wins.
@@ -331,7 +332,7 @@ public partial class CombatScene : Node3D
             _input.TileClicked += OnTileClicked;
             _input.TileHovered += OnTileHovered;
             _input.Cancelled += OnCancel;
-            _input.FocusRequested += () => { ClearPartyFocus(); _inspectPanel.Render(null); _cameraRig.FocusOnActive(); };
+            _input.FocusRequested += () => { ClearPartyFocus(); RefreshCard(); _cameraRig.FocusOnActive(); };
             _turnBar.ChipPressed += id => _controller.DelayAnchorClicked(id);
             WireActionBar();
         }
@@ -401,7 +402,7 @@ public partial class CombatScene : Node3D
         GetNodeOrNull<Control>("%EncounterIntro")?.Hide();
         if (_input != null) _input.ProcessMode = ProcessModeEnum.Inherit;
         _dice?.ClearRoll();
-        _activeCharacter?.Render(null);
+        _inspectPanel?.Render(null);
         _logBridge = null;
         // Cancel BEFORE teardown: the loop may be parked in a presenter Task.Delay / tween wait or on the
         // player-turn TCS. Cancelling releases those so it unwinds without resuming on freed nodes;
@@ -477,10 +478,10 @@ public partial class CombatScene : Node3D
         // enemies do, and get their sprite folder by creature from EnemySpriteMap (real art or the
         // size-matched missing-art placeholder).
         string? enemyFolder = character.CreatureStats != null
-            ? EnemySpriteMap.FolderForCreature(character.Name, character.CreatureStats.Size)
+            ? EnemySpriteMap.FolderForCreature(_session.Letters.BaseNameFor(character), character.CreatureStats.Size)
             : null;
 
-        var visual = UnitVisual3D.Spawn(UnitTokenScene, character, enemyFolder);
+        var visual = UnitVisual3D.Spawn(UnitTokenScene, character, enemyFolder, _session.Letters.LetterFor(character));
         visual.Position = GridSpace.CreatureToWorld(character.GridPosition, character.TileWidth, SurfaceHeights);
         _unitLayer.AddChild(visual);
         visual.PlaceOnGround(character.GridPosition, SurfaceHeights);
@@ -509,12 +510,9 @@ public partial class CombatScene : Node3D
         _controller.MoveHoverChanged += hover => _actionBar.SetMoveHint(hover);
         _controller.PathPreviewChanged += path => { _overlay.SetPathPreview(path); PreviewDestination(path); };
         _controller.AreaPreviewChanged += tiles => _overlay.SetAreaPreview(tiles);
-        _controller.AttackPreviewChanged += preview => _actionBar.ShowAttackPreview(preview);
+        _controller.AttackPreviewChanged += preview => { _actionBar.ShowAttackPreview(preview); NotePlayerTarget(preview != null); };
         _controller.ButtonStateChanged += state => _actionBar.Render(state);
-        _controller.ButtonStateChanged += _ =>
-            _activeCharacter.Render(ActiveCharacterView.From(_session.CurrentActor));
         _controller.SpellTargetsChanged += _actionBar.SetSpellTargetSelection;
-        _actionBar.ConfirmTargetsPressed += () => _controller.ConfirmSpellTargets();
         _controller.ModeChanged += _ => { ClearStagedOrder(); ClearPartyFocus(); };
         _controller.ActionCompleted += () => _cameraRig.RestorePlanningView();
         _controller.ModeChanged += mode => _actionBar.SetTargetingHint(
@@ -532,6 +530,10 @@ public partial class CombatScene : Node3D
 
     private void WireActionBar()
     {
+        _actionBar.ConfirmTargetsPressed += () => _controller.ConfirmSpellTargets();
+        _actionBar.ConfirmOrderPressed += ConfirmStagedOrder;
+        _actionBar.StagingChanged += () => ClearStagedOrder();
+        _actionBar.OverviewPressed += () => { if (!_tacticalHud.ModalActive && !_tacticalFinished) _cameraRig.ToggleOverview(); };
         _actionBar.StrikePressed += () => _controller.BeginStrike();
         _actionBar.RaiseShieldPressed += () => _controller.RaiseShield();
         _actionBar.EndTurnPressed += () => _controller.EndTurn();
@@ -568,7 +570,7 @@ public partial class CombatScene : Node3D
             _controller.EndControl();
             _actionBar.SetInteractable(false);
         };
-        _session.TurnChanged += () => { if (ReferenceEquals(_session, session)) { ClearPartyFocus(); RefreshTurnOrder(); } };
+        _session.TurnChanged += () => { if (ReferenceEquals(_session, session)) { ClearPartyFocus(); ClearBoardTargets(); RefreshTurnOrder(); } };
         _session.EncounterFinished += result => { if (ReferenceEquals(_session, session)) ShowResult(result); };
         // Recall Knowledge that actually taught the party something: re-raise for a hosting scene's
         // monster journal. No subscriber in the combat proof — the executor falls back to
@@ -581,70 +583,18 @@ public partial class CombatScene : Node3D
 
     private void OnTileClicked(PF2e.Vector2Int pos) => HandleTacticalClick(pos);
 
-    /// <summary>Forwards hover to the targeting controller (path/attack preview) AND, independently,
-    /// to the always-on inspect card — the two coexist in every mode, per CLAUDE.md's passive-UI
-    /// wiring: this Node3D reads engine occupancy and hands the UI a view model, nothing more.</summary>
+    /// <summary>Forwards hover to the targeting controller (path/attack preview) and, independently,
+    /// to the card slot and the board badges. This Node3D reads engine occupancy and hands the UI a
+    /// view model, nothing more.</summary>
     private void OnTileHovered(PF2e.Vector2Int? pos)
     {
+        _hoveredId = pos.HasValue ? _session.Grid.GetGroundOccupant(pos.Value)?.UniqueId : null;
         if (_stagedTile == null) _controller.TileHovered(pos);
-        var inspected = pos.HasValue ? _session.PlayerActions.GetUnitInspect(pos.Value) : null;
-        if (inspected == null && _focusedMember is { } id && _tacticalUnits.TryGetValue(id, out var focused))
-            inspected = UnitInspectFactory.BuildInspectView(focused.Character);
-        _inspectPanel.Render(inspected);
+        RefreshCard();
+        RefreshPlates();
     }
 
     private void OnCancel() { ClearStagedOrder(); _controller.Cancel(); }
-
-    // ---------------------------------------------------------------- View refresh
-
-    private void RefreshTurnOrder()
-    {
-        var order = _session.TurnOrder;
-        if (order == null) return;
-
-        var current = _session.CurrentActor;
-        _activeCharacter.Render(ActiveCharacterView.From(current));
-        var delayed = _session.DelayedEntries ?? System.Array.Empty<PF2e.TurnManagement.TurnEntry>();
-        var views = new List<UnitView>(order.Count + delayed.Count);
-        foreach (var entry in order)
-        {
-            views.Add(UnitViewFor(entry, current));
-            // A delayer shows at the slot it returns to, right after its anchor.
-            foreach (var waiting in delayed)
-                if (waiting.ReturnAfter == entry.Character)
-                    views.Add(UnitViewFor(waiting, current, delayed: true));
-        }
-        _turnBar.Render(views);
-        _tacticalOrder = views;
-        ClearStagedOrder();
-
-        bool playerTurn = current != null && _session.IsPlayerControlled(current);
-        _actionBar.SetInteractable(playerTurn);
-        _actionBar.SetControlOptionsEnabled(current != null && _session.CanCommand(current));
-        if (current != null)
-        {
-            _actionBar.SetAiToggle(_session.IsAiToggled(current));
-            _actionBar.SetAutoReactToggle(_session.IsAutoReactions(current));
-        }
-    }
-
-    private UnitView UnitViewFor(PF2e.TurnManagement.TurnEntry entry, PF2e.Core.ICharacter? current, bool delayed = false)
-    {
-        var c = entry.Character;
-        return new UnitView
-        {
-            Name = c.Name,
-            Id = c.UniqueId,
-            TeamId = c.TeamId,
-            IsCurrent = c == current,
-            IsDead = c.Health != null && c.Health.IsDead,
-            IsDelayed = delayed,
-            IsPickable = _delayPickIds.Contains(c.UniqueId),
-            Initiative = entry.Initiative,
-            Hp = c.Health?.CurrentHP ?? 0,
-            MaxHp = c.Health?.MaxHP ?? 0,
-        };
-    }
 
     private void ShowResult(PF2e.Core.BattleResult result)
     {
@@ -658,6 +608,8 @@ public partial class CombatScene : Node3D
         ClearStagedOrder();
         _victoryBanner.ShowResult(text, color);
         _actionBar.SetInteractable(false);
+        RefreshBarVisibility();
+        RefreshPlates();
 
         EncounterFinished?.Invoke(result);
     }

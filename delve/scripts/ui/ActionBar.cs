@@ -6,28 +6,25 @@ using Godot;
 namespace Delve.UI;
 
 /// <summary>
-/// Passive action bar for the active ally: identity + vitals readout, 3 action pips, the
-/// Strike/Raise-Shield/Delay/End-Turn buttons (combat_action_1..2 / combat_delay /
-/// combat_end_turn hotkeys), the Spells/Skills flyout toggles (combat_spells / combat_skills), the
-/// AI and auto-react toggles, a structured attack-preview card, and the hint line that reads the
-/// hovered move's cost as pips. Delay opens a pick on the turn order bar, not here.
-/// Movement has no button: the board's Idle bands take the click. Spell and skill chips live in a
-/// categorized flyout panel above the bar — opened per category, never all at once. Renders from
-/// <see cref="ActionBarState"/> and raises intent events only — it holds no rules and no engine
-/// types. Hotkeys gate on <see cref="HudRoot.ModalActive"/> so a modal (the reaction prompt)
-/// blocks them; the modal's backdrop already swallows the mouse.
+/// Bottom action bar for the active ally: portrait, action pips, resource pips and the Strike,
+/// Shield, Spells, Abilities, Delay, End Turn and Control buttons, with the signature row and the
+/// <see cref="DecisionSlot"/> stacked above it. No name, HP or AC: the party column owns those.
+/// Renders from <see cref="ActionBarState"/> and raises intent events only. Hotkeys gate on
+/// <see cref="HudRoot.ModalActive"/> so the reaction prompt blocks them.
 /// </summary>
 public partial class ActionBar : Control
 {
     [Export] public SpellIconCatalog? SpellIcons { get; set; }
+    [Export] public PackedScene? ResourcePipScene { get; set; }
+
     public event Action? ConfirmTargetsPressed;
-    private Button _confirmTargets = null!;
-    private int _selectedTargets;
-    private int _targetLimit;
+    public event Action? ConfirmOrderPressed;
     public event Action? StrikePressed;
     public event Action? RaiseShieldPressed;
     public event Action? DelayPressed;
     public event Action? EndTurnPressed;
+    public event Action? OverviewPressed;
+    public event Action? StagingChanged;
     public event Action<bool>? AiToggled;
     /// <summary>Raised when the per-ally auto-reactions toggle changes (true = auto-use, no prompt).</summary>
     public event Action<bool>? AutoReactToggled;
@@ -36,62 +33,46 @@ public partial class ActionBar : Control
     /// <summary>Raised with the skill action id when a skill chip is pressed.</summary>
     public event Action<string>? SkillChipPressed;
 
-    private Label _actorLabel = null!;
-    private Label _vitalsLabel = null!;
+    private TextureRect _portrait = null!;
     private PipRow _actionPips = null!;
-    private PipRow _moveCostPips = null!;
+    private VBoxContainer _resources = null!;
     private CaptionButton _strikeBtn = null!;
     private CaptionButton _shieldBtn = null!;
     private CaptionButton _delayBtn = null!;
     private CaptionButton _endBtn = null!;
-    private CheckBox _aiToggle = null!;
-    private CheckBox _autoReactToggle = null!;
-    private Button _controlButton = null!;
-    private Control _controlOptions = null!;
-    private Label _targetingHintLabel = null!;
-
-    /// <summary>Every caption button on the bar, in bar order. Their action and keycap labels are
-    /// plain children (mouse_filter Ignore) so they do not track the button's font color states on
-    /// their own — <see cref="RefreshCaptionColors"/> re-applies colors whenever Disabled changes.</summary>
-    private CaptionButton[] _captions = System.Array.Empty<CaptionButton>();
-
     private CaptionButton _spellsBtn = null!;
     private CaptionButton _skillsBtn = null!;
+    private CheckBox _aiToggle = null!;
+    private CheckBox _autoReactToggle = null!;
+    private CheckBox _stageOrders = null!;
+    private Button _controlButton = null!;
+    private Control _controlOptions = null!;
+    private Control _bar = null!;
     private ChipFlyout _flyout = null!;
-    private PanelContainer _previewCard = null!;
-    private Label _previewHeaderLabel = null!;
-    private Label _previewStatsLabel = null!;
-    private Label _previewDetailLabel = null!;
-    private Label _offGuardTag = null!;
+
+    /// <summary>Every caption button on the bar. Their labels are plain children, so
+    /// <see cref="RefreshCaptionColors"/> re-applies colours whenever Disabled changes.</summary>
+    private CaptionButton[] _captions = Array.Empty<CaptionButton>();
 
     private HudRoot? _hud;
-
     private bool _suppressToggle;
     private bool _interactable = true;
-
-    /// <summary>Which chip category the flyout currently shows (None = closed).</summary>
-    private enum FlyoutCategory { None, Spells, Skills, Control }
-
-    private FlyoutCategory _openCategory = FlyoutCategory.None;
     private string _lastActorName = "";
-    private IReadOnlyList<SpellEntryView> _spells = System.Array.Empty<SpellEntryView>();
-    private IReadOnlyList<SkillEntryView> _skills = System.Array.Empty<SkillEntryView>();
+    private IReadOnlyList<SpellEntryView> _spells = Array.Empty<SpellEntryView>();
+    private IReadOnlyList<SkillEntryView> _skills = Array.Empty<SkillEntryView>();
 
-    private const string TargetingHint = "LMB  confirm · Esc  cancel";
-    private const string DelayPickHint = "LMB  a turn chip to act after · Esc  cancel";
-    private const string IdleHint = "LMB  move · hover for cost";
     private const string DelayTooltip = "Wait and act later this round. Pick whom to act after; the choice is final.";
 
-    private bool _targeting;
-    private bool _pickingDelaySlot;
-    private MoveHoverView? _moveHover;
+    public DecisionSlot Decision { get; private set; } = null!;
+    public Control BarPanel => _bar;
+    public string ActorName => _lastActorName;
+    public bool StageOrders => _stageOrders.ButtonPressed;
 
     public override void _Ready()
     {
-        _actorLabel = GetNode<Label>("%ActorLabel");
-        _vitalsLabel = GetNode<Label>("%VitalsLabel");
+        _portrait = GetNode<TextureRect>("%Portrait");
         _actionPips = GetNode<PipRow>("%ActionPips");
-        _moveCostPips = GetNode<PipRow>("%MoveCostPips");
+        _resources = GetNode<VBoxContainer>("%Resources");
         _strikeBtn = GetNode<CaptionButton>("%StrikeButton");
         _shieldBtn = GetNode<CaptionButton>("%ShieldButton");
         _spellsBtn = GetNode<CaptionButton>("%SpellsButton");
@@ -100,29 +81,25 @@ public partial class ActionBar : Control
         _endBtn = GetNode<CaptionButton>("%EndButton");
         _aiToggle = GetNode<CheckBox>("%AiToggle");
         _autoReactToggle = GetNode<CheckBox>("%AutoReactToggle");
+        _stageOrders = GetNode<CheckBox>("%StageOrders");
         _controlButton = GetNode<Button>("%ControlButton");
         _controlOptions = GetNode<Control>("%ControlOptions");
-        _controlButton.Toggled += on => SetFlyout(on ? FlyoutCategory.Control : FlyoutCategory.None);
-        _targetingHintLabel = GetNode<Label>("%TargetingHint");
-        _confirmTargets = GetNode<Button>("%ConfirmTargets");
-        _confirmTargets.Pressed += () => ConfirmTargetsPressed?.Invoke();
+        _bar = GetNode<Control>("%Bar");
         _flyout = GetNode<ChipFlyout>("%Flyout");
         _signatures = GetNode<ChipFlyout>("%SignatureActions");
-        _signatures.ChipPressed += OnSignaturePressed;
-        _previewCard = GetNode<PanelContainer>("%PreviewCard");
-        _previewHeaderLabel = GetNode<Label>("%PreviewHeaderLabel");
-        _previewStatsLabel = GetNode<Label>("%PreviewStatsLabel");
-        _previewDetailLabel = GetNode<Label>("%PreviewDetailLabel");
-        _offGuardTag = GetNode<Label>("%OffGuardTag");
-
+        Decision = GetNode<DecisionSlot>("%DecisionSlot");
         _hud = HudRoot.Find(this);
-        _offGuardTag.AddThemeColorOverride("font_color", GetThemeColor("accent", "Palette"));
 
-        _captions = new[]
-        {
-            _strikeBtn, _shieldBtn, _spellsBtn, _skillsBtn, _delayBtn, _endBtn,
-        };
+        _captions = new[] { _strikeBtn, _shieldBtn, _spellsBtn, _skillsBtn, _delayBtn, _endBtn };
         RefreshCaptionColors();
+
+        _controlButton.Toggled += on => SetFlyout(on ? FlyoutCategory.Control : FlyoutCategory.None);
+        _signatures.ChipPressed += OnSignaturePressed;
+        _flyout.ChipPressed += OnChipPressed;
+        Decision.ConfirmTargetsPressed += () => ConfirmTargetsPressed?.Invoke();
+        Decision.ConfirmOrderPressed += () => ConfirmOrderPressed?.Invoke();
+        GetNode<Button>("%Overview").Pressed += () => OverviewPressed?.Invoke();
+        _stageOrders.Toggled += _ => StagingChanged?.Invoke();
 
         _strikeBtn.Pressed += () => StrikePressed?.Invoke();
         _shieldBtn.Pressed += () => RaiseShieldPressed?.Invoke();
@@ -132,19 +109,15 @@ public partial class ActionBar : Control
         _skillsBtn.Toggled += on => SetFlyout(on ? FlyoutCategory.Skills : FlyoutCategory.None);
         _aiToggle.Toggled += on => { if (!_suppressToggle) AiToggled?.Invoke(on); };
         _autoReactToggle.Toggled += on => { if (!_suppressToggle) AutoReactToggled?.Invoke(on); };
-        _flyout.ChipPressed += OnChipPressed;
 
-        // A modal opening (reaction prompt) closes the flyout — the modal owns the screen.
         if (_hud != null)
             _hud.ModalChanged += modal => { if (modal) CloseFlyout(); };
     }
 
     /// <summary>
-    /// Enable/disable the whole bar (disabled while an AI or enemy turn is running). The state is
-    /// carried by the buttons' disabled styles — never by dimming the bar's Modulate, which made
-    /// every label unreadable. Buttons disable immediately; re-enabling per-action state waits for
-    /// the next <see cref="Render"/> (the turn-start state push), except End Turn which only
-    /// depends on interactability.
+    /// Enable or disable the whole bar (disabled while another combatant acts). The state lives in
+    /// the buttons' disabled styles, never in the bar's Modulate. Per-action state returns with the
+    /// next <see cref="Render"/>.
     /// </summary>
     public void SetInteractable(bool interactable)
     {
@@ -155,9 +128,6 @@ public partial class ActionBar : Control
             _shieldBtn.Disabled = true;
             _delayBtn.Disabled = true;
             CloseFlyout();
-            // Whole-bar disable (another combatant is acting): every button explains itself the
-            // same way. The per-action reasons stamped by Render would be stale here; the next
-            // Render (this ally's turn-start state push) restores them.
             string waiting = UnavailableTooltip("Waiting for this ally's turn");
             foreach (var btn in _captions)
                 btn.TooltipText = waiting;
@@ -166,27 +136,19 @@ public partial class ActionBar : Control
         _skillsBtn.Disabled = !interactable;
         _endBtn.Disabled = !interactable;
         RefreshCaptionColors();
-        RefreshHint();
+        Decision.SetInteractable(interactable);
         RebuildSignatures();
     }
 
-    /// <summary>"Unavailable: reason" tooltip for a disabled control; empty (no tooltip) for null —
-    /// the shared format every disabled control uses to explain itself on hover.</summary>
     private static string UnavailableTooltip(string? reason)
         => string.IsNullOrEmpty(reason) ? "" : $"Unavailable: {reason}";
 
-    /// <summary>Re-apply caption label colors from each button's Disabled state so a disabled
-    /// button visibly dims both the action label and its keycap. Enabled: parchment text and
-    /// dim keycaps. Disabled: both text_disabled.</summary>
     private void RefreshCaptionColors()
     {
         foreach (var btn in _captions)
         {
-            btn.ActionLabel?.AddThemeColorOverride("font_color", btn.Disabled
-                ? UiColors.TextDisabled
-                : UiColors.Text);
-            btn.KeyLabel?.AddThemeColorOverride("font_color",
-                btn.Disabled ? UiColors.TextDisabled : UiColors.TextDim);
+            btn.ActionLabel?.AddThemeColorOverride("font_color", btn.Disabled ? UiColors.TextDisabled : UiColors.Text);
+            btn.KeyLabel?.AddThemeColorOverride("font_color", btn.Disabled ? UiColors.TextDisabled : UiColors.TextDim);
         }
     }
 
@@ -197,13 +159,12 @@ public partial class ActionBar : Control
         _suppressToggle = false;
     }
 
-    /// <summary>Control preferences apply only to a combatant the player may command.</summary>
+    /// <summary>The AI and reaction preferences apply only to a combatant the player may command.
+    /// Plan orders and Overview stay available.</summary>
     public void SetControlOptionsEnabled(bool enabled)
     {
         _aiToggle.Disabled = !enabled;
         _autoReactToggle.Disabled = !enabled;
-        _controlButton.Disabled = !enabled;
-        if (!enabled && _openCategory == FlyoutCategory.Control) CloseFlyout();
         _aiToggle.TooltipText = enabled ? "Let the AI choose this ally's actions." : UnavailableTooltip("This combatant is AI controlled");
         _autoReactToggle.TooltipText = enabled ? "Use available reactions automatically. Uncheck to decide each reaction." : UnavailableTooltip("This combatant is AI controlled");
     }
@@ -215,36 +176,26 @@ public partial class ActionBar : Control
         _suppressToggle = false;
     }
 
+    public void SetStaged(bool staged) => Decision.SetStaged(staged);
+
     public void Render(ActionBarState state)
     {
-        _actorLabel.Text = state.ActorName;
-
-        _vitalsLabel.Visible = state.MaxHp > 0;
-        if (state.MaxHp > 0)
-        {
-            _vitalsLabel.Text = $"HP {state.Hp}/{state.MaxHp}  AC {state.Ac}" + (state.Resources.Length > 0 ? "\n" + state.Resources : "");
-            _vitalsLabel.AddThemeColorOverride("font_color", UiColors.Text);
-        }
-
+        _portrait.Texture = state.ActorId.Length > 0 ? HeroPortraits.For(state.ActorId) : null;
+        _portrait.TooltipText = state.ActorName;
         _actionPips.SetActionEconomy(state.ActionsRemaining, state.MaxActions);
         _actionPips.TooltipText = $"{state.ActionsRemaining} of {state.MaxActions} actions remaining";
+        RenderResources(state);
 
-        // MAP suffix goes on the action label only — the keycap always reads just "3". The button
-        // re-fits itself when the label grows (see CaptionButton).
-        if (_strikeBtn.ActionLabel != null)
-            _strikeBtn.ActionLabel.Text = state.Map < 0 ? $"Strike ({state.Map})" : "Strike";
-
+        _strikeBtn.SetActionText(state.Map < 0 ? $"Strike {state.Map}" : "Strike");
         _strikeBtn.Disabled = !_interactable || !state.CanStrike;
         _shieldBtn.Disabled = !_interactable || !state.CanRaiseShield;
+        _shieldBtn.Visible = state.HasShield;
         _delayBtn.Disabled = !_interactable || !state.CanDelay;
         _spellsBtn.Disabled = !_interactable;
         _skillsBtn.Disabled = !_interactable;
         _endBtn.Disabled = !_interactable;
         RefreshCaptionColors();
 
-        // Disabled-reason tooltips: empty (no tooltip) when the button is enabled. Godot shows
-        // tooltips on disabled buttons (Disabled only blocks presses; the internal Content nodes
-        // are mouse_filter Ignore, so the button itself still owns the hover).
         _strikeBtn.TooltipText = UnavailableTooltip(state.StrikeDisabledReason);
         _shieldBtn.TooltipText = UnavailableTooltip(state.ShieldDisabledReason);
         _delayBtn.TooltipText = state.CanDelay ? DelayTooltip : UnavailableTooltip(state.DelayDisabledReason);
@@ -259,11 +210,10 @@ public partial class ActionBar : Control
         _skills = state.SkillEntries;
         RebuildSignatures();
 
-        // Martials get no Spells button at all — an always-disabled category fails kitchen-sink.
+        // Martials get no Spells button at all: an always-disabled category fails kitchen-sink.
         _spellsBtn.Visible = _spells.Count > 0;
         _skillsBtn.Visible = _skills.Count > 0;
 
-        // Keep an open flyout fresh; close it when the actor changed or its category emptied.
         if (_openCategory != FlyoutCategory.None)
         {
             bool empty = _openCategory == FlyoutCategory.Spells ? _spells.Count == 0
@@ -273,189 +223,49 @@ public partial class ActionBar : Control
         }
     }
 
-    /// <summary>Open the flyout on one category (None = close). Opening a category closes the
-    /// other; the toggle buttons' pressed states mirror it without re-firing Toggled.</summary>
-    private void SetFlyout(FlyoutCategory category, string? spellFilter = null)
+    private void RenderResources(ActionBarState state)
     {
-        _openCategory = category;
-        _spellFilter = spellFilter;
-        RebuildSignatures();
-        _spellsBtn.SetPressedNoSignal(category == FlyoutCategory.Spells);
-        _skillsBtn.SetPressedNoSignal(category == FlyoutCategory.Skills);
-        _controlButton.SetPressedNoSignal(category == FlyoutCategory.Control);
-        _controlOptions.Visible = category == FlyoutCategory.Control;
-        if (category is FlyoutCategory.None or FlyoutCategory.Control)
+        while (_resources.GetChildCount() > state.ResourcePips.Count)
         {
-            _flyout.Visible = false;
-            _flyout.Clear();
-            return;
+            var extra = _resources.GetChild(_resources.GetChildCount() - 1);
+            _resources.RemoveChild(extra);
+            extra.QueueFree();
         }
-        RebuildFlyout();
-        _flyout.Visible = true;
-    }
-
-    private void CloseFlyout() => SetFlyout(FlyoutCategory.None);
-
-    /// <summary>Rebuild the open category's flyout contents from the last rendered state. Spells
-    /// split into a Cantrips section (at-will) and a slotted Spells section; skills are one flow —
-    /// the Skills button already names the category. This is the only place spell and skill views
-    /// become chips; the flyout itself carries no combat vocabulary.</summary>
-    private void RebuildFlyout()
-    {
-        _flyout.Clear();
-
-        if (_openCategory == FlyoutCategory.Spells)
+        while (_resources.GetChildCount() < state.ResourcePips.Count && ResourcePipScene != null)
         {
-            var cantrips = new List<SpellEntryView>();
-            var slotted = new List<SpellEntryView>();
-            foreach (var spell in _spells)
-            {
-                if (_spellFilter != null && SignatureAbilities.BaseId(spell.SpellId) != _spellFilter) continue;
-                (spell.IsCantrip ? cantrips : slotted).Add(spell);
-            }
-
-            AddSpellSection("Cantrips", cantrips);
-            AddSpellSection("Spells", slotted);
+            var row = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+            row.AddChild(new Label { ThemeTypeVariation = ThemeNames.HintLabel, MouseFilter = MouseFilterEnum.Ignore });
+            row.AddChild(ResourcePipScene.Instantiate<PipRow>());
+            _resources.AddChild(row);
         }
-        else if (_openCategory == FlyoutCategory.Skills)
+        for (int i = 0; i < _resources.GetChildCount(); i++)
         {
-            AddAbilitySection("Character", System.Linq.Enumerable.Where(_skills, s => s.IsCharacterAbility));
-            AddAbilitySection("General", System.Linq.Enumerable.Where(_skills, s => !s.IsCharacterAbility));
+            var resource = state.ResourcePips[i];
+            var row = _resources.GetChild(i);
+            row.GetChild<Label>(0).Text = resource.Name;
+            var pips = row.GetChild<PipRow>(1);
+            pips.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+            pips.SetActionEconomy(resource.Current, resource.Max);
         }
+        _resources.Visible = state.ResourcePips.Count > 0;
+        _resources.TooltipText = state.Resources;
     }
 
-    /// <summary>One flyout section: a header over a chip flow of these spells. Omitted entirely
-    /// when the section has no spells.</summary>
-    private void AddSpellSection(string header, List<SpellEntryView> spells)
-    {
-        if (spells.Count == 0) return;
+    public void ShowAttackPreview(AttackPreviewView? preview) => Decision.ShowPreview(preview);
 
-        _flyout.AddSection(header);
-        var flow = _flyout.AddFlow();
-        foreach (var spell in spells)
-            _flyout.AddChip(flow, new ChipSpec
-            {
-                Id = spell.SpellId,
-                Icon = SpellIcons?.ForSpell(spell.SpellId),
-                Variant = spell.VariantIndex,
-                Name = spell.Name,
-                ActionCost = spell.ActionCost,
-                CostText = SpellOutCost(spell.ActionCost, spell.CostText),
-                // No "[cantrip]" badge — the Cantrips section header already says it (kitchen-sink).
-                BadgeText = spell.IsCantrip ? null : $"[{spell.SlotsText}]",
-                Enabled = _interactable && spell.Castable,
-                Detail = spell.IsCantrip ? "cantrip"
-                    : string.IsNullOrEmpty(spell.SlotsText) ? "" : $"{spell.SlotsText.TrimStart('x')} remaining",
-                Description = spell.Description,
-                UnavailableReason = spell.UnavailableReason,
-            });
-    }
-
-    /// <summary>A pressed chip fires the category's intent and folds the flyout away — targeting
-    /// starts next. The spec's payload is the spell or skill id the chip was built from.</summary>
-    private void OnChipPressed(ChipSpec spec)
-    {
-        if (_openCategory == FlyoutCategory.Spells)
-            SpellChipPressed?.Invoke(spec.Id, spec.Variant);
-        else if (_openCategory == FlyoutCategory.Skills)
-            SkillChipPressed?.Invoke(spec.Id);
-        CloseFlyout();
-    }
-
-    /// <summary>1 -> "1 action", 2 -> "2 actions". Falls back to the raw cost text when the rules
-    /// layer reported no action count (reactions, free actions).</summary>
-    private static string SpellOutCost(int actionCost, string costText)
-        => actionCost switch
-        {
-            1 => "1 action",
-            > 1 => $"{actionCost} actions",
-            _ => costText,
-        };
-
-    public void ShowAttackPreview(AttackPreviewView? preview)
-    {
-        _previewCard.Visible = preview != null;
-        if (preview == null) return;
-
-        // The AC / hit / crit strings arrive already masked for bestiary knowledge — this Control
-        // never decides what the player may see.
-        _previewHeaderLabel.Text = preview.HeaderText ??
-            $"{preview.WeaponName} → {preview.TargetName}";
-        _previewStatsLabel.Text = preview.OutcomeText ??
-            $"{preview.HitChanceText} hit · {preview.CritChanceText} critical hit";
-        _previewDetailLabel.Text = preview.DetailText ??
-            $"Attack {preview.TotalAttackBonus:+0;-0;0} vs AC {preview.TargetAcText} · {preview.DamageFormula} damage";
-        _previewDetailLabel.Visible = _previewDetailLabel.Text.Length > 0;
-        _offGuardTag.Visible = preview.TargetOffGuard;
-    }
-
-    /// <summary>
-    /// While a targeting mode is active (the host feeds the controller's ModeChanged), the hint
-    /// label shows "LMB confirm · Esc cancel" — independent of the attack-preview card, which has
-    /// its own slot above the bar. The Delay slot pick names the turn chips instead. Off targeting
-    /// it reads the hovered move (see <see cref="SetMoveHint"/>).
-    /// </summary>
     public void SetTargetingHint(bool targeting, bool pickingDelaySlot = false)
-    {
-        _targeting = targeting;
-        _pickingDelaySlot = pickingDelaySlot;
-        RefreshHint();
-    }
+        => Decision.SetTargeting(targeting, pickingDelaySlot);
 
-    /// <summary>The hovered band tile's cost, or null when the cursor is off the bands. Shown as
-    /// "Step" / "Stride" plus one pip per action — costs never render as inline text.</summary>
-    public void SetMoveHint(MoveHoverView? hover)
-    {
-        _moveHover = hover;
-        RefreshHint();
-    }
+    public void SetMoveHint(MoveHoverView? hover) => Decision.SetMoveHover(hover);
 
-    public void SetSpellTargetSelection(int count, int limit)
-    {
-        _selectedTargets = count;
-        _targetLimit = limit;
-        RefreshHint();
-    }
+    public void SetSpellTargetSelection(int count, int limit) => Decision.SetSpellTargetSelection(count, limit);
 
-    private void RefreshHint()
-    {
-        _confirmTargets.Visible = _interactable && _targetLimit > 1;
-        _confirmTargets.Disabled = !_interactable || _selectedTargets == 0;
-        _confirmTargets.Text = "Cast [Enter]";
-        if (!_interactable)
-        {
-            _targetingHintLabel.Text = "";
-            _moveCostPips.Visible = false;
-            return;
-        }
-        if (_targeting)
-        {
-            _targetingHintLabel.Text = _targetLimit > 1 ? $"{_selectedTargets} / {_targetLimit} targets \u00b7 Casts at {_targetLimit} \u00b7 Enter cast fewer \u00b7 Esc cancel"
-                : _pickingDelaySlot ? DelayPickHint : TargetingHint;
-            _moveCostPips.Visible = false;
-            return;
-        }
-        if (_moveHover == null)
-        {
-            _targetingHintLabel.Text = IdleHint;
-            _moveCostPips.Visible = false;
-            return;
-        }
-        _targetingHintLabel.Text = _moveHover.Kind == MoveKind.Step ? "Step" : "Stride";
-        _moveCostPips.SetCost(_moveHover.Actions, enabled: true);
-        _moveCostPips.Visible = true;
-    }
-
-    /// <summary>combat_action_1..2 = Strike/Raise Shield, combat_spells / combat_skills
-    /// = Q/E flyout toggles, combat_delay = Delay, combat_end_turn = End Turn. Respects Disabled (a button already
-    /// reflects CanX + interactable via Render/SetInteractable) and is fully gated off while a
-    /// modal is up (the reaction prompt takes its keys in _Input, a phase ahead of this). Esc
-    /// closes an open flyout and is consumed here — the HUD CanvasLayer handles input before
-    /// GridInput3D, so targeting-cancel still gets Esc whenever no flyout is open. WASD/wheel/MMB
-    /// are camera input and never reach here.</summary>
+    /// <summary>combat_action_1..2, combat_spells / combat_skills, combat_delay and
+    /// combat_end_turn, gated off while a modal is up. Esc closes an open flyout and is consumed
+    /// here; otherwise it reaches GridInput3D's targeting cancel.</summary>
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (_hud?.ModalActive == true)
+        if (_hud?.ModalActive == true || !IsVisibleInTree())
             return;
 
         if (_openCategory != FlyoutCategory.None && @event.IsActionPressed(InputNames.UiCancel))
@@ -467,8 +277,8 @@ public partial class ActionBar : Control
 
         if (!_interactable) return;
 
-        if (@event.IsActionPressed(InputNames.Confirm) && _confirmTargets.Visible)
-            Activate(_confirmTargets, () => ConfirmTargetsPressed?.Invoke());
+        if (@event.IsActionPressed(InputNames.Confirm) && Decision.CanConfirmTargets)
+            Activate(Decision.ConfirmTargetsButton, () => ConfirmTargetsPressed?.Invoke());
         else if (@event.IsActionPressed(InputNames.Action1))
             Activate(_strikeBtn, () => StrikePressed?.Invoke());
         else if (@event.IsActionPressed(InputNames.Action2))

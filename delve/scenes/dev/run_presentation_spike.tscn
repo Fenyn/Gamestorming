@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" path="res://scenes/run/scene_transition.tscn" id="transition"]
 [ext_resource type="PackedScene" path="res://scenes/ui/victory_banner.tscn" id="victory"]
 [ext_resource type="PackedScene" path="res://scenes/run/run_end_panel.tscn" id="end"]
-[ext_resource type="Theme" path="res://assets/ui/combat_theme.tres" id="theme"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="theme"]
 [ext_resource type="PackedScene" path="res://scenes/run/dungeon_run.tscn" id="run"]
 [node name="RunPresentationSpike" type="Node"]
 script = ExtResource("script")

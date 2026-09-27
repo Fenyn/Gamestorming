@@ -1,0 +1,150 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/lead_in_overlay.gd" id="1_overlay"]
+
+[sub_resource type="Gradient" id="Gradient_shade"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(0.03, 0.025, 0.03, 0, 0.03, 0.025, 0.03, 0.85)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_bottom"]
+gradient = SubResource("Gradient_shade")
+fill_from = Vector2(0, 0)
+fill_to = Vector2(0, 1)
+
+[node name="LeadInOverlay" type="CanvasLayer"]
+layer = 2
+visible = false
+script = ExtResource("1_overlay")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BottomShade" type="TextureRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -460.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_bottom")
+expand_mode = 1
+
+[node name="Margin" type="MarginContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 36
+
+[node name="Column" type="VBoxContainer" parent="Root/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 18
+
+[node name="Spacer" type="Control" parent="Root/Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+
+[node name="Stage" type="HBoxContainer" parent="Root/Margin/Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 32
+
+[node name="MainSide" type="VBoxContainer" parent="Root/Margin/Column/Stage"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_vertical = 8
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Portrait" type="CenterContainer" parent="Root/Margin/Column/Stage/MainSide"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Name" type="Label" parent="Root/Margin/Column/Stage/MainSide"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Middle" type="VBoxContainer" parent="Root/Margin/Column/Stage"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 8
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="Narration" type="Label" parent="Root/Margin/Column/Stage/Middle"]
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Line" type="PanelContainer" parent="Root/Margin/Column/Stage/Middle"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Column" type="VBoxContainer" parent="Root/Margin/Column/Stage/Middle/Line"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Speaker" type="Label" parent="Root/Margin/Column/Stage/Middle/Line/Column"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="Text" type="Label" parent="Root/Margin/Column/Stage/Middle/Line/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 30
+autowrap_mode = 3
+
+[node name="OpponentSide" type="VBoxContainer" parent="Root/Margin/Column/Stage"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_vertical = 8
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Portrait" type="CenterContainer" parent="Root/Margin/Column/Stage/OpponentSide"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Name" type="Label" parent="Root/Margin/Column/Stage/OpponentSide"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Footer" type="HBoxContainer" parent="Root/Margin/Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 36
+alignment = 1
+
+[node name="Skip" type="Button" parent="Root/Margin/Column/Footer"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Skip"
+
+[node name="Continue" type="Button" parent="Root/Margin/Column/Footer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Continue"

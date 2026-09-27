@@ -4,6 +4,12 @@ namespace Delve.Combat;
 public sealed record UnitView
 {
     public required string Name { get; init; }
+
+    /// <summary>Encounter letter of an enemy ("A"), empty for allies.</summary>
+    public string Letter { get; init; } = "";
+
+    /// <summary>The name without the letter, for chips that draw the letter as a badge.</summary>
+    public string BaseName { get; init; } = "";
     /// <summary>Engine UniqueId, carried so a chip click can name its combatant without engine types.</summary>
     public int Id { get; init; }
     public int TeamId { get; init; }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Delve.Combat;
 using Godot;
@@ -5,34 +6,52 @@ using Godot;
 namespace Delve.UI;
 
 /// <summary>
-/// Modal reaction prompt: "Use Shield Block? (absorb N damage)" with Use / Skip. Passive UI —
-/// renders a <see cref="ReactionPromptView"/> and resolves the awaited choice; it holds no rules
-/// and no engine types. While visible, the full-rect backdrop (MouseFilter.Stop) swallows mouse
-/// events before they reach GridInput3D, the panel holds <see cref="HudRoot"/>'s modal state so
-/// sibling hotkeys go inert, and _Input consumes combat_confirm (Use) and combat_decline (Skip) —
-/// a phase ahead of GridInput3D's ui_cancel in _UnhandledInput, so Escape resolves the prompt
-/// instead of cancelling targeting. Gated strictly on Visible so an idle prompt never eats input.
+/// Compact modal reaction prompt docked at the bottom centre: "Shield Block?" with the accept and
+/// Skip keycap buttons on one row, then at most two compact figures. Renders a
+/// <see cref="ReactionPromptView"/> and resolves the awaited choice; it holds no rules. While
+/// visible, the transparent full-rect backdrop swallows board clicks, the panel holds
+/// <see cref="HudRoot"/>'s modal state, and _Input takes combat_confirm and combat_decline a phase
+/// ahead of GridInput3D, so Escape resolves the prompt instead of cancelling targeting.
 /// </summary>
 public partial class ReactionPromptPanel : Control
 {
+    [Export] public PackedScene? FigureScene { get; set; }
+
     private Label _titleLabel = null!;
-    private Label _reactorLabel = null!;
     private Label _descriptionLabel = null!;
-    private Button _useButton = null!;
-    private Button _skipButton = null!;
+    private HBoxContainer _figures = null!;
+    private CaptionButton _useButton = null!;
+    private CaptionButton _skipButton = null!;
+    private Control _panel = null!;
 
     private HudRoot? _hud;
     private bool _modalHeld;
 
     private TaskCompletionSource<bool>? _choiceTcs;
 
+    public Control Dock => _panel;
+    public string TitleText => _titleLabel.Text;
+    public string AcceptText => _useButton.ActionLabel?.Text ?? "";
+
+    public IReadOnlyList<FigureLabel> FigureLabels
+    {
+        get
+        {
+            var labels = new List<FigureLabel>();
+            foreach (var child in _figures.GetChildren())
+                if (child is FigureLabel label) labels.Add(label);
+            return labels;
+        }
+    }
+
     public override void _Ready()
     {
         _titleLabel = GetNode<Label>("%TitleLabel");
-        _reactorLabel = GetNode<Label>("%ReactorLabel");
         _descriptionLabel = GetNode<Label>("%DescriptionLabel");
-        _useButton = GetNode<Button>("%UseButton");
-        _skipButton = GetNode<Button>("%SkipButton");
+        _figures = GetNode<HBoxContainer>("%Figures");
+        _useButton = GetNode<CaptionButton>("%UseButton");
+        _skipButton = GetNode<CaptionButton>("%SkipButton");
+        _panel = GetNode<Control>("%Panel");
 
         _hud = GetParentOrNull<HudRoot>();
 
@@ -42,22 +61,41 @@ public partial class ReactionPromptPanel : Control
         Visible = false;
     }
 
-    /// <summary>
-    /// Show the prompt and await the player's choice. True = Use, false = Skip.
-    /// One prompt at a time by design (the engine serializes reaction decisions).
-    /// </summary>
+    /// <summary>Show the prompt and await the player's choice. True = accept, false = Skip.</summary>
     public Task<bool> ShowAsync(ReactionPromptView view)
     {
-        _titleLabel.Text = $"Use {view.ReactionName}?";
-        _reactorLabel.Text = view.ReactorName;
-        _descriptionLabel.Text = view.Description;
-
-        // Async continuations so the combat pipeline resumes outside the button-press callstack.
+        Render(view);
         _choiceTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         Visible = true;
         HoldModal();
-        _useButton.GrabFocus();
         return _choiceTcs.Task;
+    }
+
+    private void Render(ReactionPromptView view)
+    {
+        _titleLabel.Text = view.Title.Length > 0 ? view.Title : $"{view.ReactionName}?";
+        _useButton.SetActionText(view.AcceptLabel);
+        _panel.TooltipText = view.Description;
+
+        foreach (var child in _figures.GetChildren())
+        {
+            _figures.RemoveChild(child);
+            child.QueueFree();
+        }
+        if (FigureScene != null)
+            foreach (var figure in view.Figures)
+            {
+                var label = FigureScene.Instantiate<FigureLabel>();
+                _figures.AddChild(label);
+                label.Render(figure);
+            }
+        _figures.Visible = _figures.GetChildCount() > 0;
+        _descriptionLabel.Visible = !_figures.Visible;
+        _descriptionLabel.Text = view.Description;
+        // Collapse to the anchor so the grow directions re-fit the dock to this prompt's content.
+        _panel.OffsetLeft = 0;
+        _panel.OffsetRight = 0;
+        _panel.OffsetTop = _panel.OffsetBottom;
     }
 
     public override void _Input(InputEvent @event)

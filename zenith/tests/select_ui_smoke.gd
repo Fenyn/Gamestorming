@@ -29,12 +29,12 @@ func _run() -> void:
 		screen.call("_pick", i)
 		await process_frame
 		_check(not seat.lock_button.disabled, "A selected deck must be confirmable")
-		seat.get_node("Row/Details").pressed.emit()
+		seat.get_node("Row/DetailsRow/Details").pressed.emit()
 		await process_frame
 		_check(root.get_visible_rect().encloses(seat.get_global_rect()), "Every deck preview must stay onscreen")
 		await process_frame
 		_check(seat.deck_list.size.x <= seat.size.x, "Details must fit the preview width")
-		seat.get_node("Row/Details").pressed.emit()
+		seat.get_node("Row/DetailsRow/Details").pressed.emit()
 	_check(seat.get_global_rect().end.x <= root.get_visible_rect().size.x + 1, "Preview must fit the viewport")
 	_check(seat.lock_button.get_global_rect().end.y <= root.get_visible_rect().size.y, "Confirm must stay onscreen")
 	screen.call("_pick", 0)
@@ -67,7 +67,7 @@ func _run() -> void:
 	_check(seat.mastery_card.size.x > 200, "Mastery must remain large at 720p")
 	_check(seat.mastery_card.get_global_rect().intersects(seat.portrait.get_global_rect()), "Mastery must overlap the portrait edge")
 	_check(seat.mastery_card.global_position.y > seat.aspect_title.get_global_rect().end.y, "Mastery must leave the identity readable")
-	_check(seat.get_node("Row/Details").global_position.x < seat.global_position.x + 40, "Details belongs at the lower left")
+	_check(seat.get_node("Row/DetailsRow/Details").global_position.x < seat.global_position.x + 40, "Details belongs at the lower left")
 	await _check_fixed_mastery(seat)
 	seat.mastery_card.grab_focus()
 	_check(seat.mastery_zoom.visible, "Keyboard focus must enlarge the Mastery")
@@ -76,7 +76,7 @@ func _run() -> void:
 	root.get_texture().get_image().save_png("res://screenshots/select-mastery-focus720.png")
 	seat.mastery_card.release_focus()
 	_check(not seat.mastery_zoom.visible, "Leaving the card must dismiss its enlargement")
-	seat.get_node("Row/Details").pressed.emit()
+	seat.get_node("Row/DetailsRow/Details").pressed.emit()
 	await create_timer(0.5).timeout
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://screenshots/select-details720.png")

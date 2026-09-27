@@ -21,13 +21,25 @@ public static class UiColors
 
     private static Color Get(string name) => PaletteTheme.GetColor(name, PaletteType);
 
-    /// <summary>Gold: active states, accent strips, default buttons, available pips.</summary>
+    /// <summary>Bone: active states, accent strips, default buttons, available pips.</summary>
     public static Color Accent => Get("accent");
 
+    /// <summary>Wardstone teal, on every screen that shows the ward.</summary>
+    public static Color Ward => Get("ward");
+
+    /// <summary>Wardstone tint for an encounter threat upshift: teal, then warn, danger, critical.</summary>
+    public static Color WardTier(int upshift) => upshift switch
+    {
+        <= 0 => Ward,
+        1 => Get("ward_warn"),
+        2 => Get("ward_danger"),
+        _ => Get("ward_critical"),
+    };
+
     /// <summary>
-    /// One character's personal accent, keyed by catalog id, for the identity touches the
-    /// hero-select and run-map surfaces carry. Unknown ids take
-    /// the base accent, so a new character is never colourless.
+    /// One character's personal accent, keyed by catalog id, for character surfaces: hero sheet,
+    /// roster cards and camp residents. Unknown ids take the base accent, so a new character is
+    /// never colourless.
     /// </summary>
     public static Color CharacterAccent(string id) => id switch
     {

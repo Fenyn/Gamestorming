@@ -85,8 +85,8 @@ public partial class RunDirector
                 rewards.Add($"Wardstone restored: +{_state.Wardstone.Ward - wardBefore} ward");
             }
             bool atCap = _state.Party.Level >= _state.Leveling.MaxLevel;
-            progress = atCap ? $"Party level {_state.Party.Level} - Maximum level"
-                : $"Level {_state.Party.Level} - {_state.Xp} / {_state.Leveling.XpPerLevel} XP to next level";
+            progress = atCap ? $"Party level {_state.Party.Level} (maximum)"
+                : $"Level {_state.Party.Level} · {_state.Xp} / {_state.Leveling.XpPerLevel} XP to next level";
             fraction = atCap ? 100 : 100.0 * _state.Xp / _state.Leveling.XpPerLevel;
         }
         else

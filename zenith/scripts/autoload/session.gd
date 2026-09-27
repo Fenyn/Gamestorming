@@ -17,7 +17,6 @@ const ADVENTURE_SETTLE_SCENE: String = "res://scenes/adventure/settle.tscn"
 const ADVENTURE_VENDOR_SCENE: String = "res://scenes/adventure/vendor.tscn"
 const ADVENTURE_LOADOUT_SCENE: String = "res://scenes/adventure/loadout.tscn"
 const ADVENTURE_JOURNAL_SCENE: String = "res://scenes/adventure/journal.tscn"
-const ADVENTURE_LEAD_IN_SCENE: String = "res://scenes/adventure/lead_in.tscn"
 
 var library: CardLibrary = CardLibrary.new()
 var strike_table: StrikeTable = null
@@ -46,7 +45,7 @@ var unlocks: AdventureUnlocks = AdventureUnlocks.new()
 var progress: AdventureProgress = AdventureProgress.new()
 ## Who the mains have met and which lead-in lines were shown. Outlives a run.
 var story_log: AdventureStoryLog = AdventureStoryLog.new()
-## The lead-in the lead-in screen shows before the next duel, {} for none.
+## The lead-in the duel scene plays over its opening before the next duel, {} for none.
 var lead_in: Dictionary = {}
 ## What the last won duel gave, as AdventureProgress.record_win entries. Kept until the reward
 ## screen is left, so both its Aspect step and its bundle step show them.
@@ -406,15 +405,8 @@ func begin_stage() -> void:
 	seed_value = run.stage_seed(run.stage)
 	player_names = [player_names[0], AdventureDecks.opponent_name(opponent_id, library)]
 	roll_colors()
-	if _resume_duel():
-		lead_in = {}
-		go_to_duel()
-		return
-	lead_in = _lead_in_for_stage()
-	if lead_in.is_empty():
-		go_to_duel()
-	else:
-		get_tree().change_scene_to_file(ADVENTURE_LEAD_IN_SCENE)
+	lead_in = {} if _resume_duel() else _lead_in_for_stage()
+	go_to_duel()
 
 
 ## Replays the run's saved history into a referee for `build_referee` to hand over. False when

@@ -61,7 +61,9 @@ public partial class ReactionPromptSpike : SpikeBase
                 promptSeen = true;
                 Check("(1) prompt view names the reactor + reaction",
                     view.ReactorName == vet.Name && view.ReactionName == "Shield Block");
-                Check("(1) prompt description mentions absorption", view.Description.Contains("Absorb"));
+                Check("(1) prompt states the block and the shared remainder",
+                    view.Description.Contains($"Blocking stops {hardness}.")
+                    && view.Description.Contains($"and the shield each take {10 - hardness}."));
 
                 // Delay a full frame before answering — combat must be parked on this Task.
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);

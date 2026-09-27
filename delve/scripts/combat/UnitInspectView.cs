@@ -19,6 +19,9 @@ public sealed record UnitInspectView
     public required string Name { get; init; }
     public int TeamId { get; init; }
 
+    /// <summary>Encounter letter of an enemy ("A"), empty for allies.</summary>
+    public string Letter { get; init; } = "";
+
     /// <summary>True for a party member (<see cref="TeamId"/> 1). Allies are never knowledge-gated.</summary>
     public bool IsAlly { get; init; }
 

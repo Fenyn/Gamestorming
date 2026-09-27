@@ -1,13 +1,11 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
+[ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="caption"]
 [ext_resource type="Script" path="res://scripts/flow/HeroSelectPanel.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/run/camp_resident.tscn" id="resident"]
 [ext_resource type="PackedScene" path="res://scenes/run/camp_stage.tscn" id="camp"]
 [ext_resource type="PackedScene" path="res://scenes/run/hero_sheet.tscn" id="sheet"]
 [ext_resource type="PackedScene" path="res://scenes/run/recruitment_panel.tscn" id="recruit"]
-[ext_resource type="Theme" path="res://assets/ui/combat_theme.tres" id="theme"]
-
-[ext_resource type="Theme" path="res://assets/ui/camp_controls.tres" id="camp_ui"]
 [ext_resource type="Shader" path="res://assets/shaders/camp_mist.gdshader" id="mist"]
 [sub_resource type="FastNoiseLite" id="mist_noise"]
 seed = 37
@@ -33,7 +31,6 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("script")
 CardScene = ExtResource("resident")
-theme = ExtResource("theme")
 
 [node name="CampStage" parent="." instance=ExtResource("camp")]
 unique_name_in_owner = true
@@ -67,7 +64,6 @@ material = SubResource("mist_mat")
 color = Color(1, 1, 1, 1)
 
 [node name="Header" type="VBoxContainer" parent="."]
-theme = ExtResource("camp_ui")
 offset_left = 40.0
 offset_top = 28.0
 offset_right = 1550.0
@@ -79,12 +75,13 @@ theme_override_constants/separation = 6
 unique_name_in_owner = true
 layout_mode = 2
 text = "THE OUTPOST"
-theme_override_font_sizes/font_size = 34
+theme_type_variation = &"CampTitle"
 mouse_filter = 2
 
 [node name="HintLabel" type="Label" parent="Header"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"CampLabel"
 text = "Assemble your party."
 mouse_filter = 2
 
@@ -97,7 +94,6 @@ offset_top = 36.0
 offset_right = -40.0
 offset_bottom = 88.0
 grow_horizontal = 0
-theme = ExtResource("camp_ui")
 text = "Unlock journal"
 mouse_default_cursor_shape = 2
 
@@ -109,7 +105,6 @@ offset_top = -180.0
 offset_right = 480.0
 offset_bottom = -36.0
 grow_vertical = 0
-theme = ExtResource("camp_ui")
 theme_type_variation = &"CampCompanion"
 
 [node name="Rows" type="VBoxContainer" parent="Companion"]
@@ -119,19 +114,18 @@ theme_override_constants/separation = 8
 [node name="PreviewName" type="Label" parent="Companion/Rows"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+theme_type_variation = &"HeadingLabel"
 
 [node name="PreviewRole" type="Label" parent="Companion/Rows"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.772549, 0.713725, 0.784314, 1)
+theme_type_variation = &"HintLabel"
 
 [node name="DetailsButton" type="Button" parent="Companion/Rows"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
-text = "Character details  /"
+text = "Character details"
 theme_type_variation = &"CampLink"
 mouse_default_cursor_shape = 2
 
@@ -146,12 +140,12 @@ offset_right = -40.0
 offset_bottom = -32.0
 grow_horizontal = 0
 grow_vertical = 0
-theme = ExtResource("camp_ui")
 theme_override_constants/separation = 8
 
 [node name="PartyCount" type="Label" parent="Departure"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"CampLabel"
 horizontal_alignment = 2
 text = "PARTY  0 / 4"
 
@@ -188,7 +182,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.078431, 0.058824, 0.094118, 0.8)
+color = Color(0.054902, 0.070588, 0.082353, 0.8)
 
 [node name="Body" type="VBoxContainer" parent="Details"]
 anchor_left = 0.5
@@ -203,11 +197,13 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="CloseDetails" type="Button" parent="Details/Body"]
+[node name="CloseDetails" parent="Details/Body" instance=ExtResource("caption")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8
-text = "Return to camp  [Esc]"
+focus_mode = 2
+ActionText = "Return to camp"
+InputAction = &"ui_cancel"
 
 [node name="Sheet" parent="Details/Body" instance=ExtResource("sheet")]
 unique_name_in_owner = true

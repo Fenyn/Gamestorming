@@ -55,7 +55,10 @@ public partial class UnitVisual3D : Node3D
     private TeamRing _ring = null!;
     private WorldHpBar _hpBar = null!;
     private UnitPickArea _pick = null!;
-    private Label3D _name = null!;
+    private NamePlate3D _plate = null!;
+    private string _letter = "";
+
+    public NamePlate3D Plate => _plate;
 
     private bool _dead;
     private float _hpBarY;
@@ -123,18 +126,19 @@ public partial class UnitVisual3D : Node3D
     /// and resolve their sheet through <see cref="HeroSpriteMap"/>; enemies pass the folder resolved
     /// by <see cref="EnemySpriteMap"/>.
     /// </summary>
-    public static UnitVisual3D Spawn(PackedScene scene, ICharacter character, string? enemyFolder = null)
+    public static UnitVisual3D Spawn(PackedScene scene, ICharacter character, string? enemyFolder = null, string letter = "")
     {
         var visual = scene.Instantiate<UnitVisual3D>();
-        visual.Configure(character, enemyFolder);
+        visual.Configure(character, enemyFolder, letter);
         return visual;
     }
 
     /// <summary>Per-unit setup. Call it before the node enters the tree, so <see cref="_Ready"/> has
     /// its data. Prefer <see cref="Spawn"/>, which does both.</summary>
-    public void Configure(ICharacter character, string? enemyFolder = null)
+    public void Configure(ICharacter character, string? enemyFolder = null, string letter = "")
     {
         _character = character;
+        _letter = letter;
         _isHero = character.CreatureStats == null;
         // Heroes start facing the enemy side; team 1 (left) looks +X, team 2 (right) looks -X.
         Facing = character.TeamId == 1 ? Vector2.Right : Vector2.Left;
@@ -147,7 +151,7 @@ public partial class UnitVisual3D : Node3D
         _ring = GetNode<TeamRing>("%Ring");
         _hpBar = GetNode<WorldHpBar>("%HpBar");
         _pick = GetNode<UnitPickArea>("%PickArea");
-        _name = GetNode<Label3D>("%Name");
+        _plate = GetNode<NamePlate3D>("%Plate");
 
         // Standalone (F6) with no Configure() call: leave the raw blockout token visible, do not crash.
         if (_character == null) return;
@@ -161,8 +165,8 @@ public partial class UnitVisual3D : Node3D
         _pick.Sprite = _sprite;
         _pick.GridTile = () => _character.GridPosition;
         _hpBar.Position = new Vector3(0f, _hpBarY, 0f);
-        _name.Text = _character.Name;
-        _name.Position = new Vector3(0f, _hpBarY + NameLift, 0f);
+        _plate.Configure(_character.Name, _letter, UiColors.Enemy);
+        _plate.Position = new Vector3(0f, _hpBarY + NameLift, 0f);
         // Snap at spawn: the bar has no previous value to travel from, and a fight that opens with
         // every bar sliding in from empty reads as damage nobody dealt.
         UpdateHealthBar(instant: true);
@@ -295,7 +299,7 @@ public partial class UnitVisual3D : Node3D
     {
         _dead = true;
         _hpBar.Visible = false;
-        _name.Visible = false;
+        _plate.Retire();
         _sprite.Frozen = true;
         // The corpse tint is final, so it takes the modulate handle over from any flash still running
         // (a killing blow FlashHit is always in flight when this lands) and _dead locks out the next.

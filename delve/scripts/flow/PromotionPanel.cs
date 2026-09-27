@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Delve.Presets;
 using Delve.Run;
+using Delve.UI;
 using Godot;
 using PF2e.Core;
 
@@ -21,6 +22,8 @@ public partial class PromotionPanel : PanelContainer
     private Label _preview = null!;
     private Button _confirm = null!;
     private Button _save = null!;
+    private readonly System.Collections.Generic.List<Button> _cards = new();
+    private readonly System.Collections.Generic.List<Button> _choosable = new();
 
     public override void _Ready()
     {
@@ -39,6 +42,7 @@ public partial class PromotionPanel : PanelContainer
         _character = character;
         _selected = null;
         Render();
+        UiFocus.GrabFirst(_choosable.Count > 0 ? _choosable : _cards);
     }
 
     private void Render()
@@ -52,7 +56,8 @@ public partial class PromotionPanel : PanelContainer
         _heading.Text = $"{c.Name} · {PromotionFeats.Name(c.Id)} · "
             + (pending > 0 ? $"Level {c.Stats.Level} → {target}" : $"Level {c.Stats.Level}");
         _summary.Text = pending > 0
-            ? $"{pending} promotion(s) available. Choose one feat, then confirm. Earlier feats remain available.\n"
+            ? (pending == 1 ? "One promotion is available." : $"{pending} promotions are available.")
+                + " Choose one feat, then confirm. Earlier feats remain available.\n"
                 + "Confirmation also applies this level's HP, proficiency, skill and spell progression."
             : state.SavedChoices.Count > 0
                 ? "Spend an unspent choice on an available feat. Your level stays the same."
@@ -64,6 +69,8 @@ public partial class PromotionPanel : PanelContainer
         _confirm.Disabled = true;
         _confirm.Text = "Confirm promotion";
         foreach (var child in _tree.GetChildren()) { _tree.RemoveChild(child); child.QueueFree(); }
+        _cards.Clear();
+        _choosable.Clear();
         var options = PromotionFeats.For(c);
         var group = new ButtonGroup();
         foreach (var feat in options)
@@ -91,8 +98,11 @@ public partial class PromotionPanel : PanelContainer
                     + (reason != null ? $"\n{reason}" : "");
                 _confirm.Text = pending > 0 ? $"Promote to level {target} · {feature.DisplayName}" : $"Learn {feature.DisplayName}";
                 _confirm.Disabled = _selected == null;
+                if (_selected != null) UiFocus.Grab(_confirm);
             };
             _tree.AddChild(card);
+            _cards.Add(card);
+            if (reason == null && !learned && canChoose) _choosable.Add(card);
         }
         _save.Visible = pending > 0 && !c.Health.IsDead
             && options.All(f => PromotionFeats.LockReason(c, f, target) != null);

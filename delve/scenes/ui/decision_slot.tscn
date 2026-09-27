@@ -1,0 +1,103 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/DecisionSlot.cs" id="1_slot"]
+[ext_resource type="PackedScene" path="res://scenes/ui/figure_label.tscn" id="2_fig"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="3_pr"]
+
+[node name="DecisionSlot" type="VBoxContainer"]
+size_flags_horizontal = 4
+mouse_filter = 2
+theme_override_constants/separation = 6
+script = ExtResource("1_slot")
+FigureScene = ExtResource("2_fig")
+
+[node name="PreviewCard" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_type_variation = &"HudInset"
+
+[node name="PreviewCol" type="VBoxContainer" parent="PreviewCard"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderRow" type="HBoxContainer" parent="PreviewCard/PreviewCol"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="PreviewHeaderLabel" type="Label" parent="PreviewCard/PreviewCol/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_type_variation = &"EmphasisLabel"
+autowrap_mode = 3
+
+[node name="Tags" type="HBoxContainer" parent="PreviewCard/PreviewCol/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Figures" type="HFlowContainer" parent="PreviewCard/PreviewCol"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/h_separation = 36
+theme_override_constants/v_separation = 8
+
+[node name="PreviewStatsLabel" type="Label" parent="PreviewCard/PreviewCol"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"PreviewStats"
+autowrap_mode = 3
+
+[node name="PreviewDetailLabel" type="Label" parent="PreviewCard/PreviewCol"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+autowrap_mode = 3
+
+[node name="HintRow" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="TargetingHint" type="Label" parent="HintRow"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HintLabel"
+horizontal_alignment = 1
+
+[node name="MoveCostPips" parent="HintRow" instance=ExtResource("3_pr")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+PipSize = Vector2(10, 10)
+
+[node name="ConfirmTargets" type="Button" parent="HintRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+focus_mode = 0
+text = "Cast [Enter]"
+
+[node name="ConfirmOrder" type="Button" parent="HintRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"AccentButton"
+text = "Confirm"

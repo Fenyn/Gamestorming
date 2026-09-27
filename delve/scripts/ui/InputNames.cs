@@ -45,6 +45,7 @@ public static class InputNames
             Key code = key.Keycode != Key.None
                 ? key.Keycode
                 : DisplayServer.KeyboardGetKeycodeFromPhysical(key.PhysicalKeycode);
+            if (code == Key.Escape) return "Esc";
             if (code != Key.None) return OS.GetKeycodeString(code);
         }
         return action.ToString();

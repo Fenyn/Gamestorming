@@ -17,6 +17,7 @@ approved with the mockups the same day.
 |---|---|---|
 | `bg.screen` | (0.055, 0.050, 0.055) | Every 2D screen's background |
 | `scrim` | (0.03, 0.025, 0.03) at 0.70 / 0.88 | Behind modals, behind the inspect view |
+| `scrim.light` | (0.03, 0.025, 0.03) at 0.45 (`SCRIM_LIGHT`) | Under a menu that hides nothing, such as the duel's options menu |
 | `surface.panel` | (0.085, 0.078, 0.080, 0.96) | Framed panels, modals |
 | `surface.raised` | white at 0.06 | Cards and rows inside a panel |
 | `surface.sunken` | black at 0.30 | Inputs, bar tracks |
@@ -72,6 +73,11 @@ approved with the mockups the same day.
 | Toast | Flat tile, meaning-colour edge, `text.primary` |
 | Tooltip | Framed panel, `text.secondary`, 18 |
 | Checkbox | Themed to the same frame and accent |
+| Decision clock | `ClockLabel` 30 `text.primary`; `ClockWarnLabel` 30 `state.warn` once timer and bank together are 10 s or less |
+| Fuse | `FuseBar` progress bar, 4 high, `state.warn` fill on a `state.warn` at 0.20 track, under the decision's clock |
+| Read-only chip | `ChipLabel`: `surface.panel` fill, 1 px `frame.dim` border, radius 4, 18 `text.secondary`, such as the match score beside the gear |
+| Rating line | `RatingLabel`, 24 `text.primary`, the rating sentence on a match result |
+| Menu shade | `scrim` at 0.45 (`SCRIM_LIGHT`), under a menu that hides nothing |
 
 ## 4. Decisions still open
 

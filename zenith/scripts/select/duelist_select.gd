@@ -2,12 +2,14 @@ extends Control
 ## Deck selection, one seat at a time: a searchable library beside a tabbed preview. Nothing about the other seat shows here; the matchup screen
 ## comes after both lock in. Hotseat: Player 1 locks in, then Player 2 on the same screen. Vs AI:
 ## the person picks their own duelist, then the AI's. Online: this client's seat only, and the
-## lobby waits for the other client's lock. A queue room (Find a duel) has no code banner, counts
-## down the lock-in time, names the other player only by their duelist once both have locked, and
-## its Back reads Leave. A ranked room's header says so and that the match is best of 3.
+## lobby waits for the other client's lock. A queue room (Find a duel, Ranked match) has no code
+## banner and no name field, counts down the lock-in time left of Details, names the other player
+## only by their duelist once both have locked, and its Back reads Back to title.
 
 const ROSTER_TILE: PackedScene = preload("res://scenes/select/roster_tile.tscn")
 const ADVANCE_DELAY: float = 0.6
+## The lock-in countdown turns to a warning for its last this many msec.
+const LOCK_WARN_MS: int = 10000
 
 @onready var seat_panel: SelectSeat = $Margin/Column/Body/Seat
 @onready var faces: CardFaceCache = $CardFaceCache
@@ -98,6 +100,10 @@ func _setup_online() -> void:
 	players_strip.visible = true
 	code_label.text = Net.room_code
 	copy_button.pressed.connect(_copy_code)
+	seat_panel.set_online(true, Net.queue_room())
+	if Net.queue_room():
+		$Tick.timeout.connect(_show_lock_countdown)
+		$Tick.start()
 
 
 func _copy_code() -> void:
@@ -121,8 +127,6 @@ func _show_seat(seat: int) -> void:
 	_reset_filters()
 	if seat == Session.ai_seat:
 		title_label.text = "Choose the opponent's deck"
-	elif _online and Net.ranked_room():
-		title_label.text = "Ranked · best of %d" % Net.RANKED_BEST_OF
 	elif _online or Session.ai_seat >= 0:
 		title_label.text = "Choose your deck"
 	else:
@@ -208,18 +212,26 @@ func _on_connection_failed(_reason: String) -> void:
 	Session.go_to_title()
 
 
-## Queue room, until this seat locks: the lock-in time left, in the warning style for its last
-## 10 seconds.
-func _process(_delta: float) -> void:
-	if _online and Net.queue_room() and not Session.locked[_seat]:
-		_show_lock_countdown()
-
-
+## Queue room: the lock-in time left, beside Details, warning in its last 10 seconds, and nothing
+## once this seat has locked. The Tick timer calls it four times a second.
 func _show_lock_countdown() -> void:
+	if not is_inside_tree():
+		return
+	if Session.locked[_seat]:
+		seat_panel.set_countdown("", false)
+		return
 	var left: int = maxi(0, Net.pick_until - Time.get_ticks_msec())
-	var seconds: int = ceili(left / 1000.0)
-	status_label.text = "Lock in within %d:%02d" % [floori(seconds / 60.0), seconds % 60]
-	status_label.theme_type_variation = &"WarnLabel" if left < 10000 else &"MutedLabel"
+	seat_panel.set_countdown(lock_text(left), left < LOCK_WARN_MS)
+
+
+## "Lock in within 0:42." for `left_ms` to go, the seconds rounded up; under LOCK_WARN_MS it also
+## says what running out does.
+static func lock_text(left_ms: int) -> String:
+	var seconds: int = ceili(maxi(0, left_ms) / 1000.0)
+	var time: String = "%d:%02d" % [floori(seconds / 60.0), seconds % 60]
+	if left_ms < LOCK_WARN_MS:
+		return "Lock in within %s or you leave the queue." % time
+	return "Lock in within %s." % time
 
 
 ## Tile badges for the choosing seat, the status line, and what Back does.
@@ -242,14 +254,13 @@ func _refresh() -> void:
 			status_label.text = "Waiting for the other player to connect." if Net.room_code == "" else ""
 	elif _online and Session.locked[_seat]:
 		status_label.text = "Locked in. Waiting for the other player."
-	elif _online and Net.queue_room():
-		_show_lock_countdown()
 	elif Session.locked[_seat]:
 		status_label.text = "Both locked in."
 	else:
 		status_label.text = ""
 	if _online and Net.queue_room():
-		back_button.text = "Leave"
+		_show_lock_countdown()
+		back_button.text = "Back to title"
 	else:
 		back_button.text = "Back" if _order.find(_seat) == 0 else "Back to Player %d" % (_order[0] + 1)
 
@@ -282,7 +293,7 @@ func _refresh_players() -> void:
 		var border: Color = ZenithTheme.BORDER
 		if picked:
 			border = Session.seat_color(seat) if state == "locked in" else Color(Session.seat_color(seat), 0.45)
-		var fill: Color = ZenithTheme.RAISED if present else Color(1, 1, 1, 0.02)
+		var fill: Color = ZenithTheme.RAISED if present else Color.TRANSPARENT
 		(chip.get_parent() as PanelContainer).add_theme_stylebox_override("panel", ZenithTheme.box(fill, border, ZenithTheme.RADIUS, 1, 12, 6))
 	code_banner.visible = not filled and Net.room_code != "" and not Net.queue_room()
 

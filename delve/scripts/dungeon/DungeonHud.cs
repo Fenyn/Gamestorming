@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Delve.Run;
+using Delve.UI;
 using Godot;
 
 namespace Delve.Dungeon;
@@ -90,12 +91,12 @@ public partial class DungeonHud : Control
         _notice.Visible = !fighting;
         int id = state.CurrentNodeId ?? 0;
         var room = floor.Rooms[id];
-        _status.Text = $"Floor {state.Stratum + 1} | {StationPlan.Name(room.Purpose)}    •    Party level {state.Party.Level}    •    {state.Gold} gold";
+        _status.Text = $"Floor {state.Stratum + 1} · {StationPlan.Name(room.Purpose)}    ·    Party level {state.Party.Level}    ·    {state.Gold} gold";
         var ward = state.Wardstone;
         _wardValue.Text = $"{ward.Ward} / {ward.Rules.MaxWard}";
         _wardBar.MaxValue = ward.Rules.MaxWard;
         _wardBar.Value = ward.Ward;
-        var color = new Color(ward.Upshift switch { 0 => "80d8c6", 1 => "e6cd82", 2 => "edaa68", _ => "ef827b" });
+        var color = UiColors.WardTier(ward.Upshift);
         _wardFill.BgColor = color;
         _wardValue.Modulate = color;
         _wardDanger.Modulate = color;
@@ -140,10 +141,10 @@ public partial class DungeonHud : Control
             foreach (var d in room.Doors.Where(d => d.A == room.Id && _floor.Rooms[d.B].Discovered))
             {
                 var b = _floor.Rooms[d.B];
-                DrawLine(p, origin + new Vector2(b.X, b.Y) * step, new Color("829083"), 3);
+                DrawLine(p, origin + new Vector2(b.X, b.Y) * step, UiColors.Line, 3);
             }
 
-            DrawCircle(p, 8, room.Id == _state.CurrentNodeId ? new Color("efc584") : new Color("668477"));
+            DrawCircle(p, 8, room.Id == _state.CurrentNodeId ? UiColors.Accent : UiColors.TextDim);
         }
     }
 }

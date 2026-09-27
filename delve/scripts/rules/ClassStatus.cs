@@ -38,4 +38,16 @@ public static class ClassStatus
         }
         return string.Join("  ",parts);
     }
+
+    /// <summary>Spendable resources as (name, current, max) for pip rows. Binary states count as 1 of 1.</summary>
+    public static IEnumerable<(string Name, int Current, int Max)> ResourcePips(ICharacter c)
+    {
+        if (c.Spellcasting?.MaxFocusPoints>0) yield return ("Focus", c.Spellcasting.CurrentFocusPoints, c.Spellcasting.MaxFocusPoints);
+        var feature=WayfarerFeature.Find(c);
+        if (feature==null) yield break;
+        var s=WayfarerFeature.State(c);
+        if (feature.Class=="Magus") yield return ("Spellstrike", s.SpellstrikeReady?1:0, 1);
+        if (feature.Class=="Thaumaturge") yield return ("Chalice", s.ChaliceDrained?0:1, 1);
+        if (feature.Class=="Swashbuckler") yield return ("Panache", s.Panache?1:0, 1);
+    }
 }

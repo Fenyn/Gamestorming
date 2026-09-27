@@ -5,6 +5,10 @@ extends RefCounted
 ##
 ## Type variations: AccentButton, TileButton, CompactButton, TitleLabel, GroupLabel, HeaderLabel,
 ## RowTitleLabel, BodyLabel, CaptionLabel, MutedLabel, AccentLabel, WarnLabel, StatLabel, Chip (Panel).
+## ClockLabel and ClockWarnLabel: a decision clock at the row size, plain and in its last 10 s.
+## FuseBar (ProgressBar): the 4 px warning fuse under a decision's clock.
+## ChipLabel: a quiet read-only chip on a label, such as the match score beside the options gear.
+## RatingLabel: the rating sentence on a match result, body size in the primary text colour.
 ##
 ## Colour roles. Bone-white is "act here": the primary button, legal cards, YOUR TURN, the current
 ## step, the selection ring. Iron frames every panel and button. Meaning colours (Energy, Might,
@@ -14,6 +18,9 @@ extends RefCounted
 const BG_SCREEN: Color = Color(0.055, 0.050, 0.055)
 const SCRIM: Color = Color(0.03, 0.025, 0.03, 0.70)
 const SCRIM_STRONG: Color = Color(0.03, 0.025, 0.03, 0.88)
+const SCRIM_LIGHT: Color = Color(0.03, 0.025, 0.03, 0.45)  # under a menu that hides nothing
+## The warning fuse's height (`FuseBar`).
+const FUSE_HEIGHT: int = 4
 const BG: Color = Color(0.085, 0.078, 0.080, 0.96)          # surface.panel
 const BG_ACTIVE: Color = Color(0.15, 0.14, 0.14, 0.96)      # raised fill of a selected or active block
 const BG_INPUT: Color = Color(0.0, 0.0, 0.0, 0.30)          # surface.sunken
@@ -150,6 +157,11 @@ static func build() -> Theme:
 	t.set_color("font_color", "AccentLabel", ACCENT)
 	t.set_type_variation("WarnLabel", "Label")
 	t.set_color("font_color", "WarnLabel", WARN)
+	_label(t, "ClockLabel", SIZE_ROW, TEXT)
+	_label(t, "ClockWarnLabel", SIZE_ROW, WARN)
+	_label(t, "RatingLabel", SIZE_BODY, TEXT)
+	_label(t, "ChipLabel", SIZE_CAPTION, TEXT_SOFT)
+	t.set_stylebox("normal", "ChipLabel", box(BG, BORDER, RADIUS, 1, GAP_S, GAP_XS))
 
 	t.set_color("default_color", "RichTextLabel", TEXT)
 	t.set_stylebox("normal", "RichTextLabel", StyleBoxEmpty.new())
@@ -157,6 +169,9 @@ static func build() -> Theme:
 
 	t.set_stylebox("background", "ProgressBar", box(BG_INPUT, Color(0, 0, 0, 0), RADIUS, 0, 0, 0))
 	t.set_stylebox("fill", "ProgressBar", box(ENERGY, Color(0, 0, 0, 0), RADIUS, 0, 0, 0))
+	t.set_type_variation("FuseBar", "ProgressBar")
+	t.set_stylebox("background", "FuseBar", box(WARN_SOFT, Color(0, 0, 0, 0), RADIUS, 0, 0, 0))
+	t.set_stylebox("fill", "FuseBar", box(WARN, Color(0, 0, 0, 0), RADIUS, 0, 0, 0))
 
 	t.set_stylebox("normal", "LineEdit", box(BG_INPUT, BORDER, RADIUS, 1, 12, 6))
 	t.set_stylebox("focus", "LineEdit", box(BG_INPUT, ACCENT, RADIUS, 1, 12, 6))

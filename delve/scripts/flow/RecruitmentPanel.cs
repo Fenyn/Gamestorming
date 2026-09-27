@@ -58,7 +58,7 @@ public partial class RecruitmentPanel : Control
             _filter.SetItemText(i, $"{Filters[i]} ({count})");
         }
         int joined = RecruitmentCatalog.All.Count(arc => _campaign.Unlocks.IsUnlocked(arc.CharacterId));
-        GetNode<Label>("%JournalSummary").Text = $"{joined} / {RecruitmentCatalog.All.Count} companions joined  |  Progress carries between expeditions";
+        GetNode<Label>("%JournalSummary").Text = $"{joined} of {RecruitmentCatalog.All.Count} companions have joined. Progress carries between expeditions.";
         var arcs = RecruitmentCatalog.All.Where(arc => _filter.Selected == 0 || Stage(arc, _campaign) == _filter.Selected)
             .OrderBy(arc => Stage(arc, _campaign) switch { 3 => 0, 2 => 1, 1 => 2, _ => 3 }).ToArray();
         foreach (var arc in arcs)

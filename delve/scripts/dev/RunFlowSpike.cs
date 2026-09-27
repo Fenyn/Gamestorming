@@ -98,7 +98,7 @@ public partial class RunFlowSpike : SpikeBase
             {
                 await ToSignal(GetTree().CreateTimer(0.4), SceneTreeTimer.SignalName.Timeout);
                 DirAccess.MakeDirRecursiveAbsolute("user://dev_shots");
-                GetViewport().GetTexture().GetImage().SavePng("user://dev_shots/combat_rewards.png");
+                SaveViewportCapture("user://dev_shots/combat_rewards.png");
             }
             director.ContinueCombatResults();
             director.ContinueCombatResults();

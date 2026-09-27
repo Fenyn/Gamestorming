@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Delve.Run;
 using Delve.Run.Events;
+using Delve.UI;
 using Godot;
 using PF2e.Core;
 
@@ -70,6 +71,7 @@ public partial class EventPanel : Control
         BuildOptions(definition);
         RefreshPreviews();
         Visible = true;
+        UiFocus.GrabFirst(_optionButtons);
     }
 
     /// <summary>Swap the options for the outcome text and the way back to the map.</summary>
@@ -93,6 +95,7 @@ public partial class EventPanel : Control
         _result.Text = text.ToString();
         _result.Visible = true;
         _continue.Visible = true;
+        UiFocus.Grab(_continue);
         SetOptionsEnabled(false);
         _actorRow.Visible = false;
         _actorHeading.Visible = false;
@@ -108,7 +111,7 @@ public partial class EventPanel : Control
             var option = definition.Options[i];
             var button = new Button {
                 Alignment = HorizontalAlignment.Left,
-                ThemeTypeVariation = "EventOption",
+                ThemeTypeVariation = ThemeNames.EventOption,
                 AutowrapMode = TextServer.AutowrapMode.WordSmart,
                 CustomMinimumSize = new Vector2(0, 48)
             };

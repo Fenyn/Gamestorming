@@ -163,12 +163,26 @@ func _decision_line(referee: Referee, record: MatchRecord, seat: int, deck_id: S
 		"deck": deck_id,
 		"turn": engine.state.turn,
 		"kind": String(prompt.kind),
+		"about": _prompt_about(engine, prompt),
 		"state": {"energy": me.duelist.energy, "fervor": me.fervor, "aspect": me.duelist.aspect, "hand": me.hand.size(),
 			"life": me.life_deck.size(), "foe_energy": foe.duelist.energy, "foe_life": foe.life_deck.size()},
 		"chose": _label(engine, Command.from_dict(wire)),
 		"options": ranked.slice(0, DECISION_OPTIONS),
 		"search": searched,
 	}
+
+
+## What a prompt is asking about, so "yes" and "no" can be read: its purpose, the card it comes
+## from, and the effect line waiting on the answer.
+static func _prompt_about(engine: DuelEngine, prompt: Prompt) -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	for key in ["purpose", "card_title"]:
+		if str(prompt.context.get(key, "")) != "":
+			parts.append(str(prompt.context[key]))
+	var effect: Dictionary = engine._choice.get("effect", {})
+	if not effect.is_empty():
+		parts.append(str(effect.get("op", "")))
+	return " / ".join(parts)
 
 
 ## "attack Storm Lash (#84)": a command with its card named, for a person reading the log.

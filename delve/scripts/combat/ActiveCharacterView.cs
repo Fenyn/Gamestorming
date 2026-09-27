@@ -6,12 +6,18 @@ using PF2e.Utilities;
 
 namespace Delve.Combat;
 
-/// <summary>A compact snapshot of the actor, without target-dependent attack modifiers.</summary>
+/// <summary>A compact snapshot of a combatant, without target-dependent attack modifiers. Feeds the party chip hover.</summary>
 public sealed record ActiveCharacterView(string Id, string Name, int Hp, int MaxHp,
     string HpText, string Gear, string Bonuses, bool IsHero)
 {
     public string Status { get; init; } = "";
     public string StatusTip { get; init; } = "";
+    public ReactionMark Reaction { get; init; }
+
+    /// <summary>Every line as plain sentences, for a hover.</summary>
+    public string Tooltip => string.Join("\n", new[] { Name, $"HP {HpText} · {Bonuses}", Gear, Status, StatusTip }
+        .Where(line => line.Length > 0));
+
     internal static ActiveCharacterView? From(ICharacter? actor)
     {
         if (actor == null) return null;
@@ -39,14 +45,16 @@ public sealed record ActiveCharacterView(string Id, string Name, int Hp, int Max
         var reactions = hero ? actor.Features?.ActiveFeatures
             .Where(f => f is IMovementReaction or IActionReaction or IDamageReaction).Select(f => f.DisplayName).Distinct().ToArray()
             ?? System.Array.Empty<string>() : System.Array.Empty<string>();
+        bool ready = actor.Conditions?.AreReactionsBlocked() != true && actor.Actions?.ReactionAvailable == true;
         if (reactions.Length > 0)
             status.Add(actor.Conditions?.AreReactionsBlocked() == true ? "Reactions blocked"
-                : actor.Actions?.ReactionAvailable == true ? "Reaction ready" : "Reaction spent");
+                : ready ? "Reaction ready" : "Reaction spent");
         return new(actor.Id, actor.Name, inspect.Hp, inspect.MaxHp, inspect.HpText,
             string.Join(" · ", gear), string.Join(" · ", bonuses), hero)
         {
             Status = string.Join(" · ", status),
             StatusTip = reactions.Length > 0 ? string.Join(", ", reactions) + "\nUse reactions when their trigger and requirements are met." : "",
+            Reaction = reactions.Length == 0 ? ReactionMark.None : ready ? ReactionMark.Ready : ReactionMark.Spent,
         };
     }
 }

@@ -26,6 +26,9 @@ script = ExtResource("4_atmosphere")
 
 [node name="CardFaceCache" parent="." instance=ExtResource("3_faces")]
 
+[node name="Tick" type="Timer" parent="."]
+wait_time = 0.25
+
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -51,14 +54,6 @@ layout_mode = 2
 size_flags_vertical = 4
 theme_type_variation = &"HeaderLabel"
 text = "The challenge"
-
-[node name="Status" type="Label" parent="Margin/Column/TitleRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-theme_type_variation = &"MutedLabel"
-text = ""
-horizontal_alignment = 2
 
 [node name="Sides" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
@@ -127,10 +122,11 @@ autowrap_mode = 3
 
 [node name="Countdown" type="Label" parent="Margin/Column/Footer"]
 visible = false
-custom_minimum_size = Vector2(240, 52)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_type_variation = &"HeaderLabel"
-text = "Duel starts in 5"
+text = "Starting in 5 seconds."
 horizontal_alignment = 1
 vertical_alignment = 1
 

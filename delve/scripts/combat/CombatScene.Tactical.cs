@@ -27,9 +27,6 @@ public partial class CombatScene
         _squad = GetNode<SquadPanel>("%SquadPanel");
         _destination = GetNode<DestinationPreview>("%DestinationPreview");
         _squad.FocusRequested += FocusPartyMember;
-        _squad.OverviewRequested += () => { if (!_tacticalHud.ModalActive && !_tacticalFinished) _cameraRig.ToggleOverview(); };
-        _squad.StagingChanged += () => ClearStagedOrder();
-        _squad.ConfirmRequested += ConfirmStagedOrder;
     }
 
     public void FocusPartyMember(int id)
@@ -41,7 +38,8 @@ public partial class CombatScene
         foreach (var (key, visual) in _tacticalUnits) visual.SetFocused(key == id);
         _cameraRig.RestorePlanningView(true);
         _cameraRig.FocusForInspection(unit.GlobalPosition);
-        _inspectPanel.Render(UnitInspectFactory.BuildInspectView(unit.Character));
+        _hoveredId = null;
+        RefreshCard();
     }
 
     private void RefreshSquad(double delta)
@@ -57,16 +55,28 @@ public partial class CombatScene
     {
         foreach (var member in _partyMembers)
         {
-            bool active = member == _session.CurrentActor;
-            int index = -1;
-            for (int i = 0; i < _tacticalOrder.Count; i++)
-                if (_tacticalOrder[i].Id == member.UniqueId) { index = i; break; }
-            string state = member.Health?.IsAlive != true ? "Down" : active ? "Acting"
-                : index < 0 ? "Waiting" : _tacticalOrder[index].IsDelayed ? "Delayed" : $"#{index + 1}";
-            string conditions = string.Join(", ", member.Conditions?.GetAllConditions().Select(c => c.DisplayLabel).Distinct()
-                ?? System.Array.Empty<string>());
-            yield return new(member.UniqueId, member.Id, member.Name, member.Health?.CurrentHP ?? 0,
-                member.Health?.MaxHP ?? 0, active, _focusedMember == member.UniqueId, state, conditions);
+            var detail = ActiveCharacterView.From(member);
+            var conditions = member.Conditions?.GetAllConditions()
+                .GroupBy(c => (c.Definition.Condition, c.PersistentDamage?.DamageType))
+                .Select(g => g.OrderByDescending(c => c.Value).First())
+                .OrderBy(c => c.Definition.DisplayName)
+                .Select(c => new ConditionMarkView(c.PersistentDamage?.DamageType.ToString() ?? c.Definition.Condition.ToString(),
+                    c.DisplayLabel, c.Definition.HasValue ? c.Value : 0, c.Definition.Description ?? ""))
+                .ToArray() ?? System.Array.Empty<ConditionMarkView>();
+            yield return new SquadMemberView
+            {
+                Id = member.UniqueId,
+                HeroId = member.Id,
+                Name = member.Name,
+                Hp = member.Health?.CurrentHP ?? 0,
+                MaxHp = member.Health?.MaxHP ?? 0,
+                Framed = member == _session.CurrentActor || member.UniqueId == _reactorId,
+                Focused = _focusedMember == member.UniqueId,
+                Down = member.Health?.IsAlive != true,
+                Reaction = detail?.Reaction ?? ReactionMark.None,
+                Conditions = conditions,
+                Tooltip = detail?.Tooltip ?? member.Name,
+            };
         }
     }
 
@@ -74,6 +84,7 @@ public partial class CombatScene
     {
         _focusedMember = null;
         foreach (var visual in _tacticalUnits.Values) visual.SetFocused(false);
+        RefreshCard();
     }
 
     private void PreviewDestination(IReadOnlyList<PF2eVec>? path)
@@ -98,12 +109,12 @@ public partial class CombatScene
             if (member != null) { FocusPartyMember(member.Character.UniqueId); return; }
         }
         bool canStage = _controller.CanStageOrder(tile);
-        if (_squad.StageOrders && canStage)
+        if (_actionBar.StageOrders && canStage)
         {
             if (_stagedTile is { } previous && previous.Equals(tile) && _stagedMode == mode) { ConfirmStagedOrder(); return; }
             _stagedTile = tile;
             _stagedMode = mode;
-            _squad.SetStaged(true);
+            _actionBar.SetStaged(true);
             _controller.TileHovered(tile);
             if (mode != PlayerTurnMode.Idle && _session.CurrentActor is { } actor)
                 _cameraRig.FrameAction(Delve.Terrain.GridSpace.GridToWorld(actor.GridPosition, SurfaceHeights),
@@ -124,7 +135,7 @@ public partial class CombatScene
     private void ClearStagedOrder(bool restoreCamera = true)
     {
         _stagedTile = null;
-        _squad.SetStaged(false);
+        _actionBar.SetStaged(false);
         _destination.Hide();
         if (restoreCamera) _cameraRig.RestorePlanningView();
     }
@@ -137,6 +148,10 @@ public partial class CombatScene
         _tacticalOrder = System.Array.Empty<UnitView>();
         _focusedMember = null;
         _tacticalFinished = false;
+        _hoveredId = null;
+        _reactorId = null;
+        _promptOpen = false;
+        ClearBoardTargets();
         _partyMembers = System.Array.Empty<ICharacter>();
         _squad.Setup(System.Array.Empty<SquadMemberView>());
     }

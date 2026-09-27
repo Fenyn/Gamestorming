@@ -122,6 +122,7 @@ public sealed class CombatSession
     public int RoundNumber => _turnManager?.RoundNumber ?? 0;
     public IReadOnlyList<ICharacter> Team1 => _team1;
     public IReadOnlyList<ICharacter> Team2 => _team2;
+    public EnemyLetters Letters { get; } = new();
 
     // ---------------------------------------------------------------- Setup / teardown
 
@@ -207,6 +208,7 @@ public sealed class CombatSession
             Grid.PlaceCreature(unit, pos);
             _team2.Add(unit);
         }
+        Letters.Assign(_team2);
 
         foreach (var summoner in _team1.OfType<PF2eCharacter>().Where(c => WayfarerFeature.Find(c)?.Class == "Summoner").ToArray())
         {
@@ -390,6 +392,7 @@ public sealed class CombatSession
         _eidolons.Clear();
         _scope?.Dispose();
         _scope = null;
+        Letters.Restore();
     }
 
     // ---------------------------------------------------------------- Turn loop
@@ -625,49 +628,7 @@ public sealed class CombatSession
         if (ReactionPromptHandler == null || _autoReactions.Contains(ctx.Reactor))
             return Task.FromResult(true);
 
-        return ReactionPromptHandler(BuildPromptView(ctx));
-    }
-
-    /// <summary>Translate the engine context into a UI view model (no engine types cross to UI).</summary>
-    private static ReactionPromptView BuildPromptView(ReactionPromptContext ctx)
-    {
-        string description = ctx.PromptInfo.Description ?? "";
-
-        // Feature-supplied text is null for preview-style prompts (Shield Block, Reactive
-        // Strike) — synthesize the consequence text the panel shows.
-        if (string.IsNullOrEmpty(description))
-        {
-            switch (ctx.Trigger)
-            {
-                case ReactionTrigger.Damage:
-                {
-                    int incoming = ctx.Damage?.TotalDamage ?? 0;
-                    int hardness = ctx.Reactor.Equipment?.EquippedShield?.Hardness ?? 0;
-                    int absorbed = Math.Min(hardness, incoming);
-                    string who = ctx.ProtectedAlly != null ? $" for {ctx.ProtectedAlly.Name}" : "";
-                    description =
-                        $"Absorb {absorbed} of {incoming} incoming damage{who} — your shield takes the rest.";
-                    break;
-                }
-                case ReactionTrigger.Movement:
-                    description = $"Strike {ctx.Source?.Name ?? "the enemy"} as they leave your reach.";
-                    break;
-                case ReactionTrigger.Action:
-                    description = $"Strike {ctx.Source?.Name ?? "the enemy"} as they act within your reach.";
-                    break;
-                default:
-                    description = $"Spend your reaction to use {ctx.ReactionName}.";
-                    break;
-            }
-        }
-
-        return new ReactionPromptView
-        {
-            ReactorName = ctx.Reactor.Name,
-            PortraitKey = ctx.Reactor.Name,
-            ReactionName = ctx.ReactionName,
-            Description = description,
-        };
+        return ReactionPromptHandler(ReactionPromptBuilder.Build(ctx));
     }
 
     private async Task RunAiTurn(ICharacter actor)

@@ -19,9 +19,12 @@ const FERVOR: Color = ZenithTheme.FERVOR
 const FERVOR_TEXT: Color = ZenithTheme.FERVOR_TEXT
 const STATUS: Color = ZenithTheme.WARN
 const TRACKER_SIZE: Vector2 = Vector2(540, 160)
-## The plate's own canvas: the tracker inset by PLATE_PAD, with room under it for the lives tab.
+## The plate's own canvas: the tracker inset by PLATE_PAD, with room under it for the lives tab and
+## the rival's tab (`PlateTab`). TAB_ROOM is what the tab added; the tracker sits that much further
+## from its card, so the plate still stands where it stood and only grows taller.
 const PLATE_PAD: Vector2 = Vector2(10, 10)
-const PLATE_CANVAS: Vector2i = Vector2i(560, 196)
+const PLATE_CANVAS: Vector2i = Vector2i(560, 220)
+const TAB_ROOM: float = 24.0
 ## The near seat's plate sits this many canvas pixels further toward the viewer, below the Out
 ## and Relic captions rather than between them.
 const NEAR_DROP: float = 85.0
@@ -99,17 +102,17 @@ var _lives: int = 1          # how many points the rival needs against this seat
 var _lives_lost: int = 0     # how many of them the rival has scored
 var _show_lives: bool = false  # only when either side has more than one (adventure duels)
 const LIFE_RED: Color = Color(0.93, 0.36, 0.36)
-## Online: the tab along the plate's foot while this seat decides, "who is deciding" or "Time bank"
-## beside the time left, warning-coloured once little is left. Empty when no clock runs.
-const CLOCK_TAB: Vector2 = Vector2(440, 36)
-var _clock_label: String = ""
-var _clock_time: String = ""
-var _clock_warn: bool = false
-## Online: "X lost connection. 1:12 to return." across the plate's foot in place of the clock tab
-## while this seat's player is away, "" while they are here.
-var _away: String = ""
-const AWAY_FONT: int = 26
-const AWAY_FONT_MIN: int = 16
+## Online, the rival's plate: a tab under its lower edge, clear of the tracker's base line. BANK
+## reads "Time bank 0:48" while they spend their bank, AWAY "Disconnected 1:16" while their
+## connection is down; NONE, while they decide on their timer or not at all, draws nothing, since
+## the decision panel already says it waits on them. Fixed size and type, whatever the name.
+enum PlateTab { NONE, BANK, AWAY }
+const TAB_SIZE: Vector2 = Vector2(440, 54)
+const TAB_FONT: int = 44
+const TAB_RISE: float = 8.0   # how far the tab reaches up over the tracker's lower edge
+var _tab: PlateTab = PlateTab.NONE
+var _tab_text: String = ""
+var _tab_warn: bool = false
 var _accent: Color = IVORY
 var _initialized: bool = false
 var _player_index: int = -1
@@ -217,7 +220,7 @@ func update_layout() -> Dictionary:
 	stat_hit_rects.clear()
 	var far_side: bool = _player_index != _viewer
 	var middle_x: float = duelist_bounds.get_center().x
-	var tracker_y: float = card_bounds.position.y - 184.0 if far_side else card_bounds.end.y + 24.0 + NEAR_DROP
+	var tracker_y: float = (card_bounds.position.y - 184.0 if far_side else card_bounds.end.y + 24.0 + NEAR_DROP) - TAB_ROOM
 	var tracker: Rect2 = Rect2(Vector2(middle_x - TRACKER_SIZE.x * 0.5, tracker_y), TRACKER_SIZE)
 	# The far seat's status lines sit past its standing plate, clear of the table it hides.
 	var first_row: float = tracker_y - 12.0 - _chip_step() - flag_clearance if far_side else tracker.position.y + 48.0
@@ -272,10 +275,8 @@ func _draw() -> void:
 		_draw_tracker(plate)
 		if _show_lives:
 			_draw_lives(plate)
-		if _away != "":
-			_draw_away(plate)
-		elif _clock_label != "":
-			_draw_clock(plate)
+		if _tab != PlateTab.NONE:
+			_draw_tab(plate)
 		return
 	draw_set_transform(size * 0.5)
 	var layout: Dictionary = update_layout()
@@ -508,51 +509,44 @@ func _draw_lives(tracker: Rect2) -> void:
 		_heart(Vector2(tab.position.x + 96.0 + 32.0 * i, tab.get_center().y), 9.5, LIFE_RED if left else INK, LIFE_RED if left else Color(MUTED, 0.5))
 
 
-func set_clock(label: String, time: String, warn: bool) -> void:
-	if label == _clock_label and time == _clock_time and warn == _clock_warn:
+## The rival's tab (`PlateTab`): what it is, its whole line ("Time bank 0:48"), and whether it
+## warns. Redraws only when one of them changes.
+func set_tab(kind: PlateTab, text: String, warn: bool) -> void:
+	var shown: String = text if kind != PlateTab.NONE else ""
+	var warns: bool = warn and kind != PlateTab.NONE
+	if kind == _tab and shown == _tab_text and warns == _tab_warn:
 		return
-	_clock_label = label
-	_clock_time = time
-	_clock_warn = warn
+	_tab = kind
+	_tab_text = shown
+	_tab_warn = warns
 	request_redraw()
 
 
-func clock_text() -> String:
-	return "%s %s" % [_clock_label, _clock_time] if _clock_label != "" else ""
+func tab_kind() -> PlateTab:
+	return _tab
 
 
-func set_away(text: String) -> void:
-	if text == _away:
-		return
-	_away = text
-	request_redraw()
+func tab_text() -> String:
+	return _tab_text
 
 
-func away_text() -> String:
-	return _away
+func tab_warns() -> bool:
+	return _tab_warn
 
 
-## The away line takes the clock tab's place at nearly the plate's width, in the warning colour,
-## its type stepping down until the whole sentence fits.
-func _draw_away(tracker: Rect2) -> void:
-	var tab: Rect2 = Rect2(tracker.position.x + 10.0, tracker.end.y - 14.0, tracker.size.x - 20.0, CLOCK_TAB.y)
-	var room: float = tab.size.x - 24.0
-	var font_size: int = AWAY_FONT
-	while font_size > AWAY_FONT_MIN and _font.get_string_size(_away, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > room:
-		font_size -= 1
-	draw_rect(tab, INK)
-	draw_rect(tab, ZenithTheme.WARN, false, 2.0)
-	_text(_away, tab.position + Vector2(12, 27), room, font_size, ZenithTheme.WARN, true)
+## Where the tab sits on the plate canvas: centred under the tracker, reaching TAB_RISE up over its
+## lower edge and no further, so the base line above stays clear.
+func tab_rect(tracker: Rect2) -> Rect2:
+	return Rect2(tracker.get_center().x - TAB_SIZE.x * 0.5, tracker.end.y - TAB_RISE, TAB_SIZE.x, TAB_SIZE.y)
 
 
-## The clock tab straddles the plate's bottom border like the lives tab, which online never shows.
-func _draw_clock(tracker: Rect2) -> void:
-	var tab: Rect2 = Rect2(tracker.get_center().x - CLOCK_TAB.x * 0.5, tracker.end.y - 14.0, CLOCK_TAB.x, CLOCK_TAB.y)
-	var color: Color = ZenithTheme.WARN if _clock_warn else TEXT
-	draw_rect(tab, INK)
-	draw_rect(tab, ZenithTheme.WARN if _clock_warn else MapArt.muted(_accent).lerp(Color.WHITE, 0.3), false, 2.0)
-	_text(_clock_label, tab.position + Vector2(12, 27), tab.size.x - 120.0, 26, MUTED if not _clock_warn else color)
-	_text(_clock_time, Vector2(tab.end.x - 100.0, tab.position.y + 29), 88, 30, color, true)
+func _draw_tab(tracker: Rect2) -> void:
+	var box: Rect2 = tab_rect(tracker)
+	var color: Color = ZenithTheme.WARN if _tab_warn else TEXT
+	draw_rect(box, INK)
+	draw_rect(box, ZenithTheme.WARN if _tab_warn else MapArt.muted(_accent).lerp(Color.WHITE, 0.3), false, 2.0)
+	var baseline: float = box.position.y + (box.size.y + _font.get_ascent(TAB_FONT) - _font.get_descent(TAB_FONT)) * 0.5
+	_text(_tab_text, Vector2(box.position.x + 12.0, baseline), box.size.x - 24.0, TAB_FONT, color, true)
 
 
 ## A small heart: two lobes and a point, filled or hollow.

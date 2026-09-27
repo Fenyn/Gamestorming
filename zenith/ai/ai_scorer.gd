@@ -14,9 +14,17 @@ const TUTOR_DEPTH: int = 3
 
 ## How many attacks a standing modifier is expected to touch, by how long it lasts. A Combat is
 ## worth about one more attack after the one that set it; a game-long one about six.
+## The lines a card resolves when it is used, in whichever window it was offered: the ordinary use,
+## a Relic's, and the answer to the rival declaring Combat.
+const USE_TRIGGERS: Array = ["use", "secondary", "relic_use", "opponent_declare"]
+
 ## The Strike Table result between duelists on the same Might band (`StrikeTable.base_damage`), the
 ## stand-in for a plain Strike's base when no matchup is at hand.
 const EVEN_TABLE_STAGES: int = 1
+
+## The share of a hidden hand card that can block an attack, for reading a rival's hand size as a
+## chance of a block. About a third of a starter list defends.
+const BLOCK_SHARE: float = 0.35
 
 ## What a kept card that cannot defend is worth through the opponent's turn. See `_keep_score`.
 const KEPT_OFF_TURN: float = 0.5
@@ -66,22 +74,18 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 		&"use":
 			if c == null:
 				return 0.2
-			var handover: float = AiEvaluator.handover_progress(engine, me)
-			return effects_value(c.def.effects, profile, ["use", "secondary", "relic_use"], handover) \
-				+ _aspect_jump_value(c, me, profile) + _bond_use_value(engine, me, c.def, profile) \
-				+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c) \
-				- profile.w("play", "use_cost")
+			return _use_score(engine, profile, me, c)
 		&"relic":
 			# The Relic fires once a game, so it is worth what it actually fetches rather than a
 			# flat "do something". With a tutor decay set, that includes the chain it opens.
-			if c == null:
-				return 1.0
-			return 1.0 + effects_value(c.def.effects, profile, ["relic_use"]) \
-				+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c)
+			return relic_score(engine, profile, me, c)
 		&"defend", &"power_defend":
 			return _defense_score(engine, profile, me, o, c)
 		&"declare":
-			return _declare_score(profile, me)
+			# Declaring makes the rival draw three; with fewer than that left, they deck out.
+			if foe.life_deck.size() < DuelEngine.DRAW_COUNT:
+				return AiEvaluator.WIN
+			return _declare_score(engine, profile, me)
 		&"skip":
 			return 1.0
 		&"place":
@@ -99,7 +103,7 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 				return -1.0
 			return AiReserve.score(engine, seat, c, profile)
 		&"counter":
-			return 1.5
+			return _counter_score(engine, profile, me, prompt, c)
 		&"control":
 			# Hand Combat to whoever hits hardest on the Strike Table.
 			if c == null:
@@ -111,11 +115,13 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 		&"endure":
 			return 1.0
 		&"capture":
-			return profile.w("effect", "capture_seal")
+			return _capture_score(engine, profile, me, foe, c)
+		&"deal_damage":
+			return _landing_value(engine, profile, foe)
 		&"discard_ally":
-			return profile.w("foe", "ally")
+			return _ally_worth(engine, profile, foe, c)
 		&"lower_fervor":
-			return profile.w("effect", "fervor") * (1.0 if foe.fervor > 0 else 0.0)
+			return _lower_fervor_score(engine, profile, foe)
 		&"recover":
 			return 1.0
 		&"pay":
@@ -150,29 +156,50 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 
 static func _attack_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, foe: PlayerState, o: Command, c: CardInstance, forecasts: Dictionary) -> float:
 	var f: Dictionary = forecasts.get(o.card, {})
-	if o.type == &"attack" and o.value != null and str(o.value) == "empower" and f.has("empowered"):
-		var emp: Dictionary = f["empowered"]
-		f = {"stages": emp["stages"], "life": emp["life"], "cost_stages": f.get("cost_stages", 0)}
-	var life: int = int(f.get("life", 0))
-	var stages: int = int(f.get("stages", 0))
-	if life >= foe.life_deck.size() and life > 0:
+	var empowered: bool = o.type == &"attack" and o.value != null and str(o.value) == "empower"
+	if empowered and f.has("empowered"):
+		f = f["empowered"]
+	elif o.type == &"power" and o.value != null and str(o.value) == "alt" and f.has("alt"):
+		f = f["alt"]
+	elif o.type == &"final_strike" and f.has("final"):
+		f = f["final"]
+	elif o.type == &"copied_attack":
+		f = _copied_forecast(engine, me)
+	# Energy past what the defender stands on becomes wounds, one for one.
+	var wounds: int = int(f.get("wounds", f.get("life", 0)))
+	var soaked: int = int(f.get("stages", 0)) - int(f.get("overflow", 0))
+	if wounds >= foe.life_deck.size() and wounds > 0:
 		return AiEvaluator.WIN
-	var v: float = life * profile.w("play", "damage_life") + stages * profile.w("play", "damage_stage")
+	var v: float = wounds * profile.w("play", "damage_life") + soaked * profile.w("play", "damage_stage")
 	v -= int(f.get("cost_stages", 0)) * _cost_weight(engine, profile, me)
 	if o.type == &"final_strike":
-		# The card is thrown away and the rest of the Combat is spent passing.
-		return v - profile.w("play", "final_strike_penalty") - me.hand.size() * 0.5
+		# A bare Strike: the card is thrown away unplayed, and the rest of the Combat is spent passing.
+		return v - card_value(engine, me, c, profile, TUTOR_DEPTH) - profile.w("play", "final_strike_penalty") - me.hand.size() * 0.5
 	if c != null:
 		var handover: float = AiEvaluator.handover_progress(engine, me)
 		var kind: String = str(c.power().get("attack", {}).get("kind", "strike")) if o.type == &"power" else c.def.attack_kind()
-		if o.type == &"power":
-			var effects: Array = c.power().get("effects", [])
-			v += effects_value(effects, profile, ["secondary", "if_successful", "use"], handover)
-		else:
-			v += effects_value(c.def.effects, profile, ["secondary", "if_successful", "use"], handover)
+		var lines: Array = c.power().get("effects", []) if o.type == &"power" else c.def.effects
+		if empowered and not engine._has_floating(me.index, "empower_keeps_text"):
+			# Empowering trades the card's "after Empower" text for the bigger number.
+			lines = lines.filter(func(e: Dictionary) -> bool: return not bool(e.get("after_empower", false)))
+		v += effects_value(lines, profile, ["secondary", "if_successful", "use"], handover, engine, me.index)
 		v += _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c)
 		v += _mastery_attack_value(engine, profile, me, c.def, kind, handover)
 	return v + 0.1
+
+
+## The attack a copy repeats ("perform the attack that was just used against you"), read off the
+## floating copy this side holds, priced from its data.
+static func _copied_forecast(engine: DuelEngine, me: PlayerState) -> Dictionary:
+	for fl in engine.state.floating:
+		if int(fl.get("owner", -1)) == me.index and str(fl.get("op", "")) == "copied_attack":
+			var spec: Dictionary = fl.get("spec", {})
+			var base: Dictionary = DuelEngine.printed_base(spec, str(spec.get("kind", "strike")))
+			var stages: int = int(base["stages"]) + int(spec.get("stages", 0))
+			if str(spec.get("kind", "strike")) == "strike" and not spec.has("printed_stages") and not spec.has("printed_life"):
+				stages += EVEN_TABLE_STAGES
+			return {"stages": stages, "life": int(base["life"]) + int(spec.get("life", 0))}
+	return {}
 
 
 ## What the Mastery adds to this attack: its `on_attack` lines, and its `on_success` lines priced as
@@ -227,36 +254,115 @@ static func _redirect_score(engine: DuelEngine, profile: AiProfile, me: PlayerSt
 	var v: float = -float(overflow) * profile.w("play", "damage_life")
 	var soaked: float = float(mini(stages, c.energy))
 	if c == me.duelist:
-		v -= soaked * profile.w("own", "energy")
+		v -= soaked * duelist_energy_price(engine, me, profile)
 	else:
 		v -= soaked * profile.w("own", "ally_energy")
 	return v
 
 
 static func _defense_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, o: Command, c: CardInstance) -> float:
+	var a: Dictionary = engine.state.attack
 	var threat: float = _threat(engine, profile, me)
-	var attack_effects: Array = engine.state.attack.get("effects", [])
-	threat += effects_value(attack_effects, profile, ["if_successful"])
+	# The attacker's hit lines, valued as the attacker's gain, which is this side's loss.
+	threat += effects_value(a.get("effects", []), profile, ["if_successful"], 0.0, engine, 1 - me.index)
+	# A Shield in play that will stop it anyway leaves a hand block nothing to save.
+	if not engine._available_shields(me, str(a.get("kind", "strike")), bool(a.get("focused", false))).is_empty() and int(a.get("stops_needed", 1)) - int(a.get("stop_count", 0)) <= 1:
+		threat = 0.0
+	# An attack that needs two stops is stopped by this block only if another follows it.
+	elif int(a.get("stops_needed", 1)) - int(a.get("stop_count", 0)) > 1:
+		threat *= 0.5
 	var cost: float = profile.w("play", "defend_in_play")
 	if o.type == &"defend" and c != null and c.zone == &"hand":
 		cost = profile.w("play", "defend_card")
+		# A card that also attacks is a swing given up.
+		if c.def.is_attack():
+			cost += _expected_damage_value(c.def.attack, c.def.attack_kind(), profile) * KEPT_OFF_TURN
+	if c != null and o.type == &"defend":
+		var spec: Dictionary = c.def.defense
+		cost += int(spec.get("cost_life", 0)) * life_card_price(me, profile)
+		cost += int(spec.get("cost_hand", 0)) * (_cheapest_in_hand(me, profile) if me.hand.size() > 1 else 0.0)
+		cost += int(spec.get("cost_stages", 0)) * duelist_energy_price(engine, me, profile)
 	# What the block itself does on the way ("stop it and gain 2 Energy"), so the better block wins.
 	var own_lines: float = 0.0
 	if c != null:
 		var lines: Array = c.power().get("effects", []) if o.type == &"power_defend" else c.def.effects
-		own_lines = effects_value(lines, profile, ["secondary"], AiEvaluator.handover_progress(engine, me))
+		own_lines = effects_value(lines, profile, ["secondary"], AiEvaluator.handover_progress(engine, me), engine, me.index)
 	return threat - cost + own_lines
 
 
 ## What the attack in the air would cost this side if it landed: its wounds, counting the Energy that
 ## overflows into them, plus the Energy it takes. A killing blow is a lost game.
 static func _threat(engine: DuelEngine, profile: AiProfile, me: PlayerState) -> float:
+	return _landing_value(engine, profile, me)
+
+
+## What the attack in the air does to `victim` when it lands: wounds (overflow included) and the
+## Energy soaked. A killing blow is worth the game.
+static func _landing_value(engine: DuelEngine, profile: AiProfile, victim: PlayerState) -> float:
 	var b: Dictionary = engine.damage_breakdown(engine.state.attack)
 	var wounds: int = int(b.get("wounds", 0))
-	if wounds >= me.life_deck.size() and wounds > 0:
+	if wounds >= victim.life_deck.size() and wounds > 0:
 		return AiEvaluator.WIN
 	var soaked: int = int(b.get("stages", 0)) - int(b.get("overflow", 0))
 	return wounds * profile.w("play", "damage_life") + soaked * profile.w("play", "damage_stage")
+
+
+## Capturing a Seal instead of dealing damage: the Seal leaves their set and joins ours. A capture
+## that completes our set wins; so does refusing it for damage that kills, which `deal_damage` prices.
+static func _capture_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, foe: PlayerState, t: CardInstance) -> float:
+	if t == null:
+		return 0.0
+	var mine_after: float = _seal_part(me, t.def.seal_set, 1)
+	if mine_after >= 1.0:
+		return AiEvaluator.WIN
+	var gain: float = (mine_after - _seal_part(me, t.def.seal_set, 0)) * profile.w("own", "seal")
+	var denied: float = (_seal_part(foe, "", 0) - _seal_part(foe, t.def.seal_set, -1)) * profile.w("foe", "seal")
+	return gain + denied + profile.w("effect", "capture_seal") * 0.25
+
+
+## `AiEvaluator.seal_progress` for `p` with `delta` Seals of `seal_set` added or taken away.
+static func _seal_part(p: PlayerState, seal_set: String, delta: int) -> float:
+	var counted: Dictionary = {}
+	for s in p.seals():
+		counted[s.def.seal_set] = int(counted.get(s.def.seal_set, 0)) + 1
+	if seal_set != "":
+		counted[seal_set] = maxi(0, int(counted.get(seal_set, 0)) + delta)
+	var best: int = 0
+	for k in counted:
+		best = maxi(best, int(counted[k]))
+	var part: float = float(best) / float(DuelEngine.SEALS_PER_SET)
+	return 0.5 * part + 0.5 * part * part
+
+
+## What an Ally is worth to the side that holds it: its place, its Energy and what its power can do.
+static func _ally_worth(engine: DuelEngine, profile: AiProfile, owner: PlayerState, c: CardInstance) -> float:
+	if c == null:
+		return profile.w("foe", "ally")
+	return profile.w("foe", "ally") + c.energy * profile.w("foe", "ally_energy") + usable_power_value(engine, owner, c, profile) * 0.35
+
+
+## Taking a Fervor from the rival: the Fervor itself, plus how far it sets back their Ascension clock.
+static func _lower_fervor_score(engine: DuelEngine, profile: AiProfile, foe: PlayerState) -> float:
+	if foe.fervor <= 0:
+		return 0.0
+	var before: float = AiEvaluator.ascension_progress(engine, foe)
+	foe.fervor -= 1
+	var after: float = AiEvaluator.ascension_progress(engine, foe)
+	foe.fervor += 1
+	return _fervor_value(-1.0, true, profile) + (before - after) * profile.w("foe", "ascension")
+
+
+## Countering the card the rival is playing: what its lines would have done for them, less the card
+## that answers it.
+static func _counter_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, prompt: Prompt, c: CardInstance) -> float:
+	var pending: CardInstance = engine.card(int(prompt.context.get("card", -1)))
+	if pending == null:
+		return 1.5
+	var foe_seat: int = 1 - me.index
+	var denied: float = effects_value(pending.def.effects, profile, USE_TRIGGERS, 0.0, engine, foe_seat)
+	if pending.def.is_attack():
+		denied += _expected_damage_value(pending.def.attack, pending.def.attack_kind(), profile)
+	return denied - (hold_value(c, profile) * 0.5 if c != null else 0.0)
 
 
 ## Buying wounds off with the discard pile: the wounds prevented, less the cards burned. The engine
@@ -295,23 +401,66 @@ static func _cheapest_in_hand(me: PlayerState, profile: AiProfile) -> float:
 	return cheapest
 
 
-## Whether to open Combat. Attacks are the obvious reason, but a hand can also be carrying cards
-## that only work once Combat is open, and a deck that never attacks still has to declare to spend
-## them. `declare_use` is off by default, so only a profile that asks for it weighs what it carries.
-static func _declare_score(profile: AiProfile, me: PlayerState) -> float:
+## Whether to open Combat, against `skip` at 1.0. Declaring hands the rival three cards and an attack
+## phase of their own, so it needs a reason: an attack the engine would offer right now, or cards,
+## powers and entering-Combat lines that together pay more than the rival's draw. Without one it
+## scores 0 whatever the profile's `declare_bias`, which is a stance about how readily to fight and
+## not a reason to fight with nothing. `declare_use` weighs what is carried.
+static func _declare_score(engine: DuelEngine, profile: AiProfile, me: PlayerState) -> float:
 	var attackers: int = 0
 	var carried: float = 0.0
+	var handover: float = AiEvaluator.handover_progress(engine, me)
+	for o in engine.attack_phase_options(me):
+		var c: CardInstance = engine.card(o.card)
+		match o.type:
+			&"attack", &"copied_attack":
+				attackers += 1
+			&"power":
+				var pw: Dictionary = c.power_alt() if o.value != null and str(o.value) == "alt" else c.power()
+				if pw.has("attack"):
+					attackers += 1
+				else:
+					carried += maxf(0.0, effects_value(pw.get("effects", []), profile, ["secondary"], handover, engine, me.index))
+			&"use":
+				if c != null:
+					carried += maxf(0.0, _use_score(engine, profile, me, c))
+			&"ransom":
+				carried += profile.w("effect", "discard_in_play")
+	var entering: float = _entering_value(engine, profile, me, handover)
+	if attackers == 0 and carried + entering <= DuelEngine.DRAW_COUNT * profile.w("effect", "draw"):
+		return 0.0
+	return attackers * 1.0 + carried * profile.w("play", "declare_use") + entering + profile.w("play", "declare_bias")
+
+
+## What this side's own entering-Combat lines pay when it declares: its Drills, Non-Combats,
+## attachments, Mastery and Grounds, its Duelist's power, and hand cards used on entry.
+static func _entering_value(engine: DuelEngine, profile: AiProfile, me: PlayerState, handover: float) -> float:
+	var lines: Array[Dictionary] = []
+	for c in engine._in_play_sources(me, true):
+		for e in c.def.effects_for("entering_combat"):
+			if DuelEngine.role_matches(str(e.get("role", "")), "active"):
+				lines.append(e)
+		if c.attached_to != null:
+			for e in c.def.attachment.get("effects", []):
+				if str(e.get("trigger", "")) == "entering_combat":
+					lines.append(e)
+	for e in me.duelist.power().get("effects", []):
+		if str(e.get("trigger", "")) == "entering_combat" and DuelEngine.role_matches(str(e.get("role", "")), "active"):
+			lines.append(e)
+	var v: float = effects_value(lines, profile, [], handover, engine, me.index)
 	for c in me.hand:
-		if c.def.is_attack():
-			attackers += 1
-		elif not c.def.effects_for("use").is_empty():
-			carried += effects_value(c.def.effects, profile, ["use"])
-	if me.in_control().power().has("attack"):
-		attackers += 1
-	for al in me.allies():
-		if al.power().has("attack"):
-			attackers += 1
-	return attackers * 1.0 + carried * profile.w("play", "declare_use") + profile.w("play", "declare_bias")
+		if str(c.def.raw.get("use_at", "")) == "entering_combat" and c.def.is_hand_combat_card() and engine._can_play(me, c.def):
+			v += maxf(0.0, effects_value(c.def.effects, profile, [], handover, engine, me.index))
+	return v
+
+
+## Using `c` now: what its lines do, less the small price of spending an action on it.
+static func _use_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, c: CardInstance) -> float:
+	var handover: float = AiEvaluator.handover_progress(engine, me)
+	return effects_value(c.def.effects, profile, USE_TRIGGERS, handover, engine, me.index) \
+		+ _aspect_jump_value(c, me, profile) + _bond_use_value(engine, me, c.def, profile) \
+		+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c) \
+		- profile.w("play", "use_cost")
 
 
 ## Placing Grounds: what the new Grounds are worth to me against the ones they replace (or none),
@@ -319,7 +468,7 @@ static func _declare_score(profile: AiProfile, me: PlayerState) -> float:
 static func _grounds_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, c: CardInstance) -> float:
 	var current: CardDef = engine.state.grounds.def if engine.state.grounds != null else null
 	var gain: float = AiEvaluator.grounds_value(engine, me.index, c.def, profile) - AiEvaluator.grounds_value(engine, me.index, current, profile)
-	return gain - _declare_score(profile, me) * profile.w("play", "grounds_skip")
+	return gain - _declare_score(engine, profile, me) * profile.w("play", "grounds_skip")
 
 
 ## A card that moves the duelist to the aspect matching its Fervor: worth the aspects gained, and a
@@ -330,6 +479,32 @@ static func _aspect_jump_value(c: CardInstance, me: PlayerState, profile: AiProf
 			var target: int = clampi(me.fervor, me.duelist.stack.lowest_aspect(), me.highest_aspect)
 			return float(target - me.duelist.aspect) * profile.w("own", "aspect")
 	return 0.0
+
+
+## Using the Relic now: what its lines do this turn. Its uses are few, so a line that takes nothing
+## away (forbidding a Mastery the rival does not have) is no reason to spend one.
+static func relic_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, c: CardInstance) -> float:
+	if c == null:
+		return 0.0
+	return effects_value(c.def.effects, profile, ["relic_use"], AiEvaluator.handover_progress(engine, me), engine, me.index) \
+		+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c)
+
+
+## Whether forbidding `what` to the rival takes anything away: a forbidden Mastery, Drill, Ally or
+## Relic they do not have in play costs them nothing. Kinds of card they play from hand are assumed live.
+static func _foe_has(foe: PlayerState, what: String) -> bool:
+	match what:
+		"mastery":
+			return foe.mastery != null
+		"drills":
+			return not foe.drills().is_empty()
+		"non_combats":
+			return not foe.non_combats().is_empty()
+		"allies":
+			return not foe.allies().is_empty()
+		"relic":
+			return foe.relic != null
+	return true
 
 
 ## For the player whose turn is ending, a card kept through the discard step waits out the
@@ -344,14 +519,22 @@ static func _keep_score(engine: DuelEngine, me: PlayerState, c: CardInstance, pr
 	return 0.5 + (worth * KEPT_OFF_TURN if waits else worth)
 
 
-## Paying Energy into a card: worth it a few stages deep, not to the point of emptying the gauge.
+## Paying Energy into a card: what each `per` Energy buys, less the Energy. On an attack
+## (`pay_stages`) the bought damage lands only if the attack does; on a card line (`pay_energy`) it
+## buys the line's `then` once per `per`.
 static func _pay_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, o: Command) -> float:
 	var amount: int = int(o.value) if o.value != null else 0
-	var cost: float = _cost_weight(engine, profile, me)
-	# A deck that wants its Duelist spent pays as deep as the card allows; anyone else stops at 4.
-	if amount > 4 and cost >= 0.0:
-		return -float(amount)
-	return amount * (profile.w("play", "damage_life") - cost)
+	if amount <= 0:
+		return 0.0
+	var price: float = amount * duelist_energy_price(engine, me, profile)
+	if str(engine._choice.get("kind", "")) == "pay_energy":
+		var per: int = maxi(1, int(engine._choice.get("per", 1)))
+		var bought: float = effects_value(engine._choice.get("then", []), profile, [], AiEvaluator.handover_progress(engine, me), engine, me.index)
+		return float(amount / per) * bought - price
+	var spec: Dictionary = (engine.state.attack.get("spec", {}) as Dictionary).get("pay_stages", {})
+	var per_attack: int = maxi(1, int(spec.get("per", 2)))
+	var damage: float = int(spec.get("stages", 0)) * profile.w("play", "damage_stage") + int(spec.get("life", 1 if spec.is_empty() else 0)) * profile.w("play", "damage_life")
+	return float(amount / per_attack) * damage * profile.w("effect", "if_successful") - price
 
 
 ## What one Energy of an attack's cost weighs. Normally a price. A deck that fights through its
@@ -364,6 +547,16 @@ static func _cost_weight(engine: DuelEngine, profile: AiProfile, me: PlayerState
 	if not (profile.data["play"] as Dictionary).has("attack_cost_handover") or me.in_control() != me.duelist:
 		return base
 	return lerpf(base, profile.w("play", "attack_cost_handover"), AiEvaluator.handover_progress(engine, me))
+
+
+## What one of the Duelist's Energy is worth keeping. A deck that fights through its Allies sets
+## `effect.energy_self` (usually below zero), and as the handover comes within reach the price
+## slides toward it, the same blend `_effect_value` applies to an Energy effect.
+static func duelist_energy_price(engine: DuelEngine, me: PlayerState, profile: AiProfile) -> float:
+	var base: float = profile.w("own", "energy")
+	if not (profile.data["effect"] as Dictionary).has("energy_self"):
+		return base
+	return lerpf(base, profile.w("effect", "energy_self"), AiEvaluator.handover_progress(engine, me))
 
 
 ## +1 when the chooser is discarding the other seat's cards, -1 when its own.
@@ -749,35 +942,142 @@ static func _look_place_score(engine: DuelEngine, me: PlayerState, profile: AiPr
 
 
 static func _pick_option_score(engine: DuelEngine, me: PlayerState, profile: AiProfile, o: Command, c: CardInstance) -> float:
+	match str(engine._choice.get("kind", "")):
+		"energy_target":
+			# "Raise any personality to their highest Energy": worth it on ours, a gift on theirs.
+			if c == null:
+				return 0.0
+			var gain: float = float(CardInstance.MAX_STAGE - c.energy)
+			if c.controller == me.index:
+				return gain * (duelist_energy_price(engine, me, profile) if c == me.duelist else profile.w("own", "ally_energy"))
+			var owner: PlayerState = engine.player(c.controller)
+			return -gain * profile.w("foe", "energy" if c == owner.duelist else "ally_energy")
+		"reveal_pick":
+			# Picking from the rival's revealed cards for them: hand them the worst.
+			if int(engine._choice.get("player", me.index)) != me.index:
+				return -hold_value(c, profile)
+		"play_or_hand":
+			return 1.0 + hold_value(c, profile) if str(o.value) == "play" else hold_value(c, profile)
 	if c != null:
 		# A search, a look at the top cards, a Seal to capture: take the best card on offer, which
 		# for a deck that runs tutor chains means the card that carries the chain furthest.
 		return 1.0 + card_value(engine, me, c, profile, TUTOR_DEPTH)
 	var word: String = str(o.value) if o.value != null else ""
-	if word == "yes":
-		return _may_yes_score(engine, me, profile)
+	var kind: String = str(engine._choice.get("kind", ""))
+	if kind == "pay_cost":
+		if word != "yes":
+			return 0.0
+		return effects_value(engine._choice.get("then", []), profile, [], AiEvaluator.handover_progress(engine, me), engine, me.index) \
+			- int(engine._choice.get("stages", 0)) * duelist_energy_price(engine, me, profile)
+	if kind == "may":
+		# The line belongs to its owner; when the question was put across the table, what is good
+		# for the owner is bad for the one answering.
+		var owner: int = int(engine._choice.get("owner", me.index))
+		var sign: float = 1.0 if owner == me.index else -1.0
+		var line_owner: PlayerState = engine.player(owner)
+		if word == "yes":
+			return sign * _may_yes_score(engine, line_owner, profile)
+		if word == "no":
+			return sign * effects_value((engine._choice.get("effect", {}) as Dictionary).get("otherwise", []), profile, [], 0.0, engine, owner)
+	return _word_score(engine, me, profile, word)
+
+
+## A named choice ("life" or "cost", "self" or "opponent", a card type, one of several lines),
+## priced by what that answer makes the effect do.
+static func _word_score(engine: DuelEngine, me: PlayerState, profile: AiProfile, word: String) -> float:
+	var choice: Dictionary = engine._choice
+	var handover: float = AiEvaluator.handover_progress(engine, me)
+	match str(choice.get("kind", "")):
+		"art_boost":
+			if word == "life":
+				return int(engine._art_boost(me, me.duelist).get("life", 1)) * profile.w("play", "damage_life") * profile.w("effect", "if_successful")
+			var prompt_ctx: Dictionary = engine.prompt.context if engine.prompt != null else {}
+			return (int(prompt_ctx.get("full", 0)) - int(prompt_ctx.get("cheap", 0))) * _cost_weight(engine, profile, me)
+		"discard_side":
+			var sided: Dictionary = (choice.get("effect", {}) as Dictionary).duplicate()
+			sided["who"] = word
+			return effects_value([sided], profile, [], handover, engine, me.index)
+		"card_type":
+			var typed: Dictionary = (choice.get("effect", {}) as Dictionary).duplicate()
+			typed["card_type"] = word
+			return effects_value([typed], profile, [], handover, engine, me.index)
+		"choose_one":
+			var picks: Array = choice.get("choices", [])
+			var i: int = int(word) if word.is_valid_int() else -1
+			if i < 0 or i >= picks.size():
+				return 0.0
+			var pick: Dictionary = picks[i]
+			return effects_value(pick.get("effects", [pick]), profile, [], handover, engine, me.index)
+		"draw_count":
+			var drawn: Dictionary = (choice.get("effect", {}) as Dictionary).duplicate()
+			drawn["amount"] = int(word) if word.is_valid_int() else 0
+			return effects_value([drawn], profile, [], handover, engine, me.index)
+		"forbid_type", "stop_kind":
+			# Aimed at what the rival has shown they play: their discard pile says which kind.
+			return float(_shown_count(engine.player(1 - me.index), word))
 	return 0.0
 
 
-## A "you may" line is free to take unless the yes costs a card from hand. "Discard a card to make
-## this attack Focused" is the common one, and Focus only beats a defence that stops both kinds, so
-## it is worth the card only against a rival who has shown such defences. What the rival has shown
-## is read off their public piles; nothing here looks at a hand.
+## How many cards of a kind a player has shown in their discard pile, for a choice that names
+## a kind ("strike_cards", "art_cards", "combat_cards", "strike", "art").
+static func _shown_count(p: PlayerState, word: String) -> int:
+	var n: int = 0
+	for c in p.discard:
+		match word:
+			"strike_cards", "strike":
+				n += 1 if c.def.is_attack() and c.def.attack_kind() == "strike" else 0
+			"art_cards", "art":
+				n += 1 if c.def.is_attack() and c.def.attack_kind() == "art" else 0
+			"combat_cards":
+				n += 1 if c.def.type == CardDef.Type.COMBAT else 0
+	return n
+
+
+## A "you may" line is worth what the line itself costs or gives, plus what it leads on to. A card
+## or life card paid is priced like any other card or wound. Focus ("discard a card to make this
+## attack Focused") is worth the attack's damage only as often as the rival holds a block and that
+## block is one Focus gets past; the hand's size and their shown defences are public, the cards are not.
 static func _may_yes_score(engine: DuelEngine, me: PlayerState, profile: AiProfile) -> float:
 	var e: Dictionary = engine._choice.get("effect", {})
-	if str(e.get("op", "")) != "discard_hand" or str(e.get("who", "self")) != "self" or me.hand.is_empty():
+	if e.is_empty():
 		return 0.5
-	var cost: float = _cheapest_in_hand(me, profile) * maxi(1, int(e.get("amount", 1)))
-	var gain: float = 0.5
-	var focuses: bool = false
-	for t in e.get("then", []):
-		if t is Dictionary and str((t as Dictionary).get("op", "")) == "focus_attack":
-			focuses = true
-	if focuses and not engine.state.attack.is_empty():
-		var d: Dictionary = engine.damage_breakdown(engine.state.attack)
-		var swing: float = float(d.get("life", 0)) * profile.w("play", "damage_life") + float(d.get("stages", 0)) * profile.w("play", "damage_stage")
-		gain = swing * _stop_any_share(engine.player(1 - me.index))
-	return gain - cost
+	var own_line: Dictionary = e.duplicate()
+	for key in ["then", "effects", "else_effects", "may", "when", "trigger"]:
+		own_line.erase(key)
+	var amount: int = maxi(1, int(e.get("amount", 1))) if (e.get("amount", 1) is int or e.get("amount", 1) is float) else 1
+	var mine: bool = str(e.get("who", "self")) == "self"
+	var value: float = 0.0
+	match str(e.get("op", "")):
+		"discard_hand" when mine:
+			if me.hand.is_empty():
+				return -1.0
+			value = -_cheapest_in_hand(me, profile) * amount
+		"discard_life" when mine:
+			value = -life_card_price(me, profile) * amount
+		_:
+			value = effects_value([own_line], profile, [], AiEvaluator.handover_progress(engine, me), engine, me.index)
+	for branch in branches(e, profile):
+		var child: Dictionary = branch["effect"]
+		if str(child.get("op", "")) == "focus_attack":
+			value += float(branch["share"]) * _focus_value(engine, me, profile)
+		else:
+			value += float(branch["share"]) * effects_value([child], profile, [], AiEvaluator.handover_progress(engine, me), engine, me.index)
+	# "Instead of dealing damage, ...": a yes gives up the hit it replaces.
+	if bool(e.get("skip_damage", false)) and not engine.state.attack.is_empty():
+		value -= _landing_value(engine, profile, engine.player(1 - me.index))
+	return value
+
+
+## What making the attack in the air Focused is worth: its damage, times the chance the rival holds
+## a block, times the share of their blocks that Focus gets past.
+static func _focus_value(engine: DuelEngine, me: PlayerState, profile: AiProfile) -> float:
+	if engine.state.attack.is_empty():
+		return 0.0
+	var foe: PlayerState = engine.player(1 - me.index)
+	var d: Dictionary = engine.damage_breakdown(engine.state.attack)
+	var swing: float = float(d.get("wounds", 0)) * profile.w("play", "damage_life") + float(d.get("stages", 0)) * profile.w("play", "damage_stage")
+	var holds_block: float = 1.0 - pow(1.0 - BLOCK_SHARE, float(foe.hand.size()))
+	return swing * holds_block * _stop_any_share(foe)
 
 
 ## The share of a rival's shown defences that Focus gets past: those that stop both kinds and do
@@ -822,8 +1122,13 @@ static func hold_value(c: CardInstance, profile: AiProfile) -> float:
 				if bool(pa.get("focused", false)) or bool(pa.get("unstoppable", false)):
 					v += 1.0
 			v += effects_value(pw.get("effects", []), profile, []) * 0.5
-		CardDef.Type.DRILL:
-			v += profile.w("own", "drill")
+		CardDef.Type.DRILL, CardDef.Type.MASTERY:
+			if def.type == CardDef.Type.DRILL:
+				v += profile.w("own", "drill")
+			# What it adds to every attack while it stands. A Drill goes when its Duelist climbs, so
+			# it is counted for about half a game.
+			for m in def.modifiers:
+				v += modifier_value(m, "game", profile) * (0.5 if def.type == CardDef.Type.DRILL else 1.0)
 			if bool(def.raw.get("protect_seals", false)):
 				# A Drill that guards Seals shuts off capture outright, so it is wanted before the
 				# Seals are and, on the other side of the table, wanted gone.
@@ -855,7 +1160,10 @@ static func _expected_damage_value(spec: Dictionary, kind: String, profile: AiPr
 ## `handover` is AiEvaluator.handover_progress for the player who owns the effects: 0 normally, 1
 ## when an Ally is out and only waiting on the Duelist to be spent. It flips the sign of what this
 ## player's own Energy is worth, so a deck that fights through Allies reads a self-drain as a gain.
-static func effects_value(effects: Array, profile: AiProfile, triggers: Array, handover: float = 0.0) -> float:
+## `board` and `seat` are the table and the owner when the effect is about to happen; with them a
+## line is priced against the position (how many cards "all" is, whether a draw decks someone,
+## whether a forbid takes anything away), and without them from the card data alone.
+static func effects_value(effects: Array, profile: AiProfile, triggers: Array, handover: float = 0.0, board: DuelEngine = null, seat: int = -1) -> float:
 	var total: float = 0.0
 	for raw in effects:
 		if not (raw is Dictionary):
@@ -864,9 +1172,11 @@ static func effects_value(effects: Array, profile: AiProfile, triggers: Array, h
 		var trigger: String = str(e.get("trigger", "secondary"))
 		if not triggers.is_empty() and not triggers.has(trigger):
 			continue
-		var v: float = _effect_value(e, profile, handover)
+		var v: float = _effect_value(e, profile, handover, board, seat)
+		if absf(v) >= AiEvaluator.WIN:
+			return v
 		for branch in branches(e, profile):
-			v += float(branch["share"]) * effects_value([branch["effect"]], profile, [], handover)
+			v += float(branch["share"]) * effects_value([branch["effect"]], profile, [], handover, board, seat)
 		if trigger == "if_successful":
 			v *= profile.w("effect", "if_successful")
 		elif trigger == "if_stopped":
@@ -915,28 +1225,38 @@ static func modifier_value(m: Dictionary, duration: String, profile: AiProfile) 
 			per_attack = int(m.get("stages", 0)) * profile.w("play", "attack_cost")
 		_:
 			return profile.w("effect", "float")
-	return per_attack * float(MODIFIER_ATTACKS.get(duration, 1.5))
+	# One kind of attack ("your Arts do +1") touches about half of them.
+	var reach: float = 1.0 if str(m.get("kind", "any")) == "any" else 0.5
+	return per_attack * reach * float(MODIFIER_ATTACKS.get(duration, 1.5))
 
 
-static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0.0) -> float:
-	# "Either player's": the chooser aims it, so it is worth its better aim.
-	if str(e.get("who", "self")) == "any":
+static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0.0, board: DuelEngine = null, seat: int = -1) -> float:
+	var who: String = str(e.get("who", "self"))
+	var known: bool = board != null and seat >= 0
+	if who == "any":
+		# "Every Ally in play" hits both sides at once; "an Ally in play" is the chooser's aim, so it
+		# is worth its better aim.
+		if bool(e.get("all", false)) and known:
+			var mine_all: Dictionary = e.duplicate()
+			mine_all["who"] = "self"
+			var theirs_all: Dictionary = e.duplicate()
+			theirs_all["who"] = "opponent"
+			return _effect_value(mine_all, profile, handover, board, seat) + _effect_value(theirs_all, profile, handover, board, seat)
 		var mine: Dictionary = e.duplicate()
 		mine["who"] = "self"
 		var theirs: Dictionary = e.duplicate()
 		theirs["who"] = "opponent"
-		return maxf(_effect_value(mine, profile, handover), _effect_value(theirs, profile, handover))
+		return maxf(_effect_value(mine, profile, handover, board, seat), _effect_value(theirs, profile, handover, board, seat))
 	var op: String = str(e.get("op", ""))
-	var on_foe: bool = str(e.get("who", "self")) == "opponent"
+	var on_foe: bool = who == "opponent"
 	var side: float = -1.0 if on_foe else 1.0
-	var amount: float = 1.0
-	var raw_amount: Variant = e.get("amount", 1)
-	if raw_amount is int or raw_amount is float:
-		amount = float(raw_amount)
-	if bool(e.get("all", false)):
-		amount = 2.0
+	var me: PlayerState = board.player(seat) if known else null
+	var target: PlayerState = (board.player(1 - seat) if on_foe else me) if known else null
+	var amount: float = _amount(e, board, target, me)
 	match op:
 		"energy":
+			if str(e.get("amount", "")) == "max":
+				amount = float(CardInstance.MAX_STAGE - target.duelist.energy) if known else 5.0
 			# A deck that fights through its Allies wants its own Energy spent rather than gained,
 			# since the Allies only take over once the Duelist is down to 0 or 1. It says so with
 			# `energy_self`, often below zero, the way a camping deck sets `fervor_self`. It only
@@ -946,19 +1266,21 @@ static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0
 				return amount * lerpf(profile.w("effect", "energy"), profile.w("effect", "energy_self"), handover)
 			return side * amount * profile.w("effect", "energy")
 		"fervor":
-			# A deck that wants to stay on its aspect sets `fervor_self`, often below zero, and one
-			# built to police the rival's climb sets `fervor_foe` above `fervor`.
-			var effect_weights: Dictionary = profile.data["effect"]
-			if not on_foe and effect_weights.has("fervor_self"):
-				return amount * profile.w("effect", "fervor_self")
-			if on_foe and effect_weights.has("fervor_foe"):
-				return side * amount * profile.w("effect", "fervor_foe")
-			return side * amount * profile.w("effect", "fervor")
+			return _fervor_value(amount, on_foe, profile)
+		"set_fervor":
+			if not known:
+				return profile.w("effect", "other")
+			return _fervor_value(amount - float(target.fervor), on_foe, profile)
 		"draw", "draw_until", "draw_discard":
+			# Drawing from an empty Life Deck loses the duel, whoever made the draw.
+			if known and op == "draw" and int(amount) >= target.life_deck.size():
+				return -side * AiEvaluator.WIN
 			return side * amount * profile.w("effect", "draw")
 		"search", "look_at", "return_removed":
-			return profile.w("effect", "search")
+			return _search_value(e, profile, board, me) if known and not on_foe and op == "search" else profile.w("effect", "search")
 		"discard_in_play":
+			if known:
+				amount = float(_in_play_count(target, str(e.get("card_type", "")))) if bool(e.get("all", false)) else minf(amount, float(_in_play_count(target, str(e.get("card_type", "")))))
 			return -side * amount * profile.w("effect", "discard_in_play")
 		"discard_hand":
 			return -side * amount * profile.w("effect", "discard_hand")
@@ -972,12 +1294,24 @@ static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0
 			# price the rest of the card has to pay for.
 			return -side * profile.w("effect", "discard_hand") * 0.25
 		"discard_life":
+			# Milling a Life Deck to nothing ends the duel; a card off one's own deck costs a wound.
+			if known and int(amount) >= target.life_deck.size() and amount > 0.0:
+				return -side * AiEvaluator.WIN
+			if known and not on_foe:
+				return -amount * life_card_price(me, profile)
 			return -side * amount * profile.w("effect", "discard_life")
 		"recover", "shuffle_discard":
 			return side * amount * profile.w("effect", "recover")
 		"remove_discard":
 			return -side * amount * profile.w("effect", "remove_discard")
-		"forbid", "choose_forbid_type", "next_attack_tax", "force_declare":
+		"forbid", "choose_forbid_type":
+			# A forbid on this side is a cost; one on the rival takes away only what they have.
+			if not on_foe:
+				return -profile.w("effect", "forbid")
+			if known and op == "forbid" and not _foe_has(target, str(e.get("what", ""))):
+				return 0.0
+			return profile.w("effect", "forbid")
+		"next_attack_tax", "force_declare":
 			return profile.w("effect", "forbid")
 		"float":
 			if str(e.get("what", "")) == "modifier":
@@ -995,4 +1329,66 @@ static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0
 			if not on_foe and handover > 0.0 and (profile.data["effect"] as Dictionary).has("energy_self"):
 				return (5.0 - amount) * -lerpf(profile.w("effect", "energy"), profile.w("effect", "energy_self"), handover)
 			return -side * (5.0 - amount) * profile.w("effect", "energy")
+		"set_aspect":
+			# To a named Aspect: worth the Aspects moved. To the one matching Fervor: see _aspect_jump_value.
+			if not known or not (e.get("aspect", "") is int or e.get("aspect", "") is float):
+				return profile.w("effect", "other")
+			var moved: float = float(int(e["aspect"]) - target.duelist.aspect)
+			return moved * (profile.w("foe", "aspect") * -1.0 if on_foe else profile.w("own", "aspect"))
+		"lose_aspect":
+			return profile.w("foe", "aspect") if on_foe else -profile.w("own", "aspect")
+		"no_ascension_win":
+			# Giving up the Ascension win costs what the climb toward it was worth.
+			var progress: float = AiEvaluator.ascension_progress(board, target) if known else 0.25
+			return progress * (profile.w("foe", "ascension") if on_foe else -profile.w("own", "ascension"))
+		"skip_next_attack_phase", "pass_next_phase":
+			# An attack phase lost is an attack not made: an Art's base hit, the reference swing.
+			return -side * DuelEngine.ART_BASE_LIFE * profile.w("play", "damage_life")
 	return profile.w("effect", "other")
+
+
+## A Fervor change, priced by whose it is. A deck that wants to stay on its aspect sets `fervor_self`,
+## often below zero, and one built to police the rival's climb sets `fervor_foe` above `fervor`.
+static func _fervor_value(amount: float, on_foe: bool, profile: AiProfile) -> float:
+	var weights: Dictionary = profile.data["effect"]
+	if not on_foe and weights.has("fervor_self"):
+		return amount * profile.w("effect", "fervor_self")
+	if on_foe and weights.has("fervor_foe"):
+		return -amount * profile.w("effect", "fervor_foe")
+	return (-amount if on_foe else amount) * profile.w("effect", "fervor")
+
+
+## An effect's amount: the engine's own count when the table is at hand, else the printed number
+## (1 for a count read off the table, 2 for "all").
+static func _amount(e: Dictionary, board: DuelEngine, target: PlayerState, owner: PlayerState) -> float:
+	var raw: Variant = e.get("amount", 1)
+	if raw is int or raw is float:
+		return float(raw)
+	if board != null and target != null:
+		return float(board.effect_amount(e, target, owner))
+	return 2.0 if bool(e.get("all", false)) else 1.0
+
+
+## How many of `p`'s cards in play a line naming `card_type` could take ("" is any).
+static func _in_play_count(p: PlayerState, card_type: String) -> int:
+	if card_type == "":
+		return p.in_play.size()
+	var wanted: int = int(CardDef.TYPE_NAMES.get(card_type, -1))
+	var n: int = 0
+	for c in p.in_play:
+		if c.def.type == wanted:
+			n += 1
+	return n
+
+
+## A search for this side: worth the search weight scaled by how good the best card it can fetch is
+## against the deck's average card, and nothing when it can fetch nothing.
+static func _search_value(e: Dictionary, profile: AiProfile, board: DuelEngine, me: PlayerState) -> float:
+	var found: Array = board.search_candidates(me, e)
+	if found.is_empty():
+		return 0.0
+	var best: float = 0.0
+	for c in found:
+		best = maxf(best, hold_value(c, profile))
+	var average: float = AiReserve.average_hold(me, profile)
+	return profile.w("effect", "search") * clampf(best / maxf(1.0, average), 0.5, 2.0)

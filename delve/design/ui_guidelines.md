@@ -28,21 +28,21 @@ HUDs get designed in a quiet editor and used when shit gets real. The classic ca
 
 ### 2.4 Trim everything except fonts
 
-Compare Demon's Souls' enormous HUD to Elden Ring's decades-later refinement: trimmed to a corner, fading entirely at full health. Chrome shrinks relentlessly â€” borders, padding, panel real estate all get squeezed until something breaks. Fonts move the other way: get them to a comfortable reading size, then go bigger. Lots of people have garbage-eyes, but everyone deserves to see your game. Delve's floor is 14 px and that size is reserved for genuine hints; body text is 18 px. Any proposal to shrink a font to fit a layout is a layout problem.
+Compare Demon's Souls' enormous HUD to Elden Ring's decades-later refinement: trimmed to a corner, fading entirely at full health. Chrome shrinks relentlessly â€” borders, padding, panel real estate all get squeezed until something breaks. Fonts move the other way: get them to a comfortable reading size, then go bigger. Lots of people have garbage-eyes, but everyone deserves to see your game. Delve's floor and body size are both 18 px (section 4.2). Any proposal to shrink a font to fit a layout is a layout problem.
 
 ## 3. Case law
 
 Verdicts from the combat HUD rebuild. These are precedent.
 
 - **Input legend â€” killed.** A permanent panel of keybindings is glacial information at its most glacial: it changes never. Replaced by a help overlay toggled on Tab/H, non-modal, playable underneath.
-- **Combat log uses disclosure.** The compact panel shows three recent action summaries and the latest turn heading. Click an action or its + button to reveal its rolls and outcomes in place. Open entries stay visible as new actions arrive. L or More history opens a wider sidebar with the same disclosure state. Reading older history pauses following; Jump to latest resumes it. Use 16 px combat-log body text and 26 px roll values, as requested for the log. Names stay colored by side and results are labeled with words. The log is non-modal and resets between encounters.
+- **Combat log uses disclosure.** The compact panel shows three recent action summaries and the latest turn heading. Click an action or its + button to reveal its rolls and outcomes in place. Open entries stay visible as new actions arrive. L or More history opens a wider sidebar with the same disclosure state. Reading older history pauses following; Jump to latest resumes it. Use 18 px combat-log body text and 36 px roll values. Names stay colored by side and results are labeled with words. The log is non-modal and resets between encounters.
 - **Action bar â€” the anchor surface.** It passes all four tests outright: every element on it changes within the turn and gets read under pressure. It inherits the size budget the killed and demoted panels gave up. Actor identity, HP vitals, three action pips, Strike and Shield with hotkey captions, the Spells/Skills toggles, End Turn.
 - **Move and Step buttons â€” killed.** Movement lives on the board: while no action is selected the active unit's reachable tiles show as bands, one colour per action the move costs, with a green ring for adjacent tiles a Step reaches safely. Hover previews the route and the bar's hint line reads the cost as pips; one click moves. Two buttons that only opened a tile pick the board already offers failed kitchen-sink. Shielded Stride keeps its own tile pick as a skill chip.
 - **Spell/skill chips â€” foldered.** The flat chip wall (17 always-on chips stacked three rows above the bar) failed kitchen-sink and the chaos moment â€” a wall of same-weight text competing with the board â€” and was reorganized into Spells/Skills category flyouts on the bar (Q/E), one open at a time, closed the moment a chip is picked.
 - **Turn order â€” trimmed.** Chips carry name, a 4 px HP bar, and a hard current-actor highlight. Everything else the old chips displayed failed the chaos test: under stimulus you read "who's next" and "how hurt," nothing more. Dead units dim to 0.45 alpha.
 - **Unit inspect â€” passes by being hover-only.** AC, conditions, and exact HP are wanted information that nobody needs permanently. Hovering a unit shows the panel; moving off hides it. Zero cost when unsummoned.
-- **Reaction prompt â€” the peak-stimulus modal.** It interrupts the enemy turn, so it gets the full modal treatment: dimmed backdrop, opaque panel, 26 px title, one accented default button, Enter/Y to use and Esc/N to skip. It is the element the chaos test was written for.
-- **Victory banner â€” stays modal.** Combat is over; nothing underneath needs interaction. Dim, 42 px outlined result text, restart button.
+- **Reaction prompt â€” the peak-stimulus modal.** It interrupts the enemy turn, so it gets the full modal treatment: dimmed backdrop, opaque panel, 27 px title, one accented default button, Enter/Y to use and Esc/N to skip. It is the element the chaos test was written for.
+- **Victory banner â€” stays modal.** Combat is over; nothing underneath needs interaction. Dim, 48 px outlined result text, restart button.
 
 Verdicts from the hero-select overview rebuild. A calm menu is the opposite of the chaos moment, so chrome may breathe â€” but the first version of this screen was a printed Pathfinder character sheet, and a printed character sheet read on a screen is a spreadsheet: bounded blocks, aligned value columns, rank letters, every prepared spell by name. It was replaced wholesale. Four borrowed principles did the replacing, each from a game that solved this first.
 
@@ -53,10 +53,10 @@ Verdicts from the hero-select overview rebuild. A calm menu is the opposite of t
 
 - **Featured character overview.** The screen assembles four equally selectable, player-controlled members. About 60% of the frame shows the inspected character: portrait, name, identity, abilities, saves, senses, skills, strikes, defences, spells and features. Inspecting another card changes the preview; role captions identify the selected formation.
 - **Hand-written blurbs â€” killed.** The Stat focus / Playstyle / Abilities copy argued for a character in prose the build had to be checked against. Every word comes off the level-2 `PF2eCharacter` the preset builds (`HeroSheetBuilder` â†’ `HeroSheetData`, Godot-free), so the sheet cannot say anything the build does not and there is no copy left to drift.
-- **The numbers that pop â€” four.** HP, AC, the key ability ("WIS"), and one signature number: a caster's spell DC, a martial's leading strike ("LONGSWORD +10"). 26 px `SheetKeyValue` in accent with 16 px dim captions, and that band is the only accent ink on the page. The previous rule allowed six and spread them over three rows; six accented numbers in three places is a colour scheme, not a hierarchy.
+- **The numbers that pop â€” four.** HP, AC, the key ability ("WIS"), and one signature number: a caster's spell DC, a martial's leading strike ("LONGSWORD +10"). 27 px `SheetKeyValue` in accent with 18 px dim captions, and that band is the only accent ink on the page. The previous rule allowed six and spread them over three rows; six accented numbers in three places is a colour scheme, not a hierarchy.
 - **Key ability â€” the one accent border.** `SheetBoxKey` (2 px accent) marks the ability the class is built on and is the sheet's only accent-bordered box. Its modifier stays body ink: the border is the emphasis, so the number does not shout twice. The headline box names that ability and stops there â€” "STR", where it used to read "STR +4" â€” because the rail box under the plinth prints the modifier and the hover spells the arithmetic out. A headline that repeats a number printed in the rail below it spends one of the four slots on nothing.
-- **Ability scores â€” demoted to a rail.** Six boxes spanning the page gave the abilities the weight of the four headline numbers, and the ability modifier is the number a player acts on least: the strike, the save and the skill on the same page already carry it. They move to a 240 px rail under the plinth, sharing the plinth's two edges â€” two 114 px columns on the same 12 px gutter the headline boxes keep, physical (STR, DEX, CON) on the left and mental (INT, WIS, CHA) on the right, the way PF2e splits them. The box keeps all three of its lines around a 20 px modifier, with the caption and the score at the 14 px floor, so a rail box stands 84 px against a headline box's 196 px. The overview rows move up beside the rail, one gutter past its right edge and top-aligned with it, and take the width the band used to span.
-- **Bounded blocks â€” killed.** Seven `HudInset` blocks with 22 px headings were seven small panels competing at the same weight. The overview replaced them with alignment: a label column in 16 px dim uppercase, sized to its own widest word and right-aligned so every label ends on one edge and every row's content starts 16 px past it, 32 px between rows and 48 px between bands. Common region grouped things; a shared edge groups them for free and costs no chrome.
+- **Ability scores â€” demoted to a rail.** Six boxes spanning the page gave the abilities the weight of the four headline numbers, and the ability modifier is the number a player acts on least: the strike, the save and the skill on the same page already carry it. They move to a 240 px rail under the plinth, sharing the plinth's two edges â€” two 114 px columns on the same 12 px gutter the headline boxes keep, physical (STR, DEX, CON) on the left and mental (INT, WIS, CHA) on the right, the way PF2e splits them. The box keeps all three of its lines around a 27 px modifier, with the caption and the score at the 18 px floor, so a rail box stands 84 px against a headline box's 196 px. The overview rows move up beside the rail, one gutter past its right edge and top-aligned with it, and take the width the band used to span.
+- **Bounded blocks â€” killed.** Seven `HudInset` blocks with 22 px headings were seven small panels competing at the same weight. The overview replaced them with alignment: a label column in 18 px dim uppercase, sized to its own widest word and right-aligned so every label ends on one edge and every row's content starts 16 px past it, 32 px between rows and 48 px between bands. Common region grouped things; a shared edge groups them for free and costs no chrome.
 - **Rank letters â€” off the page.** "T", "E", "M", "L" in a column beside every number was information nobody reads while choosing and the single largest source of visual noise. The rank is spelled out in words on the hover, with what it is worth at this level. The spike fails the sheet if a bare rank letter reaches any printed row.
 - **Skills, strikes, defences, spells, features â€” chips of names.** A `StatChip` carries the name and nothing else ("Athletics", "Steel Shield", "Sneak Attack"); the modifier, the breakdown and the description are on its hover. A skill's "+8" on the page invites arithmetic the player cannot act on yet.
 - **Spells â€” counted, not listed.** "Cantrips Ã—4 Â· Rank 1 Ã—4 Â· Focus Ã—1", not sixteen spell names across two rows. The count is the decision-relevant fact; the names, their action costs and a sentence each are on the chip's hover, straight out of the loaded pack.
@@ -68,7 +68,7 @@ Verdicts from the hero-select overview rebuild. A calm menu is the opposite of t
 - **Page grid â€” one margin, one gutter, one set of shared edges.** 32 px outer margin, a 24 px gutter between the featured sheet and the roster, 28 px of padding inside the sheet panel. The title starts on the sheet's left edge, the Roster heading sits one gutter above the panel's top edge, the roster list spans exactly the panel's height so the fifth card's bottom meets the panel's bottom, and Embark is a fixed 280 px against the roster's right edge - a button the width of the whole column is a banner, and the page's loudest ink should not out-weigh the sheet it confirms. The headline band and the overview end on one right edge and start on one left edge; the ability rail runs under the plinth on both of the plinth's edges, and the overview starts one gutter past the rail. `HeroSelectGrid` measures every one of those edges off the laid-out tree, because a screenshot cannot tell 4 px of slop from intent.
 - **Formation state.** All selected residents use their character accent and the same IN PARTY caption. Exactly four distinct unlocked members are required. Any member can be removed without clearing the others. Clear party removes all selections. Recruitment retains its explicit overnight stay.
 - **Disabled entries â€” greyed, never hidden.** A locked entry stays on the roster with its "Unavailable: â€¦" reason and the `RosterPortraitLocked` scrim over its thumb. A roster that hides what exists cannot show what unlocking would buy.
-- **Hint line â€” 18 px, not 14.** The line under the title is what the screen is waiting for, not a keybinding footnote, so it reads at body size through `ScreenHint`. The 14 px floor stays reserved for in-fight hints and captions.
+- **Hint line at body size.** The line under the title is what the screen is waiting for, not a keybinding footnote, so it reads at 18 px through `ScreenHint`.
 - **Back button â€” not built.** Hero select is the first screen of a run; there is nothing behind it. Esc gives the pick back instead, which is the undo the screen actually needs.
 
 Verdicts from the run-map pass:
@@ -80,115 +80,91 @@ Verdicts from the run-map pass:
 - **Party health is comparable at a glance.** Each member gets a name, exact HP, and a thin bar using the shared health thresholds. Wounded or down status appears only when present.
 - **Destinations have symbols and descriptions.** Small line symbols reinforce the existing silhouettes. Hover or keyboard focus shows the destination description and route availability. Clicking an available node still travels immediately. Early floor bosses are called guardians; only the final boss is the Depths Warden.
 
-- **The map uses fantasy RPG windows.** Delve takes its colors from the wardstone and the forest: charcoal ground, slate-gray party and destination panels, mineral-teal wardstone, warm ivory text, and leaf-green health. Amber campsites, berry events, and copper guardians give the route distinct accents. Stepped corners, small opposing ward marks, and thin two-tone bevels provide a pixel-art character. Avoid parchment panels, brown washes, grain, and stitching. Headings retain Cinzel, with readable body text and exact values. Saturated node colors identify encounter types; shapes also carry that information.
+- **The map uses the general palette.** Slate panels, pale text, the bone accent for the walked trail and the party marker, ward teal for the Wardstone meter and ward light, and leaf-green health. Amber campsites, berry events, and copper guardians give the route distinct accents. Stepped corners and thin two-tone bevels provide a pixel-art character. Headings use `MapHeading` (Pixeloid Bold 27). Saturated node colors identify encounter types; shapes also carry that information. The map does not take a party member's accent.
 
 ## 4. Visual language
 
-Run-map panel accents follow the seeded random party member through `UiColors.CharacterAccent(RunState.PresentationCharacterId)`.
-Use the chosen accent color for the Wardstone meter, panel bevels, rest-button states, walked trail, and party marker.
-Dark shades of that color fill panels; body text stays neutral. Node kinds, HP thresholds, and floor backdrops retain their own meanings.
-Build the map's theme locally so changing party composition never changes the shared theme or another screen.
-
-Combat uses a compact tactical presentation. The run map uses slate and charcoal fantasy RPG windows with teal ward accents with crisp pixel-style borders. Both keep a clear hierarchy, restrained ornament, readable text, and consistent meanings for state colors.
+Every screen uses one palette and one theme. Combat, camp, the dungeon HUD and the run map share the slate surfaces, pale text and bone accent. The Wardstone is ward teal on every screen. The run map takes no party-member accent: the walked trail and party marker use `accent`, the ward meter and ward light use `ward`. Node kinds, HP thresholds and floor backdrops keep their own meanings.
 
 ### 4.1 Palette
 
-The theme resource is the single source of color truth (section 5). These are the authored values.
+[ui_palette.md](ui_palette.md) owns the core colours, their roles and the ward tiers. The theme's `Palette` type holds every value, and scripts read them through `UiColors`. The tables below list the board and log colours with their live values.
 
 | Name | Hex | Alpha | Role |
 | --- | --- | --- | --- |
-| `accent` | `e2683c` | 1.0 | Ember. Active states, accent strips, default buttons, available pips |
-| `ally` | `6fa85c` | 1.0 | Ally team identity (chips, strips, bars) |
-| `enemy` | `d94f4f` | 1.0 | Enemy team identity |
-| `ink` | `0d0a08` | 1.0 | Near-black. Text outlines over open ground, deepest fills |
-| `surface` | `1d1713` | 0.92 | Standard translucent panel over the 3D scene |
-| `inset` | `16120e` | 0.92 | Recessed sub-panel: ticker, preview card, tooltips |
-| `line` | `3e352c` | 1.0 | 1 px borders and separators |
-| `text` | `ede7dc` | 1.0 | Body text |
-| `text_dim` | `a49a8c` | 1.0 | Secondary text, detail log entries |
-| `text_disabled` | `6b6258` | 1.0 | Disabled control text |
-| `text_inverse` | `1a0e06` | 1.0 | Dark text on accent fills (active turn chip, accent buttons) |
-| `hp_high` | `73b55d` | 1.0 | HP fill/text, ratio > 0.5 |
-| `hp_mid` | `d9a94c` | 1.0 | HP fill/text, ratio > 0.25 |
-| `hp_low` | `d96555` | 1.0 | HP fill/text, ratio <= 0.25 |
-| `victory` | `eed065` | 1.0 | Victory banner text |
-| `defeat` | `e07169` | 1.0 | Defeat banner text |
-| `modal_dim` | `0c0906` | 0.60 | Full-screen backdrop behind modals |
-| `steel` | `7d8a96` | 1.0 | Cold-steel secondary accent (reserved) |
-| `char_player` | `c25b63` | 1.0 | Aldric's identity accent |
-| `char_elara` | `a878d8` | 1.0 | Elara's identity accent |
-| `char_tharr` | `7fc4d8` | 1.0 | Tharr's identity accent |
-| `char_fenwick` | `4f7fd0` | 1.0 | Fenwick's identity accent |
-| `board_step` | `6fa85c` | 0.42 | Movement band: adjacent tile a Step reaches (safe, no reactions) |
-| `board_stride_1` | `4f8fd8` | 0.38 | Movement band: one Stride |
-| `board_stride_2` | `d9a94c` | 0.32 | Movement band: two Strides |
-| `board_stride_far` | `8a6a3c` | 0.22 | Movement band: three or more Strides |
-| `board_cursor` | `ede7dc` | 0.90 | Frame on the hovered board tile |
-| `board_path` | `fff040` | 0.80 | Route preview dots (dots past the first Stride take that band's hue) |
+| `board_step` | `6fa85c` | 0.32 | Movement band: adjacent tile a Step reaches (safe, no reactions) |
+| `board_stride_1` | `6187a3` | 0.26 | Movement band: one Stride |
+| `board_stride_2` | `b09459` | 0.22 | Movement band: two Strides |
+| `board_stride_far` | `8a6a3c` | 0.15 | Movement band: three or more Strides |
+| `board_cursor` | `f4efe9` | 0.90 | Frame on the hovered board tile |
+| `board_path` | `ffeb40` | 0.80 | Route preview dots (dots past the first Stride take that band's hue) |
 | `board_move` | `4080ff` | 0.35 | Shielded Stride destination tiles |
 | `board_strike` | `ff4747` | 0.45 | Strike targets (the one red on the board) |
-| `board_spell_enemy` | `d94dff` | 0.45 | Offensive spell / skill targets |
+| `board_spell_enemy` | `d94cff` | 0.45 | Offensive spell / skill targets |
 | `board_ally_target` | `59ff73` | 0.40 | Beneficial spell / skill targets |
 | `board_area_origin` | `ffa633` | 0.30 | Tiles an area template may be aimed at |
 | `board_area` | `ff801a` | 0.55 | The aimed area template |
 
-The identity is **Emberlight** (adopted 2026-08-24, replacing the gold-on-cool-dark scheme): torchlight ember on warm charcoal. The `char_*` colours own CHARACTER SURFACES outright: on the hero-select sheet and roster cards, every accent role (name rule, portrait strip, headline strips and values, key-ability border, section diamonds, chosen-card border, captions, tooltip labels) takes the character's palette colour via `UiColors.CharacterAccent(id)`; neutral greys and panel chrome stay on the game palette. General screens use the ember accent and never the character colours. Character surfaces are the one sanctioned place for instance colour overrides â€” the values still come from the Palette, never from literals.
+The `char_*` colours belong to character surfaces: the hero sheet, roster cards and camp residents. There, every accent role takes the character's colour through `UiColors.CharacterAccent(id)`, and panel chrome stays on the game palette. General screens, the run map included, never use character colours. Character surfaces are the one sanctioned place for instance colour overrides, and the values still come from the Palette.
 
-Log severity colors, indexed by `PF2e.Core.CombatLogSeverity` ordinal, carried verbatim from the previous palette (each cleared 4.5:1 on the recess they ride):
+Log severity colours, indexed by `PF2e.Core.CombatLogSeverity` ordinal:
 
 | Name | Hex | Severity |
 | --- | --- | --- |
-| `log_info` | `ccc7b8` | Info |
-| `log_hit` | `8bcd79` | Hit |
+| `log_info` | `d5dfed` | Info |
+| `log_hit` | `c7c2a3` | Hit |
 | `log_crit_hit` | `e6c45f` | CriticalHit |
-| `log_miss` | `a5a28c` | Miss |
+| `log_miss` | `c5b6c8` | Miss |
 | `log_crit_miss` | `e67667` | CriticalMiss |
-| `log_healing` | `6fd0b4` | Healing |
-| `log_condition_applied` | `c496e1` | ConditionApplied |
-| `log_condition_removed` | `a4a29c` | ConditionRemoved |
-| `log_action_header` | `e5ba7e` | ActionHeader |
-| `log_reaction` | `f2a260` | Reaction |
+| `log_healing` | `a3c294` | Healing |
+| `log_condition_applied` | `c2b091` | ConditionApplied |
+| `log_condition_removed` | `c5b6c8` | ConditionRemoved |
+| `log_action_header` | `ff957d` | ActionHeader |
+| `log_reaction` | `d4b882` | Reaction |
 
-Contrast rule: target 4.5:1 for body text against its surface. Combat uses light text on dark surfaces. Run-map panels use warm ivory text through MapBody, MapHint, and MapHeading theme variations. Verify contrast before changing a material or text color.
+Actor names in the log use `log_ally` (`bac4a8`) and `log_enemy` (`d4a38f`).
+
+Contrast rule: target 4.5:1 for body text against its surface. Verify contrast before changing a material or text colour.
 
 ### 4.2 Type scale
 
-| Size | Variation | Use |
-| --- | --- | --- |
-| 14 px | `HintLabel` | Targeting hints, toggle captions, the ability rail's caption and score. The floor â€” nothing renders smaller |
-| 16 px | `CardRoleLabel`, `ChipLabel` | Turn chips, action chips, conditions line, ticker, sheet chips, every secondary caption and row label |
-| 18 px | default, `ScreenHint` | Body text, vitals, log expanded view, help overlay, menu hint lines |
-| 20 px | `SheetValue` | The ability rail's modifiers |
-| 22 px | `HeadingLabel` | Actor names, panel headings, tooltip titles |
-| 26 px | `TitleLabel`, `SheetKeyValue` | Modal titles; the sheet's four headline numbers in accent |
-| 42 px | `BannerLabel` | Victory/defeat result, dark outline |
+Pixeloid Sans is a 9 px font and Alagard a 16 px font. Sizes are whole multiples of those grids, so glyphs stay crisp. Fonts import with antialiasing, hinting and subpixel positioning off. Nothing renders below 18 px, and no font shrinks to fit a layout.
+
+| Size | Face | Variations | Use |
+| --- | --- | --- | --- |
+| 18 | Pixeloid Sans | default, `HintLabel`, `ScreenHint`, `CardRoleLabel`, `ChipLabel`, `TipBody`, `TipFooter`, `MapHint`, `MapLegend`, `CombatLogText` | Body, captions (`text_dim`), hints, chips, log text, tooltips, keycaps |
+| 18 | Pixeloid Sans Bold | `EmphasisLabel`, `RowLabel`, `SheetCaption`, `SheetCaptionSmall`, `TipMetaLabel`, `TipTag`, `EventCaption`, `CombatLogToggle`, `CombatLogCaption` | Emphasis labels and eyebrows |
+| 27 | Pixeloid Sans Bold | `HeadingLabel`, `MapHeading`, `SheetKeyValue`, `SheetValue`, `MapWardValue`, `WardValue`, `CampDepart`, `PreviewStats`, `RollOutcome`, `IntroSubtitle`, `LogDisclosure` | Headings, key values, the action-bar actor name |
+| 36 | Pixeloid Sans Bold | `RollValue`, `IntroTitle`, `TransitionCaption`, `roll_font_size` | Dice and roll values, the combat "ENCOUNTER" intro, transition captions |
+| 32 | Alagard | `TitleLabel`, `CampTitle` | Screen titles |
+| 48 | Alagard | `BannerLabel` | Victory/defeat result, dark outline |
 
 ### 4.3 Chrome rules
 
 - Borders and separators are 1 px `line`. Accent strips are 2 px `accent` (3 px team-color strip on unit inspect).
 - Standard padding is 8 px. Ask for more only with a reason.
-- Panels over the 3D scene use `surface` at 0.92 alpha. Modals are opaque.
+- Combat HUD panels (`HudPanel`, `HudInset`, `Keycap`, the log) use 0.97 alpha over the 3D scene. Modals are opaque.
 - Any text floating over open ground carries a dark `ink` outline. No light color is safe over the 3D scene without one.
 - Disabled state comes from the themed disabled styles, never from dimming a container's Modulate â€” dimmed containers take their text below readable contrast.
 - Pips render only through the shared `PipRow` component (`scenes/ui/pip_row.tscn`) â€” the bar's 14 px action-economy pips and the chips' 8 px cost pips are both instances of it, so pip visuals change in one place.
 - Action costs render as pips, never inline text: one 8 px square per action (`PipFilled` accent fill, 1 px `ink` border, `PipDisabled` dims them with the owning chip's disabled state); tooltips spell the cost out in words.
 - Spell facts render in one shorthand grammar (`scripts/flow/SpellShorthand.cs`), fixed order `cost Â· range/area Â· defence Â· dice Â· duration`, tokens `nA` (actions), `n ft` / `n-ft cone`, `Fort/Ref/Will save` (`basic X` for basic saves), `spell atk`, `dice type` / `heal dice`, `sustained`. A fact the spell lacks is skipped, never padded; uninformative durations ("varies") are dropped. The same line format serves every spell row on every card.
-- Explanatory depth renders through one shared hover panel (`scenes/ui/sheet_tooltip.tscn` + `scripts/ui/SheetTooltip.cs`), never through a popup built per element: `SheetTooltip` variation (opaque â€” a translucent panel over a menu shows the text underneath it), 22 px title, 16 px dim subtitle, 18 px body, held to one measure of at most 440 px, shown after 0.1 s of hover and clamped inside the viewport. The panel that owns the surface owns the wiring; a component announces what explains itself and never reaches for the tooltip. The content is a `SheetTip(Title, Subtitle, Body)` assembled in the Godot-free data layer, so a spike asserts on the same words the hover prints. The engine's own `TooltipText` popup stays reserved for the one-line `Unavailable: <reason>` case.
-- Hotkey captions render as keycaps, never inline text: the action label (18 px) plus a separate `Keycap` chip (inset fill, 1 px `line` border, 4 px padding) holding the key name at 14 px `text_dim`. The key must read as an input, not as part of the action's name.
+- Explanatory depth renders through one shared hover panel (`scenes/ui/sheet_tooltip.tscn` + `scripts/ui/SheetTooltip.cs`), never through a popup built per element: `SheetTooltip` variation (opaque â€” a translucent panel over a menu shows the text underneath it), 27 px title, 18 px dim subtitle, 18 px body, held to one measure of at most 440 px, shown after 0.1 s of hover and clamped inside the viewport. The panel that owns the surface owns the wiring; a component announces what explains itself and never reaches for the tooltip. The content is a `SheetTip(Title, Subtitle, Body)` assembled in the Godot-free data layer, so a spike asserts on the same words the hover prints. The engine's own `TooltipText` popup stays reserved for the one-line `Unavailable: <reason>` case.
+- Hotkey captions render as keycaps, never inline text: the action label (18 px) plus a separate `Keycap` chip (inset fill, 1 px `line` border, 4 px padding) holding the key name at 18 px `text_dim`. The key must read as an input, not as part of the action's name.
 
 ## 5. Theme mechanics and the pack-swap path
 
-One resource: `assets/ui/ui_theme.tres`. Hand-authored, 100% StyleBoxFlat, `default_font_size = 18`. One exception to the no-ext_resources rule: the display font (`assets/fonts/Cinzel-SemiBold.ttf`, OFL, credited in `assets/fonts/CREDITS.md`) loads as an ext_resource and is instanced at weight 600 for display variations only (`BannerLabel`, `TitleLabel`, `HeadingLabel`, `TipTag`, `RowLabel`, `SheetCaption`, `SheetCaptionSmall`). Body text stays on the default sans â€” the display face is for names, titles and captions, never paragraphs. Every palette color from section 4.1 lives in it as a theme color item under the synthetic type `Palette`.
+One theme: `assets/ui/ui_theme.tres`, set as the project theme (Project Settings > GUI > Theme > Custom). No scene sets `theme`, and no scene carries a colour, font, font-size or style override. Layout constants (separation, margins) may stay on scenes. `ThemeLintSpike` counts these and fails on any increase.
 
-- `scripts/ui/UiColors.cs` lazy-loads the theme and exposes the code-side API: `Ally`, `Enemy`, `Victory`, `Defeat`, `HpFillColor(float)` (thresholds 0.5 / 0.25), and `LogSeverity[]` by ordinal. Load lazily from `_Ready`/render paths, never a static initializer.
-- `scripts/ui/ThemeNames.cs` holds string consts for every variation set from code, plus `HpBarFor(ratio)`. Typos in variation names fail silently to the base style, so no literal variation strings in scripts.
-- Variations: `HudPanel`, `HudInset`, `Keycap`, `ModalPanel`, `AccentButton`, `ActionChip`, `PipFilled`/`PipSpent`/`PipDisabled` (applied only by the `PipRow` component), `TurnChipAlly`/`TurnChipEnemy`/`TurnChipActive`, `HpBarAlly`/`HpBarEnemy`/`HpBarHigh`/`HpBarMid`/`HpBarLow`, `HintLabel`, `HeadingLabel`, `TitleLabel`, `BannerLabel`, `FloatingLabel`.
-- Menu-screen variations: `ScreenGround` (full-screen opaque menu field, no border â€” nothing sits underneath a menu), `ScreenHint` (18 px `text_dim`, the gate line under a menu title), `RosterCard`/`RosterCardSelected`/`RosterCardLocked` (the card's three looks; hover is a state inside each one, not a fourth variation), `RosterPortrait` and `RosterPortraitLocked` (the portrait recess and the scrim over it), `StatChip`, `CardRoleLabel` (16 px `text_dim` â€” the shared caption style for every secondary word on a menu surface, not just a card's role line).
-- Hero-sheet variations: `SheetKeyValue` (26 px `accent`, the four headline numbers), `SheetValue` (20 px `text`, the ability modifiers), `SheetBoxKey` (the inset box with a 2 px accent border, used only for the key ability) and `SheetTooltip` (the hover panel â€” opaque, and it shares its StyleBoxFlat with the engine-tooltip `TooltipPanel` type so both tooltip looks reskin together). Sheet boxes reuse `HudInset`, chips reuse `StatChip`/`ChipLabel`, row labels and headline captions reuse `CardRoleLabel`, the rail box's caption and score reuse `HintLabel`, and the tooltip title reuses `HeadingLabel`.
-- `VScrollBar`'s track and grabber styles carry 4 px horizontal content margins. Without them the bar computes to zero width and a scrolling panel looks like a clipping bug. The combat log and growing roster rail scroll; the featured hero sheet is sized to fit.
-- Scenes carry no `theme` property and no instance-level style overrides. Styling reaches a node through a variation name or through UiColors, never any other way.
+- Fonts: `default_font` is Pixeloid Sans at `default_font_size = 18`. Pixeloid Sans Bold serves the bold variations; Alagard serves `TitleLabel`, `CampTitle` and `BannerLabel` only (section 4.2). Knightwood, Compass 9, Pixel Bastarda and Cinzel stay on disk but no UI resource uses them.
+- Styles: StyleBoxFlat for HUD panels, chips, pips, bars and keycaps. StyleBoxTexture nine-patches (`assets/ui/button_*.svg`, `map_panel_neutral.svg`, `result_frame.svg`) for buttons, map panels and the result frame.
+- `Palette` is a synthetic type holding every colour as a theme colour item. `scripts/ui/UiColors.cs` lazy-loads the theme and exposes it to code: `Accent`, `Ward`, `WardTier(upshift)`, `CharacterAccent(id)`, `HpFillColor(ratio)`, `LogSeverity[]`, the board colours and the rest. Load lazily from `_Ready` or render paths, never a static initializer.
+- `scripts/ui/ThemeNames.cs` holds string consts for every variation set from code. Typos in variation names fail silently to the base style, so no literal variation strings in scripts.
+- Variation families: HUD (`HudPanel`, `HudInset`, `Keycap`, `ActionChip`, `Pip*`, `TurnChip*`, `HpBar*`, `CombatLog*`, `LogDisclosure`, `RollValue`, `RollOutcome`, `PreviewStats`, `IntroTitle`, `IntroSubtitle`, `ClearPanel`); dungeon (`WardPanel`, `WardBar`, `WardValue`, `RoomsBar`, `RoomsLabel`); run map (`Map*`); camp (`CampTitle`, `CampLabel`, `CampLink`, `CampDepart`, `CampCompanion`, `CampResident`); results (`ResultDim`, `ResultFrame`, `BannerLabel`); sheet and tooltips (`Sheet*`, `Tip*`, `StatChip`, `TraitChip`); events (`Event*`); menus (`ScreenGround`, `ScreenHint`, `Roster*`, `ModalDim`, `ModalPanel`, `TransitionCaption`).
+- `VScrollBar`'s track and grabber styles carry 4 px horizontal content margins. Without them the bar computes to zero width.
+- Scripts may set colours at runtime only for state (disabled, crit, victory or defeat), for character accents on character surfaces, and for the Wardstone tier.
 
-The pack-swap path is why the discipline pays: when a purchased UI art pack arrives, swapping a variation's StyleBoxFlat for a StyleBoxTexture inside the one .tres reskins every consumer. Scenes reference only variation names and scripts only ThemeNames/UiColors, so neither changes. Any styling that bypasses the theme breaks this promise and gets rejected in review.
+The pack-swap path: swapping a variation's style inside the one .tres reskins every consumer. Scenes reference only variation names and scripts only ThemeNames and UiColors, so neither changes. Keep variation names stable when styles change.
 
 ## 6. Input and modality
 
@@ -260,7 +236,7 @@ The four tests
 - [ ] Kitchen-sink: every new/changed element justifies existing at all; removal was considered first
 - [ ] Glacial-information: everything permanently visible changes within the current actor's turn; slower info is behind a hover/toggle/expandable
 - [ ] Chaos moment: layout judged with a reaction prompt open, popups in flight, and AI moves resolving â€” every element still legible and unambiguous
-- [ ] Fonts: nothing below 14 px; body text at 18 px; no font was shrunk to fit chrome
+- [ ] Fonts: sizes on the section 4.2 ladder only; nothing below 18 px; no font was shrunk to fit chrome
 
 Architecture
 - [ ] All styling via theme variations (ThemeNames consts in code) or UiColors â€” no scene `theme` property, no instance-level style overrides, no color literals
@@ -284,15 +260,15 @@ Forest combat shares the overworld's damp dusk palette. Two drifting mist layers
 
 Ambient map VFX stay sparse: slow motes, short firefly glimmers near ward light, and tiny rising campsite embers. They render beneath navigation on a separate canvas so particle motion never rebuilds scenery. They ignore pointer input, pause while hidden, and use cosmetic seeded randomness without touching gameplay rolls.
 
-Delve's map identity is Arthurian ward light within an occult wilderness. The run accent marks protection and selection; destination colors still identify encounter kinds. Ward strength controls the size of the clear air around the party and the darkness at the forest edge. Travel carries that light to the destination before dispatching the encounter, rejects duplicate selections, and cancels when the map closes. Paid rest drains the ward display when the player returns to the map. Stone borders, small sword markers, campsite embers, lair mouths, and broken standing stones support the identity without replacing readable node seals. This pass adds no audio.
+Delve's map identity is Arthurian ward light within an occult wilderness. Ward teal marks protection and the bone accent marks selection; destination colors still identify encounter kinds. Ward strength controls the size of the clear air around the party and the darkness at the forest edge. Travel carries that light to the destination before dispatching the encounter, rejects duplicate selections, and cancels when the map closes. Paid rest drains the ward display when the player returns to the map. Stone borders, small sword markers, campsite embers, lair mouths, and broken standing stones support the identity without replacing readable node seals. This pass adds no audio.
 
 The route map reuses combat tree sprites and terrain textures at miniature scale. Seeded scenery leaves clearings around nodes and paths. Drifting fog renders above scenery and below navigation, and decoration never accepts pointer input. MapSceneryTheme resources define each biome's tree mix, ground, density, palette, and pools: an open Fringe, dense Deep Wood, and muddy Drowning Dark. These visuals do not change encounter terrain generation.
 
 Each opening of Short Rest allows one activity. After selection, replace activity and target controls with the result, current ward, and ward spent. Return to map is the only next action; starting another paid rest requires opening Short Rest from the map again. Duplicate activity requests must not spend ward or time.
 
-Recovery lives inside the Wardstone panel, beneath its health and threat state. The Short Rest button carries its ward cost. Only while Short Rest is hovered, a dimmed segment of the ward bar shows the portion it would consume and the ward value switches to the projected amount in the run accent. On mouse exit, restore the current amount and full current fill. Hide that preview when rest is unavailable or the screen is hidden. A line below the button appears only for a threat increase or an unavailable reason. Day and rest counts live on the button's tooltip. Keep route inspection in the right sidebar and party condition below Wardstone.
+Recovery lives inside the Wardstone panel, beneath its health and threat state. The Short Rest button carries its ward cost. Only while Short Rest is hovered, a dimmed segment of the ward bar shows the portion it would consume and the ward value switches to the projected amount in ward teal. On mouse exit, restore the current amount and full current fill. Hide that preview when rest is unavailable or the screen is hidden. A line below the button appears only for a threat increase or an unavailable reason. Day and rest counts live on the button's tooltip. Keep route inspection in the right sidebar and party condition below Wardstone.
 
-Use charcoal and slate for the surrounding UI, reserving green for the wilderness map and teal for wardstone. Keep the panels at a similar dark value so none becomes a pale block. Use mineral teal for wardstone, leaf green for health, and amber, berry, and copper for map encounters. Avoid pale panels against dark panels. Define normal, hover, pressed, hover-pressed, focus, and disabled text colors together. The run-map screenshot spike checks recovery text contrast at 4.5:1 in every state.
+Use the slate palette for the surrounding UI, reserving green for the wilderness map and teal for the Wardstone. Keep the panels at a similar dark value so none becomes a pale block. Use ward teal for the Wardstone, leaf green for health, and amber, berry, and copper for map encounters. Avoid pale panels against dark panels. Define normal, hover, pressed, hover-pressed, focus, and disabled text colors together. The run-map screenshot spike checks recovery text contrast at 4.5:1 in every state.
 
 The dice reveal shows a short animation of the latest resolved d20 without changing gameplay RNG. It is always on; the log panel carries no toggle for it, and an options menu can gate it later. The popup shows only rolls retained in the engine log, not reconstructed spell-save dice. AI action cues pause for 0.35 seconds; movement tiles and individual area-damage targets add no extra pause.
 

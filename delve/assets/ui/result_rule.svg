@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="20" viewBox="0 0 400 20" shape-rendering="crispEdges">
 
-  <path fill="#a18aa0" d="M0 9H173V11H0ZM228 9H400V11H228Z"/>
-  <path fill="none" stroke="#b66d76" d="M181 10L188 6L195 10L188 14ZM205 10L212 6L219 10L212 14Z"/>
-  <path fill="#ff957d" d="M200 2L206 10L200 18L194 10Z"/>
+  <path fill="#7f8f99" d="M0 9H173V11H0ZM228 9H400V11H228Z"/>
+  <path fill="none" stroke="#7d8c96" d="M181 10L188 6L195 10L188 14ZM205 10L212 6L219 10L212 14Z"/>
+  <path fill="#e6dcc6" d="M200 2L206 10L200 18L194 10Z"/>
 
 </svg>

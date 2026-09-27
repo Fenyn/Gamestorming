@@ -12,7 +12,7 @@ public sealed class CombatLogFormat
 {
     private readonly Dictionary<string, Color> _actors = new(StringComparer.Ordinal);
     private Regex? _tokens;
-    public int RollFontSize { get; set; } = 26;
+    public int RollFontSize { get; set; } = 36;
 
     public void SetActors(IEnumerable<(string Name, Color Color)> actors)
     {

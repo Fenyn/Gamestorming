@@ -101,7 +101,7 @@ public partial class RunMapStatus : VBoxContainer
         if (_ward == null || _spending) return;
         preview &= _ward.CanAffordShortRest;
         _wardValue.Text = $"{(preview ? _ward.WardAfterShortRest : _ward.Ward)} / {_ward.Rules.MaxWard}";
-        _wardValue.ThemeTypeVariation = preview ? "MapWardPreviewValue" : "MapWardValue";
+        _wardValue.ThemeTypeVariation = preview ? ThemeNames.MapWardPreviewValue : ThemeNames.MapWardValue;
         _restSegment.Visible = preview;
     }
 }

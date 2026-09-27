@@ -114,16 +114,3 @@ text = "Next scene"
 [node name="Reload" type="Button" parent="Margin/Column/Footer"]
 layout_mode = 2
 text = "Reload file"
-
-[node name="Spacer" type="Control" parent="Margin/Column/Footer"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Skip" type="Button" parent="Margin/Column/Footer"]
-layout_mode = 2
-text = "Skip"
-
-[node name="Continue" type="Button" parent="Margin/Column/Footer"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-text = "Continue"

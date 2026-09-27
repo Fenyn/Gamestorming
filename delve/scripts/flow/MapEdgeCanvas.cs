@@ -6,12 +6,11 @@ namespace Delve.Flow;
 
 /// <summary>
 /// The trail layer under the map nodes: every edge as a dashed walking-path, coloured by what it
-/// means right now. The road already walked uses the run's accent, the choices open from the party's node
+/// means right now. The road already walked uses the accent, the choices open from the party's node
 /// read bright, everything else recedes to the hairline colour.
 /// </summary>
 public partial class MapEdgeCanvas : Control
 {
-    public Color? PartyAccent { get; set; }
     public enum EdgeState
     {
         /// <summary>A road the run can never take again.</summary>
@@ -46,7 +45,7 @@ public partial class MapEdgeCanvas : Control
             var b = to - dir * toClear;
             var (color, width) = state switch
             {
-                EdgeState.Traveled => (PartyAccent ?? UiColors.Accent, 3f),
+                EdgeState.Traveled => (UiColors.Accent, 3f),
                 EdgeState.Open => (UiColors.Text with { A = 0.85f }, 2.5f),
                 EdgeState.Dead => (UiColors.TextDim with { A = 0.2f }, 2f),
                 // Pale bone, not the hairline brown - the fog backdrop swallows dark lines.

@@ -90,7 +90,6 @@ public partial class RestPresentationSpike : SpikeBase
     private void Capture(string name)
     {
         if (DisplayServer.GetName() == "headless") return;
-        using var image = GetViewport().GetTexture().GetImage();
-        Check(name + " capture", image.SavePng($"res://.godot/{name}.png") == Error.Ok);
+        Check(name + " capture", SaveViewportCapture($"res://.godot/{name}.png") == Error.Ok);
     }
 }

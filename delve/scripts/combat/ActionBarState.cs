@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace Delve.Combat;
 
+/// <summary>One spendable resource on the action bar, drawn as a caption and a pip row.</summary>
+public sealed record ResourcePipView(string Name, int Current, int Max);
+
 /// <summary>
 /// UI-facing snapshot of what the action bar should show for the current ally. Pure Delve data.
 /// Movement has no button: it lives on the board as the Idle-mode bands.
@@ -12,16 +15,22 @@ public sealed record ActionBarState
     public int MaxActions { get; init; } = 3;
     public bool CanStrike { get; init; }
     public bool CanRaiseShield { get; init; }
+    public bool HasShield { get; init; }
     /// <summary>Delay is open: nothing done yet this turn and someone still acts after the actor.</summary>
     public bool CanDelay { get; init; }
     public int Map { get; init; }
     public string ActorName { get; init; } = "";
 
-    /// <summary>Active actor's vitals, rendered next to the name (e.g. "HP 18/24  AC 17").</summary>
+    /// <summary>Hero sheet id for the bar portrait. Empty for a creature.</summary>
+    public string ActorId { get; init; } = "";
+
     public int Hp { get; init; }
     public int MaxHp { get; init; }
     public int Ac { get; init; }
+
+    /// <summary>Resources in words, for the pip row's hover.</summary>
     public string Resources { get; init; } = "";
+    public IReadOnlyList<ResourcePipView> ResourcePips { get; init; } = System.Array.Empty<ResourcePipView>();
 
     /// <summary>Reasons a disabled button is disabled ("No actions remaining", "No targets in
     /// reach", ...), null when the button is enabled. Rules-derived in ActionBarStateBuilder —

@@ -180,6 +180,7 @@ func _init() -> void:
 		test_end_turn,
 		test_declare_window,
 		test_a_deck_that_never_attacks_still_declares_to_spend_what_it_carries,
+		test_declaring_needs_something_to_do,
 		test_grounds_can_tax_one_kind_of_attack,
 		test_a_restriction_can_last_one_attack_phase_not_the_whole_combat,
 		test_restrictions_list_what_the_rules_forbid,
@@ -228,6 +229,10 @@ func _init() -> void:
 		test_scorer_reads_effects_the_way_the_engine_resolves_them,
 		test_scorer_prices_optional_costs_burns_and_keeps,
 		test_scorer_counts_the_mastery_lines_an_attack_triggers,
+		test_scorer_prices_may_lines_relic_uses_and_soaked_energy,
+		test_scorer_prices_lines_against_the_table,
+		test_scorer_reads_attacks_the_way_they_land,
+		test_scorer_prices_critical_and_capture_choices,
 		test_evaluator_discounts_refilled_energy_and_doomed_hand_cards,
 		test_search_defers_to_the_scorer_on_stances_and_near_ties,
 		test_archetype_label,
@@ -2706,18 +2711,39 @@ func test_a_deck_that_never_attacks_still_declares_to_spend_what_it_carries() ->
 	var profile: AiProfile = AiProfile.default_profile()
 	profile.merge({"play": {"declare_bias": -12.0}})
 	me.hand.clear()
-	var empty: float = AiScorer._declare_score(profile, me)
+	var empty: float = AiScorer._declare_score(e, profile, me)
 	check(empty < 1.0, "nothing in hand scores under skipping, which is a flat 1.0 (%.2f)" % empty)
-	var carried: CardDef = lib.get_def("t_noncombat_draw")
 	for i in range(3):
-		me.hand.append(e._instance(carried, 0, &"hand"))
-	eq(AiScorer._declare_score(profile, me), empty, "while declare_use is off, carrying them counts for nothing")
+		inject(e, 0, "t_noncombat_draw")
+	eq(AiScorer._declare_score(e, profile, me), empty, "while declare_use is off, carrying them counts for nothing")
 	profile.merge({"play": {"declare_use": 2.0}})
-	var holding: float = AiScorer._declare_score(profile, me)
-	check(holding > empty, "with declare_use on, a hand of Combat-only cards is a reason to open one (%.2f over %.2f)" % [holding, empty])
+	var holding: float = AiScorer._declare_score(e, profile, me)
+	check(holding > empty, "with declare_use on, Non-Combats used only in Combat are a reason to open one (%.2f over %.2f)" % [holding, empty])
 	check(holding > 1.0, "and enough of them outweighs skipping (%.2f)" % holding)
+	for c in me.in_play.duplicate():
+		if c.def.id == "t_noncombat_draw":
+			me.in_play.erase(c)
+	eq(AiScorer._declare_score(e, profile, me), empty, "spend them and it goes quiet again")
+
+
+## Declaring hands the rival three cards and an attack phase, so a positive `declare_bias` is how
+## readily to fight, not a reason to open a Combat with nothing to do in it.
+func test_declaring_needs_something_to_do() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var me: PlayerState = e.player(0)
+	var profile: AiProfile = AiProfile.default_profile()
+	profile.merge({"play": {"declare_bias": 2.5}})
 	me.hand.clear()
-	eq(AiScorer._declare_score(profile, me), empty, "spend them and it goes quiet again")
+	me.duelist.energy = 0
+	for id in ["t_parry", "t_ward", "t_guard"]:
+		me.hand.append(e._instance(lib.get_def(id), 0, &"hand"))
+	var blocks: float = AiScorer._declare_score(e, profile, me)
+	check(blocks < 1.0, "a hand of blocks and a power it cannot pay for scores under skipping (%.2f)" % blocks)
+	me.hand.append(e._instance(lib.get_def("t_art"), 0, &"hand"))
+	eq(AiScorer._declare_score(e, profile, me), blocks, "an Art it cannot pay for is still no reason")
+	me.duelist.energy = 5
+	var armed: float = AiScorer._declare_score(e, profile, me)
+	check(armed > 1.0, "once the Art and the power can be paid, the bias applies and it declares (%.2f)" % armed)
 
 
 func shipped_library() -> CardLibrary:
@@ -5354,6 +5380,114 @@ func test_scorer_prices_optional_costs_burns_and_keeps() -> void:
 	var profile: AiProfile = AiProfile.default_profile()
 	check(AiScorer.hold_value(swing, profile) > AiScorer.hold_value(block, profile), "the Art is the better card to hold in general")
 	check(AiScorer._keep_score(k, me, block, profile) > AiScorer._keep_score(k, me, swing, profile), "but the block is the one to keep through their turn")
+
+
+## A "you may" line is priced by what it costs and what it buys, a Relic use by what it takes away
+## now, and the Duelist's soaked Energy by what the deck wants it for.
+func test_scorer_prices_may_lines_relic_uses_and_soaked_energy() -> void:
+	var profile: AiProfile = AiProfile.default_profile()
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	# "You may discard the top card of your Life Deck: this attack is Focused." With no attack in the
+	# air there is nothing for Focus to get past, so the life card is a pure cost.
+	e._choice = {"effect": shipped().get_def("pyre_mastery_01").effects[0]}
+	check(AiScorer._may_yes_score(e, me, profile) < 0.0, "a life card paid for nothing is declined")
+	e._choice = {"effect": {"op": "draw", "amount": 1, "may": true}}
+	check(AiScorer._may_yes_score(e, me, profile) > 0.0, "a free draw is taken")
+	# The Blank Mask forbids the rival's Mastery for the turn.
+	var mask: CardInstance = e._instance(shipped().get_def("relic_01"), 0, &"reserve")
+	var foe: PlayerState = e.player(1)
+	foe.mastery = null
+	eq(AiScorer.relic_score(e, profile, me, mask), 0.0, "forbidding a Mastery they do not have is worth nothing")
+	foe.mastery = e._instance(shipped().get_def("pyre_mastery_01"), 1, &"in_play")
+	check(AiScorer.relic_score(e, profile, me, mask) > 0.0, "and forbidding one they have is worth a use")
+	# A deck that fights through its Allies wants its Duelist's Energy spent once an Ally can take over.
+	var tide: AiProfile = AiProfile.for_deck(DeckList.load_from("res://data/decks/tide_companions.json"), "")
+	eq(AiScorer.duelist_energy_price(e, me, tide), tide.w("own", "energy"), "with no Ally out, Energy keeps its price")
+
+
+## The scorer prices a line against the table it lands on: a draw that decks someone, an "all"
+## that counts what is there, a forbid on a side, a card type picked for what the rival holds.
+func test_scorer_prices_lines_against_the_table() -> void:
+	var profile: AiProfile = AiProfile.default_profile()
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	var foe: PlayerState = e.player(1)
+	# Drawing past the end of a Life Deck loses the duel.
+	while me.life_deck.size() > 2:
+		me.life_deck.pop_back()
+	eq(AiScorer.effects_value([{"op": "draw", "amount": 3}], profile, [], 0.0, e, 0), -AiEvaluator.WIN, "a draw that empties our deck loses")
+	check(AiScorer.effects_value([{"op": "draw", "amount": 3}], profile, []) > 0.0, "read from the card alone, a draw is still a draw")
+	# Removing every Ally counts the Allies on each side.
+	var dismissal: Array = shipped().get_def("freestyle_combat_17").effects
+	eq(AiScorer.effects_value(dismissal, profile, [], 0.0, e, 0), 0.0, "with no Allies anywhere it does nothing")
+	real_inject(e, 1, _an_ally_id())
+	check(AiScorer.effects_value(dismissal, profile, [], 0.0, e, 0) > 0.0, "with only theirs out it is a gain")
+	real_inject(e, 0, _an_ally_id())
+	real_inject(e, 0, _an_ally_id())
+	check(AiScorer.effects_value(dismissal, profile, [], 0.0, e, 0) < 0.0, "with more of ours out it is a loss")
+	# A forbid on our own side is a cost.
+	check(AiScorer.effects_value([{"op": "forbid", "who": "self", "what": "drills"}], profile, [], 0.0, e, 0) < 0.0, "forbidding ourselves costs")
+	# "Discard all their Allies or all their Drills": the pick follows what they hold.
+	e._choice = {"kind": "card_type", "effect": {"op": "discard_in_play", "who": "opponent", "all": true}}
+	check(AiScorer._word_score(e, me, profile, "ally") > AiScorer._word_score(e, me, profile, "drill"), "their Ally goes when they have no Drills")
+	# Declaring Combat makes them draw three: with two left, that ends the duel.
+	while foe.life_deck.size() > 2:
+		foe.life_deck.pop_back()
+	var declare: Prompt = Prompt.new()
+	declare.player = 0
+	declare.kind = &"declare"
+	declare.options = [Command.new(0, &"declare"), Command.new(0, &"skip")]
+	eq(AiScorer._score(e, profile, declare, declare.options[0], {}), AiEvaluator.WIN, "declaring into a deck that cannot draw three wins")
+
+
+## The attack score reads the hit the way it will land: Energy past the defender's gauge is wounds,
+## a killing blow is the game, an Empowered swing loses its "after Empower" text, and a Final Strike
+## is a bare Strike that costs the card thrown.
+func test_scorer_reads_attacks_the_way_they_land() -> void:
+	var profile: AiProfile = AiProfile.default_profile()
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	var foe: PlayerState = e.player(1)
+	var strike: Command = Command.new(0, &"attack", -1)
+	foe.in_control().energy = 0
+	var hit: Dictionary = {-1: {"stages": 5, "life": 0, "overflow": 5, "wounds": 5, "cost_stages": 0}}
+	var soaked: Dictionary = {-1: {"stages": 5, "life": 0, "overflow": 0, "wounds": 0, "cost_stages": 0}}
+	check(AiScorer._attack_score(e, profile, me, foe, strike, null, hit) > AiScorer._attack_score(e, profile, me, foe, strike, null, soaked), "Energy past an empty gauge is priced as wounds")
+	while foe.life_deck.size() > 4:
+		foe.life_deck.pop_back()
+	eq(AiScorer._attack_score(e, profile, me, foe, strike, null, hit), AiEvaluator.WIN, "five wounds into four life cards wins")
+	# Empower drops the lines marked "after Empower".
+	var card: CardInstance = real_to_hand(e, 0, "signature_strike_02")
+	var plain: Command = Command.new(0, &"attack", card.uid)
+	var empower: Command = Command.new(0, &"attack", card.uid, "empower")
+	var same: Dictionary = {card.uid: {"stages": 3, "life": 0, "overflow": 0, "wounds": 0, "cost_stages": 0, "empowered": {"stages": 3, "life": 0, "overflow": 0, "wounds": 0, "cost_stages": 0}}}
+	foe.life_deck.append_array([])
+	check(AiScorer._attack_score(e, profile, me, foe, empower, card, same) < AiScorer._attack_score(e, profile, me, foe, plain, card, same), "with the same numbers, Empower is worth less by the text it drops")
+	# A Final Strike with the card: the bare Strike's numbers, less the card.
+	var final_cmd: Command = Command.new(0, &"final_strike", card.uid)
+	same[card.uid]["final"] = {"stages": 3, "life": 0, "overflow": 0, "wounds": 0, "cost_stages": 0}
+	check(AiScorer._attack_score(e, profile, me, foe, final_cmd, card, same) < AiScorer._attack_score(e, profile, me, foe, plain, card, same), "throwing the card away is worth less than swinging with it")
+
+
+## Critical damage and capture choices are priced by what they change: a lethal hit beats a Seal, the
+## strongest Ally goes first, and the rival's Fervor matters more near their Ascension.
+func test_scorer_prices_critical_and_capture_choices() -> void:
+	var profile: AiProfile = AiProfile.default_profile()
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var me: PlayerState = e.player(0)
+	var foe: PlayerState = e.player(1)
+	var seal: CardInstance = real_inject(e, 1, "seal_08")
+	check(AiScorer._capture_score(e, profile, me, foe, seal) > 0.0, "taking a Seal is worth something")
+	var weak: CardInstance = real_inject(e, 1, _an_ally_id())
+	var strong: CardInstance = real_inject(e, 1, _an_ally_id())
+	weak.energy = 0
+	strong.energy = 8
+	check(AiScorer._ally_worth(e, profile, foe, strong) > AiScorer._ally_worth(e, profile, foe, weak), "the Ally with more Energy is the one to take")
+	foe.fervor = 0
+	eq(AiScorer._lower_fervor_score(e, profile, foe), 0.0, "no Fervor, nothing to take")
+	foe.fervor = 3
+	check(AiScorer._lower_fervor_score(e, profile, foe) > 0.0, "a Fervor taken sets their climb back")
 
 
 ## What the Mastery adds to an attack counts toward that attack, when the attack meets its gate.

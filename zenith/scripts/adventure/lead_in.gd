@@ -1,11 +1,8 @@
 extends Control
-## The lead-in before an adventure duel: a context line, the two portraits, and the exchange one
-## line at a time. Continue shows the next line, then starts the duel; Skip starts it at once.
-##
-## Opened with no lead-in waiting (straight from the editor, or with `--dev-lead-ins`) it becomes
-## a browser over every scene in data/adventure/lead_ins.json, with all lines shown, Previous and
-## Next, and Reload to pick up edits to the file without restarting. `--dev-lead-in=N` opens on
-## the Nth scene; `--dev-screenshot=<png>` saves the screen and quits.
+## A browser over every lead-in scene in data/adventure/lead_ins.json, with all lines shown,
+## Previous and Next, and Reload to pick up edits to the file without restarting. In a run the
+## lead-ins play over the duel's opening instead (LeadInOverlay). `--dev-lead-in=N` opens on the
+## Nth scene; `--dev-screenshot=<png>` saves the screen and quits.
 
 const PORTRAIT_SIZE: float = 200.0
 const LINE_WIDTH: float = 520.0
@@ -20,47 +17,31 @@ const LINE_WIDTH: float = 520.0
 @onready var prev_button: Button = $Margin/Column/Footer/Prev
 @onready var next_button: Button = $Margin/Column/Footer/Next
 @onready var reload_button: Button = $Margin/Column/Footer/Reload
-@onready var skip_button: Button = $Margin/Column/Footer/Skip
-@onready var continue_button: Button = $Margin/Column/Footer/Continue
 
-var _browse: bool = false
 var _scenes: Array[Dictionary] = []
 var _index: int = 0
-var _scene: Dictionary = {}
-var _revealed: int = 0
 
 
 func _ready() -> void:
 	theme = SanctumUI.theme()
 	SanctumUI.dress(self, $Margin/Column/TitleRow/Title as Label)
-	_browse = Session.lead_in.is_empty() or AdventureDev.has_flag("--dev-lead-ins")
-	prev_button.visible = _browse
-	next_button.visible = _browse
-	reload_button.visible = _browse
-	skip_button.visible = not _browse
-	continue_button.visible = not _browse
 	prev_button.pressed.connect(func() -> void: _step(-1))
 	next_button.pressed.connect(func() -> void: _step(1))
 	reload_button.pressed.connect(_reload)
-	skip_button.pressed.connect(_to_duel)
-	continue_button.pressed.connect(_advance)
-	if _browse:
-		_scenes = AdventureLeadIns.all_scenes()
-		_index = clampi(int(AdventureDev.flag("--dev-lead-in=")), 0, maxi(0, _scenes.size() - 1))
-		_show(_scenes[_index] if not _scenes.is_empty() else {})
-	else:
-		_show(Session.lead_in)
+	_scenes = AdventureLeadIns.all_scenes()
+	_index = clampi(int(AdventureDev.flag("--dev-lead-in=")), 0, maxi(0, _scenes.size() - 1))
+	_show(_scenes[_index] if not _scenes.is_empty() else {})
 	SanctumUI.wire_buttons(self)
-	(next_button if _browse else continue_button).grab_focus()
+	next_button.grab_focus()
 	AdventureDev.screenshot(self)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _browse and event.is_action_pressed("ui_left"):
+	if event.is_action_pressed("ui_left"):
 		_step(-1)
-	elif _browse and event.is_action_pressed("ui_right"):
+	elif event.is_action_pressed("ui_right"):
 		_step(1)
-	elif _browse and event is InputEventKey and (event as InputEventKey).pressed and (event as InputEventKey).keycode == KEY_F5:
+	elif event is InputEventKey and (event as InputEventKey).pressed and (event as InputEventKey).keycode == KEY_F5:
 		_reload()
 	else:
 		return
@@ -68,45 +49,26 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _show(scene: Dictionary) -> void:
-	_scene = scene
-	_revealed = 0
 	var main: String = str(scene.get("main", ""))
 	var opponent: String = str(scene.get("opponent", ""))
 	narration.text = str(scene.get("narration", ""))
 	main_name.text = main
 	opponent_name.text = opponent
-	_set_portrait(main_portrait, main)
-	_set_portrait(opponent_portrait, opponent)
-	if _browse:
-		where_label.text = "%s     %d / %d" % [str(scene.get("title", "")), _index + 1, _scenes.size()]
-	else:
-		where_label.text = ""
+	_set_portrait(main_portrait, main, false)
+	_set_portrait(opponent_portrait, opponent, true)
+	where_label.text = "%s     %d / %d" % [str(scene.get("title", "")), _index + 1, _scenes.size()]
 	for child in lines_box.get_children():
 		child.queue_free()
-	if _browse:
-		_revealed = (scene.get("lines", []) as Array).size()
-		for line in scene.get("lines", []):
-			lines_box.add_child(_line_row(line))
-	else:
-		_advance()
+	for line in scene.get("lines", []):
+		lines_box.add_child(_line_row(line))
 
 
-func _set_portrait(slot: CenterContainer, character: String) -> void:
+## The opponent's portrait is mirrored so the two face each other.
+func _set_portrait(slot: CenterContainer, character: String, mirrored: bool) -> void:
 	for child in slot.get_children():
 		child.queue_free()
 	if character != "":
-		slot.add_child(ProgressUI.portrait(character, Session.library, PORTRAIT_SIZE))
-
-
-## Shows the next line, or starts the duel once every line is up.
-func _advance() -> void:
-	var lines: Array = _scene.get("lines", [])
-	if _revealed >= lines.size():
-		_to_duel()
-		return
-	lines_box.add_child(_line_row(lines[_revealed]))
-	_revealed += 1
-	continue_button.text = "Fight!" if _revealed >= lines.size() else "Continue"
+		slot.add_child(ProgressUI.portrait(character, Session.library, PORTRAIT_SIZE, false, mirrored))
 
 
 ## One spoken line: the speaker's name over the text, leaning toward their portrait. A whisper
@@ -164,10 +126,3 @@ func _reload() -> void:
 	_scenes = AdventureLeadIns.all_scenes()
 	_index = clampi(_index, 0, maxi(0, _scenes.size() - 1))
 	_show(_scenes[_index] if not _scenes.is_empty() else {})
-
-
-func _to_duel() -> void:
-	if _browse:
-		return
-	Session.lead_in = {}
-	Session.go_to_duel()

@@ -26,6 +26,9 @@ script = ExtResource("4_atmosphere")
 
 [node name="CardFaceCache" parent="." instance=ExtResource("3_faces")]
 
+[node name="Tick" type="Timer" parent="."]
+wait_time = 0.25
+
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -79,7 +82,7 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="Margin/Column/TitleRow/Players/Seat0"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_type_variation = &"CaptionLabel"
 text = "P1  Player 1"
 horizontal_alignment = 1
 
@@ -89,7 +92,7 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="Margin/Column/TitleRow/Players/Seat1"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_type_variation = &"CaptionLabel"
 text = "P2  waiting"
 horizontal_alignment = 1
 

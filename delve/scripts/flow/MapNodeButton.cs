@@ -12,7 +12,6 @@ namespace Delve.Flow;
 /// </summary>
 public partial class MapNodeButton : Button
 {
-    public Color? PartyAccent { get; set; }
     private const float ShapeInset = 8f;
     private const float PulseSpeed = 2.6f;
 
@@ -78,7 +77,7 @@ public partial class MapNodeButton : Button
 
             // The come-hither halo: the same silhouette, swelling and fading just outside the rim.
             var halo = MapNodeShapes.Outline(_kind, center, _shapeRadius + 4f + wave * 2f);
-            MapNodeShapes.DrawRim(this, halo, (PartyAccent ?? UiColors.Accent) with { A = 0.35f + 0.15f * wave }, 2f);
+            MapNodeShapes.DrawRim(this, halo, UiColors.Accent with { A = 0.35f + 0.15f * wave }, 2f);
         }
         else if (_dead)
         {
@@ -107,11 +106,11 @@ public partial class MapNodeButton : Button
             DrawPartyMarker(center);
     }
 
-    /// <summary>Run-colored chevron floating above the node the party stands on.</summary>
+    /// <summary>Accent chevron floating above the node the party stands on.</summary>
     private void DrawPartyMarker(Vector2 center)
     {
         var tip = center + new Vector2(0f, -_shapeRadius - 12f + Mathf.Sin(_time * PulseSpeed) * 2.5f);
-        var accent = PartyAccent ?? UiColors.Accent;
+        var accent = UiColors.Accent;
         DrawLine(tip + new Vector2(-7f, -7f), tip, accent, 3f, true);
         DrawLine(tip + new Vector2(7f, -7f), tip, accent, 3f, true);
     }

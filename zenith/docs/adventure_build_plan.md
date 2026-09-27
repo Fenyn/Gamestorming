@@ -106,7 +106,7 @@ One per-duel options block passed from `Session` to the engine at setup, each wi
 | 6.10 | Personality variant unlocks from encounters and quest nodes | todo | Each variant needs a printed source card first |
 | 6.11 | Harder difficulty after a first clear | todo | |
 | 6.12 | Gallery and epilogue screens | todo | Epilogue text needs tone approval |
-| 6.13 | Pre-duel lead-ins | doing | 2026-09-25, first pass for testing. Text in `data/adventure/lead_ins.json` (by main, opponent and slot), picked by `AdventureLeadIns`, remembered in `AdventureStoryLog` (`user://adventure/story_log.json`), shown by `scenes/adventure/lead_in.tscn` before every duel. Draft and open lore questions in `docs/lead_ins_review.md`. 67316 checks, 0 failures |
+| 6.13 | Pre-duel lead-ins | doing | 2026-09-25, first pass for testing. Text in `data/adventure/lead_ins.json` (by main, opponent and slot), picked by `AdventureLeadIns`, remembered in `AdventureStoryLog` (`user://adventure/story_log.json`), played by `LeadInOverlay` over the duel scene's opening camera flight (2026-09-27; `scenes/adventure/lead_in.tscn` is now only the text browser). Draft and open lore questions in `docs/lead_ins_review.md`. 67316 checks, 0 failures |
 
 ## Phase 7: balance
 

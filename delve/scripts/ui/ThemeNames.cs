@@ -12,6 +12,8 @@ public static class ThemeNames
     public const string MapNode = "MapNode";
     public const string Keycap = "Keycap";
     public const string ChipLabel = "ChipLabel";
+    public const string ChipLabelActive = "ChipLabelActive";
+    public const string ChipLabelPick = "ChipLabelPick";
     public const string HintLabel = "HintLabel";
     public const string PipFilled = "PipFilled";
     public const string PipSpent = "PipSpent";
@@ -49,6 +51,15 @@ public static class ThemeNames
     public const string MapHpHigh = "MapHpHigh";
     public const string MapHpMid = "MapHpMid";
     public const string MapHpLow = "MapHpLow";
+    public const string MapLegend = "MapLegend";
+    public const string MapWardValue = "MapWardValue";
+    public const string MapWardPreviewValue = "MapWardPreviewValue";
+    public const string EventOption = "EventOption";
+    public const string PartyChip = "PartyChip";
+    public const string PartyChipActive = "PartyChipActive";
+    public const string ReactionReady = "ReactionReady";
+    public const string ReactionSpent = "ReactionSpent";
+    public const string ClearPanel = "ClearPanel";
 
     public static string MapHpBarFor(float ratio)
         => ratio > 0.5f ? MapHpHigh : ratio > 0.25f ? MapHpMid : MapHpLow;

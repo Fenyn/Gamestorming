@@ -22,7 +22,7 @@ ends and 32px result-frame corners. Keep decorative marks within these margins.
     Aseprite.exe --batch --script-param out=<absolute assets/ui path> --script fantasy_ui.lua
 
 Shared themes cover normal, hover, pressed, disabled, and keyboard focus states.
-The camp departure action uses the brass accent surface. `result_panel.tres` is
-shared by combat rewards and the expedition summary.
+The camp departure action uses the accent surface. The `ResultFrame` variation in
+`ui_theme.tres` is shared by combat rewards and the expedition summary.
 
 Render `scenes/dev/fantasy_ui_spike.tscn` to review victory and defeat layouts.

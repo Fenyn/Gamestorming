@@ -135,7 +135,7 @@ public partial class PromotionSpike : SpikeBase
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
         string path = ProjectSettings.GlobalizePath("res://.godot/promotion_sheet.png");
-        Check("promotion sheet screenshot saved", GetViewport().GetTexture().GetImage().SavePng(path) == Error.Ok);
+        Check("promotion sheet screenshot saved", SaveViewportCapture(path) == Error.Ok);
         GD.Print(path);
     }
 }

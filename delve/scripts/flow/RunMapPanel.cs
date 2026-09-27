@@ -12,16 +12,12 @@ namespace Delve.Flow;
 /// The run map: one row per floor, the entrance at the bottom and the Depths Warden at the top.
 /// Every node is a <see cref="MapNodeButton"/> medallion jittered off its grid cell so the chart
 /// reads hand-drawn, wired by <see cref="MapEdgeCanvas"/> dashed trails; the walked path burns
-/// in the random party member's color and the open choices pulse. Only ids <see cref="RunState.Reachable"/> lists are enabled,
+/// in the accent and the open choices pulse. Only ids <see cref="RunState.Reachable"/> lists are enabled,
 /// so the panel cannot pick an illegal move. Passive - it renders what it is handed and signals
 /// the pick outward.
 /// </summary>
 public partial class RunMapPanel : Control
 {
-    [Export] public RunMapAccentTheme AccentTheme { get; set; } = null!;
-    private Theme _baseTheme = null!;
-    private string? _accentCharacterId;
-    private Color _accent;
     [Export] public float LaneSpacing { get; set; } = 168f;
     [Export] public float FloorSpacing { get; set; } = 106f;
     private const float JitterX = 26f;
@@ -51,7 +47,6 @@ public partial class RunMapPanel : Control
 
     public override void _Ready()
     {
-        _baseTheme = Theme;
         _mapArea = GetNode<Control>("%MapArea");
         _floorLabel = GetNode<Label>("%FloorLabel");
         _floorTitle = GetNode<Label>("%FloorTitle");
@@ -60,7 +55,7 @@ public partial class RunMapPanel : Control
         _detailState = GetNode<Label>("%DetailState");
         _status = GetNode<RunMapStatus>("%Status");
         _details = GetNode<CharacterDetailsOverlay>("%MapCharacterDetails");
-        _details.GetNode<Button>("%CloseDetails").Text = "Return to map  [Esc]";
+        _details.GetNode<CaptionButton>("%CloseDetails").SetActionText("Return to map");
         _status.DetailsRequested += member =>
         {
             if (!_travel.Traveling) _details.Open(member, HeroPortraits.For(member.Id), UiColors.CharacterAccent(member.Id));
@@ -82,13 +77,6 @@ public partial class RunMapPanel : Control
     {
         _travel.Cancel();
         _state = state;
-        if (_accentCharacterId != state.PresentationCharacterId)
-        {
-            _accentCharacterId = state.PresentationCharacterId;
-            _accent = UiColors.CharacterAccent(_accentCharacterId);
-            Theme = AccentTheme.Build(_baseTheme, _accent);
-            _status.Theme = Theme;
-        }
         var theme = FloorThemes.ForStratum(state.Stratum);
         _floorLabel.Text = $"FLOOR {state.Stratum + 1} / {FloorThemes.Count}";
         _floorTitle.Text = theme.DisplayName;
@@ -126,7 +114,7 @@ public partial class RunMapPanel : Control
         int? current = state.CurrentNodeId;
         foreach (var node in map.Nodes)
         {
-            var button = new MapNodeButton { PartyAccent = _accent };
+            var button = new MapNodeButton();
             button.Setup(node, reachable.Contains(node.Id), current == node.Id, live.Contains(node.Id));
             if (node.Kind == NodeKind.Boss)
                 button.TooltipText = $"{_guardianTitle}\n{NodeKindInfo.Get(node.Kind).Blurb}";
@@ -156,7 +144,7 @@ public partial class RunMapPanel : Control
         var from = _state.CurrentNodeId is int current && _buttons.TryGetValue(current, out var origin)
             ? origin.Position + origin.Size / 2 : destination + new Vector2(0, 55);
         foreach (var button in _buttons.Values) button.Disabled = true;
-        bool arrived = await _travel.Play(_mapArea, from, destination, _accent);
+        bool arrived = await _travel.Play(_mapArea, from, destination, UiColors.Ward);
         if (!arrived && IsInsideTree() && _state != null)
         {
             var reachable = new HashSet<int>(_state.Reachable());
@@ -211,7 +199,7 @@ public partial class RunMapPanel : Control
         return live;
     }
 
-    /// <summary>The dashed-trail layer: walked history in the random party member's color, the current choices bright,
+    /// <summary>The dashed-trail layer: walked history in the accent, the current choices bright,
     /// paths still ahead receding, dead paths nearly gone.</summary>
     private MapEdgeCanvas BuildEdgeCanvas(
         RunState state, IReadOnlyDictionary<int, Vector2> centers, HashSet<int> live)
@@ -247,7 +235,7 @@ public partial class RunMapPanel : Control
             }
         }
 
-        var canvas = new MapEdgeCanvas { PartyAccent = _accent };
+        var canvas = new MapEdgeCanvas();
         canvas.SetAnchorsPreset(LayoutPreset.FullRect);
         canvas.SetEdges(edges);
         return canvas;
@@ -274,7 +262,7 @@ public partial class RunMapPanel : Control
             item.AddChild(new Label
             {
                 Text = kind == NodeKind.Boss ? "Guardian" : entry.DisplayName,
-                ThemeTypeVariation = "MapLegend",
+                ThemeTypeVariation = ThemeNames.MapLegend,
             });
             _legendRow.AddChild(item);
         }

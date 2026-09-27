@@ -4,16 +4,16 @@ using Godot;
 namespace Delve.UI;
 
 /// <summary>
-/// Passive hover-inspect card: unit name behind a team-colored accent strip, AC, HP bar + text,
-/// and active conditions. Docked bottom-left of the combat HUD. Shown whenever the cursor hovers
-/// an occupied tile in ANY mode (idle or targeting); hidden over empty tiles. Renders from
-/// <see cref="UnitInspectView"/> only — no engine types, no rules; the AC/HP lines arrive already
-/// masked for what the bestiary knows about that species, and the HP bar always fills to the real
-/// ratio (board-visible information).
+/// The card slot under the party column: the hovered unit on player turns, the acting enemy on
+/// enemy turns. Letter badge, name behind a team-coloured strip, HP bar, masked HP and AC, and
+/// active conditions. Renders from <see cref="UnitInspectView"/> only; the AC/HP lines arrive
+/// already masked, and the HP bar always fills to the real ratio (board-visible information).
 /// </summary>
 public partial class UnitInspectPanel : PanelContainer
 {
     private ColorRect _accent = null!;
+    private Control _badge = null!;
+    private Label _badgeLabel = null!;
     private Label _nameLabel = null!;
     private Label _acLabel = null!;
     private ProgressBar _hpBar = null!;
@@ -23,6 +23,8 @@ public partial class UnitInspectPanel : PanelContainer
     public override void _Ready()
     {
         _accent = GetNode<ColorRect>("%Accent");
+        _badge = GetNode<Control>("%Badge");
+        _badgeLabel = GetNode<Label>("%BadgeLabel");
         _nameLabel = GetNode<Label>("%NameLabel");
         _acLabel = GetNode<Label>("%AcLabel");
         _hpBar = GetNode<ProgressBar>("%HpBar");
@@ -31,15 +33,16 @@ public partial class UnitInspectPanel : PanelContainer
         Visible = false;
     }
 
-    /// <summary>Render the hovered unit, or hide when null (empty tile).</summary>
+    /// <summary>Render the unit, or hide when null.</summary>
     public void Render(UnitInspectView? view)
     {
         Visible = view != null;
         if (view == null) return;
 
         _accent.Color = view.IsAlly ? UiColors.Ally : UiColors.Enemy;
+        _badge.Visible = view.Letter.Length > 0;
+        _badgeLabel.Text = view.Letter;
         _nameLabel.Text = view.Name;
-        // Pre-masked by the query (bestiary knowledge) — this Control never decides what is hidden.
         _acLabel.Text = view.AcText;
 
         int maxHp = System.Math.Max(1, view.MaxHp);
@@ -48,8 +51,10 @@ public partial class UnitInspectPanel : PanelContainer
         _hpBar.ThemeTypeVariation =
             ThemeNames.HpBarFor(view.MaxHp > 0 ? (float)view.Hp / view.MaxHp : 0f);
         _hpLabel.Text = view.HpText;
+        _hpLabel.Visible = view.HpText.Length > 0;
 
         _conditionsLabel.Visible = view.Conditions.Count > 0;
         _conditionsLabel.Text = string.Join("   ", view.Conditions);
+        ResetSize();
     }
 }

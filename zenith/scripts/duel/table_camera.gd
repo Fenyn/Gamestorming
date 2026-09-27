@@ -22,7 +22,14 @@ const ARENA_LOOK: Vector3 = Vector3(0, 0, -0.2)
 const ARENA_DISTANCE: float = 7.5
 const ARENA_GLIDE: float = 4.5
 
+## The opening shot under a lead-in: low at the courtyard's open side, looking up the dais, then a
+## slow flight to the home framing.
+const INTRO_FROM: Vector3 = Vector3(-6.5, 1.3, 11.5)
+const INTRO_LOOK: Vector3 = Vector3(0, 0.6, -3.0)
+
 var _home: Transform3D
+var _intro: Tween = null
+var _fly_t: float = 1.0
 var _target: Vector3
 var _glide: float = GLIDE
 ## Set by the duel view; the rest position moves in on the arena and glides back out after.
@@ -59,6 +66,51 @@ func kick(direction: Vector2, strength: float = 0.04) -> void:
 	_kick.parallel().tween_property(self, "v_offset", 0.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
+## Starts the opening shot at INTRO_FROM and flies to the home framing over `seconds`. Input and
+## the idle glide wait until it lands.
+func fly_in(seconds: float) -> void:
+	_fly(0.0, seconds, Tween.EASE_IN_OUT)
+
+
+## Finishes a running opening shot within `seconds`, along the same path from where it has got to.
+func land(seconds: float) -> void:
+	if flying():
+		_fly(_fly_t, seconds, Tween.EASE_OUT)
+
+
+func flying() -> bool:
+	return _intro != null and _intro.is_valid()
+
+
+## Waits for the opening shot to land. Returns at once when there is none.
+func landed() -> void:
+	if flying():
+		await _intro.finished
+
+
+func _fly(from: float, seconds: float, ease: Tween.EaseType) -> void:
+	if _intro != null:
+		_intro.kill()
+	_fly_step(from)
+	_intro = create_tween()
+	_intro.tween_method(_fly_step, from, 1.0, seconds).set_trans(Tween.TRANS_SINE).set_ease(ease)
+	_intro.finished.connect(_on_landed)
+
+
+## Position and look point both travel, so the dais stays framed the whole way.
+func _fly_step(t: float) -> void:
+	_fly_t = t
+	var at: Vector3 = INTRO_FROM.lerp(_home.origin, t)
+	var look: Vector3 = INTRO_LOOK.lerp(LOOK_AT, t)
+	transform = Transform3D(Basis.looking_at(look - at), at)
+
+
+func _on_landed() -> void:
+	transform = _home
+	_target = position
+	_idle = 0.0
+
+
 ## Glide back to the home framing now (hand-offs, swings).
 func return_home() -> void:
 	_target = _rest()
@@ -78,6 +130,8 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if flying():
+		return
 	if event is InputEventMouseButton:
 		var mb: InputEventMouseButton = event
 		if mb.button_index == MOUSE_BUTTON_WHEEL_UP and mb.pressed:
@@ -97,6 +151,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	if flying():
+		return
 	var keys: Vector2 = _key_axis()
 	if keys != Vector2.ZERO:
 		_idle = 0.0

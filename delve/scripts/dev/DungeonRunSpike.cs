@@ -148,7 +148,6 @@ public partial class DungeonRunSpike : SpikeBase
         if (DisplayServer.GetName() == "headless") return;
         await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
         await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
-        using var image = GetViewport().GetTexture().GetImage();
-        image.SavePng($"res://.godot/{name}.png");
+        SaveViewportCapture($"res://.godot/{name}.png");
     }
 }

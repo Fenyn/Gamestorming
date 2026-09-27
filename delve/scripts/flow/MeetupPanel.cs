@@ -46,5 +46,7 @@ public partial class MeetupPanel : Control
             _slots[i].Disabled = i >= party.MemberIds.Count;
             _slots[i].Text = i < party.MemberIds.Count ? $"Send {party.Members[i].Name} home ({party.Members[i].Health?.CurrentHP}/{party.Members[i].Health?.MaxHP} HP)" : "Empty slot";
         }
+        // Enter must never send a companion home by accident.
+        UiFocus.Grab(GetNode<Button>("%DeclineButton"));
     }
 }

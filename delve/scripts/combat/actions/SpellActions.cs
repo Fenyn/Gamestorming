@@ -136,7 +136,12 @@ internal sealed class SpellActions
             OutcomeText = string.Join("\n", previews.Select(p => $"{p.TargetName}: {p.OutcomeText}")),
             DetailText = $"{spell.Spell.SaveType} vs spell DC {StatsCalculator.CalculateSpellDC(caster)}"
                 + (spell.Spell.IsDamaging ? $" · {spell.Spell.GetEffectiveDamage(spell.GetCastLevel(caster))} damage" : ""),
-            TargetOffGuard = false
+            TargetOffGuard = false,
+            Figures = previews.Where(p => p.Figures.Count > 0)
+                .Select(p => new FigureView(p.TargetName, p.Figures[0].Value))
+                .Concat(previews[0].Figures.Where(f => f.Caption == "Damage")).ToArray(),
+            Tags = new[] { previews[0].Figures.Count == 0 ? "" : previews[0].Figures[0].Caption == "Fails" ? "Fail chance" : $"{previews[0].Figures[0].Caption} chance" }
+                .Concat(previews[0].Tags).Where(t => t.Length > 0).ToArray(),
         };
     }
 

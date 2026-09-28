@@ -42,6 +42,9 @@ public sealed class DungeonRoom
     public RoomPurpose? PurposeOverride { get; init; }
     public RoomPurpose Purpose => PurposeOverride ?? StationPlan.Default(Family);
     public bool Discovered { get; set; }
+
+    /// <summary>Known by kind without a visit, from a duty log or another scouting source.</summary>
+    public bool Scouted { get; set; }
     public bool Completed { get; set; }
     public bool Resolved { get; set; }
     public List<DungeonDoor> Doors { get; } = new();
@@ -160,6 +163,39 @@ public sealed class DungeonFloor
             Rooms = rooms,
             Map = new RunMap(depth.Max() + 1, 4, nodes, new[] { 0 }, 11)
         };
+    }
+
+    /// <summary>True when the guardian stays reachable from the entrance without entering the room.</summary>
+    public bool Skippable(int id) => id != EntranceId && id != GuardianId && Distances(EntranceId, id)[GuardianId] >= 0;
+
+    /// <summary>Crossings from <paramref name="start"/> to every room, by room id; -1 where unreachable.
+    /// A <paramref name="blocked"/> room is never entered.</summary>
+    public int[] Distances(int start, int blocked = -1)
+    {
+        var distance = Enumerable.Repeat(-1, Rooms.Count).ToArray();
+        if (blocked >= 0) distance[blocked] = int.MaxValue;
+        distance[start] = 0;
+        var queue = new Queue<int>();
+        queue.Enqueue(start);
+        while (queue.TryDequeue(out int a))
+            foreach (var d in Rooms[a].Doors)
+            {
+                int b = d.Other(a);
+                if (distance[b] >= 0)
+                    continue;
+                distance[b] = distance[a] + 1;
+                queue.Enqueue(b);
+            }
+        return distance;
+    }
+
+    /// <summary>True when the room lies on some shortest route from the entrance to the guardian.
+    /// Optional content stays off these rooms, so the player can route around it.</summary>
+    public bool OnShortestRoute(int id)
+    {
+        var fromEntrance = Distances(EntranceId);
+        var fromGuardian = Distances(GuardianId);
+        return fromEntrance[id] + fromGuardian[id] == fromEntrance[GuardianId];
     }
 
     public static NodeKind Kind(RoomFamily f) => f switch

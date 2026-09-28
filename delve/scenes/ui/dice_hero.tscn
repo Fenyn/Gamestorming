@@ -1,0 +1,175 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/DiceHeroView.cs" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/d20_outline.svg" id="2"]
+[ext_resource type="Script" path="res://scripts/ui/DegreeTrack.cs" id="3"]
+
+[node name="DiceHero" type="Control"]
+top_level = true
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 640.0
+offset_bottom = 176.0
+mouse_filter = 2
+script = ExtResource("1")
+CentreDieSize = 176.0
+TrackDieSize = 128.0
+OutlineTilt = 9.0
+ShadeMargin = Vector2(160, 72)
+
+[node name="Shade" type="Panel" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -72.0
+offset_right = 160.0
+offset_bottom = 72.0
+mouse_filter = 2
+theme_type_variation = &"RollHeroShade"
+
+[node name="Content" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="FaceBox" type="CenterContainer" parent="Content"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Face" type="Control" parent="Content/FaceBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(176, 176)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Outline" type="TextureRect" parent="Content/FaceBox/Face"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Value" type="Label" parent="Content/FaceBox/Face"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme_type_variation = &"BannerLabel"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Centre" type="VBoxContainer" parent="Content"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Chip" type="PanelContainer" parent="Content/Centre"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="ChipText" type="Label" parent="Content/Centre/Chip"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"EmphasisLabel"
+
+[node name="CentreApplied" type="RichTextLabel" parent="Content/Centre"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"CombatLogText"
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+
+[node name="Numbers" type="HBoxContainer" parent="Content/Centre"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="CentreTotal" type="Label" parent="Content/Centre/Numbers"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"BannerLabel"
+
+[node name="Versus" type="Label" parent="Content/Centre/Numbers"]
+layout_mode = 2
+theme_type_variation = &"IntroSubtitle"
+vertical_alignment = 1
+text = "vs"
+
+[node name="Target" type="Label" parent="Content/Centre/Numbers"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"BannerLabel"
+text = "?"
+
+[node name="CentreWord" type="Label" parent="Content/Centre"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"BannerLabel"
+
+[node name="TrackColumn" type="VBoxContainer" parent="Content"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="TrackWord" type="Label" parent="Content/TrackColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"BannerLabel"
+horizontal_alignment = 2
+
+[node name="TrackRow" type="HBoxContainer" parent="Content/TrackColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="Degree" type="Control" parent="Content/TrackColumn/TrackRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(480, 72)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("3")
+
+[node name="TrackTotal" type="Label" parent="Content/TrackColumn/TrackRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+size_flags_vertical = 1
+theme_type_variation = &"BannerLabel"
+vertical_alignment = 1
+
+[node name="TrackApplied" type="RichTextLabel" parent="Content/TrackColumn"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"CombatLogText"
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 0

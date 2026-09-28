@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Delve.Autoload;
@@ -120,6 +121,31 @@ public partial class DungeonSpike : SpikeBase
                 }
 
         Check("all families, sizes and door masks validate", variants == 0);
+        var cache = DungeonEncounters.Event(RoomFamily.Cache);
+        int authored = cache.Options[0].Check!.Dc;
+        Check($"event DCs follow the party level (cache DC {authored} at level 1, {DungeonEncounters.AtLevel(cache, 5).Options[0].Check!.Dc} at 5, {DungeonEncounters.AtLevel(cache, 10).Options[0].Check!.Dc} at 10)",
+            DungeonEncounters.AtLevel(cache, 1).Options[0].Check!.Dc == authored
+            && DungeonEncounters.AtLevel(cache, 5).Options[0].Check!.Dc == authored + 5
+            && DungeonEncounters.AtLevel(cache, 10).Options[0].Check!.Dc == authored + 12);
+        var routeFloors = Enumerable.Range(1, 60).Select(DungeonFloor.Generate).ToArray();
+        Check("entrance and guardian lie on the shortest route of every floor",
+            routeFloors.All(f => f.OnShortestRoute(f.EntranceId) && f.OnShortestRoute(f.GuardianId)));
+        int offRoute = routeFloors.Count(f => f.Map.Nodes.Any(n => n.Kind == NodeKind.Combat && !f.OnShortestRoute(n.Id)));
+        int skippable = routeFloors.Count(f => f.Map.Nodes.Any(n => n.Kind == NodeKind.Combat && f.Skippable(n.Id)));
+        Check($"every floor has a fight room the party can route around for the Wayfarer ({offRoute} off the shortest route, {skippable}/60 skippable)",
+            skippable == routeFloors.Length);
+        Check("the entrance, the guardian and the only way in are never skippable",
+            routeFloors.All(f => !f.Skippable(f.EntranceId) && !f.Skippable(f.GuardianId) && !f.Skippable(10)));
+        var edge = new Wardstone(new WardstoneRules { NodeBurn = 5 });
+        while (edge.Ward > edge.Rules.SteadyAbove) edge.BurnNode();
+        var danger = DoorTips.For(routeFloors[0].Rooms[1], edge, Array.Empty<string>()).Figures!;
+        Check($"a crossing that raises the danger shows the pair (Danger {danger.ElementAtOrDefault(1)?.Before} → {danger.ElementAtOrDefault(1)?.Value})",
+            danger.Count == 2 && danger[1].Before == "normal" && danger[1].Value == "+1");
+        var steady = DoorTips.For(routeFloors[0].Rooms[1], new Wardstone(new WardstoneRules { NodeBurn = 5 }), Array.Empty<string>()).Figures!;
+        Check("a crossing that keeps the danger shows only the ward pair", steady.Count == 1);
+        var unseenEvent = routeFloors[0].Rooms.First(r => DungeonFloor.Kind(r.Family) == NodeKind.Event && r.Id != 0);
+        Check("pending feats hold back unseen rooms of every kind, so the warning reveals nothing",
+            DoorTips.NeedsPromotionsFirst(unseenEvent) && DoorTips.For(unseenEvent, edge, new[] { "Aldric" }).Body.Contains(DoorTips.FeatsFirstWarning));
         int eventSeed = Enumerable.Range(1, 100).First(seed =>
         {
             var f = DungeonFloor.Generate(seed);
@@ -127,16 +153,33 @@ public partial class DungeonSpike : SpikeBase
         });
         var host = TestScene.Instantiate<DungeonDirector>();
         host.Seed = eventSeed;
+        float sceneWalk = host.TravelSecondsPerTile;
         host.TravelSecondsPerTile = 0.001f;
         AddChild(host);
         await WaitSeconds(0.2f);
-        Check("starts with entrance event and full ward", host.Phase == DungeonPhase.Event && host.State.Wardstone.Ward == 100);
+        Check("the receiving hall opens straight to its doors with full ward", host.Phase == DungeonPhase.Doors
+            && host.Current.Completed && host.State.Wardstone.Ward == 100);
+        var entranceHud = host.GetNode<DungeonHud>("Screens/DungeonHud");
+        Check($"the hall's card carries the station history ('{entranceHud.RoomCardText}')",
+            entranceHud.RoomCardText == StationPlan.Name(RoomPurpose.Receiving) && entranceHud.RoomCardDetail == StationPlan.Account(host.Floor.History));
+        var plan = entranceHud.Plan.Drawn();
+        Check($"the floor plan shows the hall and only the rooms beyond its doors ({string.Join(",", plan.Select(p => $"{p.Key}:{p.Value}"))})",
+            plan[0] == "entrance" && plan.Count == 1 + host.Current.Doors.Count
+            && host.Current.Doors.All(d => plan[d.Other(0)] == "unknown"));
         var hud = host.GetNode<DungeonHud>("Screens/DungeonHud");
         Check("exploration shows full ward meter", hud.GetNode<ProgressBar>("%WardBar").Value == 100
             && hud.GetNode<Control>("%Expedition").Visible);
         if (Capture)
             await Shot("dungeon_entrance.png");
         host.ResolveEvent(0, null);
+        var completions = new List<int>();
+        var entries = new List<(int Room, bool First)>();
+        var crossings = new List<(int Before, int After)>();
+        var wardChanges = new List<(int Before, int After)>();
+        host.RoomCompleted += room => completions.Add(room.Id);
+        host.RoomEntered += (room, _, first) => entries.Add((room.Id, first));
+        host.CrossingStarted += (_, _, before, after) => crossings.Add((before, after));
+        host.State.Wardstone.Changed += (before, after) => wardChanges.Add((before, after));
         host.ResolveEvent(0, null);
         host.CloseEvent();
         Check("entrance resolves exactly once", host.Current.Completed && host.Phase == DungeonPhase.Doors);
@@ -147,7 +190,15 @@ public partial class DungeonSpike : SpikeBase
         await host.Travel(first.Side(0));
         await task;
         Check("duplicate click charges one crossing", host.State.Wardstone.Ward == 95 && host.Phase == DungeonPhase.Event);
-        Check("ward meter follows crossing cost", hud.GetNode<ProgressBar>("%WardBar").Value == 95);
+        var wardBar = hud.GetNode<ProgressBar>("%WardBar");
+        Check($"ward meter slides toward the crossing cost ({wardBar.Value:F1})", wardBar.Value > 95);
+        Check($"an event room is named by its panel, not by a second card ('{hud.RoomCardText}')",
+            hud.RoomCardText == StationPlan.Name(RoomPurpose.Receiving));
+        var afterCrossing = hud.Plan.Drawn();
+        Check($"the plan shows the visited event room by kind and its unseen neighbours as unknown ({string.Join(",", afterCrossing.Select(p => $"{p.Key}:{p.Value}"))})",
+            afterCrossing[host.Current.Id] == "event" && host.Current.Doors.All(d => afterCrossing.ContainsKey(d.Other(host.Current.Id))));
+        await WaitSeconds((float)hud.WardTweenSeconds + 0.1f);
+        Check("ward meter settles on the crossing cost", wardBar.Value == 95);
         if (Capture)
             await Shot("dungeon_happenstance.png");
         host.ResolveEvent(0, null);
@@ -158,6 +209,38 @@ public partial class DungeonSpike : SpikeBase
         Check("backtracking costs ward without replaying entrance", host.Current.Id == 0 && host.Phase == DungeonPhase.Doors && host.State.Wardstone.Ward == 90);
         await host.Travel(first.Side(0));
         Check("cleared room retains rewards and resolution", host.Current.Completed && host.State.Gold == gold && host.State.Wardstone.Ward == 85 && host.Phase == DungeonPhase.Doors);
+        int eventRoom = completed.Id;
+        Check($"room completed fires once per room ({string.Join(",", completions)})",
+            completions.SequenceEqual(new[] { eventRoom }));
+        Check($"room entered marks only the first arrival ({string.Join(",", entries)})",
+            entries.SequenceEqual(new[] { (eventRoom, true), (0, false), (eventRoom, false) }));
+        Check("each crossing reports its ward before and after once",
+            crossings.SequenceEqual(new[] { (100, 95), (95, 90), (90, 85) }) && wardChanges.SequenceEqual(crossings));
+        Check($"only the current room and its discovered neighbours render ({host.VisibleRoomCount} drawn)",
+            host.VisibleRoomCount <= 1 + host.Current.Doors.Count && host.CurrentView.Visible);
+        int dressed = host.GetNode<ExplorationFx>("%ExplorationFx").Dressed;
+        Check($"signature rooms carry their looping effect ({dressed} of refuge, kitchen, workshop, shrine, ward chamber)", dressed >= 4);
+        int beats = host.GetNode<ExplorationFx>("%ExplorationFx").Played;
+        Check($"exploration beats reach the effects node ({beats} after three crossings, an arrival and a clear)", beats >= 5);
+        // A real-speed crossing fits the two-second budget, and a click skips it without a second charge.
+        float fastWalk = host.TravelSecondsPerTile;
+        host.TravelSecondsPerTile = sceneWalk;
+        int wardBeforeSkip = host.State.Wardstone.Ward;
+        var walking = host.Travel(first.Side(host.Current.Id));
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        bool wasWalking = host.Phase == DungeonPhase.Travel;
+        host._UnhandledInput(new InputEventMouseButton { ButtonIndex = MouseButton.Left, Pressed = true });
+        for (int frame = 0; frame < 3 && host.Phase == DungeonPhase.Travel; frame++)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        await walking;
+        Check($"a real-speed crossing fits the budget ({host.LastCrossingSeconds:F2} s of 2.0)", host.LastCrossingSeconds <= 2.0);
+        Check("a click during the walk arrives within three frames and charges one crossing",
+            wasWalking && host.Phase == DungeonPhase.Doors && host.State.Wardstone.Ward == wardBeforeSkip - host.CrossingBurn);
+        host.TravelSecondsPerTile = fastWalk;
+        await host.Travel(first.Side(host.Current.Id));
+        // Restore the ward the two extra crossings spent, so the checks below keep their numbers.
+        host.State.Wardstone.RefillFull();
+        while (host.State.Wardstone.Ward > wardBeforeSkip) host.State.Wardstone.BurnNode();
         if (Capture)
         {
             await Shot("dungeon_cleared.png");
@@ -193,13 +276,14 @@ public partial class DungeonSpike : SpikeBase
         var pending = host.Travel(first.Side(host.Current.Id));
         host.Restart(eventSeed);
         await pending;
-        Check("restart cancels travel and starts a fresh isolated run", host.State.Wardstone.Ward == 100 && host.Current.Id == 0 && host.Phase == DungeonPhase.Event);
+        Check("restart cancels travel and starts a fresh isolated run", host.State.Wardstone.Ward == 100 && host.Current.Id == 0 && host.Phase == DungeonPhase.Doors);
         host.ResolveEvent(0, null);
         host.CloseEvent();
         while (host.State.Wardstone.Ward > 5)
             host.State.Wardstone.BurnNode();
         await host.Travel(host.Current.Doors[0].Side(0));
         Check("last crossing depletes ward before destination encounter", host.Phase == DungeonPhase.End && host.State.Outcome == RunOutcome.Defeat && host.State.Wardstone.Ward == 0);
+        await WaitSeconds((float)hud.WardTweenSeconds + 0.1f);
         Check("spent ward has an empty meter and explicit warning", hud.GetNode<ProgressBar>("%WardBar").Value == 0
             && hud.GetNode<Label>("%WardDanger").Text.Contains("EXHAUSTED"));
         if (Capture) await RoomGallery(host);
@@ -244,7 +328,7 @@ public partial class DungeonSpike : SpikeBase
             room.History = StationHistory.Flooded;
             room.LayoutVariant = 0;
             room.Generate(4711 + (int)purpose, new[] { DoorSide.South, DoorSide.East }, 14);
-            room.SetDoorsOpen(true);
+            room.SetDoorsOpen(true, instant: true);
             rig.FrameBoard(new Vector3(room.Width / 2f, 0, room.Width / 2f), room.Width, room.Width);
             room.Cutaway(rig.Camera);
             Check($"{purpose}: textured station prefab and valid layout", room.Palette?.FloorTextures.Length > 0 && RoomGeneration.Validate(room.Generated));
@@ -260,11 +344,6 @@ public partial class DungeonSpike : SpikeBase
     {
         await WaitSeconds(0.5f);
         await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
-        string path = ProjectSettings.GlobalizePath("res://.godot/" + name);
-        var image = GetViewport().GetTexture().GetImage();
-        image.Convert(Image.Format.Rgba8);
-        image.LinearToSrgb();
-        image.SavePng(path);
-        GD.Print($"[DungeonShot] {path}");
+        SaveViewportCapture("res://.godot/" + name);
     }
 }

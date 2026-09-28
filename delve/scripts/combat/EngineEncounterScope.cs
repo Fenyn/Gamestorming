@@ -82,7 +82,9 @@ public sealed class EngineEncounterScope : IDisposable
         _grid = grid;
 
         // Engine singletons (mirrors BattleSimulator's constructor).
-        Turns = new TurnManager();
+        // Delve rulings (user, 2026-09-27): combatants may react before their first turn, and a
+        // Delay may return after a combatant who acts next round.
+        Turns = new TurnManager { ReactionsBeforeFirstTurn = true, DelayAcrossRounds = true };
         TurnManager.Instance = Turns;
         Registry = new CombatantRegistry();
         CombatantRegistry.Instance = Registry;

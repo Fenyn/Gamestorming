@@ -17,9 +17,15 @@ namespace Delve.Combat;
 /// The bar billboards itself on the CPU. A material billboard cannot replace this: the two quads
 /// would each face the camera around their own origin, so the fill would slide off the background at
 /// any camera yaw, and the fill would lose its non-uniform scale.
+///
+/// The quads are authored in screen pixels. Each frame the node scales by the metres one pixel
+/// spans at its depth, so the bar keeps one screen size at any zoom, like the name plates.
 /// </summary>
 public partial class WorldHpBar : Node3D
 {
+    /// <summary>Metres per quad unit while no camera is known, near the default camera's scale.</summary>
+    [Export] public float FallbackMetresPerPixel { get; set; } = 0.0175f;
+
     /// <summary>Colour of the quad behind the fill.</summary>
     [Export] public Color BackgroundColor { get; set; } = new(0.08f, 0.08f, 0.1f, 0.9f);
 
@@ -40,6 +46,12 @@ public partial class WorldHpBar : Node3D
     /// <summary>Read-only handle on the fill mesh, for callers that must examine it.</summary>
     public MeshInstance3D Fill => _fill;
 
+    /// <summary>Screen width in pixels of the background quad, the bar's outer edge.</summary>
+    public float ScreenWidth => _bg.Mesh is QuadMesh background ? background.Size.X : _width;
+
+    /// <summary>Screen height in pixels of the background quad.</summary>
+    public float ScreenHeight => _bg.Mesh is QuadMesh background ? background.Size.Y : 0;
+
     public override void _Ready()
     {
         _bg = GetNode<MeshInstance3D>("HpBarBg");
@@ -49,15 +61,23 @@ public partial class WorldHpBar : Node3D
         // the scene meshes so the shared scene sub-resources never diverge across bars.
         _bg.MaterialOverride = BarMaterial(BackgroundColor);
         _fillMat = BarMaterial(UiColors.HpHigh);
+        _fillMat.RenderPriority = 1;
         _fill.MaterialOverride = _fillMat;
 
         if (_fill.Mesh is QuadMesh fill) _width = fill.Size.X;
+        Scale = Vector3.One * FallbackMetresPerPixel;
     }
 
     public override void _Process(double delta)
     {
         var camera = ResolveCamera();
-        if (camera != null) GlobalBasis = camera.GlobalBasis;
+        float height = GetViewport()?.GetVisibleRect().Size.Y ?? 0;
+        if (camera == null || height <= 0) return;
+        float depth = Mathf.Max(0.01f, (GlobalPosition - camera.GlobalPosition).Dot(-camera.GlobalBasis.Z));
+        float metres = camera.Projection == Camera3D.ProjectionType.Orthogonal
+            ? camera.Size / height
+            : 2f * Mathf.Tan(Mathf.DegToRad(camera.Fov) / 2f) / height * depth;
+        GlobalBasis = camera.GlobalBasis.Scaled(Vector3.One * metres);
     }
 
     private Camera3D? ResolveCamera()
@@ -77,7 +97,7 @@ public partial class WorldHpBar : Node3D
         // Never scale a mesh through a literal zero axis (renderer det==0 on a singular transform).
         // An emptied bar rests one thousandth wide, which is invisible at any gameplay distance.
         var scale = new Vector3(Mathf.Max(ratio, 0.001f), 1f, 1f);
-        var position = new Vector3(-_width * 0.5f + _width * ratio * 0.5f, 0f, 0.001f);
+        var position = new Vector3(-_width * 0.5f + _width * ratio * 0.5f, 0f, _fill.Position.Z);
         Color color = UiColors.HpFillColor(ratio);
 
         _tween?.Kill();

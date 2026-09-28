@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Delve.UI;
 using Godot;
 
 namespace Delve.Dungeon;
@@ -6,13 +8,24 @@ public partial class DungeonProp : Node3D
 {
     public DungeonPalette? Palette { get; set; }
 
+    /// <summary>Every lamp this prop lit, so the room can warm them without scanning its tree.</summary>
+    public List<OmniLight3D> Lamps { get; } = new();
+
+    private Color Tint(string key) => Palette?.Tint(key) ?? Colors.Magenta;
+
+    private void AddLamp(OmniLight3D lamp)
+    {
+        AddChild(lamp);
+        Lamps.Add(lamp);
+    }
+
     public void Build(RoomProp p)
     {
         Position = new Vector3(p.X, 0, p.Y);
         RotationDegrees = new Vector3(0, p.Angle, 0);
-        var stone = new Color("737780");
-        var wood = new Color("69503a");
-        var iron = new Color("343b46");
+        var stone = Tint("stone");
+        var wood = Tint("wood");
+        var iron = Tint("iron");
         if (BuildStation(p) || BuildFeature(p)) return;
         switch (p.Kind)
         {
@@ -22,12 +35,12 @@ public partial class DungeonProp : Node3D
                 break;
             case "inscription":
                 Box(new(0, 0.12f, 0), new(1.2f, 0.24f, 0.5f), stone);
-                AddChild(new Label3D { Text = "THE WARD REMEMBERS", FontSize = 24, PixelSize = 0.006f, Position = new(0, 0.6f, 0), Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, Modulate = new Color("c5b68e") });
+                AddChild(new Label3D { Text = "THE WARD REMEMBERS", FontSize = 24, PixelSize = 0.006f, Position = new(0, 0.6f, 0), Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, Modulate = Tint("inscription") });
                 break;
             case "torch":
                 Box(new(0, 0.8f, 0), new(0.12f, 1.4f, 0.12f), wood, surface: "wood");
-                Box(new(0, 1.5f, 0), new(0.23f, 0.35f, 0.23f), new Color("ffc16a"), true);
-                AddChild(new OmniLight3D { Position = new(0, 1.9f, 0), LightColor = new Color("ffc983"), LightEnergy = 2.2f, OmniRange = 8, ShadowEnabled = false });
+                Box(new(0, 1.5f, 0), new(0.23f, 0.35f, 0.23f), Tint("torch_flame"), true);
+                AddLamp(new OmniLight3D { Position = new(0, 1.9f, 0), LightColor = Tint("torch_light"), LightEnergy = 2.2f, OmniRange = 8, ShadowEnabled = false });
                 break;
             case "shrine":
                 foreach (float x in new[] { -0.8f, 0.8f })
@@ -37,8 +50,8 @@ public partial class DungeonProp : Node3D
                 Box(new(0, 0.8f, -0.35f), new(0.65f, 1.1f, 0.7f), stone.Lightened(0.15f));
                 Box(new(0, 1.6f, -0.35f), new(0.45f, 0.5f, 0.45f), stone.Lightened(0.2f));
                 Box(new(0, 0.65f, 0.55f), new(1.4f, 0.45f, 0.6f), stone.Darkened(0.2f));
-                Box(new(0, 0.95f, 0.55f), new(0.25f, 0.15f, 0.25f), new Color("7cd9dd"), true);
-                AddChild(new OmniLight3D { Position = new(0, 1.6f, 0), LightColor = new Color("85d9df"), LightEnergy = 1.5f, OmniRange = 5 });
+                Box(new(0, 0.95f, 0.55f), new(0.25f, 0.15f, 0.25f), Tint("shrine_crystal"), true);
+                AddLamp(new OmniLight3D { Position = new(0, 1.6f, 0), LightColor = Tint("shrine_light"), LightEnergy = 1.5f, OmniRange = 5 });
                 break;
             case "cache":
                 Box(new(0, 0.4f, 0), new(1.7f, 0.25f, 1.1f), wood, surface: "wood");
@@ -65,10 +78,10 @@ public partial class DungeonProp : Node3D
                 beam.RotationDegrees = new(0, 25, 25);
                 break;
             case "camp":
-                Box(new(-0.5f, 0.12f, 0.4f), new(0.65f, 0.18f, 1.5f), new Color("5f6c69"), surface: "cloth");
-                Box(new(0.45f, 0.12f, 0.4f), new(0.65f, 0.18f, 1.5f), new Color("665862"), surface: "cloth");
+                Box(new(-0.5f, 0.12f, 0.4f), new(0.65f, 0.18f, 1.5f), Tint("bedroll_moss"), surface: "cloth");
+                Box(new(0.45f, 0.12f, 0.4f), new(0.65f, 0.18f, 1.5f), Tint("bedroll_heather"), surface: "cloth");
                 Box(new(0, 0.2f, -0.5f), new(0.6f, 0.4f, 0.6f), stone);
-                Box(new(0, 0.5f, -0.5f), new(0.25f, 0.3f, 0.25f), new Color("efa462"), true);
+                Box(new(0, 0.5f, -0.5f), new(0.25f, 0.3f, 0.25f), Tint("camp_embers"), true);
                 break;
             case "bed":
                 if (p.Width > p.Depth)
@@ -77,8 +90,8 @@ public partial class DungeonProp : Node3D
                     p = p with { Width = p.Depth, Depth = p.Width };
                 }
                 Box(new(0, 0.3f, 0), new(p.Width, 0.4f, p.Depth), wood, surface: "wood");
-                Box(new(0, 0.55f, 0), new(p.Width, 0.12f, p.Depth), new Color("6c4d4c"), surface: "cloth");
-                Box(new(0, 0.66f, -p.Depth * 0.3f), new(p.Width * 0.75f, 0.18f, 0.35f), new Color("c9bfa3"), surface: "linen");
+                Box(new(0, 0.55f, 0), new(p.Width, 0.12f, p.Depth), Tint("bed_blanket"), surface: "cloth");
+                Box(new(0, 0.66f, -p.Depth * 0.3f), new(p.Width * 0.75f, 0.18f, 0.35f), Tint("bed_linen"), surface: "linen");
                 Box(new(0, 0.5f, -p.Depth / 2 + 0.08f), new(p.Width, 0.9f, 0.14f), wood, surface: "wood");
                 break;
             default:
@@ -89,11 +102,8 @@ public partial class DungeonProp : Node3D
 
     public void Resolve()
     {
-        foreach (var child in GetChildren())
-            if (child is OmniLight3D light)
-                light.LightEnergy *= 0.4f;
         // A small marker stays in the world without changing walkability.
-        Box(new(0, 0.08f, 1), new(0.7f, 0.08f, 0.2f), new Color("76a391"));
+        Box(new(0, 0.08f, 1), new(0.7f, 0.08f, 0.2f), UiColors.Accent);
     }
 
     public MeshInstance3D Box(Vector3 at, Vector3 size, Color color, bool glow = false, string surface = "stone")

@@ -28,6 +28,9 @@ public partial class GridInput3D : Node3D
     /// <summary>Esc, or a stationary right-click, asked to cancel targeting.</summary>
     public event Action? Cancelled;
 
+    /// <summary>Whether Esc has something to cancel. Null treats every Esc as a cancel.</summary>
+    public Func<bool>? HasCancellable { get; set; }
+
     /// <summary>The focus hotkey asked to re-centre the camera on the active unit.</summary>
     public event Action? FocusRequested;
 
@@ -109,7 +112,10 @@ public partial class GridInput3D : Node3D
         // Esc (ui_cancel) cancels targeting, mirroring the stationary right-click cancel below.
         if (@event.IsActionPressed(Delve.UI.InputNames.UiCancel))
         {
+            // Esc with nothing to cancel falls through to the pause menu.
+            if (HasCancellable?.Invoke() == false) return;
             Cancelled?.Invoke();
+            GetViewport().SetInputAsHandled();
             return;
         }
 

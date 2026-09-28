@@ -113,7 +113,7 @@ public static partial class DungeonEncounters
             };
         var rules = new EncounterGenRules();
         var encounter = campaign && node.Kind == NodeKind.Boss
-            ? EncounterFactory.BuildBoss(state.Stratum, resolve)
+            ? EncounterFactory.BuildBoss(StationGuardians.ForStratum(state.Stratum), resolve)
             : GeneratedEncounters.Generate(state, node, resolve, rules, theme);
         if (encounter == null)
             return null;

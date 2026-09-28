@@ -1,0 +1,150 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/PauseMenu.cs" id="1_pause"]
+[ext_resource type="PackedScene" path="res://scenes/ui/key_legend.tscn" id="2_legend"]
+
+[node name="PauseMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 30
+visible = false
+script = ExtResource("1_pause")
+SettingsPath = "user://settings.cfg"
+
+[node name="Dim" type="Panel" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"ModalDim"
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Frame" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+theme_type_variation = &"ModalPanel"
+
+[node name="Pages" type="VBoxContainer" parent="Center/Frame"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MainPage" type="VBoxContainer" parent="Center/Frame/Pages"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Center/Frame/Pages/MainPage"]
+layout_mode = 2
+text = "Paused"
+horizontal_alignment = 1
+theme_type_variation = &"TitleLabel"
+
+[node name="Resume" type="Button" parent="Center/Frame/Pages/MainPage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Resume"
+
+[node name="Controls" type="Button" parent="Center/Frame/Pages/MainPage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Controls"
+
+[node name="Options" type="Button" parent="Center/Frame/Pages/MainPage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Options"
+
+[node name="Quit" type="Button" parent="Center/Frame/Pages/MainPage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Quit"
+
+[node name="ControlsPage" type="VBoxContainer" parent="Center/Frame/Pages"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Heading" type="Label" parent="Center/Frame/Pages/ControlsPage"]
+layout_mode = 2
+text = "Controls"
+horizontal_alignment = 1
+theme_type_variation = &"TitleLabel"
+
+[node name="Legend" parent="Center/Frame/Pages/ControlsPage" instance=ExtResource("2_legend")]
+layout_mode = 2
+
+[node name="ControlsBack" type="Button" parent="Center/Frame/Pages/ControlsPage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Back"
+
+[node name="OptionsPage" type="VBoxContainer" parent="Center/Frame/Pages"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Heading" type="Label" parent="Center/Frame/Pages/OptionsPage"]
+layout_mode = 2
+text = "Options"
+horizontal_alignment = 1
+theme_type_variation = &"TitleLabel"
+
+[node name="Fullscreen" type="CheckButton" parent="Center/Frame/Pages/OptionsPage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Fullscreen"
+
+[node name="DiceReveal" type="CheckButton" parent="Center/Frame/Pages/OptionsPage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Dice reveal"
+
+[node name="OptionsBack" type="Button" parent="Center/Frame/Pages/OptionsPage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Back"
+
+[node name="QuitPage" type="VBoxContainer" parent="Center/Frame/Pages"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Question" type="Label" parent="Center/Frame/Pages/QuitPage"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+text = "Quit the game? The expedition in progress is not saved."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="QuitConfirm" type="Button" parent="Center/Frame/Pages/QuitPage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Quit"
+
+[node name="QuitCancel" type="Button" parent="Center/Frame/Pages/QuitPage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Cancel"

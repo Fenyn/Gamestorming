@@ -40,6 +40,17 @@ public static partial class ShortRest
         return null;
     }
 
+    /// <summary>The run's rest: <paramref name="useFree"/> spends a banked free rest
+    /// (<see cref="RunState.FreeRests"/>) instead of ward when one is banked.</summary>
+    public static ShortRestResult PerformSchedule(RunState state, IReadOnlyList<RestAssignment> assignments,
+        RecoveryRules rules, bool useFree)
+    {
+        bool free = useFree && state.FreeRests > 0;
+        var result = PerformSchedule(state.Party, state.Clock, assignments, rules, free ? null : state.Wardstone);
+        if (free && result.Performed) state.FreeRests--;
+        return result;
+    }
+
     public static ShortRestResult PerformSchedule(Party party, DayClock clock,
         IReadOnlyList<RestAssignment> assignments, RecoveryRules rules, Wardstone? wardstone = null,
         int? dcOverride = null)

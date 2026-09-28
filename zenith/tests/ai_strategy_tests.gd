@@ -47,7 +47,7 @@ func _profile(depth: int = 6, budget: int = 1500) -> AiProfile:
 	var profile: AiProfile = AiProfile.default_profile()
 	profile.merge({"play": {"tutor_decay": 0.8, "bond_band": 8.0},
 		"own": {"combo_progress": 8.0, "hand_quality": 0.25, "power": 1.0},
-		"think": {"samples": 1, "top_k": 3, "budget_ms": 60000, "noise": 0.0,
+		"think": {"search": true, "samples": 1, "top_k": 3, "budget_ms": 60000, "noise": 0.0,
 			"sequence_depth": depth, "branch_width": 3, "response_width": 2,
 			"node_budget": budget, "settle_steps": 8, "turns": 1, "max_steps": 50}})
 	for argument in OS.get_cmdline_user_args():

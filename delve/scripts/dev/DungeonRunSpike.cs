@@ -32,6 +32,10 @@ public partial class DungeonRunSpike : SpikeBase
         {
             Check("main scene starts at hero selection with dungeon parked", run.UseDungeonMap
                 && run.Phase == RunPhase.HeroSelect && !dungeon.Visible);
+            Check("the hosted crawl fights in the host's combat scene and builds none of its own",
+                !dungeon.GetChildren().OfType<Delve.Combat.CombatScene>().Any());
+            Check("the hosted crawl uses the host's scene transition and keeps none of its own",
+                dungeon.GetNodeOrNull("%SceneTransition") == null || dungeon.GetNode("%SceneTransition").IsQueuedForDeletion());
             var picks = new[] { PresetCharacters.FenwickId, PresetCharacters.PlayerId,
                 PresetCharacters.TharrId, PresetCharacters.ElaraId };
             run.ConfirmParty(picks);
@@ -45,9 +49,11 @@ public partial class DungeonRunSpike : SpikeBase
             dungeon.ResolveEvent(0, null);
             dungeon.CloseEvent();
             await Capture("dungeon_run_exploration");
+            await CheckPartyStrip(run, dungeon, state);
             int target = state.Map.Nodes.First(n => n.Kind == NodeKind.Meeting).Id;
             // Reach the real Wayfarer fight; fixture corridors are already cleared.
             foreach (var room in dungeon.Floor.Rooms.Where(r => r.Id != target)) room.Completed = true;
+            await CheckDoorTooltip(dungeon, state, target);
             state.Xp = state.Leveling.XpPerLevel - 1;
             while (dungeon.Current.Id != target) await Step(dungeon, target);
             Check("entering a fight switches the main run to combat", run.Phase == RunPhase.Combat);
@@ -63,7 +69,6 @@ public partial class DungeonRunSpike : SpikeBase
             int xp = state.Xp, level = state.Party.Level;
             Check("victory awards XP and queues promotions for the same party", level > Party.DefaultLevel
                 && CharacterPromotion.HasPending(state.Party) && state.Party.Members.All(c => c.Stats.Level == Party.DefaultLevel));
-            PromotionTestDriver.Complete(state.Party);
             if (DisplayServer.GetName() != "headless") dungeon.AutoPlayCombat = false;
             run.ContinueCombatResults();
             run.ContinueCombatResults();
@@ -76,6 +81,7 @@ public partial class DungeonRunSpike : SpikeBase
             Check("returning closes combat and cannot award XP twice", run.Phase == RunPhase.Map
                 && dungeon.Phase == DungeonPhase.Doors && state.Xp == xp && state.Party.Level == level);
             if (run.Phase != RunPhase.Map) return;
+            await CheckPromotionBadge(dungeon, state);
 
             var party = state.Party;
             var clock = state.Clock;
@@ -86,10 +92,16 @@ public partial class DungeonRunSpike : SpikeBase
                 foreach (var room in dungeon.Floor.Rooms) room.Completed = true;
                 while (dungeon.Current.Id != dungeon.Floor.GuardianId) await Step(dungeon, dungeon.Floor.GuardianId);
                 var guardian = dungeon.Current;
+                if (floor == 0)
+                {
+                    string notice = dungeon.GetNode<DungeonHud>("%DungeonHud").NoticeText;
+                    Check($"after the guardian falls the notice points to the stairs ('{notice}')",
+                        notice == DungeonHud.FloorCompleteNotice && !notice.Contains("doorway"));
+                }
                 var setup = DungeonEncounters.Build(state, guardian, dungeon.CurrentView.Generated,
                     DoorSide.South, data.ResolveCreature, campaign: true);
                 Check($"floor {floor + 1} uses its authored boss roster", setup != null
-                    && setup.Enemies.Count == BossEncounters.ForStratum(floor).Spawns.Sum(s => s.Count));
+                    && setup.Enemies.Count == StationGuardians.ForStratum(floor).Spawns.Sum(s => s.Count));
                 // Completed-floor fixtures isolate stairs from random attrition balance.
                 state.Wardstone.RefillFull();
                 int previousSeed = dungeon.Seed;
@@ -98,7 +110,8 @@ public partial class DungeonRunSpike : SpikeBase
                 if (floor + 1 < FloorThemes.Count)
                 {
                     Check($"stairs generate floor {floor + 2} exactly once", state.Stratum == floor + 1
-                        && dungeon.Seed != previousSeed && dungeon.Current.Id == 0 && !dungeon.Current.Completed);
+                        && dungeon.Seed != previousSeed && dungeon.Current.Id == 0
+                        && dungeon.Floor.Rooms.Count(r => r.Completed) == 1 && dungeon.Phase == DungeonPhase.Doors);
                     Check("floor transition preserves party, recovery and recruitment state", ReferenceEquals(party, state.Party)
                         && ReferenceEquals(clock, state.Clock) && ReferenceEquals(recruits, state.Recruits));
                     dungeon.ResolveEvent(0, null);
@@ -118,6 +131,7 @@ public partial class DungeonRunSpike : SpikeBase
             await Step(dungeon, dungeon.Current.Doors[0].Other(dungeon.Current.Id));
             Check("spent ward reaches the normal defeat summary", run.Phase == RunPhase.RunEnd
                 && run.State.Outcome == RunOutcome.Defeat);
+            await CheckDefeatGoesToRunEnd(run, dungeon, picks);
         }
         finally
         {

@@ -12,6 +12,7 @@ const FADE_IN: float = 0.4
 const FADE_OUT: float = 0.3
 const UNLIT: Color = Color(0.45, 0.45, 0.45)
 const LINE_PAD: int = 22
+const NARRATION_SIZE: int = 21   # between caption and body: flavour, still easy to read
 
 @onready var root: Control = $Root
 @onready var narration: Label = $Root/Margin/Column/Stage/Middle/Narration
@@ -37,7 +38,7 @@ func _ready() -> void:
 	# The context line is flavour: smaller, muted, on a soft unframed plate under the spoken line's frame.
 	narration.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.SCRIM, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, LINE_PAD, 8))
 	narration.add_theme_color_override("font_color", ZenithTheme.MUTED)
-	narration.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
+	narration.add_theme_font_size_override("font_size", NARRATION_SIZE)
 	line_panel.add_theme_stylebox_override("panel", MapArt.panel_box(LINE_PAD, ZenithTheme.FRAME))
 	root.gui_input.connect(_on_root_input)
 	skip_button.pressed.connect(close)

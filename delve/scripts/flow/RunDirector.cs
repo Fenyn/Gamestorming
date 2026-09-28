@@ -55,11 +55,11 @@ public partial class RunDirector : Node
 
     private SceneTransition _transition = null!;
 
-    private async Task PlayRunTransition(string caption, Action covered)
+    private async Task PlayRunTransition(string caption, Action covered, bool holdForInput = false)
     {
         if (_transition.Busy) return;
         _screenLayer.ProcessMode = ProcessModeEnum.Disabled;
-        try { await _transition.Play(caption, covered, AutoPlayCombat); }
+        try { await _transition.Play(caption, covered, AutoPlayCombat, holdForInput); }
         finally { if (IsInsideTree()) _screenLayer.ProcessMode = ProcessModeEnum.Inherit; }
     }
     private RunState? _state;
@@ -108,10 +108,12 @@ public partial class RunDirector : Node
         AddChild(_combat);
         // The run owns the loop, so the banner's scene-reload Restart never applies here.
         _combat.SetVictoryRestartVisible(false);
+        _combat.DefeatBannerEnabled = false;
         _combat.EncounterFinished += OnEncounterFinished;
         _combat.ResultsContinued += ContinueCombatResults;
 
         LoadCampaign();
+        ClaimJournal();
         BuildScreens();
         BuildDungeon();
         NewRun();
@@ -194,7 +196,7 @@ public partial class RunDirector : Node
             wardRules: UseDungeonMap ? new WardstoneRules { NodeBurn = _dungeon!.CrossingBurn } : null, unlocks: _unlocks);
         if (UseDungeonMap)
         {
-            _ = PlayRunTransition("Leaving the outpost\nFind the guardian in the ward chamber.", StartDungeonFloor);
+            _ = PlayRunTransition("Leaving the outpost\nFind the guardian in the ward chamber.", StartDungeonFloor, holdForInput: true);
             return;
         }
         GD.Print($"[RunDirector] run seed {seed}, party level {StartLevel}, {_state.Map.Floors} floors.");

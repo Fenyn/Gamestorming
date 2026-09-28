@@ -9,6 +9,8 @@ namespace Delve.Run.Events;
 /// <summary>Read-only estimates. Never rolls dice or publishes potentially consuming rule events.</summary>
 public static class EventCheckPreview
 {
+    public const string NoEffect = "No effect";
+
     public static string CheckLine(EventOption option, Party party, PF2eCharacter? selected)
     {
         if (option.Check is not { } check) return "No check required";
@@ -52,6 +54,8 @@ public static class EventCheckPreview
         return string.Join("\n\n", lines);
     }
 
+    /// <summary>What an outcome does, as figures only. The outcome's prose stays unread until the
+    /// party commits, as Slay the Spire shows an event's effects but not its ending.</summary>
     private static string Describe(EventOutcome outcome)
     {
         var effects = new List<string>();
@@ -63,10 +67,24 @@ public static class EventCheckPreview
                 EventEffectKind.Damage => $"{effect.Value} damage (cannot reduce below 1 HP)",
                 EventEffectKind.WoundedDelta => $"Wounded {effect.Value:+0;-0;0}",
                 EventEffectKind.GoldDelta => $"Gold {effect.Value:+0;-0;0}",
+                EventEffectKind.WardDelta => $"Ward {effect.Value:+0;-0;0}",
+                EventEffectKind.FreeRest => "Banks a free ten-minute rest",
+                EventEffectKind.HealingPotion => $"Potions +{effect.Value}",
+                EventEffectKind.HazardDamage => $"Damage, {effect.Value}% of maximum HP",
+                EventEffectKind.RevealKinds => effect.Value switch
+                {
+                    0 => "Reveals the rooms next to this one",
+                    1 => "Reveals the rooms next to every visited room",
+                    _ => "Reveals every room on the floor",
+                },
+                EventEffectKind.PartyRefocus => $"Focus +{effect.Value} for every caster",
+                EventEffectKind.RepairShields => effect.Value < 0 ? "2d6 damage less Hardness to the shield on the bench"
+                    : effect.Value > 1 ? "Repair every damaged shield, doubled" : "Repair every damaged shield",
+                EventEffectKind.CacheGold => "Gold for the party's level",
                 _ => "",
             };
             if (text.Length > 0) effects.Add(text);
         }
-        return outcome.Text + (effects.Count > 0 ? " (" + string.Join("; ", effects) + ")" : "");
+        return effects.Count > 0 ? string.Join("; ", effects) : NoEffect;
     }
 }

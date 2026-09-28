@@ -19,6 +19,8 @@ namespace Delve.Combat;
 public partial class CombatScene : Node3D
 {
     [Export] public bool EncounterIntroEnabled { get; set; } = true;
+    /// <summary>False when the host shows its own defeat screen (the run end).</summary>
+    [Export] public bool DefeatBannerEnabled { get; set; } = true;
     private Tween? _introFade;
     [Export(PropertyHint.Range, "0,2,0.05")] public float AiActionDelaySeconds { get; set; } = 0.6f;
     private DiceRollPanel _dice = null!;
@@ -71,7 +73,7 @@ public partial class CombatScene : Node3D
     private GodotPresenter3D _presenter = null!;
 
     // Cancels the fire-and-forget encounter loop on scene exit. Shared with the presenter so its paced
-    // Task.Delay / tween waits observe the same signal (see _ExitTree for the cancel-then-teardown order).
+    // Pacing delays and tween waits observe the same signal (see _ExitTree for the cancel-then-teardown order).
     private CancellationTokenSource? _encounterCts;
 
     private CombatLogBridge? _logBridge;
@@ -97,13 +99,6 @@ public partial class CombatScene : Node3D
     /// </summary>
     public event System.Action<PF2e.Core.BattleResult>? EncounterFinished;
 
-    /// <summary>
-    /// Re-raised from the session when a Recall Knowledge check taught the party something:
-    /// (species slug, degree of success as int). A future meta-layer journal subscribes here;
-    /// unsubscribed, knowledge simply is not recorded.
-    /// </summary>
-    public event System.Action<string, int>? RecallKnowledgeLearned;
-
     public override void _Ready()
     {
         _overlay = GetNode<GridOverlay3D>("%GridOverlay");
@@ -122,12 +117,15 @@ public partial class CombatScene : Node3D
         _log = GetNode<CombatLogPanel>("%CombatLog");
         _dice = GetNode<DiceRollPanel>("%DiceRoll");
         _log.RollObserved += _dice.ShowRoll;
+        ApplyUserSettings();
+        Delve.Settings.UserSettings.Changed += ApplyUserSettings;
         _actionBar = GetNode<ActionBar>("%ActionBar");
         _victoryBanner = GetNode<VictoryBanner>("%VictoryBanner");
         _victoryBanner.Continued += () => ResultsContinued?.Invoke();
         _reactionPrompt = GetNode<ReactionPromptPanel>("%ReactionPrompt");
         _help = GetNode<HelpOverlay>("%HelpOverlay");
         _inspectPanel = GetNode<UnitInspectPanel>("%UnitInspect");
+        BuildJournal();
         BuildTacticalPresentation();
         // Modal blocking needs no wiring here: the reaction prompt pushes HudRoot's modal state
         // and the action bar's hotkeys query it directly through their shared parent.
@@ -142,11 +140,7 @@ public partial class CombatScene : Node3D
 
     public event System.Action? ResultsContinued;
 
-    public void ShowResultParty(System.Collections.Generic.IReadOnlyList<PF2e.Core.PF2eCharacter> party)
-        => _victoryBanner.ShowParty(party);
-
-    public void ShowRewards(string rewards, string progressText, double progress)
-        => _victoryBanner.ShowRewards(rewards, progressText, progress);
+    public void ShowRewards(Delve.Flow.CombatResultsView results) => _victoryBanner.ShowRewards(results);
 
     /// <summary>
     /// Show or hide the whole fight - the 3D board and the HUD CanvasLayer, which visibility does not
@@ -177,59 +171,6 @@ public partial class CombatScene : Node3D
     /// <summary>True while the current actor is under player control (its bands are showing).</summary>
     public bool IsPlayerTurn =>
         _session != null && _session.CurrentActor is { } actor && _session.IsPlayerControlled(actor);
-
-    /// <summary>
-    /// Capture/dev use — the combat shot spike photographs the route preview with it. Hovers the
-    /// farthest tile in the band that costs <paramref name="actions"/>, as if the mouse were there.
-    /// False when no such tile is showing. Pass through <see cref="ClearHover"/> afterwards.
-    /// </summary>
-    public bool HoverBandTile(int actions)
-    {
-        var from = _session?.CurrentActor?.GridPosition;
-        if (from == null) return false;
-        PF2e.Vector2Int? best = null;
-        int bestDistance = -1;
-        foreach (var (tile, option) in _lastBands)
-        {
-            if (option.Kind != MoveKind.Stride || option.Actions != actions) continue;
-            int distance = System.Math.Abs(tile.x - from.Value.x) + System.Math.Abs(tile.y - from.Value.y);
-            if (distance > bestDistance) { bestDistance = distance; best = tile; }
-        }
-        if (best == null) return false;
-        OnTileHovered(best);
-        return true;
-    }
-
-    /// <summary>
-    /// Capture/dev use — photographs the markers on a slope. Hovers the band tile whose corners
-    /// differ most in height and returns its world centre; false on a flat board or flat bands.
-    /// </summary>
-    public bool HoverSteepestBandTile(out Vector3 world)
-    {
-        world = Vector3.Zero;
-        var heights = SurfaceHeights;
-        if (!heights.HasTerrain) return false;
-        PF2e.Vector2Int? best = null;
-        int bestSpan = 0;
-        foreach (var (tile, _) in _lastBands)
-        {
-            int span = heights.Corners(tile).HeightSpan;
-            if (span > bestSpan) { bestSpan = span; best = tile; }
-        }
-        if (best == null) return false;
-        OnTileHovered(best);
-        world = GridSpace.GridToWorld(best.Value, heights);
-        return true;
-    }
-
-    /// <summary>Capture/dev use: end a <see cref="HoverBandTile"/> hover.</summary>
-    public void ClearHover() => OnTileHovered(null);
-
-    /// <summary>
-    /// How many unit visuals the presenter holds. Equals the encounter's unit count while an
-    /// encounter runs, and 0 between encounters — the reset spike asserts on it.
-    /// </summary>
-    public int RegisteredUnitCount => _presenter?.UnitCount ?? 0;
 
     /// <summary>
     /// Entry point: hand an assembled encounter and it plays out. Callable again on the same scene —
@@ -285,15 +226,17 @@ public partial class CombatScene : Node3D
         SpawnUnits();
         _partyMembers = setup.Party.Select(p => p.Unit).ToArray();
         _squad.Setup(SquadViews());
+        NoteEncountered();
 
         var logBridge = new CombatLogBridge(_log, _session.Team1, _session.Team2);
+        logBridge.AttackTargetNamed += NoteBoardTarget;
         _logBridge = logBridge;
         var presenter = _presenter;
         var session = _session;
         _session.SetPresenter(async evt =>
         {
             if (evt.Source != null)
-                await AiActionPacing.Wait(evt, session.IsPlayerControlled(evt.Source), AiActionDelaySeconds, presenter.CancellationToken);
+                await AiActionPacing.Wait(GetTree(), evt,session.IsPlayerControlled(evt.Source), AiActionDelaySeconds, presenter.CancellationToken);
             await _dice.WaitForResultsAsync(presenter.CancellationToken);
             logBridge.Present(evt);
             if (evt.Type is BattleEventType.AttackRolled or BattleEventType.SpellCast
@@ -311,9 +254,11 @@ public partial class CombatScene : Node3D
             RefreshCard();
         });
         // Interactive reaction prompts: the session suspends combat on this Task until the modal
-        // panel resolves (works mid-enemy-turn too — the enemy's strike awaits it).
+        // panel resolves (works mid-enemy-turn too — the enemy's strike awaits it). The roll that
+        // raised the prompt plays the full beat.
         _session.ReactionPromptHandler = async view =>
         {
+            _dice.PromoteLatest();
             await _dice.WaitForResultsAsync(presenter.CancellationToken);
             return await ShowReactionPrompt(view);
         };
@@ -332,6 +277,8 @@ public partial class CombatScene : Node3D
             _input.TileClicked += OnTileClicked;
             _input.TileHovered += OnTileHovered;
             _input.Cancelled += OnCancel;
+            _input.HasCancellable = () => _stagedTile != null
+                || _controller != null && _controller.Mode != PlayerTurnMode.Idle;
             _input.FocusRequested += () => { ClearPartyFocus(); RefreshCard(); _cameraRig.FocusOnActive(); };
             _turnBar.ChipPressed += id => _controller.DelayAnchorClicked(id);
             WireActionBar();
@@ -353,35 +300,16 @@ public partial class CombatScene : Node3D
             TaskContinuationOptions.OnlyOnFaulted);
     }
 
-    private async Task RunIntroAndEncounter(CombatSession session, CombatSetup setup,
-        Transform3D? outgoingPose, float outgoingFov, CancellationToken token)
+    /// <summary>The torn-down session may still resume once on the sync context; with
+    /// <see cref="_session"/> cleared, its handlers see a stale session and leave the freed HUD alone.</summary>
+    public override void _ExitTree()
     {
-        try
-        {
-            // Headless simulations retain their immediate turn-start contract.
-            if (EncounterIntroEnabled && DisplayServer.GetName() != "headless")
-            {
-                var intro = GetNode<Control>("%EncounterIntro");
-                GetNode<Label>("%EncounterSubtitle").Text = $"{setup.Enemies.Count} {(setup.Enemies.Count == 1 ? "foe" : "foes")} ahead"
-                    + (setup.Allies.Count > 0 ? $"\n{setup.Allies[0].Unit.Name} fights beside you as an ally." : "");
-                intro.Modulate = Colors.Transparent;
-                intro.Show();
-                _input.ProcessMode = ProcessModeEnum.Disabled;
-                _introFade = CreateTween();
-                _introFade.TweenProperty(intro, "modulate", Colors.White, 0.2);
-                _introFade.TweenInterval(1.05);
-                _introFade.TweenProperty(intro, "modulate", Colors.Transparent, 0.3);
-                await _cameraRig.PlayIntro(outgoingPose ?? _cameraRig.Camera.GlobalTransform, outgoingFov, token);
-                token.ThrowIfCancellationRequested();
-                intro.Hide();
-                _input.ProcessMode = ProcessModeEnum.Inherit;
-            }
-            await session.RunAsync(token);
-        }
-        catch (System.OperationCanceledException) { }
+        Delve.Settings.UserSettings.Changed -= ApplyUserSettings;
+        StopEncounter();
+        _session = null!;
     }
 
-    public override void _ExitTree() => StopEncounter();
+    private void ApplyUserSettings() => _dice.AnimationsEnabled = Delve.Settings.UserSettings.DiceReveal;
 
     /// <summary>
     /// Stop the encounter loop and unwire everything it owns: log subscription, cancellation source,
@@ -397,14 +325,11 @@ public partial class CombatScene : Node3D
         _encounterCts?.Cancel();
         _cameraRig?.CancelIntro();
         _cameraRig?.RestorePlanningView(true);
-        _introFade?.Kill();
-        _introFade = null;
-        GetNodeOrNull<Control>("%EncounterIntro")?.Hide();
-        if (_input != null) _input.ProcessMode = ProcessModeEnum.Inherit;
+        EndIntro();
         _dice?.ClearRoll();
         _inspectPanel?.Render(null);
         _logBridge = null;
-        // Cancel BEFORE teardown: the loop may be parked in a presenter Task.Delay / tween wait or on the
+        // Cancel BEFORE teardown: the loop may be parked in a presenter pacing delay / tween wait or on the
         // player-turn TCS. Cancelling releases those so it unwinds without resuming on freed nodes;
         // Teardown then clears the engine statics/delegates and completes any still-pending player turn.
         _session?.Teardown();
@@ -442,6 +367,7 @@ public partial class CombatScene : Node3D
         _borrowedHeights = null;
 
         _victoryBanner.HideResult();
+        _journalPanel.Hide();
     }
 
     /// <summary>
@@ -464,6 +390,8 @@ public partial class CombatScene : Node3D
     {
         _session?.ReconcileOccupancy();
         RefreshSquad(delta);
+        LayoutBand();
+        if (_session != null) LayoutPlates();
     }
 
     private void SpawnUnits()
@@ -487,131 +415,6 @@ public partial class CombatScene : Node3D
         visual.PlaceOnGround(character.GridPosition, SurfaceHeights);
         _presenter.RegisterUnit(character, visual);
         _tacticalUnits[character.UniqueId] = visual;
-    }
-
-    // ---------------------------------------------------------------- Wiring
-
-    private void WireControllerToView()
-    {
-        _session.CombatantRemoved += character =>
-        {
-            _tacticalUnits.Remove(character.UniqueId);
-            if (_focusedMember == character.UniqueId) _focusedMember = null;
-            _presenter.RetireUnit(character);
-        };
-        _controller.HighlightsChanged += (tiles, kind) => _overlay.SetHighlights(tiles, kind);
-        _controller.MoveBandsChanged += bands =>
-        {
-            _lastBands = bands;
-            _moveBands.SetBands(bands);
-            _overlay.SetPathBands(bands);
-        };
-        _controller.HoverTileChanged += tile => _moveBands.SetHoverTile(tile);
-        _controller.MoveHoverChanged += hover => _actionBar.SetMoveHint(hover);
-        _controller.PathPreviewChanged += path => { _overlay.SetPathPreview(path); PreviewDestination(path); };
-        _controller.AreaPreviewChanged += tiles => _overlay.SetAreaPreview(tiles);
-        _controller.AttackPreviewChanged += preview => { _actionBar.ShowAttackPreview(preview); NotePlayerTarget(preview != null); };
-        _controller.ButtonStateChanged += state => _actionBar.Render(state);
-        _controller.SpellTargetsChanged += _actionBar.SetSpellTargetSelection;
-        _controller.ModeChanged += _ => { ClearStagedOrder(); ClearPartyFocus(); };
-        _controller.ActionCompleted += () => _cameraRig.RestorePlanningView();
-        _controller.ModeChanged += mode => _actionBar.SetTargetingHint(
-            mode != PlayerTurnMode.Idle, mode == PlayerTurnMode.SelectingDelaySlot);
-        _controller.EndTurnRequested += () => _session.RequestEndPlayerTurn();
-        _controller.DelayBlockedReason = character => _session.DelayBlockedReason(character);
-        _controller.DelayAnchors = _ => _session.GetDelayAnchors();
-        _controller.DelayAnchorsChanged += ids =>
-        {
-            _delayPickIds = new HashSet<int>(ids);
-            RefreshTurnOrder();
-        };
-        _controller.DelayRequested += (_, after) => _session.RequestDelay(after);
-    }
-
-    private void WireActionBar()
-    {
-        _actionBar.ConfirmTargetsPressed += () => _controller.ConfirmSpellTargets();
-        _actionBar.ConfirmOrderPressed += ConfirmStagedOrder;
-        _actionBar.StagingChanged += () => ClearStagedOrder();
-        _actionBar.OverviewPressed += () => { if (!_tacticalHud.ModalActive && !_tacticalFinished) _cameraRig.ToggleOverview(); };
-        _actionBar.StrikePressed += () => _controller.BeginStrike();
-        _actionBar.RaiseShieldPressed += () => _controller.RaiseShield();
-        _actionBar.EndTurnPressed += () => _controller.EndTurn();
-        _actionBar.DelayPressed += () => _controller.BeginDelay();
-        _actionBar.SpellChipPressed += (spellId, variant) => _controller.BeginSpell(spellId, variant);
-        _actionBar.SkillChipPressed += actionId => _controller.BeginSkill(actionId);
-        _actionBar.AiToggled += on =>
-        {
-            var actor = _session.CurrentActor;
-            if (actor != null) _session.SetAiToggle(actor, on);
-        };
-        _actionBar.AutoReactToggled += on =>
-        {
-            var actor = _session.CurrentActor;
-            if (actor != null) _session.SetAutoReactions(actor, on);
-        };
-    }
-
-    private void WireSession()
-    {
-        var session = _session;
-        _session.PlayerTurnStarted += character =>
-        {
-            if (!ReferenceEquals(_session, session)) return;
-            _controller.BeginTurn(character);
-            _actionBar.SetInteractable(true);
-            _actionBar.SetAiToggle(_session.IsAiToggled(character));
-            _actionBar.SetAutoReactToggle(_session.IsAutoReactions(character));
-        };
-        _session.PlayerTurnEnded += () =>
-        {
-            if (!ReferenceEquals(_session, session)) return;
-            // EndControl clears the overlay through the controller's own transient reset.
-            _controller.EndControl();
-            _actionBar.SetInteractable(false);
-        };
-        _session.TurnChanged += () => { if (ReferenceEquals(_session, session)) { ClearPartyFocus(); ClearBoardTargets(); RefreshTurnOrder(); } };
-        _session.EncounterFinished += result => { if (ReferenceEquals(_session, session)) ShowResult(result); };
-        // Recall Knowledge that actually taught the party something: re-raise for a hosting scene's
-        // monster journal. No subscriber in the combat proof — the executor falls back to
-        // all-creature-info-known.
-        _session.RecallKnowledgeLearned += (creatureId, degree) =>
-            RecallKnowledgeLearned?.Invoke(creatureId, (int)degree);
-    }
-
-    // ---------------------------------------------------------------- Input handlers
-
-    private void OnTileClicked(PF2e.Vector2Int pos) => HandleTacticalClick(pos);
-
-    /// <summary>Forwards hover to the targeting controller (path/attack preview) and, independently,
-    /// to the card slot and the board badges. This Node3D reads engine occupancy and hands the UI a
-    /// view model, nothing more.</summary>
-    private void OnTileHovered(PF2e.Vector2Int? pos)
-    {
-        _hoveredId = pos.HasValue ? _session.Grid.GetGroundOccupant(pos.Value)?.UniqueId : null;
-        if (_stagedTile == null) _controller.TileHovered(pos);
-        RefreshCard();
-        RefreshPlates();
-    }
-
-    private void OnCancel() { ClearStagedOrder(); _controller.Cancel(); }
-
-    private void ShowResult(PF2e.Core.BattleResult result)
-    {
-        // Only a Team1 win is a victory; everything else (loss OR draw) is scored as a defeat downstream
-        // — penalty + day advance — so the banner reads "Defeat" for a draw too rather than lying "Draw".
-        string text = result == PF2e.Core.BattleResult.Team1Wins ? "Victory!" : "Defeat";
-        Color color = result == PF2e.Core.BattleResult.Team1Wins
-            ? UiColors.Victory
-            : UiColors.Defeat;
-        _tacticalFinished = true;
-        ClearStagedOrder();
-        _victoryBanner.ShowResult(text, color);
-        _actionBar.SetInteractable(false);
-        RefreshBarVisibility();
-        RefreshPlates();
-
-        EncounterFinished?.Invoke(result);
     }
 
 }

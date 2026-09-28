@@ -16,7 +16,7 @@ public sealed record ActionBarState
     public bool CanStrike { get; init; }
     public bool CanRaiseShield { get; init; }
     public bool HasShield { get; init; }
-    /// <summary>Delay is open: nothing done yet this turn and someone still acts after the actor.</summary>
+    /// <summary>Delay is open: nothing done yet this turn and the engine offers an anchor.</summary>
     public bool CanDelay { get; init; }
     public int Map { get; init; }
     public string ActorName { get; init; } = "";
@@ -38,6 +38,10 @@ public sealed record ActionBarState
     public string? StrikeDisabledReason { get; init; }
     public string? ShieldDisabledReason { get; init; }
     public string? DelayDisabledReason { get; init; }
+
+    /// <summary>Why the move bands are limited or absent, for the hint line. Null when the actor
+    /// may Stride.</summary>
+    public string? MoveRestriction { get; init; }
 
     /// <summary>Castable spells / cost-variants for the dynamic chip row (empty for non-casters).</summary>
     public IReadOnlyList<SpellEntryView> SpellEntries { get; init; } = System.Array.Empty<SpellEntryView>();

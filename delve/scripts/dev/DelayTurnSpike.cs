@@ -14,12 +14,13 @@ namespace Delve.Dev;
 
 /// <summary>
 /// Headless regression for the Delay action. Part one drives <see cref="CombatSession"/> directly:
-/// the first party member with someone after them delays until after the last combatant of the
-/// round, waits in the delayed pool, resumes right after that combatant with a full turn in the
-/// same round, and keeps the slot next round. Part two drives the real HUD with pushed input on a
+/// the first party member who is not last delays until after the last combatant of the round,
+/// waits in the delayed pool, resumes right after that combatant with a full turn in the same
+/// round, and keeps the slot next round. Part two drives the real HUD with pushed input on a
 /// <see cref="CombatScene"/>: the Delay hotkey turns the later turn chips into a pick, Esc cancels
 /// it, a click on a chip delays, the waiting chip sits after its anchor, the ally comes back at
-/// that slot, and after a move the button is closed with the "first thing this turn" reason.
+/// that slot, and after a move the button is closed with the "first thing this turn" reason. The
+/// last actor of a round can Delay into the next round and returns after an early actor there.
 /// Captures the waiting state to <see cref="OutputDirectory"/>.
 /// </summary>
 public partial class DelayTurnSpike : SpikeBase
@@ -74,6 +75,7 @@ public partial class DelayTurnSpike : SpikeBase
         var actors = new List<string>();
         int resumeSlot = -1, anchorSlotAtResume = -2, actionsAtResume = 0, roundAtResume = 0;
         string beforeResume = "";
+        string? resumedReason = null;
         int round2Slot = -1, anchorSlotRound2 = -2, roundAtRound2 = 0;
 
         session.TurnChanged += () =>
@@ -89,10 +91,10 @@ public partial class DelayTurnSpike : SpikeBase
         {
             if (delayer == null)
             {
-                var anchors = session.GetDelayAnchors();
-                if (anchors.Count == 0) { session.RequestEndPlayerTurn(); return; }
+                var order = session.TurnOrder!;
+                if (order[^1].Character == c) { session.RequestEndPlayerTurn(); return; }
                 delayer = c;
-                anchor = anchors[^1];
+                anchor = order[^1].Character;
                 blockedAtStart = session.DelayBlockedReason(c);
                 GD.Print($"[DelayTurn] {c.Name} delays until after {anchor.Name} (order {Order(session)})");
                 session.RequestDelay(anchor);
@@ -108,6 +110,7 @@ public partial class DelayTurnSpike : SpikeBase
                     actionsAtResume = c.Actions?.TotalActionsRemaining ?? 0;
                     roundAtResume = session.RoundNumber;
                     beforeResume = actors.Count >= 2 ? actors[^2] : "";
+                    resumedReason = session.DelayBlockedReason(c);
                     GD.Print($"[DelayTurn] {c.Name} resumes at slot {resumeSlot} (order {Order(session)})");
                 }
                 else if (delayerTurns == 2)
@@ -137,6 +140,8 @@ public partial class DelayTurnSpike : SpikeBase
                 delayerTurns >= 1 && beforeResume == anchor?.Name && resumeSlot == anchorSlotAtResume + 1);
             Check($"[session] the resumed turn is in the same round with a full turn ({actionsAtResume} actions, round {roundAtResume})",
                 actionsAtResume == 3 && roundAtResume == 1);
+            Check($"[session] the resumed turn cannot Delay again ('{resumedReason}')",
+                resumedReason == CombatSession.ResumedTurnReason);
             Check($"[session] the new slot is permanent (round {roundAtRound2}, slot {round2Slot} after {anchorSlotRound2})",
                 roundAtRound2 == 2 && round2Slot == anchorSlotRound2 + 1);
         }
@@ -175,13 +180,10 @@ public partial class DelayTurnSpike : SpikeBase
 
         var bar = scene.GetNode<ActionBar>("%ActionBar");
         var delayBtn = bar.GetNode<Button>("%DelayButton");
-        var hint = bar.GetNode<Label>("%TargetingHint");
-        var actorLabel = bar.GetNode<Label>("%ActorLabel");
-        var row = scene.GetNode<TurnOrderBar>("%TurnOrderBar").GetNode<HBoxContainer>("%Row");
+        var hint = bar.Decision.GetNode<Label>("%TargetingHint");
+        var row = scene.GetNode<TurnOrderBar>("%TurnOrderBar").GetNode<BoxContainer>("%Row");
         var input = scene.GetNode<GridInput3D>("%GridInput");
 
-        // A seed where the first ally to act has someone after them; the last actor of a round
-        // cannot Delay, which is its own check below.
         bool started = false;
         for (int seed = 1; seed <= 12 && !started; seed++)
         {
@@ -199,55 +201,56 @@ public partial class DelayTurnSpike : SpikeBase
             if (!scene.IsPlayerTurn) continue;
             await WaitSeconds(0.5f);
             if (!delayBtn.Disabled) { started = true; break; }
-            Check($"[hud] seed {seed}: last actor of the round sees why Delay is closed ('{delayBtn.TooltipText}')",
-                delayBtn.TooltipText.Contains("Nobody acts after"));
         }
-        Check("[hud] an ally with someone after them can Delay", started);
+        Check("[hud] the first ally to act can Delay", started);
         if (!started) return;
 
-        string ally = actorLabel.Text;
+        string ally = bar.ActorName;
         bar._UnhandledInput(new InputEventAction { Action = InputNames.Delay, Pressed = true });
         await Frames(2);
         var picks = PickableChips(row);
         Check($"[hud] the Delay hotkey offers the later chips as a pick ({picks.Count} chips, hint '{hint.Text}')",
-            picks.Count > 0 && hint.Text.StartsWith("LMB  a turn chip"));
+            picks.Count > 0 && hint.Text == "Act after" && bar.Decision.CancelKeyVisible);
         Check("[hud] every offered chip comes after the active one", AllAfterActive(row));
 
         input._UnhandledInput(new InputEventAction { Action = InputNames.UiCancel, Pressed = true });
         await Frames(2);
         Check($"[hud] Esc cancels the pick ({PickableChips(row).Count} chips offered, hint '{hint.Text}')",
-            PickableChips(row).Count == 0 && !hint.Text.StartsWith("LMB  a turn chip"));
+            PickableChips(row).Count == 0 && hint.Text != "Act after" && !bar.Decision.CancelKeyVisible);
 
         bar._UnhandledInput(new InputEventAction { Action = InputNames.Delay, Pressed = true });
         await Frames(2);
         picks = PickableChips(row);
         if (picks.Count == 0) { AbortFail("[DelayTurn] no chips offered on the second Delay press."); return; }
-        var chosen = picks[^1];
+        // The first later chip: the delayer keeps someone after it, so its next fresh turn can Delay again.
+        var chosen = picks[0];
         string anchorName = ChipName(chosen);
         Click(chosen.GetGlobalRect().GetCenter());
         await WaitSeconds(0.5f);
 
-        Check($"[hud] clicking {anchorName} ends {ally}'s turn now", actorLabel.Text != ally || !scene.IsPlayerTurn);
+        Check($"[hud] clicking {anchorName} ends {ally}'s turn now", bar.ActorName != ally || !scene.IsPlayerTurn);
         int anchorIndex = ChipIndex(row, anchorName);
         int waitingIndex = ChipIndex(row, "~ " + ally);
         Check($"[hud] the waiting chip sits right after its anchor (chips: {ChipNames(row)})",
             waitingIndex >= 0 && waitingIndex == anchorIndex + 1);
         Capture("delay_turn_waiting.png");
 
-        await WaitForAllyTurn(scene, bar, actorLabel, ally);
-        int activeIndex = ChipIndex(row, "> " + ally);
-        anchorIndex = ChipIndex(row, anchorName);
+        await WaitForAllyTurn(scene, bar, ally);
+        int activeIndex = ActiveIndex(row);
         Check($"[hud] {ally} returns as the active chip right after {anchorName} (chips: {ChipNames(row)})",
-            activeIndex >= 0 && activeIndex == anchorIndex + 1);
-        Check("[hud] the resumed turn opens with Delay closed (a turn only delays once)",
-            delayBtn.Disabled);
+            activeIndex >= 0 && ChipName(row.GetChild(activeIndex)) == ally && PreviousChipName(row, activeIndex) == anchorName);
+        Check($"[hud] the resumed turn opens with Delay closed (a turn only delays once; tooltip '{delayBtn.TooltipText}')",
+            delayBtn.Disabled && delayBtn.TooltipText.Contains(CombatSession.ResumedTurnReason));
 
         // Spend an action on the resumed turn: the button must stay closed with the acted reason
         // on a later turn of this ally. Use the next fresh turn for that.
         bar._UnhandledInput(new InputEventAction { Action = InputNames.EndTurn, Pressed = true });
-        await WaitForAllyTurn(scene, bar, actorLabel, ally);
-        Check("[hud] a fresh turn opens with Delay available again", scene.IsPlayerTurn && !delayBtn.Disabled);
-        if (scene.HoverSteepestBandTile(out Vector3 world))
+        for (float waited = 0; ActorName(scene) == ally && waited < TurnWaitSeconds; waited += 0.25f)
+            await WaitSeconds(0.25f);
+        await WaitForAllyTurn(scene, bar, ally);
+        Check($"[hud] a fresh turn re-opens Delay ('{delayBtn.TooltipText}', chips: {ChipNames(row)})",
+            scene.IsPlayerTurn && !delayBtn.Disabled);
+        if (scene.HoverSteepestBandTile(out Vector3 world) || scene.HoverBandTile(1, out world))
         {
             scene.ClearHover();
             var camera = GetViewport().GetCamera3D();
@@ -263,101 +266,7 @@ public partial class DelayTurnSpike : SpikeBase
         {
             Check("[hud] a band tile was available to move to", false);
         }
-    }
-
-    /// <summary>Wait for <paramref name="ally"/>'s turn, ending every other ally's turn on the way
-    /// (nobody else is pressing End Turn in a headless run).</summary>
-    private async Task WaitForAllyTurn(CombatScene scene, ActionBar bar, Label actorLabel, string ally)
-    {
-        float waited = 0f;
-        while (!(scene.IsPlayerTurn && actorLabel.Text == ally) && waited < TurnWaitSeconds)
-        {
-            await WaitSeconds(0.25f);
-            waited += 0.25f;
-            if (scene.IsPlayerTurn && actorLabel.Text != ally)
-                bar._UnhandledInput(new InputEventAction { Action = InputNames.EndTurn, Pressed = true });
-        }
-        await WaitSeconds(0.5f);
-    }
-
-    private async Task WaitForPlayerTurn(CombatScene scene)
-    {
-        await WaitSeconds(0.5f);
-        float waited = 0f;
-        while (!scene.IsPlayerTurn && waited < TurnWaitSeconds)
-        {
-            await WaitSeconds(0.25f);
-            waited += 0.25f;
-        }
-    }
-
-    private static List<Control> PickableChips(HBoxContainer row)
-    {
-        var picks = new List<Control>();
-        foreach (var child in row.GetChildren())
-            if (child is Control chip && chip.MouseFilter == Control.MouseFilterEnum.Stop) picks.Add(chip);
-        return picks;
-    }
-
-    private static bool AllAfterActive(HBoxContainer row)
-    {
-        bool passedActive = false;
-        foreach (var child in row.GetChildren())
-        {
-            if (child is not Control chip) continue;
-            if (ChipName(chip).StartsWith("> ")) { passedActive = true; continue; }
-            if (chip.MouseFilter == Control.MouseFilterEnum.Stop && !passedActive) return false;
-        }
-        return passedActive;
-    }
-
-    private static string ChipName(Node chip) => chip.GetNode<Label>("%Label").Text;
-
-    private static int ChipIndex(HBoxContainer row, string name)
-    {
-        int i = 0;
-        foreach (var child in row.GetChildren())
-        {
-            if (ChipName(child) == name) return i;
-            i++;
-        }
-        return -1;
-    }
-
-    private static string ChipNames(HBoxContainer row)
-    {
-        var names = new List<string>();
-        foreach (var child in row.GetChildren()) names.Add(ChipName(child));
-        return string.Join(" | ", names);
-    }
-
-    private void Click(Vector2 screen)
-    {
-        Push(new InputEventMouseButton { ButtonIndex = MouseButton.Left, Pressed = true, Position = screen, GlobalPosition = screen });
-        Push(new InputEventMouseButton { ButtonIndex = MouseButton.Left, Pressed = false, Position = screen, GlobalPosition = screen });
-    }
-
-    /// <summary>Local coordinates: the headless window's stretch transform would otherwise rescale
-    /// the event off-screen.</summary>
-    private void Push(InputEvent @event) => GetViewport().PushInput(@event, inLocalCoords: true);
-
-    /// <summary>Saves the frame when a renderer is up. A headless run has no viewport texture, so
-    /// it only notes the skip: run without --headless to refresh the picture.</summary>
-    private void Capture(string file)
-    {
-        if (DisplayServer.GetName() == "headless")
-        {
-            GD.Print($"[DelayTurn] {file}: skipped (headless, no viewport texture)");
-            return;
-        }
-        Image img = GetViewport().GetTexture().GetImage();
-        img.Convert(Image.Format.Rgba8);
-        img.LinearToSrgb();
-        img.Resize(1280, 720, Image.Interpolation.Bilinear);
-        string path = $"{OutputDirectory}/{file}";
-        Error err = img.SavePng(path);
-        GD.Print($"[DelayTurn] {file}: {err} ({ProjectSettings.GlobalizePath(path)})");
-        Check($"{file} saved", err == Error.Ok);
+        await RunLastActorCase(scene, bar, delayBtn, row, goblinDef);
     }
 
     private async Task Frames(int count)

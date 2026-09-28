@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/HelpOverlay.cs" id="1_help"]
+[ext_resource type="PackedScene" path="res://scenes/ui/key_legend.tscn" id="2_legend"]
 
 [node name="HelpOverlay" type="Control"]
 visible = false
@@ -12,7 +13,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_help")
-Rows = PackedStringArray("LMB|Move or confirm", "ui_cancel,RMB|Cancel targeting", "MMB,RMB drag|Orbit camera", "Wheel,WASD|Zoom or pan camera", "combat_focus|Centre on active unit", "combat_action_1,combat_action_2|Strike or raise shield", "combat_end_turn|End turn", "combat_delay|Delay turn", "combat_spells,combat_skills|Spells / Abilities", "combat_help|Controls help", "combat_log_toggle|Combat log")
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -51,13 +51,9 @@ text = "Controls"
 horizontal_alignment = 1
 theme_type_variation = &"HeadingLabel"
 
-[node name="Grid" type="GridContainer" parent="Center/Card/Panel/Col"]
+[node name="Grid" parent="Center/Card/Panel/Col" instance=ExtResource("2_legend")]
 unique_name_in_owner = true
 layout_mode = 2
-mouse_filter = 2
-columns = 2
-theme_override_constants/h_separation = 24
-theme_override_constants/v_separation = 4
 
 [node name="Hint" type="Label" parent="Center/Card/Panel/Col"]
 layout_mode = 2

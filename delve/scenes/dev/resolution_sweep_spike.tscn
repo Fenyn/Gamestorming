@@ -1,0 +1,18 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/ResolutionSweepSpike.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/run/hero_select.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/dev/combat_test.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/run/short_rest_panel.tscn" id="4"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/dungeon_test.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/ui/victory_banner.tscn" id="7"]
+
+[node name="ResolutionSweepSpike" type="Node"]
+script = ExtResource("1")
+CampScene = ExtResource("2")
+CombatTestScene = ExtResource("3")
+ModalScene = ExtResource("4")
+DungeonScene = ExtResource("6")
+VictoryScene = ExtResource("7")
+UiTheme = ExtResource("5")

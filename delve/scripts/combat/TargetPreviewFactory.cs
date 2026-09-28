@@ -25,7 +25,8 @@ internal static class TargetPreviewFactory
     {
         if (spell.Spell.DefenseType == SpellDefenseType.SpellAttack)
         {
-            var attack = ActionBarStateBuilder.BuildPreview(CombatPreviewCalculator.CalculateSpellAttackPreview(actor, target, spell));
+            var data = CombatPreviewCalculator.CalculateSpellAttackPreview(actor, target, spell);
+            var attack = ActionBarStateBuilder.BuildPreview(data, ForecastModifiers.SpellAttack(actor, target, data.MAP));
             return attack with { DetailText = $"Attack {attack.TotalAttackBonus:+0;-0;0} vs AC {attack.TargetAcText}"
                 + (attack.DamageFormula.Length > 0 ? $" · {attack.DamageFormula} damage" : ""),
                 OutcomeText = $"{attack.HitChanceText} hit · {attack.CritChanceText} critical hit" };
@@ -48,6 +49,7 @@ internal static class TargetPreviewFactory
                     ? new FigureView[] { new("Fails", fails), new("Crit fail", critFails) }
                     : new FigureView[] { new("Fails", fails), new("Crit fail", critFails), new("Damage", save.DamageFormula) },
                 Tags = basic ? new[] { $"{save.SaveName} DC {save.SpellDC}", "Basic save" } : new[] { $"{save.SaveName} DC {save.SpellDC}" },
+                Modifiers = ForecastModifiers.Save(actor, target, spell.Spell.SaveType),
             };
         }
         bool healing = spell.Spell.IsHealing;
@@ -75,6 +77,8 @@ internal static class TargetPreviewFactory
             {
                 Figures = new FigureView[] { new("Success", success), new("Crit", crit) },
                 Tags = new[] { $"{check.SkillName} {check.TotalBonus:+0;-0;0}", $"{check.DefenseLabel} DC {dc}" },
+                Modifiers = ForecastModifiers.Check(actor, target, skill.GetPreviewSkill(actor, target),
+                    skill.PreviewUsesFlatDC ? null : skill.PreviewTargetSave, check.MAP),
             };
         }
         // These actions begin with a weapon Strike. Label its forecast explicitly; subsequent
@@ -82,7 +86,8 @@ internal static class TargetPreviewFactory
         if (action.ActionName is "Lunge" or "Double Slice" or "Sudden Charge" or "Flurry of Blows"
             or "Spellstrike" or "Dimensional Assault" or "Confident Finisher" or "Power Attack" or "Vicious Swing")
         {
-            var attack = ActionBarStateBuilder.BuildPreview(CombatPreviewCalculator.CalculateAttackPreview(actor, target));
+            var data = CombatPreviewCalculator.CalculateAttackPreview(actor, target);
+            var attack = ActionBarStateBuilder.BuildPreview(data, ForecastModifiers.Strike(actor, target, data.MAP));
             return attack with { WeaponName = action.ActionName,
                 OutcomeText = $"{attack.HitChanceText} hit · {attack.CritChanceText} critical hit",
                 DetailText = $"Opening Strike · Attack {attack.TotalAttackBonus:+0;-0;0} vs AC {attack.TargetAcText} · {attack.DamageFormula} weapon damage",

@@ -40,6 +40,12 @@ internal sealed record SkillActionDefinition
     internal string? GrantedActionName { get; init; }
     internal int SignaturePriority { get; init; }
 
+    /// <summary>
+    /// A situational basic action (Stand, Escape): listed only while this holds, and then placed
+    /// first on the signature row so it is one click away. Null lists the chip always.
+    /// </summary>
+    internal Func<ICharacter, bool>? ShowWhen { get; init; }
+
     /// <summary>How the player picks what the chip affects.</summary>
     internal required TargetingKind Kind { get; init; }
 
@@ -87,6 +93,23 @@ internal static class SkillActionCatalog
     /// </summary>
     internal static readonly IReadOnlyList<SkillActionDefinition> All = new[]
     {
+        new SkillActionDefinition
+        {
+            Id = "stand", SignaturePriority = 1,
+            Kind = TargetingKind.SelfArea, Mode = SkillExecutionMode.Self,
+            Factory = () => new StandAction(),
+            ShowWhen = actor => actor.Conditions?.HasCondition(Condition.Prone) == true,
+            NoTargetReason = _ => "",
+        },
+        new SkillActionDefinition
+        {
+            Id = "escape", SignaturePriority = 2,
+            Kind = TargetingKind.SelfArea, Mode = SkillExecutionMode.Self,
+            Factory = () => new EscapeAction { Description = "Break free of a grab or restraint." },
+            ShowWhen = actor => actor.Conditions?.HasCondition(Condition.Grabbed) == true
+                || actor.Conditions?.HasCondition(Condition.Restrained) == true,
+            NoTargetReason = _ => "",
+        },
         new SkillActionDefinition
         {
             Id="treat-condition",GrantedActionName="Treat Condition",Kind=TargetingKind.SingleAlly,Mode=SkillExecutionMode.Tile,

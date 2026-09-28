@@ -7,7 +7,7 @@
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 304.0
-offset_bottom = 392.0
+offset_bottom = 296.0
 mouse_filter = 2
 script = ExtResource("script")
 CardScene = ExtResource("card")

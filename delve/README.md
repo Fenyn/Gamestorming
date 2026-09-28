@@ -42,13 +42,24 @@ Headless, each prints `SPIKE RESULT: PASS`:
 ...console.exe --path G:/Godot/Gamestorming/delve --headless res://scenes/dev/<name>_spike.tscn
 ```
 
-for `combat_juice`, `player_turn`, `encounter_reset`, `reaction_dying`, `reaction_prompt`, `spell_cast`, `terrain_spatial`, `terrain_cliff`, `terrain_skirt`, `terrain_skirt_render`, `elevation_move`, `ai_stack`, `ai_caster`, `ai_caution`, `ai_tactics`, `strike_audit`, `chassis`, `class_combo`, `run_map`, `run_recovery`, `run_short_rest`, `rest_presentation`, `run_event`, `run_encounter`, `run_flow`, `run_meeting`, `hero_select`, `party_control`, `campaign_progress`, `combat_log`, `target_click`, `move_chain`, `delay_turn`.
+for `combat_juice`, `player_turn`, `encounter_reset`, `reaction_dying`, `reaction_prompt`, `spell_cast`, `terrain_spatial`, `terrain_cliff`, `terrain_skirt`, `terrain_skirt_render`, `elevation_move`, `ai_stack`, `ai_caster`, `ai_caution`, `ai_tactics`, `strike_audit`, `chassis`, `class_combo`, `run_map`, `run_recovery`, `run_short_rest`, `rest_presentation`, `run_event`, `run_encounter`, `run_flow`, `run_meeting`, `hero_select`, `party_control`, `campaign_progress`, `combat_log`, `target_click`, `move_chain`, `delay_turn`, `focus`, `theme_lint`, `pause_menu`, `knowledge_journal`, `movement_conditions`.
+
+Movement conditions: Grabbed, Restrained and Immobilized allow no move actions, so the board shows no bands and the hint reads "Immobilized: cannot move". A prone hero gets 5 ft Crawl bands, the hint "Prone: Crawl 5 ft or Stand", and a Stand chip first on the signature row. A grabbed hero gets an Escape chip. `movement_conditions_spike` checks these and that a grabbed or prone AI never Strides.
+
+Knowledge journal: species are listed when they enter a fight; each Recall Knowledge success reveals the next field (two on a critical success). The journal lives in the campaign save. J or the log heading's Journal button opens the fight's creatures; the outpost's Bestiary button lists the campaign's whole creature pool, with unmet species as dark silhouettes named "???". `knowledge_journal_spike` checks the reveal order, the save round trip, a version 1 save, masking, the locator lifetime and the met and unmet bestiary pages; run it rendered for `knowledge_journal_combat.png`, `knowledge_journal_bestiary.png` and `knowledge_journal_bestiary_unmet.png`.
+
+Delay: a Delay may return after anyone still to act this round or anyone acting next round before the delayer's own slot, so the last actor of a round can Delay too.
+
+Pause menu: Esc opens Resume, Controls, Options and Quit at the outpost, in exploration and in combat once nothing else takes Esc (a dice beat skips, or a flyout, a targeting pick, a modal, a tooltip or an outpost pick closes first). It pauses the tree and freezes combat at once. Options (fullscreen, dice reveal) persist to `user://settings.cfg`. `pause_menu_spike` checks precedence, pausing, a 2 s freeze mid enemy turn, the modal stack, persistence to its own spike file and the quit confirmation; run it rendered for `pause_menu*.png`.
+
+Exploration: the party strip sits top left, in the combat party column's box, and the Wardstone panel sits top right. Tab or the arrow keys cycle the doors and Enter travels; the door tooltip shows the destination, "Ward 35 → 30" and any warning. A party wipe goes straight to the run end. Victory, rest and morning results read as before → after pairs, one row per changed hero, with Choose feat on pending promotions.
 
 `combat_shot` captures the board, `ui_shot` captures formation and recruitment screens, `meetup_shot`
 captures the guest replacement screen, and `run_map_shot`
 captures the run map fresh and mid-run, and `terrain_skirt_shot` captures top-down and oblique
-views of the skirted terrain per biome and seed. All five need a real window, so they run
-WITHOUT `--headless`:
+views of the skirted terrain per biome and seed, and `resolution_sweep` sets the window to
+1280x720, 1920x1080 and 2560x1440 and checks the camp, the combat HUD and the short rest modal
+at each size. All six need a real window, so they run WITHOUT `--headless`:
 
 ```
 ...console.exe --path G:/Godot/Gamestorming/delve res://scenes/dev/combat_shot_spike.tscn
@@ -56,22 +67,24 @@ WITHOUT `--headless`:
 ...console.exe --path G:/Godot/Gamestorming/delve res://scenes/dev/meetup_shot_spike.tscn
 ...console.exe --path G:/Godot/Gamestorming/delve res://scenes/dev/run_map_shot_spike.tscn
 ...console.exe --path G:/Godot/Gamestorming/delve res://scenes/dev/terrain_skirt_shot_spike.tscn
+...console.exe --path G:/Godot/Gamestorming/delve res://scenes/dev/resolution_sweep_spike.tscn
 ```
 
-They write their PNGs to `user://dev_shots` and print each file's OS path.
+They write their PNGs to `user://dev_shots`, or to `DELVE_SHOT_DIRECTORY` when it is set, and
+print each file's OS path.
 
 Movement: with no action selected the board shows the active unit's reach as bands, one colour per action the move costs, green where a Step reaches safely. Hover a tile for the route and its cost pips, click to move. C re-centres the camera on the active unit; WASD pans and stops the camera following until the next turn.
 
-Combat UI: the bottom bar groups the active ally, health, armor, remaining actions, and commands. Control opens that ally's AI and automatic reaction preferences. Escape closes an open menu. Hover inspection appears above the lower-left edge; attack forecasts appear above the commands. Resolved dice appear at the upper-left.
+Combat UI: the party column at the top left carries each hero's HP, reaction and conditions; the card slot under it shows the hovered unit. The initiative list runs down the right rail from the actor and marks the round wrap. The bottom bar holds the action and resource pips and the commands, with the signature row and the forecast above it on x 960, and hides on enemy turns. On enemy turns one centred band shows the attacker card, the roll row over the reaction prompt, and the target card. On player turns the roll row sits above the bar. Control opens the AI and automatic reaction preferences, Plan orders and Overview. Escape closes an open menu. The board marks only Dying; the forecast and the roll row name the modifiers conditions apply. `combat_shot_spike` checks the zones, the clear board box, the screen budget and the condition markers.
 
-Combat log: the compact panel shows two recent actions. Click an action or its + button to expand its details in place. L or the panel heading opens full history, including turn headings. Expanded entries stay visible as new actions arrive; Jump to latest resumes following the log. See [the combat UI review](design/combat-ui-review/review.md) for the rationale and visual comparisons.
+Combat log: the compact panel under the initiative list shows three recent actions, result first with short enemy names ("CRIT 29 vs 17  Aldric → Spider A  18 slashing"), wrapping to a second line only between figure groups. Strides stay in history. Click an action to expand its details in place. L or the panel heading opens full history with full names, including turn headings and strides. Expanded entries stay visible as new actions arrive; Jump to latest resumes following the log. See [the combat UI review](design/combat-ui-review/review.md) for the rationale and visual comparisons.
 
 Short rest now submits one activity per living character for a shared ten-minute window.
 Treat Wounds selects a healer and patient; Repair Shield selects a worker and shield owner.
 The schedule spends ward once. Invalid or duplicate assignments spend nothing.
-`rest_presentation_spike` checks the schedule UI, HP refresh, and condition badge lifecycle;
+`rest_presentation_spike` checks the schedule UI, HP refresh, the condition marks and the Dying badge;
 run it with rendering enabled to save previews under `.godot/`.
-Condition markers use the supplied P2eConditionMarkers pack in `assets/ui/conditions`.
+Condition markers use the supplied P2eConditionMarkers pack in `assets/ui/conditions`. HUD rows use 22 px tiles baked from it (bone on a dark tile, Palette colours): re-run `python tools/art/bake_condition_tiles.py` after a palette change.
 
 The default game (F5) now runs `scenes/run/dungeon_run.tscn`: select a party, explore rooms,
 resolve encounters, and descend through all three floors. It shares XP, recovery, recruitment,

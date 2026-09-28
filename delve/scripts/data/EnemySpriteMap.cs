@@ -51,10 +51,13 @@ public static class EnemySpriteMap
         ["giant-stag-beetle"] = Root + "giant_stag_beetle_base",
     };
 
+    /// <summary>The folder's authored animation and placement resource.</summary>
+    public static string DefinitionPath(string folder) => $"{folder}/sprite.tres";
+
     /// <summary>Resolve the sprite folder for a creature by display name (slugified), else the
     /// missing-art placeholder for its size.</summary>
     public static string FolderForCreature(string displayName, CreatureSize size) =>
-        BySlug.TryGetValue(Slugify(displayName), out var folder) ? folder : PlaceholderFolder(size);
+        BySlug.TryGetValue(CreatureSlug.Normalize(displayName), out var folder) ? folder : PlaceholderFolder(size);
 
     /// <summary>The missing-art placeholder folder for a creature size. Size is baked into the
     /// texture height (BillboardSpriteAnimator derives world height from it), so a Large creature
@@ -65,29 +68,4 @@ public static class EnemySpriteMap
         CreatureSize.Medium => Root + "placeholder_medium",
         _ => Root + "placeholder_large",
     };
-
-    /// <summary>Foundry-style slug: lowercase, runs of non-alphanumerics collapsed to single
-    /// hyphens, the factory's Elite/Weak name prefix dropped.</summary>
-    private static string Slugify(string name)
-    {
-        var sb = new System.Text.StringBuilder(name.Length);
-        bool pendingHyphen = false;
-        foreach (char c in name.ToLowerInvariant())
-        {
-            if (char.IsLetterOrDigit(c))
-            {
-                if (pendingHyphen && sb.Length > 0) sb.Append('-');
-                pendingHyphen = false;
-                sb.Append(c);
-            }
-            else
-            {
-                pendingHyphen = true;
-            }
-        }
-        string slug = sb.ToString();
-        if (slug.StartsWith("elite-")) return slug["elite-".Length..];
-        if (slug.StartsWith("weak-")) return slug["weak-".Length..];
-        return slug;
-    }
 }

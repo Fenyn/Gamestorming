@@ -1,5 +1,33 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=22 format=3]
+[ext_resource type="Script" path="res://scripts/dungeon/FloorPlan.cs" id="5_plan"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/flag_triangle.png" id="6_entrance"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/sword.png" id="7_fight"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/book_open.png" id="8_event"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/skull.png" id="9_lair"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/character.png" id="10_wayfarer"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/campfire.png" id="11_refuge"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/crown_a.png" id="12_guardian"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/hexagon_question.png" id="13_unknown"]
 [ext_resource type="Script" path="res://scripts/dungeon/DungeonHud.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/ThresholdTicks.cs" id="4_ticks"]
+[ext_resource type="PackedScene" path="res://scenes/ui/squad_panel.tscn" id="2_squad"]
+[ext_resource type="PackedScene" path="res://scenes/ui/sheet_tooltip.tscn" id="3_tip"]
+[sub_resource type="InputEventKey" id="key_rest"]
+keycode = 82
+[sub_resource type="Shortcut" id="shortcut_rest"]
+events = [SubResource("key_rest")]
+[sub_resource type="InputEventKey" id="key_camp"]
+keycode = 70
+[sub_resource type="Shortcut" id="shortcut_camp"]
+events = [SubResource("key_camp")]
+[sub_resource type="InputEventKey" id="key_potion"]
+keycode = 80
+[sub_resource type="Shortcut" id="shortcut_potion"]
+events = [SubResource("key_potion")]
+[sub_resource type="InputEventKey" id="key_stairs"]
+keycode = 71
+[sub_resource type="Shortcut" id="shortcut_stairs"]
+events = [SubResource("key_stairs")]
 [node name="DungeonHud" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -7,17 +35,27 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 script = ExtResource("1")
+[node name="PartyStrip" parent="." instance=ExtResource("2_squad")]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 304.0
+offset_bottom = 296.0
 [node name="Top" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
-offset_left = 24.0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -484.0
 offset_top = 16.0
-offset_right = 1350.0
+offset_right = -16.0
+grow_horizontal = 0
 theme_override_constants/separation = 8
 [node name="Expedition" type="PanelContainer" parent="Top"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(460, 0)
-size_flags_horizontal = 0
+custom_minimum_size = Vector2(368, 0)
+size_flags_horizontal = 8
 theme_type_variation = &"WardPanel"
 [node name="Content" type="VBoxContainer" parent="Top/Expedition"]
 layout_mode = 2
@@ -34,7 +72,7 @@ text = "Wardstone"
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"WardValue"
-text = "100 / 100"
+text = "100"
 [node name="WardBar" type="ProgressBar" parent="Top/Expedition/Content"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -43,6 +81,14 @@ mouse_filter = 2
 theme_type_variation = &"WardBar"
 value = 100.0
 show_percentage = false
+[node name="WardTicks" type="Control" parent="Top/Expedition/Content/WardBar"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("4_ticks")
 [node name="WardDanger" type="Label" parent="Top/Expedition/Content"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -62,9 +108,6 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_type_variation = &"RoomsBar"
 show_percentage = false
-[node name="Status" type="Label" parent="Top"]
-unique_name_in_owner = true
-layout_mode = 2
 [node name="Controls" type="HBoxContainer" parent="Top"]
 layout_mode = 2
 theme_override_constants/separation = 10
@@ -81,15 +124,61 @@ text = "Restart seed"
 unique_name_in_owner = true
 layout_mode = 2
 text = "New floor"
+[node name="Camp" type="Button" parent="Top/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Make camp"
+shortcut = SubResource("shortcut_camp")
+[node name="Potion" type="Button" parent="Top/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Drink potion"
+shortcut = SubResource("shortcut_potion")
 [node name="Rest" type="Button" parent="Top/Controls"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Short rest - 15 ward"
+shortcut = SubResource("shortcut_rest")
 [node name="Stairs" type="Button" parent="Top/Controls"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Descend stairs"
+shortcut = SubResource("shortcut_stairs")
 [node name="Sizes" type="HBoxContainer" parent="Top/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+[node name="Plan" type="PanelContainer" parent="Top"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(368, 0)
+size_flags_horizontal = 8
+theme_type_variation = &"HudPanel"
+[node name="PlanContent" type="VBoxContainer" parent="Top/Plan"]
+layout_mode = 2
+theme_override_constants/separation = 10
+[node name="PlanTitle" type="Label" parent="Top/Plan/PlanContent"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Floor 1 of 3"
+[node name="PlanGoal" type="Label" parent="Top/Plan/PlanContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HintLabel"
+[node name="FloorPlan" type="Control" parent="Top/Plan/PlanContent"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 1
+script = ExtResource("5_plan")
+Entrance = ExtResource("6_entrance")
+Fight = ExtResource("7_fight")
+Event = ExtResource("8_event")
+Lair = ExtResource("9_lair")
+Wayfarer = ExtResource("10_wayfarer")
+Refuge = ExtResource("11_refuge")
+Guardian = ExtResource("12_guardian")
+Unknown = ExtResource("13_unknown")
+[node name="Status" type="Label" parent="Top/Plan/PlanContent"]
 unique_name_in_owner = true
 layout_mode = 2
 [node name="Bottom" type="VBoxContainer" parent="."]
@@ -104,3 +193,30 @@ theme_override_constants/separation = 10
 [node name="Notice" type="Label" parent="Bottom"]
 unique_name_in_owner = true
 layout_mode = 2
+[node name="RoomCard" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 96.0
+offset_right = 400.0
+offset_bottom = 144.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+[node name="RoomCardTitle" type="Label" parent="RoomCard"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"CampTitle"
+horizontal_alignment = 1
+[node name="RoomCardDetail" type="Label" parent="RoomCard"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"CampLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+[node name="DoorTip" parent="." instance=ExtResource("3_tip")]
+unique_name_in_owner = true
+layout_mode = 0

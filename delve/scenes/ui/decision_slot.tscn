@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/DecisionSlot.cs" id="1_slot"]
 [ext_resource type="PackedScene" path="res://scenes/ui/figure_label.tscn" id="2_fig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="3_pr"]
+[ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="4_cap"]
+[ext_resource type="Resource" path="res://assets/ui/conditions/condition_icons.tres" id="5_icons"]
 
 [node name="DecisionSlot" type="VBoxContainer"]
 size_flags_horizontal = 4
@@ -10,6 +12,8 @@ mouse_filter = 2
 theme_override_constants/separation = 6
 script = ExtResource("1_slot")
 FigureScene = ExtResource("2_fig")
+Icons = ExtResource("5_icons")
+ModifierIconSize = 22
 
 [node name="PreviewCard" type="PanelContainer" parent="."]
 unique_name_in_owner = true
@@ -51,6 +55,14 @@ mouse_filter = 2
 theme_override_constants/h_separation = 36
 theme_override_constants/v_separation = 8
 
+[node name="Modifiers" type="HFlowContainer" parent="PreviewCard/PreviewCol"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 4
+
 [node name="PreviewStatsLabel" type="Label" parent="PreviewCard/PreviewCol"]
 unique_name_in_owner = true
 visible = false
@@ -87,12 +99,38 @@ layout_mode = 2
 size_flags_vertical = 4
 PipSize = Vector2(10, 10)
 
-[node name="ConfirmTargets" type="Button" parent="HintRow"]
+[node name="ConfirmTargets" parent="HintRow" instance=ExtResource("4_cap")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-focus_mode = 0
-text = "Cast [Enter]"
+ActionText = "Cast"
+InputAction = &"combat_confirm"
+
+[node name="CancelCaption" type="HBoxContainer" parent="HintRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="CancelLabel" type="Label" parent="HintRow/CancelCaption"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HintLabel"
+text = "Cancel"
+
+[node name="CancelKeycap" type="PanelContainer" parent="HintRow/CancelCaption"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="CancelKey" type="Label" parent="HintRow/CancelCaption/CancelKeycap"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HintLabel"
+text = "Esc"
 
 [node name="ConfirmOrder" type="Button" parent="HintRow"]
 unique_name_in_owner = true

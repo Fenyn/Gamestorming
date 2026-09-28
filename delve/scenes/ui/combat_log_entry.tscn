@@ -7,6 +7,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 script = ExtResource("1")
+CompactRowHeight = 28.0
 
 [node name="Header" type="HBoxContainer" parent="."]
 layout_mode = 2
@@ -32,6 +33,8 @@ fit_content = true
 scroll_active = false
 
 [node name="DetailsInset" type="MarginContainer" parent="."]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 38
 

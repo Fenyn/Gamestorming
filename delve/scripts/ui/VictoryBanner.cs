@@ -3,21 +3,24 @@ using Godot;
 namespace Delve.UI;
 
 /// <summary>
-/// End-of-encounter overlay: a dimmed full-screen modal with a result headline and a Restart
-/// button that reloads the current scene. Passive — <c>CombatScene</c> calls <see cref="ShowResult"/>
-/// with a pre-formatted string + color; this holds no game rules and no engine types. Pushes
-/// <see cref="HudRoot"/>'s modal state on show (combat is over; nothing underneath needs input).
+/// End-of-encounter overlay: a dimmed full-screen modal with the result title, the party figures
+/// that changed, one row per changed hero and the notes. Passive: the host hands it a
+/// <see cref="Delve.Flow.CombatResultsView"/>. Pushes <see cref="HudRoot"/>'s modal state on show.
 /// </summary>
 public partial class VictoryBanner : Control
 {
+    [Export] public PackedScene? FigureScene { get; set; }
+    [Export] public PackedScene? RowScene { get; set; }
+    [Export] public double RevealSeconds { get; set; } = 0.3;
+
     private Label _resultLabel = null!;
     private Button _restartButton = null!;
     private Button _continueButton = null!;
-    private Label _rewards = null!;
-    private Label _progressText = null!;
+    private HBoxContainer _figures = null!;
+    private VBoxContainer _members = null!;
+    private Label _notes = null!;
     private ProgressBar _progress = null!;
     private Tween? _reveal;
-    [Export] public double RevealSeconds { get; set; } = 0.3;
     public event System.Action? Continued;
 
     private HudRoot? _hud;
@@ -28,8 +31,9 @@ public partial class VictoryBanner : Control
         _resultLabel = GetNode<Label>("%ResultLabel");
         _restartButton = GetNode<Button>("%RestartButton");
         _continueButton = GetNode<Button>("%ContinueButton");
-        _rewards = GetNode<Label>("%Rewards");
-        _progressText = GetNode<Label>("%ProgressText");
+        _figures = GetNode<HBoxContainer>("%Figures");
+        _members = GetNode<VBoxContainer>("%Members");
+        _notes = GetNode<Label>("%Notes");
         _progress = GetNode<ProgressBar>("%XpProgress");
         _continueButton.Pressed += () =>
         {
@@ -39,9 +43,7 @@ public partial class VictoryBanner : Control
         };
         _hud = GetParentOrNull<HudRoot>();
         _restartButton.Pressed += () => GetTree().ReloadCurrentScene();
-        // Hidden by default: ReloadCurrentScene only makes sense for a host that owns its own
-        // fresh-preset fallback (the standalone dev harness). Any other host must opt in
-        // explicitly via SetRestartVisible.
+        // Only a host that owns its own fresh-preset fallback opts in through SetRestartVisible.
         _restartButton.Visible = false;
         Visible = false;
         Resized += FitFrame;
@@ -52,7 +54,7 @@ public partial class VictoryBanner : Control
     private void FitFrame()
     {
         var frame = GetNode<Control>("%Frame");
-        frame.CustomMinimumSize = new Vector2(Mathf.Min(620, Mathf.Max(240, Size.X - 64)), 0);
+        frame.CustomMinimumSize = new Vector2(Mathf.Min(720, Mathf.Max(240, Size.X - 64)), 0);
     }
 
     public override void _ExitTree()
@@ -82,11 +84,8 @@ public partial class VictoryBanner : Control
         _reveal?.Kill();
         GetNode<Control>("%Frame").Modulate = Colors.White;
         _continueButton.Visible = false;
-        _rewards.Visible = false;
-        _progressText.Visible = false;
-        _progress.Visible = false;
         FitFrame();
-        ShowParty(System.Array.Empty<PF2e.Core.PF2eCharacter>());
+        RenderRows(new Delve.Flow.CombatResultsView());
         _resultLabel.Text = text.TrimEnd('!');
         _resultLabel.AddThemeColorOverride("font_color", color);
         Visible = true;
@@ -97,14 +96,9 @@ public partial class VictoryBanner : Control
         }
     }
 
-    public void ShowRewards(string rewards, string progressText, double progress)
+    public void ShowRewards(Delve.Flow.CombatResultsView view)
     {
-        _rewards.Text = rewards;
-        _rewards.Visible = true;
-        _progressText.Text = progressText;
-        _progressText.Visible = progressText.Length > 0;
-        _progress.Visible = progressText.Length > 0;
-        _progress.Value = progress;
+        RenderRows(view);
         _continueButton.Visible = true;
         _continueButton.Disabled = false;
         _continueButton.GrabFocus();

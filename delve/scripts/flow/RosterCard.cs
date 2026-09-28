@@ -95,8 +95,8 @@ public partial class RosterCard : Button
         // A Button's disabled font color reaches its own text, and the card has none - every word
         // on it is a child Label. Take them down to the palette's disabled ink together, so a card
         // that takes no clicks reads as one (design/ui_guidelines.md section 4.3).
-        _name.AddThemeColorOverride("font_color", Disabled ? UiColors.TextDisabled : UiColors.Text);
-        _role.AddThemeColorOverride("font_color", Disabled ? UiColors.TextDisabled : UiColors.TextDim);
+        _name.ThemeTypeVariation = Disabled ? ThemeNames.HeadingLabelDisabled : ThemeNames.HeadingLabel;
+        _role.ThemeTypeVariation = Disabled ? ThemeNames.CaptionDisabled : ThemeNames.CardRoleLabel;
 
         _caption.Text = state.Chosen ? state.Caption : "";
     }

@@ -1,0 +1,18 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/FocusSpike.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/run/event_panel.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/run/short_rest_panel.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/run/meetup_panel.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/run/run_end_panel.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/run/promotion_panel.tscn" id="6"]
+[ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="7"]
+
+[node name="FocusSpike" type="Node"]
+script = ExtResource("1")
+EventScene = ExtResource("2")
+ShortRestScene = ExtResource("3")
+MeetupScene = ExtResource("4")
+RunEndScene = ExtResource("5")
+PromotionScene = ExtResource("6")
+UiTheme = ExtResource("7")

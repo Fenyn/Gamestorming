@@ -91,7 +91,7 @@ func choose(referee: Referee, seat: int, profile: AiProfile, rng: RandomNumberGe
 	var candidates: Array[int] = _candidates(base, prompt, prior, maxi(1, profile.think_int("top_k")))
 	if not remembered.is_empty():
 		for i in range(prompt.options.size()):
-			if prompt.options[i].to_dict() == remembered and not candidates.has(i):
+			if prompt.options[i].to_dict() == remembered and not candidates.has(i) and not _desperate(prompt, prior, i):
 				candidates.append(i)
 	_prefer(candidates, prompt, remembered)
 	for i in range(prompt.options.size()):
@@ -649,10 +649,19 @@ static func _within_margin(candidates: Array[int], prior: Array[float], margin: 
 	return out
 
 
+## A final strike throws a card away and spends the rest of the Combat passing. The scorer prices
+## that (`play.final_strike_penalty`, the card, the hand still held); a playout to the end of the
+## turn barely sees it. So one is searched only when the scorer rates it above passing, which is 0,
+## as when it wins the duel.
+static func _desperate(prompt: Prompt, prior: Array[float], i: int) -> bool:
+	return prompt.options[i].type == &"final_strike" and prior[i] <= 0.0
+
+
 static func _candidates(sim: DuelEngine, prompt: Prompt, prior: Array[float], width: int) -> Array[int]:
 	var order: Array[int] = []
 	for i in range(prior.size()):
-		order.append(i)
+		if not _desperate(prompt, prior, i):
+			order.append(i)
 	order.sort_custom(func(a: int, b: int) -> bool: return prior[a] > prior[b] if prior[a] != prior[b] else a < b)
 	order = _distinct(sim, prompt, order)
 	var out: Array[int] = []
@@ -728,7 +737,8 @@ static func _role(sim: DuelEngine, cmd: Command) -> String:
 static func _shortlist(prompt: Prompt, prior: Array[float], top_k: int, sim: DuelEngine = null) -> Array[int]:
 	var order: Array[int] = []
 	for i in range(prior.size()):
-		order.append(i)
+		if not _desperate(prompt, prior, i):
+			order.append(i)
 	order.sort_custom(func(a: int, b: int) -> bool: return prior[a] > prior[b] if prior[a] != prior[b] else a < b)
 	if sim != null:
 		order = _distinct(sim, prompt, order)

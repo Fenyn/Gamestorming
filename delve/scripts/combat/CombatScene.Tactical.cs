@@ -27,6 +27,7 @@ public partial class CombatScene
         _squad = GetNode<SquadPanel>("%SquadPanel");
         _destination = GetNode<DestinationPreview>("%DestinationPreview");
         _squad.FocusRequested += FocusPartyMember;
+        BuildBand();
     }
 
     public void FocusPartyMember(int id)
@@ -49,35 +50,15 @@ public partial class CombatScene
         if (_squadRefresh > 0) return;
         _squadRefresh = 0.1;
         _squad.Render(SquadViews());
+        RefreshTurnRows();
     }
 
     private IEnumerable<SquadMemberView> SquadViews()
     {
         foreach (var member in _partyMembers)
-        {
-            var detail = ActiveCharacterView.From(member);
-            var conditions = member.Conditions?.GetAllConditions()
-                .GroupBy(c => (c.Definition.Condition, c.PersistentDamage?.DamageType))
-                .Select(g => g.OrderByDescending(c => c.Value).First())
-                .OrderBy(c => c.Definition.DisplayName)
-                .Select(c => new ConditionMarkView(c.PersistentDamage?.DamageType.ToString() ?? c.Definition.Condition.ToString(),
-                    c.DisplayLabel, c.Definition.HasValue ? c.Value : 0, c.Definition.Description ?? ""))
-                .ToArray() ?? System.Array.Empty<ConditionMarkView>();
-            yield return new SquadMemberView
-            {
-                Id = member.UniqueId,
-                HeroId = member.Id,
-                Name = member.Name,
-                Hp = member.Health?.CurrentHP ?? 0,
-                MaxHp = member.Health?.MaxHP ?? 0,
-                Framed = member == _session.CurrentActor || member.UniqueId == _reactorId,
-                Focused = _focusedMember == member.UniqueId,
-                Down = member.Health?.IsAlive != true,
-                Reaction = detail?.Reaction ?? ReactionMark.None,
-                Conditions = conditions,
-                Tooltip = detail?.Tooltip ?? member.Name,
-            };
-        }
+            yield return SquadMemberViews.From(member,
+                framed: member == _session.CurrentActor || member.UniqueId == _reactorId,
+                focused: _focusedMember == member.UniqueId);
     }
 
     private void ClearPartyFocus()
@@ -151,8 +132,10 @@ public partial class CombatScene
         _hoveredId = null;
         _reactorId = null;
         _promptOpen = false;
+        _delayPickIds.Clear();
         ClearBoardTargets();
         _partyMembers = System.Array.Empty<ICharacter>();
         _squad.Setup(System.Array.Empty<SquadMemberView>());
+        ClearBand();
     }
 }

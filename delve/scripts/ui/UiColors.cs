@@ -24,6 +24,9 @@ public static class UiColors
     /// <summary>Bone: active states, accent strips, default buttons, available pips.</summary>
     public static Color Accent => Get("accent");
 
+    /// <summary>Pale blue for hover and keyboard focus, in panels and on world doorways.</summary>
+    public static Color Focus => Get("focus");
+
     /// <summary>Wardstone teal, on every screen that shows the ward.</summary>
     public static Color Ward => Get("ward");
 
@@ -139,6 +142,11 @@ public static class UiColors
 
     /// <summary>HP fill/text at ratio &lt;= 0.25.</summary>
     public static Color HpLow => Get("hp_low");
+
+    /// <summary>Board damage popups: a miss, an untyped crit and a heal.</summary>
+    public static Color PopupMiss => Get("popup_miss");
+    public static Color PopupCrit => Get("popup_crit");
+    public static Color PopupHeal => Get("popup_heal");
 
     /// <summary>Victory banner headline.</summary>
     public static Color Victory => Get("victory");

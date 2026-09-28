@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/VictoryBanner.cs" id="1_vb"]
 [ext_resource type="Texture2D" path="res://assets/ui/kenney/rule_ornament.png" id="rule"]
 [ext_resource type="PackedScene" path="res://scenes/run/character_details_overlay.tscn" id="details"]
+[ext_resource type="PackedScene" path="res://scenes/ui/figure_label.tscn" id="figure"]
+[ext_resource type="PackedScene" path="res://scenes/ui/result_member_row.tscn" id="row"]
 
 [node name="VictoryBanner" type="Control"]
 visible = false
@@ -14,6 +16,8 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_vb")
+FigureScene = ExtResource("figure")
+RowScene = ExtResource("row")
 
 [node name="Dim" type="Panel" parent="."]
 layout_mode = 1
@@ -54,13 +58,7 @@ theme_type_variation = &"ResultFrame"
 
 [node name="Box" type="VBoxContainer" parent="Margin/Scroll/Center/Frame"]
 layout_mode = 2
-theme_override_constants/separation = 22
-
-[node name="Eyebrow" type="Label" parent="Margin/Scroll/Center/Frame/Box"]
-layout_mode = 2
-text = "AFTER THE BATTLE"
-horizontal_alignment = 1
-theme_type_variation = &"RowLabel"
+theme_override_constants/separation = 20
 
 [node name="ResultLabel" type="Label" parent="Margin/Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
@@ -77,13 +75,13 @@ expand_mode = 1
 stretch_mode = 3
 mouse_filter = 2
 
-[node name="Rewards" type="Label" parent="Margin/Scroll/Center/Frame/Box"]
+[node name="Figures" type="HBoxContainer" parent="Margin/Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-autowrap_mode = 2
-theme_type_variation = &"TipBody"
-theme_override_constants/line_spacing = 12
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 32
 
 [node name="XpProgress" type="ProgressBar" parent="Margin/Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
@@ -92,28 +90,19 @@ custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 show_percentage = false
 
-[node name="ProgressText" type="Label" parent="Margin/Scroll/Center/Frame/Box"]
+[node name="Members" type="VBoxContainer" parent="Margin/Scroll/Center/Frame/Box"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Notes" type="Label" parent="Margin/Scroll/Center/Frame/Box"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
 autowrap_mode = 2
-theme_type_variation = &"TipFooter"
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-horizontal_alignment = 1
-
-[node name="PartyDetails" type="HBoxContainer" parent="Margin/Scroll/Center/Frame/Box"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-alignment = 1
-
-[node name="PartyMember" type="OptionButton" parent="Margin/Scroll/Center/Frame/Box/PartyDetails"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="DetailsButton" type="Button" parent="Margin/Scroll/Center/Frame/Box/PartyDetails"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Character details"
+theme_type_variation = &"TipBody"
+theme_override_constants/line_spacing = 12
 
 [node name="ContinueButton" type="Button" parent="Margin/Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
@@ -123,12 +112,12 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_type_variation = &"AccentButton"
 text = "Continue"
+
 [node name="RestartButton" type="Button" parent="Margin/Scroll/Center/Frame/Box"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 48)
 layout_mode = 2
 size_flags_horizontal = 4
-
 text = "Fight again"
 
 [node name="ResultDetails" parent="." instance=ExtResource("details")]

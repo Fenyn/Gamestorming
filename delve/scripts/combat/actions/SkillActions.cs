@@ -51,11 +51,14 @@ internal sealed class SkillActions
 
         foreach (var def in SkillActionCatalog.Basic)
         {
+            bool situational = def.ShowWhen != null;
+            if (situational && !def.ShowWhen!(character)) continue;
             bool hasTargets = def.Mode == SkillExecutionMode.Self
                               || GetSkillTargets(character, def.Id).Tiles.Count > 0;
             var action = def.Factory();
             bool owned = granted?.Any(a => a.ActionName == action.ActionName) == true;
-            list.Add(BuildSkillEntry(character, action, def.Id, hasTargets, actions, owned));
+            var entry = BuildSkillEntry(character, action, def.Id, hasTargets, actions, owned);
+            list.Add(situational ? entry with { SignaturePriority = def.SignaturePriority } : entry);
         }
 
         // Feat-granted actions (Lunge / Sudden Charge / Shielded Stride) surface only when a feature
@@ -223,8 +226,9 @@ internal sealed class SkillActions
     }
 
     /// <summary>
-    /// Execute a self-targeted action that fires immediately (Parry, Reload). The engine action owns
-    /// its cost + state (parry AC bonus, reload progress); we emit an ActionUsed event for the board.
+    /// Execute a self-targeted action that fires immediately (Parry, Reload, Stand, Escape). The
+    /// engine action owns its cost + state (parry AC bonus, reload progress); we emit an ActionUsed
+    /// event for the board, and a position sync when a critical Escape's 5-foot Stride moved the actor.
     /// </summary>
     internal async Task<bool> ExecuteSelfSkill(ICharacter actor, string actionId)
     {
@@ -232,7 +236,9 @@ internal sealed class SkillActions
         if (action == null || Delve.Rules.ClassAction.Restriction(actor, action) != null || !action.CanPerform(actor)) return false;
 
         int preHp = actor.Health?.CurrentHP ?? 0;
+        var from = actor.GridPosition;
         await action.ExecuteAsync(actor);
+        await _events.EmitPositionSync(actor, from);
         await _events.EmitHpDelta(actor, actor, preHp);
 
         await _events.Emit(new BattleEvent

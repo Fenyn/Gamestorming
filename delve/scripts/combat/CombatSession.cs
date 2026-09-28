@@ -98,12 +98,11 @@ public sealed class CombatSession
     public event Action? TurnChanged;
 
     /// <summary>
-    /// Raised when a Recall Knowledge check in THIS encounter actually taught the party something
-    /// (Success or Critical Success), with the target's species slug and the degree. The hosting
-    /// scene forwards it to the party's bestiary — the session itself owns no journal.
+    /// Raised when a party-side Recall Knowledge check in THIS encounter succeeded, with the studied
+    /// creature and the degree. The hosting scene forwards it to the journal; the session owns none.
     /// Failures do not fire this (they still consume the attempt).
     /// </summary>
-    public event Action<string, DegreeOfSuccess>? RecallKnowledgeLearned;
+    public event Action<ICharacter, DegreeOfSuccess>? RecallKnowledgeLearned;
 
     /// <summary>
     /// Interactive reaction prompt seam, set by the scene. Given a UI view model, resolve true
@@ -225,7 +224,7 @@ public sealed class CombatSession
 
         _turnManager.OnTurnStart += HandleTurnStart;
         // A delayer coming back resumes rather than starts, so the engine raises this instead.
-        _turnManager.OnTurnResumed += HandleTurnStart;
+        _turnManager.OnTurnResumed += HandleTurnResumed;
 
         // Future hook: round-scoped buff ticking (consumable elixirs) subscribed OnRoundEnd here in bulwark.
     }
@@ -270,8 +269,8 @@ public sealed class CombatSession
 
         MarkRecallAttempted(actor.UniqueId, creatureId!);
 
-        if (degree == DegreeOfSuccess.Success || degree == DegreeOfSuccess.CriticalSuccess)
-            RecallKnowledgeLearned?.Invoke(creatureId!, degree);
+        if (actor.TeamId == 1 && degree is DegreeOfSuccess.Success or DegreeOfSuccess.CriticalSuccess)
+            RecallKnowledgeLearned?.Invoke(target!, degree);
     }
 
     public void SetPresenter(Func<BattleEvent, Task> presenter)
@@ -363,36 +362,42 @@ public sealed class CombatSession
 
     public void Teardown()
     {
-        // A player turn parked on RunPlayerTurn's TCS would otherwise hang forever once the scene
-        // exits (nothing left to press End Turn / hand off to AI). Complete it as an EndTurn so the
-        // awaiting turn loop unwinds; after cancellation RunAsync's next boundary check bails out
-        // before an AI plan can start. TrySetResult is idempotent — harmless if already resolved or
-        // never created.
-        _playerTurnTcs?.TrySetResult(PlayerTurnResolution.EndTurn);
-
-        if (_turnManager != null)
+        try
         {
-            _turnManager.OnTurnStart -= HandleTurnStart;
-            _turnManager.OnTurnResumed -= HandleTurnStart;
-            foreach (var c in _team1) UnsubscribeCharacter(c);
-            foreach (var c in _team2) UnsubscribeCharacter(c);
-            if (_turnManager.IsEncounterActive)
-                _turnManager.EndEncounter();
+            // A player turn parked on RunPlayerTurn's TCS would otherwise hang forever once the scene
+            // exits (nothing left to press End Turn / hand off to AI). Complete it as an EndTurn so the
+            // awaiting turn loop unwinds; after cancellation RunAsync's next boundary check bails out
+            // before an AI plan can start. TrySetResult is idempotent — harmless if already resolved or
+            // never created.
+            _playerTurnTcs?.TrySetResult(PlayerTurnResolution.EndTurn);
+
+            if (_turnManager != null)
+            {
+                _turnManager.OnTurnStart -= HandleTurnStart;
+                _turnManager.OnTurnResumed -= HandleTurnResumed;
+                foreach (var c in _team1) UnsubscribeCharacter(c);
+                foreach (var c in _team2) UnsubscribeCharacter(c);
+                if (_turnManager.IsEncounterActive)
+                    _turnManager.EndEncounter();
+            }
+
+            // Static engine event — leaving this subscribed would keep the whole session (and its teams)
+            // alive and let a later encounter's checks re-enter this dead one. Detaching a handler that
+            // was never attached (Setup faulted before WireRecallKnowledge) is a harmless no-op.
+            RecallKnowledgeAction.OnKnowledgeResolved -= OnKnowledgeResolved;
+            StrikeResolver.OnStrikeResolved -= PresentReactionStrike;
+
+            // Releases every engine global this encounter still owns, and only those: a session torn down
+            // after the next encounter began leaves the live fight's wiring alone.
+            foreach (var link in _eidolons) link.Dispose();
+            _eidolons.Clear();
+            _scope?.Dispose();
+            _scope = null;
         }
-
-        // Static engine event — leaving this subscribed would keep the whole session (and its teams)
-        // alive and let a later encounter's checks re-enter this dead one. Detaching a handler that
-        // was never attached (Setup faulted before WireRecallKnowledge) is a harmless no-op.
-        RecallKnowledgeAction.OnKnowledgeResolved -= OnKnowledgeResolved;
-        StrikeResolver.OnStrikeResolved -= PresentReactionStrike;
-
-        // Releases every engine global this encounter still owns, and only those: a session torn down
-        // after the next encounter began leaves the live fight's wiring alone.
-        foreach (var link in _eidolons) link.Dispose();
-        _eidolons.Clear();
-        _scope?.Dispose();
-        _scope = null;
-        Letters.Restore();
+        finally
+        {
+            Letters.Restore();
+        }
     }
 
     // ---------------------------------------------------------------- Turn loop
@@ -401,7 +406,7 @@ public sealed class CombatSession
     /// Runs the encounter to completion (or abort). CANCELLATION CONTRACT: the owner passes a token
     /// whose source it cancels on scene exit (<c>CombatScene._ExitTree</c>, before/around Teardown).
     /// Cancellation is cooperative and surfaces two ways — a boundary check between turns, and, mid-turn,
-    /// the presenter's paced <c>Task.Delay</c> / tween waits observing the SAME token and throwing
+    /// the presenter's pacing delays / tween waits observing the SAME token and throwing
     /// <see cref="OperationCanceledException"/> up through the AI plan and Emit chain. Either path unwinds
     /// the loop WITHOUT running the victory flow: a torn-down scene must not raise EncounterFinished or
     /// touch freed nodes. A NON-cancel exception (AI-planning bug, Emit fault) is logged through the
@@ -476,7 +481,7 @@ public sealed class CombatSession
         }
         catch (OperationCanceledException)
         {
-            // Scene torn down mid-encounter (Task.Delay / tween wait / boundary check observed the
+            // Scene torn down mid-encounter (pacing delay / tween wait / boundary check observed the
             // token). Teardown — run from _ExitTree alongside the cancel — owns cleanup; the loop just
             // stops. Deliberately NO Finish: the scene is gone, EncounterFinished must not fire.
         }
@@ -515,14 +520,14 @@ public sealed class CombatSession
 
     /// <summary>
     /// The player Delayed as their turn began: announce it, then let the engine pull them out of
-    /// the order and start the next turn. False when the engine refuses (nobody acts after them,
-    /// or the chosen anchor is no longer ahead); the turn then ends normally.
+    /// the order and start the next turn. False when the engine refuses (the chosen anchor is no
+    /// longer an anchor); the turn then ends normally.
     /// </summary>
     private async Task<bool> TryDelay(ICharacter current)
     {
         var anchor = _pendingDelayAnchor;
         _pendingDelayAnchor = null;
-        if (anchor == null || !_turnManager.CanDelay(current, out _)) return false;
+        if (anchor == null || DelayBlockedReason(current) != null) return false;
         if (!_turnManager.GetDelayAnchors().Contains(anchor)) return false;
 
         await _runner.Emit(BattleEventType.TurnDelayed, source: current, target: anchor);
@@ -592,14 +597,18 @@ public sealed class CombatSession
         _playerTurnTcs?.TrySetResult(PlayerTurnResolution.Delay);
     }
 
+    public const string ResumedTurnReason = "A resumed turn cannot Delay again";
+
     /// <summary>Why the current actor cannot Delay right now, or null when they can.</summary>
     public string? DelayBlockedReason(ICharacter character)
     {
         if (_turnManager == null) return "Not this combatant's turn";
+        if (ReferenceEquals(character, _resumedActor)) return ResumedTurnReason;
         return _turnManager.CanDelay(character, out string reason) ? null : reason;
     }
 
-    /// <summary>Living combatants still to act after the current one this round, in order.</summary>
+    /// <summary>Living combatants a Delay may return after, in acting order: the rest of this round,
+    /// then next round up to the actor's own slot.</summary>
     public IReadOnlyList<ICharacter> GetDelayAnchors()
         => _turnManager?.GetDelayAnchors() ?? new List<ICharacter>();
 
@@ -639,9 +648,20 @@ public sealed class CombatSession
 
     // ---------------------------------------------------------------- Helpers
 
+    /// <summary>The actor whose delayed turn resumed. The resumed turn is the same turn, so it cannot Delay again.</summary>
+    private ICharacter? _resumedActor;
+
     private void HandleTurnStart(ICharacter _)
     {
+        _resumedActor = null;
         ReconcileOccupancy();
+        TurnChanged?.Invoke();
+    }
+
+    private void HandleTurnResumed(ICharacter character)
+    {
+        ReconcileOccupancy();
+        _resumedActor = character;
         TurnChanged?.Invoke();
     }
 

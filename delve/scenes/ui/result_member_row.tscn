@@ -1,0 +1,31 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ResultMemberRowView.cs" id="1_row"]
+[ext_resource type="PackedScene" path="res://scenes/ui/figure_label.tscn" id="2_fig"]
+
+[node name="ResultMemberRow" type="HBoxContainer"]
+theme_override_constants/separation = 24
+script = ExtResource("1_row")
+FigureScene = ExtResource("2_fig")
+
+[node name="Name" type="Label" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+size_flags_vertical = 8
+theme_type_variation = &"EmphasisLabel"
+
+[node name="Figures" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="ChooseFeat" type="Button" parent="."]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(180, 44)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Choose feat"

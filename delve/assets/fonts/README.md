@@ -14,6 +14,6 @@ Imported from `F:/UnityNVME/Art/Fonts`. Each face uses its TrueType version; dup
 
 `res://assets/ui/ui_theme.tres` is the project theme (Project Settings > GUI > Theme > Custom) and the only theme. Its default font is Pixeloid Sans at 18 px. Bold variations use Pixeloid Sans Bold; `TitleLabel`, `CampTitle` and `BannerLabel` use Alagard. The size ladder is in `design/ui_guidelines.md` §4.2.
 
-Pixeloid and Alagard import with antialiasing, hinting and subpixel positioning off, so they render as crisp pixels at whole-multiple sizes. Scenes carry no font or font-size overrides; change a font on its theme variation.
+Pixeloid and Alagard import with grayscale antialiasing and with hinting and subpixel positioning off. They render crisp at whole-multiple sizes at 1080p and stay legible when the window scales down. Scenes carry no font or font-size overrides; change a font on its theme variation.
 
 Knightwood, Compass 9 and Pixel Bastarda are on disk but unused. Credits are in `CREDITS.md`.

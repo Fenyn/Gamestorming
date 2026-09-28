@@ -6,9 +6,9 @@ public partial class DungeonProp
 {
     private bool BuildFeature(RoomProp p)
     {
-        var stone = new Color("8b8d8d");
-        var wood = new Color("a1907d");
-        var iron = new Color("444b50");
+        var stone = Tint("feature_stone");
+        var wood = Tint("feature_wood");
+        var iron = Tint("feature_iron");
         switch (p.Kind)
         {
             case "water_rim":
@@ -21,7 +21,7 @@ public partial class DungeonProp
                     Box(new(0, 0.28f, z), new(0.95f, 0.1f, 0.02f), iron, surface: "iron");
                 return true;
             case "sigil":
-                var brass = new Color("b29b69");
+                var brass = Tint("brass");
                 for (int i = 0; i < 12; i++)
                 {
                     float angle = i * Mathf.Tau / 12;
@@ -54,9 +54,9 @@ public partial class DungeonProp
                 Box(new(0, 0.1f, 0), new(0.7f, 0.2f, 0.7f), stone);
                 Cylinder(new(0, 0.55f, 0), 0.15f, 0.24f, 0.75f, stone);
                 Cylinder(new(0, 0.98f, 0), 0.38f, 0.15f, 0.25f, iron, "iron");
-                var flame = p.Kind == "votive" ? new Color("8bdddd") : new Color("ffc47b");
+                var flame = p.Kind == "votive" ? Tint("votive_flame") : Tint("brazier_flame");
                 Box(new(0, 1.18f, 0), new(0.18f, 0.25f, 0.18f), flame, true);
-                AddChild(new OmniLight3D { Position = new(0, 1.5f, 0), LightColor = flame, LightEnergy = 0.65f, OmniRange = 3.5f, ShadowEnabled = false });
+                AddLamp(new OmniLight3D { Position = new(0, 1.5f, 0), LightColor = flame, LightEnergy = 0.65f, OmniRange = 3.5f, ShadowEnabled = false });
                 return true;
             case "rack":
                 foreach (float x in new[] { -0.34f, 0.34f })
@@ -95,7 +95,7 @@ public partial class DungeonProp
                     foreach (float z in new[] { -0.55f, 0.55f })
                         Box(new(x, 0.4f, z), new(0.12f, 0.8f, 0.12f), wood, surface: "wood");
                 Box(new(0, 0.83f, 0), new(1.7f, 0.14f, 1.4f), wood, surface: "wood");
-                Box(new(0, 0.92f, 0), new(1.05f, 0.025f, 0.8f), new Color("d0bc92"), surface: "paper");
+                Box(new(0, 0.92f, 0), new(1.05f, 0.025f, 0.8f), Tint("ledger_paper"), surface: "paper");
                 for (int i = 0; i < 3; i++)
                     Box(new(-0.35f + i * 0.3f, 0.95f, i % 2 * 0.22f - 0.1f), new(0.09f, 0.05f, 0.09f), iron, surface: "iron");
                 return true;

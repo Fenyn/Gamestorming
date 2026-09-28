@@ -102,6 +102,15 @@ public sealed class PlayerActionExecutor
     public Task<bool> ExecuteStep(ICharacter character, PF2eVec dest)
         => _movement.ExecuteStep(character, dest);
 
+    /// <summary>Crawl to an adjacent tile while prone (1 action).</summary>
+    public Task<bool> ExecuteCrawl(ICharacter character, PF2eVec dest)
+        => _movement.ExecuteCrawl(character, dest);
+
+    /// <summary>Why the move bands are limited ("Immobilized: cannot move", "Prone: Crawl 5 ft or
+    /// Stand"), or null when the character may Stride.</summary>
+    public string? MoveRestriction(ICharacter character)
+        => _movement.MoveRestriction(character);
+
     // ---------------------------------------------------------------- Strikes
 
     /// <summary>Living enemies within the character's weapon reach.</summary>

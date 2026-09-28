@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/run/camp_stage.tscn" id="camp"]
 [ext_resource type="PackedScene" path="res://scenes/run/hero_sheet.tscn" id="sheet"]
 [ext_resource type="PackedScene" path="res://scenes/run/recruitment_panel.tscn" id="recruit"]
+[ext_resource type="PackedScene" path="res://scenes/run/bestiary_panel.tscn" id="bestiary"]
 [ext_resource type="Shader" path="res://assets/shaders/camp_mist.gdshader" id="mist"]
 [sub_resource type="FastNoiseLite" id="mist_noise"]
 seed = 37
@@ -95,6 +96,18 @@ offset_right = -40.0
 offset_bottom = 88.0
 grow_horizontal = 0
 text = "Unlock journal"
+mouse_default_cursor_shape = 2
+
+[node name="BestiaryButton" type="Button" parent="."]
+unique_name_in_owner = true
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -272.0
+offset_top = 104.0
+offset_right = -40.0
+offset_bottom = 156.0
+grow_horizontal = 0
+text = "Bestiary"
 mouse_default_cursor_shape = 2
 
 [node name="Companion" type="PanelContainer" parent="."]
@@ -211,6 +224,11 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [node name="Recruitment" parent="." instance=ExtResource("recruit")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="Bestiary" parent="." instance=ExtResource("bestiary")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1

@@ -14,6 +14,8 @@ public sealed class CampaignProgress
 
     public UnlockState Unlocks { get; } = new();
 
+    public MonsterJournal Journal { get; private set; } = new();
+
     /// <summary>There is no run resume yet; only current-run encounter deduplication is needed.</summary>
     public void BeginRun() => _recordedEncounters.Clear();
 
@@ -97,13 +99,14 @@ public sealed class CampaignProgress
         Recruitment = new Dictionary<string, int>(_recruitment),
         Personal = _personal.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray()),
         Outpost = _outpost.ToArray(),
+        Journal = Journal.Capture(),
     };
 
     public static CampaignProgress Restore(CampaignProgressData data)
     {
-        if (data.Version != CampaignProgressData.CurrentVersion)
+        if (data.Version < 1 || data.Version > CampaignProgressData.CurrentVersion)
             throw new ArgumentException($"Unsupported campaign version {data.Version}.", nameof(data));
-        var result = new CampaignProgress();
+        var result = new CampaignProgress { Journal = MonsterJournal.Restore(data.Journal) };
         foreach (string id in data.UnlockedIds ?? Array.Empty<string>()) result.Unlocks.Unlock(id);
         foreach (var arc in RecruitmentCatalog.All)
             foreach (var step in arc.Steps)
@@ -120,10 +123,12 @@ public sealed class CampaignProgress
 
 public sealed class CampaignProgressData
 {
-    public const int CurrentVersion = 1;
+    /// <summary>Version 2 adds <see cref="Journal"/>. A version 1 save loads with an empty journal.</summary>
+    public const int CurrentVersion = 2;
     public int Version { get; set; } = CurrentVersion;
     public string[] UnlockedIds { get; set; } = Array.Empty<string>();
     public Dictionary<string, int> Recruitment { get; set; } = new();
     public Dictionary<string, string[]> Personal { get; set; } = new();
     public string[] Outpost { get; set; } = Array.Empty<string>();
+    public Dictionary<string, JournalEntryData>? Journal { get; set; }
 }

@@ -78,8 +78,11 @@ public static class EncounterFactory
 
     /// <summary>The authored boss fight for a floor, ward ignored.</summary>
     internal static EncounterDefinition? BuildBoss(int stratum, Func<CreatureRef, EnemyDefinition?> resolve)
+        => BuildBoss(BossEncounters.ForStratum(stratum), resolve);
+
+    /// <summary>An authored boss fight from its spec, ward ignored.</summary>
+    internal static EncounterDefinition? BuildBoss(BossSpec spec, Func<CreatureRef, EnemyDefinition?> resolve)
     {
-        var spec = BossEncounters.ForStratum(stratum);
         var spawns = new List<EnemySpawn>(spec.Spawns.Count);
         foreach (var line in spec.Spawns)
         {

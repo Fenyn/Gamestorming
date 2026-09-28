@@ -114,6 +114,12 @@ public partial class CombatJuiceSpike : SpikeBase
             try { await interrupted; } catch (System.OperationCanceledException) { }
             Check("cancelled intro releases its tween", !rig.IntroPlaying);
         }
+        var skipped = rig.PlayIntro(incomingPose, rig.Camera.Fov, System.Threading.CancellationToken.None);
+        await WaitSeconds(0.1f);
+        rig.SkipIntro();
+        await WaitSeconds(0.1f);
+        Check("a skipped intro lands on the tactical pose at once", skipped.IsCompleted && !rig.IntroPlaying
+            && rig.Camera.GlobalTransform.IsEqualApprox(tacticalPose));
 
         // --- turn start lands on the actor, and the gate holds until it has arrived ---
         await presenter.Present(new BattleEvent { Type = BattleEventType.TurnStarted, Source = hero });

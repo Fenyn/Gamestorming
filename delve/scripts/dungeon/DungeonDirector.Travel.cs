@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Delve.Autoload;
 using Delve.Combat;
 using Delve.Terrain;
+using Delve.UI;
 using Godot;
 using PF2eVec = PF2e.Vector2Int;
 
@@ -24,13 +25,21 @@ public partial class DungeonDirector
         _camera.FrameBoard(new(CurrentView.Width / 2f, 0, CurrentView.Width / 2f), CurrentView.Width, CurrentView.Width);
     }
 
+    /// <summary>Only the current room and the discovered rooms one door away render. Farther rooms
+    /// sink into the fog, and the floor plan carries the overview; the renderer draws a few rooms
+    /// instead of the whole floor.</summary>
     private void RefreshVisibility()
     {
+        int here = Current.Id;
+        bool Near(DungeonRoom room) => room.Id == here || room.Doors.Any(d => d.Other(room.Id) == here);
         foreach (var room in Floor.Rooms)
-            _rooms[room.Id].Visible = room.Discovered;
-        foreach (var(view, a, b)in _corridors)
-            view.Visible = Floor.Rooms[a].Discovered && Floor.Rooms[b].Discovered;
+            _rooms[room.Id].Visible = room.Discovered && Near(room);
+        foreach (var (view, a, b) in _corridors)
+            view.Visible = _rooms[a].Visible && _rooms[b].Visible;
     }
+
+    /// <summary>Rooms drawn right now, for spikes.</summary>
+    public int VisibleRoomCount => _rooms.Values.Count(r => r.Visible);
 
     private void BuildCorridors()
     {
@@ -77,10 +86,11 @@ public partial class DungeonDirector
             return;
         int epoch = _epoch;
         var target = Floor.Rooms[door.Other(from.Id)];
-        if (!target.Completed && Delve.Run.CharacterPromotion.HasPending(State.Party)
-            && DungeonFloor.Kind(target.Family) is Delve.Run.NodeKind.Combat or Delve.Run.NodeKind.Elite or Delve.Run.NodeKind.Boss)
+        if (Delve.Run.CharacterPromotion.HasPending(State.Party) && DoorTips.NeedsPromotionsFirst(target))
         {
-            _hud.ShowNotice("Promotion available. Click each character to open their sheet and confirm before the next encounter.");
+            // The click still does something: it opens the first hero who has a feat to choose.
+            var waiting = State.Party.Living().First(c => Delve.Run.CharacterPromotion.For(c).PendingLevels(c) > 0);
+            OpenMemberDetails(waiting.UniqueId);
             return;
         }
         var oldView = CurrentView;
@@ -115,7 +125,9 @@ public partial class DungeonDirector
             }
 
             // All failure-prone preparation precedes the one crossing charge.
+            int wardBefore = State.Wardstone.Ward;
             State.Wardstone.BurnNode();
+            AnnounceCrossing(from.Id, target.Id, wardBefore);
             if (State.Wardstone.IsSpent)
             {
                 End(false);
@@ -124,7 +136,7 @@ public partial class DungeonDirector
 
             target.Discovered = true;
             RefreshVisibility();
-            nextView.SetDoorsOpen(true);
+            nextView.SetDoorsOpen(true, Instant);
             _camera.FocusOn(_camera.GlobalPosition, 0, true);
             _camera.ProcessMode = ProcessModeEnum.Disabled;
             _travelTween = CreateTween().SetParallel(true);
@@ -137,6 +149,9 @@ public partial class DungeonDirector
                 var last = token.Position;
                 foreach (var position in paths[i])
                 {
+                    var heading = new Vector2(position.X - last.X, position.Z - last.Z);
+                    if (heading.LengthSquared() > 0.01f)
+                        _travelTween.TweenCallback(Callable.From(() => token.Facing = heading.Normalized())).SetDelay(delay);
                     double time = Math.Max(0.015, last.DistanceTo(position) * TravelSecondsPerTile);
                     _travelTween.TweenProperty(token, "position", position, time).SetDelay(delay);
                     delay += time;
@@ -146,7 +161,9 @@ public partial class DungeonDirector
                 duration = Math.Max(duration, delay);
             }
 
+            LastCrossingSeconds = duration;
             _travelTween.TweenProperty(_camera, "global_position", offset + new Vector3(nextView.Width / 2f, 0, nextView.Width / 2f), Math.Max(0.1, duration)).SetTrans(Tween.TransitionType.Sine);
+            if (Instant) SkipBeat();
             while (epoch == _epoch && IsInsideTree() && GodotObject.IsInstanceValid(_travelTween) && _travelTween.IsRunning())
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (epoch != _epoch || !IsInsideTree())
@@ -174,7 +191,7 @@ public partial class DungeonDirector
                 Frame();
                 SpawnTravelParty();
                 ShowDoors();
-                _hud.ShowNotice("Room preparation failed. Try another door or restart this seed.");
+                _hud.ShowNotice("Room preparation failed. Try another door.");
             }
         }
     }
@@ -183,7 +200,10 @@ public partial class DungeonDirector
     {
         if (State == null)
             return;
-        var camera = Phase is DungeonPhase.Combat or DungeonPhase.Results ? _combat.ActiveCamera : _camera.Camera;
+        // The live camera belongs to the explore rig, the standalone combat scene, or the host's.
+        var camera = GetViewport().GetCamera3D();
+        if (camera == null)
+            return;
         foreach (var room in _rooms.Values)
             if (room.Visible)
                 room.Cutaway(camera);
@@ -198,11 +218,21 @@ public partial class DungeonDirector
     public override void _Input(InputEvent e)
     {
         if (e is InputEventMouse mouse) _doorPointer = mouse.Position;
+        if (e is InputEventMouseMotion) _pointerMoved = true;
     }
 
     public override void _UnhandledInput(InputEvent e)
     {
-        if (!IsVisibleInTree() || _details.Visible || Phase != DungeonPhase.Doors || e is not InputEventMouseButton { ButtonIndex: MouseButton.Left } mouse)
+        if (IsVisibleInTree() && Phase is DungeonPhase.Travel or DungeonPhase.Transition
+            && (e.IsActionPressed(InputNames.Confirm) || e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left }))
+        {
+            SkipBeat();
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (!IsVisibleInTree() || _details.Visible || Phase != DungeonPhase.Doors) return;
+        if (HandleDoorKeys(e)) { GetViewport().SetInputAsHandled(); return; }
+        if (e is not InputEventMouseButton { ButtonIndex: MouseButton.Left } mouse)
             return;
         if (mouse.Pressed)
         {
@@ -225,6 +255,9 @@ public partial class DungeonDirector
         if (!IsVisibleInTree() || _details.Visible || Phase != DungeonPhase.Doors || State == null)
         {
             SetHoveredPartyMember(null);
+            _focusedDoor = null;
+            _hud.HideDoorTip();
+            if (State != null) AnnounceDoorFocus(null);
             return;
         }
         var pointer = _doorPointer ?? GetViewport().GetMousePosition();
@@ -232,20 +265,26 @@ public partial class DungeonDirector
         var memberHover = overUi ? null : PickPartyMember(pointer);
         SetHoveredPartyMember(memberHover);
         var hovered = overUi || memberHover != null ? null : PickDoor(pointer);
-        string hint = "";
-        if (hovered is { } side)
-        {
-            var door = Current.Doors.First(d => d.Side(Current.Id) == side);
-            var destination = Floor.Rooms[door.Other(Current.Id)];
-            hint = $"{(destination.Completed ? "Cleared room" : "Unexplored")}\nClick to enter - {State.Wardstone.Rules.NodeBurn} ward";
-        }
-        CurrentView.SetHoveredDoor(hovered, hint);
+        if (hovered != null && _pointerMoved) _focusedDoor = null;
+        _pointerMoved = false;
+        ShowDoor(_focusedDoor ?? hovered);
         if (click is { } screen)
         {
             if (PickPartyMember(screen) is { } member) OpenCharacterDetails(member);
             else if (PickDoor(screen) is { } chosen) _ = Travel(chosen);
         }
     }
+
+    /// <summary>Finish the walk or the camera return at once; the code after it runs as normal.</summary>
+    public void SkipBeat()
+    {
+        const double past = 3600;
+        if (_travelTween != null && GodotObject.IsInstanceValid(_travelTween) && _travelTween.IsRunning()) _travelTween.CustomStep(past);
+        if (_returnTween != null && GodotObject.IsInstanceValid(_returnTween) && _returnTween.IsRunning()) _returnTween.CustomStep(past);
+    }
+
+    /// <summary>Length of the last crossing's walk before any skip, in seconds.</summary>
+    public double LastCrossingSeconds { get; private set; }
 
     private DoorSide? PickDoor(Vector2 screen)
     {

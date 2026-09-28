@@ -1,4 +1,5 @@
 using Delve.Fx;
+using Delve.UI;
 using Godot;
 using PF2e.Data;
 
@@ -20,7 +21,7 @@ public partial class DamagePopup3D : Label3D
         if (isMiss || isFumble)
         {
             popup.Text = isFumble ? "FUMBLE" : "MISS";
-            popup.Modulate = new Color(0.65f, 0.65f, 0.65f);
+            popup.Modulate = UiColors.PopupMiss;
             popup.FontSize = 40;
         }
         else
@@ -29,7 +30,7 @@ public partial class DamagePopup3D : Label3D
             popup.FontSize = isCrit ? 72 : 52;
             // An untyped hit has no flavour colour, so a crit reads red and an ordinary hit reads white.
             popup.Modulate = DamageColors.For(damageType)
-                ?? (isCrit ? new Color(1f, 0.35f, 0.35f) : Colors.White);
+                ?? (isCrit ? UiColors.PopupCrit : Colors.White);
         }
         return popup;
     }
@@ -39,7 +40,7 @@ public partial class DamagePopup3D : Label3D
         var popup = FxLibrary.DamagePopupScene.Instantiate<DamagePopup3D>();
         popup.Text = $"+{amount}";
         popup.FontSize = 52;
-        popup.Modulate = new Color(0.25f, 1f, 0.35f);
+        popup.Modulate = UiColors.PopupHeal;
         return popup;
     }
 

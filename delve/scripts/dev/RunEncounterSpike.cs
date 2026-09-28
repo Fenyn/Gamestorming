@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Delve.Autoload;
@@ -70,7 +71,7 @@ public partial class RunEncounterSpike : SpikeBase
                 unresolved == 0 && unspawnable == 0);
 
             int bossUnresolved = 0;
-            foreach (var line in BossEncounters.ForStratum(stratum).Spawns)
+            foreach (var line in BossEncounters.ForStratum(stratum).Spawns.Concat(StationGuardians.ForStratum(stratum).Spawns))
             {
                 if (data.ResolveCreature(line.Creature) == null) bossUnresolved++;
             }
@@ -381,8 +382,8 @@ public partial class RunEncounterSpike : SpikeBase
     private void CheckBossMath(DataManager data)
     {
         for (int stratum = 0; stratum < FloorThemes.Count; stratum++)
+        foreach (var spec in new[] { BossEncounters.ForStratum(stratum), StationGuardians.ForStratum(stratum) }.Distinct())
         {
-            var spec = BossEncounters.ForStratum(stratum);
             int xp = 0;
             foreach (var line in spec.Spawns)
             {
@@ -455,9 +456,27 @@ public partial class RunEncounterSpike : SpikeBase
         var spent = new Wardstone(new WardstoneRules { MaxWard = 100, ShortRestBurn = 95 });
         spent.BurnShortRest();
         Check("upshift reaches +3 when the ward is nearly gone", spent.Upshift == 3);
-        spent.RefillFull();
-        Check("beating a floor boss restores the ward in full",
-            spent.Ward == spent.Rules.MaxWard && spent.Upshift == 0);
+        var changes = new List<(int Before, int After)>();
+        spent.Changed += (before, after) => changes.Add((before, after));
+        spent.RefillAfterBoss();
+        Check($"beating a floor boss restores 75% of the missing ward, rounded up (5 -> {spent.Ward})",
+            spent.Ward == 77 && spent.Upshift == 0);
+        Check("the ward change event reports before and after once",
+            changes.Count == 1 && changes[0] == (5, 77));
+        spent.RefillAfterBoss();
+        spent.RefillAfterBoss();
+        Check("repeated boss refills stay under the maximum", spent.Ward <= spent.Rules.MaxWard && spent.Ward >= 99);
+        Check("attunement maps degrees to 100/75/75/50% of the missing ward",
+            WardAttunement.RefillPercent(DegreeOfSuccess.CriticalSuccess, spent.Rules) == 100
+            && WardAttunement.RefillPercent(DegreeOfSuccess.Success, spent.Rules) == 75
+            && WardAttunement.RefillPercent(DegreeOfSuccess.Failure, spent.Rules) == 75
+            && WardAttunement.RefillPercent(DegreeOfSuccess.CriticalFailure, spent.Rules) == 50);
+        var attuned = new Wardstone(new WardstoneRules { MaxWard = 100, ShortRestBurn = 60 });
+        attuned.BurnShortRest();
+        var roll = WardAttunement.Roll(party, attuned, guardianLevel: 4);
+        Check($"the attunement roll uses the guardian's level DC and refills by its degree ({roll?.Actor} {roll?.Skill} {roll?.Total} vs {roll?.Dc}, {roll?.Degree}: 40 → {attuned.Ward})",
+            roll != null && roll.Dc == PF2eRules.GetDCByLevel(4)
+            && attuned.Ward == 40 + (int)Math.Ceiling(60 * roll.RefillPercent / 100.0));
     }
 
     // ------------------------------------------------------------- Leveling

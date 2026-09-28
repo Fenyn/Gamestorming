@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Delve.Data;
 using Delve.Dungeon;
 using Delve.Flow;
 using Delve.Presets;
@@ -27,11 +28,14 @@ public partial class RunPresentationSpike
         var picks = new[] { PresetCharacters.PlayerId, PresetCharacters.ElaraId,
             PresetCharacters.TharrId, PresetCharacters.FenwickId };
         var transition = run.GetNode<SceneTransition>("%SceneTransition");
+        // Real fades even headless, so a floor start that cancels the host's veil fails here.
+        transition.PlayWhenHeadless = true;
         run.ConfirmParty(picks);
         var state = run.State!;
         run.ConfirmParty(picks);
-        await WaitTransition(transition);
+        bool held = await WaitTransition(transition);
         Check("departure enters the dungeon once", ReferenceEquals(state, run.State) && run.Phase == RunPhase.Map);
+        Check("the embark goal caption holds until Enter, even as the floor begins under it", held);
         dungeon.ResolveEvent(0, null);
         dungeon.CloseEvent();
         int camp = dungeon.Floor.Rooms.First(r => r.Family == RoomFamily.Camp).Id;
@@ -49,15 +53,32 @@ public partial class RunPresentationSpike
             while (previous[next] != start) next = previous[next];
             await dungeon.Travel(dungeon.Current.Doors.First(d => d.Other(start) == next).Side(start));
         }
+        Check("arriving at the refuge opens no popup; the camp waits on the HUD",
+            dungeon.Phase == DungeonPhase.Doors && dungeon.GetNode<DungeonHud>("%DungeonHud").GetNode<Button>("%Camp").Visible);
         state.Party.Members[0].Health.SetCurrentHP(1);
         int day = state.Clock.Day, ward = state.Wardstone.Ward;
-        dungeon.ResolveEvent(0, null);
-        dungeon.ResolveEvent(0, null);
-        await WaitTransition(dungeon.GetNode<SceneTransition>("%SceneTransition"));
+        dungeon.MakeCamp();
+        dungeon.MakeCamp();
+        Check("camp plays on the host's transition, the only one in the run",
+            transition.Busy || state.Clock.Day == day + 1);
+        await WaitTransition(transition);
         var panel = dungeon.GetNode<CanvasLayer>("%Screens").GetChildren().OfType<EventPanel>().Single();
-        string result = panel.GetNode<Label>("%ResultLabel").Text;
-        Check("overnight event applies once and reports the applied ward", state.Clock.Day == day + 1
-            && result.Contains($"Ward restored: +{state.Wardstone.Ward - ward}") && result.Contains("Aldric:"));
+        var report = panel.Report!;
+        var wardPair = report.FigureLabels.FirstOrDefault(f => f.CaptionText == "Ward");
+        var aldricHp = report.MemberRows.FirstOrDefault(r => r.MemberName == "Aldric")?.FigureLabels.FirstOrDefault(f => f.CaptionText == "HP");
+        Check($"overnight event applies once and reports the morning as pairs ('{panel.GetNode<Label>("%TitleLabel").Text}', "
+            + $"Ward {wardPair?.BeforeText} → {wardPair?.ValueText}, Aldric HP {aldricHp?.BeforeText} → {aldricHp?.ValueText})",
+            state.Clock.Day == day + 1 && panel.GetNode<Label>("%TitleLabel").Text == $"Morning, day {state.Clock.Day}"
+            && (state.Wardstone.Ward == ward ? wardPair == null : wardPair?.BeforeText == ward.ToString() && wardPair.ValueText == state.Wardstone.Ward.ToString())
+            && aldricHp?.BeforeText == "1" && report.MemberRows.All(r => r.FigureLabels.Count > 0));
+        var study = dungeon.LastStudy;
+        var leadLine = StationGuardians.ForStratum(state.Stratum).Spawns[0];
+        var lead = Delve.Autoload.DataManager.Instance!.ResolveCreature(leadLine.Creature)!;
+        var journalPair = report.FigureLabels.FirstOrDefault(f => f.CaptionText == lead.CreatureName);
+        Check($"the camp night studies the guardian and the morning shows the journal pair ({study?.Actor} {study?.Skill} {study?.Total} vs {study?.Dc}, {study?.Degree}; {journalPair?.BeforeText} → {journalPair?.ValueText})",
+            study != null && study.Dc == GuardianStudy.Dc(lead, leadLine.Adjustment) && study.Skill == GuardianStudy.SkillFor(lead)
+            && dungeon.Journal!.IsEncountered(lead.CreatureId)
+            && study.Revealed.Count == KnowledgeRevealOrder.RevealCount(study.Degree) && journalPair != null);
         await Capture("polish_morning");
         dungeon.CloseEvent();
         run.EndRun(RunOutcome.Defeat);
@@ -76,11 +97,23 @@ public partial class RunPresentationSpike
         run.QueueFree();
     }
 
-    private async Task WaitTransition(SceneTransition transition)
+    /// <summary>Wait out a transition, dismissing a held caption the way a click would.</summary>
+    private async Task<bool> WaitTransition(SceneTransition transition)
     {
         var deadline = DateTime.UtcNow.AddSeconds(10);
+        bool held = false;
         while (transition.Busy && DateTime.UtcNow < deadline)
+        {
+            if (transition.WaitingForInput)
+            {
+                held = true;
+                await ToSignal(GetTree().CreateTimer(0.8), SceneTreeTimer.SignalName.Timeout);
+                Check("a held caption is still up after the fade hold", transition.Busy && transition.WaitingForInput);
+                transition._Input(new InputEventAction { Action = Delve.UI.InputNames.Confirm, Pressed = true });
+            }
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        }
         Check("transition finished within ten seconds", !transition.Busy);
+        return held;
     }
 }

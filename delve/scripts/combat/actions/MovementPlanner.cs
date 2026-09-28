@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using PF2e.Actions;
 using PF2e.Core;
 using PF2e.Grid;
 using PF2eVec = PF2e.Vector2Int;
@@ -8,8 +9,9 @@ namespace Delve.Combat;
 /// <summary>
 /// Builds the <see cref="MovePlan"/> the board shows while no action is selected: one band per
 /// remaining action, each a single-Stride reachability pass seeded from the previous band's
-/// standable tiles, plus the adjacent Step tiles laid over band 1. Queries only; the legs it
-/// yields execute through <see cref="MovementActions"/>' Stride and Step primitives.
+/// standable tiles, plus the adjacent Step tiles laid over band 1. A prone actor gets one-tile
+/// Crawl bands instead, and an immobile one gets none. Queries only; the legs it yields execute
+/// through <see cref="MovementActions"/>' Stride, Step and Crawl primitives.
 /// </summary>
 internal sealed class MovementPlanner
 {
@@ -25,7 +27,10 @@ internal sealed class MovementPlanner
     internal MovePlan Plan(ICharacter character)
     {
         int actions = character.Actions?.TotalActionsRemaining ?? 0;
-        int speed = MovementActions.SpeedInTiles(character);
+        bool upright = MoveLegality.StrideBlockedReason(character) == null;
+        if (!upright && !_movement.CanCrawl(character)) return MovePlan.Empty;
+        var kind = upright ? MoveKind.Stride : MoveKind.Crawl;
+        int speed = upright ? MovementActions.SpeedInTiles(character) : 1;
         if (actions <= 0 || speed <= 0) return MovePlan.Empty;
 
         var options = new Dictionary<PF2eVec, MoveOption>();
@@ -49,7 +54,7 @@ internal sealed class MovementPlanner
                 // are not a place to stop, so they neither band nor seed.
                 if (!_grid.CanCreatureFit(tile, character.TileWidth, ignore: character)) continue;
                 banded.Add(tile);
-                options[tile] = new MoveOption(band, MoveKind.Stride);
+                options[tile] = new MoveOption(band, kind);
                 next.Add(tile);
             }
             bands.Add(map);

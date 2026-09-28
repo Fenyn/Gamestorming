@@ -243,15 +243,7 @@ public partial class RunMapShotSpike : SpikeBase
 
     private void Capture(string file)
     {
-        Image img = GetViewport().GetTexture().GetImage();
-        // hdr_2d viewports hand back linear-space data; convert or the PNG comes out crushed dark.
-        img.Convert(Image.Format.Rgba8);
-        img.LinearToSrgb();
-        img.Resize(ShotWidth, ShotHeight, Image.Interpolation.Bilinear);
-        string path = $"{OutDir}/{file}";
-        Error err = img.SavePng(path);
-        GD.Print($"[mapshot] {file}: {err} ({ProjectSettings.GlobalizePath(path)})");
-        Check($"{file} saved", err == Error.Ok);
+        Check($"{file} saved", SaveViewportCapture($"{OutDir}/{file}", new Vector2I(ShotWidth, ShotHeight)) == Error.Ok);
     }
 
     /// <summary>Enough rendered frames for the layout to settle and the pulse animation to be

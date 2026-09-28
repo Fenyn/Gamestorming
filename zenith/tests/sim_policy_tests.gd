@@ -18,10 +18,12 @@ func _init() -> void:
 			_check(not profile.searches(), "Scorer stays explicitly disabled")
 		elif policy == "rollout":
 			_check(profile.searches() and profile.data["think"]["algorithm"] == "rollout", "Rollout does not silently become sequence")
-		else:
+		elif policy == "search":
 			_check(profile.searches() and profile.data["think"]["algorithm"] == "sequence", policy + ": planner route preserved")
+		else:
+			_check(not profile.searches(), policy + ": the level plays through the scorer")
 	_check(SimSeat.from_legacy("random", {}).make_player(deck, 1) == null, "Random remains the null-driver policy")
-	var defaults: AiProfile = SimSeat.from_legacy("search", {"budget": "", "samples": ""}, false).make_profile(deck)
+	var defaults: AiProfile = SimSeat.from_legacy("scorer", {"budget": "", "samples": ""}, false).make_profile(deck)
 	_check(defaults.data == AiProfile.default_profile().data, "Empty optional knobs and disabled deck styles preserve defaults")
 	_check(not SimSeat.from_legacy("rollotu", {}).error.is_empty(), "Misspelled policy rejected by shared adapter")
 	_check(not SimSeat.policy_error("../profiles/hard").is_empty(), "Policy names cannot escape profile directory")

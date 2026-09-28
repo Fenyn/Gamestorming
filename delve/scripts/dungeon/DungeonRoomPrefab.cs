@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Delve.Data;
 using Delve.Terrain;
+using Delve.UI;
 using Godot;
 using PF2e.Grid;
 using PF2e.MapGen;
@@ -42,6 +43,8 @@ public partial class DungeonRoomPrefab : Node3D
     public RoomPurpose? PurposeOverride { get; set; }
     public StationHistory History { get; set; } = StationHistory.Evacuated;
     [Export] public DungeonPalette? Palette { get; set; }
+
+    private Color PaletteTint(string key) => Palette?.Tint(key) ?? Colors.Magenta;
     [Export] public int FeatureCount { get; set; } = 4;
     [Export(PropertyHint.Range, "-1,2,1")] public int LayoutVariant { get; set; } = -1;
     [Export] public bool HangingBanners { get; set; }
@@ -49,13 +52,14 @@ public partial class DungeonRoomPrefab : Node3D
     public TerrainHeightMap Heights { get; private set; } = null!;
     public int Width => Generated.Layout.Width;
     public Dictionary<DoorSide, Node3D> DoorLeaves { get; } = new();
+    private readonly Dictionary<DoorSide, Vector3> _leafRest = new();
     public DoorSide? HoveredDoor { get; private set; }
 
     private readonly List<(Node3D Wall, DoorSide Side)> _upperWalls = new();
     private readonly List<DungeonProp> _focals = new();
+    private readonly List<OmniLight3D> _lamps = new();
     private readonly Dictionary<DoorSide, Area3D> _doorAreas = new();
     private readonly Dictionary<DoorSide, MeshInstance3D> _doorMarkers = new();
-    private readonly Dictionary<DoorSide, Label3D> _doorLabels = new();
     private bool _resolved;
     public void Generate(int seed, IReadOnlyList<DoorSide> doors, int sizeOverride = 0, bool openLayout = false)
     {
@@ -87,7 +91,7 @@ public partial class DungeonRoomPrefab : Node3D
                     DoorSide.South => new(i + 0.5f, 1.3f, n - 0.5f),
                     DoorSide.West => new(0.5f, 1.3f, i + 0.5f),
                     _ => new(n - 0.5f, 1.3f, i + 0.5f)};
-                var wall = masonry.Box(at, new(1, 1.6f, 1), new Color("59606d"));
+                var wall = masonry.Box(at, new(1, 1.6f, 1), PaletteTint("masonry"));
                 _upperWalls.Add((wall, side));
                 if (HangingBanners && i > 1 && i < n - 2 && (i + (seed & 3)) % 4 == 0)
                 {
@@ -119,21 +123,14 @@ public partial class DungeonRoomPrefab : Node3D
             AddChild(door);
             var frame = new DungeonProp { Palette = Palette };
             door.AddChild(frame);
-            frame.Box(new(-1.65f, 1, 0), new(0.3f, 2, 0.6f), new Color("92908a"));
-            frame.Box(new(1.65f, 1, 0), new(0.3f, 2, 0.6f), new Color("92908a"));
-            frame.Box(new(0, 2.1f, 0), new(3.6f, 0.25f, 0.6f), new Color("92908a"));
-            var marker = frame.Box(new(0, 0.035f, 0), new(3, 0.07f, 0.75f), new Color("76b5ad"), true);
+            frame.Box(new(-1.65f, 1, 0), new(0.3f, 2, 0.6f), PaletteTint("door_frame"));
+            frame.Box(new(1.65f, 1, 0), new(0.3f, 2, 0.6f), PaletteTint("door_frame"));
+            frame.Box(new(0, 2.1f, 0), new(3.6f, 0.25f, 0.6f), PaletteTint("door_frame"));
+            var marker = frame.Box(new(0, 0.035f, 0), new(3, 0.07f, 0.75f), UiColors.Accent, true);
             _doorMarkers[side] = marker;
-            var label = new Label3D
-            {
-                Position = new(0, 2.7f, 0), FontSize = 30, PixelSize = 0.008f,
-                Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, NoDepthTest = true,
-                OutlineSize = 8, Visible = false
-            };
-            door.AddChild(label);
-            _doorLabels[side] = label;
-            var leaf = frame.Box(new(0, 0.9f, 0), new(3, 1.8f, 0.18f), new Color("5b4939"), surface: "wood");
+            var leaf = frame.Box(new(0, 0.9f, 0), new(3, 1.8f, 0.18f), PaletteTint("door_leaf"), surface: "wood");
             DoorLeaves[side] = leaf;
+            _leafRest[side] = leaf.Position;
             var area = new Area3D
             {
                 CollisionLayer = 0,
@@ -152,6 +149,7 @@ public partial class DungeonRoomPrefab : Node3D
             AddChild(prop);
             prop.Palette = Palette;
             prop.Build(p);
+            _lamps.AddRange(prop.Lamps);
             if (p.Kind is "shrine" or "cache" or "collapse" or "camp" or "entrance")
                 _focals.Add(prop);
         }
@@ -163,6 +161,18 @@ public partial class DungeonRoomPrefab : Node3D
         DoorSide.South => new(Width / 2 + 0.5f, 0, Width - 0.5f),
         DoorSide.West => new(0.5f, 0, Width / 2 + 0.5f),
         _ => new(Width - 0.5f, 0, Width / 2 + 0.5f)};
+    /// <summary>Scale on every lamp in the room once it is cleared. Above 1, so a cleared room reads
+    /// as made safe rather than abandoned.</summary>
+    [Export] public float ResolvedLightScale { get; set; } = 1.3f;
+
+    [Export] public double ResolvedLightSeconds { get; set; } = 0.6;
+
+    /// <summary>Emission of an unfocused door threshold. Low, so the pale-blue focused one stands out.</summary>
+    [Export] public float UnfocusedDoorGlow { get; set; } = 0.1f;
+
+    /// <summary>Every lamp's position in room space, for effects that rise from the lamps.</summary>
+    public IReadOnlyList<Vector3> LampPositions => _lamps.Select(l => ToLocal(l.GlobalPosition)).ToArray();
+
     public void SetResolved()
     {
         if (_resolved)
@@ -170,13 +180,55 @@ public partial class DungeonRoomPrefab : Node3D
         _resolved = true;
         foreach (var focal in _focals)
             focal.Resolve();
+        if (_lamps.Count == 0) return;
+        if (!IsInsideTree())
+        {
+            foreach (var lamp in _lamps) lamp.LightEnergy *= ResolvedLightScale;
+            return;
+        }
+        var warm = CreateTween().SetParallel(true);
+        foreach (var lamp in _lamps)
+            warm.TweenProperty(lamp, "light_energy", lamp.LightEnergy * ResolvedLightScale, ResolvedLightSeconds)
+                .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.Out);
     }
 
-    public void SetDoorsOpen(bool open)
+    /// <summary>Time a door shutter takes to sink into the floor or rise back.</summary>
+    [Export] public double DoorShutterSeconds { get; set; } = 0.35;
+
+    /// <summary>How far below its closed height an open shutter rests, fully under the floor.</summary>
+    [Export] public float DoorShutterDrop { get; set; } = 1.9f;
+
+    private Tween? _doorTween;
+    private bool? _doorsOpen;
+
+    /// <summary>Sinks the shutters into the floor, or raises them. Instant snaps without a tween.</summary>
+    public void SetDoorsOpen(bool open, bool instant = false)
     {
-        foreach (var leaf in DoorLeaves.Values)
-            leaf.Visible = !open;
+        if (_doorsOpen == open) return;
+        _doorsOpen = open;
+        _doorTween?.Kill();
+        _doorTween = null;
+        foreach (var (side, leaf) in DoorLeaves)
+        {
+            leaf.Visible = true;
+            float target = _leafRest[side].Y - (open ? DoorShutterDrop : 0);
+            if (instant || !IsInsideTree())
+            {
+                leaf.Position = leaf.Position with { Y = target };
+                leaf.Visible = !open;
+                continue;
+            }
+            _doorTween ??= CreateTween().SetParallel(true);
+            _doorTween.TweenProperty(leaf, "position:y", target, DoorShutterSeconds)
+                .SetTrans(Tween.TransitionType.Back).SetEase(open ? Tween.EaseType.In : Tween.EaseType.Out);
+        }
+        if (open) _doorTween?.Chain().TweenCallback(Callable.From(() =>
+        {
+            foreach (var leaf in DoorLeaves.Values) leaf.Visible = false;
+        }));
     }
+
+    public bool DoorsOpen => _doorsOpen == true;
 
     public void SetTraversalActive(bool active)
     {
@@ -185,11 +237,12 @@ public partial class DungeonRoomPrefab : Node3D
             area.CollisionLayer = active ? 4u : 0u;
             _doorMarkers[side].Visible = active;
         }
-        SetHoveredDoor(null, "");
+        SetHoveredDoor(null);
     }
 
-    public void SetHoveredDoor(DoorSide? hovered, string text)
+    public void SetHoveredDoor(DoorSide? hovered)
     {
+        if (hovered == HoveredDoor && hovered != null) return;
         HoveredDoor = hovered;
         foreach (var (side, marker) in _doorMarkers)
         {
@@ -197,11 +250,9 @@ public partial class DungeonRoomPrefab : Node3D
             marker.Scale = new Vector3(1, 1, selected ? 1.7f : 1);
             if (marker.MaterialOverride is StandardMaterial3D material)
             {
-                material.AlbedoColor = material.Emission = new Color(selected ? "edc881" : "76b5ad");
-                material.EmissionEnergyMultiplier = selected ? 1 : 0.25f;
+                material.AlbedoColor = material.Emission = selected ? UiColors.Focus : UiColors.Accent;
+                material.EmissionEnergyMultiplier = selected ? 1 : UnfocusedDoorGlow;
             }
-            _doorLabels[side].Visible = selected;
-            if (selected) _doorLabels[side].Text = text;
         }
     }
 

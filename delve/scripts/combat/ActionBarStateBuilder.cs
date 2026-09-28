@@ -45,6 +45,7 @@ internal static class ActionBarStateBuilder
             StrikeDisabledReason = DisabledReason(canStrike, actions, "No targets in reach"),
             ShieldDisabledReason = canRaiseShield ? null : exec.GetRaiseShieldDisabledReason(current),
             DelayDisabledReason = DisabledReason(canDelay, actions, delayBlockedReason ?? ""),
+            MoveRestriction = actions > 0 ? exec.MoveRestriction(current) : null,
             Map = exec.GetCurrentMap(current),
             SpellEntries = current.Spellcasting != null
                 ? exec.GetSpellEntries(current)
@@ -68,12 +69,12 @@ internal static class ActionBarStateBuilder
     {
         AttackPreviewData? data = exec.GetAttackPreview(attacker, target);
         if (data == null) return null;
-        return BuildPreview(data);
+        return BuildPreview(data, ForecastModifiers.Strike(attacker, target, data.MAP));
     }
 
-    internal static AttackPreviewView BuildPreview(AttackPreviewData data)
+    /// <param name="modifiers">The labelled modifier line; without it only the MAP shows.</param>
+    internal static AttackPreviewView BuildPreview(AttackPreviewData data, IReadOnlyList<ModifierChip>? modifiers = null)
     {
-
         bool acKnown = PlayerActionExecutor.IsCreatureFieldKnown(
             data.TargetCreatureId, CreatureKnowledgeField.AC);
         int hit = (int)Math.Round(data.HitChance);
@@ -82,21 +83,17 @@ internal static class ActionBarStateBuilder
         string critText = acKnown ? $"{crit}%" : "?%";
         var figures = new List<FigureView> { new("Hit", hitText), new("Crit", critText) };
         if (!string.IsNullOrEmpty(data.DamageFormula)) figures.Add(new("Damage", data.DamageFormula));
-        var tags = new List<string>();
-        if (data.MAP < 0) tags.Add($"MAP {data.MAP}");
-        if (data.TargetIsOffGuard) tags.Add("Off-guard");
-        if (data.CoverLevel != CoverLevel.None) tags.Add($"{data.CoverLevel} cover");
+        modifiers ??= data.MAP < 0 ? new[] { new ModifierChip("MAP", data.MAP) } : System.Array.Empty<ModifierChip>();
 
         return new AttackPreviewView
         {
             Figures = figures,
-            Tags = tags,
+            Modifiers = modifiers,
             AttackerName = data.AttackerName,
             TargetName = data.TargetName,
             WeaponName = data.WeaponName,
             TotalAttackBonus = data.TotalAttackBonus,
             DamageFormula = data.DamageFormula ?? "",
-            TargetOffGuard = data.TargetIsOffGuard,
             TargetAcText = acKnown ? data.TargetAC.ToString() : "?",
             HitChanceText = hitText,
             CritChanceText = critText,

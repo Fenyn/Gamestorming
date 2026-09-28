@@ -34,6 +34,7 @@ var label: String = "a"
 var policy: String = "search"
 var styles: bool = true
 var think: Dictionary = {}       # `think` overrides laid over the profile
+var weights: Dictionary = {}     # group -> {key: value}, laid over the profile after `think`
 var error: String = ""
 
 
@@ -67,6 +68,7 @@ static func from_dict(d: Dictionary) -> SimSeat:
 	out.policy = str(d.get("policy", "scorer"))
 	out.styles = bool(d.get("styles", true))
 	out.think = (d.get("think", {}) as Dictionary).duplicate()
+	out.weights = (d.get("weights", {}) as Dictionary).duplicate(true)
 	return out
 
 
@@ -91,6 +93,9 @@ static func from_args(args: SimArgs, p_label: String) -> SimSeat:
 	var raw: String = args.str_of("%s-think" % p_label) if args.has("%s-think" % p_label) else args.str_of("think")
 	if not raw.strip_edges().is_empty():
 		out._parse_think(raw)
+	var raw_weights: String = args.str_of("%s-weights" % p_label) if args.has("%s-weights" % p_label) else args.str_of("weights")
+	if out.error.is_empty() and not raw_weights.strip_edges().is_empty():
+		out._parse_weights(raw_weights)
 	return out
 
 
@@ -119,6 +124,8 @@ func make_profile(deck: DeckList) -> AiProfile:
 			profile.merge({"think": {"search": true, "algorithm": "rollout"}})
 	if not think.is_empty():
 		profile.merge({"think": think.duplicate()})
+	if not weights.is_empty():
+		profile.merge(weights.duplicate(true))
 	return profile
 
 
@@ -130,11 +137,36 @@ func describe() -> String:
 	keys.sort()
 	for k in keys:
 		parts.append("%s=%s" % [k, str(think[k])])
+	var groups: Array = weights.keys()
+	groups.sort()
+	for group in groups:
+		var names: Array = (weights[group] as Dictionary).keys()
+		names.sort()
+		for k in names:
+			parts.append("%s.%s=%s" % [group, k, str(weights[group][k])])
 	return " / ".join(parts)
 
 
 func to_dict() -> Dictionary:
-	return {"policy": policy, "styles": styles, "think": think.duplicate()}
+	return {"policy": policy, "styles": styles, "think": think.duplicate(), "weights": weights.duplicate(true)}
+
+
+## `--a-weights=play.attack_hold=0.3;own.hand=1.5` sets profile weights on one side, for A/B runs
+## of a scorer change against the same scorer without it.
+func _parse_weights(raw: String) -> void:
+	for chunk in raw.split(";", false):
+		var parts: PackedStringArray = chunk.strip_edges().split("=", true, 1)
+		var path: PackedStringArray = parts[0].strip_edges().split(".", true, 1) if parts.size() == 2 else PackedStringArray()
+		if path.size() != 2 or not parts[1].strip_edges().is_valid_float():
+			error = "--%s-weights takes group.key=number pairs separated by ';', got %s" % [label, chunk]
+			return
+		var group: String = path[0]
+		if not AiProfile.DEFAULTS.has(group) or group == "think" or not (AiProfile.DEFAULTS[group] is Dictionary):
+			error = "--%s-weights names an unknown group: %s" % [label, group]
+			return
+		if not weights.has(group):
+			weights[group] = {}
+		(weights[group] as Dictionary)[path[1]] = parts[1].strip_edges().to_float()
 
 
 ## `--a-think=budget_ms=800;cache=1` for any knob without its own flag.

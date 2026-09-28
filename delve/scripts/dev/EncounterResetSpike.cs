@@ -116,7 +116,10 @@ public partial class EncounterResetSpike : SpikeBase
         var unitLayer = scene.GetNode<Node3D>("%UnitLayer");
         var log = scene.GetNode<Control>("%CombatLog");
 
-        scene.StartEncounter(BuildSetup(data, FirstParty, FirstEnemies, seed: 11));
+        var firstSetup = BuildSetup(data, FirstParty, FirstEnemies, seed: 11);
+        var enemies = firstSetup.Enemies.ConvertAll(e => e.Unit);
+        string baseName = enemies[0].Name;
+        scene.StartEncounter(firstSetup);
         int firstUnits = FirstParty + FirstEnemies;
         Check($"(2) first encounter spawns {firstUnits} unit nodes",
             unitLayer.GetChildCount() == firstUnits);
@@ -128,8 +131,12 @@ public partial class EncounterResetSpike : SpikeBase
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
-        scene.StartEncounter(BuildSetup(data, SecondParty, SecondEnemies, seed: 22));
+        // The second encounter meets the same creatures, so a missed restore would letter them twice.
+        scene.StartEncounter(BuildSetup(data, SecondParty, SecondEnemies, seed: 22, enemies));
         int secondUnits = SecondParty + SecondEnemies;
+        Check($"(2) after two encounters no name carries a doubled letter ({string.Join(", ", enemies.ConvertAll(e => e.Name))})",
+            enemies.TrueForAll(e => System.Text.RegularExpressions.Regex.IsMatch(e.Name,
+                $"^{System.Text.RegularExpressions.Regex.Escape(baseName)} [A-Z]$")));
         Check($"(2) second encounter leaves exactly {secondUnits} unit nodes",
             unitLayer.GetChildCount() == secondUnits);
         Check($"(2) second encounter registers {secondUnits} unit visuals",
@@ -155,6 +162,7 @@ public partial class EncounterResetSpike : SpikeBase
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
+        Check("(2) scene exit restores the enemies' original names", enemies.TrueForAll(e => e.Name == baseName));
         Check("(2) scene exit releases the engine singletons",
             TurnManager.Instance == null && CombatantRegistry.Instance == null);
         Check("(2) scene exit releases the delegates",
@@ -168,7 +176,8 @@ public partial class EncounterResetSpike : SpikeBase
         return ((Delve.UI.CombatLogPanel)log).EntryCount;
     }
 
-    private static CombatSetup BuildSetup(DataManager data, int party, int enemies, int seed)
+    private static CombatSetup BuildSetup(DataManager data, int party, int enemies, int seed,
+        List<ICharacter>? reuse = null)
     {
         var goblinDef = data.ResolveCreature(EncounterTables.GoblinWarrior)!;
         var setup = new CombatSetup { GridWidth = 12, GridHeight = 10, RngSeed = seed };
@@ -181,7 +190,7 @@ public partial class EncounterResetSpike : SpikeBase
         for (int i = 0; i < party; i++)
             setup.Party.Add((heroes[i % heroes.Count], new PF2eVec(1, 3 + i * 2)));
         for (int i = 0; i < enemies; i++)
-            setup.Enemies.Add((CreatureFactory.Create(goblinDef, teamId: 2), new PF2eVec(8, 3 + i * 2)));
+            setup.Enemies.Add((reuse?[i] ?? CreatureFactory.Create(goblinDef, teamId: 2), new PF2eVec(8, 3 + i * 2)));
 
         return setup;
     }

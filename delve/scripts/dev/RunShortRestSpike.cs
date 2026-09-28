@@ -180,6 +180,22 @@ public partial class RunShortRestSpike : SpikeBase
         ShortRest.PerformSchedule(party, clock, quiet, rules, ward);
         Check("unassigned activities do not affect other characters", caster.Spellcasting.CurrentFocusPoints == focusBefore
             && shieldOwner.Equipment.Shield.CurrentShieldHP == 1);
+
+        patient.Health.SetCurrentHP(1);
+        var suggested = ShortRest.Suggest(party);
+        var medic = party.Living().Where(m => m.Skills.GetProficiency(PF2e.Data.Skill.Medicine) >= PF2e.Data.ProficiencyLevel.Trained)
+            .OrderByDescending(m => PF2e.Utilities.SkillCalculator.CalculateSkillBonus(m, PF2e.Data.Skill.Medicine)).First();
+        Check($"the suggested schedule is valid ({string.Join(", ", suggested.Select(a => $"{a.Actor.Name} {a.Kind}"))})",
+            ShortRest.Validate(party, suggested) == null);
+        Check("the best trained medic treats the most wounded member",
+            suggested.Any(a => a.Actor == medic && a.Kind == ShortRestKind.TreatWounds && a.Target == patient));
+        Check("spent focus and a damaged shield are covered when someone is free",
+            suggested.Any(a => a.Kind == ShortRestKind.Refocus) || suggested.Any(a => a.Kind == ShortRestKind.RepairShield));
+        foreach (var member in party.Living()) member.Health.SetCurrentHP(member.Health.MaxHP);
+        while (caster.Spellcasting.CurrentFocusPoints < caster.Spellcasting.MaxFocusPoints) caster.Spellcasting.RestoreFocusPoints(1);
+        shieldOwner.Equipment.Shield.SetCurrentShieldHP(shieldOwner.Equipment.Shield.MaxShieldHP);
+        Check("a party with nothing to recover is suggested quiet rests",
+            ShortRest.Suggest(party).All(a => a.Kind == ShortRestKind.Rest));
     }
 
     private static Party BuildParty() => Party.Build(

@@ -32,6 +32,7 @@ public partial class RunDirector
             SaveCampaign();
         }
         _pendingXp = setup.XpAward;
+        _fightStart = PartyChangeSummary.Capture(_state!.Party);
         SetPhase(RunPhase.Combat);
         _combat.StartEncounter(setup);
         if (AutoPlayCombat)
@@ -48,7 +49,6 @@ public partial class RunDirector
 
         bool wiped = _state.Party.IsWiped;
         _combatWon = !wiped && result == BattleResult.Team1Wins;
-        var rewards = new List<string>();
         if (_pendingRecruit is { } guest)
         {
             _state.Recruits.Resolve(guest.Id);
@@ -56,52 +56,54 @@ public partial class RunDirector
                 _pendingRecruit = null;
             else PartyRecovery.CompleteEncounter(guest.Character);
         }
-        var before = PartyChangeSummary.Capture(_state.Party);
         PartyRecovery.CompleteEncounter(_state.Party, result);
-        if (_combatWon) rewards.AddRange(PartyChangeSummary.Recovery(_state.Party, before));
-
-        string progress = "";
-        double fraction = 0;
-        if (_combatWon)
+        if (!_combatWon)
         {
-            RecordCampaignVictory();
-            int xp = _pendingXp;
-            int levelBefore = _state.Party.Level;
-            AwardPendingXp();
-            rewards.Add($"+{xp} party XP");
-            if (_state.Party.Level > levelBefore)
-            {
-                rewards.Add($"Promotion available through level {_state.Party.Level}. Open each character's sheet to choose a feat.");
-            }
-            if (_pendingRecruit is { } survivor)
-            {
-                PresetCharacters.LevelUpInPlace(survivor.Character, _state.Party.Level);
-                rewards.Add($"{survivor.Character.Name} survived. Choose whether to swap a companion next.");
-            }
-            if (_state.CurrentNode?.Kind == NodeKind.Boss)
-            {
-                int wardBefore = _state.Wardstone.Ward;
-                _state.Wardstone.RefillFull();
-                rewards.Add($"Wardstone restored: +{_state.Wardstone.Ward - wardBefore} ward");
-            }
-            bool atCap = _state.Party.Level >= _state.Leveling.MaxLevel;
-            progress = atCap ? $"Party level {_state.Party.Level} (maximum)"
-                : $"Level {_state.Party.Level} · {_state.Xp} / {_state.Leveling.XpPerLevel} XP to next level";
-            fraction = atCap ? 100 : 100.0 * _state.Xp / _state.Leveling.XpPerLevel;
-        }
-        else
-        {
+            // A defeat has no rewards to show: the run end is the one defeat screen. Deferred so the
+            // session finishes unwinding before the host tears the encounter down.
             _pendingXp = 0;
-            rewards.Add("No combat rewards gained.");
+            var state = _state;
+            Callable.From(() =>
+            {
+                if (ReferenceEquals(state, _state) && Phase == RunPhase.Combat) EndRun(RunOutcome.Defeat);
+            }).CallDeferred();
+            return;
         }
-        if (_combatWon && _state.Party.Members.Any(m => m.Health!.CurrentHP < m.Health.MaxHP))
-            rewards.Add(_state.Wardstone.CanAffordShortRest
-                ? "The party is still hurt. Choose Short rest after returning to exploration."
-                : "The party is still hurt. There is not enough ward for a short rest.");
-        _combat.ShowResultParty(_combatWon ? _state.Party.Members : System.Array.Empty<PF2eCharacter>());
-        _combat.ShowRewards(string.Join("\n", rewards), progress, fraction);
+
+        var notes = new List<string>();
+        var campaignBefore = _campaign.Capture();
+        RecordCampaignVictory();
+        int xpBefore = _state.Xp, levelBefore = _state.Party.Level;
+        AwardPendingXp();
+        bool atCap = _state.Party.Level >= _state.Leveling.MaxLevel;
+        var figures = CombatResults.Progress(xpBefore, _state.Xp, levelBefore, _state.Party.Level, atCap);
+        if (_pendingRecruit is { } survivor)
+        {
+            PresetCharacters.LevelUpInPlace(survivor.Character, _state.Party.Level);
+            notes.Add($"{survivor.Character.Name} survived. Choose whether to swap a companion next.");
+        }
+        if (_state.CurrentNode?.Kind == NodeKind.Boss)
+        {
+            int wardBefore = _state.Wardstone.Ward;
+            var attune = WardAttunement.Roll(_state.Party, _state.Wardstone, GuardianLevel());
+            if (attune != null) notes.Add($"{attune.Actor} attunes the Wardstone to the ward engine: {attune.Skill} {attune.Total} vs DC {attune.Dc}, "
+                + $"{attune.Degree}. The stone regains {attune.RefillPercent}% of its missing ward.");
+            if (CombatResults.Ward(wardBefore, _state.Wardstone.Ward) is { } ward) figures.Add(ward);
+        }
+        notes.AddRange(CampaignSummary.Gains(campaignBefore, _campaign));
+        _combat.ShowRewards(new CombatResultsView
+        {
+            Figures = figures,
+            Members = CombatResults.Members(_state.Party.Members, _fightStart),
+            Notes = notes,
+            Progress = atCap ? null : 100.0 * _state.Xp / _state.Leveling.XpPerLevel,
+            Party = _state.Party.Members,
+        });
         SetPhase(RunPhase.CombatResults);
     }
+
+    /// <summary>Party HP and Wounded as the fight began. The results rows compare against it.</summary>
+    private Dictionary<string, PartyMemberSnapshot> _fightStart = new();
 
     private bool _continuingCombat;
 

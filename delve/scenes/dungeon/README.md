@@ -15,7 +15,22 @@ The floor is an abandoned underground ward station. `StationPlan` describes phys
 
 The functional backbone connects receiving to the checkpoint, barracks to the mess hall, mess hall to kitchen, kitchen to cistern, and maintenance to refuge and ward chamber. Two randomized maintenance connections add loops. The whole plan rotates, room sizes and furnishings vary, and encounter assignments shuffle. Elite encounters are placed at the greatest available depth, away from public access. This first facility has a fixed set of twelve functions; optional room selection and nonrectangular exterior shells remain future work.
 
-One seeded abandonment history applies throughout the floor: flooding, evacuation, or ward failure. Related rooms receive muddy service floors and leaks, packed belongings, or discarded components. Scavenger sleeping places mark reuse of the living and storage areas. Enemy rosters follow room purpose, while encounter difficulty and rewards follow the assigned encounter. These environmental details currently have no additional interaction or reward mechanics.
+One seeded abandonment history applies throughout the floor: flooding, evacuation, or ward failure. Related rooms receive muddy service floors and leaks, packed belongings, or discarded components. Scavenger sleeping places mark reuse of the living and storage areas. Enemy rosters follow room purpose, while encounter difficulty and rewards follow the assigned encounter.
+
+## Room scenes
+
+Each quiet room offers one PF2e exploration scene from `StationScenes` plus Leave (Ward +5, the crossing refunded). DCs are authored at level 1 (15, hazards 17) and move with party level along GM Core DCs by level. All four degrees of success matter.
+
+- Checkpoint: Decipher Writing (Society) reveals room kinds on the floor plan.
+- Barracks, Kitchen, Cistern: a free ten-minute rest (the suggested schedule, no ward).
+- Mess hall: Subsist (Survival) for a free rest and a healing potion.
+- Stores: a poisoned-lock cache (Thievery, hazard DC).
+- Workshop: Repair every damaged shield (Crafting, Player Core amounts).
+- Maintenance: reconnect a ward conduit (Crafting) for Ward +15/+30.
+- Shrine: Refocus for every caster (Religion).
+- Refuge: Make camp, and once per floor Study the guardian (Recall Knowledge into the campaign journal).
+
+Station history changes rules: a flooded Cistern becomes a dive for potions and the Kitchen rests twice; an evacuated Barracks also clears Wounded and the Shrine is haunted; a ward failure lowers the Maintenance DC and adds a live conduit in the Workshop. Healing potions are drunk on the spot, so no run inventory is needed. Hazard damage is a percentage of maximum HP until the GM Core hazard table is pulled. Outcome lines are functional placeholders until prose is approved.
 
 ## Room construction
 

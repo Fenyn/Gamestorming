@@ -1,0 +1,12 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/KnowledgeJournalSpike.cs" id="1_spike"]
+[ext_resource type="PackedScene" path="res://scenes/combat/combat.tscn" id="2_combat"]
+[ext_resource type="PackedScene" path="res://scenes/run/run.tscn" id="3_run"]
+[ext_resource type="PackedScene" path="res://scenes/run/hero_select.tscn" id="4_camp"]
+
+[node name="KnowledgeJournalSpike" type="Node"]
+script = ExtResource("1_spike")
+CombatScene = ExtResource("2_combat")
+RunScene = ExtResource("3_run")
+CampScene = ExtResource("4_camp")

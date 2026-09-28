@@ -23,6 +23,9 @@ public sealed record SquadMemberView
     public ReactionMark Reaction { get; init; }
     public IReadOnlyList<ConditionMarkView> Conditions { get; init; } = System.Array.Empty<ConditionMarkView>();
 
+    /// <summary>A feat choice is waiting. The chip shows a badge.</summary>
+    public bool PromotionPending { get; init; }
+
     /// <summary>AC, gear, spell DC and reaction state as sentences for the chip's hover.</summary>
     public string Tooltip { get; init; } = "";
 }

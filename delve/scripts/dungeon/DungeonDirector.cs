@@ -78,10 +78,11 @@ public partial class DungeonDirector : Node3D
 
     private Node3D _world = null!, _partyLayer = null!;
     private OrbitCameraRig _camera = null!;
-    private CombatScene _combat = null!;
+    private CombatScene? _combat;
     private EventPanel _event = null!;
     private ShortRestPanel _rest = null!;
     private DungeonHud _hud = null!;
+    private ExplorationFx _fx = null!;
     private readonly Dictionary<int, DungeonRoomPrefab> _rooms = new();
     private readonly List<UnitVisual3D> _tokens = new();
     private readonly Dictionary<int, CombatSetup> _encounters = new();
@@ -102,16 +103,25 @@ public partial class DungeonDirector : Node3D
         _partyLayer = GetNode<Node3D>("%TravelParty");
         _camera = GetNode<OrbitCameraRig>("%ExploreCamera");
         _hud = GetNode<DungeonHud>("%DungeonHud");
-        _transition = GetNode<SceneTransition>("%SceneTransition");
+        _fx = GetNode<ExplorationFx>("%ExplorationFx");
+        var ownTransition = GetNode<SceneTransition>("%SceneTransition");
+        _transition = SharedTransition ?? ownTransition;
+        if (SharedTransition != null) ownTransition.QueueFree();
         _details = GetNode<CharacterDetailsOverlay>("%CharacterDetails");
         _details.Closed += CloseCharacterDetails;
-        _combat = CombatPrefab.Instantiate<CombatScene>();
-        AddChild(_combat);
-        _combat.EndHostedEncounter();
-        _combat.AiActionDelaySeconds = CombatAiDelay;
-        _combat.SetVictoryRestartVisible(false);
-        _combat.EncounterFinished += FinishCombat;
-        _combat.ResultsContinued += ContinueCombat;
+        // A hosted floor fights in the host's combat scene; only the standalone crawl owns one.
+        if (!Hosted)
+        {
+            var combat = CombatPrefab.Instantiate<CombatScene>();
+            AddChild(combat);
+            combat.EndHostedEncounter();
+            combat.AiActionDelaySeconds = CombatAiDelay;
+            combat.SetVictoryRestartVisible(false);
+            combat.DefeatBannerEnabled = false;
+            combat.EncounterFinished += FinishCombat;
+            combat.ResultsContinued += ContinueCombat;
+            _combat = combat;
+        }
         var screens = GetNode<CanvasLayer>("%Screens");
         _event = EventPrefab.Instantiate<EventPanel>();
         screens.AddChild(_event);
@@ -127,7 +137,11 @@ public partial class DungeonDirector : Node3D
             _rest.Visible = false;
             ShowDoors();
         };
+        WirePresentation();
         _hud.RestPressed += OpenRest;
+        _hud.CampPressed += MakeCamp;
+        _hud.PotionPressed += DrinkPotion;
+        _hud.MemberPressed += OpenMemberDetails;
         _hud.StairsPressed += UseStairs;
         _hud.RestartPressed += seed => Restart(seed);
         _hud.SizePicked += size =>
@@ -169,10 +183,12 @@ public partial class DungeonDirector : Node3D
         _doorPress = null;
         _travelTween?.Kill();
         _travelTween = null;
-        _combat.EndHostedEncounter();
+        _combat?.EndHostedEncounter();
         _event.Visible = false;
         _rest.Visible = false;
         _openEvent = null;
+        _studied = false;
+        ResetAnnouncements();
         _encounters.Clear();
         _rooms.Clear();
         _corridors.Clear();
@@ -184,6 +200,7 @@ public partial class DungeonDirector : Node3D
         _partyLayer.Position = Vector3.Zero;
         Floor = floor;
         State = state;
+        WatchWard();
         SetHostedVisible(true);
         foreach (var room in Floor.Rooms)
         {
@@ -196,6 +213,7 @@ public partial class DungeonDirector : Node3D
             prefab.Generate(room.Seed, room.Doors.Select(d => d.Side(room.Id)).ToArray(), ComparisonMode && room.Id == 0 ? ComparisonSize : 0, ComparisonMode && room.Id == 0 && ComparisonOpen);
             prefab.Visible = false;
             _rooms[room.Id] = prefab;
+            _fx.Dress(prefab, prefab.PurposeOverride ?? room.Purpose, prefab.Generated.Props);
         }
 
         var placement = DungeonPlacement.Pack(Floor, _rooms.ToDictionary(p => p.Key, p => p.Value.Width));
@@ -238,7 +256,7 @@ public partial class DungeonDirector : Node3D
         State.Outcome = victory ? RunOutcome.Victory : RunOutcome.Defeat;
         _event.Visible = false;
         _rest.Visible = false;
-        _combat.EndHostedEncounter();
+        _combat?.EndHostedEncounter();
         Frame();
         RefreshHud();
         if (Hosted) RunEnded?.Invoke(State.Outcome);
@@ -247,6 +265,15 @@ public partial class DungeonDirector : Node3D
     public void UseStairs()
     {
         if (_details.Visible || Phase != DungeonPhase.Doors || Current.Family != RoomFamily.Guardian || !Current.Completed) return;
+        _fx.Descended();
+        if (Instant) { LeaveFloor(); return; }
+        Phase = DungeonPhase.Transition;
+        RefreshHud();
+        _ = WalkDownStairs(_epoch);
+    }
+
+    private void LeaveFloor()
+    {
         if (Hosted)
         {
             Phase = DungeonPhase.End;
@@ -255,11 +282,12 @@ public partial class DungeonDirector : Node3D
         else End(true);
     }
 
-    private void RefreshHud()
+    /// <summary>Re-render the HUD, the party strip and the token bars from the run state.</summary>
+    public void RefreshHud()
     {
         if (Phase != DungeonPhase.Doors) SetHoveredPartyMember(null);
         if (Phase != DungeonPhase.Doors) _details.Close();
-        foreach (var token in _tokens) token.UpdateHealthBar();
+        _hud.Instant = _fx.Instant = Instant;        foreach (var token in _tokens) token.UpdateHealthBar();
         foreach (var (id, view) in _rooms)
             view.SetTraversalActive(id == Current.Id && Phase == DungeonPhase.Doors);
         _hud.Render(Floor, State, Phase, Seed, ComparisonMode, ComparisonSize, ComparisonOpen, ComparisonEntry);
@@ -275,6 +303,7 @@ public partial class DungeonDirector : Node3D
 
     public override void _ExitTree()
     {
+        UnwatchWard();
         _epoch++;
         CancelPresentation();
         _pendingDoorClick = null;

@@ -61,6 +61,8 @@ public partial class EventPanel : Control
         _previewIndex = 0;
         _title.Text = definition.Title;
         _body.Text = definition.Body;
+        _body.Visible = true;
+        if (Report != null) Report.Visible = false;
         _result.Text = "";
         _result.Visible = false;
         _continue.Visible = false;
@@ -99,6 +101,20 @@ public partial class EventPanel : Control
         SetOptionsEnabled(false);
         _actorRow.Visible = false;
         _actorHeading.Visible = false;
+    }
+
+    /// <summary>The pair-style report, when the scene carries one.</summary>
+    public PairReport? Report => GetNodeOrNull<PairReport>("%Report");
+
+    /// <summary>A result in pair style: a short title, the party figures, one row per changed hero.</summary>
+    public void ShowReport(string title, IReadOnlyList<Delve.Combat.FigureView> figures, IReadOnlyList<ResultMemberRow> rows)
+    {
+        ShowResult(new EventResult { Resolved = true });
+        _title.Text = title;
+        _body.Visible = false;
+        _previewHeading.Visible = false;
+        _result.Visible = false;
+        Report?.Render(figures, rows);
     }
 
     private void BuildOptions(EventDefinition definition)

@@ -115,16 +115,16 @@ public partial class RunEventSpike : SpikeBase
         Check("success and critical failure explain their effects",
             panel.GetNode<Label>("%CheckPreview").Text.Contains("Heal 10%")
             && panel.GetNode<Label>("%CheckPreview").Text.Contains("Wounded +1"));
+        string previewText = panel.GetNode<Label>("%CheckPreview").Text;
+        Check("the preview shows effects only and keeps each outcome's prose for after the roll",
+            definition.Options[0] is var option && !previewText.Contains(option.Success.Text)
+            && (option.Failure == null || !previewText.Contains(option.Failure.Text)));
         Check("opening previews spends no resources", previewRun.Gold == 0 && previewRun.Clock.ShortRestsToday == 0);
         for (int i = 0; i < 5; i++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         if (DisplayServer.GetName() != "headless")
         {
             await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
-            var image = GetViewport().GetTexture().GetImage();
-            image.Convert(Image.Format.Rgba8);
-            image.LinearToSrgb();
-            DirAccess.MakeDirRecursiveAbsolute("user://dev_shots");
-            Check("event preview screenshot saved", image.SavePng("user://dev_shots/event_preview.png") == Error.Ok);
+            Check("event preview screenshot saved", SaveViewportCapture("user://dev_shots/event_preview.png") == Error.Ok);
         }
         int requests = 0;
         panel.OptionPicked += (_, _) => requests++;
@@ -144,6 +144,7 @@ public partial class RunEventSpike : SpikeBase
             && panel.GetNode<Label>("%PreviewHeading").Text == "WHAT HAPPENS · NO ROLL"
             && !panel.GetNode<Label>("%CheckPreview").Text.StartsWith("Success:"));
         panel.QueueFree();
+        CheckRoomEffects();
     }
 
     private static RunState NewRun()

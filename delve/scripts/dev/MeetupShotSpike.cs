@@ -42,11 +42,6 @@ public partial class MeetupShotSpike : SpikeBase
         Check("fourth member can also be replaced", outgoing == PresetCharacters.FenwickId);
         Check("decline emits once without party mutation", declined == 1 && party.Find(PresetCharacters.ElaraId) != null);
         if (DisplayServer.GetName() == "headless" || string.IsNullOrWhiteSpace(outputPath)) return;
-        DirAccess.MakeDirRecursiveAbsolute(outputPath.GetBaseDir());
-        var image = GetViewport().GetTexture().GetImage();
-        image.Convert(Image.Format.Rgba8);
-        image.LinearToSrgb();
-        Check("meetup screenshot saved", image.SavePng(outputPath) == Error.Ok);
-        GD.Print($"[MeetupShot] {ProjectSettings.GlobalizePath(outputPath)}");
+        Check("meetup screenshot saved", SaveViewportCapture(outputPath) == Error.Ok);
     }
 }

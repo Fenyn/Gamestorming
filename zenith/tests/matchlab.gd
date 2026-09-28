@@ -27,6 +27,7 @@ const SPEC_BASE: Dictionary = {
 
 	"mode": {"type": "str", "default": "matrix", "choices": ["matrix", "sample"]},
 	"repeats": {"type": "int", "default": 9, "min": 1, "max": 100000},
+	"paired": {"type": "bool", "default": "off"},
 	"games": {"type": "int", "default": 200, "min": 1, "max": 1000000},
 	"limit": {"type": "int", "default": 0, "min": 0, "max": 1000000},
 	"seed": {"type": "int", "default": 1, "min": 0, "max": 2147483647},
@@ -47,6 +48,9 @@ const SPEC_BASE: Dictionary = {
 	"think": {"type": "str", "default": ""},
 	"a-think": {"type": "str", "default": ""},
 	"b-think": {"type": "str", "default": ""},
+	"weights": {"type": "str", "default": ""},
+	"a-weights": {"type": "str", "default": ""},
+	"b-weights": {"type": "str", "default": ""},
 
 	# `--shard=2/8` plays only every eighth match, starting at the third. The whole schedule is
 	# built first and then sifted, so the seeds a shard plays are the ones it would have played in
@@ -186,13 +190,26 @@ func _spec() -> Dictionary:
 func _schedule(args: SimArgs, roster: SimRoster, rng: RandomNumberGenerator) -> Array[Array]:
 	var out: Array[Array] = []
 	if args.str_of("mode") == "matrix":
+		var paired: bool = args.bool_of("paired")
 		for repeat in range(args.int_of("repeats")):
+			# `--paired`: a match and its twin (the same two decks in the same seats, pilots swapped)
+			# share every seed, so deck strength and deal luck cancel within the pair.
+			var twins: Dictionary = {}
 			for a_deck in roster.a_names:
 				for b_deck in roster.b_names:
 					if a_deck == b_deck:
 						continue
 					for a_seat in range(2):
-						out.append(_entry(a_deck, b_deck, a_seat, rng))
+						var entry: Array = _entry(a_deck, b_deck, a_seat, rng)
+						if paired:
+							var first_seat: int = a_seat if a_deck < b_deck else 1 - a_seat
+							var key: String = "%s|%s|%d" % [mini_str(a_deck, b_deck), maxi_str(a_deck, b_deck), first_seat]
+							if twins.has(key):
+								var shared: Array = twins[key]
+								entry = [a_deck, b_deck, a_seat, shared[3], shared[4], shared[5], shared[6]]
+							else:
+								twins[key] = entry
+						out.append(entry)
 	else:
 		for game in range(args.int_of("games")):
 			var a_deck: String = roster.pick(roster.a_names, roster.a_weights, rng)
@@ -231,6 +248,14 @@ func _sift(args: SimArgs, full: Array[Array]) -> Array[Array]:
 		if i % count == index:
 			out.append(full[i])
 	return out
+
+
+static func mini_str(x: String, y: String) -> String:
+	return x if x < y else y
+
+
+static func maxi_str(x: String, y: String) -> String:
+	return y if x < y else x
 
 
 func _entry(a_deck: String, b_deck: String, a_seat: int, rng: RandomNumberGenerator) -> Array:

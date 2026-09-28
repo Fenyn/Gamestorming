@@ -22,6 +22,9 @@ public sealed record UnitInspectView
     /// <summary>Encounter letter of an enemy ("A"), empty for allies.</summary>
     public string Letter { get; init; } = "";
 
+    /// <summary>The name without its encounter letter, drawn beside the letter badge.</summary>
+    public string BaseName { get; init; } = "";
+
     /// <summary>True for a party member (<see cref="TeamId"/> 1). Allies are never knowledge-gated.</summary>
     public bool IsAlly { get; init; }
 

@@ -6,7 +6,7 @@ public partial class HeroSelectPanel
 {
     public void OpenDetails()
     {
-        if (_recruitment.Visible) return;
+        if (OverlayOpen) return;
         _details.Show();
         GetNode<Button>("%CloseDetails").GrabFocus();
     }

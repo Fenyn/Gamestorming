@@ -34,6 +34,32 @@ public partial class ReactionPromptSpike : SpikeBase
         await Check1_AcceptedPromptSuspendsAndBlocks(data);
         await Check2_DeclinedPromptTakesFullDamage(data);
         await Check3_PromptDuringEnemyTurn(data);
+        Check4_ReactiveStrikeShape(data);
+    }
+
+    // ── (4) Reactive Strike uses the same compact shape: a title plus Hit and Damage ──
+
+    private void Check4_ReactiveStrikeShape(DataManager data)
+    {
+        GD.Print("---------------- (4) Reactive Strike shape ----------------");
+        var vet = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
+        var goblin = MakeGoblin(data);
+        var session = StartSession(data, vet, goblin, seed: 5);
+        try
+        {
+            var view = ReactionPromptBuilder.Build(new ReactionPromptContext
+            {
+                Reactor = vet, Source = goblin, Trigger = ReactionTrigger.Movement, ReactionName = "Reactive Strike",
+            });
+            Check($"(4) title and accept label ('{view.Title}', '{view.AcceptLabel}')",
+                view.Title == "Reactive Strike?" && view.AcceptLabel == "Strike");
+            Check($"(4) figures read Hit and Damage ({string.Join(", ", view.Figures)})",
+                view.Figures.Count == 2 && view.Figures[0].Caption == "Hit" && view.Figures[0].Value.EndsWith("%")
+                && view.Figures[1].Caption == "Damage" && view.Figures[1].Value.Length > 0 && !view.Figures[0].IsChange);
+            Check("(4) the hover sentence names the mover without a gendered pronoun",
+                view.Description.Contains(goblin.Name) && !System.Text.RegularExpressions.Regex.IsMatch(view.Description, @"\b(he|she|his|her|him)\b"));
+        }
+        finally { session.Teardown(); }
     }
 
     // ── (1) Accepted prompt: combat suspends while pending, then Shield Block applies ──
@@ -61,9 +87,19 @@ public partial class ReactionPromptSpike : SpikeBase
                 promptSeen = true;
                 Check("(1) prompt view names the reactor + reaction",
                     view.ReactorName == vet.Name && view.ReactionName == "Shield Block");
-                Check("(1) prompt states the block and the shared remainder",
+                Check("(1) prompt hover states the block and the shared remainder",
                     view.Description.Contains($"Blocking stops {hardness}.")
                     && view.Description.Contains($"and the shield each take {10 - hardness}."));
+                Check($"(1) compact title and accept label ('{view.Title}', '{view.AcceptLabel}')",
+                    view.Title == "Shield Block?" && view.AcceptLabel == "Block" && view.ReactorId == vet.UniqueId);
+                var damage = view.Figures.Count > 0 ? view.Figures[0] : null;
+                Check($"(1) first figure: {vet.Name} takes 10 → {10 - hardness}",
+                    damage != null && damage.Caption == vet.Name && damage.Before == "10" && damage.Value == $"{10 - hardness}");
+                var shieldFigure = view.Figures.Count > 1 ? view.Figures[1] : null;
+                Check($"(1) second figure: shield {shieldHpBefore} → {shieldHpBefore - (10 - hardness)}",
+                    view.Figures.Count == 2 && shieldFigure!.Caption.StartsWith("Shield")
+                    && shieldFigure.Before == shieldHpBefore.ToString()
+                    && shieldFigure.Value == Math.Max(0, shieldHpBefore - (10 - hardness)).ToString());
 
                 // Delay a full frame before answering — combat must be parked on this Task.
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);

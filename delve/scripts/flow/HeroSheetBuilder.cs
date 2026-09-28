@@ -127,6 +127,13 @@ public static class HeroSheetBuilder
     /// the plinth already prints that modifier and the hover spells it out, so the headline says
     /// which ability the class is built on and leaves the arithmetic to them.
     /// </summary>
+    /// <summary>"14/32" while hurt, "32" at full health.</summary>
+    public static string HitPointsText(PF2eCharacter character, int maxHp)
+    {
+        int current = character.Health?.CurrentHP ?? maxHp;
+        return current < maxHp ? $"{current}/{maxHp}" : maxHp.ToString();
+    }
+
     private static IReadOnlyList<SheetHeadline> Headlines(
         PF2eCharacter character, PF2eCharacterStats? stats, ClassDefinition? characterClass,
         int hitPoints, int armorClass, SheetHeadline? signature)
@@ -135,7 +142,7 @@ public static class HeroSheetBuilder
 
         var row = new List<SheetHeadline>(4)
         {
-            new("HP", hitPoints.ToString(),
+            new("HP", HitPointsText(character, hitPoints),
                 HeroSheetVitalTips.HitPoints(stats, characterClass, hitPoints)),
             new("AC", armorClass.ToString(),
                 HeroSheetVitalTips.ArmorClass(character, armorClass)),

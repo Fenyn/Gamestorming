@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Delve.Autoload;
@@ -194,22 +195,43 @@ public partial class CombatShotSpike : SpikeBase
         if (FindChild("SkillsButton", recursive: true, owned: false) is Button skills) skills.ButtonPressed = false;
         await CaptureHudReview(scene);
         var log = GetNode<CombatScene>("CombatTest/Combat").GetNode<Delve.UI.CombatLogPanel>("%CombatLog");
+        // The OS pointer may rest over the board in a rendered run; its move hint is not idle state.
+        scene.ClearHover();
         CombatLogSamples.Fill(log);
+        scene.GetNode<Delve.UI.DiceRollPanel>("%DiceRoll").ClearRoll();
         await WaitSeconds(PoseSeconds);
+        AssertZones(scene, "idle");
+        CheckBudget(scene, "idle", IdleBudgetPercent, IdleClearBox);
         Capture("combat_log_compact.png");
         log.Rows[^1].GetNode<Button>("%Disclosure").ButtonPressed = true;
         await WaitSeconds(PoseSeconds);
         Capture("combat_log_entry_expanded.png");
         log.SetExpanded(true);
         await WaitSeconds(PoseSeconds);
+        AssertZones(scene, "log expanded");
+        CheckBudget(scene, "log expanded", 0, null);
         Capture("combat_log_history.png");
-        log.AppendEntry("Aldric Strikes Hunting Spider with Longsword", 8, false);
-        log.AppendEntry("d20(19)+10=29 vs AC 17 → CriticalSuccess", 2, true);
+        log.SetExpanded(false);
+        var session = Session(scene);
+        // The fixture replaced the live actors; live play resumes with the fight's own names.
+        log.SetActors(session.Team1.Select(u => (u.Name, Delve.UI.UiColors.LogAlly))
+            .Concat(session.Team2.Select(u => (u.Name, Delve.UI.UiColors.LogEnemy))));
+        log.SetEnemies(session.Team2.Select(u => u.Name));
+        var spider = session.Team2.FirstOrDefault(e => e.Health?.IsAlive == true);
+        log.AppendEntry($"Aldric Strikes {spider?.Name ?? "Hunting Spider A"} with Longsword", 8, false);
+        log.AppendEntry(CombatLogMasks.Mask("d20(19)+10=29 vs AC 17 → CriticalSuccess", spider, session.Team2)!, 2, true);
         log.Rows[^1].GetNode<Button>("%Disclosure").ButtonPressed = true;
-        // Past the tumble, the landing, the sum and the outcome pop: the finished card, mid-hold.
-        await WaitSeconds(1.4f);
+        // Past the hero beat and its shrink: the settled row, mid-hold.
+        await WaitSettled(scene.GetNode<Delve.UI.DiceRollPanel>("%DiceRoll"));
+        AssertZones(scene, "player turn roll");
+        CheckBudget(scene, "player turn roll", 0, RollClearBox);
         Capture("combat_dice_roll.png");
+        await CaptureHeroRolls(scene);
         await CaptureSignatures(scene);
+        await CapturePlayerTurnWithEnemies(scene);
+        await CaptureEnemyStrikePrompt(scene);
+        await CaptureMarkers(scene, data);
+        await CaptureMoveConditions(scene, data);
     }
 
     private OrbitCameraRig? Rig() =>
@@ -249,15 +271,7 @@ public partial class CombatShotSpike : SpikeBase
 
     private void Capture(string file)
     {
-        Image img = GetViewport().GetTexture().GetImage();
-        // hdr_2d viewports hand back linear-space data; convert or the PNG comes out crushed dark.
-        img.Convert(Image.Format.Rgba8);
-        img.LinearToSrgb();
-        img.Resize(1280, 720, Image.Interpolation.Bilinear);
-        string path = $"{OutputDirectory}/{file}";
-        Error err = img.SavePng(path);
-        GD.Print($"[combatshot] {file}: {err} ({ProjectSettings.GlobalizePath(path)})");
-        Check($"{file} saved", err == Error.Ok);
+        Check($"{file} saved", SaveViewportCapture($"{OutputDirectory}/{file}", new Vector2I(1280, 720)) == Error.Ok);
     }
 
     private async Task WaitSeconds(float seconds)

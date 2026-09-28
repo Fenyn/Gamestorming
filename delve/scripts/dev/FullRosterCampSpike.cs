@@ -33,11 +33,7 @@ public partial class FullRosterCampSpike : SpikeBase
         string output = OS.GetEnvironment("DELVE_SHOT_DIRECTORY");
         if (!string.IsNullOrEmpty(output) && DisplayServer.GetName() != "headless")
         {
-            DirAccess.MakeDirRecursiveAbsolute(output);
-            var image = GetViewport().GetTexture().GetImage();
-            image.Convert(Image.Format.Rgba8);
-            image.LinearToSrgb();
-            Check("full roster screenshot saved", image.SavePng(output + "/full-roster-camp.png") == Error.Ok);
+            Check("full roster screenshot saved", SaveViewportCapture(output + "/full-roster-camp.png") == Error.Ok);
         }
         panel.Embark();
         Check("recruit party embarks into the dungeon", run.State != null && run.Phase == RunPhase.Map

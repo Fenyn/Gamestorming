@@ -22,11 +22,23 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
 {
     private Tween? _introTween;
     public bool IntroPlaying => _introTween != null;
+    [Export] public double IntroRevealSeconds { get; set; } = 0.65;
+    [Export] public double IntroHoldSeconds { get; set; } = 0.25;
+    [Export] public double IntroSettleSeconds { get; set; } = 0.65;
 
     public void CancelIntro()
     {
         _introTween?.Kill();
         _introTween = null;
+    }
+
+    /// <summary>Run the intro to its end now: the camera lands on the tactical pose and
+    /// <see cref="PlayIntro"/> returns. The step covers the whole intro twice over, so rounding
+    /// cannot leave the last tweener short.</summary>
+    public void SkipIntro()
+    {
+        if (_introTween?.IsValid() == true)
+            _introTween.CustomStep(2 * (IntroRevealSeconds + IntroHoldSeconds + IntroSettleSeconds));
     }
 
     /// <summary>Blend from the outgoing view through a lower reveal, then restore the tactical pose.</summary>
@@ -52,10 +64,10 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
         {
             _camera.GlobalTransform = from.InterpolateWith(reveal, t);
             _camera.Fov = Mathf.Lerp(fromFov, tacticalFov, t);
-        }), 0f, 1f, 0.65).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
-        tween.TweenInterval(0.25);
+        }), 0f, 1f, IntroRevealSeconds).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+        tween.TweenInterval(IntroHoldSeconds);
         tween.TweenMethod(Callable.From<float>(t => _camera.GlobalTransform = reveal.InterpolateWith(tactical, t)),
-            0f, 1f, 0.65).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+            0f, 1f, IntroSettleSeconds).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
         tween.TweenCallback(Callable.From(() => done.TrySetResult()));
         try { await done.Task.WaitAsync(token); }
         finally

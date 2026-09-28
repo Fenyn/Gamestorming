@@ -234,8 +234,9 @@ public sealed class PlayerTurnController
     }
 
     /// <summary>
-    /// Delay this turn. Legal only before any action. The turn order bar offers the chips still
-    /// to act this round; a click on one settles the return, and the choice is final.
+    /// Delay this turn. Legal only before any action. The turn order bar offers every anchor the
+    /// engine returns, next-round rows included; a click on one settles the return, and the choice
+    /// is final.
     /// </summary>
     public void BeginDelay()
     {
@@ -269,7 +270,7 @@ public sealed class PlayerTurnController
     }
 
     /// <summary>Why the actor cannot Delay now: acted already (the controller's rule), or the
-    /// session's reason (nobody acts after them). Null when allowed.</summary>
+    /// session's reason. Null when allowed.</summary>
     private string? DelayReason()
     {
         if (_current == null) return "No active turn";
@@ -351,10 +352,11 @@ public sealed class PlayerTurnController
                 if (_plan != null && _plan.PathTo(pos, out var legs) != null)
                 {
                     var actor = _current!;
-                    if (_plan.Options[pos].Kind == MoveKind.Step)
+                    var kind = _plan.Options[pos].Kind;
+                    if (kind == MoveKind.Step)
                         RunAction(() => _exec.ExecuteStep(actor, pos));
                     else
-                        RunAction(() => WalkLegs(actor, legs));
+                        RunAction(() => WalkLegs(actor, legs, kind));
                 }
                 break;
 
@@ -423,21 +425,26 @@ public sealed class PlayerTurnController
     // ---------------------------------------------------------------- Execution
 
     /// <summary>
-    /// Stride one leg at a time to the plan's leg ends. The lifecycle checks sit BETWEEN legs, in
-    /// the controller rather than the executor: a Reactive Strike can drop the mover on leg one, the
-    /// turn can be handed to the AI, or the encounter can be torn down while a leg animates, and
-    /// none of those may start the next Stride. A leg that ends short (a reaction stopped the walk)
-    /// ends the chain too, since the next leg's route assumed the planned tile.
+    /// Stride (or Crawl) one leg at a time to the plan's leg ends. The lifecycle checks sit BETWEEN
+    /// legs, in the controller rather than the executor: a Reactive Strike can drop the mover on leg
+    /// one, the turn can be handed to the AI, or the encounter can be torn down while a leg animates,
+    /// and none of those may start the next leg. A condition gained mid-walk (tripped prone, grabbed)
+    /// ends the chain before an illegal Stride; the executor refuses one as well. A leg that ends
+    /// short ends the chain too, since the next leg's route assumed the planned tile.
     /// </summary>
-    private async Task<bool> WalkLegs(ICharacter actor, IReadOnlyList<PF2eVec> legs)
+    private async Task<bool> WalkLegs(ICharacter actor, IReadOnlyList<PF2eVec> legs, MoveKind kind)
     {
         bool moved = false;
         foreach (var leg in legs)
         {
             if (CancellationToken.IsCancellationRequested || !ReferenceEquals(_current, actor)) break;
             if (!CanAct(actor) || (actor.Actions?.TotalActionsRemaining ?? 0) <= 0) break;
+            if (kind == MoveKind.Stride && _exec.MoveRestriction(actor) != null) break;
 
-            if (!await _exec.ExecuteStride(actor, leg)) break;
+            bool walked = kind == MoveKind.Crawl
+                ? await _exec.ExecuteCrawl(actor, leg)
+                : await _exec.ExecuteStride(actor, leg);
+            if (!walked) break;
             moved = true;
             if (actor.GridPosition != leg) break;
         }

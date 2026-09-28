@@ -44,18 +44,22 @@ theme_override_constants/v_separation = 12
 
 [node name="FeatPreview" type="Label" parent="Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 100)
+visible = false
 layout_mode = 2
 autowrap_mode = 2
 
 [node name="ConfirmPromotion" type="Button" parent="Margin/Content"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 44)
 layout_mode = 2
+size_flags_horizontal = 4
 text = "Confirm promotion"
 disabled = true
 
 [node name="SaveFeatChoice" type="Button" parent="Margin/Content"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 44)
 layout_mode = 2
+size_flags_horizontal = 4
 text = "Keep feat choice"
 visible = false

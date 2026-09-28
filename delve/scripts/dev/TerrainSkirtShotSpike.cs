@@ -116,15 +116,7 @@ public partial class TerrainSkirtShotSpike : SpikeBase
 
     private void Capture(string file)
     {
-        Image img = GetViewport().GetTexture().GetImage();
-        // hdr_2d viewports hand back linear-space data; convert or the PNG comes out crushed dark.
-        img.Convert(Image.Format.Rgba8);
-        img.LinearToSrgb();
-        img.Resize(1280, 720, Image.Interpolation.Bilinear);
-        string path = $"{OutDir}/{file}";
-        Error err = img.SavePng(path);
-        GD.Print($"[skirtshot] {file}: {err} ({ProjectSettings.GlobalizePath(path)})");
-        Check($"{file} saved", err == Error.Ok);
+        Check($"{file} saved", SaveViewportCapture($"{OutDir}/{file}", new Vector2I(1280, 720)) == Error.Ok);
     }
 
     private async Task WaitSeconds(float seconds)

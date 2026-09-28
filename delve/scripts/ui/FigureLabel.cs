@@ -14,6 +14,8 @@ public partial class FigureLabel : HBoxContainer
     public string CaptionText => _caption.Text;
     public string BeforeText => _before.Visible ? _before.Text : "";
     public string ValueText => _value.Text;
+    public string MaxText => _max.Visible ? _max.Text : "";
+    private Label _max = null!;
 
     public override void _Ready()
     {
@@ -21,6 +23,7 @@ public partial class FigureLabel : HBoxContainer
         _before = GetNode<Label>("%Before");
         _arrow = GetNode<Label>("%Arrow");
         _value = GetNode<Label>("%Value");
+        _max = GetNode<Label>("%Max");
     }
 
     public void Render(FigureView figure)
@@ -30,5 +33,7 @@ public partial class FigureLabel : HBoxContainer
         _before.Visible = figure.IsChange;
         _arrow.Visible = figure.IsChange;
         _value.Text = figure.Value;
+        _max.Text = $"/ {figure.Max}";
+        _max.Visible = figure.Max.Length > 0;
     }
 }

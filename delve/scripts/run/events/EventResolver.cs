@@ -102,6 +102,44 @@ public static class EventResolver
                 state.Gold += effect.Value;
                 lines.Add(effect.Value >= 0 ? $"Gained {effect.Value} gold." : $"Lost {-effect.Value} gold.");
                 return;
+
+            case EventEffectKind.WardDelta:
+            {
+                int before = state.Wardstone.Ward;
+                state.Wardstone.Adjust(effect.Value);
+                lines.Add($"Ward {before} → {state.Wardstone.Ward}.");
+                return;
+            }
+
+            case EventEffectKind.FreeRest:
+                state.FreeRests++;
+                lines.Add($"Free rests banked {state.FreeRests - 1} → {state.FreeRests}.");
+                return;
+
+            case EventEffectKind.HealingPotion:
+                state.Potions += effect.Value;
+                lines.Add($"Potions {state.Potions - effect.Value} → {state.Potions}.");
+                return;
+
+            case EventEffectKind.PartyRefocus:
+                foreach (var member in state.Party.Living().Where(m => m.Spellcasting is { MaxFocusPoints: > 0 }))
+                {
+                    int restored = member.Spellcasting!.RestoreFocusPoints(effect.Value);
+                    if (restored > 0) lines.Add($"{member.Name}: focus {member.Spellcasting.CurrentFocusPoints}/{member.Spellcasting.MaxFocusPoints}.");
+                }
+                return;
+
+            case EventEffectKind.CacheGold:
+            {
+                int gold = TreasureByLevel.Scale(EventRewards.CacheGoldAtLevelOne, state.Party.Level);
+                state.Gold += gold;
+                lines.Add($"Gained {gold} gold.");
+                return;
+            }
+
+            case EventEffectKind.RevealKinds:
+                // The dungeon owns the floor plan and applies the reveal after the roll.
+                return;
         }
 
         var health = actor?.Health;
@@ -132,6 +170,46 @@ public static class EventResolver
             case EventEffectKind.WoundedDelta:
                 ApplyWounded(actor, effect.Value, lines);
                 break;
+
+            case EventEffectKind.HazardDamage:
+            {
+                int before = health.CurrentHP;
+                health.SetCurrentHP(Math.Max(1, before - Math.Max(1, health.MaxHP * effect.Value / 100)));
+                lines.Add($"{actor.Name}: HP {before} → {health.CurrentHP}.");
+                break;
+            }
+
+            case EventEffectKind.RepairShields:
+            {
+                // Player Core Repair: 5 HP plus 5 per proficiency rank (trained 10, expert 15),
+                // doubled on a critical success.
+                var owners = state.Party.Living().Where(m => m.Equipment?.Shield?.EquippedShield != null).ToList();
+                if (effect.Value < 0)
+                {
+                    // Critical failure: 2d6 damage, less Hardness, to the one shield on the bench,
+                    // the most damaged.
+                    var owner = owners.OrderBy(m => (double)m.Equipment!.Shield.CurrentShieldHP / m.Equipment.Shield.MaxShieldHP).FirstOrDefault();
+                    if (owner == null) break;
+                    var bench = owner.Equipment!.Shield;
+                    var rng = new Random(RunRng.StableSeed(state.StratumSeed, state.CurrentNodeId ?? -1, "repair-slip"));
+                    int damage = Math.Max(0, rng.Next(1, 7) + rng.Next(1, 7) - bench.EquippedShield!.Hardness);
+                    int was = bench.CurrentShieldHP;
+                    bench.SetCurrentShieldHP(Math.Max(0, was - damage));
+                    lines.Add($"{owner.Name}'s shield {was} → {bench.CurrentShieldHP}.");
+                    break;
+                }
+                int rank = (int)SkillCalculator.GetProficiency(actor, Skill.Crafting) / 2;
+                int amount = (5 + 5 * rank) * Math.Max(1, effect.Value);
+                foreach (var owner in owners)
+                {
+                    var shield = owner.Equipment!.Shield;
+                    if (shield.CurrentShieldHP >= shield.MaxShieldHP) continue;
+                    int before = shield.CurrentShieldHP;
+                    shield.SetCurrentShieldHP(Math.Min(shield.MaxShieldHP, before + amount));
+                    lines.Add($"{owner.Name}'s shield {before} → {shield.CurrentShieldHP}.");
+                }
+                break;
+            }
         }
     }
 

@@ -26,9 +26,6 @@ const EVEN_TABLE_STAGES: int = 1
 ## chance of a block. About a third of a starter list defends.
 const BLOCK_SHARE: float = 0.35
 
-## What a kept card that cannot defend is worth through the opponent's turn. See `_keep_score`.
-const KEPT_OFF_TURN: float = 0.5
-
 const MODIFIER_ATTACKS: Dictionary = {"combat": 1.5, "turn": 1.5, "next_attack_phase": 1.0, "next_turn_end": 3.0, "game": 6.0}
 
 
@@ -185,7 +182,16 @@ static func _attack_score(engine: DuelEngine, profile: AiProfile, me: PlayerStat
 		v += effects_value(lines, profile, ["secondary", "if_successful", "use"], handover, engine, me.index)
 		v += _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c)
 		v += _mastery_attack_value(engine, profile, me, c.def, kind, handover)
+		if o.type == &"attack" and c.zone == &"hand":
+			# A card thrown into a block is gone for nothing, so while the rival can still block, lead
+			# with the lesser card and keep the better one for a swing that lands.
+			v -= profile.w("play", "attack_hold") * block_chance(foe) * hold_value(c, profile)
 	return v + 0.1
+
+
+## The chance a rival holding this many hidden cards has at least one that blocks.
+static func block_chance(foe: PlayerState) -> float:
+	return 1.0 - pow(1.0 - BLOCK_SHARE, float(foe.hand.size()))
 
 
 ## The attack a copy repeats ("perform the attack that was just used against you"), read off the
@@ -276,7 +282,7 @@ static func _defense_score(engine: DuelEngine, profile: AiProfile, me: PlayerSta
 		cost = profile.w("play", "defend_card")
 		# A card that also attacks is a swing given up.
 		if c.def.is_attack():
-			cost += _expected_damage_value(c.def.attack, c.def.attack_kind(), profile) * KEPT_OFF_TURN
+			cost += _expected_damage_value(c.def.attack, c.def.attack_kind(), profile) * profile.w("play", "kept_off_turn")
 	if c != null and o.type == &"defend":
 		var spec: Dictionary = c.def.defense
 		cost += int(spec.get("cost_life", 0)) * life_card_price(me, profile)
@@ -402,10 +408,12 @@ static func _cheapest_in_hand(me: PlayerState, profile: AiProfile) -> float:
 
 
 ## Whether to open Combat, against `skip` at 1.0. Declaring hands the rival three cards and an attack
-## phase of their own, so it needs a reason: an attack the engine would offer right now, or cards,
-## powers and entering-Combat lines that together pay more than the rival's draw. Without one it
-## scores 0 whatever the profile's `declare_bias`, which is a stance about how readily to fight and
-## not a reason to fight with nothing. `declare_use` weighs what is carried.
+## phase of their own, so it needs a reason: an attack the engine would offer right now, or cards and
+## powers to use in the attack phase that pay more than the rival's draw. Entering-Combat lines only
+## add to a Combat worth having; a card drawn on entry is no reason to sit through the rival's
+## attacks. Without a reason it is ruled out whatever the profile's `declare_bias`, which is a stance
+## about how readily to fight, and out of reach of a weaker level's noise. `declare_use` weighs what
+## is carried.
 static func _declare_score(engine: DuelEngine, profile: AiProfile, me: PlayerState) -> float:
 	var attackers: int = 0
 	var carried: float = 0.0
@@ -426,10 +434,10 @@ static func _declare_score(engine: DuelEngine, profile: AiProfile, me: PlayerSta
 					carried += maxf(0.0, _use_score(engine, profile, me, c))
 			&"ransom":
 				carried += profile.w("effect", "discard_in_play")
-	var entering: float = _entering_value(engine, profile, me, handover)
-	if attackers == 0 and carried + entering <= DuelEngine.DRAW_COUNT * profile.w("effect", "draw"):
-		return 0.0
-	return attackers * 1.0 + carried * profile.w("play", "declare_use") + entering + profile.w("play", "declare_bias")
+	if attackers == 0 and carried <= DuelEngine.DRAW_COUNT * profile.w("effect", "draw"):
+		return -AiEvaluator.WIN
+	return attackers * 1.0 + carried * profile.w("play", "declare_use") + _entering_value(engine, profile, me, handover) \
+		+ profile.w("play", "declare_bias")
 
 
 ## What this side's own entering-Combat lines pay when it declares: its Drills, Non-Combats,
@@ -468,7 +476,7 @@ static func _use_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, 
 static func _grounds_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, c: CardInstance) -> float:
 	var current: CardDef = engine.state.grounds.def if engine.state.grounds != null else null
 	var gain: float = AiEvaluator.grounds_value(engine, me.index, c.def, profile) - AiEvaluator.grounds_value(engine, me.index, current, profile)
-	return gain - _declare_score(engine, profile, me) * profile.w("play", "grounds_skip")
+	return gain - maxf(0.0, _declare_score(engine, profile, me)) * profile.w("play", "grounds_skip")
 
 
 ## A card that moves the duelist to the aspect matching its Fervor: worth the aspects gained, and a
@@ -509,14 +517,14 @@ static func _foe_has(foe: PlayerState, what: String) -> bool:
 
 ## For the player whose turn is ending, a card kept through the discard step waits out the
 ## opponent's turn, where only a defense can act. Anything else matters again only after the next
-## draw has refilled the hand, so it keeps half its worth. The other player's turn is next, so
+## draw has refilled the hand, so it keeps `play.kept_off_turn` of its worth. The other player's turn is next, so
 ## whatever they keep is theirs to use at once.
 static func _keep_score(engine: DuelEngine, me: PlayerState, c: CardInstance, profile: AiProfile) -> float:
 	if c == null:
 		return 0.5
 	var worth: float = card_value(engine, me, c, profile, TUTOR_DEPTH)
 	var waits: bool = me.index == engine.state.active and not c.def.is_defense()
-	return 0.5 + (worth * KEPT_OFF_TURN if waits else worth)
+	return 0.5 + (worth * profile.w("play", "kept_off_turn") if waits else worth)
 
 
 ## Paying Energy into a card: what each `per` Energy buys, less the Energy. On an attack
@@ -1076,8 +1084,7 @@ static func _focus_value(engine: DuelEngine, me: PlayerState, profile: AiProfile
 	var foe: PlayerState = engine.player(1 - me.index)
 	var d: Dictionary = engine.damage_breakdown(engine.state.attack)
 	var swing: float = float(d.get("wounds", 0)) * profile.w("play", "damage_life") + float(d.get("stages", 0)) * profile.w("play", "damage_stage")
-	var holds_block: float = 1.0 - pow(1.0 - BLOCK_SHARE, float(foe.hand.size()))
-	return swing * holds_block * _stop_any_share(foe)
+	return swing * block_chance(foe) * _stop_any_share(foe)
 
 
 ## The share of a rival's shown defences that Focus gets past: those that stop both kinds and do

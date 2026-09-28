@@ -181,6 +181,7 @@ func _init() -> void:
 		test_declare_window,
 		test_a_deck_that_never_attacks_still_declares_to_spend_what_it_carries,
 		test_declaring_needs_something_to_do,
+		test_the_search_leaves_a_final_strike_to_the_scorer,
 		test_grounds_can_tax_one_kind_of_attack,
 		test_a_restriction_can_last_one_attack_phase_not_the_whole_combat,
 		test_restrictions_list_what_the_rules_forbid,
@@ -2566,6 +2567,8 @@ func test_ai_weighs_grounds() -> void:
 ## keys off what the rival declares itself to be, which both players can see.
 func test_a_profile_can_pivot_on_the_matchup() -> void:
 	var base: AiProfile = AiProfile.default_profile()
+	# Which value a pivot leaves in place, read without the shipped calibration on top.
+	base.data["scale"] = {}
 	base.merge({"play": {"declare_bias": 1.0}, "own": {"ally": 2.0},
 		"vs": {
 			"strike_beatdown": {"play": {"declare_bias": -4.0}, "own": {"ally": 9.0}},
@@ -2739,11 +2742,35 @@ func test_declaring_needs_something_to_do() -> void:
 		me.hand.append(e._instance(lib.get_def(id), 0, &"hand"))
 	var blocks: float = AiScorer._declare_score(e, profile, me)
 	check(blocks < 1.0, "a hand of blocks and a power it cannot pay for scores under skipping (%.2f)" % blocks)
+	var entry: CardDef = CardDef.from_dict({"id": "d", "title": "D", "type": "drill",
+		"effects": [{"trigger": "entering_combat", "op": "draw", "amount": 3}]})
+	var drill: CardInstance = e._instance(entry, 0, &"in_play")
+	me.in_play.append(drill)
+	eq(AiScorer._declare_score(e, profile, me), blocks, "cards drawn on entering Combat are no reason to open one")
+	me.in_play.erase(drill)
 	me.hand.append(e._instance(lib.get_def("t_art"), 0, &"hand"))
 	eq(AiScorer._declare_score(e, profile, me), blocks, "an Art it cannot pay for is still no reason")
 	me.duelist.energy = 5
 	var armed: float = AiScorer._declare_score(e, profile, me)
 	check(armed > 1.0, "once the Art and the power can be paid, the bias applies and it declares (%.2f)" % armed)
+
+
+## A final strike is a last resort. The search does not weigh one the scorer rates below passing,
+## so a playout that likes the damage cannot pick it over a hand still worth holding.
+func test_the_search_leaves_a_final_strike_to_the_scorer() -> void:
+	var e: DuelEngine = engine(deck(filler(["t_parry", "t_ward", "t_guard"])), deck(filler(), "pact"))
+	to_combat(e)
+	var prompt: Prompt = e.prompt_of(0)
+	var profile: AiProfile = AiProfile.default_profile()
+	var prior: Array[float] = AiScorer.scores(e, profile, 0)
+	var offered: bool = false
+	for o in prompt.options:
+		offered = offered or o.type == &"final_strike"
+	check(offered, "the engine offers a final strike")
+	for i in AiSearch._candidates(e, prompt, prior, prompt.options.size()):
+		check(prompt.options[i].type != &"final_strike" or prior[i] > 0.0, "a final strike the scorer rates at %.2f is not searched" % prior[i])
+	for i in AiSearch._shortlist(prompt, prior, prompt.options.size(), e):
+		check(prompt.options[i].type != &"final_strike" or prior[i] > 0.0, "nor modelled as the rival's reply (%.2f)" % prior[i])
 
 
 func shipped_library() -> CardLibrary:
@@ -5114,7 +5141,7 @@ func test_ai_search_reports_and_is_repeatable() -> void:
 	var before: String = views_text(ref.engine)
 	var profile: AiProfile = AiProfile.default_profile()
 	# Repeatability must depend on a fixed amount of work, not machine speed or live difficulty.
-	profile.merge({"think": {"samples": 3, "budget_ms": 0, "node_budget": 600}})
+	profile.merge({"think": {"search": true, "samples": 3, "budget_ms": 0, "node_budget": 600}})
 	var first: AiPlayer = AiPlayer.new(profile, 77)
 	var second: AiPlayer = AiPlayer.new(profile, 77)
 	var a: Dictionary = first.choose(ref, seat)
@@ -5570,12 +5597,20 @@ func test_archetype_label() -> void:
 
 func test_ai_profile_merge() -> void:
 	var p: AiProfile = AiProfile.default_profile()
+	# Merge mechanics, read without the shipped calibration on top; the scale checks below add their own.
+	p.data["scale"] = {}
 	p.merge({"name": "test", "own": {"seal": 99.0}, "think": {"search": false}, "nonsense": {"x": 1}})
 	eq(p.name, "test", "name taken")
 	eq(p.w("own", "seal"), 99.0, "the named weight changed")
 	eq(p.w("own", "life"), float(AiProfile.DEFAULTS["own"]["life"]), "the rest kept their defaults")
 	eq(p.searches(), false, "think knobs merge too")
-	eq(AiProfile.default_profile().w("own", "seal"), float(AiProfile.DEFAULTS["own"]["seal"]), "a merge never writes to the defaults")
+	eq(float(AiProfile.default_profile().data["own"]["seal"]), float(AiProfile.DEFAULTS["own"]["seal"]), "a merge never writes to the defaults")
+	eq(AiProfile.default_profile().w("own", "seal"), float(AiProfile.DEFAULTS["own"]["seal"]) * float(AiProfile.DEFAULTS["scale"]["own.seal"]), "and a default profile reads through the shipped calibration")
+	p.merge({"scale": {"own.seal": 1.5}})
+	eq(p.w("own", "seal"), 148.5, "a scale multiplies the deck's own value")
+	eq(p.w("own", "life"), float(AiProfile.DEFAULTS["own"]["life"]), "and leaves unscaled weights alone")
+	p.merge({"own": {"seal": 10.0}})
+	eq(p.w("own", "seal"), 15.0, "and still applies when the value under it changes")
 	for file in ["default", "easy", "hard"]:
 		var loaded: AiProfile = AiProfile.load_from("res://data/ai/profiles/%s.json" % file)
 		eq(loaded.name, file, "%s.json loads" % file)
@@ -11208,6 +11243,11 @@ func test_root_seed_burst_sifts_four_and_removes_two() -> void:
 	eq(pile[2].zone, &"removed", "and the second")
 	eq(pile[1].zone, &"life_deck", "the third went back into the deck")
 	eq(pile[3].zone, &"discard", "an unchosen card stayed in the pile")
+	var none: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil"))
+	var kept: CardInstance = real_to_discard(none, 0, "tide_drill_05")
+	none._apply_effect(burst.effects[0], 0, {}, null)
+	check(none.submit(Command.new(0, &"pick_none")), "taking none of the pile is accepted")
+	eq(kept.zone, &"discard", "and the pile is left as it was")
 	var f: DuelEngine = real_engine(real_deck([], "pact", "root"), real_deck([], "vigil"))
 	var burning: CardInstance = f._instance(burst, 0, &"resolving")
 	f._apply_effect(burst.effects[1], 0, {}, burning)

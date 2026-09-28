@@ -5,18 +5,18 @@
 [node name="ThemeLintSpike" type="Node"]
 script = ExtResource("1")
 SceneDirectories = PackedStringArray("res://scenes/ui", "res://scenes/run")
-SceneFiles = PackedStringArray("res://scenes/combat/combat.tscn", "res://scenes/dungeon/hud.tscn", "res://scenes/dungeon/event_panel.tscn")
+SceneFiles = PackedStringArray("res://scenes/combat/combat.tscn", "res://scenes/combat/unit_token.tscn", "res://scenes/dungeon/hud.tscn", "res://scenes/dungeon/event_panel.tscn")
 ThemeFiles = PackedStringArray("res://assets/ui/ui_theme.tres")
 ScriptFiles = PackedStringArray("res://scripts/dungeon/DungeonHud.cs")
-ScriptDirectories = PackedStringArray("res://scripts/ui", "res://scripts/flow")
+ScriptDirectories = PackedStringArray("res://scripts/ui", "res://scripts/flow", "res://scripts/combat")
 FontSizeFloor = 18
 MaxColorOverrides = 0
 MaxFontSizeOverrides = 0
 MaxFontOverrides = 0
 MaxStyleOverrides = 0
 MaxSceneThemes = 0
-MaxScriptOverrides = 27
-MaxScriptColorLiterals = 29
+MaxScriptOverrides = 19
+MaxScriptColorLiterals = 32
 MaxSceneColorLiterals = 6
 MaxSizesBelowFloor = 0
 MaxMojibake = 0

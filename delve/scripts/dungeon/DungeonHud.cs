@@ -7,8 +7,34 @@ using Godot;
 namespace Delve.Dungeon;
 public partial class DungeonHud : Control
 {
-    public event Action? RestPressed, StairsPressed, LayoutPicked, EntryPicked;
+    public event Action? RestPressed, CampPressed, PotionPressed, StairsPressed, LayoutPicked, EntryPicked;
     public event Action<int>? RestartPressed, SizePicked;
+
+    /// <summary>Time the ward bar takes to slide to a new value.</summary>
+    [Export] public double WardTweenSeconds { get; set; } = 0.4;
+
+    /// <summary>Scale the Wardstone panel pulses to when the ward changes.</summary>
+    [Export] public float WardPulseScale { get; set; } = 1.04f;
+
+    [Export] public double WardPulseSeconds { get; set; } = 0.2;
+
+    /// <summary>Room name card: fade in, hold, fade out.</summary>
+    [Export] public double RoomCardIn { get; set; } = 0.25;
+
+    [Export] public double RoomCardHold { get; set; } = 1.2;
+    [Export] public double RoomCardOut { get; set; } = 0.4;
+
+    /// <summary>Hold for a card with a detail line, long enough to read three sentences.</summary>
+    [Export] public double RoomCardDetailHold { get; set; } = 6;
+
+    /// <summary>Plays HUD beats at zero length, for spikes and autoplay.</summary>
+    public bool Instant { get; set; }
+
+    private ThresholdTicks _wardTicks = null!;
+    private Control _roomCard = null!;
+    private Label _roomCardTitle = null!, _roomCardDetail = null!;
+    private Tween? _wardTween, _cardTween;
+    private int _shownWard = -1;
     private Label _status = null!, _notice = null!;
     private Control _expedition = null!;
     private Label _wardValue = null!, _wardDanger = null!, _roomProgress = null!;
@@ -16,10 +42,21 @@ public partial class DungeonHud : Control
     private StyleBoxFlat _wardFill = null!;
     private LineEdit _seed = null!;
     private HBoxContainer _sizes = null!;
-    private Button _rest = null!, _stairs = null!, _layout = null!, _entry = null!;
+    private Button _rest = null!, _camp = null!, _potion = null!, _stairs = null!, _layout = null!, _entry = null!;
     private DungeonFloor? _floor;
     private RunState? _state;
-    private bool _showRoomMap;
+    private FloorPlan _floorPlan = null!;
+    private Control _plan = null!;
+    private Label _planTitle = null!, _planGoal = null!;
+
+    /// <summary>The floor's objective as the party knows it: find the chamber, beat its guardian, descend.</summary>
+    public static string Goal(DungeonFloor floor)
+    {
+        var chamber = floor.Rooms[floor.GuardianId];
+        return chamber.Completed ? "Goal: take the stairs down"
+            : chamber.Discovered ? "Goal: defeat the guardian"
+            : "Goal: find the ward chamber";
+    }
     public override void _Ready()
     {
         _status = GetNode<Label>("%Status");
@@ -32,10 +69,22 @@ public partial class DungeonHud : Control
         _roomsBar = GetNode<ProgressBar>("%RoomsBar");
         _wardFill = (StyleBoxFlat)_wardBar.GetThemeStylebox("fill").Duplicate();
         _wardBar.AddThemeStyleboxOverride("fill", _wardFill);
+        _wardTicks = GetNode<ThresholdTicks>("%WardTicks");
+        _roomCard = GetNode<Control>("%RoomCard");
+        _roomCardTitle = GetNode<Label>("%RoomCardTitle");
+        _roomCardDetail = GetNode<Label>("%RoomCardDetail");
+        _floorPlan = GetNode<FloorPlan>("%FloorPlan");
+        _plan = GetNode<Control>("%Plan");
+        _planTitle = GetNode<Label>("%PlanTitle");
+        _planGoal = GetNode<Label>("%PlanGoal");
+        HideRoomCard();
         _seed = GetNode<LineEdit>("%Seed");
         _sizes = GetNode<HBoxContainer>("%Sizes");
         _rest = GetNode<Button>("%Rest");
         _stairs = GetNode<Button>("%Stairs");
+        // shortcut_in_tooltip appends each button's key to these.
+        _rest.TooltipText = "Ten minutes for the whole party: Treat Wounds, Refocus or Repair Shield.";
+        _stairs.TooltipText = "Leave this floor by the guardian's stairs.";
         GetNode<Button>("%Restart").Pressed += () =>
         {
             if (int.TryParse(_seed.Text, out int seed))
@@ -43,6 +92,11 @@ public partial class DungeonHud : Control
         };
         GetNode<Button>("%NewSeed").Pressed += () => RestartPressed?.Invoke((int)(GD.Randi() & 0x7fffffff));
         _rest.Pressed += () => RestPressed?.Invoke();
+        _camp = GetNode<Button>("%Camp");
+        _camp.Pressed += () => CampPressed?.Invoke();
+        _potion = GetNode<Button>("%Potion");
+        _potion.Pressed += () => PotionPressed?.Invoke();
+        _potion.TooltipText = "The most wounded hero drinks a healing potion of the party's level.";
         _stairs.Pressed += () => StairsPressed?.Invoke();
         foreach (int n in new[]
         {
@@ -66,6 +120,7 @@ public partial class DungeonHud : Control
         _entry = new Button();
         _sizes.AddChild(_entry);
         _entry.Pressed += () => EntryPicked?.Invoke();
+        ReadyParty();
     }
 
     public void SetDevelopmentControlsVisible(bool visible)
@@ -77,6 +132,7 @@ public partial class DungeonHud : Control
 
     public void Render(DungeonFloor floor, RunState state, DungeonPhase phase, int seed, bool comparison, int size, bool openLayout, DoorSide entry)
     {
+        if (!ReferenceEquals(state, _state)) _shownWard = -1;
         _floor = floor;
         _state = state;
         _seed.Text = seed.ToString();
@@ -84,18 +140,23 @@ public partial class DungeonHud : Control
         _layout.Text = openLayout ? "Layout: Open" : "Layout: Furnished";
         _entry.Text = $"Entry: {entry}";
         bool fighting = phase is DungeonPhase.Combat or DungeonPhase.Results or DungeonPhase.Transition;
-        _showRoomMap = !fighting;
+        _plan.Visible = !fighting;
         _status.Visible = !fighting;
         _expedition.Visible = !fighting;
-        GetNode<VBoxContainer>("%Top").Position = new Vector2(24, fighting ? 45 : 16);
         _notice.Visible = !fighting;
+        RenderParty(state, fighting);
         int id = state.CurrentNodeId ?? 0;
         var room = floor.Rooms[id];
-        _status.Text = $"Floor {state.Stratum + 1} · {StationPlan.Name(room.Purpose)}    ·    Party level {state.Party.Level}    ·    {state.Gold} gold";
+        _status.Text = $"{StationPlan.Name(room.Purpose)}    ·    {state.Gold} gold";
+        _planTitle.Text = $"Floor {state.Stratum + 1} of {Delve.Data.FloorThemes.Count}";
+        _planGoal.Text = Goal(floor);
+        _floorPlan.Render(floor, state);
         var ward = state.Wardstone;
-        _wardValue.Text = $"{ward.Ward} / {ward.Rules.MaxWard}";
+        _wardValue.Text = ward.Ward.ToString();
         _wardBar.MaxValue = ward.Rules.MaxWard;
-        _wardBar.Value = ward.Ward;
+        ShowWard(ward.Ward);
+        _wardTicks.SetFractions(new[] { ward.Rules.SteadyAbove, ward.Rules.FirstShiftAbove, ward.Rules.SecondShiftAbove }
+            .Select(t => (float)t / ward.Rules.MaxWard).ToArray());
         var color = UiColors.WardTier(ward.Upshift);
         _wardFill.BgColor = color;
         _wardValue.Modulate = color;
@@ -103,18 +164,22 @@ public partial class DungeonHud : Control
         _wardDanger.Text = ward.IsSpent ? "EXHAUSTED · Expedition ends"
             : ward.Upshift == 0 ? "Danger: normal"
             : $"Danger: +{ward.Upshift} {(ward.Upshift == 1 ? "tier" : "tiers")}";
-        _expedition.TooltipText = $"Each doorway costs {ward.Rules.NodeBurn} ward, including backtracking.\nShort rests cost {ward.Rules.ShortRestBurn} ward. Zero ward ends the expedition.\nEncounter danger rises below {ward.Rules.SteadyAbove}, {ward.Rules.FirstShiftAbove}, and {ward.Rules.SecondShiftAbove} ward.\nCleared rooms stay cleared when you return.";
+        _expedition.TooltipText = $"Ward {ward.Ward} of {ward.Rules.MaxWard}.\nEach doorway costs {ward.Rules.NodeBurn} ward, including backtracking.\nShort rests cost {ward.Rules.ShortRestBurn} ward. Zero ward ends the expedition.\nEncounter danger rises below {ward.Rules.SteadyAbove}, {ward.Rules.FirstShiftAbove}, and {ward.Rules.SecondShiftAbove} ward.\nCleared rooms stay cleared when you return.";
         int cleared = floor.Rooms.Count(r => r.Completed);
         _roomProgress.Text = $"Rooms cleared  {cleared}/{floor.Rooms.Count}";
         _roomsBar.MaxValue = floor.Rooms.Count;
         _roomsBar.Value = cleared;
-        _rest.Text = $"Short rest −{ward.Rules.ShortRestBurn} ward";
+        _rest.Text = $"Short rest · Ward {ward.Ward} → {ward.WardAfterShortRest}";
+        bool guardianDown = floor.Rooms[floor.GuardianId].Completed;
         _notice.Text = phase switch
         {
             DungeonPhase.Travel => $"Crossing…  −{state.Wardstone.Rules.NodeBurn} ward",
-            DungeonPhase.Doors => $"Click a character for details. Click a doorway to travel ({state.Wardstone.Rules.NodeBurn} ward).",
+            DungeonPhase.Doors when guardianDown => FloorCompleteNotice,
+            // The how-to line stays only until the first crossing of the run.
+            DungeonPhase.Doors when state.Stratum == 0 && floor.Rooms.Count(r => r.Discovered) <= 1
+                => $"Click a character for details. Click a doorway to travel ({state.Wardstone.Rules.NodeBurn} ward).",
             DungeonPhase.Combat => comparison ? $"Guard hall comparison: {size} × {size}. Same seed and enemies; compare movement and congestion." : "Resolve the encounter to open the doors.",
-            DungeonPhase.End => state.Outcome == RunOutcome.Victory ? "Floor complete. The stairs lead onward." : "The expedition ends. Restart or try a new seed.",
+            DungeonPhase.End => state.Outcome == RunOutcome.Victory ? FloorCompleteNotice : "The expedition ends. Restart or try a new seed.",
             _ => ""
         };
         _rest.Visible = phase == DungeonPhase.Doors;
@@ -122,29 +187,75 @@ public partial class DungeonHud : Control
             _notice.Text = "Promotion available: " + string.Join(", ", state.Party.Living()
                 .Where(c => CharacterPromotion.For(c).PendingLevels(c) > 0).Select(c => c.Name))
                 + ". Click a character to open their sheet before the next encounter.";
-        _rest.Disabled = !state.Wardstone.CanAffordShortRest;
+        _rest.Disabled = !state.Wardstone.CanAffordShortRest && state.FreeRests == 0;
+        if (state.FreeRests > 0) _rest.Text = $"Short rest · Free ({state.FreeRests})";
+        _camp.Visible = phase == DungeonPhase.Doors && room.Family == RoomFamily.Camp && !room.Resolved;
+        _potion.Visible = phase == DungeonPhase.Doors && state.Potions > 0;
+        _potion.Text = $"Drink potion · {state.Potions} left";
+        _potion.Disabled = state.Party.Living().All(m => m.Health.CurrentHP >= m.Health.MaxHP);
+        int campWard = Math.Min(ward.Rules.MaxWard, ward.Ward + ward.Rules.CampsiteRefill);
+        _camp.Text = $"Make camp · Ward {ward.Ward} → {campWard}";
+        _camp.TooltipText = "Rest until morning, once per refuge. Recovers HP, clears Wounded, restores spell slots and focus, and starts a new day.";
         _stairs.Text = state.OnFinalStratum ? "Complete expedition" : $"Descend to floor {state.Stratum + 2}";
         _stairs.Visible = phase == DungeonPhase.Doors && room.Family == RoomFamily.Guardian && room.Completed;
-        QueueRedraw();
     }
+
+    public const string FloorCompleteNotice = "Floor complete. The stairs lead onward.";
+
+    /// <summary>Slides the bar to the new ward and pulses the panel. The first value of a run snaps.</summary>
+    private void ShowWard(int ward)
+    {
+        if (ward == _shownWard) return;
+        bool snap = _shownWard < 0 || Instant;
+        _shownWard = ward;
+        _wardTween?.Kill();
+        _expedition.Scale = Vector2.One;
+        if (snap)
+        {
+            _wardBar.Value = ward;
+            return;
+        }
+        _expedition.PivotOffset = _expedition.Size / 2;
+        _wardTween = CreateTween().SetParallel(true);
+        _wardTween.TweenProperty(_wardBar, "value", (double)ward, WardTweenSeconds)
+            .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.Out);
+        _wardTween.TweenProperty(_expedition, "scale", Vector2.One * WardPulseScale, WardPulseSeconds / 2)
+            .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.Out);
+        _wardTween.Chain().TweenProperty(_expedition, "scale", Vector2.One, WardPulseSeconds / 2)
+            .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.In);
+    }
+
+    /// <summary>The room's name over the scene. It never takes input, so doors stay usable.</summary>
+    public void ShowRoomCard(string title, string detail = "")
+    {
+        _cardTween?.Kill();
+        _roomCardTitle.Text = title;
+        _roomCardDetail.Text = detail;
+        _roomCardDetail.Visible = detail.Length > 0;
+        HideRoomCard();
+        if (Instant) return;
+        _cardTween = CreateTween();
+        _cardTween.TweenProperty(_roomCard, "modulate:a", 1.0, RoomCardIn);
+        _cardTween.TweenInterval(detail.Length > 0 ? RoomCardDetailHold : RoomCardHold);
+        _cardTween.TweenProperty(_roomCard, "modulate:a", 0.0, RoomCardOut);
+    }
+
+    /// <summary>Stops the HUD's own beats and shows their end state. Called when a floor resets.</summary>
+    public void CancelBeats()
+    {
+        _cardTween?.Kill();
+        HideRoomCard();
+        _wardTween?.Kill();
+        _expedition.Scale = Vector2.One;
+        if (_state != null) _wardBar.Value = _shownWard = _state.Wardstone.Ward;
+    }
+
+    private void HideRoomCard() => _roomCard.Modulate = _roomCard.Modulate with { A = 0 };
+
+    public string RoomCardText => _roomCardTitle.Text;
+    public string RoomCardDetail => _roomCardDetail.Text;
 
     public void ShowNotice(string text) => _notice.Text = text;
-    public override void _Draw()
-    {
-        if (!_showRoomMap || _floor == null || _state == null)
-            return;
-        var origin = new Vector2(Size.X - 185, 120);
-        const float step = 38;
-        foreach (var room in _floor.Rooms.Where(r => r.Discovered))
-        {
-            var p = origin + new Vector2(room.X, room.Y) * step;
-            foreach (var d in room.Doors.Where(d => d.A == room.Id && _floor.Rooms[d.B].Discovered))
-            {
-                var b = _floor.Rooms[d.B];
-                DrawLine(p, origin + new Vector2(b.X, b.Y) * step, UiColors.Line, 3);
-            }
-
-            DrawCircle(p, 8, room.Id == _state.CurrentNodeId ? UiColors.Accent : UiColors.TextDim);
-        }
-    }
+    public string NoticeText => _notice.Text;
+    public FloorPlan Plan => _floorPlan;
 }

@@ -19,6 +19,7 @@ public static class InputNames
     public const string Decline = "combat_decline";
     public const string Help = "combat_help";
     public const string LogToggle = "combat_log_toggle";
+    public const string Journal = "combat_journal";
     /// <summary>Re-centre the combat camera on the active unit.</summary>
     public const string Focus = "combat_focus";
 
@@ -28,6 +29,10 @@ public static class InputNames
     /// <summary>Godot's built-in list navigation, read by the menu screens.</summary>
     public const string UiUp = "ui_up";
     public const string UiDown = "ui_down";
+    public const string UiLeft = "ui_left";
+    public const string UiRight = "ui_right";
+    public const string UiFocusNext = "ui_focus_next";
+    public const string UiFocusPrev = "ui_focus_prev";
 
     /// <summary>
     /// Display name of the first key bound to <paramref name="action"/> ("1", "Q", "Space").

@@ -1,7 +1,5 @@
 {
-	"_note": "The same sequence planner with a small budget, fewer alternatives and noisy close calls.",
+	"_note": "The scorer with noisy close calls: every option's score is nudged by up to 1.5 either way, so near ties go astray.",
 	"name": "easy",
-	"think": {"search": true, "algorithm": "sequence", "budget_ms": 200, "samples": 1,
-		"top_k": 3, "sequence_depth": 2, "branch_width": 2, "response_width": 1,
-		"node_budget": 750, "rollout_steps": 2, "settle_steps": 4, "noise": 1.5}
+	"think": {"noise": 1.5}
 }

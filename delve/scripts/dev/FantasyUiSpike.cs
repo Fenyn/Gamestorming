@@ -25,7 +25,16 @@ public partial class FantasyUiSpike : SpikeBase
         var banner = GD.Load<PackedScene>("res://scenes/ui/victory_banner.tscn").Instantiate<VictoryBanner>();
         root.AddChild(banner);
         banner.ShowResult("Victory!", UiColors.Victory);
-        banner.ShowRewards("+80 party XP\nWardstone restored: +12 ward\nA survivor is ready to join the party.", "Level 2 - 320 / 1000 XP to next level", 32);
+        banner.ShowRewards(new Delve.Flow.CombatResultsView
+        {
+            Figures = new[]
+            {
+                new Delve.Combat.FigureView("XP", "120") { Before = "40" },
+                new Delve.Combat.FigureView("Ward", "100") { Before = "88" },
+            },
+            Notes = new[] { "A survivor is ready to join the party." },
+            Progress = 80,
+        });
         await Settle();
         Check("results fit inside viewport", root.GetGlobalRect().Encloses(banner.GetNode<Control>("%Frame").GetGlobalRect()));
         Capture("fantasy_victory.png");
@@ -37,7 +46,7 @@ public partial class FantasyUiSpike : SpikeBase
         Check("continue still fires once", continues == 1);
         banner.HideResult();
         banner.ShowResult("Defeat", UiColors.Defeat);
-        banner.ShowRewards("The expedition has fallen.\nNo combat rewards gained.", "", 0);
+        banner.ShowRewards(new Delve.Flow.CombatResultsView());
         await Settle();
         Check("defeat hides absent progression", !banner.GetNode<ProgressBar>("%XpProgress").Visible);
         Capture("fantasy_defeat.png");
@@ -54,12 +63,6 @@ public partial class FantasyUiSpike : SpikeBase
 
     private void Capture(string filename)
     {
-        var img = GetViewport().GetTexture().GetImage();
-        img.Convert(Image.Format.Rgba8);
-        if (GetViewport().UseHdr2D) img.LinearToSrgb();
-        string directory = OS.GetEnvironment("DELVE_SHOT_DIRECTORY");
-        if (string.IsNullOrEmpty(directory)) directory = "user://dev_shots";
-        DirAccess.MakeDirRecursiveAbsolute(directory);
-        Check(filename + " saved", img.SavePng(directory + "/" + filename) == Error.Ok);
+        Check(filename + " saved", SaveViewportCapture("user://dev_shots/" + filename) == Error.Ok);
     }
 }

@@ -48,7 +48,6 @@ internal static class ReactionPromptBuilder
         {
             ReactorName = ctx.Reactor.Name,
             ReactorId = ctx.Reactor.UniqueId,
-            PortraitKey = ctx.Reactor.Name,
             ReactionName = ctx.ReactionName,
             Title = $"{ctx.ReactionName}?",
             AcceptLabel = accept,
@@ -89,8 +88,9 @@ internal static class ReactionPromptBuilder
             preview = ActionBarStateBuilder.BuildPreview(
                 CombatPreviewCalculator.CalculateAttackPreview(ctx.Reactor, ctx.Source, mapOverride: 0));
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            Godot.GD.PushWarning($"[ReactionPrompt] {ctx.ReactionName} forecast failed, so the prompt shows no hit chance: {e.Message}");
             return;
         }
         figures.Add(new FigureView("Hit", preview.HitChanceText));

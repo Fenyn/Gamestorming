@@ -4,8 +4,9 @@ using PF2eVec = PF2e.Vector2Int;
 
 namespace Delve.Combat;
 
-/// <summary>How a smart move reaches a tile: a careful Step (adjacent, no reactions) or Strides.</summary>
-public enum MoveKind { Step, Stride }
+/// <summary>How a smart move reaches a tile: a careful Step (adjacent, no reactions), Strides, or
+/// 5-foot Crawls while prone.</summary>
+public enum MoveKind { Step, Stride, Crawl }
 
 /// <summary>One reachable tile of a <see cref="MovePlan"/>: the actions it costs and the move kind.</summary>
 public readonly record struct MoveOption(int Actions, MoveKind Kind);
@@ -39,7 +40,7 @@ public sealed class MovePlan
         Options = options;
     }
 
-    /// <summary>How many Stride bands were built (0 when the actor cannot move).</summary>
+    /// <summary>How many Stride or Crawl bands were built (0 when the actor cannot move).</summary>
     public int BandCount => _bands.Count;
 
     /// <summary>

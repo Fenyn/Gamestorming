@@ -65,7 +65,7 @@ public partial class PromotionPanel : PanelContainer
         if (state.SavedChoices.Count > 0)
             _summary.Text += $"\nUnspent feat choices: {state.SavedChoices.Count}.";
         if (c.Health.IsDead) _summary.Text = "This character cannot be promoted while dead.";
-        _preview.Text = "Select a feat to read its effects. Nothing is granted until you confirm.";
+        Preview("");
         _confirm.Disabled = true;
         _confirm.Text = "Confirm promotion";
         foreach (var child in _tree.GetChildren()) { _tree.RemoveChild(child); child.QueueFree(); }
@@ -90,12 +90,12 @@ public partial class PromotionPanel : PanelContainer
             string status = learned ? $"Learned at level {learnedAt}" : reason ?? (canChoose ? "Available" : "Next choice");
             card.Text = $"LEVEL {feat.Level} · {feat.Theme}\n{feature.DisplayName}\n{feat.Source} · {status}";
             card.TooltipText = description;
-            card.Modulate = reason != null && !learned ? new Color(1, 1, 1, 0.6f) : Colors.White;
+            card.ThemeTypeVariation = reason != null && !learned ? ThemeNames.FeatCardLocked : "";
             card.Pressed += () =>
             {
                 _selected = reason == null && canChoose ? feat.Id : null;
-                _preview.Text = $"{feature.DisplayName} · {feat.Source} · Level {feat.Level}\n{description}"
-                    + (reason != null ? $"\n{reason}" : "");
+                Preview($"{feature.DisplayName} · {feat.Source} · Level {feat.Level}\n{description}"
+                    + (reason != null ? $"\n{reason}" : ""));
                 _confirm.Text = pending > 0 ? $"Promote to level {target} · {feature.DisplayName}" : $"Learn {feature.DisplayName}";
                 _confirm.Disabled = _selected == null;
                 if (_selected != null) UiFocus.Grab(_confirm);
@@ -117,7 +117,7 @@ public partial class PromotionPanel : PanelContainer
     {
         if (_character is not { } c || _selected == null || _confirm.Disabled) return;
         if (!CharacterPromotion.For(c).Confirm(c, _selected, _revision, out string error))
-        { _selected = null; Render(); _preview.Text = error; return; }
+        { _selected = null; Render(); Preview(error); return; }
         _selected = null;
         Render();
         Promoted?.Invoke();
@@ -127,8 +127,17 @@ public partial class PromotionPanel : PanelContainer
     {
         if (_character is not { } c || !_save.Visible) return;
         if (!CharacterPromotion.For(c).SaveChoiceAndPromote(c, _revision, out string error))
-        { Render(); _preview.Text = error; return; }
+        { Render(); Preview(error); return; }
         Render();
         Promoted?.Invoke();
     }
+
+    /// <summary>The preview band collapses when there is nothing to preview.</summary>
+    private void Preview(string text)
+    {
+        _preview.Text = text;
+        _preview.Visible = text.Length > 0;
+    }
+
+    public bool PreviewShown => _preview.Visible;
 }

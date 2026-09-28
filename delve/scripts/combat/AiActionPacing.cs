@@ -11,7 +11,7 @@ internal static class AiActionPacing
         BattleEventType.MovementStarted or BattleEventType.AttackRolled or
         BattleEventType.SpellCast or BattleEventType.ActionUsed or BattleEventType.ShieldRaised;
 
-    internal static Task Wait(BattleEvent evt, bool playerControlled, float seconds, CancellationToken token)
+    internal static Task Wait(Godot.SceneTree? tree, BattleEvent evt, bool playerControlled, float seconds, CancellationToken token)
         => !playerControlled && IsActionCue(evt.Type) && seconds > 0
-            ? Task.Delay(System.TimeSpan.FromSeconds(seconds), token) : Task.CompletedTask;
+            ? PausableDelay.Wait(tree, seconds, token) : Task.CompletedTask;
 }

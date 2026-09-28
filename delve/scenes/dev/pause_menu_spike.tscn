@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/PauseMenuSpike.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/combat/combat.tscn" id="2_combat"]
+
+[node name="PauseMenuSpike" type="Node"]
+script = ExtResource("1")
+CombatScene = ExtResource("2_combat")

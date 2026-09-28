@@ -1,40 +1,41 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Delve.Combat;
 using Godot;
 
 namespace Delve.UI;
 
 /// <summary>
-/// Initiative strip, starting at the current actor: one chip per combatant with its name, a thin
-/// team-coloured HP bar, the enemy's letter badge, and a "Round N" divider where the order wraps.
-/// The current chip is taller and filled. Dead combatants dim; a delayed combatant shows faded at
-/// the slot it returns to. Passive: the one thing it takes back is a click on a chip offered as a
+/// Vertical initiative list in the right rail, starting at the current actor: one row per
+/// combatant with the enemy's letter badge, the full name, up to two condition icons then "+N",
+/// and a thin team-coloured HP bar, and a
+/// "Round N" divider where the order wraps. The current row is taller and filled. Rows past
+/// <see cref="MaxHeight"/> drop from the tail. Dead combatants dim; a delayed combatant shows faded
+/// at the slot it returns to. Passive: the one thing it takes back is a click on a row offered as a
 /// Delay slot (<see cref="UnitView.IsPickable"/>), raised as <see cref="ChipPressed"/>.
 /// </summary>
-public partial class TurnOrderBar : Control
+public partial class TurnOrderBar : VBoxContainer
 {
     public event Action<int>? ChipPressed;
 
     [Export] public PackedScene? ChipScene { get; set; }
-
-    /// <summary>Widest the strip may grow. Names shorten with an ellipsis past it.</summary>
-    [Export] public float MaxWidth { get; set; } = 1200;
-    [Export] public float ActiveChipHeight { get; set; } = 56;
+    [Export] public ConditionIconSet? Icons { get; set; }
+    [Export] public int MaxMarks { get; set; } = 2;
+    [Export] public int MarkIconSize { get; set; } = 22;
+    [Export] public float MaxHeight { get; set; } = 560;
+    [Export] public float ActiveChipHeight { get; set; } = 40;
+    [Export] public float DividerHeight { get; set; } = 24;
     [Export(PropertyHint.Range, "0,1,0.05")] public float DeadAlpha { get; set; } = 0.45f;
     [Export(PropertyHint.Range, "0,1,0.05")] public float DelayedAlpha { get; set; } = 0.7f;
 
     private const string DelayedPrefix = "~ ";
 
-    private HBoxContainer _row = null!;
+    private VBoxContainer _row = null!;
 
     public Control Row => _row;
 
-    public override void _Ready()
-    {
-        _row = GetNode<HBoxContainer>("%Row");
-        _row.Alignment = BoxContainer.AlignmentMode.Center;
-    }
+    public override void _Ready() => _row = GetNode<VBoxContainer>("%Row");
 
     /// <param name="wrapIndex">Index in <paramref name="units"/> where the next round starts; -1 for none.</param>
     public void Render(IReadOnlyList<UnitView> units, int wrapIndex = -1, int nextRound = 0)
@@ -51,18 +52,15 @@ public partial class TurnOrderBar : Control
             return;
         }
 
-        var labels = new List<(Label Label, float Natural)>();
         for (int i = 0; i < units.Count; i++)
         {
             if (i == wrapIndex) AddDivider(nextRound);
-            labels.Add(AddChip(units[i]));
+            AddChip(units[i]);
         }
-        FitToWidth(labels);
-        _row.OffsetLeft = 0;
-        _row.OffsetRight = 0;
+        Cap();
     }
 
-    private (Label, float) AddChip(UnitView unit)
+    private void AddChip(UnitView unit)
     {
         var chip = ChipScene!.Instantiate<PanelContainer>();
         chip.ThemeTypeVariation = unit.IsCurrent ? ThemeNames.TurnChipActive
@@ -87,8 +85,10 @@ public partial class TurnOrderBar : Control
         hpBar.MaxValue = maxHp;
         hpBar.Value = Math.Clamp(unit.Hp, 0, maxHp);
 
+        AddMarks(chip.GetNode<HBoxContainer>("%Marks"), unit.Conditions, label.ThemeTypeVariation);
+
         if (unit.IsDead || unit.IsDelayed) chip.Modulate = Faded(unit.IsDead ? DeadAlpha : DelayedAlpha);
-        chip.TooltipText = unit.Name;
+        chip.TooltipText = string.Join("\n", new[] { unit.Name }.Concat(unit.Conditions.Select(c => c.Label)));
 
         if (unit.IsPickable)
         {
@@ -105,40 +105,33 @@ public partial class TurnOrderBar : Control
         }
 
         _row.AddChild(chip);
-        float natural = label.GetThemeFont("font").GetStringSize(label.Text, HorizontalAlignment.Left, -1,
-            label.GetThemeFontSize("font_size")).X;
-        label.CustomMinimumSize = new Vector2(Mathf.Ceil(natural), 0);
-        return (label, natural);
     }
+
+    /// <summary>The first <see cref="MaxMarks"/> conditions as 1x icons, the rest as "+N". The row's hover lists them all.</summary>
+    private void AddMarks(HBoxContainer marks, IReadOnlyList<ConditionMarkView> conditions, StringName textVariation)
+        => ConditionMarkRow.Fill(marks, conditions, Icons, MaxMarks, MarkIconSize, textVariation);
 
     private void AddDivider(int round)
     {
         var divider = ChipScene!.Instantiate<PanelContainer>();
         divider.ThemeTypeVariation = ThemeNames.ClearPanel;
+        divider.CustomMinimumSize = new Vector2(0, DividerHeight);
         divider.GetNode<Control>("%HpBar").Visible = false;
         var label = divider.GetNode<Label>("%Label");
         label.Text = $"Round {round}";
         label.ThemeTypeVariation = ThemeNames.HintLabel;
-        label.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
+        label.HorizontalAlignment = HorizontalAlignment.Center;
         _row.AddChild(divider);
     }
 
-    /// <summary>Cap every name at one shared width so the strip fits <see cref="MaxWidth"/>.</summary>
-    private void FitToWidth(List<(Label Label, float Natural)> labels)
+    private void Cap()
     {
-        float excess = _row.GetCombinedMinimumSize().X - MaxWidth;
-        if (excess <= 0 || labels.Count == 0) return;
-        float low = 0, high = 0;
-        foreach (var (_, natural) in labels) high = Mathf.Max(high, natural);
-        for (int step = 0; step < 16; step++)
+        while (_row.GetChildCount() > 1 && _row.GetCombinedMinimumSize().Y > MaxHeight)
         {
-            float cap = (low + high) / 2;
-            float saved = 0;
-            foreach (var (_, natural) in labels) saved += Mathf.Max(0, natural - cap);
-            if (saved >= excess) low = cap; else high = cap;
+            var last = _row.GetChild(_row.GetChildCount() - 1);
+            _row.RemoveChild(last);
+            last.QueueFree();
         }
-        foreach (var (label, natural) in labels)
-            label.CustomMinimumSize = new Vector2(Mathf.Floor(Mathf.Min(natural, low)), 0);
     }
 
     private static Color Faded(float alpha) => new Color(1, 1, 1, alpha);

@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/SheetTooltip.cs" id="1_tip"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="2_pr"]
+[ext_resource type="PackedScene" path="res://scenes/ui/figure_label.tscn" id="3_fig"]
 
 [node name="SheetTooltip" type="PanelContainer"]
 visible = false
@@ -10,6 +11,7 @@ offset_bottom = 160.0
 mouse_filter = 2
 theme_type_variation = &"SheetTooltip"
 script = ExtResource("1_tip")
+FigureScene = ExtResource("3_fig")
 
 [node name="Stack" type="VBoxContainer" parent="."]
 layout_mode = 2
@@ -70,6 +72,13 @@ layout_mode = 2
 mouse_filter = 2
 text = "Subtitle"
 theme_type_variation = &"CardRoleLabel"
+
+[node name="Figures" type="HBoxContainer" parent="Stack"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 24
 
 [node name="Scroll" type="ScrollContainer" parent="Stack"]
 unique_name_in_owner = true

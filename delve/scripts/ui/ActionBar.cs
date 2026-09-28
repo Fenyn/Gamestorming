@@ -6,7 +6,7 @@ using Godot;
 namespace Delve.UI;
 
 /// <summary>
-/// Bottom action bar for the active ally: portrait, action pips, resource pips and the Strike,
+/// Bottom action bar for the active ally: action pips, resource pips and the Strike,
 /// Shield, Spells, Abilities, Delay, End Turn and Control buttons, with the signature row and the
 /// <see cref="DecisionSlot"/> stacked above it. No name, HP or AC: the party column owns those.
 /// Renders from <see cref="ActionBarState"/> and raises intent events only. Hotkeys gate on
@@ -33,7 +33,7 @@ public partial class ActionBar : Control
     /// <summary>Raised with the skill action id when a skill chip is pressed.</summary>
     public event Action<string>? SkillChipPressed;
 
-    private TextureRect _portrait = null!;
+    private Control _stack = null!;
     private PipRow _actionPips = null!;
     private VBoxContainer _resources = null!;
     private CaptionButton _strikeBtn = null!;
@@ -61,16 +61,29 @@ public partial class ActionBar : Control
     private IReadOnlyList<SpellEntryView> _spells = Array.Empty<SpellEntryView>();
     private IReadOnlyList<SkillEntryView> _skills = Array.Empty<SkillEntryView>();
 
-    private const string DelayTooltip = "Wait and act later this round. Pick whom to act after; the choice is final.";
+    private const string DelayTooltip = "Wait and act later, this round or next. Pick whom to act after; the choice is final.";
 
     public DecisionSlot Decision { get; private set; } = null!;
     public Control BarPanel => _bar;
     public string ActorName => _lastActorName;
     public bool StageOrders => _stageOrders.ButtonPressed;
 
+    /// <summary>Global top edge of the highest visible, non-empty piece of the bar's stack.</summary>
+    public float ContentTop
+    {
+        get
+        {
+            float top = _stack.GetGlobalRect().End.Y;
+            foreach (var child in _stack.GetChildren())
+                if (child is Control { Visible: true } piece && piece.Size.Y > 0)
+                    top = Mathf.Min(top, piece.GetGlobalRect().Position.Y);
+            return top;
+        }
+    }
+
     public override void _Ready()
     {
-        _portrait = GetNode<TextureRect>("%Portrait");
+        _stack = GetNode<Control>("%Stack");
         _actionPips = GetNode<PipRow>("%ActionPips");
         _resources = GetNode<VBoxContainer>("%Resources");
         _strikeBtn = GetNode<CaptionButton>("%StrikeButton");
@@ -147,8 +160,8 @@ public partial class ActionBar : Control
     {
         foreach (var btn in _captions)
         {
-            btn.ActionLabel?.AddThemeColorOverride("font_color", btn.Disabled ? UiColors.TextDisabled : UiColors.Text);
-            btn.KeyLabel?.AddThemeColorOverride("font_color", btn.Disabled ? UiColors.TextDisabled : UiColors.TextDim);
+            if (btn.ActionLabel != null) btn.ActionLabel.ThemeTypeVariation = btn.Disabled ? ThemeNames.CaptionDisabled : "";
+            if (btn.KeyLabel != null) btn.KeyLabel.ThemeTypeVariation = btn.Disabled ? ThemeNames.CaptionDisabled : ThemeNames.HintLabel;
         }
     }
 
@@ -180,11 +193,10 @@ public partial class ActionBar : Control
 
     public void Render(ActionBarState state)
     {
-        _portrait.Texture = state.ActorId.Length > 0 ? HeroPortraits.For(state.ActorId) : null;
-        _portrait.TooltipText = state.ActorName;
         _actionPips.SetActionEconomy(state.ActionsRemaining, state.MaxActions);
         _actionPips.TooltipText = $"{state.ActionsRemaining} of {state.MaxActions} actions remaining";
         RenderResources(state);
+        Decision.SetMoveRestriction(state.MoveRestriction);
 
         _strikeBtn.SetActionText(state.Map < 0 ? $"Strike {state.Map}" : "Strike");
         _strikeBtn.Disabled = !_interactable || !state.CanStrike;

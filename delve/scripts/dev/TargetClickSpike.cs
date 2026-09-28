@@ -92,7 +92,7 @@ public partial class TargetClickSpike : SpikeBase
         await WaitSeconds(0.5f);
 
         var bar = scene.GetNode<ActionBar>("%ActionBar");
-        var hint = bar.GetNode<Label>("%TargetingHint");
+        var hint = bar.Decision.GetNode<Label>("%TargetingHint");
         var flyout = bar.GetNode<Control>("%Flyout");
 
         bar._UnhandledInput(new InputEventAction { Action = InputNames.Spells, Pressed = true });
@@ -118,7 +118,8 @@ public partial class TargetClickSpike : SpikeBase
         Click(chip.GetGlobalRect().GetCenter());
         await Frames(2);
         Check($"[{tag}] chip click closes the flyout", !flyout.Visible);
-        Check($"[{tag}] chip click enters targeting (hint = '{hint.Text}')", hint.Text.StartsWith("0 / 2 targets"));
+        Check($"[{tag}] chip click enters targeting with a cancel keycap (hint = '{hint.Text}')",
+            hint.Text == "Targets 0 / 2" && bar.Decision.CancelKeyVisible);
 
         var unit = FindUnit(scene, goblin);
         Check($"[{tag}] goblin visual found", unit != null);
@@ -140,8 +141,8 @@ public partial class TargetClickSpike : SpikeBase
         await ProbeClick(camera, VisiblePoint(sprite, camera, 0.35f), goblin.GridPosition, $"[{tag}] click follows restored facing");
 
         Check($"[{tag}] selection does not spend actions", fenwick.Actions?.TotalActionsRemaining == 3);
-        Check($"[{tag}] five clicks toggle to one target", hint.Text.StartsWith("1 / 2 targets"));
-        var confirm = bar.GetNode<Button>("%ConfirmTargets");
+        Check($"[{tag}] five clicks toggle to one target (hint = '{hint.Text}')", hint.Text == "Targets 1 / 2");
+        var confirm = bar.Decision.ConfirmTargetsButton;
         Check($"[{tag}] can confirm fewer than the limit", confirm.Visible && !confirm.Disabled);
         Click(confirm.GetGlobalRect().GetCenter());
         await WaitSeconds(1.5f);

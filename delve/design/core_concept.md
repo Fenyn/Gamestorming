@@ -44,7 +44,7 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
            (each tree: Map -> [Combat | Elite | Event | Rest | Meeting | Boss] -> Map ...; ShortRest from the map)
 ```
 
-- A run descends through 3 floors (code: strata). Each floor is one full node tree ending in its authored floor boss; beating it fully recharges the Wardstone and opens the next floor's tree. The last floor's boss is the Depths Warden; beating it wins the run.
+- A run descends through 3 floors (code: strata). Each floor is one full node tree ending in its authored floor boss; beating it recharges 50-100% of the missing ward (an Identify Magic roll, 75% on a plain success or failure) and opens the next floor's tree. The last floor's boss is the Depths Warden; beating it wins the run.
 - The wilderness crawl: floor 1 grasslands and light forest (The Fringe), floor 2 deep spooky forest (The Deep Wood), floor 3 swamp (The Drowning Dark). Cave or underground floors can mix in later. `FloorThemes` is the per-floor table: identity, terrain biome, creature roster, base threat weights.
 - Level flow across a run: party levels 1-4 on floor 1, 5-7 on floor 2, 8-10 on floor 3. Levels are per-run and reset with it.
 - Leveling is XP-based and RAW: a won fight awards its encounter XP total (the budget IS the award), relative to the party's level. The threshold is heavily accelerated (tunable in `LevelingRules`) so three small floors carry the 1-10 flow. The whole party levels together, in place, mid-run; a newcomer joins at the party's current level.
@@ -102,7 +102,7 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 - Each floor scales its board again (`FloorTheme.BoardScale`). The Fringe runs at half scale, which lands on the 12-side minimum, so the two deployment edges start about six squares apart. Deeper floors keep the biome's size.
 - Short rests consume ward. That burn is the whole price of resting, so healing up now buys harder fights later. Resting stops once the ward is down to one rest's worth.
 - Ward 0 ends the run in defeat, party alive or not. The fog takes them. Only passive burn can get there, since resting stops short of it (`NodeBurn` is 0 today, so nothing reaches 0 yet).
-- A Campsite night's rest restores part of the ward; beating a floor's boss restores all of it.
+- A Campsite night's rest restores part of the ward. Beating a floor's boss restores missing ward, rounded up (Slay the Spire's heal between acts), so ward kept before the boss carries into the next floor. The party's best Identify Magic skill attunes the stone against the party-level DC: critical success 100%, success or failure 75%, critical failure 50% of the missing ward.
 - Outpost upgrades increase ward power and duration.
 - The floor's roster and the depth ramp set which creature levels fill a budget; a party below a floor's roster still fights that roster's nearest levels.
 
@@ -152,6 +152,14 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 - Item level band: depth level -2 to +1; +2 reserved for Lair and Warden drops. Rarity as drop weights (common > uncommon > rare); frame-breaking items blacklisted.
 - Party-fit weighting on candidate items (proficiency, armor category, spell tradition), blended with pure random.
 - Weapon/armor generator composes items legally: base item + fundamental runes per level gates + property runes within level band; item level = highest component, price = sum of parts.
+
+## Knowledge journal
+
+- One campaign-wide journal, keyed by species slug. It lives in the campaign save, so knowledge carries across runs and wipes.
+- A species is listed when it enters a fight. Nothing is learned passively, from kills or otherwise.
+- Recall Knowledge: a success reveals the next unknown field, a critical success the next two. Failure and critical failure reveal nothing. The name is always known.
+- Fixed order, one table (`KnowledgeRevealOrder`): AC, Weaknesses, MaxHP, Resistances, Immunities, Fort, Ref, Will, Speeds, Strikes, Traits.
+- An unrevealed field prints "?" wherever the player reads an enemy.
 
 ## Meta progression
 

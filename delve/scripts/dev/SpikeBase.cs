@@ -85,14 +85,23 @@ public abstract partial class SpikeBase : Node
         return new Scope(() => ReactionEvents.OnDamageReactionCheck -= handler);
     }
 
-    /// <summary>With hdr_2d on, the viewport texture holds linear values. The root window's
-    /// UseHdr2D does not reflect the project setting, so read the setting.</summary>
-    protected Error SaveViewportCapture(string path)
+    /// <summary>Save the viewport as a PNG. With hdr_2d on, the viewport texture holds linear
+    /// values; the root window's UseHdr2D does not reflect the project setting, so read the setting.
+    /// DELVE_SHOT_DIRECTORY, when set, replaces the directory of <paramref name="path"/>.
+    /// <paramref name="size"/> resizes the image before saving.</summary>
+    protected Error SaveViewportCapture(string path, Vector2I? size = null)
     {
+        string directory = OS.GetEnvironment("DELVE_SHOT_DIRECTORY");
+        if (!string.IsNullOrEmpty(directory)) path = directory.PathJoin(path.GetFile());
+        DirAccess.MakeDirRecursiveAbsolute(ProjectSettings.GlobalizePath(path.GetBaseDir()));
         using var image = GetViewport().GetTexture().GetImage();
+        image.Convert(Image.Format.Rgba8);
         if (GetViewport().UseHdr2D || ProjectSettings.GetSetting("rendering/viewport/hdr_2d").AsBool())
             image.LinearToSrgb();
-        return image.SavePng(path);
+        if (size is { } target) image.Resize(target.X, target.Y, Image.Interpolation.Bilinear);
+        Error error = image.SavePng(path);
+        GD.Print($"[capture] {path.GetFile()}: {error} ({ProjectSettings.GlobalizePath(path)})");
+        return error;
     }
 
     /// <summary>Print the counts + result banner and quit with the gating exit code.</summary>

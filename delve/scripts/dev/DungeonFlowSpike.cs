@@ -27,10 +27,18 @@ public partial class DungeonFlowSpike : SpikeBase
         try
         {
             host.UseStairs();
-            Check("stairs cannot skip the floor", host.Phase == DungeonPhase.Event);
+            Check("stairs cannot skip the floor", host.Current.Id == host.Floor.EntranceId && host.State.Outcome == RunOutcome.InProgress);
             int encounters = 0;
             while (host.Current.Id != host.Floor.GuardianId || !host.Current.Completed)
             {
+                if (host.Current.Family == RoomFamily.Camp && !host.Current.Resolved)
+                {
+                    host.MakeCamp();
+                    for (int frame = 0; frame < 600 && !host.Current.Resolved; frame++)
+                        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    host.CloseEvent();
+                }
+
                 if (host.Phase == DungeonPhase.Event)
                 {
                     host.ResolveEvent(0, null);
@@ -45,7 +53,9 @@ public partial class DungeonFlowSpike : SpikeBase
                     Check("fight reaches results", host.Phase == DungeonPhase.Results);
                     if (host.Phase != DungeonPhase.Results)
                         return;
+                    Check("the room's shutters stay raised during the fight", !host.CurrentView.DoorsOpen);
                     host.ContinueCombat();
+                    Check("the shutters sink once the fight is won", host.CurrentView.DoorsOpen);
                     encounters++;
                 }
 
@@ -61,6 +71,8 @@ public partial class DungeonFlowSpike : SpikeBase
                 if (host.Phase != DungeonPhase.Doors)
                     return;
                 int next = NextTowardGuardian(host);
+                // A player confirms earned feats before any unseen room; so does the route.
+                if (CharacterPromotion.HasPending(host.State.Party)) PromotionTestDriver.Complete(host.State.Party);
                 var door = host.Current.Doors.First(d => d.Other(host.Current.Id) == next);
                 await host.Travel(door.Side(host.Current.Id));
                 Check("door reaches its destination", host.Current.Id == next);

@@ -91,7 +91,7 @@ public partial class PromotionSpike : SpikeBase
         Check("XP cap counts earned levels even before confirmation", PartyLeveling.Award(state, 10000) == 10 - capBefore
             && state.Party.Level == 10 && state.Xp <= state.Leveling.XpPerLevel);
 
-        var uiParty = Party.Build(new[] { "player" }, new UnlockState(), 2);
+        var uiParty = Party.Build(new[] { "player", "elara" }, new UnlockState(), 2);
         var uiState = RunState.Start(44, uiParty, new RunMapConfig());
         PartyLeveling.Award(uiState, 300);
         var c = uiParty.Members[0];
@@ -101,8 +101,11 @@ public partial class PromotionSpike : SpikeBase
         var panel = details.GetNode<PromotionPanel>("%Progression");
         var confirm = panel.GetNode<Button>("%ConfirmPromotion");
         Check("opening sheet selects nothing and grants nothing", confirm.Disabled && c.Stats.Level == 2 && panel.Visible);
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        Check($"the empty preview band collapses and Confirm is a 280x44 button, not a banner ({confirm.Size})",
+            !panel.PreviewShown && confirm.Size.X >= 279.5f && confirm.Size.X < 600 && confirm.Size.Y >= 43.5f);
         panel.GetNode<GridContainer>("%FeatTree").GetNode<Button>("intimidating-strike").EmitSignal(Button.SignalName.Pressed);
-        Check("selecting a card only previews", !confirm.Disabled && c.Stats.Level == 2);
+        Check("selecting a card only previews", !confirm.Disabled && c.Stats.Level == 2 && panel.PreviewShown);
         details.Close();
         details.Open(c, HeroPortraits.For(c.Id), UiColors.CharacterAccent(c.Id));
         Check("closing discards the unconfirmed selection", confirm.Disabled && c.Stats.Level == 2);
@@ -121,12 +124,41 @@ public partial class PromotionSpike : SpikeBase
         var victory = VictoryScene.Instantiate<VictoryBanner>();
         AddChild(victory);
         victory.ShowResult("Victory", UiColors.Victory);
-        victory.ShowParty(uiParty.Members);
-        Check("results identify the member awaiting promotion", victory.GetNode<OptionButton>("%PartyMember").GetItemText(0).Contains("Promotion available"));
-        victory.GetNode<Button>("%DetailsButton").EmitSignal(Button.SignalName.Pressed);
-        Check("results open the live member's progression", victory.GetNode<CharacterDetailsOverlay>("%ResultDetails").Visible
-            && victory.GetNode<CharacterDetailsOverlay>("%ResultDetails").GetNode<PromotionPanel>("%Progression").Visible);
+        victory.ShowRewards(new CombatResultsView
+        {
+            Members = CombatResults.Members(uiParty.Members, PartyChangeSummary.Capture(uiParty)),
+            Party = uiParty.Members,
+        });
+        var rows = victory.MemberRows;
+        Check($"results give each member awaiting promotion a row with Choose feat ({rows.Count} rows)",
+            rows.Count == 2 && rows.All(r => r.ChooseFeat.Visible));
+        Check("the results screen has no character dropdown", victory.GetNodeOrNull("%PartyMember") == null);
+        rows[0].ChooseFeat.EmitSignal(Button.SignalName.Pressed);
+        var overlay = victory.GetNode<CharacterDetailsOverlay>("%ResultDetails");
+        var progression = overlay.GetNode<PromotionPanel>("%Progression");
+        Check("Choose feat opens that member's progression", overlay.Visible && overlay.Character == c && progression.Visible
+            && !overlay.NextButton.Visible);
+        progression.GetNode<GridContainer>("%FeatTree").GetNode<Button>("shielded-stride").EmitSignal(Button.SignalName.Pressed);
+        progression.GetNode<Button>("%ConfirmPromotion").EmitSignal(Button.SignalName.Pressed);
+        var elara = uiParty.Members[1];
+        Check($"after a confirm, Next names the next hero with a pending promotion ('{overlay.NextButton.Text}')",
+            c.Stats.Level == 4 && overlay.NextButton.Visible && overlay.NextButton.Text == $"Next: {elara.Name}");
+        overlay.NextButton.EmitSignal(Button.SignalName.Pressed);
+        Check("Next opens that hero's promotion view", overlay.Visible && overlay.Character == elara && progression.Visible
+            && !overlay.NextButton.Visible);
+        overlay.Close();
+        Check("closing the sheet refreshes the rows: the promoted member's empty row goes",
+            victory.MemberRows.All(r => r.MemberName != c.Name) && victory.MemberRows.Any(r => r.MemberName == elara.Name));
+        await CaptureResults(victory);
         victory.HideResult();
+    }
+
+    private async Task CaptureResults(VictoryBanner victory)
+    {
+        if (DisplayServer.GetName() == "headless") return;
+        await ToSignal(GetTree().CreateTimer(0.5), SceneTreeTimer.SignalName.Timeout);
+        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+        Check("results rows screenshot saved", SaveViewportCapture("res://.godot/promotion_results.png") == Error.Ok);
     }
 
     private async Task Capture()

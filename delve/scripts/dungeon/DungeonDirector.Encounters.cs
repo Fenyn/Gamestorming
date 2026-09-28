@@ -19,42 +19,54 @@ public partial class DungeonDirector
     {
         Current.Discovered = true;
         RefreshVisibility();
+        bool first = AnnounceEntry(entry);
         if (Current.Completed)
         {
             ShowDoors();
             return;
         }
 
+        // Rooms that open a panel or a fight are named by it; the card names only quiet arrivals.
+        if (Current.Id == Floor.EntranceId)
+        {
+            // The embark caption already states the goal. The hall adds the station's history.
+            CompleteRoom();
+            ShowDoors();
+            if (first) _hud.ShowRoomCard(StationPlan.Name(Current.Purpose), StationPlan.Account(Floor.History));
+            return;
+        }
+
         switch (DungeonFloor.Kind(Current.Family))
         {
+            case NodeKind.Boss when !Instant:
+                _ = RevealRoster(_epoch, GuardianRevealSeconds, SignatureProp("ward_engine"));
+                break;
+            case NodeKind.Elite when !Instant && first:
+                _ = RevealRoster(_epoch, LairRevealSeconds, null);
+                break;
             case NodeKind.Combat:
             case NodeKind.Elite:
             case NodeKind.Boss:
                 StartCombat(_encounters[Current.Id]);
                 break;
             case NodeKind.Rest:
-                Phase = DungeonPhase.Event;
-                _openEvent = new EventDefinition
-                {
-                    Id = "dungeon-camp",
-                    Title = "A sheltered camp",
-                    Body = $"Dry bedrolls surround a protected fire pit. Rest here once to recover some HP, clear Wounded, and restore spell slots and focus. A new day begins and the Wardstone regains up to {State.Wardstone.Rules.CampsiteRefill} ward.",
-                    Options = new[]
-                    {
-                        new EventOption
-                        {
-                            Label = "Make camp",
-                            Success = EventOutcome.Nothing("The party rests and prepares for the way ahead.")
-                        }
-                    }
-                };
-                _event.Show(_openEvent, State);
-                FrameEventScenery();
-                RefreshHud();
+                // The night waits for the player: Make camp stays on the HUD while the refuge is unused.
+                ShowDoors();
+                if (first) _hud.ShowRoomCard(StationPlan.Name(Current.Purpose));
                 break;
             default:
+                var scene = DungeonEncounters.AtLevel(DungeonEncounters.StationEvent(Current, Floor.History), State.Party.Level);
+                if (StationScenes.AppliesOnArrival(scene.Options))
+                {
+                    // A free scene with nothing to decide happens on arrival; Leave would only compete with it.
+                    var result = EventResolver.Resolve(State, scene, 0, null);
+                    CompleteRoom();
+                    ShowDoors();
+                    _hud.ShowRoomCard(StationPlan.Name(Current.Purpose), string.Join("  ", result.Lines));
+                    break;
+                }
                 Phase = DungeonPhase.Event;
-                _openEvent = DungeonEncounters.StationEvent(Current, Floor.History);
+                _openEvent = scene;
                 _event.Show(_openEvent, State);
                 FrameEventScenery();
                 RefreshHud();
@@ -73,20 +85,50 @@ public partial class DungeonDirector
             return;
         }
 
-        if (Current.Family == RoomFamily.Camp)
-        {
-            var before = PartyChangeSummary.Capture(State.Party);
-            int ward = State.Wardstone.Ward;
-            _ = _transition.Play("The fire burns low.\nThe party rests until morning.", () =>
-            {
-                PartyRecovery.LongRest(State.Party, State.Clock, wardstone: State.Wardstone);
-                var lines = new List<string> { $"Morning, day {State.Clock.Day}. Ward restored: +{State.Wardstone.Ward - ward}." };
-                lines.AddRange(PartyChangeSummary.Overnight(State.Party, before));
-                FinishEvent(new EventResult { Resolved = true, Lines = lines });
-            }, AutoPlayCombat);
-            return;
-        }
+        var option = _openEvent.Options[index];
+        var outcome = result.Degree is { } degree ? EventResolver.OutcomeFor(option, degree) : option.Success;
+        foreach (var reveal in outcome.Effects.Where(e => e.Kind == EventEffectKind.RevealKinds))
+            RevealKinds(reveal.Value);
         FinishEvent(result);
+        // Leaving a room says nothing the ward bar does not already show, so it needs no Continue.
+        if (option.Check == null && outcome.Effects.All(e => e.Kind == EventEffectKind.WardDelta))
+            CloseEvent();
+    }
+
+    /// <summary>Marks rooms as scouted for the floor plan. Reach 0: rooms next to this one;
+    /// 1: rooms next to any visited room; 2: every room.</summary>
+    private void RevealKinds(int reach)
+    {
+        foreach (var room in Floor.Rooms)
+        {
+            bool nearHere = room.Doors.Any(d => d.Other(room.Id) == Current.Id);
+            bool nearVisited = room.Doors.Any(d => Floor.Rooms[d.Other(room.Id)].Discovered);
+            if (reach >= 2 || (reach == 1 && nearVisited) || nearHere) room.Scouted = true;
+        }
+        RefreshHud();
+    }
+
+    /// <summary>One night in the refuge: long rest, a new day, the camp's ward, then the morning report.</summary>
+    public void MakeCamp()
+    {
+        if (_details.Visible || Phase != DungeonPhase.Doors || Current.Family != RoomFamily.Camp || Current.Resolved || _transition.Busy)
+            return;
+        Phase = DungeonPhase.Event;
+        RefreshHud();
+        _fx.Rested();
+        var before = PartyChangeSummary.Capture(State.Party);
+        int ward = State.Wardstone.Ward;
+        _ = _transition.Play("The fire burns low.\nThe party rests until morning.", () =>
+        {
+            PartyRecovery.LongRest(State.Party, State.Clock, wardstone: State.Wardstone);
+            var figures = new List<FigureView>();
+            if (CombatResults.Ward(ward, State.Wardstone.Ward) is { } pair) figures.Add(pair);
+            if (StudyAtCamp() is { } journal) figures.Add(journal);
+            Current.Resolved = true;
+            CurrentView.SetResolved();
+            _event.ShowReport($"Morning, day {State.Clock.Day}", figures, CombatResults.RestMembers(State.Party.Living(), before));
+            RefreshHud();
+        }, Instant);
     }
 
     private void FinishEvent(EventResult result)
@@ -102,18 +144,21 @@ public partial class DungeonDirector
     {
         if (Phase != DungeonPhase.Event || !Current.Resolved || _transition.Busy)
             return;
-        Current.Completed = true;
+        CompleteRoom();
         _event.Visible = false;
         ShowDoors();
     }
 
+    private Dictionary<string, PartyMemberSnapshot> _fightStart = new();
+
     private void StartCombat(CombatSetup setup)
     {
         Phase = DungeonPhase.Combat;
+        _fightStart = PartyChangeSummary.Capture(State.Party);
         _partyLayer.Visible = false;
-        CurrentView.SetDoorsOpen(false);
+        CurrentView.SetDoorsOpen(false, Instant);
         _camera.ProcessMode = ProcessModeEnum.Disabled;
-        if (Hosted)
+        if (Hosted || _combat == null)
         {
             CombatRequested?.Invoke(setup);
             RefreshHud();
@@ -128,21 +173,32 @@ public partial class DungeonDirector
 
     private void FinishCombat(BattleResult result)
     {
-        if (Phase != DungeonPhase.Combat)
+        if (Phase != DungeonPhase.Combat || _combat == null)
             return;
         _won = !State.Party.IsWiped && result == BattleResult.Team1Wins;
         PartyRecovery.CompleteEncounter(State.Party, result);
         int xp = _won ? _encounters[Current.Id].XpAward : 0;
+        int xpBefore = State.Xp, levelBefore = State.Party.Level;
         if (_won && !Current.Resolved)
         {
             PartyLeveling.Award(State, xp);
             Current.Resolved = true;
         }
 
-        _combat.ShowResultParty(_won ? State.Party.Members : Array.Empty<PF2eCharacter>());
-        string promotion = CharacterPromotion.HasPending(State.Party) ? "\nPromotion available. Open a character sheet to choose a feat." : "";
-        _combat.ShowRewards(_won ? $"+{xp} party XP{promotion}" : "The expedition has fallen.", $"Ward {State.Wardstone.Ward}", 0);
         Phase = DungeonPhase.Results;
+        if (!_won)
+        {
+            Callable.From(ContinueCombat).CallDeferred();
+            return;
+        }
+        bool atCap = State.Party.Level >= State.Leveling.MaxLevel;
+        _combat.ShowRewards(new CombatResultsView
+        {
+            Figures = CombatResults.Progress(xpBefore, State.Xp, levelBefore, State.Party.Level, atCap),
+            Members = CombatResults.Members(State.Party.Members, _fightStart),
+            Progress = atCap ? null : 100.0 * State.Xp / State.Leveling.XpPerLevel,
+            Party = State.Party.Members,
+        });
         RefreshHud();
     }
 
@@ -150,15 +206,14 @@ public partial class DungeonDirector
     {
         if (Phase != DungeonPhase.Results)
             return;
-        _combat.EndHostedEncounter();
+        _combat?.EndHostedEncounter();
         if (!_won)
         {
             End(false);
             return;
         }
 
-        Current.Completed = true;
-        CurrentView.SetResolved();
+        CompleteRoom();
         SpawnTravelParty(true);
         Frame();
         ShowDoors();
@@ -170,8 +225,12 @@ public partial class DungeonDirector
         _camera.ProcessMode = ProcessModeEnum.Inherit;
         _camera.Camera.Current = true;
         _partyLayer.Visible = true;
-        CurrentView.SetDoorsOpen(true);
+        OpenShutters();
         _camera.FocusOn(new Vector3(CurrentView.Width / 2f, 0, CurrentView.Width / 2f), 0.3f, false);
+        _focusedDoor = null;
+        _announcedDoor = null;
+        // Door keys (Tab, arrows, Enter) reach the room only while no button holds focus.
+        if (IsInsideTree()) GetViewport().GuiReleaseFocus();
         RefreshHud();
     }
 
@@ -197,9 +256,11 @@ public partial class DungeonDirector
         if (Phase != DungeonPhase.Rest || _restUsed)
             return;
         int before = State.Wardstone.Ward;
-        var result = ShortRest.PerformSchedule(State.Party, State.Clock, assignments, new RecoveryRules(), State.Wardstone);
+        var party = PartyChangeSummary.Capture(State.Party);
+        var result = ShortRest.PerformSchedule(State, assignments, new RecoveryRules(), _rest.UseFree);
         _restUsed = result.Performed;
-        _rest.ShowResult(result, State, before);
+        if (result.Performed) _fx.Rested();
+        _rest.ShowResult(result, State, before, party);
         RefreshHud();
     }
 

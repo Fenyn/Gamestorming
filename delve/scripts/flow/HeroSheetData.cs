@@ -38,7 +38,8 @@ public sealed record SheetTip(
     string? Tag = null,
     IReadOnlyList<SheetMetaRow>? Meta = null,
     string? Footer = null,
-    string? FullRules = null);
+    string? FullRules = null,
+    IReadOnlyList<Delve.Combat.FigureView>? Figures = null);
 
 /// <summary>
 /// One hoverable fragment of an overview row: the words it prints and what it explains. A text

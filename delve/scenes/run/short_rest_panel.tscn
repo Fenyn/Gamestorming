@@ -1,6 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/flow/ShortRestPanel.cs" id="1_sr"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pair_report.tscn" id="2_report"]
+[ext_resource type="Resource" path="res://assets/ui/conditions/condition_icons.tres" id="3_icons"]
 
 [sub_resource type="InputEventAction" id="decline"]
 action = &"combat_decline"
@@ -16,6 +18,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_sr")
+Icons = ExtResource("3_icons")
 
 [node name="Dim" type="Panel" parent="."]
 layout_mode = 1
@@ -35,7 +38,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Frame" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(760, 0)
+custom_minimum_size = Vector2(640, 0)
 layout_mode = 2
 theme_type_variation = &"SheetPanel"
 
@@ -44,6 +47,7 @@ layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="Center/Frame/Box"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Ten minutes"
 theme_type_variation = &"TitleLabel"
@@ -51,12 +55,17 @@ theme_type_variation = &"TitleLabel"
 [node name="ClockLabel" type="Label" parent="Center/Frame/Box"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 0
 text = ""
 
 [node name="ActivityBox" type="VBoxContainer" parent="Center/Frame/Box"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
+
+[node name="Report" parent="Center/Frame/Box" instance=ExtResource("2_report")]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="ResultLabel" type="Label" parent="Center/Frame/Box"]
 unique_name_in_owner = true
@@ -67,8 +76,16 @@ autowrap_mode = 3
 [node name="ConfirmButton" type="Button" parent="Center/Frame/Box"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 44)
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(280, 44)
 text = "Begin rest"
+
+[node name="FreeButton" type="Button" parent="Center/Frame/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(280, 44)
+text = "Rest on a banked free rest"
 
 [node name="BackButton" type="Button" parent="Center/Frame/Box"]
 unique_name_in_owner = true

@@ -239,10 +239,10 @@ border_color = Color(0.623529, 0.788235, 0.839216, 1)
 [sub_resource type="StyleBoxEmpty" id="sb_empty"]
 
 [sub_resource type="StyleBoxFlat" id="sb_combat_log"]
-content_margin_left = 18.0
-content_margin_top = 12.0
-content_margin_right = 18.0
-content_margin_bottom = 14.0
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
 bg_color = Color(0.117647, 0.145098, 0.168627, 0.97)
 border_width_left = 1
 border_width_top = 2
@@ -452,6 +452,17 @@ texture_margin_top = 12.0
 texture_margin_right = 12.0
 texture_margin_bottom = 12.0
 
+[sub_resource type="StyleBoxTexture" id="sb_panel_reaction"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+texture = ExtResource("kenney_modal")
+texture_margin_left = 12.0
+texture_margin_top = 12.0
+texture_margin_right = 12.0
+texture_margin_bottom = 12.0
+
 [sub_resource type="StyleBoxFlat" id="sb_surface"]
 bg_color = Color(0.117647, 0.145098, 0.168627, 0.92)
 
@@ -556,6 +567,18 @@ border_color = Color(0.321569, 0.380392, 0.419608, 1)
 
 [sub_resource type="StyleBoxFlat" id="sb_portrait_locked"]
 bg_color = Color(0.054902, 0.070588, 0.082353, 0.7)
+
+[sub_resource type="StyleBoxFlat" id="sb_bestiary_plinth"]
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+bg_color = Color(0.239216, 0.282353, 0.321569, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.321569, 0.380392, 0.419608, 1)
 
 [sub_resource type="StyleBoxFlat" id="sb_rule_accent"]
 bg_color = Color(0.901961, 0.862745, 0.776471, 1)
@@ -839,6 +862,21 @@ fill_to = Vector2(1, 1)
 [sub_resource type="StyleBoxTexture" id="sb_modal_vignette"]
 texture = SubResource("tex_vignette")
 
+[sub_resource type="Gradient" id="grad_roll_shade"]
+offsets = PackedFloat32Array(0, 0.6, 1)
+colors = PackedColorArray(0.054902, 0.070588, 0.082353, 0.7, 0.054902, 0.070588, 0.082353, 0.55, 0.054902, 0.070588, 0.082353, 0)
+
+[sub_resource type="GradientTexture2D" id="tex_roll_shade"]
+gradient = SubResource("grad_roll_shade")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StyleBoxTexture" id="sb_roll_shade"]
+texture = SubResource("tex_roll_shade")
+
 [resource]
 default_font = ExtResource("body")
 default_font_size = 18
@@ -909,6 +947,8 @@ CampTitle/base_type = &"TitleLabel"
 CampTitle/colors/font_shadow_color = Color(0.054902, 0.070588, 0.082353, 0.9)
 CampTitle/constants/shadow_offset_x = 2
 CampTitle/constants/shadow_offset_y = 2
+CaptionDisabled/base_type = &"Label"
+CaptionDisabled/colors/font_color = Color(0.556863, 0.603922, 0.631373, 1)
 CardRoleLabel/base_type = &"Label"
 CardRoleLabel/colors/font_color = Color(0.639216, 0.690196, 0.713725, 1)
 CheckBox/colors/font_color = Color(0.639216, 0.690196, 0.713725, 1)
@@ -936,8 +976,8 @@ CombatLogSurface/base_type = &"PanelContainer"
 CombatLogSurface/styles/panel = SubResource("sb_combat_log")
 CombatLogText/base_type = &"RichTextLabel"
 CombatLogText/colors/default_color = Color(0.909804, 0.92549, 0.913725, 1)
-CombatLogText/constants/line_separation = 8
-CombatLogText/constants/roll_font_size = 36
+CombatLogText/constants/line_separation = 4
+CombatLogText/constants/roll_font_size = 27
 CombatLogText/font_sizes/bold_font_size = 18
 CombatLogText/font_sizes/normal_font_size = 18
 CombatLogText/fonts/bold_font = ExtResource("bold")
@@ -969,6 +1009,13 @@ EventOutcomePanel/base_type = &"PanelContainer"
 EventOutcomePanel/styles/panel = SubResource("event_preview")
 EventPanel/base_type = &"PanelContainer"
 EventPanel/styles/panel = SubResource("event_frame")
+FeatCardLocked/base_type = &"Button"
+FeatCardLocked/colors/font_color = Color(0.556863, 0.603922, 0.631373, 1)
+FeatCardLocked/colors/font_focus_color = Color(0.556863, 0.603922, 0.631373, 1)
+FeatCardLocked/colors/font_hover_color = Color(0.556863, 0.603922, 0.631373, 1)
+FeatCardLocked/colors/font_hover_pressed_color = Color(0.556863, 0.603922, 0.631373, 1)
+FeatCardLocked/colors/font_pressed_color = Color(0.556863, 0.603922, 0.631373, 1)
+FeatCardLocked/styles/normal = SubResource("sb_btn_disabled")
 FigureBefore/base_type = &"Label"
 FigureBefore/colors/font_color = Color(0.639216, 0.690196, 0.713725, 1)
 FigureBefore/font_sizes/font_size = 27
@@ -980,6 +1027,8 @@ HeadingLabel/base_type = &"Label"
 HeadingLabel/colors/font_color = Color(0.909804, 0.92549, 0.913725, 1)
 HeadingLabel/font_sizes/font_size = 27
 HeadingLabel/fonts/font = ExtResource("bold")
+HeadingLabelDisabled/base_type = &"HeadingLabel"
+HeadingLabelDisabled/colors/font_color = Color(0.556863, 0.603922, 0.631373, 1)
 HintLabel/base_type = &"Label"
 HintLabel/colors/font_color = Color(0.639216, 0.690196, 0.713725, 1)
 HpBarAlly/base_type = &"ProgressBar"
@@ -1162,6 +1211,9 @@ Palette/colors/node_meeting = Color(0.45, 0.72, 0.98, 1)
 Palette/colors/node_rest = Color(0.98, 0.77, 0.34, 1)
 Palette/colors/node_shop = Color(0.3, 0.86, 0.68, 1)
 Palette/colors/node_treasure = Color(1, 0.85, 0.36, 1)
+Palette/colors/popup_crit = Color(1, 0.35, 0.35, 1)
+Palette/colors/popup_heal = Color(0.25, 1, 0.35, 1)
+Palette/colors/popup_miss = Color(0.65, 0.65, 0.65, 1)
 Palette/colors/steel = Color(0.490196, 0.541176, 0.588235, 1)
 Palette/colors/surface = Color(0.117647, 0.145098, 0.168627, 0.92)
 Palette/colors/text = Color(0.909804, 0.92549, 0.913725, 1)
@@ -1197,6 +1249,8 @@ PreviewStats/base_type = &"HeadingLabel"
 PreviewStats/colors/font_color = Color(0.901961, 0.862745, 0.776471, 1)
 ProgressBar/styles/background = SubResource("sb_bar_bg")
 ProgressBar/styles/fill = SubResource("sb_bar_accent")
+ReactionPanel/base_type = &"PanelContainer"
+ReactionPanel/styles/panel = SubResource("sb_panel_reaction")
 ReactionReady/base_type = &"Panel"
 ReactionReady/styles/panel = SubResource("sb_reaction_ready")
 ReactionSpent/base_type = &"Panel"
@@ -1207,6 +1261,8 @@ ResultFrame/base_type = &"PanelContainer"
 ResultFrame/styles/panel = SubResource("sb_result_frame")
 RichTextLabel/colors/default_color = Color(0.909804, 0.92549, 0.913725, 1)
 RichTextLabel/fonts/bold_font = ExtResource("bold")
+RollHeroShade/base_type = &"Panel"
+RollHeroShade/styles/panel = SubResource("sb_roll_shade")
 RollOutcome/base_type = &"CombatLogCaption"
 RollOutcome/font_sizes/font_size = 27
 RollValue/base_type = &"CombatLogCaption"
@@ -1233,6 +1289,8 @@ RosterCardSelected/styles/focus = SubResource("sb_card_focus")
 RosterCardSelected/styles/hover = SubResource("sb_card_sel_hover")
 RosterCardSelected/styles/normal = SubResource("sb_card_sel")
 RosterCardSelected/styles/pressed = SubResource("sb_card_sel_hover")
+BestiaryPlinth/base_type = &"PanelContainer"
+BestiaryPlinth/styles/panel = SubResource("sb_bestiary_plinth")
 RosterPortrait/base_type = &"Panel"
 RosterPortrait/styles/panel = SubResource("sb_portrait")
 RosterPortraitLocked/base_type = &"Panel"

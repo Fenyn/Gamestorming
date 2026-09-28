@@ -1,4 +1,12 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene load_steps=43 format=3]
+[ext_resource type="PackedScene" path="res://PolyBlocks/EffectBlocks/assets/fire/fire_light.tscn" id="fx_fire"]
+[ext_resource type="PackedScene" path="res://PolyBlocks/EffectBlocks/assets/smoke/smoke_light.tscn" id="fx_smoke"]
+[ext_resource type="PackedScene" path="res://PolyBlocks/EffectBlocks/assets/energy/electric_sparks_3.tscn" id="fx_sparks"]
+[ext_resource type="PackedScene" path="res://PolyBlocks/EffectBlocks/assets/other/god_rays.tscn" id="fx_rays"]
+[ext_resource type="PackedScene" path="res://PolyBlocks/EffectBlocks/assets/other/portal_magic.tscn" id="fx_portal"]
+[ext_resource type="Script" path="res://scripts/dungeon/ExplorationFx.cs" id="fx"]
+[ext_resource type="PackedScene" path="res://PolyBlocks/EffectBlocks/assets/other/dust_ring.tscn" id="fx_dust"]
+[ext_resource type="PackedScene" path="res://PolyBlocks/EffectBlocks/assets/other/sparkles.tscn" id="fx_sparkles"]
 [ext_resource type="PackedScene" path="res://scenes/run/character_details_overlay.tscn" id="details"]
 [ext_resource type="Script" path="res://scripts/dungeon/DungeonDirector.cs" id="dir"]
 [ext_resource type="PackedScene" path="res://scenes/combat/combat.tscn" id="combat"]
@@ -32,11 +40,30 @@
 [ext_resource type="PackedScene" path="res://scenes/run/scene_transition.tscn" id="transition"]
 [sub_resource type="Environment" id="env"]
 background_mode = 1
-background_color = Color(0.018, 0.023, 0.035, 1)
+background_color = Color(0.035, 0.043, 0.055, 1)
 ambient_light_source = 3
-ambient_light_color = Color(0.62, 0.67, 0.79, 1)
-ambient_light_energy = 0.7
+ambient_light_color = Color(0.45, 0.52, 0.62, 1)
+ambient_light_energy = 0.5
 tonemap_mode = 2
+tonemap_exposure = 1.1
+ssao_enabled = true
+ssao_radius = 1.0
+ssao_intensity = 1.5
+glow_enabled = true
+glow_levels/6 = 0.0
+glow_levels/7 = 0.0
+glow_intensity = 0.6
+glow_bloom = 0.0
+glow_hdr_threshold = 1.2
+fog_enabled = true
+fog_light_color = Color(0.035, 0.043, 0.055, 1)
+fog_density = 0.02
+fog_sky_affect = 0.0
+[sub_resource type="PlaneMesh" id="bedrock_mesh"]
+size = Vector2(600, 600)
+[sub_resource type="StandardMaterial3D" id="bedrock_material"]
+shading_mode = 0
+albedo_color = Color(0.035, 0.043, 0.055, 1)
 [node name="DungeonTest" type="Node3D"]
 script = ExtResource("dir")
 CombatPrefab = ExtResource("combat")
@@ -49,15 +76,41 @@ PurposePrefabs = Array[PackedScene]([ExtResource("purpose0"), ExtResource("purpo
 unique_name_in_owner = true
 [node name="TravelParty" type="Node3D" parent="."]
 unique_name_in_owner = true
+[node name="ExplorationFx" type="Node3D" parent="." node_paths=PackedStringArray("RoomEnterSound", "ShutterSound", "WardSound", "ClearedSound", "RestSound", "DescendSound")]
+unique_name_in_owner = true
+script = ExtResource("fx")
+DustRing = ExtResource("fx_dust")
+Sparkles = ExtResource("fx_sparkles")
+CampFire = ExtResource("fx_fire")
+HearthSmoke = ExtResource("fx_smoke")
+BenchSparks = ExtResource("fx_sparks")
+ShrineRays = ExtResource("fx_rays")
+EnginePortal = ExtResource("fx_portal")
+RoomEnterSound = NodePath("RoomEnterSound")
+ShutterSound = NodePath("ShutterSound")
+WardSound = NodePath("WardSound")
+ClearedSound = NodePath("ClearedSound")
+RestSound = NodePath("RestSound")
+DescendSound = NodePath("DescendSound")
+[node name="RoomEnterSound" type="AudioStreamPlayer" parent="ExplorationFx"]
+[node name="ShutterSound" type="AudioStreamPlayer" parent="ExplorationFx"]
+[node name="WardSound" type="AudioStreamPlayer" parent="ExplorationFx"]
+[node name="ClearedSound" type="AudioStreamPlayer" parent="ExplorationFx"]
+[node name="RestSound" type="AudioStreamPlayer" parent="ExplorationFx"]
+[node name="DescendSound" type="AudioStreamPlayer" parent="ExplorationFx"]
 [node name="ExploreCamera" parent="." instance=ExtResource("camera")]
 unique_name_in_owner = true
+[node name="Bedrock" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.35, 0)
+mesh = SubResource("bedrock_mesh")
+surface_material_override/0 = SubResource("bedrock_material")
 [node name="Environment" type="WorldEnvironment" parent="."]
 unique_name_in_owner = true
 environment = SubResource("env")
 [node name="Light" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-65, -25, 0)
-light_color = Color(0.7, 0.76, 0.9, 1)
-light_energy = 0.7
+light_color = Color(0.62, 0.7, 0.86, 1)
+light_energy = 0.35
 shadow_enabled = true
 [node name="Screens" type="CanvasLayer" parent="."]
 unique_name_in_owner = true

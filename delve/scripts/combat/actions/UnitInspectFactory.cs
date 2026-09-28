@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using PF2e.Conditions;
 using PF2e.Core;
 using PF2e.Data;
 using PF2e.Grid;
@@ -48,13 +47,7 @@ internal static class UnitInspectFactory
 
     internal static UnitInspectView BuildInspectView(ICharacter c)
     {
-        var conditions = new List<string>();
-        foreach (var instance in c.Conditions?.GetAllConditions() ?? new List<ConditionInstance>())
-        {
-            conditions.Add(instance.Definition.HasValue && instance.Value > 0
-                ? $"{instance.Definition.DisplayName} {instance.Value}"
-                : instance.Definition.DisplayName);
-        }
+        var conditions = new List<string>(ConditionMarks.Labels(c));
         if (c.Equipment?.IsShieldRaised == true)
             conditions.Add("Shield Raised");
 

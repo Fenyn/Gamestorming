@@ -32,8 +32,30 @@ const DEFAULTS: Dictionary = {
 		# Off by default. Above zero, a searching card is worth this share of the best card it can
 		# reach, compounding down a chain, so a deck built around a combo goes and assembles it.
 		"tutor_decay": 0.0, "bond_band": 0.0,
+		# Off by default. Above zero, an attack from hand is charged this share of the card's worth,
+		# times the chance the rival holds a block, so a lesser card leads while blocks remain.
+		"attack_hold": 0.0,
+		# What a kept card that cannot block is worth, as a share of its worth, while it waits out
+		# the opponent's turn. See AiScorer._keep_score.
+		"kept_off_turn": 0.5,
 	},
 	"reserve": {"tech": 3.0, "threshold": 1.0, "toolbox_keep": 2.0, "max_swaps": 4},
+	# Multipliers keyed "group.key" (`"play.damage_life": 1.15`), applied by `w` on top of whatever
+	# value the deck's profile sets, so a calibration can move every deck without flattening their
+	# styles. A key not listed is 1.0. These came from tools/spsa_tune.py over paired self-play of
+	# every deck (reports/spsa/shared_big_2026-09-28), and beat the unscaled scorer 52.4% to 47.6%
+	# over 2184 paired games on fresh seeds. A deck profile may list its own, which replace these.
+	"scale": {
+		"play.damage_life": 0.76, "play.damage_stage": 1.34, "play.attack_cost": 1.03, "play.defend_card": 0.88,
+		"play.use_cost": 1.19, "play.final_strike_penalty": 0.77, "play.grounds_skip": 0.96,
+		"effect.if_successful": 0.99, "effect.if_stopped": 0.94, "effect.energy": 0.92, "effect.forbid": 0.95,
+		"effect.float": 0.93, "effect.other": 0.93, "effect.search": 0.85, "effect.draw": 1.1,
+		"effect.discard_in_play": 1.14, "effect.discard_hand": 1.03, "effect.remove_discard": 0.89,
+		"effect.stop_all": 1.14, "effect.recover": 1.08, "effect.fervor": 0.88, "effect.attach": 1.04,
+		"effect.capture_seal": 0.95, "effect.discard_life": 0.99,
+		"own.aspect": 1.02, "own.seal": 1.15, "own.ally": 1.26, "own.drill": 0.85, "own.non_combat": 1.11,
+		"own.life_low": 0.88, "foe.aspect": 0.91, "foe.ally": 0.93, "foe.seal": 1.14, "foe.ascension": 0.83,
+	},
 	# Matchup pivots, keyed by what the deck across the table declares itself to be. An archetype id
 	# on its own, or "+<subtheme>" for one of its subthemes. Each value is a partial profile laid
 	# over this one when that opponent is faced. Empty here: a deck opts in by listing its own.
@@ -43,7 +65,9 @@ const DEFAULTS: Dictionary = {
 	# `aspect_min:N`, `fervor_min:N`, `seals_min:N`, `life_below:N`. Laid on after the matchup
 	# pivots, so a deck can hold back until its plan is on the table and then press.
 	"when": {},
-	"think": {"search": true, "algorithm": "sequence", "top_k": 6, "samples": 2,
+	# The search is deprecated and off; the scorer answers every prompt. Kept only so test runs can
+	# still compare against it until it is removed.
+	"think": {"search": false, "algorithm": "sequence", "top_k": 6, "samples": 2,
 		"budget_ms": 1600, "max_steps": 80, "turns": 1, "noise": 0.0, "prior": 0.05,
 		"sequence_depth": 6, "branch_width": 3, "response_width": 2, "node_budget": 6000,
 		# 0 or 1 keeps every candidate; between them it drops the ones the move ordering already
@@ -238,7 +262,11 @@ func merge(over: Dictionary) -> void:
 
 func w(group: String, key: String) -> float:
 	var g: Dictionary = data.get(group, {})
-	return float(g.get(key, 0.0))
+	var value: float = float(g.get(key, 0.0))
+	var scale: Dictionary = data.get("scale", {})
+	if not scale.is_empty():
+		value *= float(scale.get(group + "." + key, 1.0))
+	return value
 
 
 func think_int(key: String) -> int:
@@ -247,7 +275,7 @@ func think_int(key: String) -> int:
 
 func searches() -> bool:
 	var g: Dictionary = data["think"]
-	return bool(g.get("search", true))
+	return bool(g.get("search", false))
 
 
 ## Prompt kinds this profile answers with the scorer alone, skipping the search. Measured

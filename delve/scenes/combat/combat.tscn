@@ -25,6 +25,8 @@
 
 [ext_resource type="PackedScene" path="res://scenes/ui/squad_panel.tscn" id="squad"]
 [ext_resource type="PackedScene" path="res://scenes/combat/destination_preview.tscn" id="destination"]
+[ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="caption"]
+[ext_resource type="PackedScene" path="res://scenes/ui/combat_journal_panel.tscn" id="journal"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
 size = Vector2(12, 10)
@@ -69,6 +71,7 @@ ambient_light_color = Color(0.62, 0.64, 0.72, 1)
 
 [node name="Combat" type="Node3D" unique_id=101358353]
 script = ExtResource("1_scene")
+BandGap = 8.0
 
 [node name="TerrainStage" type="Node3D" parent="." unique_id=1861684916]
 unique_name_in_owner = true
@@ -135,63 +138,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("13_hudroot")
-
-[node name="SquadPanel" parent="HUD/HudRoot" instance=ExtResource("squad")]
-unique_name_in_owner = true
-
-[node name="TurnOrderBar" parent="HUD/HudRoot" unique_id=1094648664 instance=ExtResource("5_turn")]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 5
-offset_top = 0.0
-
-[node name="CombatLog" parent="HUD/HudRoot" unique_id=1673882180 instance=ExtResource("6_log")]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 11
-offset_left = -416.0
-offset_top = 80.0
-offset_right = -16.0
-offset_bottom = -180.0
-grow_vertical = 2
-
-[node name="DiceRoll" parent="HUD/HudRoot" unique_id=2036442695 instance=ExtResource("dice_roll")]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 200.0
-offset_top = -276.0
-offset_right = 640.0
-offset_bottom = -116.0
-grow_vertical = 0
-
-[node name="UnitInspect" parent="HUD/HudRoot" unique_id=1867311933 instance=ExtResource("11_inspect")]
-unique_name_in_owner = true
-layout_mode = 1
-offset_left = 16.0
-offset_top = 408.0
-offset_right = 304.0
-offset_bottom = 408.0
-
-[node name="ActionBar" parent="HUD/HudRoot" unique_id=1546362475 instance=ExtResource("7_ab")]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 7
-
-[node name="HelpOverlay" parent="HUD/HudRoot" unique_id=1754253256 instance=ExtResource("10_help")]
-unique_name_in_owner = true
-layout_mode = 1
-
-[node name="ReactionPrompt" parent="HUD/HudRoot" unique_id=1006102519 instance=ExtResource("9_rpp")]
-unique_name_in_owner = true
-visible = false
-layout_mode = 1
-
-[node name="VictoryBanner" parent="HUD/HudRoot" unique_id=1152030874 instance=ExtResource("8_vb")]
-unique_name_in_owner = true
-layout_mode = 1
+LogPath = NodePath("RightRail/CombatLog")
 
 [node name="EncounterIntro" type="Control" parent="HUD/HudRoot"]
 unique_name_in_owner = true
@@ -243,6 +190,103 @@ offset_bottom = 170.0
 mouse_filter = 2
 theme_type_variation = &"IntroSubtitle"
 horizontal_alignment = 1
+
+[node name="SquadPanel" parent="HUD/HudRoot" instance=ExtResource("squad")]
+unique_name_in_owner = true
+
+[node name="RightRail" type="VBoxContainer" parent="HUD/HudRoot"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -384.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -104.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="TurnOrderBar" parent="HUD/HudRoot/RightRail" unique_id=1094648664 instance=ExtResource("5_turn")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="CombatLog" parent="HUD/HudRoot/RightRail" unique_id=1673882180 instance=ExtResource("6_log")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 3
+KeepHeading = true
+
+[node name="JournalButton" parent="HUD/HudRoot/RightRail/CombatLog/Col/Shell/Content/Heading" instance=ExtResource("caption")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 10
+tooltip_text = "Creatures in this fight"
+ActionText = "Journal"
+InputAction = &"combat_journal"
+
+[node name="DiceRoll" parent="HUD/HudRoot" unique_id=2036442695 instance=ExtResource("dice_roll")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[node name="UnitInspect" parent="HUD/HudRoot" unique_id=1867311933 instance=ExtResource("11_inspect")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[node name="ActorCard" parent="HUD/HudRoot" instance=ExtResource("11_inspect")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(288, 72)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -604.0
+offset_top = -16.0
+offset_right = -316.0
+offset_bottom = -16.0
+grow_vertical = 0
+
+[node name="TargetCard" parent="HUD/HudRoot" instance=ExtResource("11_inspect")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(288, 72)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 316.0
+offset_top = -16.0
+offset_right = 604.0
+offset_bottom = -16.0
+grow_vertical = 0
+
+[node name="ActionBar" parent="HUD/HudRoot" unique_id=1546362475 instance=ExtResource("7_ab")]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+
+[node name="CombatJournal" parent="HUD/HudRoot" instance=ExtResource("journal")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[node name="HelpOverlay" parent="HUD/HudRoot" unique_id=1754253256 instance=ExtResource("10_help")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[node name="ReactionPrompt" parent="HUD/HudRoot" unique_id=1006102519 instance=ExtResource("9_rpp")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="VictoryBanner" parent="HUD/HudRoot" unique_id=1152030874 instance=ExtResource("8_vb")]
+unique_name_in_owner = true
+layout_mode = 1
 
 [node name="DestinationPreview" parent="." instance=ExtResource("destination")]
 unique_name_in_owner = true

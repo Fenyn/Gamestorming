@@ -67,9 +67,12 @@ public partial class HeroSelectPanel : Control
         _recruitment = GetNode<RecruitmentPanel>("%Recruitment");
         _recruitmentButton.Pressed += _recruitment.Open;
         _recruitment.StayRequested += id => RecruitmentRequested?.Invoke(id);
+        ReadyBestiary();
         _sheet = GetNode<HeroSheet>("%Sheet");
         _embark.Pressed += Embark;
         _clearParty.Pressed += Unpick;
+        // Esc with picks gives one back first; with none it reaches the pause menu and its Quit.
+        AddToGroup(PauseMenu.HostGroup);
     }
 
     /// <summary>Build the roster. Safe to call again for a second run.</summary>
@@ -81,6 +84,7 @@ public partial class HeroSelectPanel : Control
         _details.Hide();
         _recruitmentButton.Disabled = campaign == null;
         _recruitmentButton.TooltipText = campaign == null ? "Unavailable: no campaign loaded" : "Review shared recruitment requirements";
+        SetupBestiary(campaign);
         _selected.Clear();
         _hovered = null;
 
@@ -106,7 +110,7 @@ public partial class HeroSelectPanel : Control
     /// </summary>
     public void Pick(string id)
     {
-        if (_recruitment.Visible || _details.Visible || !CanPick(id)) return;
+        if (OverlayOpen || _details.Visible || !CanPick(id)) return;
         if (!_selected.Remove(id)) _selected.Add(id);
         _hovered = id;
         Refresh();
@@ -115,7 +119,7 @@ public partial class HeroSelectPanel : Control
     /// <summary>Clear the assembled party.</summary>
     public void Unpick()
     {
-        if (_recruitment.Visible || _details.Visible) return;
+        if (OverlayOpen || _details.Visible) return;
         _selected.Clear();
         Refresh();
     }
@@ -133,7 +137,7 @@ public partial class HeroSelectPanel : Control
     /// <summary>Signal a snapshot of the complete formation.</summary>
     public void Embark()
     {
-        if (CanEmbark && !_recruitment.Visible && !_details.Visible) Confirmed?.Invoke(_selected.ToArray());
+        if (CanEmbark && !OverlayOpen && !_details.Visible) Confirmed?.Invoke(_selected.ToArray());
     }
 
     public override void _Input(InputEvent @event)
@@ -154,6 +158,15 @@ public partial class HeroSelectPanel : Control
             }
             return;
         }
+        if (_bestiary.Visible)
+        {
+            if (@event.IsActionPressed(InputNames.Decline))
+            {
+                _bestiary.Close();
+                GetViewport().SetInputAsHandled();
+            }
+            return;
+        }
 
         if (@event.IsActionPressed(InputNames.UiDown)) Step(1);
         else if (@event.IsActionPressed(InputNames.UiUp)) Step(-1);
@@ -162,6 +175,7 @@ public partial class HeroSelectPanel : Control
             if (_embark.HasFocus()) Embark();
             else if (_clearParty.HasFocus()) Unpick();
             else if (_recruitmentButton.HasFocus() && !_recruitmentButton.Disabled) _recruitment.Open();
+            else if (_bestiaryButton.HasFocus() && !_bestiaryButton.Disabled) OpenBestiary();
             else if (GetNode<Button>("%DetailsButton").HasFocus()) OpenDetails();
             else if (_hovered != null) Pick(_hovered);
         }

@@ -2,55 +2,88 @@ using System.Collections.Generic;
 using Delve.Flow;
 using Godot;
 using PF2e.Core;
-using Delve.Run;
 
 namespace Delve.UI;
 
 public partial class VictoryBanner
 {
-    private IReadOnlyList<PF2eCharacter> _party = System.Array.Empty<PF2eCharacter>();
+    private CombatResultsView _view = new();
+
+    public IReadOnlyList<FigureLabel> FigureLabels
+    {
+        get
+        {
+            var labels = new List<FigureLabel>();
+            foreach (var child in _figures.GetChildren())
+                if (child is FigureLabel label) labels.Add(label);
+            return labels;
+        }
+    }
+
+    public IReadOnlyList<ResultMemberRowView> MemberRows
+    {
+        get
+        {
+            var rows = new List<ResultMemberRowView>();
+            foreach (var child in _members.GetChildren())
+                if (child is ResultMemberRowView row) rows.Add(row);
+            return rows;
+        }
+    }
+
+    public string NotesText => _notes.Visible ? _notes.Text : "";
+
+    private CharacterDetailsOverlay Details => GetNode<CharacterDetailsOverlay>("%ResultDetails");
 
     private void WirePartyDetails()
     {
-        GetNode<CharacterDetailsOverlay>("%ResultDetails").GetNode<CaptionButton>("%CloseDetails").SetActionText("Return to results");
-        GetNode<Button>("%DetailsButton").Pressed += () =>
+        Details.GetNode<CaptionButton>("%CloseDetails").SetActionText("Return to results");
+        Details.Closed += () =>
         {
-            int index = GetNode<OptionButton>("%PartyMember").Selected;
-            if (index < 0 || index >= _party.Count) return;
-            var member = _party[index];
-            GetNode<CharacterDetailsOverlay>("%ResultDetails").Open(member,
-                HeroPortraits.For(member.Id), UiColors.CharacterAccent(member.Id));
+            RenderMembers();
+            UiFocus.Grab(_continueButton);
         };
-        GetNode<CharacterDetailsOverlay>("%ResultDetails").Closed += () => GetNode<Button>("%DetailsButton").GrabFocus();
-        GetNode<CharacterDetailsOverlay>("%ResultDetails").Promoted += () => RefreshPartyLabels();
-        GetNode<OptionButton>("%PartyMember").ItemSelected += _ => RefreshDetailsButton();
+        Details.Promoted += RenderMembers;
     }
 
-    public void ShowParty(IReadOnlyList<PF2eCharacter> members)
+    private void RenderRows(CombatResultsView view)
     {
-        _party = members;
-        var selector = GetNode<OptionButton>("%PartyMember");
-        selector.Clear();
-        foreach (var member in members) selector.AddItem(member.Name);
-        RefreshPartyLabels();
-        GetNode<Control>("%PartyDetails").Visible = members.Count > 0;
+        _view = view;
+        foreach (var child in _figures.GetChildren()) { _figures.RemoveChild(child); child.QueueFree(); }
+        if (FigureScene != null)
+            foreach (var figure in view.Figures)
+            {
+                var label = FigureScene.Instantiate<FigureLabel>();
+                _figures.AddChild(label);
+                label.Render(figure);
+            }
+        _figures.Visible = view.Figures.Count > 0;
+        _progress.Visible = view.Progress != null;
+        _progress.Value = view.Progress ?? 0;
+        _notes.Text = string.Join("\n", view.Notes);
+        _notes.Visible = view.Notes.Count > 0;
+        RenderMembers();
     }
 
-    private void RefreshPartyLabels()
+    private void RenderMembers()
     {
-        var selector = GetNode<OptionButton>("%PartyMember");
-        for (int i = 0; i < _party.Count; i++)
-        {
-            string status = CharacterPromotion.Status(_party[i]);
-            selector.SetItemText(i, _party[i].Name + (status.Length > 0 ? $" · {status}" : ""));
-        }
-        RefreshDetailsButton();
+        foreach (var child in _members.GetChildren()) { _members.RemoveChild(child); child.QueueFree(); }
+        if (RowScene != null)
+            foreach (var member in _view.Members)
+            {
+                if (member.Figures.Count == 0 && !CombatResults.HasFeatChoice(member.Member)) continue;
+                var row = RowScene.Instantiate<ResultMemberRowView>();
+                _members.AddChild(row);
+                row.Render(member);
+                var character = member.Member;
+                row.ChooseFeatPressed += () => OpenPromotion(character);
+            }
+        _members.Visible = _members.GetChildCount() > 0;
     }
 
-    private void RefreshDetailsButton()
+    public void OpenPromotion(PF2eCharacter member)
     {
-        int index = GetNode<OptionButton>("%PartyMember").Selected;
-        GetNode<Button>("%DetailsButton").Text = index >= 0 && index < _party.Count
-            && CharacterPromotion.Status(_party[index]).Length > 0 ? "Promote · Character sheet" : "Character details";
+        Details.SetPromotionQueue(_view.Party);
+        Details.Open(member, HeroPortraits.For(member.Id), UiColors.CharacterAccent(member.Id));
     }
 }

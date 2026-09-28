@@ -60,6 +60,10 @@ public static class ThemeNames
     public const string ReactionReady = "ReactionReady";
     public const string ReactionSpent = "ReactionSpent";
     public const string ClearPanel = "ClearPanel";
+    public const string CaptionDisabled = "CaptionDisabled";
+    public const string HeadingLabel = "HeadingLabel";
+    public const string HeadingLabelDisabled = "HeadingLabelDisabled";
+    public const string FeatCardLocked = "FeatCardLocked";
 
     public static string MapHpBarFor(float ratio)
         => ratio > 0.5f ? MapHpHigh : ratio > 0.25f ? MapHpMid : MapHpLow;

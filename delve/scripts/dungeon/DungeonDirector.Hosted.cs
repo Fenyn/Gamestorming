@@ -1,5 +1,6 @@
 using System;
 using Delve.Combat;
+using Delve.Flow;
 using Delve.Run;
 using Godot;
 
@@ -9,6 +10,10 @@ public partial class DungeonDirector
 {
     /// <summary>Set before adding to the tree. The host owns party, rewards and campaign state.</summary>
     public bool Hosted { get; set; }
+
+    /// <summary>Set before adding to the tree. The host's transition, so camp and descent share one
+    /// veil and one busy flag.</summary>
+    public SceneTransition? SharedTransition { get; set; }
     private Godot.Environment? _floorEnvironment;
     public event Action<CombatSetup>? CombatRequested;
     public event Action? FloorCompleted;
@@ -39,10 +44,11 @@ public partial class DungeonDirector
     {
         _epoch++;
         CancelPresentation();
+        UnwatchWard();
         _pendingDoorClick = null;
         _doorPress = null;
         _travelTween?.Kill();
-        _combat.EndHostedEncounter();
+        _combat?.EndHostedEncounter();
         _event.Visible = false;
         _rest.Visible = false;
         Phase = DungeonPhase.End;
@@ -52,9 +58,7 @@ public partial class DungeonDirector
     public void CompleteHostedCombat()
     {
         if (!Hosted || Phase != DungeonPhase.Combat) return;
-        Current.Resolved = true;
-        Current.Completed = true;
-        CurrentView.SetResolved();
+        CompleteRoom();
         SpawnTravelParty(true);
         Frame();
         ShowDoors();

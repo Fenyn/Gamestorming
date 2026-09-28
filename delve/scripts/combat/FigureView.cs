@@ -8,4 +8,7 @@ public sealed record FigureView(string Caption, string Value)
 {
     public string Before { get; init; } = "";
     public bool IsChange => Before.Length > 0;
+
+    /// <summary>The maximum printed after the value, dim: "HP 44 → 1 / 44". Empty for none.</summary>
+    public string Max { get; init; } = "";
 }

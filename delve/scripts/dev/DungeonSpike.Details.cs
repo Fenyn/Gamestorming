@@ -34,7 +34,7 @@ public partial class DungeonSpike
                 }
             Check($"{token.Character.Name} has a visible clickable sprite", point != null);
             if (point is not { } screen) continue;
-            GetViewport().PushInput(new InputEventMouseMotion { Position = screen, GlobalPosition = screen });
+            GetViewport().PushInput(new InputEventMouseMotion { Position = screen, GlobalPosition = screen }, true);
             await WaitSeconds(0.1f);
             var sprite = token.GetNode<BillboardSpriteAnimator>("%Sprite");
             Check("hover outlines only the clickable character", sprite.HoverHighlighted
@@ -43,7 +43,7 @@ public partial class DungeonSpike
                 .GetShaderParameter("hover_color").AsColor() == UiColors.CharacterAccent(token.Character.Id));
             if (Capture) await Shot($"dungeon_hover_{token.Character.Id}.png");
             var away = new Vector2(10, 10);
-            GetViewport().PushInput(new InputEventMouseMotion { Position = away, GlobalPosition = away });
+            GetViewport().PushInput(new InputEventMouseMotion { Position = away, GlobalPosition = away }, true);
             await WaitSeconds(0.1f);
             Check("leaving the character clears its outline", !sprite.HoverHighlighted);
             void Click(Vector2 release)

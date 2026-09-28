@@ -14,6 +14,8 @@ namespace Delve.Combat;
 /// </summary>
 public partial class TeamRing : MeshInstance3D
 {
+    public const float RadiusPerTile = 0.42f;
+
     [Export] public Shader? FootprintShader { get; set; }
     /// <summary>Ring colour while the entity has the turn.</summary>
     [Export] public Color ActiveColor { get; set; } = new(1f, 0.9f, 0.3f, 0.9f);
@@ -68,7 +70,7 @@ public partial class TeamRing : MeshInstance3D
         System.ArgumentOutOfRangeException.ThrowIfLessThan(tileWidth, 1);
         if (Mesh is not CylinderMesh cylinder) return;
         var mesh = (CylinderMesh)cylinder.Duplicate();
-        mesh.TopRadius = mesh.BottomRadius = 0.42f * tileWidth;
+        mesh.TopRadius = mesh.BottomRadius = RadiusPerTile * tileWidth;
         Mesh = mesh;
     }
 

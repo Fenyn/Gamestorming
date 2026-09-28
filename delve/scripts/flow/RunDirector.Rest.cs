@@ -39,11 +39,12 @@ public partial class RunDirector
         if (_state == null || Phase != RunPhase.ShortRest || _shortRestResolved) return;
         _shortRestResolved = true;
         int wardBefore = _state.Wardstone.Ward;
+        var before = PartyChangeSummary.Capture(_state.Party);
 
         var result = ShortRest.Perform(
             _state.Party, _state.Clock, kind, target, new RecoveryRules(),
             wardstone: _state.Wardstone);
-        _shortRestPanel.ShowResult(result, _state, wardBefore);
+        _shortRestPanel.ShowResult(result, _state, wardBefore, before);
         EndOnSpentWard();
     }
 
@@ -51,10 +52,10 @@ public partial class RunDirector
     {
         if (_state == null || Phase != RunPhase.ShortRest || _shortRestResolved) return;
         int before = _state.Wardstone.Ward;
-        var result = ShortRest.PerformSchedule(_state.Party, _state.Clock, assignments,
-            new RecoveryRules(), _state.Wardstone);
+        var party = PartyChangeSummary.Capture(_state.Party);
+        var result = ShortRest.PerformSchedule(_state, assignments, new RecoveryRules(), _shortRestPanel.UseFree);
         _shortRestResolved = result.Performed;
-        _shortRestPanel.ShowResult(result, _state, before);
+        _shortRestPanel.ShowResult(result, _state, before, party);
         EndOnSpentWard();
     }
 

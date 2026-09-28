@@ -65,8 +65,8 @@ public sealed class GodotPresenter3D
 
     /// <summary>
     /// The encounter's cancellation token, set by <see cref="CombatScene"/> from the same source it
-    /// cancels in <c>_ExitTree</c>. Every paced <c>Task.Delay</c> and tween wait below observes it so a
-    /// mid-animation scene exit unblocks the pipeline (a <c>Task.Delay</c> throws OperationCanceled up
+    /// cancels in <c>_ExitTree</c>. Every pacing delay and tween wait below observes it so a
+    /// mid-animation scene exit unblocks the pipeline (a pacing delay throws OperationCanceled up
     /// through the loop; a tween wait — whose Finished never fires once the tween is freed — is released
     /// by the registration) instead of parking a continuation that later resumes on disposed nodes.
     /// Defaults to None so a headless / standalone presenter behaves exactly as before.
@@ -418,8 +418,9 @@ public sealed class GodotPresenter3D
     private async Task Delay(float seconds)
     {
         if (seconds <= 0) return;
-        // The token lets a scene exit interrupt the pace-delay: Task.Delay throws OperationCanceled,
-        // which propagates up through the AI plan / Emit chain to the turn loop's cancellation handler.
-        await Task.Delay((int)(seconds * 1000), CancellationToken);
+        // A scene exit cancels the token: the delay throws OperationCanceled, which propagates up
+        // through the AI plan / Emit chain to the turn loop's cancellation handler.
+        bool inTree = GodotObject.IsInstanceValid(_popupLayer) && _popupLayer.IsInsideTree();
+        await PausableDelay.Wait(inTree ? _popupLayer.GetTree() : null, seconds, CancellationToken);
     }
 }

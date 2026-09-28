@@ -13,8 +13,6 @@ public sealed record ReactionPromptView
     /// <summary>Engine UniqueId of the reactor, so the HUD can frame its party chip and plate.</summary>
     public int ReactorId { get; init; }
 
-    public string PortraitKey { get; init; } = "";
-
     /// <summary>The reaction's display name ("Shield Block", "Reactive Strike").</summary>
     public required string ReactionName { get; init; }
 

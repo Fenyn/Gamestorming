@@ -14,6 +14,11 @@ public partial class DungeonPalette : Resource
     [Export] public Texture2D? TimberTexture { get; set; }
     [Export] public Color StoneTint { get; set; } = Colors.White;
     [Export] public Color ClothTint { get; set; } = new("795457");
+
+    /// <summary>Colours of the blockout props, doors and passages.</summary>
+    [Export] public PropTints? Tints { get; set; }
+
+    public Color Tint(string key) => Tints?.Get(key) ?? Colors.Magenta;
     private readonly Dictionary<(Color, string), StandardMaterial3D> _materials = new();
 
     public MapThemeDefinition Theme()

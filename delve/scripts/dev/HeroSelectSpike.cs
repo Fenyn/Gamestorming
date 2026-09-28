@@ -59,6 +59,7 @@ public partial class HeroSelectSpike : SpikeBase
         // ---------------------------------------------------- (1) the empty screen
         panel.Setup(new UnlockState());
         Check("(1) nothing is chosen", panel.SelectedIds.Count == 0);
+        Check("(1) the outpost is a pause host, so Esc with no picks reaches Quit", panel.IsInGroup(Delve.UI.PauseMenu.HostGroup));
         Check("(1) Embark is disabled", !panel.CanEmbark);
         Check($"(1) the hint asks for a character ({panel.HintText})",
             panel.HintText.Contains("four companions", StringComparison.Ordinal));

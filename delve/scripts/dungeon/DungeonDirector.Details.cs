@@ -1,3 +1,4 @@
+using System.Linq;
 using Delve.Combat;
 using Delve.Flow;
 using Delve.UI;
@@ -44,9 +45,20 @@ public partial class DungeonDirector
         _pendingDoorClick = null;
         SetHoveredPartyMember(null);
         _doorPress = null;
-        CurrentView.SetHoveredDoor(null, "");
+        CurrentView.SetHoveredDoor(null);
+        _focusedDoor = null;
+        _hud.HideDoorTip();
+        _details.SetPromotionQueue(State.Party.Members);
         _details.Open(character, HeroPortraits.For(character.Id), UiColors.CharacterAccent(character.Id));
         _camera.ProcessMode = ProcessModeEnum.Disabled;
+    }
+
+    /// <summary>A party strip chip was clicked.</summary>
+    private void OpenMemberDetails(int uniqueId)
+    {
+        if (Phase != DungeonPhase.Doors || _details.Visible) return;
+        var token = _tokens.FirstOrDefault(t => t.Character.UniqueId == uniqueId);
+        if (token != null) OpenCharacterDetails(token);
     }
 
     private void CloseCharacterDetails()

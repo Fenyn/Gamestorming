@@ -6090,7 +6090,9 @@ func _handle_choice(cmd: Command) -> void:
 				"ctx": _choice["ctx"], "source": card(int(_choice.get("source", -1))), "announced": true})
 		"sift_pick":
 			var sifter: PlayerState = state.players[int(_choice["player"])]
-			var sifted: Array[int] = [] if cmd.type == &"pick_none" else Prompt.cards_of(cmd)
+			var sifted: Array[int] = []
+			if cmd.type != &"pick_none":
+				sifted = Prompt.cards_of(cmd)
 			var to_remove: int = mini(int(_choice["remove"]), sifted.size())
 			if to_remove >= sifted.size():
 				for uid in sifted:

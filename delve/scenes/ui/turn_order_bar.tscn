@@ -1,26 +1,23 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/TurnOrderBar.cs" id="1_turn"]
 [ext_resource type="PackedScene" path="res://scenes/ui/turn_order_chip.tscn" id="2_chip"]
+[ext_resource type="Resource" path="res://assets/ui/conditions/condition_icons.tres" id="3_icons"]
 
-[node name="TurnOrderBar" type="Control"]
-layout_mode = 3
-anchor_left = 0.5
-anchor_right = 0.5
-offset_top = 8.0
-grow_horizontal = 2
+[node name="TurnOrderBar" type="VBoxContainer"]
+custom_minimum_size = Vector2(368, 0)
 mouse_filter = 2
 script = ExtResource("1_turn")
 ChipScene = ExtResource("2_chip")
-MaxWidth = 1200.0
-ActiveChipHeight = 56.0
+Icons = ExtResource("3_icons")
+MaxMarks = 2
+MarkIconSize = 22
+MaxHeight = 560.0
+ActiveChipHeight = 40.0
+DividerHeight = 24.0
 
-[node name="Row" type="HBoxContainer" parent="."]
+[node name="Row" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-grow_horizontal = 2
+layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4

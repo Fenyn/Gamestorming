@@ -28,19 +28,22 @@ public partial class RunPresentationSpike : SpikeBase
         var before = PartyChangeSummary.Capture(party);
         PartyRecovery.CompleteEncounter(party, BattleResult.Team1Wins);
         var recovery = PartyChangeSummary.Recovery(party, before).ToArray();
-        Check("recovery names the downed member and actual HP", recovery.Length == 1
-            && recovery[0].Contains("Elara") && recovery[0].Contains("1 HP"));
+        Check($"recovery names the downed member as an HP pair ('{string.Join(" | ", recovery)}')", recovery.Length == 1
+            && recovery[0].StartsWith("Elara  HP 0 → 1"));
         var night = PartyChangeSummary.Capture(party);
         PartyRecovery.LongRest(party, state.Clock, wardstone: state.Wardstone);
         string rest = string.Join("\n", PartyChangeSummary.Overnight(party, night));
-        Check("overnight summary reports actual healing and casting recovery", rest.Contains("spell slots and focus restored")
-            && rest.Contains($"{party.Members[1].Health.CurrentHP}/{party.Members[1].Health.MaxHP} HP"));
+        Check($"overnight summary reports actual healing as before → after pairs ('{rest.Replace("\n", " | ")}')",
+            rest.Contains($"Elara  {night[PresetCharacters.ElaraId].Hp} → {party.Members[1].Health.CurrentHP}")
+            && !rest.Contains(':') && !rest.Contains("(+"));
         before = PartyChangeSummary.Capture(party);
         PartyLeveling.Award(state, state.Leveling.XpPerLevel * 2);
         Check("earned promotions have no applied level gains", !PartyChangeSummary.LevelGains(party, before).Any());
         PromotionTestDriver.Complete(party);
         string gains = string.Join("\n", PartyChangeSummary.LevelGains(party, before));
-        Check("level summary includes maximum HP and casting growth", gains.Contains("maximum HP") && gains.Contains("spell slots"));
+        Check($"level summary shows maximum HP and casting growth as pairs ('{gains.Replace("\n", " | ")}')",
+            System.Text.RegularExpressions.Regex.IsMatch(gains, @"HP \d+ → \d+")
+            && System.Text.RegularExpressions.Regex.IsMatch(gains, @"Rank \d slots \d+ → \d+"));
         Check("unchanged party produces no level gains", !PartyChangeSummary.LevelGains(party, PartyChangeSummary.Capture(party)).Any());
 
         var campaign = new CampaignProgress();
@@ -58,21 +61,21 @@ public partial class RunPresentationSpike : SpikeBase
         AddChild(surface);
         var victory = VictoryScene.Instantiate<VictoryBanner>();
         surface.AddChild(victory);
-        victory.ShowResult("Victory", UiColors.Victory);
-        victory.ShowParty(party.Members);
-        victory.ShowRewards(string.Join("\n", recovery) + "\nLevel gained: 2 to 4\n" + gains,
-            "Level 4", 0);
-        await Capture("polish_rewards");
-        victory.GetNode<Button>("%DetailsButton").EmitSignal(Button.SignalName.Pressed);
-        Check("reward details open for the selected party member", victory.GetNode<CharacterDetailsOverlay>("%ResultDetails").Visible);
-        victory.GetNode<CharacterDetailsOverlay>("%ResultDetails").Close();
+        await CheckResultsRows(state, victory);
         victory.HideResult();
         var end = EndScene.Instantiate<RunEndPanel>();
         surface.AddChild(end);
         state.Outcome = RunOutcome.Defeat;
         end.Show(state, true, progress);
         await Capture("polish_campaign_return");
-        Check("campaign summary is present after defeat", end.GetNode<Label>("%DetailLabel").Text.Contains("ready to join"));
+        Check("campaign summary is present after defeat", end.DetailText.Contains("ready to join"));
+        var endFigures = end.Figures.FigureLabels;
+        Check($"the run end reads as figures and drops gold ({string.Join(", ", endFigures.Select(f => $"{f.CaptionText} {f.ValueText}"))})",
+            endFigures.Count == 2 && endFigures[0].CaptionText == "Floor"
+            && endFigures[0].ValueText == $"{state.Stratum + 1} of {Delve.Data.FloorThemes.Count}"
+            && endFigures[1].CaptionText == "Day" && !end.DetailText.Contains("Gold"));
+        Check($"a defeat names its cause ('{end.DetailText.Split('\n')[0]}')",
+            end.DetailText.StartsWith(state.Wardstone.IsSpent ? RunEndPanel.WardOut : RunEndPanel.PartyFell));
         surface.QueueFree();
 
         var transition = TransitionScene.Instantiate<SceneTransition>();

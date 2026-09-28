@@ -4,12 +4,15 @@ using Godot;
 
 namespace Delve.UI;
 
-/// <summary>One party member in the combat party column: portrait, name, HP bar with current/max,
-/// reaction diamond and condition icons. The only HUD surface that prints hero HP.</summary>
+/// <summary>One party member in the combat party column: portrait, name, condition icons and reaction
+/// diamond on the top row, the HP bar with current/max under it. The only HUD surface that prints hero HP.</summary>
 public partial class PartyChip : Button
 {
     [Export] public ConditionIconSet? Icons { get; set; }
-    [Export] public int ConditionIconSize { get; set; } = 24;
+    [Export] public int ConditionIconSize { get; set; } = 22;
+
+    /// <summary>Icons before "+N". Matches the initiative row's count.</summary>
+    [Export] public int MaxMarks { get; set; } = 2;
 
     private TextureRect _portrait = null!;
     private Label _name = null!;
@@ -19,11 +22,19 @@ public partial class PartyChip : Button
     private Label _health = null!;
     private HBoxContainer _conditions = null!;
     private string _conditionSignature = "";
+    private Label _promotion = null!;
 
     public int MemberId { get; private set; }
     public string HealthText => _health.Text;
     public bool Framed => ThemeTypeVariation == ThemeNames.PartyChipActive;
     public ReactionMark Reaction { get; private set; }
+    public bool PromotionBadge => _promotion.Visible;
+
+    /// <summary>The "+N" the chip prints, or "".</summary>
+    public string OverflowText { get; private set; } = "";
+
+    /// <summary>The icon key of the first mark, or "".</summary>
+    public string FirstMark { get; private set; } = "";
 
     public override void _Ready()
     {
@@ -34,6 +45,7 @@ public partial class PartyChip : Button
         _hpBar = GetNode<ProgressBar>("%HpBar");
         _health = GetNode<Label>("%Health");
         _conditions = GetNode<HBoxContainer>("%Conditions");
+        _promotion = GetNode<Label>("%Promotion");
     }
 
     public void Setup(SquadMemberView member)
@@ -51,8 +63,10 @@ public partial class PartyChip : Button
         _hpBar.MaxValue = max;
         _hpBar.Value = System.Math.Clamp(member.Hp, 0, max);
         _hpBar.ThemeTypeVariation = ThemeNames.HpBarFor(member.MaxHp > 0 ? (float)member.Hp / member.MaxHp : 0f);
-        _health.Text = member.Down ? $"Down  {member.Hp}/{member.MaxHp}" : $"{member.Hp}/{member.MaxHp}";
+        int dying = member.Conditions.FirstOrDefault(c => c.IconKey == nameof(PF2e.Conditions.Condition.Dying))?.Value ?? 0;
+        _health.Text = member.Down && dying > 0 ? $"Dying {dying}" : $"{member.Hp}/{member.MaxHp}";
 
+        _promotion.Visible = member.PromotionPending;
         Reaction = member.Reaction;
         _reactionSlot.Visible = member.Reaction != ReactionMark.None;
         _reaction.ThemeTypeVariation = member.Reaction == ReactionMark.Ready ? ThemeNames.ReactionReady : ThemeNames.ReactionSpent;
@@ -61,30 +75,15 @@ public partial class PartyChip : Button
         RenderConditions(member);
     }
 
+    /// <summary>The first <see cref="MaxMarks"/> conditions, most urgent first, then "+N". The name clips
+    /// to make room, and the chip's hover lists every condition.</summary>
     private void RenderConditions(SquadMemberView member)
     {
         string signature = string.Join("|", member.Conditions.Select(c => $"{c.IconKey}:{c.Value}"));
+        OverflowText = ConditionMarkRow.Overflow(member.Conditions.Count, MaxMarks);
+        FirstMark = member.Conditions.Count > 0 ? member.Conditions[0].IconKey : "";
         if (signature == _conditionSignature) return;
         _conditionSignature = signature;
-        foreach (var child in _conditions.GetChildren())
-        {
-            _conditions.RemoveChild(child);
-            child.QueueFree();
-        }
-        foreach (var condition in member.Conditions)
-        {
-            _conditions.AddChild(new TextureRect
-            {
-                Texture = Icons?.Find(condition.IconKey),
-                CustomMinimumSize = new Vector2(ConditionIconSize, ConditionIconSize),
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-                TextureFilter = TextureFilterEnum.Nearest,
-                SizeFlagsVertical = SizeFlags.ShrinkCenter,
-                MouseFilter = MouseFilterEnum.Ignore,
-            });
-            if (condition.Value > 0)
-                _conditions.AddChild(new Label { Text = condition.Value.ToString(), MouseFilter = MouseFilterEnum.Ignore });
-        }
+        ConditionMarkRow.Fill(_conditions, member.Conditions, Icons, MaxMarks, ConditionIconSize);
     }
 }

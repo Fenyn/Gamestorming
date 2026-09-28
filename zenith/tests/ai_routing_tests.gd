@@ -18,8 +18,8 @@ func _run() -> void:
 	for deck in decks:
 		for level in ["", "default", "easy", "hard"]:
 			var profile: AiProfile = AiProfile.for_deck(deck, level)
-			_check(_sequence(profile), "%s / %s routes to sequence planning" % [deck.name, level])
-	_check(int(AiProfile.for_deck(decks[0], "easy").data["think"]["budget_ms"]) < int(AiProfile.for_deck(decks[0], "hard").data["think"]["budget_ms"]), "Easy retains a smaller planning budget than Hard")
+			_check(not profile.searches(), "%s / %s routes to the scorer" % [deck.name, level])
+	_check(AiProfile.for_deck(decks[0], "easy").w("think", "noise") > AiProfile.for_deck(decks[0], "hard").w("think", "noise"), "Easy is noisier than Hard")
 	_test_sim_seat(decks[0])
 	var chosen: Array[DeckList] = [decks[0], decks[1]]
 	session.set("chosen", chosen)
@@ -51,12 +51,12 @@ func _test_sim_seat(deck: DeckList) -> void:
 		var player: AiPlayer = seat.make_player(deck, 19)
 		if policy == "random":
 			_check(player == null, "Explicit random policy stays random")
-		elif policy == "scorer":
-			_check(not player.profile.searches(), "Explicit scorer remains available")
 		elif policy == "rollout":
 			_check(player.profile.searches() and player.profile.data["think"]["algorithm"] == "rollout", "Explicit historical rollout remains available")
+		elif policy == "search":
+			_check(_sequence(player.profile), "Explicit search uses the sequence planner")
 		else:
-			_check(_sequence(player.profile), "Explicit %s uses sequence planner" % policy)
+			_check(not player.profile.searches(), "Explicit %s uses the scorer" % policy)
 
 
 func _test_host(session: Node, level: String) -> void:
@@ -80,21 +80,20 @@ func _test_host(session: Node, level: String) -> void:
 	var seat: int = referee.engine.prompt.player
 	session.set("ai_seat", seat)
 	var player: AiPlayer = session.call("build_ai")
-	_check(_sequence(player.profile), "Session %s builds a planner" % level)
-	player.profile.merge({"think": {"budget_ms": 1, "samples": 1, "node_budget": 30}})
+	_check(not player.profile.searches(), "Session %s builds a scorer" % level)
 	var host: DuelHost = DuelHost.new()
 	var remote: Array[int] = []
 	host.setup(referee, remote, player, seat)
 	var before: Array = [referee.view_for(0).to_dict(), referee.view_for(1).to_dict(), referee.prompt_for(seat).to_dict()]
 	var command: Dictionary = host.ai_choice()
-	_check(player.search.metrics.get("algorithm", "") == "sequence", "Session -> DuelHost -> AiPlayer actually invokes sequence for " + level)
-	_check(before == [referee.view_for(0).to_dict(), referee.view_for(1).to_dict(), referee.prompt_for(seat).to_dict()], "Planning preserves authoritative state for " + level)
+	_check(player.search.metrics.is_empty(), "Session -> DuelHost -> AiPlayer never runs the search for " + level)
+	_check(before == [referee.view_for(0).to_dict(), referee.view_for(1).to_dict(), referee.prompt_for(seat).to_dict()], "Choosing preserves authoritative state for " + level)
 	var legal: bool = false
 	for option in referee.engine.prompt.options:
 		if option.to_dict() == command:
 			legal = true
-	_check(legal, "Planner returns an offered command for " + level)
-	_check(str(host.apply(seat, command)["problem"]).is_empty(), "Host accepts planner command for " + level)
+	_check(legal, "The AI returns an offered command for " + level)
+	_check(str(host.apply(seat, command)["problem"]).is_empty(), "Host accepts the AI's command for " + level)
 
 
 func _check(ok: bool, message: String) -> void:

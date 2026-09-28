@@ -85,6 +85,13 @@ public sealed class RunState
     /// <summary>Run currency. Events move it; spending lands with the reward layer.</summary>
     public int Gold { get; set; }
 
+    /// <summary>Ten-minute rests a room has granted and the party has not taken yet. The next short
+    /// rest spends one instead of ward, so a quiet room can be banked before anyone is hurt.</summary>
+    public int FreeRests { get; set; }
+
+    /// <summary>Healing potions found and not yet drunk. The party drinks one when someone is hurt.</summary>
+    public int Potions { get; set; }
+
     /// <summary>XP toward the next party level. <see cref="PartyLeveling.Award"/> owns it.</summary>
     public int Xp { get; set; }
 

@@ -38,9 +38,6 @@ public partial class UnitVisual3D : Node3D
     /// <summary>Enemy <see cref="HpBarHeight"/> when the sprite reports no body height.</summary>
     private const float EnemyHpBarFallbackY = 0.9f;
 
-    /// <summary>Height (m) of the name label above the HP bar.</summary>
-    private const float NameLift = 0.22f;
-
     /// <summary>How long the corpse tint takes.</summary>
     [Export] public float DeathFadeDuration { get; set; } = 0.5f;
 
@@ -59,6 +56,8 @@ public partial class UnitVisual3D : Node3D
     private string _letter = "";
 
     public NamePlate3D Plate => _plate;
+    public DyingBadge Dying => _dying;
+    private DyingBadge _dying = null!;
 
     private bool _dead;
     private float _hpBarY;
@@ -152,6 +151,7 @@ public partial class UnitVisual3D : Node3D
         _hpBar = GetNode<WorldHpBar>("%HpBar");
         _pick = GetNode<UnitPickArea>("%PickArea");
         _plate = GetNode<NamePlate3D>("%Plate");
+        _dying = GetNode<DyingBadge>("%Dying");
 
         // Standalone (F6) with no Configure() call: leave the raw blockout token visible, do not crash.
         if (_character == null) return;
@@ -165,15 +165,14 @@ public partial class UnitVisual3D : Node3D
         _pick.Sprite = _sprite;
         _pick.GridTile = () => _character.GridPosition;
         _hpBar.Position = new Vector3(0f, _hpBarY, 0f);
-        _plate.Configure(_character.Name, _letter, UiColors.Enemy);
-        _plate.Position = new Vector3(0f, _hpBarY + NameLift, 0f);
+        _plate.Configure(_character.Name, _letter, UiColors.Enemy, TeamRing.RadiusPerTile * _character.TileWidth);
+        _plate.Position = new Vector3(0f, _hpBarY, 0f);
         // Snap at spawn: the bar has no previous value to travel from, and a fight that opens with
         // every bar sliding in from empty reads as damage nobody dealt.
         UpdateHealthBar(instant: true);
         _character.Health.OnHealthChanged += OnLiveHealthChanged;
-        var conditions = GetNode<UnitConditions>("%Conditions");
-        conditions.Configure(_character);
-        conditions.Position = new Vector3(0, _hpBarY + NameLift + 0.3f, 0);
+        _dying.Configure(_character, _hpBar.ScreenWidth);
+        _dying.Position = new Vector3(0, _hpBarY, 0);
         _sprite.ApplyFacing();
     }
 
@@ -299,6 +298,8 @@ public partial class UnitVisual3D : Node3D
     {
         _dead = true;
         _hpBar.Visible = false;
+        _dying.ProcessMode = ProcessModeEnum.Disabled;
+        _dying.Hide();
         _plate.Retire();
         _sprite.Frozen = true;
         // The corpse tint is final, so it takes the modulate handle over from any flash still running

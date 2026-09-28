@@ -10,7 +10,7 @@ using PF2eVec = PF2e.Vector2Int;
 namespace Delve.Combat;
 
 /// <summary>
-/// The movement half of the player action surface: Stride and Step, plus the pathfinding queries
+/// The movement half of the player action surface: Stride, Step and Crawl, plus the pathfinding queries
 /// the UI highlights them with. Owns the tile/speed helpers (<see cref="ReachableTiles"/>,
 /// <see cref="BuildRequest"/>, <see cref="SpeedInTiles"/>) that the skill executor reuses for
 /// Shielded Stride and Sudden Charge.
@@ -22,6 +22,7 @@ internal sealed class MovementActions
     private readonly BattleGrid _grid;
     private readonly BattleEventEmitter _events;
     private readonly StepAction _step = new();
+    private readonly CrawlAction _crawl = new();
 
     internal MovementActions(BattleGrid grid, BattleEventEmitter events)
     {
@@ -39,7 +40,8 @@ internal sealed class MovementActions
     internal HashSet<PF2eVec> GetStepTiles(ICharacter character)
     {
         var result = new HashSet<PF2eVec>();
-        if (character.Actions == null || character.Actions.TotalActionsRemaining <= 0)
+        if (character.Actions == null || character.Actions.TotalActionsRemaining <= 0
+            || character.Conditions?.GetActionRestriction(_step, null) != null)
             return result;
 
         foreach (var neighbor in _grid.GetNeighbors(character.GridPosition))
@@ -87,8 +89,36 @@ internal sealed class MovementActions
     /// </summary>
     internal async Task<bool> ExecuteStride(ICharacter character, PF2eVec dest, bool triggersReactions = true)
     {
+        if (MoveLegality.StrideBlockedReason(character) != null) return false;
+        return await Walk(character, dest, SpeedInTiles(character), "strides", triggersReactions);
+    }
+
+    /// <summary>Crawl to an adjacent tile (1 action, stays prone, provokes like any move action).</summary>
+    internal async Task<bool> ExecuteCrawl(ICharacter character, PF2eVec dest)
+    {
+        if (!_crawl.CanPerform(character)) return false;
+        return await Walk(character, dest, 1, "crawls", triggersReactions: true);
+    }
+
+    /// <summary>
+    /// Why the move bands are limited, in the hint line's words, or null when the actor may Stride.
+    /// Reads the engine's condition gates, so it agrees with <see cref="ExecuteStride"/>.
+    /// </summary>
+    internal string? MoveRestriction(ICharacter character)
+    {
+        if (MoveLegality.StrideBlockedReason(character) == null) return null;
+        if (MoveLegality.IsImmobile(character))
+            return character.Conditions?.HasCondition(Condition.Immobilized) == true
+                ? "Immobilized: cannot move" : "Cannot move";
+        return CanCrawl(character) ? "Prone: Crawl 5 ft or Stand" : "Prone: Stand to move";
+    }
+
+    /// <summary>True when the actor may Crawl now: prone, Speed 10 ft or more, not immobilized.</summary>
+    internal bool CanCrawl(ICharacter character) => _crawl.CanPerform(character);
+
+    private async Task<bool> Walk(ICharacter character, PF2eVec dest, int speed, string verb, bool triggersReactions)
+    {
         using var featGuard=Delve.Rules.FeatEncounter.MovementGuard(character);
-        int speed = SpeedInTiles(character);
         if (speed <= 0) return false;
 
         var path = Pathfinder.FindPath(_grid, character.GridPosition, dest, BuildRequest(character, speed));
@@ -108,7 +138,7 @@ internal sealed class MovementActions
         {
             Type = BattleEventType.MovementStarted,
             Source = character,
-            Description = $"{character.Name} Strides to ({dest.x}, {dest.y})"
+            Description = $"{character.Name} {verb} {(path.Count - 1) * FeetPerTile} ft"
         });
 
         for (int i = 1; i < path.Count; i++)

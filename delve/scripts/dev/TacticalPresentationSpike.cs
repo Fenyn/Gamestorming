@@ -39,7 +39,8 @@ public partial class TacticalPresentationSpike : SpikeBase
         int actions = actor.Actions!.TotalActionsRemaining;
         var rig = scene.GetNode<OrbitCameraRig>("%CameraRig");
         var squad = scene.GetNode<SquadPanel>("%SquadPanel");
-        Check("four stable party cards", squad.GetNode<HBoxContainer>("%Members").GetChildCount() == 4);
+        var bar = scene.GetNode<ActionBar>("%ActionBar");
+        Check("four stable party cards", squad.GetNode<VBoxContainer>("%Members").GetChildCount() == 4);
         var pose = rig.Camera.Transform;
         rig.ToggleOverview();
         await Wait(0.4);
@@ -75,20 +76,19 @@ public partial class TacticalPresentationSpike : SpikeBase
         Check("Step preview never warns about movement reactions", !preview.Caption.Contains("Reaction risk"));
         Check("unreachable tile cannot be staged", !controller.CanStageOrder(new PF2eVec(-1, -1)));
 
-        squad.GetNode<CheckBox>("%StageOrders").ButtonPressed = true;
+        bar.GetNode<CheckBox>("%StageOrders").ButtonPressed = true;
         Click(scene, destination);
         Check("staging shows ghost and confirmation", scene.GetNode<DestinationPreview>("%DestinationPreview").Visible
-            && squad.GetNode<Button>("%ConfirmOrder").Visible);
+            && bar.Decision.ConfirmOrderButton.Visible);
         Check("staging spends nothing", actor.GridPosition.Equals(origin) && actor.Actions.TotalActionsRemaining == actions);
         if (DisplayServer.GetName() != "headless")
         {
             await Wait(0.2);
-            DirAccess.MakeDirRecursiveAbsolute("res://.godot/tactical-after");
-            GetViewport().GetTexture().GetImage().SavePng("res://.godot/tactical-after/staged_order.png");
+            SaveViewportCapture("res://.godot/tactical-after/staged_order.png");
         }
         Invoke(scene, "OnCancel");
         Check("cancel clears ghost and pending order", !scene.GetNode<DestinationPreview>("%DestinationPreview").Visible
-            && !squad.GetNode<Button>("%ConfirmOrder").Visible);
+            && !bar.Decision.ConfirmOrderButton.Visible);
         scene.ConfirmStagedOrder();
         Check("cancelled confirmation spends nothing", actor.GridPosition.Equals(origin) && actor.Actions.TotalActionsRemaining == actions);
         Click(scene, destination);
@@ -105,7 +105,7 @@ public partial class TacticalPresentationSpike : SpikeBase
         rig.ToggleOverview();
         scene.EndHostedEncounter();
         Check("encounter teardown clears camera and cards", !rig.TacticalFraming
-            && squad.GetNode<HBoxContainer>("%Members").GetChildCount() == 0);
+            && squad.GetNode<VBoxContainer>("%Members").GetChildCount() == 0);
         await Wait(0.3);
         scene.QueueFree();
         await Wait(0.1);

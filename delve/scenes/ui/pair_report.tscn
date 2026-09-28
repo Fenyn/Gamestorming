@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/PairReport.cs" id="1_report"]
+[ext_resource type="PackedScene" path="res://scenes/ui/figure_label.tscn" id="2_fig"]
+[ext_resource type="PackedScene" path="res://scenes/ui/result_member_row.tscn" id="3_row"]
+
+[node name="PairReport" type="VBoxContainer"]
+visible = false
+mouse_filter = 2
+theme_override_constants/separation = 16
+script = ExtResource("1_report")
+FigureScene = ExtResource("2_fig")
+RowScene = ExtResource("3_row")
+
+[node name="ReportFigures" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 32
+
+[node name="ReportMembers" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12

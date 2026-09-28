@@ -22,10 +22,10 @@ const ARENA_LOOK: Vector3 = Vector3(0, 0, -0.2)
 const ARENA_DISTANCE: float = 7.5
 const ARENA_GLIDE: float = 4.5
 
-## The opening shot under a lead-in: low at the courtyard's open side, looking up the dais, then a
-## slow flight to the home framing.
-const INTRO_FROM: Vector3 = Vector3(-6.5, 1.3, 11.5)
-const INTRO_LOOK: Vector3 = Vector3(0, 0.6, -3.0)
+## The opening shot under a lead-in: high over the courtyard's open corner, looking down on the
+## dais, then a slow descending swing to the home framing.
+const INTRO_FROM: Vector3 = Vector3(-5.0, 12.0, 6.0)
+const INTRO_LOOK: Vector3 = Vector3(0, 0, -1.0)
 
 var _home: Transform3D
 var _intro: Tween = null

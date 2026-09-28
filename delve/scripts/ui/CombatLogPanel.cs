@@ -13,13 +13,18 @@ public partial class CombatLogPanel : Control
     [Export] public float CompactWidth { get; set; } = 440;
     [Export] public float HistoryWidth { get; set; } = 560;
     [Export] public float CompactMaxHeight { get; set; } = 360;
-    [Export] public float DetailsMaxHeight { get; set; } = 620;
     [Export] public int CompactActions { get; set; } = 3;
+
+    /// <summary>The heading stays up with no rows, because it also holds the Journal button.</summary>
+    [Export] public bool KeepHeading { get; set; }
+    private string _subject = "";
+    private readonly HashSet<string> _enemies = new(System.StringComparer.Ordinal);
     private PanelContainer _shell = null!;
     private Button _toggle = null!;
     private ScrollContainer _scroll = null!;
     private VBoxContainer _entries = null!;
     private Control _footer = null!;
+    private Control _rule = null!;
     private Button _latest = null!;
     private Label _count = null!;
     private readonly CombatLogFormat _format = new();
@@ -41,9 +46,11 @@ public partial class CombatLogPanel : Control
         _scroll = GetNode<ScrollContainer>("%LogScroll");
         _entries = GetNode<VBoxContainer>("%Entries");
         _footer = GetNode<Control>("%Footer");
+        _rule = GetNode<Control>("%Rule");
         _latest = GetNode<Button>("%Latest");
         _count = GetNode<Label>("%EntryCount");
         _format.RollFontSize = GetThemeConstant("roll_font_size", "CombatLogText");
+        GetNode<Label>("%LogKey").Text = InputNames.KeyLabelFor(InputNames.LogToggle);
         _toggle.Pressed += ToggleExpanded;
         _latest.Pressed += JumpToLatest;
         _scroll.GetVScrollBar().ValueChanged += _ =>
@@ -59,29 +66,56 @@ public partial class CombatLogPanel : Control
 
     public void BeginTurn(string name)
     {
-        AddRow(_format.Turn(name), true);
+        string turn = _format.Turn(name);
+        AddRow(turn, new LogText(turn, turn), true);
         _action = null;
         Record();
     }
 
-    public void AppendEntry(string message, int severity, bool isDetail)
+    private static readonly System.Text.RegularExpressions.Regex MoveLine =
+        new(@"^.+ (strides|crawls|steps) \d+ ft$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    /// <param name="breakdown">The named modifiers behind a roll line, for the roll row.</param>
+    /// <param name="enemyRoll">True when the roller is on the enemy side. The caller knows the roller's
+    /// team; without it the panel falls back to the enemy names.</param>
+    public void AppendEntry(string message, int severity, bool isDetail, Delve.Combat.RollBreakdown? breakdown = null,
+        bool? enemyRoll = null)
     {
         if (!isDetail || _action == null)
         {
             _actionTitle = message;
-            _action = AddRow(_format.Entry(message, severity, false));
+            _subject = CombatLogFormat.StrikeTarget(message);
+            _action = AddRow(_format.Entry(message, severity, false), _format.CompactTitle(message),
+                move: MoveLine.IsMatch(message));
         }
         else
-            _action.AddDetail(_format.Entry(message, severity, true), _format.Summary(message, severity));
-        if (CombatRoll.Parse(message) is { } roll) RollObserved?.Invoke(roll, _actionTitle);
+            _action.AddDetail(_format.Entry(message, severity, true),
+                _format.Summary(message, severity, ref _subject, out bool lead), lead);
+        if (CombatRoll.Parse(message) is { } roll)
+        {
+            string? roller = _format.LeadingActor(roll.Prefix) ?? _format.LeadingActor(_actionTitle);
+            var observed = breakdown == null ? roll : roll.WithBreakdown(breakdown);
+            bool enemy = enemyRoll ?? (roller != null && _enemies.Contains(roller));
+            RollObserved?.Invoke(observed with { EnemyRoll = enemy }, _actionTitle);
+        }
         Record();
     }
 
-    private CombatLogEntryView AddRow(string title, bool turn = false)
+    /// <summary>Names of the enemy side, so a roll can be read from the party's point of view and the
+    /// compact rows can shorten them.</summary>
+    public void SetEnemies(IEnumerable<string> names)
+    {
+        _enemies.Clear();
+        _enemies.UnionWith(names);
+        _format.SetShortNames(_enemies);
+    }
+
+    private CombatLogEntryView AddRow(string title, LogText compactTitle, bool turn = false, bool move = false)
     {
         var row = EntryScene.Instantiate<CombatLogEntryView>();
         _entries.AddChild(row);
-        row.Configure(title, turn);
+        row.Configure(title, compactTitle, turn, move);
+        row.SetCompact(!Expanded);
         row.DisclosureChanged += () =>
         {
             // An opened entry stays visible as new actions arrive, until the reader collapses it.
@@ -111,19 +145,21 @@ public partial class CombatLogPanel : Control
         for (int i = _rows.Count - 1; i >= 0; i--)
         {
             var row = _rows[i];
-            // Initiative already identifies the actor. Turn headings belong to history.
-            bool recent = !row.IsTurn && ++actions <= CompactActions;
+            // Initiative already identifies the actor, and the board shows the move. Turn headings
+            // and strides belong to history.
+            bool recent = !row.IsTurn && !row.IsMove && ++actions <= CompactActions;
             row.Visible = Expanded || recent || row.DetailsExpanded;
         }
-        _shell.Visible = Expanded || _rows.Any(r => r.Visible);
+        bool any = _rows.Any(r => r.Visible);
+        _scroll.Visible = Expanded || any;
+        _shell.Visible = Expanded || any || KeepHeading;
     }
 
     public override void _Process(double delta)
     {
         if (_settle <= 0) return;
-        float heightCap = _rows.Any(r => r.Visible && r.DetailsExpanded) ? DetailsMaxHeight : CompactMaxHeight;
         _scroll.CustomMinimumSize = new Vector2(0, Expanded ? 0
-            : Mathf.Min(_entries.GetCombinedMinimumSize().Y, Mathf.Min(heightCap, Mathf.Max(80, Size.Y - 100))));
+            : Mathf.Min(_entries.GetCombinedMinimumSize().Y, Mathf.Min(CompactMaxHeight, Mathf.Max(80, Size.Y - 100))));
         if (_follow) _scroll.ScrollVertical = (int)_scroll.GetVScrollBar().MaxValue;
         if (_settle == 1 && _revealRow != null)
         {
@@ -163,6 +199,7 @@ public partial class CombatLogPanel : Control
         EntryCount = 0;
         _count.Text = "No entries yet";
         _format.SetActors(System.Array.Empty<(string, Color)>());
+        SetEnemies(System.Array.Empty<string>());
         _follow = true;
         _unread = 0;
         SetExpanded(false);
@@ -171,11 +208,15 @@ public partial class CombatLogPanel : Control
     public void SetExpanded(bool expanded)
     {
         Expanded = expanded;
-        OffsetLeft = OffsetRight - (expanded ? HistoryWidth : CompactWidth);
+        float width = expanded ? HistoryWidth : CompactWidth;
+        CustomMinimumSize = new Vector2(width, CustomMinimumSize.Y);
+        OffsetLeft = OffsetRight - width;
         _shell.SizeFlagsVertical = expanded ? SizeFlags.ExpandFill : SizeFlags.ShrinkBegin;
         _scroll.SizeFlagsVertical = expanded ? SizeFlags.ExpandFill : SizeFlags.ShrinkBegin;
         _footer.Visible = expanded;
-        _toggle.Text = $"{(expanded ? "Combat history" : "Recent actions")}   [{InputNames.KeyLabelFor(InputNames.LogToggle)}] {(expanded ? "−" : "+")}";
+        _rule.Visible = expanded;
+        foreach (var row in _rows) row.SetCompact(!expanded);
+        _toggle.Text = expanded ? "History −" : "Actions +";
         _shell.Visible = expanded || EntryCount > 0;
         RefreshRows();
         JumpToLatest();

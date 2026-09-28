@@ -1,5 +1,6 @@
-[gd_resource type="Resource" script_class="DungeonPalette" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="DungeonPalette" load_steps=6 format=3]
 [ext_resource type="Script" path="res://scripts/dungeon/DungeonPalette.cs" id="1"]
+[ext_resource type="Resource" path="res://scenes/dungeon/palettes/prop_tints.tres" id="tints"]
 [ext_resource type="Texture2D" path="res://assets/textures/terrain/stone_a.png" id="floor"]
 [ext_resource type="Texture2D" path="res://assets/textures/terrain/stone_a.png" id="wall"]
 [ext_resource type="Texture2D" path="res://assets/textures/terrain/bridge_beam.png" id="wood"]
@@ -10,3 +11,4 @@ MasonryTexture = ExtResource("wall")
 TimberTexture = ExtResource("wood")
 StoneTint = Color(0.85, 0.89, 0.98, 1)
 ClothTint = Color(0.30, 0.36, 0.52, 1)
+Tints = ExtResource("tints")

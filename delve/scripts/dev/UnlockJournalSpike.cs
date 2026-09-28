@@ -66,11 +66,7 @@ public partial class UnlockJournalSpike : SpikeBase
         await ToSignal(GetTree().CreateTimer(0.3), SceneTreeTimer.SignalName.Timeout);
         string output = OS.GetEnvironment("DELVE_SHOT_DIRECTORY");
         if (string.IsNullOrEmpty(output) || DisplayServer.GetName() == "headless") return;
-        DirAccess.MakeDirRecursiveAbsolute(output);
-        var image = GetViewport().GetTexture().GetImage();
-        image.Convert(Image.Format.Rgba8);
-        image.LinearToSrgb();
-        Check($"{name} capture saved", image.SavePng($"{output}/{name}.png") == Error.Ok);
+        Check($"{name} capture saved", SaveViewportCapture($"{output}/{name}.png") == Error.Ok);
         var page = _journal.GetNode<Control>("%JournalPage");
         var scroll = page.GetParent<ScrollContainer>();
         Check($"{name} page fits without horizontal scrolling", page.Size.X <= scroll.Size.X + 1);

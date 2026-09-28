@@ -21,6 +21,16 @@ public sealed record WardstoneRules
     /// <summary>Ward a Campsite night's rest restores.</summary>
     public int CampsiteRefill { get; init; } = 25;
 
+    /// <summary>Percent of the missing ward a floor-boss kill restores. Slay the Spire heals
+    /// 75% of missing HP between acts.</summary>
+    public int BossRefillPercent { get; init; } = 75;
+
+    /// <summary>Refill on a critically successful attunement (<see cref="WardAttunement"/>).</summary>
+    public int BossRefillCriticalPercent { get; init; } = 100;
+
+    /// <summary>Refill on a critically failed attunement.</summary>
+    public int BossRefillFumblePercent { get; init; } = 50;
+
     /// <summary>Ward at or above this applies no upshift to rolled threat tiers.</summary>
     public int SteadyAbove { get; init; } = 70;
 
@@ -70,7 +80,22 @@ public sealed class Wardstone
     public WardstoneRules Rules { get; }
 
     /// <summary>Ward remaining, <see cref="WardstoneRules.MaxWard"/> down to 0.</summary>
-    public int Ward { get; private set; }
+    public int Ward
+    {
+        get => _ward;
+        private set
+        {
+            if (value == _ward) return;
+            int before = _ward;
+            _ward = value;
+            Changed?.Invoke(before, value);
+        }
+    }
+
+    private int _ward;
+
+    /// <summary>Raised with the ward before and after every burn or refill.</summary>
+    public event Action<int, int>? Changed;
 
     /// <summary>Tiers added to every rolled threat tier at the current ward: 0 while the ward
     /// holds, up to 3 when it is nearly spent.</summary>
@@ -93,7 +118,8 @@ public sealed class Wardstone
     /// <summary>True when ward remains but too little of it to rest on.</summary>
     public bool ShortRestWouldSpend => !IsSpent && !CanAffordShortRest;
 
-    private static int UpshiftAt(int ward, WardstoneRules rules) =>
+    /// <summary>The upshift a given ward value applies under these rules.</summary>
+    public static int UpshiftAt(int ward, WardstoneRules rules) =>
         ward >= rules.SteadyAbove ? 0
         : ward >= rules.FirstShiftAbove ? 1
         : ward >= rules.SecondShiftAbove ? 2
@@ -108,8 +134,23 @@ public sealed class Wardstone
     /// <summary>Restore the ward a Campsite night's rest grants, up to the maximum.</summary>
     public void RefillCampsite() => Ward = Math.Min(Rules.MaxWard, Ward + Rules.CampsiteRefill);
 
-    /// <summary>Restore the ward completely. Beating a floor's Depths Warden recharges the stone.</summary>
+    /// <summary>Raise or lower the ward by an event's amount. A loss stops at 1: rooms never put the
+    /// ward out, only crossings do.</summary>
+    public void Adjust(int delta) =>
+        Ward = delta >= 0 ? Math.Min(Rules.MaxWard, Ward + delta) : Math.Max(Math.Min(Ward, 1), Ward + delta);
+
+    /// <summary>Restore the ward completely.</summary>
     public void RefillFull() => Ward = Rules.MaxWard;
+
+    /// <summary>Restore <see cref="WardstoneRules.BossRefillPercent"/> of the missing ward,
+    /// rounded up. Beating a floor's boss recharges the stone this way, so ward kept before the
+    /// boss carries over.</summary>
+    public void RefillAfterBoss() => RefillAfterBoss(Rules.BossRefillPercent);
+
+    /// <summary>Restore <paramref name="percent"/> of the missing ward, rounded up. The guardian's
+    /// attunement roll picks the percent (<see cref="WardAttunement"/>).</summary>
+    public void RefillAfterBoss(int percent) =>
+        Ward = Math.Min(Rules.MaxWard, Ward + (int)Math.Ceiling((Rules.MaxWard - Ward) * percent / 100.0));
 
     /// <summary>Lethal XP budget for a party size, extending the book's per-character scaling.</summary>
     public int LethalBudget(int partySize) =>

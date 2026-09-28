@@ -7,6 +7,8 @@ namespace Delve.Dungeon;
 public partial class DungeonPassage : Node3D
 {
     public DungeonPalette? Palette { get; set; }
+
+    private Color PaletteTint(string key) => Palette?.Tint(key) ?? Colors.Magenta;
     private readonly List<(Node3D Wall, int Sign)> _walls = new();
     private bool _horizontal;
 
@@ -18,16 +20,16 @@ public partial class DungeonPassage : Node3D
         float length = _horizontal ? delta.X : delta.Z;
         var stone = new DungeonProp { Palette = Palette };
         AddChild(stone);
-        stone.Box(new(0, -0.12f, 0), _horizontal ? new(length, 0.24f, 3) : new(3, 0.24f, length), new Color("626975"));
+        stone.Box(new(0, -0.12f, 0), _horizontal ? new(length, 0.24f, 3) : new(3, 0.24f, length), PaletteTint("passage_floor"));
         // Touching rooms already supply both jambs; only fill the threshold seam.
         if (length <= 1) return;
         foreach (int sign in new[] { -1, 1 })
         {
             var edge = _horizontal ? new Vector3(0, 0, sign * 1.75f) : new(sign * 1.75f, 0, 0);
             var size = _horizontal ? new Vector3(length, 0.5f, 0.5f) : new(0.5f, 0.5f, length);
-            stone.Box(edge + Vector3.Up * 0.25f, size, new Color("59606d"));
+            stone.Box(edge + Vector3.Up * 0.25f, size, PaletteTint("masonry"));
             size.Y = 1.6f;
-            var wall = stone.Box(edge + Vector3.Up * 1.3f, size, new Color("59606d"));
+            var wall = stone.Box(edge + Vector3.Up * 1.3f, size, PaletteTint("masonry"));
             _walls.Add((wall, sign));
         }
     }

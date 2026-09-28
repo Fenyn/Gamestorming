@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/flow/EventPanel.cs" id="1_ev"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pair_report.tscn" id="2_report"]
 
 [node name="EventPanel" type="Control"]
 layout_mode = 3
@@ -93,6 +94,10 @@ layout_mode = 2
 text = ""
 autowrap_mode = 3
 theme_type_variation = &"EventBody"
+
+[node name="Report" parent="Center/Frame/Box/OutcomePanel/Content" instance=ExtResource("2_report")]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="ContinueButton" type="Button" parent="Center/Frame/Box"]
 unique_name_in_owner = true

@@ -239,6 +239,7 @@ const REPLAY_READ: float = 0.7       # while playing, each recorded decision sta
 const INTRO_FLIGHT: float = 7.0      # the camera's flight in under an adventure lead-in
 const INTRO_LAND: float = 0.8        # what is left of that flight once the lead-in closes
 var _faces_ready: bool = false       # the opening decks' faces have rendered
+var _hands_hidden: bool = false      # a lead-in is up: both hands stay off the table
 var _dev_lead_in_shot: float = -1.0  # `--dev-lead-in-shot=<seconds>`: a shot that far into the lead-in
 
 
@@ -343,6 +344,7 @@ func _start_lead_in() -> bool:
 	if scene.is_empty() or online or _replay_file != "" or (_dev_autoplay and _dev_lead_in_shot < 0.0):
 		return false
 	hud.visible = false
+	_hands_hidden = true
 	lead_in_overlay.finished.connect(_on_lead_in_closed)
 	lead_in_overlay.play(scene, Session.library)
 	if not _reduced_motion:
@@ -394,7 +396,7 @@ func _process(_delta: float) -> void:
 	if not is_instance_valid(hud):
 		return
 	var overlay: bool = hud.tray.visible or hud.pile.visible or hud.inspect.visible or hud.handoff.visible or hud.loading.visible \
-		or hud.modal.visible
+		or hud.modal.visible or _hands_hidden
 	# The options menu takes the input (its shade the mouse, the HUD the keys) but hides nothing.
 	var menu: bool = hud.options_menu.visible
 	hand_3d.set_available(view != null and viewer >= 0 and not overlay)
@@ -629,10 +631,6 @@ func _ready_host() -> void:
 	for d in Session.chosen:
 		await faces.render_deck(d, Session.library)
 	_faces_ready = true
-	if lead_in_overlay.playing():
-		await lead_in_overlay.finished
-	await camera.landed()
-	hud.visible = true
 	hud.set_loading(false)
 	hud.log_line("Seed %d" % Session.last_seed)
 	if online:
@@ -640,6 +638,20 @@ func _ready_host() -> void:
 		Net.command_received.connect(_on_net_command)
 	var updates: Array[SeatUpdate] = duel_host.start()
 	await _play_update(updates[maxi(viewer, 0)])
+	await _end_lead_in()
+
+
+## Under a lead-in the opening lays the board out while the camera flies; the hands and the HUD
+## wait until the lead-in has closed and the camera has landed.
+func _end_lead_in() -> void:
+	if not _hands_hidden:
+		return
+	if lead_in_overlay.playing():
+		await lead_in_overlay.finished
+	await camera.landed()
+	_hands_hidden = false
+	hud.visible = true
+	_sync_layout(false)
 
 
 ## A client of a host or server: nothing but views. Faces for the other seat's deck render as
@@ -3280,7 +3292,7 @@ func _targets() -> Dictionary:
 		for i in range(hn):
 			# A replay's full view carries the far hand's faces, so its fan shows them.
 			var shown: bool = _cursor != null and not view.card(p.hand[i]).hidden()
-			out[p.hand[i]] = [zones.slot(p.index, &"hand", i, hn, vw), shown, p.index != viewer]
+			out[p.hand[i]] = [zones.slot(p.index, &"hand", i, hn, vw), shown, p.index != viewer and not _hands_hidden]
 		for i in range(p.allies.size()):
 			out[p.allies[i]] = [zones.slot(p.index, &"ally", i, p.allies.size(), vw), true, true]
 		for i in range(p.drills.size()):

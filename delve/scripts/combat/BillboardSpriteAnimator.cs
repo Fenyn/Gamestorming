@@ -121,7 +121,7 @@ public partial class BillboardSpriteAnimator : Sprite3D
 
     /// <summary>Load the folder's authored animation and placement resource.</summary>
     public void ConfigureEnemy(string folder)
-        => ConfigureEnemy(GD.Load<EnemySpriteDefinition>($"{folder}/sprite.tres"));
+        => ConfigureEnemy(GD.Load<EnemySpriteDefinition>(EnemySpriteMap.DefinitionPath(folder)));
 
     public void ConfigureEnemy(EnemySpriteDefinition? definition)
     {

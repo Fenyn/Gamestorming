@@ -17,14 +17,16 @@ uniform vec4 wash_seat0 : source_color = vec4(0.45, 0.45, 0.45, 1.0);
 uniform vec4 wash_seat1 : source_color = vec4(0.45, 0.45, 0.45, 1.0);
 uniform float wash_blend = 0.6;
 uniform float wash_alpha = 0.16;
-uniform vec2 wash_half = vec2(5.0, 2.9);
+uniform vec2 wash_half = vec2(3.7, 2.6);
 uniform float wash_corner = 0.6;
 uniform float wash_fade = 0.9;
 uniform float weave = 0.35;
 uniform vec4 ink : source_color = vec4(0.72, 0.68, 0.62, 0.08);
-uniform float rule_half_length = 5.0;
-// The vignette, in screen space: how dark the frame's corners get, and where the darkening starts
-// and ends as a share of the distance from the screen centre to a corner.
+uniform float rule_half_length = 4.1;
+// The vignette, in screen space: its centre (the board's, left of the HUD column), how dark the
+// frame's corners get, and where the darkening starts and ends as a share of the distance from
+// the screen centre to a corner.
+uniform vec2 vignette_centre = vec2(0.42, 0.5);
 uniform float vignette_strength = 0.35;
 uniform float vignette_start = 0.55;
 uniform float vignette_end = 1.1;
@@ -50,7 +52,7 @@ void fragment() {
 	vec4 print = vec4(tint * mix(1.0, grain * 1.4, weave), wash_alpha * inside);
 	float line = (1.0 - smoothstep(0.012, 0.024, abs(p.y))) * (1.0 - smoothstep(rule_half_length - 0.4, rule_half_length, abs(p.x)));
 	print = over(print, ink.rgb, line * ink.a);
-	vec2 from_centre = (SCREEN_UV - 0.5) * 2.0 / sqrt(2.0);
+	vec2 from_centre = (SCREEN_UV - vignette_centre) * 2.0 / sqrt(2.0);
 	float vignette = vignette_strength * smoothstep(vignette_start, vignette_end, length(from_centre));
 	print = over(print, vec3(0.0), vignette);
 	ALBEDO = print.rgb;

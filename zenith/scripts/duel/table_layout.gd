@@ -1,23 +1,29 @@
 class_name TableLayout
 extends Node3D
-## A near top-down board, the two duelists nose to nose across the centre line. Each seat's half
-## is point-mirrored: the Mastery stands beside the duelist as a second, smaller hero, level with
-## it; the Ally wing runs left of the duelist and the Drill wing right of the Mastery, both against
-## the centre line; the Non-Combat row sits under the Drills with the Relic beside it, Out under
-## the Relic, and the Life Deck over the Discard on the far right. The stat plate lies under the
-## Ally wing (the `Plate` marker), the Seals run along the far left with Remain under them. The centre band holds the cards in play, the Grounds and the standing ghosts
-## on the left and the phase track on the right. Zone bounds use the same scales as card slots, so
-## placement checks include the hero cards and the plate.
+## A near top-down board, the two duelists nose to nose across a thin centre band, every zone
+## packed around them so the whole board stays left of the HUD column. Each seat's half is
+## point-mirrored. The duelist stands in the middle, its top edge on the band. Just left of it the
+## Life Deck sits over the Discard; just right of it stands the Mastery, a second, smaller hero,
+## with the Relic and Out side by side under it. The Ally row runs left of the Life Deck with the
+## Seals and then the stat plate (the `Plate` marker) under it; the Drill row runs right of the
+## Mastery with the Non-Combat row under it. Remain lies under the Discard, between the plate and
+## the duelist. Rows and heroes all start level with the duelist's top edge. The centre band holds
+## the turn token at the viewer's left end, the standing ghosts and the Grounds, the cards in play
+## between the two duelists, and the phase track on the right. Zone bounds use the same scales as
+## card slots, so placement checks include the hero cards and the plate.
 
 const CARD_SIZE: Vector2 = Vector2(0.63, 0.88)
-const SEAL_SCALE: float = 0.55
-const STANDING_STEP: float = 0.42
-const STANDING_SCALE: float = 0.45
-## Standing ghosts line up on the centre band's left, on their owner's side of the line.
-const STANDING_START: Vector3 = Vector3(-3.4, 0.001, 0.35)
-## The Grounds lie on the centre line, left of the cards in play, on the viewer's left.
-const GROUNDS_POS: Vector3 = Vector3(-2.9, 0.001, 0.0)
-const GROUNDS_SCALE: float = 0.65
+const SEAL_SCALE: float = 0.4
+const STANDING_STEP: float = 0.22
+const STANDING_SCALE: float = 0.35
+## Standing ghosts line up on the centre band's outer end, left of the Grounds for seat 0 and past
+## the phase track for seat 1, just over the line on their owner's side.
+const STANDING_START: Vector3 = Vector3(-2.9, 0.001, 0.05)
+## How many standing ghosts per seat the placement check keeps clear.
+const STANDING_CHECKED: int = 2
+## The Grounds lie on the centre line on the viewer's left, between the ghosts and the cards in play.
+const GROUNDS_POS: Vector3 = Vector3(-2.2, 0.001, 0.0)
+const GROUNDS_SCALE: float = 0.55
 const HAND_STEP: float = 0.32
 const HAND_SCALE: float = 0.70
 const STACK_STEP: float = 0.0015
@@ -27,8 +33,9 @@ const ZONE_PAD: float = 0.04          # zones keep this much clear stone outside
 const LABEL_STRIP: float = 0.14       # room under the cards for the zone name
 const LINE_HEIGHT: float = 0.004
 const LABEL_HEIGHT: float = 0.003
-## Every zone and the plate stay inside this rectangle, which the home framing fills.
-const BOARD: Rect2 = Rect2(-5.3, -3.0, 10.6, 6.0)
+## Every zone, the plate and the band's pieces stay inside this rectangle. The home framing shows
+## it whole, left of the HUD column.
+const BOARD: Rect2 = Rect2(-3.35, -2.4, 6.7, 4.8)
 ## The stat plate's footprint: DuelistReadout.PLATE_CANVAS at DuelistDisplay.PIXEL. Spelled out
 ## here because the layout compiles without the client scripts.
 const PLATE_SIZE: Vector2 = Vector2(1.624, 0.638)
@@ -38,12 +45,12 @@ const LINE_COLOR: Color = Color(0.86, 0.82, 0.74, 0.32)
 
 ## Row zones: marker, slots before cards start overlapping, and per-card scale.
 const ROWS: Dictionary = {
-	&"ally": {"marker": "AllyStart", "slots": 3, "step": 0.56, "direction": -1, "scale": 0.9, "label": "Allies"},
-	&"drill": {"marker": "DrillStart", "slots": 3, "step": 0.56, "scale": 0.9, "label": "Drills"},
-	&"non_combat": {"marker": "NonCombatStart", "slots": 3, "step": 0.56, "scale": 0.9, "label": "Non-Combat"},
-	&"seal": {"marker": "SealStart", "slots": 6, "step": 0.4, "scale": SEAL_SCALE, "label": "Seals"},
-	# Cards kept out by Remain, under the Seals.
-	&"remain": {"marker": "RemainStart", "slots": 2, "step": 0.45, "direction": -1, "scale": 0.7, "label": "Remain"},
+	&"ally": {"marker": "AllyStart", "slots": 3, "step": 0.5, "direction": -1, "scale": 0.8, "label": "Allies"},
+	&"drill": {"marker": "DrillStart", "slots": 3, "step": 0.5, "scale": 0.8, "label": "Drills"},
+	&"non_combat": {"marker": "NonCombatStart", "slots": 3, "step": 0.5, "scale": 0.8, "label": "Non-Combat"},
+	&"seal": {"marker": "SealStart", "slots": 6, "step": 0.255, "scale": SEAL_SCALE, "label": "Seals"},
+	# Cards kept out by Remain, under the Discard.
+	&"remain": {"marker": "RemainStart", "slots": 2, "step": 0.25, "direction": -1, "scale": 0.4, "label": "Remain"},
 }
 ## Single-card zones: marker and label. Discard and Removed are stacks like the Life Deck; the
 ## Relic is one card with its Reserve face down under it.
@@ -61,16 +68,19 @@ const SINGLES: Dictionary = {
 const PILES: Array[StringName] = [&"discard", &"removed", &"relic"]
 ## Zones whose caption sits on the inner (table-centre) edge.
 const TOP_CAPTIONS: Array[StringName] = [&"discard"]
-const DUELIST_SCALE: float = 2.6
-## The Mastery is the duelist's second, smaller hero card, level with it on the Drill side.
-const MASTERY_SCALE: float = 1.6
-const RELIC_SCALE: float = 1.0        # the Relic with its Reserve
-## Cards in play sit in the centre band between the two sides' wings, small: the HUD rail shows
-## them at reading size.
-const RESOLVING_SCALE: float = 0.5
-const LIFE_SCALE: float = 1.0
-const PILE_SCALE: float = 0.7         # Out
-const DISCARD_SCALE: float = 0.8
+const DUELIST_SCALE: float = 2.3
+## The Mastery is the duelist's second, smaller hero card, top edge level with it on the Drill side.
+const MASTERY_SCALE: float = 1.38
+## How far a boss power peeks out under the Mastery, as a share of the Mastery's height: over its
+## caption and short of the Relic below.
+const BOSS_PEEK: float = 0.2
+const RELIC_SCALE: float = 0.65       # the Relic with its Reserve
+## Cards in play sit in the centre band between the two duelists, small: the HUD rail shows them at
+## reading size.
+const RESOLVING_SCALE: float = 0.45
+const LIFE_SCALE: float = 0.85
+const PILE_SCALE: float = 0.55        # Out
+const DISCARD_SCALE: float = 0.7
 const DISCARD_PAD: float = 0.02
 const DISCARD_STRIP: float = 0.12
 const RESERVE_PEEK: float = 0.02      # each Reserve card shows this much edge past the Relic
@@ -163,7 +173,7 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 				# A boss power shares the Mastery's spot: it peeks out below the Mastery toward the
 				# owner's edge, the way the Reserve fans under the Relic.
 				if zone == &"mastery" and index > 0:
-					pos += Vector3(0, -STACK_STEP * index, CARD_SIZE.y * MASTERY_SCALE * 0.35 * index)
+					pos += Vector3(0, -STACK_STEP * index, CARD_SIZE.y * MASTERY_SCALE * BOSS_PEEK * index)
 	if player == 1 and zone != &"grounds":
 		pos = Vector3(-pos.x, pos.y, -pos.z)
 	if viewer == 1:
@@ -309,6 +319,12 @@ func _draw_marks() -> void:
 	# The Grounds follow the viewer, so both of their places must stay clear.
 	placed.append(_zone_rect(&"grounds"))
 	placed.append(_mirrored(_zone_rect(&"grounds")))
+	var ghost_size: Vector2 = CARD_SIZE * STANDING_SCALE * 0.92
+	for i in range(STANDING_CHECKED):
+		var ghost_centre: Vector3 = STANDING_START + Vector3(-STANDING_STEP * i, 0, 0)
+		var ghost: Rect2 = Rect2(Vector2(ghost_centre.x, ghost_centre.z) - ghost_size * 0.5, ghost_size)
+		placed.append(ghost)
+		placed.append(_mirrored(ghost))
 	mesh.surface_end()
 	_assert_no_overlap(placed)
 	var lines: MeshInstance3D = MeshInstance3D.new()

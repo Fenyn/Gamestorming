@@ -17,6 +17,8 @@ public partial class ActionBar
     {
         _openCategory = category;
         _spellFilter = spellFilter;
+        // Rebuilt rows never report their pointer leaving, so a stale cost preview clears here.
+        SpendPreviewed?.Invoke(0);
         RebuildSignatures();
         _spellsBtn.SetPressedNoSignal(category == FlyoutCategory.Spells);
         _skillsBtn.SetPressedNoSignal(category == FlyoutCategory.Skills);

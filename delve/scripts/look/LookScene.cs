@@ -39,9 +39,12 @@ public partial class LookScene : Node3D
     /// needs them dimmed by hand or they glow against the floor.</summary>
     [Export] public Color SpriteTint { get; set; } = Colors.White;
 
-    /// <summary>The <see cref="SpriteTint"/> of the look switched on last. A world has one active
-    /// look, so tokens read it when they spawn instead of each host passing its look down.</summary>
-    public static Color ActiveSpriteTint { get; private set; } = Colors.White;
+    /// <summary>The <see cref="SpriteTint"/> of the look switched on last, white when none is on. A
+    /// world has one active look, so tokens read it when they spawn instead of each host passing its
+    /// look down. Only the look that set it may clear it.</summary>
+    public static Color ActiveSpriteTint => _tintOwner?.SpriteTint ?? Colors.White;
+
+    private static LookScene? _tintOwner;
 
     /// <summary>Shader global names, declared in project.godot and read by look_halo.gdshaderinc.</summary>
     public const string HaloGlobal = "look_halo";
@@ -50,6 +53,11 @@ public partial class LookScene : Node3D
     private Godot.Environment? _authored;
     private CameraAttributes? _authoredAttributes;
     private float _authoredFogDensity;
+
+    public override void _ExitTree()
+    {
+        if (_tintOwner == this) _tintOwner = null;
+    }
 
     public override void _Ready()
     {
@@ -80,7 +88,8 @@ public partial class LookScene : Node3D
 
     private void ApplyHalo(bool active)
     {
-        if (active) ActiveSpriteTint = SpriteTint;
+        if (active) _tintOwner = this;
+        else if (_tintOwner == this) _tintOwner = null;
         bool on = HaloOn = active && (HaloDesaturate > 0f || HaloDarken > 0f);
         RenderingServer.GlobalShaderParameterSet(HaloGlobal,
             new Vector4(HaloDesaturate, HaloDarken, HaloFalloffMetres, on ? 1f : 0f));

@@ -11,7 +11,8 @@ public partial class UnitVisual3D
     public void PlaceOnGround(PF2eVec anchor, TerrainHeightMap height)
     {
         Position = GridSpace.CreatureBodyToWorld(anchor, Character.TileWidth, height);
-        _ring.SetSurface(anchor, Character.TileWidth, height,
-            GetParent() is Node3D board ? board.GlobalTransform : Transform3D.Identity);
+        // The board's transform is this token's global transform with its own local one taken out.
+        var board = IsInsideTree() ? GlobalTransform * Transform.AffineInverse() : Transform3D.Identity;
+        _ring.SetSurface(anchor, Character.TileWidth, height, board);
     }
 }

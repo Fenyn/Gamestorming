@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://bf0pbjwkiohre" path="res://scripts/combat/OrbitCameraRig.cs" id="3_camera"]
 [ext_resource type="Script" uid="uid://cor17j03qv2ya" path="res://scripts/combat/GridInput3D.cs" id="4_input"]
 [ext_resource type="PackedScene" path="res://scenes/ui/turn_order_bar.tscn" id="5_turn"]
+[ext_resource type="PackedScene" path="res://scenes/combat/unit_token.tscn" id="unit_token"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_log_panel.tscn" id="6_log"]
 [ext_resource type="PackedScene" path="res://scenes/ui/action_bar.tscn" id="7_ab"]
 [ext_resource type="PackedScene" path="res://scenes/ui/victory_banner.tscn" id="8_vb"]
@@ -72,6 +73,7 @@ shader_parameter/line_color = Color(0.3, 0.32, 0.38, 1)
 process_priority = 1
 script = ExtResource("1_scene")
 BandGap = 8.0
+UnitTokenScene = ExtResource("unit_token")
 
 [node name="TerrainStage" type="Node3D" parent="." unique_id=1861684916]
 unique_name_in_owner = true
@@ -236,6 +238,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 10
 tooltip_text = "Creatures in this fight"
+theme_type_variation = &"HudButton"
 ActionText = "Journal"
 InputAction = &"combat_journal"
 

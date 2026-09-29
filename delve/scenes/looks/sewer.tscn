@@ -33,7 +33,7 @@ dof_blur_far_transition = 4.0
 dof_blur_near_enabled = true
 dof_blur_near_distance = 18.0
 dof_blur_near_transition = 2.0
-dof_blur_amount = 0.07
+dof_blur_amount = 0.045
 
 [sub_resource type="ShaderMaterial" id="post_material"]
 shader = ExtResource("post")

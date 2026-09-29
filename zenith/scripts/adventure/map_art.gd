@@ -65,7 +65,7 @@ static func muted(color: Color) -> Color:
 	return Color.from_hsv(color.h, minf(color.s, TINT_MAX_SATURATION), minf(color.v, TINT_MAX_VALUE))
 
 
-## The button pieces' stepped corners, kept whole when the face stretches (Kenney border 022,
+## The button pieces' corner blocks, kept whole when the face stretches (Kenney border 001,
 ## doubled: 12 px corners become 24).
 const BUTTON_MARGIN: int = 24
 
@@ -73,7 +73,7 @@ const BUTTON_MARGIN: int = 24
 const USE_TINT: Color = Color(0, 0, 0, 0)
 
 
-## The default panel: a dark fill under the thin inner rule (Kenney border 012), in `color`, or
+## The default panel: a dark fill under a thin rule with small corner squares (Kenney border 009), in `color`, or
 ## the trim tint when none is given. The shared theme asks for white so it never caches a school.
 static func panel_box(content: int, color: Color = USE_TINT) -> StyleBox:
 	return _sliced("panel", PANEL_MARGIN, content, tint if color == USE_TINT else color)
@@ -170,7 +170,7 @@ static func draw_brackets(canvas: CanvasItem, rect: Rect2, color: Color) -> void
 	canvas.draw_style_box(box, rect)
 
 
-## A button face: Kenney's stepped-corner rule over a flat fill, one piece per state, composed by
+## A button face: Kenney's corner-block rule over a flat fill, one piece per state, composed by
 ## tools/import_map_art.py. Never tinted. The face is flat, so the text centres on it and drops a
 ## pixel when pressed.
 static func button_box(piece: String) -> StyleBox:

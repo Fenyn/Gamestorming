@@ -98,6 +98,7 @@ public partial class NamePlate3D : Node3D
         var camera = GetViewport()?.GetCamera3D();
         float height = GetViewport()?.GetVisibleRect().Size.Y ?? 0;
         if (camera == null || height <= 0) return;
+        // 18 px text stays full size at every zoom: two thirds would fall under the text floor.
         float pixel = 2f * Mathf.Tan(Mathf.DegToRad(camera.Fov) / 2f) / height;
         _name.PixelSize = pixel;
         _badge.PixelSize = pixel;

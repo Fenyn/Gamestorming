@@ -683,6 +683,8 @@ func _run() -> void:
 	readout.refresh(view, 0, 0)
 	_check(readout._flags == PLAYER_STATUS.flags(p), "Field readout must use the same complete status formatter as inspection")
 	_check("Needs 7 Fervor" in readout.status_text() and "Fervor gain x0" in readout.status_text() and "Cannot gain Energy" in readout.status_text(), "Changed thresholds, blocked gains and restrictions must remain available in full status")
+	readout.refresh(view, 0, 0, {"zones": [[42, 3, 0, 0]]})
+	_check(readout._life == 42 and "Life 42" in readout.status_text(), "The plate carries the Life Deck count, read from the beat's own pile counts")
 	readout.redraw_requested.connect(func() -> void: redraws += 1)
 	readout.card_bounds = readout.card_bounds
 	readout.duelist_bounds = readout.duelist_bounds

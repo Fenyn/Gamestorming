@@ -1978,6 +1978,9 @@ func _build_attack(att: int, source: CardInstance, spec: Dictionary, effects: Ar
 			# A conditional line printed after Empower goes with the rest of that text.
 			if empowered and bool(v.get("after_empower", false)) and not keeps_text:
 				continue
+			# "Empower 4. This attack is no longer focused.": what Empower changes on the attack.
+			if bool(v.get("on_empower", false)) and not empowered:
+				continue
 			for k in v.keys():
 				if k == "when":
 					continue
@@ -2537,6 +2540,23 @@ func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
 	if state.grounds != null and bool(state.grounds.def.raw.get("double_costs", false)) and not _costs_waived(attacker, ic):
 		cost_stages *= 2
 		cost_life *= 2
+	if cost_stages > 0 and _life_pays_art_cost(attacker, ic, spec):
+		# Paying with Energy or with the top Life Deck card is the attacker's call when both are
+		# possible; with too little Energy only the card is left.
+		if not a.has("life_for_cost"):
+			if ic.energy < cost_stages:
+				a["life_for_cost"] = true
+			else:
+				_choice = {"kind": "life_for_cost", "battle_step": 2}
+				var pay_ctx: Dictionary = _choice_context(_attack_source(), "life_for_cost")
+				pay_ctx["stages"] = cost_stages
+				_set_prompt(attacker.index, &"pick_option", [Command.new(attacker.index, &"pick_option", -1, "energy"),
+					Command.new(attacker.index, &"pick_option", -1, "life")], pay_ctx)
+				return
+		if bool(a["life_for_cost"]):
+			_discard_life(attacker, 1)
+			_emit(&"cost_paid", {"player": attacker.index, "stages": 0, "life": 1, "energy": ic.energy})
+			cost_stages = 0
 	if cost_stages > 0:
 		ic.energy = maxi(0, ic.energy - cost_stages)
 	if cost_life > 0:
@@ -2544,6 +2564,7 @@ func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
 	if cost_stages > 0 or cost_life > 0:
 		_emit(&"cost_paid", {"player": attacker.index, "stages": cost_stages, "life": cost_life, "energy": ic.energy})
 	_expire_next_attack_tax(attacker)
+	_expire_once_cost_modifiers(attacker, str(spec.get("kind", "")), ic)
 	if cost_hand > 0:
 		if attacker.hand.size() > cost_hand:
 			# Which card goes is the attacker's call, so this opens a prompt. The battle sequence
@@ -2783,6 +2804,31 @@ func _costs_waived(p: PlayerState, payer: CardInstance) -> bool:
 	return false
 
 
+## "For the remainder of Combat you may discard the top card of your Life Deck instead of paying
+## costs for any energy attacks this personality performs": pinned to the personality that landed it.
+func _life_pays_art_cost(p: PlayerState, payer: CardInstance, spec: Dictionary) -> bool:
+	if payer == null or str(spec.get("kind", "")) != "art" or p.life_deck.is_empty():
+		return false
+	for f in state.floating:
+		if int(f.get("owner", -1)) == p.index and str(f.get("op", "")) == "life_for_art_costs" and int(f.get("performer", -1)) == payer.uid:
+			return true
+	return false
+
+
+## A one-use price change ("the next energy attack that personality performs costs 0") is spent by
+## the attack it priced, whatever that attack ended up costing.
+func _expire_once_cost_modifiers(p: PlayerState, kind: String, payer: CardInstance) -> void:
+	for f in state.floating.duplicate():
+		if int(f.get("owner", -1)) != p.index or str(f.get("op", "")) != "modifier" or str(f.get("scope", "")) != "cost" or not bool(f.get("once", false)):
+			continue
+		var fk: String = str(f.get("kind", "any"))
+		if fk != "any" and fk != kind:
+			continue
+		if f.has("performer") and (payer == null or payer.uid != int(f["performer"])):
+			continue
+		state.floating.erase(f)
+
+
 func _expire_next_attack_tax(p: PlayerState) -> void:
 	var tax: Dictionary = _floating_first(p.index, "next_attack_tax")
 	if not tax.is_empty():
@@ -2793,7 +2839,7 @@ func _can_pay(ic: CardInstance, p: PlayerState, spec: Dictionary, src: CardInsta
 	var cost: int = _cost_stages(spec, p, src)
 	if state.grounds != null and bool(state.grounds.def.raw.get("double_costs", false)) and not _costs_waived(p, ic):
 		cost *= 2
-	if ic.energy < cost:
+	if ic.energy < cost and not _life_pays_art_cost(p, ic, spec):
 		return false
 	if p.hand.size() < int(spec.get("cost_hand", 0)):
 		return false
@@ -3358,6 +3404,10 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 			continue
 		var ms: int = _modifier_amount(m, "stages", attacker)
 		var ml: int = _modifier_amount(m, "life", attacker)
+		# "+X wounds, where X is the Surge of the personality performing the attack": the performer's
+		# own printed rate, not the side's, so a Drill that raises the Surge Rate does not count.
+		if bool(m.get("life_per_performer_surge", false)):
+			ml += _performer(a).surge()
 		if ms != 0 or ml != 0:
 			adds.append({"source": _modifier_source(entry, attacker), "stages": ms, "life": ml})
 		if bool(m.get("once", false)):
@@ -3585,6 +3635,10 @@ func _modifiers_for(p: PlayerState, scope: String, kind: String, src: CardInstan
 		pools.append([p.mastery.def.modifiers, p.mastery])
 	if state.grounds != null:
 		pools.append([state.grounds.def.modifiers, state.grounds])
+	# A Relic that prints a standing line ("All of your attacks do +1 wound") speaks for its side
+	# the whole duel, the way a Mastery does.
+	if p.relic != null and not _forbidden(p, "relic"):
+		pools.append([p.relic.def.modifiers, p.relic])
 	for at in p.attachments():
 		# A rider only speaks for the personality it rides on, for damage and for price alike.
 		if (scope == "own" or scope == "cost") and at.attached_to == p.in_control():
@@ -5454,6 +5508,11 @@ func _set_personality_energy(p: PlayerState, target: CardInstance, e: Dictionary
 		_lose_energy(p, target, -int(amount))
 	if target.energy != before:
 		_emit(&"energy_changed", {"player": p.index, "card": target.uid, "from": before, "to": target.energy, "source": source.uid if source != null else -1})
+	# "The next energy attack that personality performs this Combat costs 0": pinned to the
+	# personality just raised, whichever side it is on, and gone once paid.
+	if bool(e.get("next_art_free", false)):
+		_float(target.owner, "modifier", "combat", {"scope": "cost", "kind": "art", "set": 0, "once": true, "performer": target.uid,
+			"source": source.uid if source != null else -1})
 
 
 ## Cards picked out of a discard pile, which both players can read, so nothing is hidden by asking.
@@ -6062,6 +6121,8 @@ func _handle_choice(cmd: Command) -> void:
 			pass
 		"silence_drill":
 			card(cmd.card).silenced = true
+		"life_for_cost":
+			state.attack["life_for_cost"] = str(cmd.value) == "life"
 		"art_boost":
 			state.attack["art_boost"] = str(cmd.value)
 		"return_removed":
@@ -6889,6 +6950,10 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 	var performs: String = str(e.get("attack_kind", ""))
 	if performs != "" and (not c.def.is_attack() or c.def.attack_kind() != performs):
 		return false
+	# "An energy attack with a Base Damage of less than 6 life cards": Base Damage is what the card
+	# states, or an Art's default, before any modifier, the attack's own "+N" included.
+	if e.has("max_base_life") and (not c.def.is_attack() or int(printed_base(c.def.attack, c.def.attack_kind())["life"]) > int(e["max_base_life"])):
+		return false
 	var tag: String = str(e.get("tag", ""))
 	if tag != "" and not (c.def.raw.get("tags", []) as Array).has(tag):
 		return false
@@ -7345,6 +7410,10 @@ func _finish_card(c: CardInstance, empowered: bool) -> void:
 		# "...to be used X more times this Combat, X = your duelist's current Aspect."
 		var extra: Variant = def.remain_when.get("remain", 1)
 		remain = maxi(remain, owner.duelist.aspect if extra is String and str(extra) == "aspect" else int(extra))
+	# "Empower 4. This attack stays on the table to be used 2 more times this Combat without using
+	# its Empower": the uses from the table are never offered Empower.
+	if empowered:
+		remain = maxi(remain, int(def.raw.get("empower_remain", 0)))
 	if remain > 0 and c.remain_combat != state.combat_count and state.step == GameState.Step.COMBAT:
 		_erase_from_zone(c)
 		c.zone = &"in_play"

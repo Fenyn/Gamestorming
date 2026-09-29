@@ -996,6 +996,14 @@ static func _word_score(engine: DuelEngine, me: PlayerState, profile: AiProfile,
 	var choice: Dictionary = engine._choice
 	var handover: float = AiEvaluator.handover_progress(engine, me)
 	match str(choice.get("kind", "")):
+		"life_for_cost":
+			# The Energy kept against the Life Deck card given up for it.
+			if word != "life":
+				return 0.0
+			var stages: int = int((engine.prompt.context if engine.prompt != null else {}).get("stages", 0))
+			var payer: CardInstance = engine._performer(engine.state.attack)
+			var per: float = duelist_energy_price(engine, me, profile) if payer == me.duelist else profile.w("own", "ally_energy")
+			return stages * per - life_card_price(me, profile)
 		"art_boost":
 			if word == "life":
 				return int(engine._art_boost(me, me.duelist).get("life", 1)) * profile.w("play", "damage_life") * profile.w("effect", "if_successful")

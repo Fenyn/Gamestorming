@@ -32,7 +32,7 @@ public partial class DungeonHud : Control
 
     private ThresholdTicks _wardTicks = null!;
     private Control _roomCard = null!;
-    private Label _roomCardTitle = null!, _roomCardDetail = null!;
+    private Label _roomCardTitle = null!, _roomCardDetail = null!, _roomCardKicker = null!;
     private Tween? _wardTween, _cardTween;
     private int _shownWard = -1;
     private Label _notice = null!;
@@ -50,7 +50,10 @@ public partial class DungeonHud : Control
     private Control _plan = null!;
     private Label _planTitle = null!, _planGoal = null!;
     private Control _partyMenu = null!;
-    private Label _travelHint = null!;
+    private CaptionButton _travelHint = null!;
+
+    /// <summary>Keycap text on the Travel row: travel is a click on a doorway, not a key.</summary>
+    [Export] public string TravelKey { get; set; } = "LMB";
 
     /// <summary>The floor's objective as the party knows it: find the chamber, beat its guardian, descend.</summary>
     public static string Goal(DungeonFloor floor)
@@ -74,12 +77,14 @@ public partial class DungeonHud : Control
         _roomCard = GetNode<Control>("%RoomCard");
         _roomCardTitle = GetNode<Label>("%RoomCardTitle");
         _roomCardDetail = GetNode<Label>("%RoomCardDetail");
+        _roomCardKicker = GetNode<Label>("%RoomCardKicker");
         _floorPlan = GetNode<FloorPlan>("%FloorPlan");
         _plan = GetNode<Control>("%Plan");
         _planTitle = GetNode<Label>("%PlanTitle");
         _planGoal = GetNode<Label>("%PlanGoal");
         _partyMenu = GetNode<Control>("%PartyMenu");
-        _travelHint = GetNode<Label>("%TravelHint");
+        _travelHint = GetNode<CaptionButton>("%TravelHint");
+        if (_travelHint.KeyLabel != null) _travelHint.KeyLabel.Text = TravelKey;
         HideRoomCard();
         _seed = GetNode<LineEdit>("%Seed");
         _sizes = GetNode<HBoxContainer>("%Sizes");
@@ -148,7 +153,8 @@ public partial class DungeonHud : Control
         ApplyOverlay();
         int id = state.CurrentNodeId ?? 0;
         var room = floor.Rooms[id];
-        _travelHint.Text = $"Click a doorway to travel ({state.Wardstone.Rules.NodeBurn} ward)";
+        int wardNow = state.Wardstone.Ward;
+        _travelHint.SetActionText($"Travel · Ward {wardNow} → {Math.Max(0, wardNow - state.Wardstone.Rules.NodeBurn)}");
         _planTitle.Text = $"Floor {state.Stratum + 1} of {Delve.Data.FloorThemes.Count}";
         _planGoal.Text = Goal(floor);
         _floorPlan.Render(floor, state);
@@ -175,10 +181,6 @@ public partial class DungeonHud : Control
         {
             DungeonPhase.Travel => $"Crossing…  −{state.Wardstone.Rules.NodeBurn} ward",
             DungeonPhase.Doors when guardianDown => FloorCompleteNotice,
-            // The how-to line stays only until the first crossing of the run. The party menu
-            // already says how to travel, so this one covers what it does not.
-            DungeonPhase.Doors when state.Stratum == 0 && floor.Rooms.Count(r => r.Discovered) <= 1
-                => "Click a character for details.",
             DungeonPhase.Combat => comparison ? $"Guard hall comparison: {size} × {size}. Same seed and enemies; compare movement and congestion." : "Resolve the encounter to open the doors.",
             DungeonPhase.End => state.Outcome == RunOutcome.Victory ? FloorCompleteNotice : "The expedition ends. Restart or try a new seed.",
             _ => ""
@@ -242,10 +244,14 @@ public partial class DungeonHud : Control
     }
 
     /// <summary>The room's name over the scene. It never takes input, so doors stay usable.</summary>
-    public void ShowRoomCard(string title, string detail = "")
+    /// <summary>The MYZ-style arrival banner: a small kicker ("New room"), the room's name in title
+    /// case and at most one short detail line. Longer prose belongs in a hover.</summary>
+    public void ShowRoomCard(string title, string detail = "", string kicker = "")
     {
         _cardTween?.Kill();
-        _roomCardTitle.Text = title;
+        _roomCardKicker.Text = kicker;
+        _roomCardKicker.Visible = kicker.Length > 0;
+        _roomCardTitle.Text = TitleCase(title);
         _roomCardDetail.Text = detail;
         _roomCardDetail.Visible = detail.Length > 0;
         HideRoomCard();
@@ -266,9 +272,37 @@ public partial class DungeonHud : Control
         if (_state != null) _wardBar.Value = _shownWard = _state.Wardstone.Ward;
     }
 
+    /// <summary>Drop the banner at once: a room that opens its own panel must not keep the last room's name up.</summary>
+    public void ClearRoomCard()
+    {
+        _cardTween?.Kill();
+        HideRoomCard();
+    }
+
     private void HideRoomCard() => _roomCard.Modulate = _roomCard.Modulate with { A = 0 };
 
+    private static readonly string[] SmallWords = { "of", "the", "and", "a", "an", "in", "on", "to" };
+
+    /// <summary>"receiving hall" → "Receiving Hall"; small words stay lower case after the first.</summary>
+    private static string TitleCase(string text)
+    {
+        var words = text.Split(' ');
+        for (int i = 0; i < words.Length; i++)
+            if (words[i].Length > 0 && (i == 0 || !SmallWords.Contains(words[i])))
+                words[i] = char.ToUpperInvariant(words[i][0]) + words[i][1..];
+        return string.Join(' ', words);
+    }
+
     public string RoomCardText => _roomCardTitle.Text;
+    public string RoomCardKicker => _roomCardKicker.Text;
+    public bool RoomCardShown => _roomCard.Modulate.A > 0 || _cardTween?.IsRunning() == true;
+
+    /// <summary>"Floor 1 of 3", as the floor plan titles it.</summary>
+    public string FloorLabel => _planTitle.Text;
+
+    /// <summary>The station's history, read on the floor plan's hover.</summary>
+    public void SetFloorHistory(string history) => _plan.TooltipText = history;
+    public string FloorHistory => _plan.TooltipText;
     public string RoomCardDetail => _roomCardDetail.Text;
 
     public void ShowNotice(string text) => _notice.Text = text;

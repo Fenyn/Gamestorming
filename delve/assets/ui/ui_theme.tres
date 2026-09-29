@@ -74,6 +74,123 @@ texture_margin_top = 12.0
 texture_margin_right = 12.0
 texture_margin_bottom = 12.0
 
+[sub_resource type="StyleBoxFlat" id="sb_hud_btn_normal"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.105882, 0.137255, 0.180392, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.321569, 0.380392, 0.419608, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="sb_hud_btn_hover"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.141176, 0.180392, 0.235294, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.623529, 0.788235, 0.839216, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="sb_hud_btn_pressed"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 5.0
+bg_color = Color(0.054902, 0.070588, 0.098039, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.623529, 0.788235, 0.839216, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="sb_hud_btn_disabled"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.070588, 0.094118, 0.129412, 0.7)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.235294, 0.258824, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="sb_hud_accent_normal"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.141176, 0.180392, 0.235294, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.901961, 0.862745, 0.776471, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="sb_hud_accent_hover"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.2, 0.235294, 0.29, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.968627, 0.945098, 0.894118, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="sb_hud_event"]
+content_margin_left = 28.0
+content_margin_top = 20.0
+content_margin_right = 28.0
+content_margin_bottom = 20.0
+bg_color = Color(0.070588, 0.094118, 0.129412, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.321569, 0.380392, 0.419608, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 10
+shadow_offset = Vector2(3, 5)
+
+[sub_resource type="StyleBoxEmpty" id="sb_hud_btn_focus"]
+
 [sub_resource type="StyleBoxFlat" id="sb_accent_strip"]
 bg_color = Color(0.901961, 0.862745, 0.776471, 1)
 
@@ -507,6 +624,14 @@ border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.054902, 0.070588, 0.082353, 1)
 
+[sub_resource type="StyleBoxFlat" id="sb_pip_preview"]
+bg_color = Color(0.901961, 0.862745, 0.776471, 0.3)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.901961, 0.862745, 0.776471, 1)
+
 [sub_resource type="StyleBoxFlat" id="sb_pip_spent"]
 bg_color = Color(0.160784, 0.196078, 0.227451, 1)
 border_width_left = 1
@@ -689,8 +814,8 @@ corner_radius_top_right = 2
 content_margin_left = 12.0
 content_margin_right = 12.0
 draw_center = false
-border_width_bottom = 1
-border_color = Color(0.552941, 0.45098, 0.321569, 0.35)
+border_width_bottom = 2
+border_color = Color(0.552941, 0.45098, 0.321569, 0.28)
 
 [sub_resource type="StyleBoxFlat" id="sb_command_keycap"]
 content_margin_left = 5.0
@@ -1051,6 +1176,20 @@ texture = SubResource("tex_roll_shade")
 [resource]
 default_font = ExtResource("body")
 default_font_size = 18
+HudAccentButton/base_type = &"AccentButton"
+HudAccentButton/styles/disabled = SubResource("sb_hud_btn_disabled")
+HudAccentButton/styles/focus = SubResource("sb_hud_btn_focus")
+HudAccentButton/styles/hover = SubResource("sb_hud_accent_hover")
+HudAccentButton/styles/normal = SubResource("sb_hud_accent_normal")
+HudAccentButton/styles/pressed = SubResource("sb_hud_btn_pressed")
+HudButton/base_type = &"Button"
+HudButton/styles/disabled = SubResource("sb_hud_btn_disabled")
+HudButton/styles/focus = SubResource("sb_hud_btn_focus")
+HudButton/styles/hover = SubResource("sb_hud_btn_hover")
+HudButton/styles/normal = SubResource("sb_hud_btn_normal")
+HudButton/styles/pressed = SubResource("sb_hud_btn_pressed")
+HudEventPanel/base_type = &"EventPanel"
+HudEventPanel/styles/panel = SubResource("sb_hud_event")
 AccentButton/base_type = &"Button"
 AccentButton/colors/font_color = Color(0.909804, 0.92549, 0.913725, 1)
 AccentButton/colors/font_disabled_color = Color(0.556863, 0.603922, 0.631373, 1)
@@ -1417,6 +1556,8 @@ PipDisabled/base_type = &"Panel"
 PipDisabled/styles/panel = SubResource("sb_pip_disabled")
 PipFilled/base_type = &"Panel"
 PipFilled/styles/panel = SubResource("sb_pip_filled")
+PipPreview/base_type = &"Panel"
+PipPreview/styles/panel = SubResource("sb_pip_preview")
 PipSpent/base_type = &"Panel"
 PipSpent/styles/panel = SubResource("sb_pip_spent")
 PreviewStats/base_type = &"HeadingLabel"

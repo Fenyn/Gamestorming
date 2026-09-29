@@ -135,6 +135,9 @@ public partial class KnowledgeJournalSpike : SpikeBase
             string feintFigures = feint == null ? "none" : string.Join(", ", feint.Figures.Select(f => $"{f.Caption} {f.Value}"));
             Check($"a Feint forecast masks the target's Perception DC ({feintFigures})",
                 feint != null && feint.Figures.Any(f => f.Caption == "DC" && f.Value == "?") && !feintFigures.Contains('%'));
+            string feintDetail = feint?.DetailText ?? "";
+            Check($"a flat-DC forecast names the DC once ('{feintDetail}')",
+                feintDetail.EndsWith("vs DC ?") && !feintDetail.Contains("DC DC"));
             Check("before a reveal the log masks the roll's AC",
                 !CombatLogBridge.ArmorClassKnown(goblin) && CombatRoll.MaskArmorClass($"d20(12)+10=22 vs AC {ac} → Success").Contains("vs AC ?"));
 

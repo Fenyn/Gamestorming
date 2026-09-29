@@ -5,8 +5,8 @@ extends Node3D
 ## swings back and forth through Combat, is lit on the duelists' plates instead.
 
 ## Out from the centre toward the viewer's left, and off the centre line toward the owner.
-const REST_X: float = 4.45
-const REST_Z: float = 0.34
+const REST_X: float = 3.6
+const REST_Z: float = 0.3
 const HOP_HEIGHT: float = 0.4
 const HOP_TIME: float = 0.55
 

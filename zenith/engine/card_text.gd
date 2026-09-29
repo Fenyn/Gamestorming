@@ -2439,6 +2439,8 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 				return "Put it into play" if str(cmd.value) == "play" else "Put it into your hand"
 			if str(ctx.get("purpose", "")) == "look_place":
 				return "All on top" if str(cmd.value) == "top" else "All on the bottom"
+			if str(ctx.get("purpose", "")) == "life_for_cost":
+				return "Pay %d Energy" % int(ctx.get("stages", 0)) if str(cmd.value) == "energy" else "Discard your top Life Deck card instead"
 			if str(ctx.get("purpose", "")) == "choose_one":
 				return str((ctx.get("labels", []) as Array)[int(str(cmd.value))])
 			if name != "":

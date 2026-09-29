@@ -23,13 +23,23 @@ public partial class CombatScene
             _overlay.SetPathBands(bands);
         };
         _controller.HoverTileChanged += tile => _moveBands.SetHoverTile(tile);
-        _controller.MoveHoverChanged += hover => _actionBar.SetMoveHint(hover);
+        _controller.MoveHoverChanged += hover =>
+        {
+            _actionBar.SetMoveHint(hover);
+            _inspectPanel.PreviewSpend(hover?.Actions ?? 0);
+        };
         _controller.PathPreviewChanged += path => { _overlay.SetPathPreview(path); PreviewDestination(path); };
         _controller.AreaPreviewChanged += tiles => _overlay.SetAreaPreview(tiles);
-        _controller.AttackPreviewChanged += preview => { _actionBar.ShowAttackPreview(preview); NotePlayerTarget(preview != null); };
+        _controller.AttackPreviewChanged += preview =>
+        {
+            _actionBar.ShowAttackPreview(preview);
+            NotePlayerTarget(preview != null);
+            // A Strike costs one action; other aimed actions carry their cost on their own chip.
+            if (_controller.Mode == PlayerTurnMode.SelectingStrike) _inspectPanel.PreviewSpend(preview != null ? 1 : 0);
+        };
         _controller.ButtonStateChanged += state => _actionBar.Render(state);
         _controller.SpellTargetsChanged += _actionBar.SetSpellTargetSelection;
-        _controller.ModeChanged += _ => { ClearStagedOrder(); ClearPartyFocus(); };
+        _controller.ModeChanged += _ => { ClearStagedOrder(); ClearPartyFocus(); _inspectPanel.PreviewSpend(0); };
         _controller.ActionCompleted += () => _cameraRig.RestorePlanningView();
         _controller.ModeChanged += mode => _actionBar.SetTargetingHint(
             mode is not (PlayerTurnMode.Idle or PlayerTurnMode.Moving), mode == PlayerTurnMode.SelectingDelaySlot);
@@ -50,6 +60,7 @@ public partial class CombatScene
     private void WireActionBar()
     {
         _actionBar.ConfirmTargetsPressed += () => _controller.ConfirmSpellTargets();
+        _actionBar.SpendPreviewed += actions => _inspectPanel.PreviewSpend(actions);
         _actionBar.ConfirmOrderPressed += ConfirmStagedOrder;
         _actionBar.StagingChanged += () => ClearStagedOrder();
         _actionBar.OverviewPressed += () => { if (!_tacticalHud.ModalActive && !_tacticalFinished) _cameraRig.ToggleOverview(); };

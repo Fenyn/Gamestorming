@@ -58,10 +58,11 @@ internal static class ReactionPromptBuilder
         };
     }
 
-    /// <summary>What set the reaction off, in one sentence, so the prompt says why it appeared.</summary>
+    /// <summary>What set the reaction off, in one sentence, so the prompt says why it appeared. The
+    /// mover goes by its compact log name ("Goblin C"), so the line fits beside the title.</summary>
     private static string Trigger(ReactionPromptContext ctx)
     {
-        string source = ctx.Source?.Name ?? "An enemy";
+        string source = ctx.Source == null ? "An enemy" : Delve.UI.CombatLogFormat.ShortName(ctx.Source.Name);
         string reactor = ctx.Reactor.Name;
         return ctx.Trigger switch
         {

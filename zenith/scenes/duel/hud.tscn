@@ -57,15 +57,57 @@ text = "Combat"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="History" type="PanelContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 12.0
+offset_top = 272.0
+offset_right = 80.0
+offset_bottom = 272.0
+
+[node name="Column" type="VBoxContainer" parent="Root/History"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Open" type="Button" parent="Root/History/Column"]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+theme_override_font_sizes/font_size = 16
+tooltip_text = "Full log (L)"
+text = "Log"
+
+[node name="Thumbs" type="VBoxContainer" parent="Root/History/Column"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HistoryTip" type="PanelContainer" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+offset_left = 88.0
+offset_top = 272.0
+offset_right = 88.0
+offset_bottom = 272.0
+mouse_filter = 2
+z_index = 10
+
+[node name="Text" type="Label" parent="Root/HistoryTip"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+autowrap_mode = 3
+
 [node name="Log" type="PanelContainer" parent="Root"]
+visible = false
 layout_mode = 1
 anchors_preset = 0
 anchor_left = 0.0
 anchor_right = 0.0
-offset_left = 18.0
+offset_left = 12.0
 offset_top = 16.0
-offset_right = 418.0
-offset_bottom = 306.0
+offset_right = 412.0
+offset_bottom = 778.0
 grow_horizontal = 0
 
 [node name="Column" type="VBoxContainer" parent="Root/Log"]
@@ -79,12 +121,13 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
-text = "RECENT"
+text = "LOG"
 
 [node name="Toggle" type="Button" parent="Root/Log/Column/Header"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "History"
+tooltip_text = "Close (L or Esc)"
+text = "Close"
 flat = true
 custom_minimum_size = Vector2(100, 42)
 
@@ -137,17 +180,14 @@ alignment = 1
 
 [node name="PromptPanel" type="PanelContainer" parent="Root"]
 layout_mode = 1
-anchors_preset = 3
+anchors_preset = 1
 anchor_left = 1.0
-anchor_top = 1.0
 anchor_right = 1.0
-anchor_bottom = 1.0
 offset_left = -418.0
-offset_top = -96.0
+offset_top = 675.0
 offset_right = -18.0
-offset_bottom = -96.0
+offset_bottom = 675.0
 grow_horizontal = 0
-grow_vertical = 0
 
 [node name="Column" type="VBoxContainer" parent="Root/PromptPanel"]
 layout_mode = 2
@@ -370,9 +410,9 @@ autowrap_mode = 3
 visible = false
 modulate = Color(1, 1, 1, 0.9)
 layout_mode = 1
-offset_left = 18.0
+offset_left = 92.0
 offset_top = 318.0
-offset_right = 466.0
+offset_right = 540.0
 offset_bottom = 348.0
 mouse_filter = 2
 theme_override_font_sizes/font_size = 18
@@ -383,9 +423,9 @@ text_overrun_behavior = 3
 layout_mode = 1
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 18.0
+offset_left = 92.0
 offset_top = -370.0
-offset_right = 350.0
+offset_right = 424.0
 offset_bottom = -230.0
 mouse_filter = 2
 theme_type_variation = &"WarnLabel"
@@ -396,9 +436,9 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -66.0
+offset_left = -478.0
 offset_top = 18.0
-offset_right = -18.0
+offset_right = -430.0
 offset_bottom = 66.0
 grow_horizontal = 0
 tooltip_text = "Options"
@@ -412,9 +452,9 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -78.0
+offset_left = -490.0
 offset_top = 24.0
-offset_right = -78.0
+offset_right = -490.0
 offset_bottom = 60.0
 grow_horizontal = 0
 mouse_filter = 2
@@ -590,18 +630,18 @@ text = "Close"
 visible = false
 layout_mode = 1
 anchors_preset = 0
-offset_left = 16.0
+offset_left = 92.0
 offset_top = 318.0
-offset_right = 356.0
+offset_right = 432.0
 offset_bottom = 518.0
 
 [node name="Peek" type="Control" parent="Root"]
 visible = false
 layout_mode = 1
 anchors_preset = 0
-offset_left = 18.0
+offset_left = 92.0
 offset_top = 358.0
-offset_right = 378.0
+offset_right = 452.0
 offset_bottom = 923.0
 mouse_filter = 2
 z_index = 10
@@ -667,9 +707,9 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -418.0
-offset_top = 82.0
+offset_top = 74.0
 offset_right = -18.0
-offset_bottom = 673.0
+offset_bottom = 665.0
 grow_horizontal = 0
 mouse_filter = 2
 
@@ -959,9 +999,9 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -300.0
+offset_left = -712.0
 offset_top = 74.0
-offset_right = -18.0
+offset_right = -430.0
 offset_bottom = 214.0
 grow_horizontal = 0
 

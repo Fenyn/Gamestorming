@@ -160,8 +160,9 @@ public partial class DungeonSpike : SpikeBase
         Check("the receiving hall opens straight to its doors with full ward", host.Phase == DungeonPhase.Doors
             && host.Current.Completed && host.State.Wardstone.Ward == 100);
         var entranceHud = host.GetNode<DungeonHud>("Screens/DungeonHud");
-        Check($"the hall's card carries the station history ('{entranceHud.RoomCardText}')",
-            entranceHud.RoomCardText == StationPlan.Name(RoomPurpose.Receiving) && entranceHud.RoomCardDetail == StationPlan.Account(host.Floor.History));
+        Check($"the hall's banner names the room in title case under the floor kicker, and the history is the floor plan's hover ('{entranceHud.RoomCardKicker}' / '{entranceHud.RoomCardText}')",
+            entranceHud.RoomCardText == "Receiving Hall" && entranceHud.RoomCardKicker.StartsWith("Floor ")
+            && entranceHud.RoomCardDetail.Length == 0 && entranceHud.FloorHistory == StationPlan.Account(host.Floor.History));
         var plan = entranceHud.Plan.Drawn();
         Check($"the floor plan shows the hall and only the rooms beyond its doors ({string.Join(",", plan.Select(p => $"{p.Key}:{p.Value}"))})",
             plan[0] == "entrance" && plan.Count == 1 + host.Current.Doors.Count
@@ -214,8 +215,8 @@ public partial class DungeonSpike : SpikeBase
         Check("duplicate click charges one crossing", host.State.Wardstone.Ward == 95 && host.Phase == DungeonPhase.Event);
         var wardBar = hud.GetNode<ProgressBar>("%WardBar");
         Check($"ward meter slides toward the crossing cost ({wardBar.Value:F1})", wardBar.Value > 95);
-        Check($"an event room is named by its panel, not by a second card ('{hud.RoomCardText}')",
-            hud.RoomCardText == StationPlan.Name(RoomPurpose.Receiving));
+        Check($"an event room is named by its panel, and the last room's banner is gone ('{hud.RoomCardText}')",
+            !hud.RoomCardShown);
         var afterCrossing = hud.Plan.Drawn();
         Check($"the plan shows the visited event room by kind and its unseen neighbours as unknown ({string.Join(",", afterCrossing.Select(p => $"{p.Key}:{p.Value}"))})",
             afterCrossing[host.Current.Id] == "event" && host.Current.Doors.All(d => afterCrossing.ContainsKey(d.Other(host.Current.Id))));

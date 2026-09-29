@@ -128,7 +128,7 @@ material_override = SubResource("Material_surface")
 [node name="CameraRig" type="Node3D" parent="."]
 
 [node name="Camera" type="Camera3D" parent="CameraRig"]
-transform = Transform3D(1, 0, 0, 0, 0.275637, 0.961262, 0, -0.961262, 0.275637, 0, 9.42, 2.85)
+transform = Transform3D(1, 0, 0, 0, 0.275637, 0.961262, 0, -0.961262, 0.275637, 0.8, 9.373, 2.706)
 fov = 34.0
 script = ExtResource("5_camera")
 
@@ -151,43 +151,43 @@ script = ExtResource("2_layout")
 [node name="P0" type="Node3D" parent="Zones"]
 
 [node name="Duelist" type="Marker3D" parent="Zones/P0"]
-position = Vector3(0, 0, 1.13)
+position = Vector3(0, 0, 1.171)
 
 [node name="AllyStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-1.1, 0, 0.62)
+position = Vector3(-1.631, 0, 0.564)
 
 [node name="Mastery" type="Marker3D" parent="Zones/P0"]
-position = Vector3(1.32, 0, 1.13)
+position = Vector3(1.186, 0, 0.799)
 
 [node name="DrillStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(2.14, 0, 0.62)
+position = Vector3(1.938, 0, 0.564)
 
 [node name="NonCombatStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(2.14, 0, 1.57)
+position = Vector3(1.938, 0, 1.472)
 
 [node name="Relic" type="Marker3D" parent="Zones/P0"]
-position = Vector3(3.9, 0, 1.57)
+position = Vector3(0.974, 0, 1.881)
 
 [node name="Removed" type="Marker3D" parent="Zones/P0"]
-position = Vector3(3.9, 0, 2.49)
+position = Vector3(1.412, 0, 1.84)
 
 [node name="LifeDeck" type="Marker3D" parent="Zones/P0"]
-position = Vector3(4.6, 0, 0.93)
+position = Vector3(-1.033, 0, 0.584)
 
 [node name="Discard" type="Marker3D" parent="Zones/P0"]
-position = Vector3(4.6, 0, 1.93)
+position = Vector3(-1.033, 0, 1.431)
 
 [node name="SealStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-4.73, 0, 1.57)
+position = Vector3(-2.79, 0, 1.31)
 
 [node name="RemainStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-3.2, 0, 2.33)
+position = Vector3(-0.902, 0, 1.976)
 
 [node name="Plate" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-1.66, 0, 1.53)
+position = Vector3(-2.171, 0, 2.011)
 
 [node name="Resolving" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-1.6, 0, 0)
+position = Vector3(-0.4, 0, 0)
 
 [node name="HandStart" type="Marker3D" parent="Zones/P0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.02, 3.2)

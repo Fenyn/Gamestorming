@@ -23,9 +23,13 @@ public partial class PipRow : HBoxContainer
     private string Spent => SpentVariation.IsEmpty ? ThemeNames.PipSpent : SpentVariation.ToString();
 
     /// <summary>Action-economy readout: <paramref name="max"/> pips, the first
-    /// <paramref name="remaining"/> filled, the rest spent.</summary>
-    public void SetActionEconomy(int remaining, int max)
-        => Rebuild(max, i => i < remaining ? Filled : Spent);
+    /// <paramref name="remaining"/> filled, the rest spent. The last <paramref name="previewSpend"/>
+    /// filled pips draw hollow: what the hovered move or action would cost.</summary>
+    public void SetActionEconomy(int remaining, int max, int previewSpend = 0)
+    {
+        int keep = Math.Max(0, remaining - previewSpend);
+        Rebuild(max, i => i < keep ? Filled : i < remaining ? ThemeNames.PipPreview : Spent);
+    }
 
     /// <summary>Cost readout: <paramref name="count"/> pips, filled when the owning control is
     /// enabled, dimmed otherwise.</summary>

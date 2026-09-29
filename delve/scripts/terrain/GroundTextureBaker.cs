@@ -27,7 +27,7 @@ public static class GroundTextureBaker
             anyTexture |= style.HasTopTexture;
         if (!anyTexture) return null;
 
-        var landmarks = new LandmarkTexturePainter(layout);
+        var landmarks = new LandmarkTexturePainter(layout, theme.LandmarkStoneColor);
         var sources = new Dictionary<string, Image>();
         int w = layout.Width, h = layout.Height;
         int tilePx = theme.TilePx;

@@ -20,7 +20,7 @@ ORNATE = "Sprites/Ornate Fantasy UI Assets v1.3/Ornate Fantasy UI Assets v1.3/Sp
 ## Kenney Board Game Icons (CC0): solid white icons, 128 px.
 KENNEY_ICONS = "Sprites/UI/kenney_board-game-icons/PNG/Double (128px)"
 
-## Map nodes: a Kenney icon on a dark tile under the button rule (border 022), so a node reads as
+## Map nodes: a Kenney icon on a dark tile under the button rule (border 001), so a node reads as
 ## something to click. The boss gets the Double style's rule and a larger tile. Node type -> icon.
 MARKER_ICONS = {
     "duel": "sword",
@@ -29,13 +29,13 @@ MARKER_ICONS = {
     "boss": "crown_b",
     "twist": "dice_question",
     "encounter": "campfire",
-    "sensei": "book_open",
+    "relic": "book_open",
     "shop": "pouch",
     "shrine": "fire",
     "forge": "resource_iron",
     "mystery": "hexagon_question",
 }
-MARKER_BORDER = "Default/Border/panel-border-022.png"   # 48 px, taken at 3x
+MARKER_BORDER = "Default/Border/panel-border-001.png"   # 48 px, taken at 3x
 BOSS_BORDER = "Double/Border/panel-border-000.png"      # 96 px, taken at 2x
 MARKER_FILL = (40, 40, 44, 246)
 MARKER_LINE = (196, 192, 184, 255)
@@ -65,18 +65,20 @@ ORNATE_PIECES = {
 
 ## Kenney Fantasy UI Borders (CC0): white line art, made to be tinted. Every set is copied, doubled,
 ## to assets/ui/borders/<style>/<set>/ so any screen can pick a variant. The adventure's default
-## frame is the Default style's inner rule, border 012, and two panels are composed from it.
+## frame is the Default style's single rule with small corner squares, border 009, and two panels
+## are composed from it.
 KENNEY = "Sprites/UI/kenney_fantasy-ui-borders/PNG"
 KENNEY_OUT = os.path.join(HERE, "..", "assets", "ui", "borders")
-DEFAULT_BORDER = "Default/Border/panel-border-012.png"
+DEFAULT_BORDER = "Default/Border/panel-border-009.png"
 ## The side panels and the map board: a dark fill under a white rule, both tinted together. The
 ## fill is chosen so that under the iron frame tint (designs/zenith_ui.md, frame.metal) it lands on
 ## surface.panel.
 PANEL_FILL = (39, 35, 35, 245)
-## Buttons: Kenney's stepped-corner rule over a flat fill, one piece per state, never tinted.
+## Buttons: Kenney's rule with square corner blocks (border 001) over a flat fill, one piece per
+## state, never tinted.
 ## Ordinary buttons are dark with an iron rule; the one primary action on a screen is bone-white
 ## with a dark rule. name -> (fill, line).
-BUTTON_BORDER = "Default/Border/panel-border-022.png"
+BUTTON_BORDER = "Default/Border/panel-border-001.png"
 BUTTON_PIECES = {
     "button_normal": ((34, 32, 32, 245), (143, 145, 148, 255)),
     "button_hover": ((58, 55, 55, 248), (200, 201, 203, 255)),
@@ -174,7 +176,7 @@ def compose_panel(border, fill, line):
 
 
 def compose_button(border, fill, line):
-    """A button face: `fill` inside the border's outline only (the stepped corners stay clear),
+    """A button face: `fill` inside the border's outline only (the corner blocks stay clear),
     under the border's lines recoloured to `line`."""
     lines_mask = border.getchannel("A").point(lambda a: 255 if a > 0 else 0)
     region = lines_mask.copy()

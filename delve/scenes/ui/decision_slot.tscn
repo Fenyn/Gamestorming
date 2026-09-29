@@ -111,5 +111,5 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 focus_mode = 0
-theme_type_variation = &"AccentButton"
+theme_type_variation = &"HudAccentButton"
 text = "Confirm"

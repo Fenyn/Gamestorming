@@ -84,7 +84,7 @@ const LETHAL_HOLD: float = 0.6        # the wound that empties a Life Deck holds
 const GAME_OVER_HOLD: float = 1.0     # the table stays in view a moment before the result covers it
 const OVERFLOW_SLIDE: float = 0.4
 const FLAG_ROW_INSET: float = 0.3     # the chips start this far inside the first Ally slot's centre
-const FLAG_ROW_EDGE: float = 2.5      # and stop this far from the duelist's centre line, at the row's end
+const FLAG_ROW_EDGE: float = 2.86     # and stop this far from the duelist's centre line, at the row's end
 const FOCUS_FADE_TIME: float = 0.18   # a new rail card's fade-in; it never changes size
 const FILAMENT_HAND_ALPHA: float = 0.3
 const TABLE_CENTRE: Vector3 = Vector3(0, 0.02, 0)
@@ -999,7 +999,7 @@ func _play_update(up: SeatUpdate) -> void:
 		var line: String = str(l.get("line", ""))
 		# One Second Wind line describes the full reset; its per-card Recover lines are noise.
 		if line != "" and (index > bulk_recover_end or str(l.get("type", "")) != "recover"):
-			hud.log_line(line)
+			hud.log_line(line, DuelHud.log_card(l, view))
 		if l.has("data") and (index > bulk_recover_end or not bulk_cards.is_empty()):
 			_replaying = StringName(str(l.get("type", "")))
 			# The beat draws the table as it stood when the event fired, not as it stands now.

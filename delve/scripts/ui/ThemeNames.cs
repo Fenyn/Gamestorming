@@ -15,11 +15,13 @@ public static class ThemeNames
     public const string HintLabel = "HintLabel";
     public const string PipFilled = "PipFilled";
     public const string PipSpent = "PipSpent";
+    public const string PipPreview = "PipPreview";
     public const string PipDisabled = "PipDisabled";
     public const string TurnChipAlly = "TurnChipAlly";
     public const string HintKeycap = "HintKeycap";
     public const string HintKeycapLabel = "HintKeycapLabel";
     public const string HintRowLabel = "HintRowLabel";
+    public const string CommandButton = "CommandButton";
     public const string CommandLabel = "CommandLabel";
     public const string CommandLabelDisabled = "CommandLabelDisabled";
     public const string CommandKey = "CommandKey";

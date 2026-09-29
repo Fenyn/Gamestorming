@@ -171,14 +171,14 @@ public partial class UnitVisual3D : Node3D
         _pick.Configure(_character.TileWidth, _hpBarY);
         _pick.Sprite = _sprite;
         _pick.GridTile = () => _character.GridPosition;
-        _hpBar.Position = new Vector3(0f, _hpBarY + BoardPlateLift, 0f);
+        _hpBar.RestPosition = new Vector3(0f, _hpBarY + BoardPlateLift, 0f);
         _plate.Configure(_character.Name, _letter, UiColors.Enemy, TeamRing.RadiusPerTile * _character.TileWidth);
         _plate.Position = new Vector3(0f, _hpBarY, 0f);
         // Snap at spawn: the bar has no previous value to travel from, and a fight that opens with
         // every bar sliding in from empty reads as damage nobody dealt.
         UpdateHealthBar(instant: true);
         _character.Health.OnHealthChanged += OnLiveHealthChanged;
-        _dying.Configure(_character, _hpBar.ScreenWidth);
+        _dying.Configure(_character, _hpBar.ScreenWidth, () => _hpBar.Zoom, () => _hpBar.GlobalPosition);
         _dying.Position = new Vector3(0, _hpBarY + BoardPlateLift, 0);
         _sprite.ApplyFacing();
     }

@@ -90,6 +90,12 @@ public partial class CaptionButton : Button
         FitToContent();
     }
 
+    /// <summary>Show or hide the keycap, for a menu drawn too small for it to stay legible.</summary>
+    public void SetKeycapShown(bool shown)
+    {
+        if (GetNodeOrNull<Control>("Content/Keycap") is { } keycap) keycap.Visible = shown;
+    }
+
     public void SetActionText(string text)
     {
         ActionText = text;

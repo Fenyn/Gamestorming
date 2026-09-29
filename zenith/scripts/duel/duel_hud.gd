@@ -37,6 +37,7 @@ const HAND_CARD_SIZE: Vector2 = Vector2(126, 176)
 const FAR_HAND_CARD: Vector2 = Vector2(100, 140)   # a replay's far hand, in the strip over the far crest
 const HAND_LIFT: float = 26.0
 const MAX_LOG_LINES: int = 300
+const LOG_KEY: Key = KEY_L
 ## The smallest tray face; a short tray widens its faces up to TRAY_CARD_MAX_WIDTH.
 const TRAY_CARD_SIZE: Vector2 = Vector2(204, 285)
 const TRAY_CARD_MAX_WIDTH: float = 340.0
@@ -45,7 +46,6 @@ const TRAY_SIDE_ROOM: float = 180.0   # screen width the tray panel leaves besid
 const TRAY_FRAME: Vector2 = Vector2(6.0, 32.0)   # a face's frame across; frame, gap and caption down
 const TRAY_HEIGHT_SHARE: float = 0.57 # of the screen height, for the rows shown before scrolling
 const CHOICE_HEIGHT: float = 100.0    # a tray tile that is a wording rather than a card
-const LOG_COLLAPSED_BOTTOM: float = 306.0
 const LOG_EXPANDED_FRACTION: float = 0.72
 const FRAME_TINT: Color = ZenithTheme.FRAME
 const TRAY_COLUMNS: int = 6          # cards per row before the tray wraps
@@ -56,8 +56,10 @@ const FOCUS_CAPTION_HEIGHT: float = 32.0
 ## this share of the Focus face, and each level steps up and to the left with a small alternating
 ## tilt, so the newest card is wholly in view and the one under it still shows its caption strip.
 ## The stack never needs room of its own, so a decision column can open with the state still up.
+## The card narrows with the column, so the steps are shares of its width.
 const STACK_SCALE: float = 0.8
-const STACK_STEP: Vector2 = Vector2(-26.0, -34.0)
+const STACK_STEP: Vector2 = Vector2(-0.065, -0.085)
+const STACK_INSET: float = 0.04
 const STACK_TILT: float = 1.0          # degrees, sign alternating, so a pile never reads as one card
 const STACK_STRIP: float = 26.0        # the caption strip on each card's visible bottom edge
 const STACK_MAX: int = 4               # levels that step; deeper responses sit on the last one
@@ -76,23 +78,26 @@ const FILAMENT_CHEVRON: Vector2 = Vector2(17.0, 9.0)   # chevron length along an
 const FILAMENT_CAP: float = 13.0          # half-width of the transverse cap on a stopped attack
 const CARD_FACE: PackedScene = preload("res://scenes/duel/card_face.tscn")
 const CARD_ASPECT: float = 716.0 / 512.0
-const DECISION_GAP: float = 12.0
-## The rail on the right edge, GUTTER in from it. The focus card always has one size,
-## RAIL_CARD_WIDTH, and sits centred between the screen's top and the decision's line (`rail_top`).
-## The decision frame stands on that line, PROMPT_BOTTOM up from the screen's bottom edge and level
-## with the tucked hand's top, so its buttons keep one home clear of the corner, and it is as tall
-## as what it says. A decision too tall for the room under the card lifts the card, no higher than
-## RAIL_TOP (under the corner toggles); a longer one may reach over the focus caption strip
-## (PROMPT_LONG_RISE), never over the face, and past that its action list scrolls.
+const DECISION_GAP: float = 10.0
+## The column on the right edge, GUTTER in from it and RAIL_WIDTH across. The card a decision is
+## about has one home at its top, RAIL_CARD_WIDTH wide from RAIL_TOP, its caption strip under it.
+## The decision frame's top stands DECISION_GAP under that home (`panel_top`), whether or not a card
+## is showing, so the frame never hops; it grows down with what it says, and a list that would
+## pass GUTTER short of the screen's bottom edge scrolls instead.
 const GUTTER: float = 18.0
-const RAIL_TOP: float = 82.0
+const RAIL_TOP: float = 74.0
+const RAIL_WIDTH: float = 400.0
+const RAIL_LEFT: float = -GUTTER - RAIL_WIDTH   # from the right edge
 const RAIL_CARD_WIDTH: float = 400.0
-const RAIL_LEFT: float = -GUTTER - RAIL_CARD_WIDTH   # from the right edge
-const PROMPT_BOTTOM: float = 96.0
-const PROMPT_LONG_RISE: float = FOCUS_CAPTION_HEIGHT + DECISION_GAP
 ## Padding between the decision panel's frame texture edge and its text; the rule itself sits
 ## about 8 px inside the texture edge.
-const PROMPT_PAD: int = 20
+const PROMPT_PAD: int = 16
+## The history strip on the left edge: the latest log events that name a card, as faces, newest
+## on top. Hovering one shows its line beside it; the full log opens over it.
+const HISTORY_MAX: int = 7
+const HISTORY_THUMB: Vector2 = Vector2(48, 67)
+const HISTORY_TIP_GAP: float = 8.0
+const HISTORY_OLD_ALPHA: float = 0.82
 const ACTION_HEIGHT: float = 48.0
 const SINGLE_ACTION_HEIGHT: float = 56.0   # a lone action is the whole decision, so it stands taller
 const DECISION_RESULT_HEIGHT: float = 30.0   # one line at the body size
@@ -200,6 +205,11 @@ const CLOCK_WARN_MS: int = 10000
 @onready var banner_text: Label = $Root/Banner/Text
 @onready var log_panel: PanelContainer = $Root/Log
 @onready var log_toggle: Button = $Root/Log/Column/Header/Toggle
+@onready var history: PanelContainer = $Root/History
+@onready var history_open: Button = $Root/History/Column/Open
+@onready var history_thumbs: VBoxContainer = $Root/History/Column/Thumbs
+@onready var history_tip: PanelContainer = $Root/HistoryTip
+@onready var history_tip_text: Label = $Root/HistoryTip/Text
 @onready var inspect: ColorRect = $Root/Inspect
 @onready var inspect_face: CardFace = $Root/Inspect/Center/Column/Face
 @onready var inspect_status_scroll: ScrollContainer = $Root/Inspect/Center/Column/StatusScroll
@@ -300,6 +310,7 @@ var _current_prompt: PromptView = null
 var _view: SeatView = null
 var _faces: CardFaceCache = null
 var _log_expanded: bool = false
+var _history: Array[Dictionary] = []   # the history strip, newest first: {text, def_id, aspect, owner}
 var _batch: PromptView = null          # the prompt behind a multi-select tray, else null
 var _selected: Array[int] = []
 var _entries: Dictionary = {}          # uid -> {frame, caption, verb} for batch trays
@@ -363,6 +374,9 @@ func _ready() -> void:
 	prompt_panel.visibility_changed.connect(_stand_prompt)
 	prompt_hint.add_theme_color_override("font_color", ZenithTheme.TEXT_SOFT)
 	log_panel.add_theme_stylebox_override("panel", MapArt.panel_box(14, FRAME_TINT))
+	history.add_theme_stylebox_override("panel", ZenithTheme.box(Color(ZenithTheme.BG, 0.72), ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, 6, 6))
+	history_tip.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG, ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, 12, 8))
+	history_open.pressed.connect(func() -> void: set_log_expanded(not _log_expanded))
 	# The inspect hint sits on a small framed panel instead of floating over the table.
 	var inspect_hint: Label = $Root/Inspect/Center/Column/Hint
 	inspect_hint.add_theme_stylebox_override("normal", ZenithTheme.panel(24))
@@ -447,14 +461,9 @@ func _compact_prompt() -> void:
 func _layout_prompt_column() -> void:
 	if focus == null or prompt_panel == null:
 		return
-	focus.offset_left = RAIL_LEFT
-	focus.offset_right = -GUTTER
-	focus_face.scale = Vector2.ONE * RAIL_CARD_WIDTH / 512.0
 	prompt_panel.offset_left = RAIL_LEFT
 	prompt_panel.offset_right = -GUTTER
 	_place_focus()
-	# The response stack lives inside the Focus rect, so it costs the decision column nothing.
-	_layout_stack()
 	_fit_actions()
 
 
@@ -469,47 +478,51 @@ func _slot_height() -> float:
 	return RAIL_CARD_WIDTH * CARD_ASPECT + FOCUS_CAPTION_HEIGHT
 
 
-## The focus card's top edge. It is centred between the screen's top and the decision's bottom
-## line. A decision too tall to fit under it lifts it only as far as it needs, never above RAIL_TOP.
+## The focus card's top edge, which never moves.
 func rail_top() -> float:
-	var line: float = root.size.y - PROMPT_BOTTOM
-	var top: float = (line - _slot_height()) * 0.5
-	if prompt_panel.visible:
-		top = minf(top, line - prompt_panel.get_combined_minimum_size().y - DECISION_GAP - _slot_height())
-	return maxf(RAIL_TOP, top)
+	return RAIL_TOP
 
 
-func _place_focus() -> void:
-	focus.offset_top = rail_top()
-	focus.offset_bottom = focus.offset_top + _slot_height()
-
-
-## The highest a decision reaches, at the card's highest place; a longer one scrolls.
-func _panel_top() -> float:
+## The decision frame's top edge: DECISION_GAP under the card's home, card or no card.
+func panel_top() -> float:
 	return RAIL_TOP + _slot_height() + DECISION_GAP
 
 
-## The action list's height. The frame stands on its bottom edge and grows up to fit, so the
-## buttons never move; a list that would push the frame past its ceiling scrolls instead.
+## The lowest the frame reaches; a longer one scrolls.
+func panel_floor() -> float:
+	return root.size.y - GUTTER
+
+
+func _place_focus() -> void:
+	focus.offset_left = RAIL_LEFT + (RAIL_WIDTH - RAIL_CARD_WIDTH) * 0.5
+	focus.offset_right = focus.offset_left + RAIL_CARD_WIDTH
+	focus.offset_top = rail_top()
+	focus.offset_bottom = focus.offset_top + _slot_height()
+	focus_face.scale = Vector2.ONE * RAIL_CARD_WIDTH / 512.0
+	# The response stack lives inside the Focus rect, so it costs the decision column nothing.
+	_layout_stack()
+
+
+## The action list's height. The frame hangs from its top edge and grows down to fit, so its
+## question never moves; a list that would push the frame past its floor scrolls instead.
 func _fit_actions() -> void:
 	if _fitting_actions or actions_scroll == null:
 		return
 	_fitting_actions = true
 	actions_scroll.visible = primary_box.get_child_count() > 0
 	var outside: float = maxf(0.0, prompt_panel.get_combined_minimum_size().y - actions_scroll.get_combined_minimum_size().y)
-	var room: float = root.size.y - PROMPT_BOTTOM - (_panel_top() - PROMPT_LONG_RISE)
+	var room: float = panel_floor() - panel_top()
 	var available: float = maxf(SINGLE_ACTION_HEIGHT, room - outside)
 	actions_scroll.custom_minimum_size.y = minf(primary_box.get_combined_minimum_size().y, available)
 	_fitting_actions = false
 	_stand_prompt()
 
 
-## The frame stands on its bottom edge at exactly its content's height. Set outright, because a
-## Control only grows to its minimum on its own, and a hidden one misses the change entirely; a
-## frame on its bottom edge that lags shows its buttons below the screen.
+## The frame hangs from its top edge at exactly its content's height. Set outright, because a
+## Control only grows to its minimum on its own, and a hidden one misses the change entirely.
 func _stand_prompt() -> void:
-	prompt_panel.offset_top = prompt_panel.offset_bottom - prompt_panel.get_combined_minimum_size().y
-	_place_focus()
+	prompt_panel.offset_top = panel_top()
+	prompt_panel.offset_bottom = prompt_panel.offset_top + prompt_panel.get_combined_minimum_size().y
 
 
 func set_loading(on: bool) -> void:
@@ -1158,7 +1171,14 @@ func _clear_banner() -> void:
 	banner.visible = false
 
 
-func log_line(text: String) -> void:
+## One line into the full log. `card` is the card the line names, which also puts the line on the
+## history strip; null for a line that names none.
+func log_line(text: String, card: SeatCard = null) -> void:
+	if card != null and not card.hidden():
+		_history.push_front({"text": text, "def_id": card.def_id, "aspect": card.aspect, "owner": card.owner})
+		if _history.size() > HISTORY_MAX:
+			_history.resize(HISTORY_MAX)
+		_fill_history()
 	var bar: VScrollBar = log_scroll.get_v_scroll_bar()
 	var following: bool = not _log_expanded or bar.value >= bar.max_value - bar.page - 8.0
 	if _log_lines >= MAX_LOG_LINES:
@@ -1176,6 +1196,74 @@ func log_line(text: String) -> void:
 func _follow_log() -> void:
 	await get_tree().process_frame
 	log_scroll.scroll_vertical = int(log_scroll.get_v_scroll_bar().max_value)
+
+
+## The card a log entry names, for the history strip: the event's own card or attack source when
+## this seat's view shows its face and the line prints its title. Null for a line naming no card,
+## such as a draw the seat may not read.
+static func log_card(entry: Dictionary, view: SeatView) -> SeatCard:
+	if view == null:
+		return null
+	var data: Dictionary = entry.get("data", {})
+	var line: String = str(entry.get("line", ""))
+	for key: String in ["card", "source"]:
+		var c: SeatCard = view.card(int(data.get(key, -1)))
+		if c != null and not c.hidden() and c.title != "" and line.contains(c.title):
+			return c
+	return null
+
+
+func _fill_history() -> void:
+	for child in history_thumbs.get_children():
+		history_thumbs.remove_child(child)
+		child.queue_free()
+	history_tip.hide()
+	for i in range(_history.size()):
+		history_thumbs.add_child(_history_thumb(_history[i], i == 0))
+
+
+## One face on the strip: the card's face, a thin edge lit on the newest, and its line on hover.
+func _history_thumb(entry: Dictionary, newest: bool) -> Control:
+	var thumb: Control = Control.new()
+	thumb.custom_minimum_size = HISTORY_THUMB
+	thumb.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	thumb.mouse_filter = Control.MOUSE_FILTER_STOP
+	thumb.modulate.a = 1.0 if newest else HISTORY_OLD_ALPHA
+	var face: TextureRect = TextureRect.new()
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	face.stretch_mode = TextureRect.STRETCH_SCALE
+	face.set_anchors_preset(Control.PRESET_FULL_RECT)
+	thumb.add_child(face)
+	var edge: Panel = Panel.new()
+	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	edge.set_anchors_preset(Control.PRESET_FULL_RECT)
+	edge.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), ZenithTheme.ACCENT if newest else ZenithTheme.BORDER, ZenithTheme.RADIUS, 2 if newest else 1, 0, 0))
+	thumb.add_child(edge)
+	var text: String = str(entry["text"])
+	thumb.mouse_entered.connect(func() -> void: _show_history_tip(thumb, text))
+	thumb.mouse_exited.connect(history_tip.hide)
+	_history_face(face, entry)
+	return thumb
+
+
+func _history_face(face: TextureRect, entry: Dictionary) -> void:
+	var def: CardDef = _def(str(entry["def_id"]))
+	if def == null or _faces == null:
+		return
+	var owner: int = int(entry["owner"])
+	var tex: Texture2D = await _faces.render_face(def, int(entry["aspect"]), seat_backdrop(owner), owner)
+	if is_instance_valid(face):
+		face.texture = tex
+
+
+## The hovered face's line, beside the strip and level with that face.
+func _show_history_tip(thumb: Control, text: String) -> void:
+	history_tip_text.text = text
+	history_tip.reset_size()
+	var top: float = clampf(thumb.get_global_rect().position.y, 0.0, maxf(0.0, root.size.y - history_tip.size.y))
+	history_tip.position = Vector2(history.get_global_rect().end.x + HISTORY_TIP_GAP, top)
+	history_tip.show()
 
 
 # --- Prompt ---------------------------------------------------------------
@@ -1264,14 +1352,15 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 		_show_tray(TRAY_WHO, prompt_title.text, prompt_hint.text, browse, primaries, false, p if p.has_batch() else null)
 
 
-## One lone action is the whole decision, so it is offered as one large button that says what
-## will happen rather than naming the rule behind it. Space takes it. Two or more alternatives
-## stay equal-weighted rows, because choosing between them is the decision.
+## One lone action is the whole decision, so it is offered as one large accent button across the
+## frame's foot that says what will happen rather than naming the rule behind it. Space takes it.
+## Two or more alternatives stay equal-weighted rows, because choosing between them is the decision.
 func _make_single_action(p: PromptView, opt: OptionView, view: SeatView) -> void:
 	if primary_box.get_child_count() != 1:
 		return
 	var b: Button = primary_box.get_child(0)
 	b.text = _single_action_label(p, opt, view)
+	b.theme_type_variation = &"AccentButton"
 	b.custom_minimum_size = Vector2(0, SINGLE_ACTION_HEIGHT)
 	b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_ROW)
 	b.tooltip_text = opt.label
@@ -1887,6 +1976,8 @@ func show_replay_refused(reason: String) -> void:
 func clear_log() -> void:
 	log_text.clear()
 	_log_lines = 0
+	_history.clear()
+	_fill_history()
 
 
 ## A replay's full view: the other seat's hand face up along the top edge, since the fan beside
@@ -2354,7 +2445,10 @@ func _pile_entry(c: SeatCard, is_top: bool) -> Control:
 # --- Hand -----------------------------------------------------------------
 
 func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -> void:
+	var first_faces: bool = _faces == null and faces != null
 	_faces = faces
+	if first_faces and not _history.is_empty():
+		_fill_history()
 	if external_hand:
 		hand.hide()
 		return
@@ -2682,11 +2776,11 @@ func _layout_stack() -> void:
 	var face_width: float = width * STACK_SCALE
 	var face_height: float = face_width * CARD_ASPECT
 	var attack_height: float = width * CARD_ASPECT
-	var base: Vector2 = Vector2((width - face_width) * 0.5 + 16.0, attack_height - face_height - 6.0)
+	var base: Vector2 = Vector2((width - face_width) * 0.5 + width * STACK_INSET, attack_height - face_height - 6.0)
 	for i in range(_stack.size()):
 		var entry: Control = _stack[i]
 		var level: int = mini(i, STACK_MAX - 1)
-		var spot: Vector2 = base + STACK_STEP * float(level)
+		var spot: Vector2 = base + STACK_STEP * width * float(level)
 		entry.size = Vector2(face_width, face_height)
 		entry.pivot_offset = entry.size * 0.5
 		entry.position = Vector2(maxf(2.0, spot.x), maxf(2.0, spot.y))
@@ -3209,22 +3303,27 @@ func set_dev_available(on: bool) -> void:
 		dev_panel.visible = false
 
 
-## Drops the log down to most of the screen, or back to its strip.
+## Opens the full log over the history strip, most of the screen tall, or closes it.
 func set_log_expanded(on: bool) -> void:
 	_log_expanded = on
-	if on:
-		hide_peek()
-	log_toggle.text = "Close" if on else "History"
-	var bottom: float = root.size.y * LOG_EXPANDED_FRACTION if on else LOG_COLLAPSED_BOTTOM
-	if reduced_motion_toggle.button_pressed:
-		log_panel.offset_bottom = bottom
+	history_tip.hide()
+	history.visible = not on
+	if not on:
+		log_panel.hide()
 		return
-	var t: Tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	t.tween_property(log_panel, "offset_bottom", bottom, 0.18)
+	hide_peek()
+	log_panel.offset_bottom = root.size.y * LOG_EXPANDED_FRACTION
+	log_panel.show()
+	_follow_log.call_deferred()
+	if reduced_motion_toggle.button_pressed:
+		log_panel.modulate.a = 1.0
+		return
+	log_panel.modulate.a = 0.0
+	create_tween().tween_property(log_panel, "modulate:a", 1.0, 0.14)
 
 
-## Expanded rules in the quick view's fixed home on the left, under the log, opposite the rail.
-## It never follows the pointer. The expanded log owns that column, so the quick view waits.
+## Expanded rules in the quick view's fixed home on the left, beside the history strip, opposite
+## the rail. It never follows the pointer. The open log owns that column, so the quick view waits.
 func show_peek(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	if def == null or inspect.visible or _log_expanded:
 		return
@@ -3301,9 +3400,10 @@ func _on_inspect_input(event: InputEvent) -> void:
 		hide_inspect()
 
 
-## Esc closes the options menu, then an inspect view or the pile browser, and otherwise opens the
-## menu, unless a tray is open or the hand is raised, which lowers itself on Esc. While the menu is
-## open no other key reaches the table: the hand's keys would act on the cards behind it.
+## Esc closes the options menu, then an inspect view, the pile browser or the full log, and
+## otherwise opens the menu, unless a tray is open or the hand is raised, which lowers itself on
+## Esc. L opens and closes the full log. While the menu is open no other key reaches the table: the
+## hand's keys would act on the cards behind it.
 func _unhandled_input(event: InputEvent) -> void:
 	var cancel: bool = event.is_action_pressed("ui_cancel")
 	if cancel and options_menu.visible:
@@ -3316,6 +3416,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif pile.visible and cancel:
 		hide_pile()
+		get_viewport().set_input_as_handled()
+	elif _log_expanded and cancel:
+		set_log_expanded(false)
+		get_viewport().set_input_as_handled()
+	elif _log_key(event):
+		set_log_expanded(not _log_expanded)
 		get_viewport().set_input_as_handled()
 	elif cancel and not tray.visible and not loading.visible and _overlay == Overlay.NONE and not _hand_raised():
 		set_options_open(true)
@@ -3341,6 +3447,15 @@ func _space_takes_single_action(event: InputEvent) -> bool:
 	if get_viewport().gui_get_focus_owner() != null:
 		return false
 	return not _hand_browsing()
+
+
+func _log_key(event: InputEvent) -> bool:
+	if not (event is InputEventKey):
+		return false
+	var key: InputEventKey = event
+	if not key.pressed or key.echo or key.keycode != LOG_KEY:
+		return false
+	return not (tray.visible or pile.visible or inspect.visible or handoff.visible or modal.visible)
 
 
 ## True while the in-scene hand owns the keyboard, where Space inspects a card instead.

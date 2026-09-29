@@ -82,18 +82,8 @@ focus_mode = 0
 tooltip_text = "Toggle the full battlefield view"
 text = "Overview"
 
-[node name="SignatureActions" parent="Stack" instance=ExtResource("5_fly")]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-size_flags_horizontal = 0
-mouse_filter = 2
-theme_type_variation = &"ClearPanel"
-ChipScene = ExtResource("4_chip")
-TextVariation = &"CommandKey"
-DisabledVariation = &"CommandChipLabelDisabled"
-
 [node name="MenuRow" type="HBoxContainer" parent="Stack"]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
@@ -131,6 +121,7 @@ theme_type_variation = &"CommandTitle"
 text_overrun_behavior = 3
 
 [node name="Economy" type="VBoxContainer" parent="Stack/MenuRow/BarBlock/Bar/Row/Header/TitleRow"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -203,6 +194,18 @@ KeycapVariation = &"CommandKeycap"
 ActionText = "Abilities"
 InputAction = &"combat_skills"
 
+[node name="SignatureActions" parent="Stack/MenuRow/BarBlock/Bar/Row" instance=ExtResource("5_fly")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"ClearPanel"
+ChipScene = ExtResource("4_chip")
+TextVariation = &"CommandKey"
+DisabledVariation = &"CommandChipLabelDisabled"
+Rows = true
+RowHeight = 52.0
+
 [node name="DelayButton" parent="Stack/MenuRow/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 52)
@@ -237,9 +240,11 @@ tooltip_text = "Automation preferences, planned orders and the battlefield overv
 [node name="Flyout" parent="Stack/MenuRow" instance=ExtResource("5_fly")]
 unique_name_in_owner = true
 visible = false
+custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 size_flags_vertical = 0
 theme_type_variation = &"CommandMenu"
 ChipScene = ExtResource("4_chip")
 TextVariation = &"CommandKey"
 DisabledVariation = &"CommandChipLabelDisabled"
+Rows = true

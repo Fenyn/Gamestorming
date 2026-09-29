@@ -60,6 +60,10 @@ public partial class CombatShotSpike
         CheckChipMatchesRail(scene, rail, dying);
         var inspect = UnitInspectFactory.BuildInspectView(grabbed).Conditions;
         Check($"the hover card lists Grabbed and Immobilized ({string.Join(", ", inspect)})", inspect.Contains("Grabbed") && inspect.Contains("Immobilized"));
+        int actorAc = PF2e.Utilities.StatsCalculator.CalculateAC(actor);
+        string acText = UnitInspectFactory.BuildInspectView(actor).AcText;
+        Check($"the frightened actor's card reads its AC as a before→after pair ('{acText}')",
+            acText == $"AC {actorAc + 1} → {actorAc}");
         AssertZones(scene, "markers_cluster_idle.png");
         Capture("markers_cluster_idle.png");
 

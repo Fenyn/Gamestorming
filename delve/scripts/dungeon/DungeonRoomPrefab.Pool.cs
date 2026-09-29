@@ -21,16 +21,26 @@ public partial class DungeonRoomPrefab
     /// <summary>Cone edge softness, 0 hard to 1 very soft.</summary>
     [Export] public float PoolSoftness { get; set; } = 0.6f;
 
+    /// <summary>Degrees the pool leans off straight down, and the compass direction it comes from. A
+    /// raking light catches the far walls' faces as well as the floor, where a vertical cone leaves
+    /// every wall black.</summary>
+    [Export] public float PoolTiltDegrees { get; set; } = 28f;
+    [Export] public float PoolYawDegrees { get; set; } = 45f;
+
     private SpotLight3D? _pool;
 
     private void AddLightPool()
     {
         if (!LightPool) return;
+        var rotation = new Vector3(PoolTiltDegrees - 90f, PoolYawDegrees, 0f);
+        var forward = -Basis.FromEuler(rotation * Mathf.Pi / 180f).Z;
+        // Keep the cone's axis on the room's centre at the authored height above it.
+        var centre = new Vector3(Width * 0.5f, 0f, Width * 0.5f);
         _pool = new SpotLight3D
         {
             Name = "LightPool",
-            Position = new Vector3(Width * 0.5f, PoolHeight, Width * 0.5f),
-            RotationDegrees = new Vector3(-90f, 0f, 0f),
+            Position = centre - forward * (PoolHeight / Mathf.Max(0.1f, -forward.Y)),
+            RotationDegrees = rotation,
             SpotAngle = PoolAngle,
             SpotAngleAttenuation = PoolSoftness,
             SpotRange = PoolHeight * 1.6f,

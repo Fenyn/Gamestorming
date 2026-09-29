@@ -195,6 +195,7 @@ public partial class CombatShotSpike : SpikeBase
         PressToggle("SpellsButton");
         await WaitSeconds(PoseSeconds);
         Capture("combat_shot_flyout.png");
+        CheckSpellRowCostPreview(scene);
 
         // Pressing Skills closes Spells — the bar keeps one category open at a time.
         PressToggle("SkillsButton");

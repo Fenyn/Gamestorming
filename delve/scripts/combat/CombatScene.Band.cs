@@ -58,16 +58,18 @@ public partial class CombatScene
     /// <summary>Metres above a unit's feet the command menu centres on: about chest height.</summary>
     [Export] public float MenuAnchorLift { get; set; } = 0.9f;
 
-    /// <summary>Keep the FFT command menu beside the unit whose turn it is, following the camera.</summary>
+    /// <summary>Keep the FFT command menu beside the unit whose turn it is, following the camera.
+    /// It takes its size step from that unit's HP plate (<see cref="ZoomScale"/>), so the two
+    /// shrink to two thirds on the same frame when the view zooms out.</summary>
     private void AnchorCommandMenu()
     {
-        if (!_actionBar.Visible || _session?.CurrentActor is not { } actor
+        if (!_actionBar.Visible || !_actionBar.MenuShown || _session?.CurrentActor is not { } actor
             || !_tacticalUnits.TryGetValue(actor.UniqueId, out var visual)) return;
         var camera = _cameraRig.Camera;
         var point = visual.GlobalPosition + Vector3.Up * MenuAnchorLift;
         if (camera.IsPositionBehind(point)) return;
         // Under canvas_items stretch, UnprojectPosition already returns HUD (canvas) coordinates.
-        _actionBar.AnchorMenu(camera.UnprojectPosition(point));
+        _actionBar.AnchorMenu(camera.UnprojectPosition(point), visual.PlateZoom);
     }
 
     private void ClearBand()

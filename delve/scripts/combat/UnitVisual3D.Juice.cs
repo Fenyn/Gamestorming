@@ -6,9 +6,21 @@ namespace Delve.Combat;
 /// TWEEN OWNERSHIP note on <see cref="UnitVisual3D"/>).</summary>
 public partial class UnitVisual3D
 {
-    public void FlashHit() => FlashModulate(Delve.UI.UiColors.BoardFlashHit, 0.05f, 0.18f);
+    /// <summary>Seconds into and out of the hit flash, and the shield flash.</summary>
+    [Export] public Vector2 HitFlashSeconds { get; set; } = new(0.05f, 0.18f);
+    [Export] public Vector2 ShieldFlashSeconds { get; set; } = new(0.1f, 0.25f);
 
-    public void FlashShield() => FlashModulate(Delve.UI.UiColors.BoardFlashShield, 0.1f, 0.25f);
+    /// <summary>Metres the hurt shake swings the sprite, and seconds per swing.</summary>
+    [Export] public float HurtShakeMetres { get; set; } = 0.05f;
+    [Export] public float HurtShakeStepSeconds { get; set; } = 0.05f;
+
+    /// <summary>Metres the dodge leans away, and seconds out and back.</summary>
+    [Export] public float DodgeLeanMetres { get; set; } = 0.12f;
+    [Export] public Vector2 DodgeLeanSeconds { get; set; } = new(0.07f, 0.11f);
+
+    public void FlashHit() => FlashModulate(Delve.UI.UiColors.BoardFlashHit, HitFlashSeconds.X, HitFlashSeconds.Y);
+
+    public void FlashShield() => FlashModulate(Delve.UI.UiColors.BoardFlashShield, ShieldFlashSeconds.X, ShieldFlashSeconds.Y);
 
     /// <summary>Tint %Sprite and return it to the look's rest tint, through the single modulate
     /// handle. Dead units are immune, because the <see cref="PlayDeath"/> corpse tint is final.</summary>
@@ -52,10 +64,10 @@ public partial class UnitVisual3D
     {
         if (_dead) return;
         RestartSpriteMove();
-        const float amp = 0.05f;
-        _spriteMoveTween!.TweenProperty(_sprite, "position", _spriteRest + new Vector3(amp, 0f, 0f), 0.05f);
-        _spriteMoveTween.TweenProperty(_sprite, "position", _spriteRest + new Vector3(-amp * 0.8f, 0f, 0f), 0.05f);
-        _spriteMoveTween.TweenProperty(_sprite, "position", _spriteRest, 0.05f);
+        float amp = HurtShakeMetres, step = HurtShakeStepSeconds;
+        _spriteMoveTween!.TweenProperty(_sprite, "position", _spriteRest + new Vector3(amp, 0f, 0f), step);
+        _spriteMoveTween.TweenProperty(_sprite, "position", _spriteRest + new Vector3(-amp * 0.8f, 0f, 0f), step);
+        _spriteMoveTween.TweenProperty(_sprite, "position", _spriteRest, step);
     }
 
     /// <summary>Duck away from a whiffed attack: %Sprite leans out along the horizontal direction of
@@ -65,12 +77,12 @@ public partial class UnitVisual3D
     {
         if (_dead) return;
         var lean = new Vector3(awayDir.X, 0f, awayDir.Z);
-        lean = lean.LengthSquared() > 0.0001f ? lean.Normalized() * 0.12f : new Vector3(0.12f, 0f, 0f);
+        lean = (lean.LengthSquared() > 0.0001f ? lean.Normalized() : Vector3.Right) * DodgeLeanMetres;
 
         RestartSpriteMove();
-        _spriteMoveTween!.TweenProperty(_sprite, "position", _spriteRest + lean, 0.07f)
+        _spriteMoveTween!.TweenProperty(_sprite, "position", _spriteRest + lean, DodgeLeanSeconds.X)
             .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.Out);
-        _spriteMoveTween.TweenProperty(_sprite, "position", _spriteRest, 0.11f)
+        _spriteMoveTween.TweenProperty(_sprite, "position", _spriteRest, DodgeLeanSeconds.Y)
             .SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
     }
 

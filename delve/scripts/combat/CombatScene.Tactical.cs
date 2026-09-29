@@ -122,6 +122,7 @@ public partial class CombatScene
         _tacticalFinished = false;
         _hoveredId = null;
         _reactorId = null;
+        _reactionSourceId = null;
         _promptOpen = false;
         _delayPickIds.Clear();
         ClearBoardTargets();

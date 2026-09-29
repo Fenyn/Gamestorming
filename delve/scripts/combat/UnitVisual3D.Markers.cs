@@ -42,9 +42,17 @@ public partial class UnitVisual3D
     }
 
     /// <summary>The unit's place on the combat timeline, shown beside its HP bar; 0 hides it.</summary>
-    public void SetTimelineNumber(int number) => _hpBar.SetNumber(number);
+    /// <summary>The timeline number beside the HP bar. An enemy's carries its log letter in the same
+    /// label ("3C"), so the two can never drift apart in a cluster.</summary>
+    public void SetTimelineNumber(int number) => _hpBar.SetNumber(number, _isHero ? "" : _letter);
 
     public string TimelineNumberText => _hpBar.NumberText;
+
+    /// <summary>The HP plate's current size step (<see cref="ZoomScale"/>); the command menu follows it.</summary>
+    public float PlateZoom => _hpBar.Zoom;
+
+    /// <summary>The numbered HP plate, for the scene's plate layout.</summary>
+    public WorldHpBar HpPlate => _hpBar;
 
     private bool _ringHidden;
 

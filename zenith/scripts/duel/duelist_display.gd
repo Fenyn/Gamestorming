@@ -1,7 +1,7 @@
 class_name DuelistDisplay
 extends Node3D
 ## A duelist's resources as objects on the table. The stat tracker is a nameplate on a thin stone
-## slab lying beside the duelist card, under its Ally wing (`plate_home`); the rest (status lines,
+## slab lying under the seat's Ally wing and Seals (`plate_home`); the rest (status lines,
 ## Seals, the rival's hand) is printed flat on the board around the plate. The Life count lies on
 ## top of the Life Deck. Accepts only the public seat view and the same event snapshots used by
 ## the table.
@@ -11,7 +11,7 @@ signal inspected(uid: int)
 signal hovered(uid: int, on: bool)
 
 ## World units per canvas pixel, for the printed canvas and the plate alike. Sized so the plate
-## spans the Ally wing between the duelist and the Seals; TableLayout keeps that footprint clear.
+## spans the Ally wing; TableLayout keeps that footprint clear.
 const PIXEL: float = 0.0029
 ## The Life count's own scale; it lies on the pile and keeps one size for both seats.
 const LIFE_PIXEL: float = 0.0044

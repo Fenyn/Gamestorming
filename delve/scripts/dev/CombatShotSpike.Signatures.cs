@@ -33,7 +33,8 @@ public partial class CombatShotSpike
             bar.SetInteractable(true);
             await WaitSeconds(PoseSeconds);
             var signature = bar.GetNode<Control>("%SignatureActions");
-            Check($"{character.Name} signature row shows above the bar", signature.Visible);
+            Check($"{character.Name} quick slots show as rows inside the command menu",
+                signature.Visible && bar.BarPanel.GetGlobalRect().Grow(1).Encloses(signature.GetGlobalRect()));
             AssertZones(scene, $"combat_signature_{character.Id}.png");
             Check($"{character.Name} card slot stays clear of the bar", !card.GetGlobalRect().Intersects(bar.BarPanel.GetGlobalRect()));
             Capture($"combat_signature_{character.Id}.png");

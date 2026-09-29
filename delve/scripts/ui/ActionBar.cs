@@ -35,6 +35,10 @@ public partial class ActionBar : Control
     /// <summary>Raised with the skill action id when a skill chip is pressed.</summary>
     public event Action<string>? SkillChipPressed;
 
+    /// <summary>Raised with the action cost of the spell or ability row under the pointer (0 when
+    /// none), so the actor card can hollow the pips it would spend.</summary>
+    public event Action<int>? SpendPreviewed;
+
     private Control _stack = null!;
     private Label _menuTitle = null!;
     private PipRow _actionPips = null!;
@@ -105,6 +109,8 @@ public partial class ActionBar : Control
         _controlButton.Toggled += on => SetFlyout(on ? FlyoutCategory.Control : FlyoutCategory.None);
         _signatures.ChipPressed += OnSignaturePressed;
         _flyout.ChipPressed += OnChipPressed;
+        _flyout.ChipHovered += spec => SpendPreviewed?.Invoke(spec?.ActionCost ?? 0);
+        _signatures.ChipHovered += spec => SpendPreviewed?.Invoke(spec?.ActionCost ?? 0);
         Decision.ConfirmTargetsPressed += () => ConfirmTargetsPressed?.Invoke();
         Decision.ConfirmOrderPressed += () => ConfirmOrderPressed?.Invoke();
         GetNode<Button>("%Overview").Pressed += () => OverviewPressed?.Invoke();

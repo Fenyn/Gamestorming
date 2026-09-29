@@ -60,7 +60,7 @@ approved with the mockups the same day.
 
 | Component | Standard |
 |---|---|
-| Framed panel | Kenney inner rule in `frame.metal` over `surface.panel`. The panel fill is never tinted |
+| Framed panel | Kenney border 009 (thin rule, small corner squares) in `frame.metal` over `surface.panel`. The panel fill is never tinted |
 | Modal | Framed panel over the `scrim` |
 | Flat tile / row | `surface.raised`, radius 4, optional 5 px edge in a meaning or school colour |
 | Button, primary | `accent.act` fill, `text.on_light` text, iron frame |

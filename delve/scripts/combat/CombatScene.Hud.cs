@@ -219,7 +219,10 @@ public partial class CombatScene
             // FFT style: the crystal, the card and the timeline mark the actor, so only a target or
             // a reactor carries its name over the board.
             bool plate = target || id == _reactorId;
-            bool badge = visual.Character.TeamId != 1 && visual.Character.Health?.IsAlive == true;
+            // The enemy letter rides with the timeline number beside the HP bar ("3C"); the separate
+            // badge shows only when the unit has no number (off the timeline).
+            bool badge = visual.Character.TeamId != 1 && visual.Character.Health?.IsAlive == true
+                && visual.TimelineNumberText.Length == 0;
             var lane = id == actor ? PlateLane.Head : id == _reactorId && !target ? PlateLane.Crown : PlateLane.Foot;
             visual.Plate.SetMode(plate && !_tacticalFinished, badge && !_tacticalFinished, lane);
         }
@@ -231,18 +234,31 @@ public partial class CombatScene
     private readonly List<Godot.Rect2> _takenPlateRects = new();
     private readonly List<NamePlate3D> _visiblePlates = new();
 
+    private static readonly System.Comparison<NamePlate3D> ByLane = (a, b) => ((int)a.Lane).CompareTo((int)b.Lane);
+
+    private readonly List<(float Depth, WorldHpBar Bar)> _hpPlates = new();
+
+    private static readonly System.Comparison<(float Depth, WorldHpBar Bar)> NearestFirst =
+        (a, b) => a.Depth.CompareTo(b.Depth);
+
     private void LayoutPlates()
     {
         var camera = _cameraRig.Camera;
         _takenPlateRects.Clear();
         _visiblePlates.Clear();
+        _hpPlates.Clear();
         foreach (var visual in _tacticalUnits.Values)
         {
-            if (visual.Dying.ScreenRect(camera) is { } badge) _takenPlateRects.Add(badge);
+            var bar = visual.HpPlate;
+            if (bar.IsVisibleInTree() && !camera.IsPositionBehind(bar.GlobalPosition))
+                _hpPlates.Add((ZoomScale.Depth(camera, bar.GlobalPosition), bar));
             if (visual.Plate.PlateVisible) _visiblePlates.Add(visual.Plate);
         }
+        LayoutHpPlates(camera);
+        foreach (var visual in _tacticalUnits.Values)
+            if (visual.Dying.ScreenRect(camera) is { } badge) _takenPlateRects.Add(badge);
         if (_visiblePlates.Count == 0) return;
-        _visiblePlates.Sort((a, b) => a.Lane.CompareTo(b.Lane));
+        _visiblePlates.Sort(ByLane);
         foreach (var plate in _visiblePlates)
         {
             // Measure each candidate nudge without moving the plate; move it once, only on change.
@@ -255,6 +271,24 @@ public partial class CombatScene
             }
             if (!Mathf.IsEqualApprox(plate.Nudge, nudge)) plate.SetNudge(nudge);
             _takenPlateRects.Add(rect);
+        }
+    }
+
+    /// <summary>In a pack the numbered HP plates land on each other's bars. The plate nearest the
+    /// camera keeps its place; each one behind steps up the screen until it is clear.</summary>
+    private void LayoutHpPlates(Camera3D camera)
+    {
+        _hpPlates.Sort(NearestFirst);
+        foreach (var (_, bar) in _hpPlates)
+        {
+            float nudge = 0;
+            var rect = bar.ScreenRect(camera, nudge);
+            for (int step = 1; step <= PlateNudgeSteps && Overlaps(rect); step++)
+            {
+                nudge = step * rect.Size.Y;
+                rect = bar.ScreenRect(camera, nudge);
+            }
+            if (!Mathf.IsEqualApprox(bar.Nudge, nudge)) bar.SetNudge(nudge, camera);            _takenPlateRects.Add(rect);
         }
     }
 

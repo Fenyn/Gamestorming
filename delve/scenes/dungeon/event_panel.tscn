@@ -27,7 +27,7 @@ grow_vertical = 2
 [node name="Frame" type="PanelContainer" parent="Center"]
 custom_minimum_size = Vector2(610, 0)
 layout_mode = 2
-theme_type_variation = &"EventPanel"
+theme_type_variation = &"HudEventPanel"
 
 [node name="Box" type="VBoxContainer" parent="Center/Frame"]
 layout_mode = 2
@@ -105,5 +105,5 @@ visible = false
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_type_variation = &"AccentButton"
+theme_type_variation = &"HudAccentButton"
 text = "Continue"

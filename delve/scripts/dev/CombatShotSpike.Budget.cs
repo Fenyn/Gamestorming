@@ -25,7 +25,7 @@ public partial class CombatShotSpike
 
     /// <summary>The FFT command menu and what opens from it float beside the active unit, over
     /// the board, so the clear-box and overlap rules skip them.</summary>
-    private static readonly HashSet<string> FloatingZones = new() { "action bar", "signature row", "flyout", "control options" };
+    private static readonly HashSet<string> FloatingZones = new() { "action bar", "flyout", "control options" };
 
     private static List<(string Name, Rect2 Rect)> HudZones(CombatScene scene)
     {
@@ -46,13 +46,7 @@ public partial class CombatShotSpike
         Add("control options", bar.GetNode<Control>("%ControlOptions"));
         Add("attacker card", scene.GetNode<Control>("%ActorCard"));
         Add("target card", scene.GetNode<Control>("%TargetCard"));
-        var signatures = bar.GetNode<Control>("%SignatureActions");
-        if (signatures.IsVisibleInTree())
-        {
-            var chips = signatures.FindChildren("*", nameof(Button), true, false).OfType<Button>().Where(b => b.IsVisibleInTree()).ToArray();
-            if (chips.Length > 0)
-                zones.Add(("signature row", chips.Skip(1).Aggregate(chips[0].GetGlobalRect(), (r, b) => r.Merge(b.GetGlobalRect()))));
-        }
+        // The quick slots are rows inside the command menu, so the "action bar" zone covers them.
         var prompt = scene.GetNode<ReactionPromptPanel>("%ReactionPrompt");
         if (prompt.Visible) Add("reaction prompt", prompt.Dock);
         return zones;

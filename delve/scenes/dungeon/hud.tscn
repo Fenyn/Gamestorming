@@ -187,13 +187,19 @@ layout_mode = 2
 theme_type_variation = &"CommandTitle"
 text = "Party"
 
-[node name="TravelHint" type="Label" parent="PartyMenu/Rows"]
+[node name="TravelHint" parent="PartyMenu/Rows" instance=ExtResource("14_cap")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_type_variation = &"CommandKey"
-text = "Click a doorway to travel"
-vertical_alignment = 1
+tooltip_text = "Click a doorway to travel. Each doorway costs ward, backtracking included."
+focus_mode = 0
+theme_type_variation = &"CommandButton"
+FillRow = true
+KeycapVariation = &"CommandKeycap"
+LabelVariation = &"CommandLabel"
+DisabledLabelVariation = &"CommandLabelDisabled"
+KeyVariation = &"CommandKey"
+ActionText = "Travel"
 
 [node name="Camp" parent="PartyMenu/Rows" instance=ExtResource("14_cap")]
 unique_name_in_owner = true
@@ -332,6 +338,14 @@ offset_bottom = 160.0
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_constants/separation = 6
+
+[node name="RoomCardKicker" type="Label" parent="RoomCard"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HintRowLabel"
+text = "NEW ROOM"
+horizontal_alignment = 1
+uppercase = true
 
 [node name="RoomCardTitle" type="Label" parent="RoomCard"]
 unique_name_in_owner = true

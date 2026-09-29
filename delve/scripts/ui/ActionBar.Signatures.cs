@@ -51,7 +51,9 @@ public partial class ActionBar
             var flow = _signatures.AddFlow();
             foreach (var entry in chosen) _signatures.AddChip(flow, entry.Chip);
         }
-        _signatures.Visible = _interactable && _openCategory == FlyoutCategory.None && chosen.Length > 0;
+        // The quick slots are rows of the menu itself, so they stay while a sub-menu is open: hiding
+        // them would change the menu's height under the cursor.
+        _signatures.Visible = _interactable && !_compact && chosen.Length > 0;
     }
 
     private void OnSignaturePressed(ChipSpec spec)

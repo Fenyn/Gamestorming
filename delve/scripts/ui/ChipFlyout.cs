@@ -47,14 +47,34 @@ public partial class ChipFlyout : PanelContainer
     /// whether the panel closes.</summary>
     public event Action<ChipSpec>? ChipPressed;
 
+    /// <summary>Raised with the spec under the pointer, and with null when the pointer leaves it.</summary>
+    public event Action<ChipSpec?>? ChipHovered;
+
     /// <summary>Chip scene instanced per entry. Assigned in the scene that hosts the flyout.</summary>
     [Export] public PackedScene? ChipScene { get; set; }
+
+    /// <summary>Pixels between chips in a flow, across and down.</summary>
+    [Export] public int ChipGap { get; set; } = 5;
+
+    /// <summary>Icon opacity on a chip that cannot be used now.</summary>
+    [Export(PropertyHint.Range, "0,1,0.05")] public float DisabledIconAlpha { get; set; } = 0.45f;
 
     /// <summary>Style of section headers and cost text; the parchment command menu uses dark ink.</summary>
     [Export] public StringName TextVariation { get; set; } = ThemeNames.HintLabel;
 
     /// <summary>Style of a disabled chip's labels.</summary>
     [Export] public StringName DisabledVariation { get; set; } = ThemeNames.CaptionDisabled;
+
+    /// <summary>Draw each entry as a full-width menu row (FFT's sub-menu): icon and name at the
+    /// left, cost pips at the right, stacked with no gap. Off, entries flow as centred chips.</summary>
+    [Export] public bool Rows { get; set; }
+
+    /// <summary>Row style and height in rows mode; the command menu's own row style.</summary>
+    [Export] public StringName RowVariation { get; set; } = ThemeNames.CommandButton;
+    [Export] public float RowHeight { get; set; } = 44f;
+
+    /// <summary>Icon size in rows mode, where the icon leads the row.</summary>
+    [Export] public Vector2 RowIconSize { get; set; } = new(28, 28);
 
     private VBoxContainer _column = null!;
 
@@ -83,9 +103,16 @@ public partial class ChipFlyout : PanelContainer
     /// <see cref="AddChip"/>.</summary>
     public Container AddFlow()
     {
+        if (Rows)
+        {
+            var list = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+            list.AddThemeConstantOverride("separation", 0);
+            _column.AddChild(list);
+            return list;
+        }
         var flow = new HFlowContainer { Alignment = FlowContainer.AlignmentMode.Center };
-        flow.AddThemeConstantOverride("h_separation", 5);
-        flow.AddThemeConstantOverride("v_separation", 5);
+        flow.AddThemeConstantOverride("h_separation", ChipGap);
+        flow.AddThemeConstantOverride("v_separation", ChipGap);
         _column.AddChild(flow);
         return flow;
     }
@@ -100,12 +127,21 @@ public partial class ChipFlyout : PanelContainer
         }
 
         var chip = ChipScene.Instantiate<Button>();
+        if (Rows)
+        {
+            chip.ThemeTypeVariation = RowVariation;
+            chip.CustomMinimumSize = chip.CustomMinimumSize with { Y = RowHeight };
+            chip.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+            if (chip is CaptionButton row) row.FillRow = true;
+            chip.GetNode<TextureRect>("%ChipIcon").CustomMinimumSize = RowIconSize;
+            chip.GetNode<Label>("%NameLabel").SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        }
         chip.Disabled = !spec.Enabled;
         chip.TooltipText = BuildChipTooltip(spec);
         var icon = chip.GetNode<TextureRect>("%ChipIcon");
         icon.Texture = spec.Icon;
         icon.Visible = spec.Icon != null;
-        icon.Modulate = new Color(1, 1, 1, spec.Enabled ? 1f : 0.45f);
+        icon.Modulate = icon.Modulate with { A = spec.Enabled ? 1f : DisabledIconAlpha };
 
         // Internal labels don't track the button's disabled font color (same as the bar captions)
         // — chips are rebuilt on every state change, so the variation is set once at build time.
@@ -138,6 +174,8 @@ public partial class ChipFlyout : PanelContainer
         if (!spec.Enabled) badgeLabel.ThemeTypeVariation = DisabledVariation;
 
         chip.Pressed += () => ChipPressed?.Invoke(spec);
+        chip.MouseEntered += () => ChipHovered?.Invoke(spec);
+        chip.MouseExited += () => ChipHovered?.Invoke(null);
         parent.AddChild(chip);
     }
 

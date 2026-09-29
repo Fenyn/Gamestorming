@@ -99,4 +99,20 @@ public partial class CombatShotSpike
         bar.SetTargetingHint(false);
         bar.SetMenuShown(true);
     }
+
+    /// <summary>Pointing at a spell row hollows the actions it costs on the actor card; leaving it
+    /// clears them.</summary>
+    private void CheckSpellRowCostPreview(CombatScene scene)
+    {
+        var card = scene.GetNode<UnitInspectPanel>("%UnitInspect");
+        var row = scene.GetNode<ActionBar>("%ActionBar").GetNode<Control>("%Flyout")
+            .FindChildren("*", nameof(Button), true, false).OfType<Button>()
+            .FirstOrDefault(b => b.GetNode<PipRow>("%PipRow").GetChildCount() == 2);
+        if (row == null) { Check("the spell menu has a two-action row to hover", false); return; }
+        row.EmitSignal(Control.SignalName.MouseEntered);
+        int hovered = card.PreviewedSpend;
+        row.EmitSignal(Control.SignalName.MouseExited);
+        Check($"pointing at a two-action spell hollows two pips, and leaving clears them ({hovered} → {card.PreviewedSpend})",
+            hovered == 2 && card.PreviewedSpend == 0);
+    }
 }

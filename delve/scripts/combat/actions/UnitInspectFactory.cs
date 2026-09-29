@@ -45,6 +45,14 @@ internal static class UnitInspectFactory
         return provider.IsFieldRevealed(creatureId!, field);
     }
 
+    /// <summary>"AC 16", or "AC 16 → 15" while conditions or a raised shield move it, so the change
+    /// reads as a before→after pair instead of a number that silently differs from last turn.</summary>
+    internal static string AcPair(ICharacter c, int ac)
+    {
+        int modifiers = c.Modifiers?.GetModifierTotal(PF2e.Conditions.StatType.AC) ?? 0;
+        return modifiers == 0 ? $"AC {ac}" : $"AC {ac - modifiers} → {ac}";
+    }
+
     internal static UnitInspectView BuildInspectView(ICharacter c)
     {
         var conditions = new List<string>(ConditionMarks.Labels(c));
@@ -74,7 +82,7 @@ internal static class UnitInspectFactory
             HeroId = isCreature ? "" : c.Id,
             Reaction = ActiveCharacterView.ReactionOf(c),
             Conditions = conditions,
-            AcText = acKnown ? $"AC {ac}" : "AC ?",
+            AcText = acKnown ? AcPair(c, ac) : "AC ?",
             HpText = hpKnown ? $"{hp}/{maxHp}" : "?/?",
         };
     }

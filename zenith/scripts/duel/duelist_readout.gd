@@ -347,8 +347,11 @@ func _draw_tracker(tracker: Rect2) -> void:
 	draw_style_box(MapArt.panel_box(0, rule), tracker)
 	if _acting == Acting.ACTING:
 		draw_rect(tracker.grow(-ACTING_RULE_WIDTH * 0.5), _school.lightened(0.2), false, ACTING_RULE_WIDTH)
-	# The fighter's name centred along the top; the Aspect is printed under the card instead.
-	_text(_title, origin + Vector2(92, 35), 300, 32, TEXT, true)
+	# The Life Deck count at the top left, since the decision column can cover the pile itself; the
+	# fighter's name centred along the rest of the top; the Aspect is printed under the card instead.
+	_text("LIFE", origin + Vector2(16, 34), 56, 24, MUTED)
+	_text(str(_life), origin + Vector2(68, 36), 56, 34, TEXT)
+	_text(_title, origin + Vector2(122, 35), 250, 32, TEXT, true)
 	_text(_control, origin + Vector2(372, 34), 156, 28, MapArt.muted(_accent).lerp(Color.WHITE, 0.45), true)
 	for x in [180.0, 360.0]:
 		draw_line(origin + Vector2(x, 48), origin + Vector2(x, 140), Color(MUTED, 0.25), 1, true)
@@ -410,7 +413,7 @@ func might_delta() -> int:
 
 
 func status_text() -> String:
-	var lines: PackedStringArray = PackedStringArray([_title, _control, _piles])
+	var lines: PackedStringArray = PackedStringArray([_title, _control, "Life %d" % _life, _piles])
 	if _show_lives:
 		var left: int = _lives - _lives_lost
 		lines.append("Lives: %d of %d left" % [left, _lives])

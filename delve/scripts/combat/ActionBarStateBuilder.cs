@@ -74,12 +74,17 @@ internal static class ActionBarStateBuilder
         if (data == null) return null;
         var preview = BuildPreview(data, ForecastModifiers.Strike(attacker, target, data.MAP));
         return HpPair(target, data.DamageMin, data.DamageMax) is { } hp
-            ? preview with { Figures = preview.Figures.Append(new FigureView("HP", hp)).ToList() }
+            ? preview with { Figures = preview.Figures.Append(new FigureView(HpPairCaption, hp)).ToList() }
             : preview;
     }
 
+    /// <summary>The caption says which outcome the pair assumes: a plain hit, so a critical hit or a
+    /// weakness can go lower and a resistance can stop short.</summary>
+    internal const string HpPairCaption = "HP on hit";
+
     /// <summary>The target's HP before and after a hit, as FFT's forecast shows it: "14 → 2–9", the
-    /// range from the least to the most damage. Null while its HP is masked or the attack deals none.</summary>
+    /// range from the least to the most damage of a plain hit before resistances and weaknesses.
+    /// Null while its HP is masked or the attack deals none.</summary>
     internal static string? HpPair(ICharacter target, int damageMin, int damageMax)
     {
         if (target.Health == null || damageMax <= 0) return null;

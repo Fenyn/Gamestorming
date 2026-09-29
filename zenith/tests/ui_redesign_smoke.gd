@@ -151,31 +151,41 @@ func _run() -> void:
 		var life_top: float = absf(life_slot.origin.z) - TableLayout.CARD_SIZE.y * life_slot.basis.get_scale().z * 0.5
 		var duelist_top: float = absf(identity_slot.origin.z) - TableLayout.CARD_SIZE.y * identity_slot.basis.get_scale().z * 0.5
 		_check(life_top >= duelist_top - 0.001, "A Life Deck must not reach past its duelist's inner edge")
-		# On the Drill side, outward from the duelist: the Mastery level with it, the Drill and
-		# Non-Combat rows, the Relic with Out under it, then the Life Deck over the Discard at the
-		# board's edge. Player 1 mirrors, so sides are read relative to the duelist.
+		# Everything packs around the duelist. On the Life Deck's side: the Life Deck over the
+		# Discard, then the Ally row with the Seals and the plate under it. On the other side: the
+		# Mastery with the Relic and Out side by side under it, then the Drill row with the
+		# Non-Combat row under it. Player 1 mirrors, so sides are read relative to the duelist.
 		var discard_slot: Transform3D = duel.zones.slot(seat, &"discard", 0, 1, 0)
 		var out_slot: Transform3D = duel.zones.slot(seat, &"removed", 0, 1, 0)
 		var mastery_slot: Transform3D = duel.zones.slot(seat, &"mastery", 0, 1, 0)
 		var relic_slot: Transform3D = duel.zones.slot(seat, &"relic", 0, 1, 0)
-		var last_non_combat: Transform3D = duel.zones.slot(seat, &"non_combat", 2, 3, 0)
+		var first_ally: Transform3D = duel.zones.slot(seat, &"ally", 0, 3, 0)
+		var first_seal: Transform3D = duel.zones.slot(seat, &"seal", 0, 1, 0)
 		var drill_slot: Transform3D = duel.zones.slot(seat, &"drill", 0, 3, 0)
+		var first_non_combat: Transform3D = duel.zones.slot(seat, &"non_combat", 0, 3, 0)
+		var plate: Vector3 = duel.zones.plate_point(seat)
 		var side: float = signf(life_slot.origin.x - identity_slot.origin.x)
 		var reach: Callable = func(slot: Transform3D) -> float: return (slot.origin.x - identity_slot.origin.x) * side
-		_check(signf(drill_slot.origin.x - identity_slot.origin.x) == side, "Each Life Deck must sit on its duelist's Drill side")
-		var first_non_combat: Transform3D = duel.zones.slot(seat, &"non_combat", 0, 3, 0)
-		_check(0.0 < reach.call(mastery_slot) and reach.call(mastery_slot) < reach.call(drill_slot) and reach.call(mastery_slot) < reach.call(first_non_combat),
+		var top: Callable = func(slot: Transform3D) -> float: return absf(slot.origin.z) - TableLayout.CARD_SIZE.y * slot.basis.get_scale().z * 0.5
+		var bottom: Callable = func(slot: Transform3D) -> float: return absf(slot.origin.z) + TableLayout.CARD_SIZE.y * slot.basis.get_scale().z * 0.5
+		_check(reach.call(first_ally) > reach.call(life_slot) and signf(drill_slot.origin.x - identity_slot.origin.x) == -side,
+			"Each Life Deck must sit between its duelist and the Ally row, across from the Drills")
+		_check(reach.call(mastery_slot) < 0.0 and reach.call(mastery_slot) > reach.call(drill_slot) and reach.call(mastery_slot) > reach.call(first_non_combat),
 			"The Mastery must stand between its duelist and the Drill and Non-Combat rows")
-		_check(reach.call(last_non_combat) < reach.call(relic_slot) and reach.call(relic_slot) < reach.call(life_slot),
-			"The Relic, then the Life Deck, must sit outward of the Non-Combat row")
-		_check(is_equal_approx(mastery_slot.origin.z, identity_slot.origin.z), "The Mastery must sit level with its duelist, as a pair")
-		_check(is_equal_approx(relic_slot.origin.z, last_non_combat.origin.z), "The Relic must sit level with the Non-Combat row")
+		_check(absf(float(top.call(mastery_slot)) - float(top.call(identity_slot))) < 0.002, "The Mastery's top edge must sit level with its duelist's, as a pair")
+		_check(absf(float(top.call(first_ally)) - float(top.call(identity_slot))) < 0.002 and absf(float(top.call(drill_slot)) - float(top.call(identity_slot))) < 0.002,
+			"The Ally and Drill rows must start level with the duelist's top edge")
+		_check(top.call(first_seal) > bottom.call(first_ally) and absf(plate.z) > bottom.call(first_seal) and signf(plate.x - identity_slot.origin.x) == side,
+			"The Seals must lie under the Ally row and the plate under the Seals")
+		_check(top.call(first_non_combat) > bottom.call(drill_slot) and is_equal_approx(first_non_combat.origin.x, drill_slot.origin.x), "The Non-Combat row must lie under the Drill row")
+		_check(top.call(relic_slot) > bottom.call(mastery_slot) and top.call(out_slot) > bottom.call(mastery_slot), "The Relic and Out must lie under the Mastery")
+		_check(absf(float(top.call(relic_slot)) - float(top.call(out_slot))) < 0.002 and reach.call(out_slot) < reach.call(relic_slot) and reach.call(relic_slot) < 0.0,
+			"Each Out pile must sit beside its Relic, outboard of it")
+		_check(reach.call(out_slot) > reach.call(first_non_combat), "The Relic and Out must stay between the duelist and the Non-Combat row")
 		_check(mastery_slot.basis.get_scale().x > relic_slot.basis.get_scale().x and mastery_slot.basis.get_scale().x < identity_slot.basis.get_scale().x,
 			"The Mastery must read as a second hero: larger than any pile card, smaller than its duelist")
 		_check(is_equal_approx(discard_slot.origin.x, life_slot.origin.x) and absf(discard_slot.origin.z) > absf(life_slot.origin.z), "Each Discard must sit directly below its Life Deck")
-		_check(signf(out_slot.origin.x - identity_slot.origin.x) == side and absf(out_slot.origin.z) > absf(discard_slot.origin.z), "Each Out pile must sit lower and outboard on the Life Deck's side")
-		_check(is_equal_approx(out_slot.origin.x, relic_slot.origin.x) and absf(out_slot.origin.z) > absf(relic_slot.origin.z), "Each Out pile must sit directly under its Relic")
-		_check(relic_slot.basis.get_scale().x > out_slot.basis.get_scale().x, "The Relic must read larger than the Out pile under it")
+		_check(relic_slot.basis.get_scale().x > out_slot.basis.get_scale().x, "The Relic must read larger than the Out pile beside it")
 		_check(discard_slot.basis.get_scale().x < life_slot.basis.get_scale().x, "The Discard must read smaller than the Life Deck above it")
 		# The Reserve sits under the Relic: lower in the stack, its edge showing past it.
 		var reserve_slot: Transform3D = duel.zones.slot(seat, &"relic", 1, 2, 0)
@@ -188,7 +198,8 @@ func _run() -> void:
 	var focus_shown: bool = hud.focus.visible
 	hud.focus.visible = true
 	hud._layout_prompt_column()
-	_check(is_equal_approx(hud.focus.offset_left, constants["RAIL_LEFT"]) and is_equal_approx(hud.focus.offset_top, hud.rail_top()), "The focus card must stand on the rail")
+	var rail_centre: float = float(constants["RAIL_LEFT"]) + float(constants["RAIL_WIDTH"]) * 0.5
+	_check(is_equal_approx((hud.focus.offset_left + hud.focus.offset_right) * 0.5, rail_centre) and is_equal_approx(hud.focus.offset_top, hud.rail_top()), "The focus card must stand on the rail")
 	hud.focus.visible = focus_shown
 	# Every off-field card is on the felt, and the screen-edge rail is gone.
 	for zone in [&"discard", &"removed", &"mastery", &"relic"]:

@@ -24,10 +24,9 @@ public partial class CombatScene : Node3D
     private Tween? _introFade;
     [Export(PropertyHint.Range, "0,2,0.05")] public float AiActionDelaySeconds { get; set; } = 0.6f;
     private DiceRollPanel _dice = null!;
-    // Preloaded token blockout (static subtree authored in the scene); each unit is an instance whose
-    // per-unit visuals are applied by UnitVisual3D.Spawn.
-    private static readonly PackedScene UnitTokenScene =
-        GD.Load<PackedScene>("res://scenes/combat/unit_token.tscn");
+    /// <summary>The unit token (scenes/combat/unit_token.tscn); each unit is an instance whose
+    /// per-unit visuals are applied by UnitVisual3D.Spawn.</summary>
+    [Export] public PackedScene UnitTokenScene { get; set; } = null!;
 
     private GridOverlay3D _overlay = null!;
     private MoveBandOverlay3D _moveBands = null!;

@@ -29,6 +29,7 @@ func _run() -> void:
 	_test_labels(hud, defender)
 	_test_seat_names()
 	await _test_legal_actions(hud)
+	await _test_history_strip(hud, defender)
 	await _test_strip_and_queue(hud, defender)
 	await _test_read_holds(hud, defender)
 	await _test_beat_banner(hud)
@@ -307,11 +308,13 @@ func _test_legal_actions(hud: Node) -> void:
 		var viewport: Rect2 = root.get_visible_rect()
 		var constants: Dictionary = hud.get_script().get_script_constant_map()
 		_check(face.position.x >= decision.position.x - 1.0 and face.end.x <= decision.end.x + 1.0, "Decision shares the focused card's column at %dp" % window_size.y)
-		_check(decision.position.y >= focus_rect.end.y - float(constants["PROMPT_LONG_RISE"]) - 1.0, "The decision never reaches the focused card's face at %dp" % window_size.y)
+		_check(decision.position.y >= focus_rect.end.y + float(constants["DECISION_GAP"]) - 1.0, "The decision never reaches the focused card's slot at %dp" % window_size.y)
 		_check(is_equal_approx(focus_rect.size.x, float(constants["RAIL_CARD_WIDTH"])), "The focused card keeps one size with the decision up at %dp" % window_size.y)
 		_check(focus_rect.position.y >= float(constants["RAIL_TOP"]) - 1.0, "The focused card stays under the corner toggles at %dp" % window_size.y)
-		_check(absf(focus_rect.end.x - (viewport.end.x - float(constants["GUTTER"]))) < 1.0 and absf(focus_rect.position.y - hud.rail_top()) < 1.0, "The rail card sits where the rail puts it, off the right edge, at %s" % str(window_size))
-		_check(absf(decision.end.y - (viewport.end.y - float(constants["PROMPT_BOTTOM"]))) < 1.0, "The decision frame stands on one bottom edge at %s" % str(window_size))
+		var column_centre: float = viewport.end.x - float(constants["GUTTER"]) - float(constants["RAIL_WIDTH"]) * 0.5
+		_check(absf(focus_rect.get_center().x - column_centre) < 1.0 and absf(focus_rect.position.y - hud.rail_top()) < 1.0, "The rail card sits where the rail puts it, centred in the right column, at %s" % str(window_size))
+		_check(absf(decision.end.x - (viewport.end.x - float(constants["GUTTER"]))) < 1.0 and absf(decision.size.x - float(constants["RAIL_WIDTH"])) < 1.0, "The decision frame fills the right column at %s" % str(window_size))
+		_check(absf(decision.position.y - hud.panel_top()) < 1.0 and decision.end.y <= hud.panel_floor() + 1.0, "The decision frame hangs from one line under the card's home at %s" % str(window_size))
 		_check(viewport.encloses(hud.prompt_title.get_global_rect()), "Decision question stays inside viewport at %dp" % window_size.y)
 		if hud.exchange_damage.is_visible_in_tree():
 			_check(viewport.encloses(hud.exchange_damage.get_global_rect()), "Incoming consequence stays inside viewport at %dp" % window_size.y)
@@ -404,8 +407,8 @@ func _test_legal_actions(hud: Node) -> void:
 	await process_frame
 	_check(not hud.focus.visible and hud.prompt_title.visible and hud.primary_box.get_child_count() == 1, "Cardless choice keeps its standalone question and legal action")
 	_check(root.get_visible_rect().encloses(hud.prompt_panel.get_global_rect()), "Cardless fallback stays inside viewport")
-	var gutter: float = float(hud.get_script().get_script_constant_map()["PROMPT_BOTTOM"])
-	_check(absf(hud.prompt_panel.get_global_rect().end.y - (root.get_visible_rect().end.y - gutter)) < 1.0, "A cardless decision stands on the same bottom edge as a card's decision")
+	_check(absf(hud.prompt_panel.get_global_rect().position.y - hud.panel_top()) < 1.0, "A cardless decision hangs from the same top edge as a card's decision")
+	_check(hud._single_action != null and hud._single_action.theme_type_variation == &"AccentButton" and absf(hud._single_action.size.x - hud.primary_box.size.x) < 1.0, "A lone action is the accent button across the frame's foot")
 	var many: Array[OptionView] = []
 	for index in range(18):
 		var alternative: OptionView = OptionView.new()
@@ -418,14 +421,62 @@ func _test_legal_actions(hud: Node) -> void:
 	hud._fit_actions()
 	await process_frame
 	_check(hud.primary_box.get_child_count() == many.size(), "Long action list retains every offered option")
-	var ceiling: float = hud._panel_top() - float(hud.get_script().get_script_constant_map()["PROMPT_LONG_RISE"])
-	_check(hud.prompt_panel.get_global_rect().position.y >= ceiling - 1.0 and root.get_visible_rect().encloses(hud.actions_scroll.get_global_rect()), "Long action list scrolls under the frame's ceiling")
-	_check(absf(hud.prompt_panel.get_global_rect().end.y - (root.get_visible_rect().end.y - gutter)) < 1.0, "A long list keeps the frame on its bottom edge")
+	_check(hud.prompt_panel.get_global_rect().end.y <= hud.panel_floor() + 1.0 and root.get_visible_rect().encloses(hud.actions_scroll.get_global_rect()), "Long action list scrolls above the frame's floor")
+	_check(absf(hud.prompt_panel.get_global_rect().position.y - hud.panel_top()) < 1.0, "A long list keeps the frame on its top edge")
 	_check(hud.actions_scroll.follow_focus and hud.actions_scroll.get_v_scroll_bar().max_value > hud.actions_scroll.size.y, "Clipped alternatives remain reachable by scrolling and keyboard focus")
 	var before_last: int = emitted.size()
 	hud.primary_box.get_child(many.size() - 1).pressed.emit()
 	_check(emitted.size() == before_last + 1 and emitted.back() == many.back().to_command(view.seat).to_dict(), "Last scrollable option still emits its original command")
 	hud.clear_prompt()
+
+
+## The history strip holds the latest lines that name a card this seat can read, newest on top, and
+## the full log opens over it from its button, L, and closes on Esc.
+func _test_history_strip(hud: Node, view: SeatView) -> void:
+	var hud_script: GDScript = hud.get_script()
+	var source: SeatCard = view.card(int(view.attack["source"]))
+	var named: Dictionary = {"type": "attack_declared", "line": "Test attacks with %s." % source.title, "data": {"source": source.uid}}
+	var unnamed: Dictionary = {"type": "draw", "line": "Test draws.", "data": {"card": source.uid}}
+	var hidden_uid: int = -1
+	for uid: int in view.cards.keys():
+		if view.card(uid).hidden():
+			hidden_uid = uid
+			break
+	var hidden: Dictionary = {"type": "card_placed", "line": "Test places a card.", "data": {"card": hidden_uid}}
+	_check(hud_script.log_card(named, view) == source, "A line naming its event's card puts that card on the strip")
+	_check(hud_script.log_card(unnamed, view) == null and hud_script.log_card(hidden, view) == null and hud_script.log_card({"line": "Seed 5"}, view) == null,
+		"A line that names no readable card stays off the strip")
+	hud.clear_log()
+	hud.log_line("Seed 5")
+	_check(hud.history_thumbs.get_child_count() == 0 and hud.log_text.get_parsed_text().contains("Seed 5"), "A line without a card goes only to the full log")
+	var cap: int = int(hud_script.get_script_constant_map()["HISTORY_MAX"])
+	for index in range(cap + 2):
+		hud.log_line("Line %d with %s." % [index, source.title], source)
+	await process_frame
+	_check(hud.history_thumbs.get_child_count() == cap, "The strip keeps the newest %d cards" % cap)
+	var newest: Control = hud.history_thumbs.get_child(0)
+	newest.mouse_entered.emit()
+	_check(hud.history_tip.visible and hud.history_tip_text.text == "Line %d with %s." % [cap + 1, source.title], "Hovering the top face shows the newest line")
+	_check(hud.history_tip.position.x >= hud.history.get_global_rect().end.x, "The line shows beside the strip, not over it")
+	newest.mouse_exited.emit()
+	_check(not hud.history_tip.visible, "Leaving the face hides its line")
+	_check(not hud.log_panel.visible, "The full log starts closed")
+	hud.history_open.pressed.emit()
+	_check(hud.log_panel.visible and hud._log_expanded and not hud.history.visible, "The strip's Log button opens the full log in the strip's place")
+	var escape: InputEventAction = InputEventAction.new()
+	escape.action = &"ui_cancel"
+	escape.pressed = true
+	hud._unhandled_input(escape)
+	_check(not hud.log_panel.visible and hud.history.visible and not hud.options_menu.visible, "Esc closes the full log before it opens the menu, and the strip is back")
+	var key: InputEventKey = InputEventKey.new()
+	key.pressed = true
+	key.keycode = KEY_L
+	hud._unhandled_input(key)
+	_check(hud.log_panel.visible, "L opens the full log")
+	hud._unhandled_input(key)
+	_check(not hud.log_panel.visible, "L closes it again")
+	hud.clear_log()
+	_check(hud.history_thumbs.get_child_count() == 0, "Clearing the log empties the strip")
 
 
 func _test_endurance_action(hud: Node, view: SeatView) -> void:
@@ -721,8 +772,9 @@ func _test_read_holds(hud: Node, base: SeatView) -> void:
 		var lower: Control = hud.stack.get_child(0)
 		var upper: Control = hud.stack.get_child(1)
 		_check(upper.get_index() > lower.get_index(), "The newest response draws over the older one at %dp" % window_size.y)
-		_check(is_equal_approx(upper.position.x - lower.position.x, hud.STACK_STEP.x)
-			and is_equal_approx(upper.position.y - lower.position.y, hud.STACK_STEP.y),
+		var step: Vector2 = hud.STACK_STEP * (hud.focus.offset_right - hud.focus.offset_left)
+		_check(absf(upper.position.x - lower.position.x - step.x) < 0.01
+			and absf(upper.position.y - lower.position.y - step.y) < 0.01,
 			"Each level steps up and to the left by the stack offset at %dp" % window_size.y)
 		_check(signf(upper.rotation_degrees) != signf(lower.rotation_degrees) and absf(absf(lower.rotation_degrees) - hud.STACK_TILT) < 0.01,
 			"The tilt alternates sign so the pile does not read as one card at %dp" % window_size.y)

@@ -23,6 +23,7 @@ public partial class DyingBadge : Node3D
     [Export] public float EdgeHeight { get; set; } = 2;
 
     private Sprite3D _icon = null!;
+    private System.Func<float> _barZoom = () => 1f;
     private Label3D _value = null!;
     private MeshInstance3D _plate = null!;
     private MeshInstance3D _edge = null!;
@@ -31,6 +32,8 @@ public partial class DyingBadge : Node3D
 
     /// <summary>The Dying value on show, 0 while hidden.</summary>
     public int Value { get; private set; }
+
+    private int _shownValue = -1;
 
     private float IconPixels => NativeIconSize * IconScale;
 
@@ -48,19 +51,29 @@ public partial class DyingBadge : Node3D
         Visible = false;
     }
 
-    /// <param name="barScreenWidth">The HP bar's width in screen pixels; the badge sits left of it.</param>
-    public void Configure(ICharacter character, float barScreenWidth)
+    /// <param name="barScreenWidth">The HP bar's full-size width in screen pixels; the badge sits right of it.</param>
+    /// <param name="barZoom">The bar's current size step (<see cref="ZoomScale"/>). The badge's 18 px
+    /// value keeps its size, but it follows the bar's edge as the bar shrinks.</param>
+    /// <param name="barPosition">The bar's centre this frame; the badge follows it when the plate
+    /// layout lifts the bar clear of another unit's plate.</param>
+    public void Configure(ICharacter character, float barScreenWidth, System.Func<float> barZoom, System.Func<Vector3> barPosition)
     {
         _character = character;
         _barHalfPixels = barScreenWidth / 2;
+        _barZoom = barZoom;
+        _barPosition = barPosition;
     }
+
+    private System.Func<Vector3>? _barPosition;
+
+    private float BarHalfPixels => _barHalfPixels * _barZoom();
 
     /// <summary>Screen rectangle of the plate for this frame's camera, or null while hidden.</summary>
     public Rect2? ScreenRect(Camera3D camera)
     {
         if (!IsVisibleInTree() || camera.IsPositionBehind(_value.GlobalPosition)) return null;
         var size = PlateSize();
-        var edge = camera.UnprojectPosition(GlobalPosition) + new Vector2(_barHalfPixels, 0);
+        var edge = camera.UnprojectPosition(GlobalPosition) + new Vector2(BarHalfPixels, 0);
         return new Rect2(edge.X + Gap, edge.Y - size.Y / 2, size.X, size.Y);
     }
 
@@ -71,12 +84,18 @@ public partial class DyingBadge : Node3D
         float height = GetViewport()?.GetVisibleRect().Size.Y ?? 0;
         Visible = Value > 0 && camera != null && height > 0;
         if (!Visible) return;
+        if (_barPosition != null) GlobalPosition = _barPosition();
         GlobalBasis = camera!.GlobalBasis;
+        float depth = ZoomScale.Depth(camera, GlobalPosition);
         float pixel = 2f * Mathf.Tan(Mathf.DegToRad(camera.Fov) / 2f) / height;
-        float unit = pixel * (GlobalPosition - camera.GlobalPosition).Dot(-camera.GlobalBasis.Z);
-        _value.Text = Value.ToString();
+        float unit = pixel * depth;
+        if (Value != _shownValue)
+        {
+            _shownValue = Value;
+            _value.Text = Value.ToString();
+        }
         _value.PixelSize = pixel;
-        var anchor = new Vector3(_barHalfPixels * unit, 0, 0);
+        var anchor = new Vector3(BarHalfPixels * unit, 0, 0);
         _value.Position = anchor;
         _icon.Position = anchor;
         float valueWidth = ValueWidth();

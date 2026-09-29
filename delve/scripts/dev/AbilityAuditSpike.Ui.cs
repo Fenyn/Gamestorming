@@ -30,7 +30,9 @@ public partial class AbilityAuditSpike
             && Buttons(row)[0].Disabled && Buttons(row)[0].TooltipText.Contains("Needs 2 actions"));
         bar.GetNode<Button>("%SkillsButton").ButtonPressed = true;
         var headings = flyout.FindChildren("*", "Label", true, false).Cast<Label>().Select(l => l.Text).ToArray();
-        Check("Abilities groups character and general actions without a duplicate visible row", !row.Visible
+        // The quick slots are rows of the main menu (FFT), so they stay beside an open sub-menu; the
+        // sub-menu itself lists each action once.
+        Check("Abilities groups character and general actions, each listed once", row.Visible
             && headings.Contains("Character") && headings.Contains("General") && Names(flyout).Count(n => n == "Double Slice") == 1);
         bar.GetNode<Button>("%SkillsButton").ButtonPressed = false;
         bar.Render(state with { SkillEntries = Enumerable.Range(1, 4).Select(i => skill with { ActionId = $"a{i}", Name = $"Ability {i}", SignaturePriority = i }).ToArray() });

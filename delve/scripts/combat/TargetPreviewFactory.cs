@@ -80,14 +80,16 @@ internal static class TargetPreviewFactory
             string success = Percent(check.SuccessChance, known);
             string crit = Percent(check.CritSuccessChance, known);
             string dc = known ? check.DC.ToString() : "?";
+            // A flat DC arrives labelled "DC" already; a save-based one names its save ("Reflex DC").
+            string defence = check.DefenseLabel == "DC" ? $"DC {dc}" : $"{check.DefenseLabel} DC {dc}";
             return View(actor, target, action.ActionName,
                 $"{success} success · {crit} critical success",
-                $"{check.SkillName} {check.TotalBonus:+0;-0;0} vs {check.DefenseLabel} DC {dc}") with
+                $"{check.SkillName} {check.TotalBonus:+0;-0;0} vs {defence}") with
             {
                 Figures = known
                     ? new FigureView[] { new("Success", success), new("Crit", crit) }
                     : new FigureView[] { new(check.SkillName, check.TotalBonus.ToString("+0;-0;0")), new("DC", "?") },
-                Tags = new[] { $"{check.SkillName} {check.TotalBonus:+0;-0;0}", $"{check.DefenseLabel} DC {dc}" },
+                Tags = new[] { $"{check.SkillName} {check.TotalBonus:+0;-0;0}", defence },
                 Modifiers = ForecastModifiers.Check(actor, target, skill.GetPreviewSkill(actor, target),
                     skill.PreviewUsesFlatDC ? null : skill.PreviewTargetSave, check.MAP),
             };

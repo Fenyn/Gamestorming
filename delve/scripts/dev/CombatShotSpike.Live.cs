@@ -54,15 +54,17 @@ public partial class CombatShotSpike
         var inspect = scene.GetNode<UnitInspectPanel>("%TargetCard");
         string letter = enemy == null ? "" : session.Letters.LetterFor(enemy);
         string occupant = enemy == null ? "none" : session.Grid.GetGroundOccupant(enemy.GridPosition)?.Name ?? "nobody";
-        Check($"hovered enemy fills the right-hand card with its letter ({letter}; {enemy?.Name} at {enemy?.GridPosition}, tile holds {occupant})",
+        Check($"hovered enemy fills the right-hand card with its letter ({letter}; {enemy?.Name} at {enemy?.GridPosition}, tile holds {occupant}; card '{inspect.NameText}' {inspect.GetNode<Label>("%BadgeLabel").Text} shown {inspect.Visible})",
             inspect.Visible && inspect.GetNode<Label>("%BadgeLabel").Text == letter && letter.Length > 0);
         var actorCard = scene.GetNode<UnitInspectPanel>("%UnitInspect");
         Check($"the actor card keeps the acting hero while an enemy is hovered ('{actorCard.NameText}')",
             actorCard.Visible && actorCard.NameText == session.CurrentActor?.Name);
         var token = scene.GetNode<Node3D>("%UnitLayer").GetChildren().OfType<UnitVisual3D>()
             .FirstOrDefault(u => u.Character == enemy);
-        Check(striking ? "the targeted enemy shows its name plate" : "the hovered enemy shows its letter badge and no plate",
-            token != null && (striking ? token.Plate.PlateVisible : token.Plate.BadgeVisible && !token.Plate.PlateVisible));
+        Check(striking ? "the targeted enemy shows its name plate" : "the hovered enemy shows no plate",
+            token != null && (striking ? token.Plate.PlateVisible : !token.Plate.PlateVisible));
+        Check($"the enemy's letter rides with its timeline number ('{token?.TimelineNumberText}')",
+            token != null && token.TimelineNumberText.EndsWith(letter) && !token.Plate.BadgeVisible);
         var actorToken = scene.GetNode<Node3D>("%UnitLayer").GetChildren().OfType<UnitVisual3D>()
             .FirstOrDefault(u => u.Character == session.CurrentActor);
         Check("the actor carries the turn crystal and no name plate (FFT style)",
@@ -214,6 +216,10 @@ public partial class CombatShotSpike
             .Select(t => (Name: $"{t.Character.Name} plate ({t.Plate.Lane})", Rect: t.Plate.PlateRect(camera))).ToList();
         var rows = tokens.Select(t => (Name: $"{t.Character.Name} Dying badge", Rect: t.Dying.ScreenRect(camera)))
             .Where(r => r.Rect.HasValue).Select(r => (r.Name, Rect: r.Rect!.Value)).ToList();
+        // The numbered HP plates join the plates: in a pack, one unit's "4A" must not sit on another's bar.
+        // A unit already dead waits for its death beat (queued behind a prompt) and is off the layout.
+        plates.AddRange(tokens.Where(t => t.HpPlate.IsVisibleInTree() && t.Character.Health?.IsAlive == true)
+            .Select(t => (Name: $"{t.Character.Name} HP plate '{t.TimelineNumberText}'", Rect: t.HpPlate.ScreenRect(camera, t.HpPlate.Nudge))));
         var clashes = new List<string>();
         for (int i = 0; i < plates.Count; i++)
             foreach (var other in plates.Skip(i + 1).Concat(rows))

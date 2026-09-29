@@ -33,6 +33,48 @@ public partial class WorldHpBar : Node3D
     /// hit own beat, long enough that the drop reads as a drop rather than a jump cut.</summary>
     [Export] public float TweenDuration { get; set; } = 0.2f;
 
+    /// <summary>How far the timeline number is lightened from the team colour, so it reads on the
+    /// dark outline above the bar.</summary>
+    [Export(PropertyHint.Range, "0,1,0.05")] public float NumberLighten { get; set; } = 0.25f;
+
+    /// <summary>Camera depth, metres, around which the bar steps down to two thirds of its screen
+    /// size (<see cref="ZoomScale"/>).</summary>
+    [Export] public float ZoomFullSizeDistance { get; set; } = 24f;
+
+    /// <summary>The plate's current size step: 1 or <see cref="ZoomScale.Small"/>.</summary>
+    public float Zoom { get; private set; } = 1f;
+
+    /// <summary>Plate-pixel extent of the number and bar around the node's centre: the number sits
+    /// right-aligned at <see cref="NumberRight"/> left of centre, the bar spans the background quad.</summary>
+    [Export] public float NumberRight { get; set; } = 36f;
+
+    private Vector3 _rest;
+
+    /// <summary>Where the plate rests in its token, before any <see cref="Nudge"/>.</summary>
+    public Vector3 RestPosition
+    {
+        get => _rest;
+        set { _rest = value; Position = value; }
+    }
+
+    /// <summary>Screen pixels the plate is lifted to clear another unit's plate, set each frame by
+    /// the scene's plate layout (<see cref="SetNudge"/>). In a pack, labels otherwise land on each
+    /// other's bars.</summary>
+    public float Nudge { get; private set; }
+
+    /// <summary>Screen rectangle of the number and bar if lifted by <paramref name="nudge"/> pixels,
+    /// measured from the rest position without moving the plate.</summary>
+    public Rect2 ScreenRect(Camera3D camera, float nudge)
+    {
+        var centre = camera.UnprojectPosition(GlobalPosition - _lift) - new Vector2(0, nudge);
+        var font = _number.Font ?? ThemeDB.FallbackFont;
+        float numberWidth = _number.Text.Length == 0 ? 0
+            : font.GetStringSize(_number.Text, HorizontalAlignment.Left, -1, _number.FontSize).X + _number.OutlineSize;
+        float left = (NumberRight + numberWidth) * Zoom, right = ScreenWidth / 2 * Zoom;
+        float half = Mathf.Max(ScreenHeight, _number.FontSize + _number.OutlineSize) / 2 * Zoom;
+        return new Rect2(centre.X - left, centre.Y - half, left + right, half * 2);
+    }
+
     private MeshInstance3D _bg = null!;
     private MeshInstance3D _fill = null!;
     private Label3D _number = null!;
@@ -76,11 +118,36 @@ public partial class WorldHpBar : Node3D
         var camera = ResolveCamera();
         float height = GetViewport()?.GetVisibleRect().Size.Y ?? 0;
         if (camera == null || height <= 0) return;
-        float depth = Mathf.Max(0.01f, (GlobalPosition - camera.GlobalPosition).Dot(-camera.GlobalBasis.Z));
-        float metres = camera.Projection == Camera3D.ProjectionType.Orthogonal
+        Position = _rest;
+        float depth = ZoomScale.Depth(camera, GlobalPosition);
+        Zoom = ZoomScale.For(depth, ZoomFullSizeDistance, Zoom);
+        _pixel = camera.Projection == Camera3D.ProjectionType.Orthogonal
             ? camera.Size / height
             : 2f * Mathf.Tan(Mathf.DegToRad(camera.Fov) / 2f) / height * depth;
-        GlobalBasis = camera.GlobalBasis.Scaled(Vector3.One * metres);
+        GlobalBasis = camera.GlobalBasis.Scaled(Vector3.One * _pixel * Zoom);
+        Lift(camera);
+    }
+
+    /// <summary>Metres one screen pixel spans at the plate's depth, as of this frame.</summary>
+    private float _pixel;
+
+    /// <summary>The world offset the current <see cref="Nudge"/> adds, so a rest rectangle can be
+    /// measured without undoing it.</summary>
+    private Vector3 _lift;
+
+    /// <summary>Lift the plate by <paramref name="pixels"/> at once. The scene's plate layout runs
+    /// after the plates update, so waiting for the next frame would leave them a frame behind.</summary>
+    public void SetNudge(float pixels, Camera3D camera)
+    {
+        Nudge = pixels;
+        Position = _rest;
+        Lift(camera);
+    }
+
+    private void Lift(Camera3D camera)
+    {
+        _lift = Nudge != 0 ? camera.GlobalBasis.Y * Nudge * _pixel : Vector3.Zero;
+        if (Nudge != 0) GlobalPosition += _lift;
     }
 
     private Camera3D? ResolveCamera()
@@ -96,11 +163,12 @@ public partial class WorldHpBar : Node3D
     {
         _teamFill = color;
         _fillMat.AlbedoColor = color;
-        _number.Modulate = color.Lightened(0.25f);
+        _number.Modulate = color.Lightened(NumberLighten);
     }
 
     /// <summary>Timeline number shown left of the bar; 0 hides it.</summary>
-    public void SetNumber(int number) => _number.Text = number > 0 ? number.ToString() : "";
+    /// <param name="suffix">An enemy's letter, printed right after the number ("3C").</param>
+    public void SetNumber(int number, string suffix = "") => _number.Text = number > 0 ? $"{number}{suffix}" : "";
 
     public string NumberText => _number.Text;
 

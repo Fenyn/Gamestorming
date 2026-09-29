@@ -96,6 +96,10 @@ public sealed record MapThemeDefinition
     /// <summary>Colour of the cliff-lip strips.</summary>
     public MapColor EdgeStripColor { get; init; } = new(0f, 0f, 0f, 0.7f);
 
+    /// <summary>Base colour of painted stone landmarks (a fallen column's fluted top), which the
+    /// ground baker paints over the surface texture.</summary>
+    public MapColor LandmarkStoneColor { get; init; } = new(0.57f, 0.56f, 0.49f);
+
     /// <summary>Mortar bands across cliff faces at each cubic-unit boundary (every 2 elevations).</summary>
     public bool EnableCliffBands { get; init; } = true;
 
@@ -147,6 +151,8 @@ public static class MapThemes
         // A faint warm lip on every ledge instead of a dark one, as on FFT's block tops. Stronger
         // reads as a drawn UI line.
         EdgeStripColor = new(1f, 0.93f, 0.78f, 0.12f),
+        // Grey like FFT's stone, a step darker than the grass around it.
+        LandmarkStoneColor = new(0.34f, 0.35f, 0.37f),
         Surfaces = new Dictionary<SurfaceType, MapSurfaceStyle>
         {
             // Hand-painted Golden Skull textures (assets/textures/terrain/gs/, 64 px a tile; the
@@ -163,9 +169,9 @@ public static class MapThemes
                 TopTextures = Gs("dirt_field"),
                 WallTexture = Gs1("earth_side"),
             },
-            [SurfaceType.Stone] = Style(new(0.55f, 0.55f, 0.57f), new(0.35f, 0.35f, 0.38f)) with
+            [SurfaceType.Stone] = Style(new(0.36f, 0.37f, 0.40f), new(0.35f, 0.35f, 0.38f)) with
             {
-                TopTextures = Gs("stone_top"),
+                TopTextures = Gs("stone_path"),
                 WallTexture = Gs1("mossy_side"),
                 WallTopTexture = Gs1("mossy_side_top"),
             },

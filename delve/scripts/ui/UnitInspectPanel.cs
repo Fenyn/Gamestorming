@@ -57,6 +57,23 @@ public partial class UnitInspectPanel : PanelContainer
         Visible = false;
     }
 
+    private int _remaining, _max, _previewSpend;
+
+    /// <summary>Hollow out the actions a hovered move or action would spend (0 clears). It holds
+    /// across re-renders until the hover changes, since a hover also refreshes the card.</summary>
+    public void PreviewSpend(int actions)
+    {
+        _previewSpend = actions;
+        RenderPips();
+    }
+
+    public int PreviewedSpend => _max > 0 ? System.Math.Min(_previewSpend, _remaining) : 0;
+
+    private void RenderPips()
+    {
+        if (_max > 0) _actionPips.SetActionEconomy(_remaining, _max, System.Math.Min(_previewSpend, _remaining));
+    }
+
     /// <summary>Render the unit, or hide when null.</summary>
     public void Render(UnitInspectView? view)
     {
@@ -74,7 +91,9 @@ public partial class UnitInspectPanel : PanelContainer
         _levelLabel.Text = view.Level > 0 ? $"Lv {view.Level}" : "";
         _classLabel.Text = view.ClassName;
         _actionPips.Visible = view.MaxActions > 0;
-        if (view.MaxActions > 0) _actionPips.SetActionEconomy(view.ActionsRemaining, view.MaxActions);
+        _remaining = view.ActionsRemaining;
+        _max = view.MaxActions;
+        RenderPips();
         _reactionSlot.Visible = view.Reaction != ReactionMark.None;
         _reaction.ThemeTypeVariation = view.Reaction == ReactionMark.Ready ? ThemeNames.ReactionReady : ThemeNames.ReactionSpent;
         _reactionSlot.TooltipText = view.Reaction == ReactionMark.Ready ? "Reaction ready" : "Reaction spent";

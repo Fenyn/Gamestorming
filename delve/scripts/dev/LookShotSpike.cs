@@ -87,12 +87,31 @@ public partial class LookShotSpike : SpikeBase
             prompt.PillShown && prompt.InstructionText == CommandPrompts.For(PlayerTurnMode.Moving).Instruction);
         Check("the command menu closes while a tile is picked", !scene.GetNode<Delve.UI.ActionBar>("%ActionBar").MenuShown);
         Check("clean move bands saved", SaveViewportCapture("user://dev_shots/look_combat_move.png") == Error.Ok);
+        var card = scene.GetNode<Delve.UI.UnitInspectPanel>("%UnitInspect");
+        bool hovered = scene.HoverBandTile(2);
+        Check($"hovering a two-action tile hollows two of the actor's pips ({card.PreviewedSpend})",
+            hovered && card.PreviewedSpend == 2);
+        scene.ClearHover();
+        Check($"leaving the bands clears the preview ({card.PreviewedSpend})", card.PreviewedSpend == 0);
         CheckBoardNumbers(scene);
         CheckTileReadout(scene);
 
+        var bar = scene.GetNode<Delve.UI.ActionBar>("%ActionBar");
+        // Hotkeys answer only while the HUD is up; a second Move puts the bands away.
+        hud.Visible = true;
+        bar._UnhandledInput(new InputEventAction { Action = Delve.UI.InputNames.Move, Pressed = true });
+        hud.Visible = false;
+        await Wait(0.2f);
+        float nearScale = bar.MenuScale;
         rig.ToggleOverview();
         await Wait(0.6f);
+        Check($"the command menu snaps to the crisp two-thirds step in the overview ({nearScale:0.000} → {bar.MenuScale:0.000})",
+            bar.MenuShown && Mathf.IsEqualApprox(nearScale, 1f) && Mathf.IsEqualApprox(bar.MenuScale, ZoomScale.Small));
         Check("clean overview saved", SaveViewportCapture("user://dev_shots/look_combat_overview.png") == Error.Ok);
+        hud.Visible = true;
+        await Wait(0.2f);
+        Check("overview with HUD saved", SaveViewportCapture("user://dev_shots/look_combat_overview_hud.png") == Error.Ok);
+        hud.Visible = false;
         rig.ToggleOverview();
         await Wait(0.6f);
 
@@ -105,15 +124,19 @@ public partial class LookShotSpike : SpikeBase
         Check($"mean frame rate {fps:F0} is at least {MinFps:F0}", fps >= MinFps);
     }
 
-    /// <summary>Each unit's board plate carries the number its timeline tile shows.</summary>
+    /// <summary>Each unit's board plate carries the number its timeline tile shows, and an enemy's
+    /// carries its log letter in the same label ("3C").</summary>
     private void CheckBoardNumbers(CombatScene scene)
     {
         var numbers = scene.GetNode<Delve.UI.TurnOrderBar>("%TurnOrderBar").Numbers;
+        var letters = ((CombatSession)typeof(CombatScene).GetField("_session",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(scene)!).Letters;
         var mismatches = new System.Collections.Generic.List<string>();
         foreach (var node in scene.GetNode<Node3D>("%UnitLayer").GetChildren())
         {
             if (node is not UnitVisual3D unit || unit.Character.Health?.IsAlive != true) continue;
-            string expected = numbers.TryGetValue(unit.Character.UniqueId, out int n) ? n.ToString() : "";
+            string letter = unit.Character.TeamId == 1 ? "" : letters.LetterFor(unit.Character);
+            string expected = numbers.TryGetValue(unit.Character.UniqueId, out int n) ? $"{n}{letter}" : "";
             if (unit.TimelineNumberText != expected) mismatches.Add($"{unit.Character.Name} '{unit.TimelineNumberText}' vs '{expected}'");
         }
         Check($"board plates carry the timeline numbers ({string.Join("; ", mismatches)})", mismatches.Count == 0);

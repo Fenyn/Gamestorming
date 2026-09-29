@@ -6,6 +6,9 @@ namespace Delve.Combat;
 /// <summary>Capture and spike hooks: hovers that stand in for the mouse, and the presenter's unit count.</summary>
 public partial class CombatScene
 {
+    /// <summary>Capture/dev use: how many tiles the movement bands currently cover.</summary>
+    public int MoveBandTileCount => _lastBands.Count;
+
     /// <summary>
     /// Capture/dev use — the combat shot spike photographs the route preview with it. Hovers the
     /// farthest tile in the band that costs <paramref name="actions"/>, as if the mouse were there.

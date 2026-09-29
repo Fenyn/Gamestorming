@@ -84,9 +84,10 @@ public partial class ResolutionSweepSpike : SpikeBase
                 await Seconds(0.25f);
             await Seconds(SettleSeconds);
             var hud = scene.GetNode<Control>("%HudRoot");
-            CheckLayout("combat HUD", size, hud, bar.BarPanel, scene.GetNode<Control>("%SquadPanel"),
+            CheckLayout("combat HUD", size, hud, bar.BarPanel, scene.GetNode<Control>("%UnitInspect"),
                 scene.GetNode<TurnOrderBar>("%TurnOrderBar").Row, scene.GetNode<CombatLogPanel>("%CombatLog"),
                 scene.GetNode<Control>("%JournalButton"));
+            CheckMenuBesideActor(scene, bar, size);
             Capture("combat_hud", size);
 
             scene.JournalPanel.Toggle();
@@ -117,6 +118,10 @@ public partial class ResolutionSweepSpike : SpikeBase
         {
             if (!await Resize(size)) continue;
             CheckLayout("dungeon HUD", size, hud, hud.PartyStrip, hud.GetNode<Control>("%Expedition"));
+            var menu = hud.PartyMenu.GetGlobalRect();
+            Check($"{size.X}x{size.Y} the party menu is on screen and clear of the party cards ({menu})",
+                hud.PartyMenu.IsVisibleInTree() && GetViewport().GetVisibleRect().Grow(1).Encloses(menu)
+                && !menu.Intersects(hud.PartyStrip.GetGlobalRect()));
             Capture("dungeon_hud", size);
         }
         dungeon.QueueFree();
@@ -171,6 +176,21 @@ public partial class ResolutionSweepSpike : SpikeBase
         var actual = GetWindow().Size;
         Check($"the window takes {size.X}x{size.Y} (got {actual.X}x{actual.Y})", actual == size);
         return actual == size;
+    }
+
+    /// <summary>The FFT command menu opens beside the actor at every window size: its main panel's
+    /// near edge sits within reach of the actor's screen point, and the actor is not under it.</summary>
+    private void CheckMenuBesideActor(CombatScene scene, ActionBar bar, Vector2I size)
+    {
+        Node3D? crystal = null;
+        foreach (var node in scene.GetNode<Node3D>("%UnitLayer").FindChildren("Crystal", "", true, false))
+            if (node is Node3D { Visible: true } shown) crystal = shown;
+        if (crystal == null || !bar.MenuShown) return;
+        var unit = scene.ActiveCamera.UnprojectPosition(crystal.GlobalPosition);
+        var menu = bar.BarPanel.GetGlobalRect();
+        float gap = Mathf.Min(Mathf.Abs(menu.Position.X - unit.X), Mathf.Abs(unit.X - menu.End.X));
+        Check($"{size.X}x{size.Y} the command menu opens beside the active unit ({gap:F0} px, unit {unit}, menu {menu})",
+            gap < 260f && !menu.HasPoint(unit));
     }
 
     private void CheckLayout(string screen, Vector2I size, Control root, params string[] keys)

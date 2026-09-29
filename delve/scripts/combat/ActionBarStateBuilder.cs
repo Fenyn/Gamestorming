@@ -23,6 +23,7 @@ internal static class ActionBarStateBuilder
         bool canStrike = !Delve.Rules.WayfarerFeature.State(current).FinisherUsed && actions > 0 && exec.GetStrikeTargets(current).Count > 0;
         bool canRaiseShield = actions > 0 && current.Equipment?.CanRaiseShield() == true;
         bool canDelay = actions > 0 && delayBlockedReason == null;
+        bool canMove = actions > 0 && exec.GetMovePlan(current).Options.Count > 0;
 
         var inspect = exec.GetUnitInspect(current.GridPosition);
 
@@ -46,6 +47,8 @@ internal static class ActionBarStateBuilder
             ShieldDisabledReason = canRaiseShield ? null : exec.GetRaiseShieldDisabledReason(current),
             DelayDisabledReason = DisabledReason(canDelay, actions, delayBlockedReason ?? ""),
             MoveRestriction = actions > 0 ? exec.MoveRestriction(current) : null,
+            CanMove = canMove,
+            MoveDisabledReason = DisabledReason(canMove, actions, exec.MoveRestriction(current) ?? "No reachable tiles"),
             Map = exec.GetCurrentMap(current),
             SpellEntries = current.Spellcasting != null
                 ? exec.GetSpellEntries(current)
@@ -69,7 +72,23 @@ internal static class ActionBarStateBuilder
     {
         AttackPreviewData? data = exec.GetAttackPreview(attacker, target);
         if (data == null) return null;
-        return BuildPreview(data, ForecastModifiers.Strike(attacker, target, data.MAP));
+        var preview = BuildPreview(data, ForecastModifiers.Strike(attacker, target, data.MAP));
+        return HpPair(target, data.DamageMin, data.DamageMax) is { } hp
+            ? preview with { Figures = preview.Figures.Append(new FigureView("HP", hp)).ToList() }
+            : preview;
+    }
+
+    /// <summary>The target's HP before and after a hit, as FFT's forecast shows it: "14 → 2–9", the
+    /// range from the least to the most damage. Null while its HP is masked or the attack deals none.</summary>
+    internal static string? HpPair(ICharacter target, int damageMin, int damageMax)
+    {
+        if (target.Health == null || damageMax <= 0) return null;
+        bool known = target.TeamId == 1 || PlayerActionExecutor.IsCreatureFieldKnown(
+            target.CreatureStats?.CreatureId, CreatureKnowledgeField.MaxHP);
+        if (!known) return null;
+        int hp = target.Health.CurrentHP;
+        int low = Math.Max(0, hp - damageMax), high = Math.Max(0, hp - damageMin);
+        return low == high ? $"{hp} → {low}" : $"{hp} → {low}–{high}";
     }
 
     /// <param name="modifiers">The labelled modifier line; without it only the MAP shows.</param>
@@ -81,7 +100,10 @@ internal static class ActionBarStateBuilder
         int crit = (int)Math.Round(data.CritChance);
         string hitText = acKnown ? $"{hit}%" : "?%";
         string critText = acKnown ? $"{crit}%" : "?%";
-        var figures = new List<FigureView> { new("Hit", hitText), new("Crit", critText) };
+        // Unknown AC: lead with what the attacker knows, their own attack total, instead of "?%" odds.
+        var figures = acKnown
+            ? new List<FigureView> { new("Hit", hitText), new("Crit", critText) }
+            : new List<FigureView> { new("Attack", data.TotalAttackBonus.ToString("+0;-0;0")), new("AC", "?") };
         if (!string.IsNullOrEmpty(data.DamageFormula)) figures.Add(new("Damage", data.DamageFormula));
         modifiers ??= data.MAP < 0 ? new[] { new ModifierChip("MAP", data.MAP) } : System.Array.Empty<ModifierChip>();
 

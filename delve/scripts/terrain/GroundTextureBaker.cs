@@ -12,8 +12,6 @@ namespace Delve.Terrain;
 /// </summary>
 public static class GroundTextureBaker
 {
-    private const int TilePx = 48;
-
     /// <summary>
     /// Bake the board's shared ground-top material, or null when the theme textures nothing.
     /// <paramref name="eff"/> is the effective-surface grid from <see cref="EffectiveSurfaceGrid"/>,
@@ -32,19 +30,20 @@ public static class GroundTextureBaker
         var landmarks = new LandmarkTexturePainter(layout);
         var sources = new Dictionary<string, Image>();
         int w = layout.Width, h = layout.Height;
-        var board = Image.CreateEmpty(w * TilePx, h * TilePx, false, Image.Format.Rgba8);
+        int tilePx = theme.TilePx;
+        var board = Image.CreateEmpty(w * tilePx, h * tilePx, false, Image.Format.Rgba8);
 
         for (int y = 0; y < h; y++)
         for (int x = 0; x < w; x++)
         {
             var surface = eff[y * w + x];
-            var origin = new Vector2I(x * TilePx, y * TilePx);
+            var origin = new Vector2I(x * tilePx, y * tilePx);
 
             var variants = TopTextures(theme, surface);
             if (variants == null)
             {
                 // Untextured surface (water, sand, …): flat theme colour keeps the sheet holeless.
-                board.FillRect(new Rect2I(origin, new Vector2I(TilePx, TilePx)),
+                board.FillRect(new Rect2I(origin, new Vector2I(tilePx, tilePx)),
                     MapMaterials.ToGodot(theme.TopColor(surface)));
                 continue;
             }
@@ -56,11 +55,16 @@ public static class GroundTextureBaker
             if (layout.GetTile(x, y) == TileRole.Bridge && BridgeRunsAlongZ(layout, x, y))
                 pick += RotatedSuffix;
 
-            board.BlitRect(LoadTile(sources, pick), new Rect2I(0, 0, TilePx, TilePx), origin);
-            landmarks.Paint(board, layout, x, y, TilePx);
+            // A texture larger than one tile is a field that spans several tiles: each tile takes its
+            // own window of it by board position, so the painting runs on across tile edges.
+            var source = LoadTile(sources, pick, tilePx);
+            var window = new Vector2I(x * tilePx % Mathf.Max(tilePx, source.GetWidth()),
+                y * tilePx % Mathf.Max(tilePx, source.GetHeight()));
+            board.BlitRect(source, new Rect2I(window, new Vector2I(tilePx, tilePx)), origin);
+            landmarks.Paint(board, layout, x, y, tilePx);
         }
 
-        GroundTextureTransitions.Blend(board, layout, eff, TilePx);
+        GroundTextureTransitions.Blend(board, layout, eff, tilePx);
 
         var material = BuildGroundMaterial(board, w, h, worldOrigin);
         return material;
@@ -124,20 +128,20 @@ public static class GroundTextureBaker
     private const string RotatedSuffix = "@rot90";
 
     /// <summary>
-    /// Load one 48px tile / fringe sheet as blit-ready pixels. Goes through
+    /// Load one tile / fringe sheet as blit-ready pixels. Goes through
     /// <see cref="ResourceLoader"/> so the art comes from the imported resource, which an exported
     /// PCK contains and a raw-file read does not. A <see cref="RotatedSuffix"/> path loads the base
     /// art and rotates it clockwise. Returns a 1px magenta tile and reports the path when the
     /// resource is missing, so a bad path mis-dresses the board instead of crashing the build.
     /// </summary>
-    private static Image LoadTile(Dictionary<string, Image> cache, string path)
+    private static Image LoadTile(Dictionary<string, Image> cache, string path, int tilePx)
     {
         if (cache.TryGetValue(path, out var cached)) return cached;
 
         Image img;
         if (path.EndsWith(RotatedSuffix))
         {
-            img = (Image)LoadTile(cache, path[..^RotatedSuffix.Length]).Duplicate();
+            img = (Image)LoadTile(cache, path[..^RotatedSuffix.Length], tilePx).Duplicate();
             img.Rotate90(ClockDirection.Clockwise);
         }
         else
@@ -146,7 +150,7 @@ public static class GroundTextureBaker
             if (img == null)
             {
                 GD.PushError($"[GroundTextureBaker] ground texture missing at {path}; tile is blank.");
-                img = Image.CreateEmpty(TilePx, TilePx, false, Image.Format.Rgba8);
+                img = Image.CreateEmpty(tilePx, tilePx, false, Image.Format.Rgba8);
                 img.Fill(Colors.Magenta);
             }
             else

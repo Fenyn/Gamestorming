@@ -30,7 +30,6 @@ public partial class DungeonHud
 
     private void RenderParty(RunState state, bool fighting)
     {
-        _party.Visible = !fighting;
         if (fighting) { HideDoorTip(); return; }
         var views = state.Party.Members
             .Select(m => SquadMemberViews.From(m, showReaction: false, promotionPending: CombatResults.HasFeatChoice(m)))

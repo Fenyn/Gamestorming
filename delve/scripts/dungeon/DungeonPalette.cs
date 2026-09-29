@@ -33,7 +33,14 @@ public partial class DungeonPalette : Resource
         surfaces[SurfaceType.Water] = MapThemes.Sewer.Surfaces[SurfaceType.Water];
         // The terrain material cache keys walls by biome. Keep palette entries
         // separate from each other and from the normal sewer theme.
-        return MapThemes.Sewer with { BiomeId = $"dungeon/{ResourcePath}", Surfaces = surfaces, TopGridLineWidth = 0.012f };
+        var forest = MapThemes.Forest;
+        return MapThemes.Sewer with
+        {
+            BiomeId = $"dungeon/{ResourcePath}", Surfaces = surfaces, TopGridLineWidth = 0.025f,
+            // The lit lip stays dark indoors: rooms are cut open at their edges, and a bright lip
+            // there traced the whole room outline like a UI frame.
+            TilePx = forest.TilePx, TopGridLineColor = forest.TopGridLineColor,
+        };
     }
 
     public StandardMaterial3D Material(Color color, string surface)

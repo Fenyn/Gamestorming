@@ -50,6 +50,12 @@ public partial class ChipFlyout : PanelContainer
     /// <summary>Chip scene instanced per entry. Assigned in the scene that hosts the flyout.</summary>
     [Export] public PackedScene? ChipScene { get; set; }
 
+    /// <summary>Style of section headers and cost text; the parchment command menu uses dark ink.</summary>
+    [Export] public StringName TextVariation { get; set; } = ThemeNames.HintLabel;
+
+    /// <summary>Style of a disabled chip's labels.</summary>
+    [Export] public StringName DisabledVariation { get; set; } = ThemeNames.CaptionDisabled;
+
     private VBoxContainer _column = null!;
 
     public override void _Ready() => _column = GetNode<VBoxContainer>("%Column");
@@ -69,7 +75,7 @@ public partial class ChipFlyout : PanelContainer
         => _column.AddChild(new Label
         {
             Text = header,
-            ThemeTypeVariation = ThemeNames.HintLabel,
+            ThemeTypeVariation = TextVariation,
             HorizontalAlignment = HorizontalAlignment.Center,
         });
 
@@ -102,11 +108,10 @@ public partial class ChipFlyout : PanelContainer
         icon.Modulate = new Color(1, 1, 1, spec.Enabled ? 1f : 0.45f);
 
         // Internal labels don't track the button's disabled font color (same as the bar captions)
-        // — chips are rebuilt on every state change, so a one-shot override at build time is enough.
+        // — chips are rebuilt on every state change, so the variation is set once at build time.
         var nameLabel = chip.GetNode<Label>("%NameLabel");
         nameLabel.Text = spec.Name;
-        nameLabel.AddThemeColorOverride("font_color",
-            spec.Enabled ? UiColors.Text : UiColors.TextDisabled);
+        if (!spec.Enabled) nameLabel.ThemeTypeVariation = DisabledVariation;
 
         // Cost pips: one square per action. A cost the caller could not resolve to an action count
         // falls back to the raw text, dim.
@@ -120,19 +125,17 @@ public partial class ChipFlyout : PanelContainer
             var costLabel = new Label
             {
                 Text = spec.CostText,
-                ThemeTypeVariation = ThemeNames.HintLabel,
+                ThemeTypeVariation = TextVariation,
                 MouseFilter = MouseFilterEnum.Ignore,
             };
-            if (!spec.Enabled)
-                costLabel.AddThemeColorOverride("font_color", UiColors.TextDisabled);
+            if (!spec.Enabled) costLabel.ThemeTypeVariation = DisabledVariation;
             pipRow.AddChild(costLabel);
         }
 
         var badgeLabel = chip.GetNode<Label>("%SlotLabel");
         badgeLabel.Visible = !string.IsNullOrEmpty(spec.BadgeText);
         badgeLabel.Text = spec.BadgeText ?? "";
-        if (!spec.Enabled)
-            badgeLabel.AddThemeColorOverride("font_color", UiColors.TextDisabled);
+        if (!spec.Enabled) badgeLabel.ThemeTypeVariation = DisabledVariation;
 
         chip.Pressed += () => ChipPressed?.Invoke(spec);
         parent.AddChild(chip);

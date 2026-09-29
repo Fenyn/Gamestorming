@@ -169,8 +169,29 @@ public partial class DungeonSpike : SpikeBase
         var hud = host.GetNode<DungeonHud>("Screens/DungeonHud");
         Check("exploration shows full ward meter", hud.GetNode<ProgressBar>("%WardBar").Value == 100
             && hud.GetNode<Control>("%Expedition").Visible);
+        var menuRows = new[] { "%Camp", "%Potion", "%Rest", "%Stairs" }.Select(n => hud.GetNode<Button>(n)).ToArray();
+        Check("the party menu lists every command, greying the closed ones",
+            hud.PartyMenu.Visible && menuRows.All(b => b.Visible) && hud.GetNode<Button>("%Stairs").Disabled);
+        if (DisplayServer.GetName() != "headless")
+        {
+            await WaitSeconds(0.1f);
+            var party = Vector3.Zero;
+            var tokens = host.GetNode<Node3D>("%TravelParty").GetChildren().OfType<Node3D>().ToArray();
+            foreach (var token in tokens) party += token.GlobalPosition;
+            var partyScreen = host.GetViewport().GetCamera3D().UnprojectPosition(party / tokens.Length);
+            var menu = hud.PartyMenu.GetGlobalRect();
+            float gap = Mathf.Min(Mathf.Abs(menu.Position.X - partyScreen.X), Mathf.Abs(partyScreen.X - menu.End.X));
+            Check($"the party menu floats beside the party ({gap:F0} px, menu {menu})", gap < 300f && !menu.HasPoint(partyScreen));
+        }
         if (Capture)
+        {
             await Shot("dungeon_entrance.png");
+            // A clean frame for HUD mockups and look reviews.
+            var screens = host.GetNode<CanvasLayer>("%Screens");
+            screens.Visible = false;
+            await Shot("dungeon_entrance_clean.png");
+            screens.Visible = true;
+        }
         host.ResolveEvent(0, null);
         var completions = new List<int>();
         var entries = new List<(int Room, bool First)>();
@@ -183,7 +204,8 @@ public partial class DungeonSpike : SpikeBase
         host.ResolveEvent(0, null);
         host.CloseEvent();
         Check("entrance resolves exactly once", host.Current.Completed && host.Phase == DungeonPhase.Doors);
-        Check("room meter tracks completed rooms", hud.GetNode<ProgressBar>("%RoomsBar").Value == 1);
+        Check($"the rooms line tracks completed rooms ('{hud.GetNode<Label>("%RoomProgress").Text}')",
+            hud.GetNode<Label>("%RoomProgress").Text.StartsWith($"Rooms cleared 1/"));
         await CheckCharacterDetails(host);
         var first = host.Current.Doors.First(d => DungeonFloor.Kind(host.Floor.Rooms[d.Other(0)].Family) == NodeKind.Event);
         var task = host.Travel(first.Side(0));

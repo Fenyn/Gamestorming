@@ -48,11 +48,27 @@ internal static class ReactionPromptBuilder
         {
             ReactorName = ctx.Reactor.Name,
             ReactorId = ctx.Reactor.UniqueId,
+            SourceId = ctx.Source?.UniqueId,
             ReactionName = ctx.ReactionName,
             Title = $"{ctx.ReactionName}?",
             AcceptLabel = accept,
             Figures = figures,
+            Trigger = Trigger(ctx),
             Description = description,
+        };
+    }
+
+    /// <summary>What set the reaction off, in one sentence, so the prompt says why it appeared.</summary>
+    private static string Trigger(ReactionPromptContext ctx)
+    {
+        string source = ctx.Source?.Name ?? "An enemy";
+        string reactor = ctx.Reactor.Name;
+        return ctx.Trigger switch
+        {
+            ReactionTrigger.Damage => $"{source} hits {(ctx.ProtectedAlly ?? ctx.Reactor).Name} for {ctx.Damage?.TotalDamage ?? 0}.",
+            ReactionTrigger.Movement => $"{source} leaves {reactor}'s reach.",
+            ReactionTrigger.Action => $"{source} acts within {reactor}'s reach.",
+            _ => "",
         };
     }
 
@@ -93,7 +109,8 @@ internal static class ReactionPromptBuilder
             Godot.GD.PushWarning($"[ReactionPrompt] {ctx.ReactionName} forecast failed, so the prompt shows no hit chance: {e.Message}");
             return;
         }
-        figures.Add(new FigureView("Hit", preview.HitChanceText));
+        // The forecast's lead figure: "Hit 75%", or "Attack +7" while the target's AC is masked.
+        if (preview.Figures.Count > 0) figures.Add(preview.Figures[0]);
         if (preview.DamageFormula.Length > 0) figures.Add(new FigureView("Damage", preview.DamageFormula));
     }
 }

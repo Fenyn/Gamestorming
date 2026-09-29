@@ -23,7 +23,6 @@ public partial class DecisionSlot : VBoxContainer
     private const string DelayPickHint = "Act after";
 
     private PanelContainer _card = null!;
-    private Control _cancelCaption = null!;
     private Label _header = null!;
     private HBoxContainer _tags = null!;
     private HFlowContainer _figures = null!;
@@ -46,7 +45,6 @@ public partial class DecisionSlot : VBoxContainer
 
     public Control Card => _card;
     public string HintText => _hint.Text;
-    public bool CancelKeyVisible => _cancelCaption.Visible;
     public Button ConfirmTargetsButton => _confirmTargets;
     public Button ConfirmOrderButton => _confirmOrder;
     public bool CanConfirmTargets => _confirmTargets.Visible && !_confirmTargets.Disabled;
@@ -89,8 +87,6 @@ public partial class DecisionSlot : VBoxContainer
         _moveCost = GetNode<PipRow>("%MoveCostPips");
         _confirmTargets = GetNode<Button>("%ConfirmTargets");
         _confirmOrder = GetNode<Button>("%ConfirmOrder");
-        _cancelCaption = GetNode<Control>("%CancelCaption");
-        GetNode<Label>("%CancelKey").Text = InputNames.KeyLabelFor(InputNames.UiCancel);
         _confirmTargets.Pressed += () => ConfirmTargetsPressed?.Invoke();
         _confirmOrder.Pressed += () => ConfirmOrderPressed?.Invoke();
         RefreshHint();
@@ -177,7 +173,6 @@ public partial class DecisionSlot : VBoxContainer
         _confirmTargets.Visible = _interactable && _targetLimit > 1;
         _confirmTargets.Disabled = !_interactable || _selectedTargets == 0;
         _moveCost.Visible = false;
-        _cancelCaption.Visible = _interactable && _targeting;
         if (!_interactable) _hint.Text = "";
         else if (_targeting)
             _hint.Text = _targetLimit > 1 ? $"Targets {_selectedTargets} / {_targetLimit}"
@@ -190,7 +185,7 @@ public partial class DecisionSlot : VBoxContainer
             _moveCost.Visible = true;
         }
         _hint.Visible = _hint.Text.Length > 0;
-        _hintRow.Visible = _hint.Visible || _confirmTargets.Visible || _confirmOrder.Visible || _cancelCaption.Visible;
+        _hintRow.Visible = _hint.Visible || _confirmTargets.Visible || _confirmOrder.Visible;
     }
 
     /// <summary>One labelled number per modifier, led by the icon of the condition that causes it.</summary>

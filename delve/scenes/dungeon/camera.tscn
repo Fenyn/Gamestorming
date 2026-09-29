@@ -3,11 +3,13 @@
 [ext_resource type="Script" path="res://scripts/combat/ShakePivot.cs" id="2"]
 [node name="ExploreCamera" type="Node3D"]
 script = ExtResource("1")
-InitialPitchDegrees = 48.0
+InitialPitchDegrees = 40.0
+DofNearOffset = 5.0
+DofFarOffset = 5.0
 FramingDistancePerTile = 2.1
 [node name="ShakePivot" type="Node3D" parent="."]
 unique_name_in_owner = true
 script = ExtResource("2")
 [node name="Camera3D" type="Camera3D" parent="ShakePivot"]
-fov = 35.0
+fov = 22.0
 far = 180.0

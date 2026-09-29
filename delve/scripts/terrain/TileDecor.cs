@@ -72,7 +72,8 @@ public static class TileDecor
         int gridWidth,
         int gridHeight,
         TerrainHeightMap heightMap,
-        int margin = 0)
+        int margin = 0,
+        System.Func<int, float>? haloShade = null)
     {
         if (theme.Decor is not { } set)
             return null;
@@ -113,8 +114,10 @@ public static class TileDecor
             }
 
             count = Thin(count, taper, MapHash.Hash01(x, y, seed + SaltTaper));
+            // Halo decor darkens with the terrain under it (look_halo.gdshaderinc), as halo trees do.
+            float shade = haloShade?.Invoke(Ring(x, y, gridWidth, gridHeight, margin)) ?? 1f;
             for (int i = 0; i < count; i++)
-                PlaceOne(root, defs, textures, layout, heightMap, x, y, seed, i);
+                PlaceOne(root, defs, textures, layout, heightMap, x, y, seed, i, shade);
         }
 
         return root;
@@ -126,13 +129,15 @@ public static class TileDecor
     /// rectangle, which sits inset by <paramref name="margin"/> on every side.
     /// </summary>
     private static float Taper(int x, int y, int gridWidth, int gridHeight, int margin)
-    {
-        if (margin <= 0) return 1f;
+        => margin <= 0 ? 1f : Mathf.Lerp(1f, RimDensity, (float)Ring(x, y, gridWidth, gridHeight, margin) / margin);
 
+    /// <summary>Chebyshev distance in tiles from the board rectangle; 0 on the board.</summary>
+    private static int Ring(int x, int y, int gridWidth, int gridHeight, int margin)
+    {
+        if (margin <= 0) return 0;
         int dx = Mathf.Max(Mathf.Max(margin - x, x - (gridWidth - margin - 1)), 0);
         int dy = Mathf.Max(Mathf.Max(margin - y, y - (gridHeight - margin - 1)), 0);
-        int ring = Mathf.Max(dx, dy);
-        return Mathf.Lerp(1f, RimDensity, (float)ring / margin);
+        return Mathf.Max(dx, dy);
     }
 
     /// <summary>Scale a sprite count by the taper, resolving the fraction with a hashed roll so the
@@ -153,7 +158,8 @@ public static class TileDecor
         int x,
         int y,
         int seed,
-        int index)
+        int index,
+        float shade)
     {
         var def = PickWeighted(defs, MapHash.Hash01(x + index * 73, y, seed + SaltPick));
 
@@ -194,6 +200,7 @@ public static class TileDecor
             Texture = tex,
             PixelSize = def.Height / tex.GetHeight(),
             CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+            Modulate = new Color(shade, shade, shade),
         };
         // Same pixel-art draw rules as the unit tokens (see PixelSprite).
         PixelSprite.Configure(sprite);

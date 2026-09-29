@@ -19,6 +19,9 @@ public partial class ReactionPromptPanel : Control
 
     private Label _titleLabel = null!;
     private Label _descriptionLabel = null!;
+    private Label _triggerLabel = null!;
+
+    public string TriggerText => _triggerLabel.Text;
     private HBoxContainer _figures = null!;
     private CaptionButton _useButton = null!;
     private CaptionButton _skipButton = null!;
@@ -48,6 +51,7 @@ public partial class ReactionPromptPanel : Control
     {
         _titleLabel = GetNode<Label>("%TitleLabel");
         _descriptionLabel = GetNode<Label>("%DescriptionLabel");
+        _triggerLabel = GetNode<Label>("%TriggerLabel");
         _figures = GetNode<HBoxContainer>("%Figures");
         _useButton = GetNode<CaptionButton>("%UseButton");
         _skipButton = GetNode<CaptionButton>("%SkipButton");
@@ -74,6 +78,8 @@ public partial class ReactionPromptPanel : Control
     private void Render(ReactionPromptView view)
     {
         _titleLabel.Text = view.Title.Length > 0 ? view.Title : $"{view.ReactionName}?";
+        _triggerLabel.Text = view.Trigger;
+        _triggerLabel.Visible = view.Trigger.Length > 0;
         _useButton.SetActionText(view.AcceptLabel);
         _panel.TooltipText = view.Description;
 

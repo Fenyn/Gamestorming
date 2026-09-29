@@ -31,13 +31,18 @@ uniform float wave_speed : hint_range(0.0, 4.0) = 0.8;
 // Radians per metre along the (x + z) diagonal — one crest roughly every 18 m at 0.35.
 uniform float wave_frequency : hint_range(0.0, 2.0) = 0.35;
 
+#include "res://assets/shaders/look_halo.gdshaderinc"
+
+varying vec3 world_pos;
+
 void vertex() {
 	float phase = (VERTEX.x + VERTEX.z) * wave_frequency + TIME * wave_speed;
 	VERTEX.y += (sin(phase) - 1.0) * 0.5 * wave_amplitude * COLOR.a;
+	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
 void fragment() {
-	ALBEDO = water_color.rgb;
+	ALBEDO = look_halo_apply(water_color.rgb, world_pos);
 	ALPHA = water_color.a;
 	ROUGHNESS = 0.35;
 	METALLIC = 0.0;

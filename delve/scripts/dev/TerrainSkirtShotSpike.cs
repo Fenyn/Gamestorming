@@ -78,19 +78,16 @@ public partial class TerrainSkirtShotSpike : SpikeBase
         MapLayout board, string biome, out TerrainStage stage, out Camera3D camera)
     {
         var host = new Node3D { Name = "SkirtShotHost" };
-        var environment = new WorldEnvironment { Environment = new Godot.Environment() };
-        var sun = new DirectionalLight3D();
         stage = new TerrainStage { Name = "TerrainStage", PlaceholderFloorPath = new NodePath() };
         DevTreeMix.Apply(stage);
+        DevLooks.Apply(stage);
         camera = new Camera3D { Name = "ShotCamera" };
 
-        host.AddChild(environment);
-        host.AddChild(sun);
         host.AddChild(stage);
         host.AddChild(camera);
         AddChild(host);
 
-        stage.Build(board, biome, board.Width, board.Height, environment, sun);
+        stage.Build(board, biome, board.Width, board.Height);
         camera.Current = true;
         return host;
     }

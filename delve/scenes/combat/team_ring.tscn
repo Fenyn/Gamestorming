@@ -13,7 +13,9 @@ height = 0.02
 radial_segments = 24
 
 [node name="TeamRing" type="MeshInstance3D"]
+layers = 4
 cast_shadow = 0
 mesh = SubResource("CylinderMesh_ring")
 script = ExtResource("1_ring")
 FootprintShader = ExtResource("2_surface")
+RestAlpha = 0.75

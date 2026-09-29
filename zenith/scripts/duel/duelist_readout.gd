@@ -1,8 +1,8 @@
 class_name DuelistReadout
 extends Control
-## Transparent resource ornaments surrounding the actual duelist card in the scene. The canvas
-## lies on the table around the card (`DuelistDisplay`); the stat tracker itself stands on the
-## table as a separate plate, drawn by a second readout with `part` set to PLATE.
+## Transparent resource ornaments around the actual duelist card in the scene. The canvas lies on
+## the table centred on the card (`DuelistDisplay`); the stat tracker itself lies at `plate_home`
+## as a separate plate, drawn by a second readout with `part` set to PLATE.
 
 signal redraw_requested
 
@@ -20,26 +20,21 @@ const FERVOR_TEXT: Color = ZenithTheme.FERVOR_TEXT
 const STATUS: Color = ZenithTheme.WARN
 const TRACKER_SIZE: Vector2 = Vector2(540, 160)
 ## The plate's own canvas: the tracker inset by PLATE_PAD, with room under it for the lives tab and
-## the rival's tab (`PlateTab`). TAB_ROOM is what the tab added; the tracker sits that much further
-## from its card, so the plate still stands where it stood and only grows taller.
+## the rival's tab (`PlateTab`).
 const PLATE_PAD: Vector2 = Vector2(10, 10)
 const PLATE_CANVAS: Vector2i = Vector2i(560, 220)
-const TAB_ROOM: float = 24.0
-## The near seat's plate sits this many canvas pixels further toward the viewer, below the Out
-## and Relic captions rather than between them.
-const NEAR_DROP: float = 85.0
-## Baseline of the Aspect caption below the duelist card's bottom edge, in canvas pixels.
+## Baseline of the Aspect caption past the duelist card's outer edge, in canvas pixels.
 const ASPECT_GAP: float = 34.0
-## Status lines: centred past the far seat's plate, in a column right of the near seat's, where
-## the tucked hand does not cover them.
-const FLAG_WIDTH: float = 1000.0
-const NEAR_FLAG_WIDTH: float = 300.0   # stops short of the Relic's outline
-const NEAR_FLAG_GAP: float = 24.0
+## Status lines print in two rows on the plate's outer side (under the near seat's plate, over the
+## far seat's), unless the seat's Ally row is empty and holds them.
 const FLAG_ROWS_HOME: int = 3
-## Status flags are chips, one row step apart. The far seat's lie further off and more
-## foreshortened, so they are drawn larger to read at the same size on screen.
-const CHIP_FONT: int = 28
-const CHIP_FONT_FAR: int = 44
+const FLAG_ROWS_BESIDE: int = 2
+const FLAG_GAP: float = 10.0
+## The rival's hand fan, over their plate at its left end, the status lines beside it.
+const FAN_SIZE: Vector2 = Vector2(205, 190)
+const FAN_GAP: float = 16.0
+## Status flags are chips, one row step apart.
+const CHIP_FONT: int = 32
 const CHIP_PAD: float = 12.0
 const CHIP_GAP: float = 10.0
 ## ALL draws everything on one canvas; PRINT leaves the tracker to the plate; PLATE draws only
@@ -56,13 +51,12 @@ var card_bounds: Rect2 = Rect2(-80, -90, 160, 180):
 		update_layout()
 		request_redraw()
 var stat_hit_rects: Array[Rect2] = []
-## Canvas pixels of table the far seat's standing plate hides behind it; its status lines start
-## past them. Set by DuelistDisplay from the plate's tilt.
-var flag_clearance: float = 0.0:
+## The centre of the plate, in canvas pixels. Set by DuelistDisplay from the table's Plate marker.
+var plate_home: Vector2 = Vector2.ZERO:
 	set(value):
-		if is_equal_approx(flag_clearance, value):
+		if plate_home.is_equal_approx(value):
 			return
-		flag_clearance = value
+		plate_home = value
 		update_layout()
 		request_redraw()
 ## The seat's Ally row in canvas pixels (left edge, row centre line, width; height unused). While
@@ -114,6 +108,14 @@ var _tab: PlateTab = PlateTab.NONE
 var _tab_text: String = ""
 var _tab_warn: bool = false
 var _accent: Color = IVORY
+## Who acts right now, which swings back and forth through Combat: this seat (ACTING, the plate
+## lit in its Mastery school's colour), the other seat (IDLE, the plate dimmed), or nobody.
+enum Acting { NOBODY, ACTING, IDLE }
+const ACTING_RULE_WIDTH: float = 6.0
+const ACTING_GLOW: float = 10.0
+const IDLE_SHADE: Color = Color(0.0, 0.0, 0.0, 0.5)
+var _acting: Acting = Acting.NOBODY
+var _school: Color = IVORY
 var _initialized: bool = false
 var _player_index: int = -1
 var _viewer: int = -1
@@ -171,7 +173,12 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 	if controller.uid != duelist.uid:
 		_control = "%s IN CONTROL" % controller.title
 	_accent = SeatColors.accent(view, player_index, Session.color_seed)
-	_hand = maxi(0, int(counts[1]) if counts.size() > 1 else p.hand.size())
+	_school = Palette.school_ui(p.style)
+	if view.deciding < 0 or view.is_over():
+		_acting = Acting.NOBODY
+	else:
+		_acting = Acting.ACTING if view.deciding == player_index else Acting.IDLE
+	_hand =maxi(0, int(counts[1]) if counts.size() > 1 else p.hand.size())
 	var discard: int = int(counts[2]) if counts.size() > 2 else p.discard.size()
 	var removed: int = int(counts[3]) if counts.size() > 3 else p.removed.size()
 	_piles = "Discard %d" % discard if player_index != viewer else "Hand %d   Discard %d" % [_hand, discard]
@@ -219,13 +226,18 @@ func _set_flash(value: float) -> void:
 func update_layout() -> Dictionary:
 	stat_hit_rects.clear()
 	var far_side: bool = _player_index != _viewer
-	var middle_x: float = duelist_bounds.get_center().x
-	var tracker_y: float = (card_bounds.position.y - 184.0 if far_side else card_bounds.end.y + 24.0 + NEAR_DROP) - TAB_ROOM
-	var tracker: Rect2 = Rect2(Vector2(middle_x - TRACKER_SIZE.x * 0.5, tracker_y), TRACKER_SIZE)
-	# The far seat's status lines sit past its standing plate, clear of the table it hides.
-	var first_row: float = tracker_y - 12.0 - _chip_step() - flag_clearance if far_side else tracker.position.y + 48.0
-	var text_width: float = FLAG_WIDTH if far_side else NEAR_FLAG_WIDTH
-	var flag_left: float = middle_x - text_width * 0.5 if far_side else tracker.end.x + NEAR_FLAG_GAP
+	var plate: Rect2 = Rect2(plate_home - Vector2(PLATE_CANVAS) * 0.5, Vector2(PLATE_CANVAS))
+	var tracker: Rect2 = Rect2(plate.position + PLATE_PAD, TRACKER_SIZE)
+	var middle_x: float = tracker.get_center().x
+	# Status lines on the plate's outer side: under the near plate, over the far one beside the
+	# rival's hand fan. The last line of the far block sits FLAG_GAP clear of the plate.
+	var text_width: float = TRACKER_SIZE.x
+	var flag_left: float = tracker.position.x
+	var first_row: float = plate.end.y + FLAG_GAP + _chip_font()
+	if far_side:
+		text_width -= FAN_SIZE.x + FAN_GAP
+		flag_left += FAN_SIZE.x + FAN_GAP
+		first_row = plate.position.y - FLAG_GAP - (_chip_height() - _chip_font()) - _chip_step() * (FLAG_ROWS_BESIDE - 1)
 	var at_home: bool = _flags_at_home()
 	if at_home:
 		text_width = flag_home.size.x
@@ -233,7 +245,7 @@ func update_layout() -> Dictionary:
 		first_row = flag_home.position.y - _chip_step() * 0.5
 	stat_hit_rects.append(tracker)
 	if far_side:
-		stat_hit_rects.append(Rect2(tracker.position + Vector2(-205, 0), Vector2(185, 160)))
+		stat_hit_rects.append(_fan_rect(plate))
 	if _show_lives:
 		stat_hit_rects.append(_lives_tab(tracker))
 	var flag_rows: int = _flag_row_count(at_home)
@@ -244,7 +256,12 @@ func update_layout() -> Dictionary:
 	for i in range(mini(lines.size(), flag_rows)):
 		var baseline: float = _chip_baseline(i, first_row)
 		stat_hit_rects.append(Rect2(flag_left, baseline - font - 6.0, text_width, font + 20.0))
-	return {"tracker": tracker, "flags": first_row, "middle": middle_x, "flag_left": flag_left, "flag_width": text_width, "home": at_home}
+	return {"tracker": tracker, "plate": plate, "flags": first_row, "middle": middle_x, "flag_left": flag_left, "flag_width": text_width, "home": at_home}
+
+
+## The rival's hand fan: over the plate, at its left end.
+func _fan_rect(plate: Rect2) -> Rect2:
+	return Rect2(Vector2(plate.position.x + PLATE_PAD.x, plate.position.y - FLAG_GAP - FAN_SIZE.y), FAN_SIZE)
 
 
 ## Everything the Ally row home can hold: the Seal line and three rows of chips.
@@ -259,7 +276,7 @@ func _flags_at_home() -> bool:
 
 ## Rows of chips shown: three in the Ally row, two beside the plate, one fewer under Seal sets.
 func _flag_row_count(at_home: bool) -> int:
-	return (FLAG_ROWS_HOME if at_home else 2) - (0 if _seal_sets.is_empty() else 1)
+	return (FLAG_ROWS_HOME if at_home else FLAG_ROWS_BESIDE) - (0 if _seal_sets.is_empty() else 1)
 
 
 ## Seal sets take the first line when there are any; the chips run on below them.
@@ -285,15 +302,17 @@ func _draw() -> void:
 	var first_row: float = float(layout["flags"])
 	var text_width: float = float(layout["flag_width"])
 	var flag_left: float = float(layout["flag_left"])
-	var centred: bool = _player_index != _viewer or bool(layout["home"])
+	var centred: bool = bool(layout["home"])
 	if _player_index != _viewer:
-		_draw_opponent_hand(tracker.position + Vector2(-205, 0))
+		_draw_opponent_hand(_fan_rect(layout["plate"]).position)
 	if part == Part.ALL:
 		_draw_tracker(tracker)
 		if _show_lives:
 			_draw_lives(tracker)
-	# The Aspect, printed on the felt just under the duelist card on the viewer's side.
-	_text("ASPECT %d" % _aspect, Vector2(duelist_bounds.get_center().x - 110.0, duelist_bounds.end.y + ASPECT_GAP), 220, 30, IVORY, true)
+	# The Aspect, printed on the board past the duelist card's outer edge: under the near card,
+	# over the far one, since the two cards meet at the centre line.
+	var aspect_y: float = duelist_bounds.position.y - ASPECT_GAP + 22.0 if _player_index != _viewer else duelist_bounds.end.y + ASPECT_GAP
+	_text("ASPECT %d" % _aspect, Vector2(duelist_bounds.get_center().x - 110.0, aspect_y), 220, 30, IVORY, true)
 	var rows: Array[PackedStringArray] = _flag_rows(text_width)
 	var flag_rows: int = _flag_row_count(bool(layout["home"]))
 	if not _seal_sets.is_empty():
@@ -315,12 +334,19 @@ func _draw() -> void:
 
 ## The stat tracker: name, Aspect and seat along the top, then Energy, Might and Fervor. A
 ## Kenney inner-rule plate in the seat's colour, muted like the rest of the trim; a change
-## brightens the rule for a moment.
+## brightens the rule for a moment. The acting seat's plate is ringed in its school colour; the
+## other seat's is shaded while it waits.
 func _draw_tracker(tracker: Rect2) -> void:
 	var origin: Vector2 = tracker.position
 	var rule: Color = MapArt.muted(_accent).lerp(Color.WHITE, 0.3 + _flash * 0.4)
 	draw_rect(tracker.grow(-4), INK)
+	if _acting == Acting.ACTING:
+		# Drawn inside the tracker: the plate's texture ends at its edge.
+		for i in range(int(ACTING_GLOW), 0, -2):
+			draw_rect(tracker.grow(-ACTING_RULE_WIDTH - float(i)), Color(_school.lightened(0.2), 0.10), false, 2.0)
 	draw_style_box(MapArt.panel_box(0, rule), tracker)
+	if _acting == Acting.ACTING:
+		draw_rect(tracker.grow(-ACTING_RULE_WIDTH * 0.5), _school.lightened(0.2), false, ACTING_RULE_WIDTH)
 	# The fighter's name centred along the top; the Aspect is printed under the card instead.
 	_text(_title, origin + Vector2(92, 35), 300, 32, TEXT, true)
 	_text(_control, origin + Vector2(372, 34), 156, 28, MapArt.muted(_accent).lerp(Color.WHITE, 0.45), true)
@@ -353,6 +379,8 @@ func _draw_tracker(tracker: Rect2) -> void:
 			draw_rect(box, FERVOR)
 		else:
 			draw_rect(box, Color(MUTED, 0.45), false, 1.5)
+	if _acting == Acting.IDLE:
+		draw_rect(tracker, IDLE_SHADE)
 
 
 ## Above the printed baseline the number is green, below it warns, at it stays plain. The colour
@@ -427,7 +455,7 @@ func peek_point(slot: int) -> Variant:
 	if _player_index == _viewer or _hand <= 0:
 		return null
 	var layout: Dictionary = update_layout()
-	var origin: Vector2 = (layout["tracker"] as Rect2).position + Vector2(-205, 0)
+	var origin: Vector2 = _fan_rect(layout["plate"]).position
 	var shown: int = mini(_hand, 7)
 	var offset: float = _fan_index(slot, shown) - (shown - 1) * 0.5
 	return origin + Vector2(102 + offset * 18, 56 + absf(offset) * 3 - PEEK_RISE)
@@ -492,8 +520,7 @@ func _draw_seals(baseline: float, middle_x: float = 0.0, width: float = 690.0) -
 			draw_rect(box, Color(IVORY, 0.45), false, 2.0)
 
 
-## The lives tab straddles the crest's bottom border, centred: under the Might column for the
-## near seat, and in the gap above the duelist card for the far one.
+## The lives tab straddles the plate's bottom border, centred under the Might column.
 func _lives_tab(tracker: Rect2) -> Rect2:
 	var width: float = 104.0 + 32.0 * float(_lives)
 	return Rect2(tracker.get_center().x - width * 0.5, tracker.end.y - 12.0, width, 26.0)
@@ -591,7 +618,7 @@ func _flag_rows(width: float) -> Array[PackedStringArray]:
 
 
 func _chip_font() -> int:
-	return CHIP_FONT_FAR if _player_index != _viewer else CHIP_FONT
+	return CHIP_FONT
 
 
 func _chip_height() -> float:

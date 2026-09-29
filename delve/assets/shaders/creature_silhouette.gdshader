@@ -12,11 +12,11 @@ uniform vec4 hover_color : source_color = vec4(1.0);
 varying float body_depth;
 
 void vertex() {
-    // Match the token's fixed-Y billboard, including model scale and authored sprite offset.
+    // Match the token's full camera-facing billboard, including model scale and authored sprite offset.
     MODELVIEW_MATRIX = VIEW_MATRIX * mat4(
-        vec4(normalize(cross(vec3(0.0, 1.0, 0.0), INV_VIEW_MATRIX[2].xyz)), 0.0),
-        vec4(0.0, 1.0, 0.0, 0.0),
-        vec4(normalize(cross(INV_VIEW_MATRIX[0].xyz, vec3(0.0, 1.0, 0.0))), 0.0),
+        INV_VIEW_MATRIX[0],
+        INV_VIEW_MATRIX[1],
+        INV_VIEW_MATRIX[2],
         MODEL_MATRIX[3]);
     MODELVIEW_MATRIX *= mat4(
         vec4(length(MODEL_MATRIX[0].xyz), 0.0, 0.0, 0.0),

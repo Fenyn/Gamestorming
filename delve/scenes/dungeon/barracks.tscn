@@ -1,5 +1,6 @@
 [gd_scene load_steps=4 format=3]
 [ext_resource type="Script" path="res://scripts/dungeon/DungeonRoomPrefab.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/door_marker.tscn" id="door_marker"]
 [ext_resource type="PackedScene" path="res://scenes/dungeon/prop.tscn" id="2"]
 [ext_resource type="Resource" path="res://scenes/dungeon/palettes/quarters.tres" id="palette"]
 [node name="barracks" type="Node3D"]
@@ -8,6 +9,7 @@ Family = 2
 InteriorSize = 14
 SizeVariants = PackedInt32Array(12, 14, 16)
 PropScene = ExtResource("2")
+DoorMarkerScene = ExtResource("door_marker")
 MinCover = 1
 MaxCover = 3
 DebrisCount = 10

@@ -140,30 +140,42 @@ func _run() -> void:
 	_check(duel.near_duelist.life_value.text == str(duel.view.player(0).life_deck.size()), "Life Deck counter must display the actual remaining deck size")
 	_check(duel.near_duelist.life_value.visible and duel.far_duelist.life_value.visible, "Life must remain attached to each physical Life Deck")
 	_check(is_equal_approx(float(readout.update_layout()["tracker"].size.x), 540.0), "Fighter readout must keep Energy, Might, and Fervor in one consistent strip")
+	var plate_canvas: Vector2i = readout.get_script().get_script_constant_map()["PLATE_CANVAS"]
+	_check(TableLayout.PLATE_SIZE.is_equal_approx(Vector2(plate_canvas) * float(duel.near_duelist.PIXEL)), "The layout must keep clear the plate's real footprint")
 	for seat in range(2):
 		var life_slot: Transform3D = duel.zones.slot(seat, &"life_deck", 0, 1, 0)
 		var identity_slot: Transform3D = duel.zones.slot(seat, &"duelist", 0, 1, 0)
 		# The Life Deck sits toward the centre of the table, level with the duelist's inner half,
 		# to leave its Discard room below.
 		_check(absf(life_slot.origin.z) < absf(identity_slot.origin.z) and absf(life_slot.origin.z - identity_slot.origin.z) < 0.7, "Each Life Deck must sit beside its duelist, nudged toward the centre")
-		_check(life_slot.origin.distance_to(identity_slot.origin) < 1.6, "Each Life Deck must sit close beside its own duelist")
 		var life_top: float = absf(life_slot.origin.z) - TableLayout.CARD_SIZE.y * life_slot.basis.get_scale().z * 0.5
 		var duelist_top: float = absf(identity_slot.origin.z) - TableLayout.CARD_SIZE.y * identity_slot.basis.get_scale().z * 0.5
 		_check(life_top >= duelist_top - 0.001, "A Life Deck must not reach past its duelist's inner edge")
-		# Discard directly under the Life Deck, Out further out on the same side, the Mastery on
-		# the duelist's other side. Player 1 mirrors, so sides are read relative to the duelist.
+		# On the Drill side, outward from the duelist: the Mastery level with it, the Drill and
+		# Non-Combat rows, the Relic with Out under it, then the Life Deck over the Discard at the
+		# board's edge. Player 1 mirrors, so sides are read relative to the duelist.
 		var discard_slot: Transform3D = duel.zones.slot(seat, &"discard", 0, 1, 0)
 		var out_slot: Transform3D = duel.zones.slot(seat, &"removed", 0, 1, 0)
 		var mastery_slot: Transform3D = duel.zones.slot(seat, &"mastery", 0, 1, 0)
+		var relic_slot: Transform3D = duel.zones.slot(seat, &"relic", 0, 1, 0)
+		var last_non_combat: Transform3D = duel.zones.slot(seat, &"non_combat", 2, 3, 0)
+		var drill_slot: Transform3D = duel.zones.slot(seat, &"drill", 0, 3, 0)
 		var side: float = signf(life_slot.origin.x - identity_slot.origin.x)
+		var reach: Callable = func(slot: Transform3D) -> float: return (slot.origin.x - identity_slot.origin.x) * side
+		_check(signf(drill_slot.origin.x - identity_slot.origin.x) == side, "Each Life Deck must sit on its duelist's Drill side")
+		var first_non_combat: Transform3D = duel.zones.slot(seat, &"non_combat", 0, 3, 0)
+		_check(0.0 < reach.call(mastery_slot) and reach.call(mastery_slot) < reach.call(drill_slot) and reach.call(mastery_slot) < reach.call(first_non_combat),
+			"The Mastery must stand between its duelist and the Drill and Non-Combat rows")
+		_check(reach.call(last_non_combat) < reach.call(relic_slot) and reach.call(relic_slot) < reach.call(life_slot),
+			"The Relic, then the Life Deck, must sit outward of the Non-Combat row")
+		_check(is_equal_approx(mastery_slot.origin.z, identity_slot.origin.z), "The Mastery must sit level with its duelist, as a pair")
+		_check(is_equal_approx(relic_slot.origin.z, last_non_combat.origin.z), "The Relic must sit level with the Non-Combat row")
+		_check(mastery_slot.basis.get_scale().x > relic_slot.basis.get_scale().x and mastery_slot.basis.get_scale().x < identity_slot.basis.get_scale().x,
+			"The Mastery must read as a second hero: larger than any pile card, smaller than its duelist")
 		_check(is_equal_approx(discard_slot.origin.x, life_slot.origin.x) and absf(discard_slot.origin.z) > absf(life_slot.origin.z), "Each Discard must sit directly below its Life Deck")
 		_check(signf(out_slot.origin.x - identity_slot.origin.x) == side and absf(out_slot.origin.z) > absf(discard_slot.origin.z), "Each Out pile must sit lower and outboard on the Life Deck's side")
-		_check(signf(mastery_slot.origin.x - identity_slot.origin.x) == -side, "Each Mastery must sit on the duelist's other side")
-		_check(mastery_slot.basis.get_scale().x > life_slot.basis.get_scale().x, "The Mastery must read larger than a pile card")
-		# The Relic mirrors Out across the stat crest: same depth, the Mastery's side.
-		var relic_slot: Transform3D = duel.zones.slot(seat, &"relic", 0, 1, 0)
-		_check(is_equal_approx(relic_slot.origin.x - identity_slot.origin.x, identity_slot.origin.x - out_slot.origin.x) and is_equal_approx(relic_slot.origin.z, out_slot.origin.z), "Each Relic must mirror Out exactly across the duelist's centre line")
-		_check(relic_slot.basis.get_scale().is_equal_approx(out_slot.basis.get_scale()), "The Relic and Out must be the same size")
+		_check(is_equal_approx(out_slot.origin.x, relic_slot.origin.x) and absf(out_slot.origin.z) > absf(relic_slot.origin.z), "Each Out pile must sit directly under its Relic")
+		_check(relic_slot.basis.get_scale().x > out_slot.basis.get_scale().x, "The Relic must read larger than the Out pile under it")
 		_check(discard_slot.basis.get_scale().x < life_slot.basis.get_scale().x, "The Discard must read smaller than the Life Deck above it")
 		# The Reserve sits under the Relic: lower in the stack, its edge showing past it.
 		var reserve_slot: Transform3D = duel.zones.slot(seat, &"relic", 1, 2, 0)
@@ -218,7 +230,7 @@ func _run() -> void:
 	var near_fighter: Transform3D = duel.zones.slot(0, &"duelist", 0, 1, 0)
 	var far_fighter: Transform3D = duel.zones.slot(1, &"duelist", 0, 1, 0)
 	_check(near_resolving.origin.z > far_fighter.origin.z and near_resolving.origin.z < near_fighter.origin.z, "Committed cards must occupy the exchange lane between fighters")
-	_check(near_resolving.origin.x > 0.0 and far_resolving.origin.x < 0.0, "Attack and response cards must retain readable owner sides in the exchange lane")
+	_check(near_resolving.origin.x < 0.0 and far_resolving.origin.x > 0.0, "Attack and response cards must retain readable owner sides in the exchange lane")
 	var controller: SeatCard = duel.view.card(duel.view.player(0).controlling)
 	_check(readout._energy == controller.energy, "Medallion Energy must belong to the controlling personality")
 	# The resource plate lies on the table, so camera zoom leaves its layout where it is, still
@@ -481,9 +493,15 @@ func _check_fixture_geometry(duel: Node3D, fixture: Node3D) -> void:
 	_check(separated, "Resource click regions must stay outside the projected card face")
 	_check(fits_canvas, "Dynamic resource canvas must contain every stat region without clipping at this zoom")
 	var physical: Node3D = duel.views[fixture.duelist_uid]
+	var owner: int = duel.view.card(fixture.duelist_uid).owner
+	var ally: Vector3 = duel.zones.to_global(duel.zones.slot(owner, &"ally", 0, 3, 0).origin)
+	_check(signf(fixture.plate_face.global_position.x - physical.global_position.x) == signf(ally.x - physical.global_position.x), "Each plate must lie beside its duelist, on the Ally side")
+	_check(fixture.plate_face.global_basis.z.normalized().y > 0.99, "Each plate must lie almost flat")
 	var card_center: Vector2 = duel.camera.unproject_position(physical.front.global_position)
 	_check(not fixture.hit_test(card_center, duel.camera), "A click on the actual card center must never be intercepted by its resource display")
 	var life_center: Vector2 = duel.camera.unproject_position(fixture.life_transform.origin)
 	_check(not fixture.hit_test(life_center, duel.camera), "Life Deck center must remain clear of surrounding resource hit regions")
-	var life_number: Vector2 = duel.camera.unproject_position(fixture.life_value.global_position)
-	_check(life_number.distance_to(life_center) < 30.0, "Life number must stay visually anchored to the physical Life Deck")
+	# Measured on the table: the Life Decks lie at the board's edges, off screen once the view
+	# zooms in on the centre or the window is narrower than the board.
+	var life_offset: Vector3 = fixture.life_value.global_position - fixture.life_transform.origin
+	_check(Vector2(life_offset.x, life_offset.z).length() < 0.2, "Life number must stay visually anchored to the physical Life Deck")

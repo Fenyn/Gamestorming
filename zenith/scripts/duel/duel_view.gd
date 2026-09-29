@@ -58,7 +58,9 @@ const REJOIN_RETRY_MS: int = 3000     # between attempts to get back into a serv
 const DEV_LINGER: float = 4.0         # real seconds a dev client stays up after its shot, so the other side's shot is not spoiled
 const DEV_CONCEDE_WAIT: float = 3.0   # `--dev-concede`: real seconds the conceding client stays connected
 const STALL_MS: int = 1200            # a hidden decision panel this long is a stall, not a beat
-const ATTACH_OFFSET: Vector3 = Vector3(0.30, 0.004, -0.22)   # a corner of the attachment peeks past its host
+## An attachment lies under its host and peeks past the host's outer edge, the one away from the
+## centre line: its sides hold the Mastery and the Ally wing, its inner edge meets the rival's card.
+const ATTACH_OFFSET: Vector3 = Vector3(0.0, -0.002, 0.26)
 const ATTACH_SCALE: float = 0.78
 const PILE_ZONES: Array[StringName] = [&"discard", &"removed", &"relic"]   # indexed by _pile_of().y
 ## Where a used card can be by the time its beat replays. A card that stays in play (an Ally, a
@@ -81,9 +83,8 @@ const HIT_FLOAT: Array[int] = [64, 80, 104]
 const LETHAL_HOLD: float = 0.6        # the wound that empties a Life Deck holds before anything moves on
 const GAME_OVER_HOLD: float = 1.0     # the table stays in view a moment before the result covers it
 const OVERFLOW_SLIDE: float = 0.4
-const LOBE_FADE: float = 0.6          # the active seat's light crossing the table at a turn change
 const FLAG_ROW_INSET: float = 0.3     # the chips start this far inside the first Ally slot's centre
-const FLAG_ROW_EDGE: float = 4.2      # and stop this far from the table's centre line, inside the mat
+const FLAG_ROW_EDGE: float = 2.5      # and stop this far from the duelist's centre line, at the row's end
 const FOCUS_FADE_TIME: float = 0.18   # a new rail card's fade-in; it never changes size
 const FILAMENT_HAND_ALPHA: float = 0.3
 const TABLE_CENTRE: Vector3 = Vector3(0, 0.02, 0)
@@ -102,7 +103,7 @@ const TABLE_CENTRE: Vector3 = Vector3(0, 0.02, 0)
 @onready var arena_veil: MeshInstance3D = $ArenaVeil
 @onready var presence: DuelPresence = $Presence
 @onready var phase_track: PhaseTrack = $PhaseTrack
-@onready var table_inlay: MeshInstance3D = $Table/Inlay
+@onready var turn_token: TurnToken = $TurnToken
 @onready var lead_in_overlay: LeadInOverlay = $LeadInOverlay
 
 var duel_host: DuelHost = null       # the rules, where they run here (hotseat, hosting)
@@ -211,8 +212,6 @@ var _arena_amount: float = 0.0       # how far the table is dimmed now (`_set_ar
 var _combat_opening: bool = false    # Combat was declared and its first exchange has not begun
 var _opening_attacker: int = -1      # who attacks first, when this update also opens the Combat
 var _opening_said: bool = false      # the Combat banner already named the first attacker
-var _lobe_side: float = 0.0          # which half of the mat is lit for the active seat (world z sign)
-var _lobe_fade: Tween = null
 var _arena_fade: Tween = null
 var _focus_fade: Tween = null
 var _focus_faded_uid: int = -1       # the rail card that last faded in, so it fades once
@@ -545,6 +544,7 @@ func _layout_fixtures() -> void:
 		var count: int = view.player(owner).life_deck.size()
 		fixture.life_transform = zones.global_transform * zones.slot(owner, &"life_deck", maxi(0, count - 1), count, viewer)
 		fixture.flag_row = _flag_row(owner)
+		fixture.plate_home = zones.to_global(zones.plate_point(owner))
 		fixture.anchor_to_card(card, camera)
 	if viewer >= 0 and near_duelist.visible:
 		near_duelist.readout.update_layout()
@@ -557,7 +557,7 @@ func _layout_fixtures() -> void:
 
 
 ## Where a seat's status chips are printed: along its Ally row, the row the fewest decks use, from
-## the inside edge of its first slot out to near the mat's edge. World points, inner end first.
+## the inside edge of its first slot out to the row's far end. World points, inner end first.
 func _flag_row(owner: int) -> PackedVector3Array:
 	var first: Vector3 = zones.slot(owner, &"ally", 0, 3, viewer).origin
 	var last: Vector3 = zones.slot(owner, &"ally", 2, 3, viewer).origin
@@ -1665,33 +1665,27 @@ func _mark_phase(phase_key: StringName) -> void:
 
 
 ## Everything that draws where the turn stands: the HUD, the phase track on the table, and the
-## light along the active seat's half of the mat. `live` is the beat's own stamp while replaying.
+## turn token on the owner's side of the centre line. `live` is the beat's own stamp while replaying.
 func _refresh_state(live: Dictionary = {}) -> void:
 	hud.refresh_state(view, viewer, live)
 	if phase_track == null:
 		return   # a scriptless probe of this view has no table
 	phase_track.refresh(view, live)
-	_light_active_lobe(-1 if view.is_over() else int(live.get("active", view.active)))
+	_place_turn_token(-1 if view.is_over() else int(live.get("active", view.active)))
 
 
-## The active seat's lobe lights; the light crosses the table when the turn changes.
-func _light_active_lobe(active: int) -> void:
+## The token rests on the turn owner's half, in their Mastery school's colour, and hops across
+## when the turn passes.
+func _place_turn_token(active: int) -> void:
 	var side: float = 0.0
+	var color: Color = ZenithTheme.ACCENT
 	if active >= 0:
 		var duelist: Vector3 = zones.to_global(zones.slot(active, &"duelist", 0, 1, viewer if viewer >= 0 else active).origin)
 		side = signf(duelist.z)
-	if is_equal_approx(side, _lobe_side):
-		return
-	_lobe_side = side
-	var mat: ShaderMaterial = table_inlay.material_override
-	if _lobe_fade != null and _lobe_fade.is_valid():
-		_lobe_fade.kill()
-	if _reduced_motion:
-		mat.set_shader_parameter("active_lobe", side)
-		return
-	var from: float = float(mat.get_shader_parameter("active_lobe")) if mat.get_shader_parameter("active_lobe") != null else 0.0
-	_lobe_fade = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_lobe_fade.tween_method(func(value: float) -> void: mat.set_shader_parameter("active_lobe", value), from, side, LOBE_FADE)
+		color = Palette.school_ui(view.player(active).style)
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	var viewer_sign: float = 1.0 if camera == null or camera.global_position.z >= 0.0 else -1.0
+	turn_token.show_turn(side, viewer_sign, color, _reduced_motion)
 
 
 ## The referee's own wording for a quiet event when it gave one, else the short form.
@@ -3328,7 +3322,8 @@ func _targets() -> Dictionary:
 			var seat_entry: Array = out[host.attached_to]
 			var base: Transform3D = seat_entry[0]
 			var tucked: Transform3D = Transform3D(base.basis.scaled(Vector3.ONE * ATTACH_SCALE), base.origin)
-			tucked.origin += base.basis * ATTACH_OFFSET
+			var outward: float = -1.0 if base.origin.z < 0.0 else 1.0
+			tucked.origin += Vector3(ATTACH_OFFSET.x, ATTACH_OFFSET.y, ATTACH_OFFSET.z * outward) * base.basis.get_scale().x
 			out[uid] = [tucked, true, bool(seat_entry[2])]
 	# A standing effect's source card is in the Removed pile; it is lifted out of that stack and
 	# stood beside its owner instead, so the passive has something on the table to hover.

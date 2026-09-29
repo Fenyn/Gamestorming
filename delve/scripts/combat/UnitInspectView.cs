@@ -31,6 +31,27 @@ public sealed record UnitInspectView
     public int Hp { get; init; }
     public int MaxHp { get; init; }
     public int Ac { get; init; }
+
+    /// <summary>Actions left this turn and the turn's total; both 0 hides the pips (creatures,
+    /// and heroes whose turn it is not).</summary>
+    public int ActionsRemaining { get; init; }
+    public int MaxActions { get; init; }
+
+    /// <summary>The hero's reaction, ready or spent; None for creatures.</summary>
+    public ReactionMark Reaction { get; init; } = ReactionMark.None;
+
+    /// <summary>Character or creature level; 0 when unknown.</summary>
+    public int Level { get; init; }
+
+    /// <summary>Class name for a hero ("Wizard"), empty for creatures.</summary>
+    public string ClassName { get; init; } = "";
+
+    /// <summary>Hero sheet id for the portrait, empty for creatures.</summary>
+    public string HeroId { get; init; } = "";
+
+    /// <summary>Enemy sprite folder for the portrait, empty for heroes. Set by the scene, which
+    /// resolves creature art.</summary>
+    public string SpriteFolder { get; init; } = "";
     public IReadOnlyList<string> Conditions { get; init; } = System.Array.Empty<string>();
 
     /// <summary>The AC line to draw: "AC 15", or "AC ?" while that species' AC is unrevealed.</summary>

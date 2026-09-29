@@ -10,7 +10,6 @@ namespace Delve.Combat;
 public partial class CombatScene
 {
     private HudRoot _tacticalHud = null!;
-    private SquadPanel _squad = null!;
     private DestinationPreview _destination = null!;
     private readonly Dictionary<int, UnitVisual3D> _tacticalUnits = new();
     private IReadOnlyList<UnitView> _tacticalOrder = System.Array.Empty<UnitView>();
@@ -19,14 +18,15 @@ public partial class CombatScene
     private PlayerTurnMode _stagedMode;
     private bool _tacticalFinished;
     private ICharacter[] _partyMembers = System.Array.Empty<ICharacter>();
-    private double _squadRefresh;
+    private double _turnRowRefresh;
+
+    /// <summary>Seconds between refreshes of the timeline rows' HP and conditions.</summary>
+    [Export] public double TurnRowRefreshSeconds { get; set; } = 0.1;
 
     private void BuildTacticalPresentation()
     {
         _tacticalHud = GetNode<HudRoot>("%HudRoot");
-        _squad = GetNode<SquadPanel>("%SquadPanel");
         _destination = GetNode<DestinationPreview>("%DestinationPreview");
-        _squad.FocusRequested += FocusPartyMember;
         BuildBand();
     }
 
@@ -43,22 +43,13 @@ public partial class CombatScene
         RefreshCard();
     }
 
-    private void RefreshSquad(double delta)
+    private void RefreshTurnRowsThrottled(double delta)
     {
         if (_session == null) return;
-        _squadRefresh -= delta;
-        if (_squadRefresh > 0) return;
-        _squadRefresh = 0.1;
-        _squad.Render(SquadViews());
+        _turnRowRefresh -= delta;
+        if (_turnRowRefresh > 0) return;
+        _turnRowRefresh = TurnRowRefreshSeconds;
         RefreshTurnRows();
-    }
-
-    private IEnumerable<SquadMemberView> SquadViews()
-    {
-        foreach (var member in _partyMembers)
-            yield return SquadMemberViews.From(member,
-                framed: member == _session.CurrentActor || member.UniqueId == _reactorId,
-                focused: _focusedMember == member.UniqueId);
     }
 
     private void ClearPartyFocus()
@@ -97,7 +88,7 @@ public partial class CombatScene
             _stagedMode = mode;
             _actionBar.SetStaged(true);
             _controller.TileHovered(tile);
-            if (mode != PlayerTurnMode.Idle && _session.CurrentActor is { } actor)
+            if (mode is not (PlayerTurnMode.Idle or PlayerTurnMode.Moving) && _session.CurrentActor is { } actor)
                 _cameraRig.FrameAction(Delve.Terrain.GridSpace.GridToWorld(actor.GridPosition, SurfaceHeights),
                     Delve.Terrain.GridSpace.GridToWorld(tile, SurfaceHeights));
             return;
@@ -135,7 +126,6 @@ public partial class CombatScene
         _delayPickIds.Clear();
         ClearBoardTargets();
         _partyMembers = System.Array.Empty<ICharacter>();
-        _squad.Setup(System.Array.Empty<SquadMemberView>());
         ClearBand();
     }
 }

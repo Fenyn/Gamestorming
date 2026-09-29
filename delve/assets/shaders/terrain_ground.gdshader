@@ -14,15 +14,18 @@ uniform vec2 board_inv_size = vec2(0.05, 0.05);
 // halo margin, so the atlas has to be sampled from there instead of from the world origin.
 uniform vec2 board_origin = vec2(0.0);
 
+#include "res://assets/shaders/look_halo.gdshaderinc"
+
 varying vec2 ground_uv;
+varying vec3 world_pos;
 
 void vertex() {
-    vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+    world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
     ground_uv = (world_pos.xz - board_origin) * board_inv_size;
 }
 
 void fragment() {
-    ALBEDO = texture(ground_texture, ground_uv).rgb;
+    ALBEDO = look_halo_apply(texture(ground_texture, ground_uv).rgb, world_pos);
     ROUGHNESS = 1.0;
     SPECULAR = 0.0;
 }

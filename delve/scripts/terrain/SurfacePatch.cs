@@ -5,7 +5,8 @@ using PF2e.Grid;
 namespace Delve.Terrain;
 
 /// <summary>Clips a rectangular overlay against the terrain diagonal so every emitted triangle
-/// lies on one ground face, including narrow strips crossing a non-planar tile.</summary>
+/// lies on one ground face, including narrow strips crossing a non-planar tile. UVs run 0..1
+/// across the rectangle, the same as a flat QuadMesh, so one marker shader serves both boards.</summary>
 internal static class SurfacePatch
 {
     internal static ArrayMesh Build(TileCornerHeights corners, float scale, float lift,
@@ -37,6 +38,8 @@ internal static class SurfacePatch
             return result;
         }
 
+        Vector2 Uv(Vector2 p) => new((p.X - u0) / (u1 - u0), (p.Y - v0) / (v1 - v0));
+
         Vector3 Point(Vector2 p) => new(p.X - 0.5f,
             corners.SampleSurfaceHeight(p.X, p.Y) * scale - center + lift, p.Y - 0.5f);
 
@@ -49,7 +52,7 @@ internal static class SurfacePatch
                 var c = Point(polygon[i + 1]);
                 if ((b - a).Cross(c - a).LengthSquared() < 1e-12f) continue;
                 TerrainGeometry.AddTriangle(buffer, null, a, c, b, Vector3.Up,
-                    polygon[0], polygon[i + 1], polygon[i]);
+                    Uv(polygon[0]), Uv(polygon[i + 1]), Uv(polygon[i]));
             }
         }
     }

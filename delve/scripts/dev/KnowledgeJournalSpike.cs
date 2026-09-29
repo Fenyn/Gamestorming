@@ -120,13 +120,21 @@ public partial class KnowledgeJournalSpike : SpikeBase
         CreatureKnowledgeLocator.Instance = journal;
         try
         {
-            var preview = new AttackPreviewData { HitChance = 65, CritChance = 10, TargetAC = ac, TargetCreatureId = Goblin, DamageFormula = "1d8+4" };
+            var preview = new AttackPreviewData { HitChance = 65, CritChance = 10, TargetAC = ac, TargetCreatureId = Goblin, DamageFormula = "1d8+4", TotalAttackBonus = 7 };
             var inspect = UnitInspectFactory.BuildInspectView(goblin);
             var forecast = ActionBarStateBuilder.BuildPreview(preview);
             Check($"before a reveal the inspect card masks AC and HP ('{inspect.AcText}', '{inspect.HpText}')",
                 inspect.AcText == "AC ?" && inspect.HpText == "?/?");
             Check($"before a reveal the forecast masks the odds ('{forecast.HitChanceText}', AC '{forecast.TargetAcText}')",
                 forecast.HitChanceText == "?%" && forecast.TargetAcText == "?");
+            string masked = string.Join(", ", forecast.Figures.Select(f => $"{f.Caption} {f.Value}"));
+            Check($"before a reveal the forecast figures lead with the attack total ({masked})",
+                masked == "Attack +7, AC ?, Damage 1d8+4");
+            var feint = TargetPreviewFactory.Ability(PresetCharacters.BuildFenwick(level: 2, teamId: 1), goblin,
+                new PF2e.Actions.SkillActions.FeintAction());
+            string feintFigures = feint == null ? "none" : string.Join(", ", feint.Figures.Select(f => $"{f.Caption} {f.Value}"));
+            Check($"a Feint forecast masks the target's Perception DC ({feintFigures})",
+                feint != null && feint.Figures.Any(f => f.Caption == "DC" && f.Value == "?") && !feintFigures.Contains('%'));
             Check("before a reveal the log masks the roll's AC",
                 !CombatLogBridge.ArmorClassKnown(goblin) && CombatRoll.MaskArmorClass($"d20(12)+10=22 vs AC {ac} → Success").Contains("vs AC ?"));
 

@@ -22,6 +22,14 @@ public partial class MoveBandOverlay3D : Node3D
     /// <summary>Alpha of the boundary strips (the band fill colour, lifted to this alpha).</summary>
     [Export(PropertyHint.Range, "0,1,0.05")] public float BandEdgeAlpha { get; set; } = 0.85f;
 
+    /// <summary>Glowing-rim shader for the band fills. Unset, fills are flat colour.</summary>
+    [Export] public Shader? TileShader { get; set; }
+
+    /// <summary>Rim alpha of the two-action and further band tiles.</summary>
+    [Export(PropertyHint.Range, "0,1,0.05")] public float OuterBandRimAlpha { get; set; } = 0f;
+
+    private const string RimAlphaUniform = "rim_alpha";
+
     private const float EdgeLift = 0.006f;
     private const float CursorLift = 0.012f;
 
@@ -32,9 +40,9 @@ public partial class MoveBandOverlay3D : Node3D
     private int _fillUsed;
     private int _edgeUsed;
 
-    private StandardMaterial3D _stepFill = null!;
+    private Material _stepFill = null!;
     private StandardMaterial3D _stepEdge = null!;
-    private readonly Dictionary<int, StandardMaterial3D> _strideFill = new();
+    private readonly Dictionary<int, Material> _strideFill = new();
     private readonly Dictionary<int, StandardMaterial3D> _strideEdge = new();
 
     private static readonly (int dx, int dy)[] Cardinals = { (1, 0), (-1, 0), (0, 1), (0, -1) };
@@ -42,7 +50,7 @@ public partial class MoveBandOverlay3D : Node3D
     public override void _Ready()
     {
         _meshes = new HighlightMeshes(BandEdgeWidth);
-        _stepFill = HighlightMeshes.FlatMaterial(UiColors.BoardStep);
+        _stepFill = HighlightMeshes.TileMaterial(TileShader, UiColors.BoardStep);
         _stepEdge = HighlightMeshes.FlatMaterial(UiColors.BoardStep with { A = BandEdgeAlpha });
 
         var cursorMat = HighlightMeshes.FlatMaterial(UiColors.BoardCursor);
@@ -96,12 +104,15 @@ public partial class MoveBandOverlay3D : Node3D
         }
     }
 
-    private StandardMaterial3D FillFor(MoveOption option)
+    private Material FillFor(MoveOption option)
     {
         if (option.Kind == MoveKind.Step) return _stepFill;
         if (!_strideFill.TryGetValue(option.Actions, out var mat))
         {
-            mat = HighlightMeshes.FlatMaterial(UiColors.BoardStride(option.Actions));
+            mat = HighlightMeshes.TileMaterial(TileShader, UiColors.BoardStride(option.Actions));
+            // Only the nearest band rims each tile; further bands rimmed tile by tile draw a lattice
+            // across the board, and the boundary strips already outline them.
+            if (option.Actions >= 2 && mat is ShaderMaterial glow) glow.SetShaderParameter(RimAlphaUniform, OuterBandRimAlpha);
             _strideFill[option.Actions] = mat;
         }
         return mat;

@@ -85,6 +85,10 @@ public abstract partial class SpikeBase : Node
         return new Scope(() => ReactionEvents.OnDamageReactionCheck -= handler);
     }
 
+    /// <summary>True while the combat HUD's bottom-right hints offer Cancel (every targeting mode).</summary>
+    protected static bool CancelHinted(Node combatScene) =>
+        System.Linq.Enumerable.Contains(combatScene.GetNode<Delve.UI.CommandPromptView>("%CommandPrompt").HintLabels, "Cancel");
+
     /// <summary>Save the viewport as a PNG. With hdr_2d on, the viewport texture holds linear
     /// values; the root window's UseHdr2D does not reflect the project setting, so read the setting.
     /// DELVE_SHOT_DIRECTORY, when set, replaces the directory of <paramref name="path"/>.

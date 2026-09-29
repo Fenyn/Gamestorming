@@ -38,6 +38,12 @@ public partial class DungeonRoomPrefab : Node3D
 
     [Export]
     public PackedScene PropScene { get; set; } = null!;
+
+    /// <summary>The glowing threshold tile in each open doorway (scenes/dungeon/door_marker.tscn).</summary>
+    [Export] public PackedScene DoorMarkerScene { get; set; } = null!;
+
+    /// <summary>Metres the threshold tile floats above the floor, clear of z-fighting.</summary>
+    [Export] public float DoorMarkerLift { get; set; } = 0.04f;
     [Export] public bool UsePurpose { get; set; }
     [Export] public RoomPurpose Purpose { get; set; }
     public RoomPurpose? PurposeOverride { get; set; }
@@ -126,7 +132,9 @@ public partial class DungeonRoomPrefab : Node3D
             frame.Box(new(-1.65f, 1, 0), new(0.3f, 2, 0.6f), PaletteTint("door_frame"));
             frame.Box(new(1.65f, 1, 0), new(0.3f, 2, 0.6f), PaletteTint("door_frame"));
             frame.Box(new(0, 2.1f, 0), new(3.6f, 0.25f, 0.6f), PaletteTint("door_frame"));
-            var marker = frame.Box(new(0, 0.035f, 0), new(3, 0.07f, 0.75f), UiColors.Accent, true);
+            var marker = DoorMarkerScene.Instantiate<MeshInstance3D>();
+            marker.Position = new Vector3(0, DoorMarkerLift, 0);
+            door.AddChild(marker);
             _doorMarkers[side] = marker;
             var leaf = frame.Box(new(0, 0.9f, 0), new(3, 1.8f, 0.18f), PaletteTint("door_leaf"), surface: "wood");
             DoorLeaves[side] = leaf;
@@ -153,6 +161,7 @@ public partial class DungeonRoomPrefab : Node3D
             if (p.Kind is "shrine" or "cache" or "collapse" or "camp" or "entrance")
                 _focals.Add(prop);
         }
+        AddLightPool();
     }
 
     public Vector3 DoorPosition(DoorSide side) => side switch
@@ -167,8 +176,6 @@ public partial class DungeonRoomPrefab : Node3D
 
     [Export] public double ResolvedLightSeconds { get; set; } = 0.6;
 
-    /// <summary>Emission of an unfocused door threshold. Low, so the pale-blue focused one stands out.</summary>
-    [Export] public float UnfocusedDoorGlow { get; set; } = 0.1f;
 
     /// <summary>Every lamp's position in room space, for effects that rise from the lamps.</summary>
     public IReadOnlyList<Vector3> LampPositions => _lamps.Select(l => ToLocal(l.GlobalPosition)).ToArray();
@@ -240,6 +247,11 @@ public partial class DungeonRoomPrefab : Node3D
         SetHoveredDoor(null);
     }
 
+    /// <summary>The hovered threshold reaches further into the room, like a lit path.</summary>
+    [Export] public float HoveredDoorDepthScale { get; set; } = 1.7f;
+
+    private const string TintUniform = "tint";
+
     public void SetHoveredDoor(DoorSide? hovered)
     {
         if (hovered == HoveredDoor && hovered != null) return;
@@ -247,12 +259,8 @@ public partial class DungeonRoomPrefab : Node3D
         foreach (var (side, marker) in _doorMarkers)
         {
             bool selected = hovered == side;
-            marker.Scale = new Vector3(1, 1, selected ? 1.7f : 1);
-            if (marker.MaterialOverride is StandardMaterial3D material)
-            {
-                material.AlbedoColor = material.Emission = selected ? UiColors.Focus : UiColors.Accent;
-                material.EmissionEnergyMultiplier = selected ? 1 : UnfocusedDoorGlow;
-            }
+            marker.Scale = new Vector3(1, 1, selected ? HoveredDoorDepthScale : 1);
+            (marker.GetSurfaceOverrideMaterial(0) as ShaderMaterial)?.SetShaderParameter(TintUniform, UiColors.BoardDoor(selected));
         }
     }
 

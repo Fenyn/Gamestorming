@@ -38,9 +38,9 @@ public partial class TacticalPresentationSpike : SpikeBase
         var origin = actor.GridPosition;
         int actions = actor.Actions!.TotalActionsRemaining;
         var rig = scene.GetNode<OrbitCameraRig>("%CameraRig");
-        var squad = scene.GetNode<SquadPanel>("%SquadPanel");
+        var timeline = scene.GetNode<TurnOrderBar>("%TurnOrderBar");
         var bar = scene.GetNode<ActionBar>("%ActionBar");
-        Check("four stable party cards", squad.GetNode<VBoxContainer>("%Members").GetChildCount() == 4);
+        Check("every party member has a timeline tile", setup.Party.All(p => timeline.Numbers.ContainsKey(p.Unit.UniqueId)));
         var pose = rig.Camera.Transform;
         rig.ToggleOverview();
         await Wait(0.4);
@@ -64,7 +64,9 @@ public partial class TacticalPresentationSpike : SpikeBase
         Check("portrait focus works after manual pan", rig.GlobalPosition.DistanceTo(
             Delve.Terrain.GridSpace.GridToWorld(other.GridPosition, Delve.Terrain.TerrainHeightMap.Flat)) < 1f);
         Check("inspection preserves actor and actions", session.CurrentActor == actor && actor.Actions.TotalActionsRemaining == actions);
-        Check("inspect card clears the party strip", !scene.GetNode<UnitInspectPanel>("%UnitInspect").GetGlobalRect().Intersects(squad.GetGlobalRect()));
+        Check("the unit card shows the focused member", scene.GetNode<UnitInspectPanel>("%UnitInspect").NameText == other.Name);
+        Check("the unit card clears the timeline",
+            !scene.GetNode<UnitInspectPanel>("%UnitInspect").GetGlobalRect().Intersects(timeline.Row.GetGlobalRect()));
         rig.FocusOnActive();
         await Wait(0.4);
         var plan = session.PlayerActions.GetMovePlan(actor);
@@ -77,6 +79,7 @@ public partial class TacticalPresentationSpike : SpikeBase
         Check("unreachable tile cannot be staged", !controller.CanStageOrder(new PF2eVec(-1, -1)));
 
         bar.GetNode<CheckBox>("%StageOrders").ButtonPressed = true;
+        controller.BeginMove();
         Click(scene, destination);
         Check("staging shows ghost and confirmation", scene.GetNode<DestinationPreview>("%DestinationPreview").Visible
             && bar.Decision.ConfirmOrderButton.Visible);
@@ -91,6 +94,8 @@ public partial class TacticalPresentationSpike : SpikeBase
             && !bar.Decision.ConfirmOrderButton.Visible);
         scene.ConfirmStagedOrder();
         Check("cancelled confirmation spends nothing", actor.GridPosition.Equals(origin) && actor.Actions.TotalActionsRemaining == actions);
+        Check("cancel leaves Move mode", controller.Mode == PlayerTurnMode.Idle);
+        controller.BeginMove();
         Click(scene, destination);
         var hud = scene.GetNode<HudRoot>("%HudRoot");
         hud.PushModal();
@@ -99,13 +104,15 @@ public partial class TacticalPresentationSpike : SpikeBase
         hud.PopModal();
         scene.ConfirmStagedOrder();
         scene.ConfirmStagedOrder();
+        Check("the command menu stays closed while the move plays out", controller.Busy && !bar.MenuShown);
         for (int i = 0; i < 30 && !controller.CanAcceptOrders; i++) await Wait(0.2);
+        Check("the command menu opens again when the move ends", !controller.Busy && bar.MenuShown);
         Check("confirmation moves once and spends one action", actor.GridPosition.Equals(destination)
             && actor.Actions.TotalActionsRemaining == actions - 1);
         rig.ToggleOverview();
         scene.EndHostedEncounter();
         Check("encounter teardown clears camera and cards", !rig.TacticalFraming
-            && squad.GetNode<VBoxContainer>("%Members").GetChildCount() == 0);
+            && !scene.GetNode<UnitInspectPanel>("%UnitInspect").Visible);
         await Wait(0.3);
         scene.QueueFree();
         await Wait(0.1);

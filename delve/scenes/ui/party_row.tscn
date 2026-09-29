@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+; The exploration party: face cards side by side along the bottom centre.
+
+[ext_resource type="Script" path="res://scripts/ui/SquadPanel.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/party_card.tscn" id="card"]
+
+[node name="PartyRow" type="HBoxContainer"]
+mouse_filter = 2
+alignment = 1
+script = ExtResource("script")
+CardScene = ExtResource("card")
+
+[node name="Members" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12

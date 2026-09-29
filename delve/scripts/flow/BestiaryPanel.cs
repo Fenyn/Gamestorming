@@ -29,7 +29,6 @@ public partial class BestiaryPanel : Control
     private JournalFactsGrid _facts = null!;
     private TextureRect _portrait = null!;
     private readonly List<Button> _buttons = new();
-    private readonly Dictionary<string, Texture2D?> _portraits = new();
     private IReadOnlyList<(string Id, string Name)> _species = Array.Empty<(string, string)>();
     private MonsterJournal? _journal;
     private Func<string, EnemyDefinition?> _lookup = _ => null;
@@ -154,14 +153,7 @@ public partial class BestiaryPanel : Control
     {
         var size = def?.StatBlock.CreatureSize ?? CreatureSize.Medium;
         string folder = EnemySpriteMap.FolderForCreature(name, size);
-        if (!_portraits.TryGetValue(folder, out var texture))
-        {
-            var sprite = ResourceLoader.Load<EnemySpriteDefinition>(EnemySpriteMap.DefinitionPath(folder));
-            var frames = sprite?.Frames;
-            texture = frames != null && frames.HasAnimation(sprite!.IdleAnimation) && frames.GetFrameCount(sprite.IdleAnimation) > 0
-                ? frames.GetFrameTexture(sprite.IdleAnimation, 0) : null;
-            _portraits[folder] = texture;
-        }
+        var texture = UnitPortraits.EnemyIdleFrame(folder);
         _portrait.Texture = texture;
         int scale = texture == null ? 1 : Math.Max(1, PortraitHeight / texture.GetHeight());
         _portrait.CustomMinimumSize = texture == null ? Vector2.Zero : texture.GetSize() * scale;

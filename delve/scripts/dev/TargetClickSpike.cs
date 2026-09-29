@@ -118,8 +118,8 @@ public partial class TargetClickSpike : SpikeBase
         Click(chip.GetGlobalRect().GetCenter());
         await Frames(2);
         Check($"[{tag}] chip click closes the flyout", !flyout.Visible);
-        Check($"[{tag}] chip click enters targeting with a cancel keycap (hint = '{hint.Text}')",
-            hint.Text == "Targets 0 / 2" && bar.Decision.CancelKeyVisible);
+        Check($"[{tag}] chip click enters targeting with a cancel hint (hint = '{hint.Text}')",
+            hint.Text == "Targets 0 / 2" && CancelHinted(scene));
 
         var unit = FindUnit(scene, goblin);
         Check($"[{tag}] goblin visual found", unit != null);

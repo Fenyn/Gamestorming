@@ -1,0 +1,55 @@
+[gd_scene load_steps=2 format=3]
+
+; FFT prompts: a rounded instruction pill at the top centre ("Select a tile to move.") and a row of
+; keycap hints along the bottom edge. Full-rect and click-through; CommandPromptView fills both.
+
+[ext_resource type="Script" path="res://scripts/ui/CommandPromptView.cs" id="1_view"]
+
+[node name="CommandPrompt" type="Control" node_paths=PackedStringArray("Pill", "Instruction", "Hints")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_view")
+Pill = NodePath("Pill")
+Instruction = NodePath("Pill/Instruction")
+Hints = NodePath("Hints")
+
+[node name="Pill" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_top = 40.0
+offset_right = 320.0
+offset_bottom = 100.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_type_variation = &"InstructionPill"
+
+[node name="Instruction" type="Label" parent="Pill"]
+layout_mode = 2
+theme_type_variation = &"PillLabel"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Hints" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -900.0
+offset_top = -44.0
+offset_right = -16.0
+offset_bottom = -12.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 2

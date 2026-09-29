@@ -50,7 +50,8 @@ public partial class CombatShotSpike
         CheckMarkerTokens(scene, dying, "cluster idle");
         var rail = scene.GetNode<TurnOrderBar>("%TurnOrderBar");
         var icons = Tokens(scene)[0].Dying.Icons;
-        var railIcons = rail.Row.GetChildren().SelectMany(row => row.GetNode("%Marks").GetChildren().OfType<TextureRect>()).Select(r => r.Texture).ToList();
+        var railIcons = rail.Row.GetChildren().Select(row => row.GetNodeOrNull("%Marks")).OfType<Node>()
+            .SelectMany(marks => marks.GetChildren().OfType<TextureRect>()).Select(r => r.Texture).ToList();
         Check("the rail shows Grabbed and Dying as baked 22 px tiles", new[] { "Grabbed", "Dying" }.All(key =>
             icons.Tile(key) is { } icon && railIcons.Contains(icon) && icon.GetWidth() == 22 && icon.GetHeight() == 22));
         var badgeIcon = icons.Find(nameof(Condition.Dying));
@@ -79,7 +80,8 @@ public partial class CombatShotSpike
         var dyingToken = Tokens(scene).First(t => t.Character == dying);
         var camera = scene.ActiveCamera;
         var pose = camera.GlobalTransform;
-        camera.GlobalPosition = dyingToken.GlobalPosition + new Vector3(2.4f, 2.6f, 2.4f);
+        // About 5 m across at the rig's narrow field of view: the dying hero, its neighbours and plates.
+        camera.GlobalPosition = dyingToken.GlobalPosition + new Vector3(7f, 7.5f, 7f);
         camera.LookAt(dyingToken.GlobalPosition + Vector3.Up * 0.8f);
         await WaitSeconds(PoseSeconds);
         CheckMarkerTokens(scene, dying, "dying close-up");
@@ -114,33 +116,25 @@ public partial class CombatShotSpike
         return null;
     }
 
-    /// <summary>A downed hero's chip reads "Dying N" with Dying as its first mark, and every hero's "+N"
-    /// matches its initiative row.</summary>
+    /// <summary>The timeline replaced the party column (FFT layout): a downed hero's tile leads its
+    /// marks with Dying, and every hero has a tile.</summary>
     private void CheckChipMatchesRail(CombatScene scene, TurnOrderBar rail, ICharacter dying)
     {
-        var chips = scene.GetNode<SquadPanel>("%SquadPanel").Chips;
-        var dyingChip = chips.FirstOrDefault(c => c.MemberId == dying.UniqueId);
-        int value = dying.Conditions.GetConditionValue(Condition.Dying);
-        Check($"the downed hero's chip reads 'Dying {value}' with Dying first ('{dyingChip?.HealthText}', first mark {dyingChip?.FirstMark})",
-            dyingChip?.HealthText == $"Dying {value}" && dyingChip.FirstMark == nameof(Condition.Dying));
-        var mismatches = new List<string>();
-        foreach (var hero in Session(scene).Team1)
-        {
-            var chip = chips.FirstOrDefault(c => c.MemberId == hero.UniqueId);
-            var row = rail.Row.GetChildren().OfType<Control>().FirstOrDefault(r => r.GetNode<Label>("%Label").Text == hero.Name);
-            string railOverflow = row?.GetNode("%Marks").GetChildren().OfType<Label>().Select(l => l.Text)
-                .FirstOrDefault(t => t.StartsWith('+')) ?? "";
-            if (chip == null || row == null || chip.OverflowText != railOverflow)
-                mismatches.Add($"{hero.Name} chip '{chip?.OverflowText}' rail '{railOverflow}'");
-        }
-        Check($"each hero's +N matches between chip and initiative row{(mismatches.Count > 0 ? $" ({string.Join("; ", mismatches)})" : "")}",
-            mismatches.Count == 0);
+        var icons = Tokens(scene)[0].Dying.Icons;
+        Control? TileFor(ICharacter hero) => rail.Row.GetChildren().OfType<Control>()
+            .FirstOrDefault(r => r.GetNodeOrNull<Label>("%Label")?.Text == hero.Name);
+        var dyingTile = TileFor(dying);
+        var firstMark = dyingTile?.GetNode("%Marks").GetChildren().OfType<TextureRect>().FirstOrDefault()?.Texture;
+        Check("the downed hero's timeline tile leads its marks with Dying",
+            firstMark != null && firstMark == icons.Tile(nameof(Condition.Dying)));
+        var missing = Session(scene).Team1.Where(hero => TileFor(hero) == null).Select(hero => hero.Name).ToList();
+        Check($"every hero has a timeline tile{(missing.Count > 0 ? $" (missing {string.Join(", ", missing)})" : "")}", missing.Count == 0);
     }
 
     private List<UnitVisual3D> Tokens(CombatScene scene)
         => scene.GetNode<Node3D>("%UnitLayer").GetChildren().OfType<UnitVisual3D>().ToList();
 
-    /// <summary>No token draws a condition icon except the Dying badge, which sits left of its HP bar
+    /// <summary>No token draws a condition icon except the Dying badge, which sits right of its HP bar
     /// and clear of every name plate.</summary>
     private void CheckMarkerTokens(CombatScene scene, ICharacter dying, string state)
     {
@@ -168,13 +162,13 @@ public partial class CombatShotSpike
             badged.Count == 1 && badged[0].Character == dying && badged[0].Dying.Value == value && value > 0);
         if (badged.Count != 1 || badged[0].Dying.ScreenRect(camera) is not { } badge) return;
         var bar = badged[0].GetNode<WorldHpBar>("%HpBar");
-        var edge = camera.UnprojectPosition(bar.GlobalPosition) - new Vector2(bar.ScreenWidth / 2, 0);
+        var edge = camera.UnprojectPosition(bar.GlobalPosition) + new Vector2(bar.ScreenWidth / 2, 0);
         float drawn = camera.UnprojectPosition(bar.GlobalTransform * new Vector3(bar.ScreenWidth / 2, 0, 0)).X
             - camera.UnprojectPosition(bar.GlobalTransform * new Vector3(-bar.ScreenWidth / 2, 0, 0)).X;
         Check($"{state}: the HP bar keeps its {bar.ScreenWidth:0}x{bar.ScreenHeight:0} px screen size ({drawn:0.0} px wide)",
             Mathf.Abs(drawn - bar.ScreenWidth) <= 1);
-        Check($"{state}: the Dying badge sits left of the HP bar ({badge} vs bar edge {edge})",
-            badge.End.X <= edge.X + 0.5f && badge.Position.Y <= edge.Y && badge.End.Y >= edge.Y);
+        Check($"{state}: the Dying badge sits right of the HP bar, clear of the timeline number ({badge} vs bar edge {edge})",
+            badge.Position.X >= edge.X - 0.5f && badge.Position.Y <= edge.Y && badge.End.Y >= edge.Y);
         CheckPlates(scene);
     }
 

@@ -100,12 +100,17 @@ public sealed class HighlightMeshes
         mi.Position = at with { Y = at.Y + lift };
     }
 
+    /// <summary>Render layer bit of every board marker ("Board markers" in project.godot). Kept off
+    /// the World layer so the units' blob-shadow decals never darken a marker.</summary>
+    public const uint MarkerLayer = 1u << 2;
+
     /// <summary>A hidden, shadowless marker ready for <see cref="Place"/>.</summary>
     public static MeshInstance3D NewMarker() => new()
     {
         RotationDegrees = new Vector3(-90f, 0f, 0f),
         Visible = false,
         CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+        Layers = MarkerLayer,
     };
 
     public static StandardMaterial3D FlatMaterial(Color color) => new()
@@ -115,6 +120,18 @@ public sealed class HighlightMeshes
         AlbedoColor = color,
         CullMode = BaseMaterial3D.CullModeEnum.Disabled,
     };
+
+    /// <summary>Material for a tile fill: the glowing rim shader when the overlay has one, else a
+    /// flat colour. Rims only make sense on fills, so strips and dots keep <see cref="FlatMaterial"/>.</summary>
+    public static Material TileMaterial(Shader? shader, Color color)
+    {
+        if (shader == null) return FlatMaterial(color);
+        var material = new ShaderMaterial { Shader = shader };
+        material.SetShaderParameter(TintUniform, color);
+        return material;
+    }
+
+    private const string TintUniform = "tint";
 
     /// <summary>A shape's rectangle in tile space: u along +X (west→east), v along +Z
     /// (south→north), both 0..1 across the tile. Strips sit inside the fill's inset edge.</summary>

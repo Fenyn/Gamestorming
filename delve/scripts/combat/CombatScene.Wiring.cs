@@ -32,7 +32,10 @@ public partial class CombatScene
         _controller.ModeChanged += _ => { ClearStagedOrder(); ClearPartyFocus(); };
         _controller.ActionCompleted += () => _cameraRig.RestorePlanningView();
         _controller.ModeChanged += mode => _actionBar.SetTargetingHint(
-            mode != PlayerTurnMode.Idle, mode == PlayerTurnMode.SelectingDelaySlot);
+            mode is not (PlayerTurnMode.Idle or PlayerTurnMode.Moving), mode == PlayerTurnMode.SelectingDelaySlot);
+        _controller.ModeChanged += _ => RefreshCommandPrompt();
+        _controller.ModeChanged += _ => RefreshMenuShown();
+        _controller.BusyChanged += _ => { RefreshMenuShown(); RefreshCommandPrompt(); };
         _controller.EndTurnRequested += () => _session.RequestEndPlayerTurn();
         _controller.DelayBlockedReason = character => _session.DelayBlockedReason(character);
         _controller.DelayAnchors = _ => _session.GetDelayAnchors();
@@ -50,6 +53,7 @@ public partial class CombatScene
         _actionBar.ConfirmOrderPressed += ConfirmStagedOrder;
         _actionBar.StagingChanged += () => ClearStagedOrder();
         _actionBar.OverviewPressed += () => { if (!_tacticalHud.ModalActive && !_tacticalFinished) _cameraRig.ToggleOverview(); };
+        _actionBar.MovePressed += () => _controller.BeginMove();
         _actionBar.StrikePressed += () => _controller.BeginStrike();
         _actionBar.RaiseShieldPressed += () => _controller.RaiseShield();
         _actionBar.EndTurnPressed += () => _controller.EndTurn();
@@ -107,6 +111,7 @@ public partial class CombatScene
         if (_stagedTile == null) _controller.TileHovered(pos);
         RefreshCard();
         RefreshPlates();
+        RefreshTileReadout(pos);
     }
 
     private void OnCancel() { ClearStagedOrder(); _controller.Cancel(); }

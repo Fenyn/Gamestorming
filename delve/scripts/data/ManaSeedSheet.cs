@@ -45,6 +45,12 @@ public static class ManaSeedSheet
     public const int PortraitWidth = 24;
     public const int PortraitHeight = 36;
 
+    // Face crop for timeline tiles and unit cards (FFT shows faces, not bodies): a square over the
+    // head and shoulders of the same stand frame.
+    public const int FaceX = 20;
+    public const int FaceY = 12;
+    public const int FaceSize = 22;
+
     /// <summary>Movement page: stand, walk, and the unwired push/pull/jump columns.</summary>
     public const string WalkPage = "p1";
 

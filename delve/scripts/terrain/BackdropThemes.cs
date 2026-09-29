@@ -28,8 +28,9 @@ public sealed record DecorSet
 }
 
 /// <summary>
-/// Everything <see cref="Backdrop"/> needs to dress the space AROUND one biome's battle map:
-/// sky gradient, fog, ambient and sun light, and which optional scenery elements to build. Engine-free
+/// Everything <see cref="Backdrop"/> needs to dress the space AROUND one biome's battle map: which
+/// optional scenery elements to build and how the halo grows. Sky, fog and light live in the
+/// biome's look scene (<c>scenes/looks/</c>), picked on <see cref="TerrainStage.Looks"/>. Engine-free
 /// by design, exactly like <see cref="MapThemeDefinition"/> — colours are plain sRGB
 /// <see cref="MapColor"/> values converted to <c>Godot.Color</c> only inside the backdrop node.
 ///
@@ -41,52 +42,6 @@ public sealed record BackdropThemeDefinition
 {
     /// <summary>Registry id of the biome this backdrop dresses ("forest", "sewer"), or "default".</summary>
     public required string BiomeId { get; init; }
-
-    // ── Sky (ProceduralSkyMaterial gradient) ──
-
-    /// <summary>Sky colour at the zenith.</summary>
-    public required MapColor SkyTop { get; init; }
-
-    /// <summary>Sky colour at the horizon line (also used for the ground side of the horizon, so the
-    /// horizon reads as one continuous haze band rather than a hard sky/ground seam).</summary>
-    public required MapColor SkyHorizon { get; init; }
-
-    /// <summary>Below-horizon colour at the nadir — what shows if the camera ever sees past the
-    /// backdrop's own ground plane.</summary>
-    public required MapColor SkyGround { get; init; }
-
-    // ── Fog (exponential depth fog) ──
-
-    /// <summary>Fog colour. Author close to <see cref="SkyHorizon"/> so distant scenery fades into the
-    /// sky instead of into a mismatched veil.</summary>
-    public required MapColor FogColor { get; init; }
-
-    /// <summary>Exponential fog density (per world metre). ~0.01 is a light haze on a 20 m board;
-    /// ~0.03 swallows everything past mid-distance.</summary>
-    public required float FogDensity { get; init; }
-
-    /// <summary>How much the fog dims the sky itself (0 = sky stays crisp, 1 = fog wall). High values
-    /// sell an enclosed space with no real sky.</summary>
-    public float FogSkyAffect { get; init; }
-
-    // ── Light ──
-
-    /// <summary>Flat ambient light colour (AmbientSource.Color, matching the scene baseline).</summary>
-    public required MapColor AmbientColor { get; init; }
-
-    public required float AmbientEnergy { get; init; }
-
-    /// <summary>Directional (sun) light colour.</summary>
-    public required MapColor SunColor { get; init; }
-
-    public required float SunEnergy { get; init; }
-
-    /// <summary>Sun elevation above the horizon, degrees (90 = straight down).</summary>
-    public required float SunElevationDegrees { get; init; }
-
-    /// <summary>Sun azimuth, degrees of yaw around world Y. 40/47 elevation matches the scene's
-    /// authored baseline light so the map's face shading stays familiar.</summary>
-    public required float SunAzimuthDegrees { get; init; }
 
     // ── Optional scenery flags ──
 
@@ -177,18 +132,6 @@ public static class BackdropThemes
     public static readonly BackdropThemeDefinition Default = new()
     {
         BiomeId = "default",
-        SkyTop = new(0.10f, 0.12f, 0.18f),
-        SkyHorizon = new(0.26f, 0.28f, 0.36f),
-        SkyGround = new(0.08f, 0.09f, 0.12f),
-        FogColor = new(0.22f, 0.24f, 0.30f),
-        FogDensity = 0.014f,
-        FogSkyAffect = 0.15f,
-        AmbientColor = new(0.62f, 0.64f, 0.72f),
-        AmbientEnergy = 1.0f,
-        SunColor = new(0.95f, 0.95f, 1.0f),
-        SunEnergy = 1.0f,
-        SunElevationDegrees = 47f,
-        SunAzimuthDegrees = 40f,
         HasGroundPlane = true,
         GroundPlaneColor = new(0.145f, 0.155f, 0.190f),
         Skirt = new SkirtStyle
@@ -208,24 +151,14 @@ public static class BackdropThemes
     public static readonly BackdropThemeDefinition Forest = new()
     {
         BiomeId = "forest",
-        SkyTop = new(0.055f, 0.095f, 0.10f),
-        SkyHorizon = new(0.18f, 0.25f, 0.24f),
-        SkyGround = new(0.07f, 0.11f, 0.09f),
-        FogColor = new(0.27f, 0.36f, 0.34f),
-        FogDensity = 0.007f,
-        FogSkyAffect = 0.2f,
-        AmbientColor = new(0.52f, 0.63f, 0.63f),
-        AmbientEnergy = 0.70f,
-        SunColor = new(0.87f, 0.91f, 0.79f),
-        SunEnergy = 0.75f,
-        SunElevationDegrees = 47f,
-        SunAzimuthDegrees = 40f,
         HasGroundPlane = true,
         GroundPlaneColor = Shade(MapThemes.Forest, SurfaceType.Grass, 0.38f),
         Particles = BackdropParticleKind.Motes,
         MoteColor = new(0.76f, 0.87f, 0.73f, 0.24f),
         MoteCount = 32,
-        OutskirtsMistOpacity = 0.50f,
+        // No mist shelves: the look scene's halo shading does the falloff, and the shelves cut
+        // the dark halo trees into slabs.
+        OutskirtsMistOpacity = 0f,
         OutskirtsMistColor = new(0.48f, 0.57f, 0.53f),
         Decor = ForestDecor,
         WallsAreTrees = true,
@@ -253,18 +186,6 @@ public static class BackdropThemes
     public static readonly BackdropThemeDefinition Sewer = new()
     {
         BiomeId = "sewer",
-        SkyTop = new(0.020f, 0.028f, 0.030f),
-        SkyHorizon = new(0.055f, 0.075f, 0.070f),
-        SkyGround = new(0.020f, 0.025f, 0.025f),
-        FogColor = new(0.085f, 0.115f, 0.105f),
-        FogDensity = 0.030f,
-        FogSkyAffect = 0.6f,
-        AmbientColor = new(0.42f, 0.48f, 0.48f),
-        AmbientEnergy = 0.85f,
-        SunColor = new(0.75f, 0.84f, 0.82f),
-        SunEnergy = 0.75f,
-        SunElevationDegrees = 62f,
-        SunAzimuthDegrees = 40f,
         HasGroundPlane = true,
         GroundPlaneColor = Shade(MapThemes.Sewer, SurfaceType.Stone, 0.91f),
         // No sky and no hills down here: the halo is solid masonry around a few outgoing tunnels.

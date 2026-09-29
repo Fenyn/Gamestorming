@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Delve.Combat;
 using Delve.Presets;
@@ -64,12 +65,22 @@ public partial class DelayTurnSpike
             delayBtn.Disabled && delayBtn.TooltipText.Contains(CombatSession.ResumedTurnReason));
     }
 
+    /// <summary>The timeline rows nearest turn first. The bar stacks bottom-up, FFT style, so the
+    /// child order runs the other way.</summary>
+    private static List<Control> Ordered(BoxContainer row)
+    {
+        var rows = new List<Control>();
+        foreach (var child in row.GetChildren())
+            if (child is Control control) rows.Add(control);
+        if (row.GetParent() is TurnOrderBar { BottomUp: true }) rows.Reverse();
+        return rows;
+    }
+
     private static bool AllAfterDivider(BoxContainer row)
     {
         bool passedDivider = false;
-        foreach (var child in row.GetChildren())
+        foreach (var chip in Ordered(row))
         {
-            if (child is not Control chip) continue;
             if (IsDivider(chip)) { passedDivider = true; continue; }
             if (chip.MouseFilter == Control.MouseFilterEnum.Stop && !passedDivider) return false;
         }
@@ -111,17 +122,16 @@ public partial class DelayTurnSpike
     private static List<Control> PickableChips(BoxContainer row)
     {
         var picks = new List<Control>();
-        foreach (var child in row.GetChildren())
-            if (child is Control chip && chip.MouseFilter == Control.MouseFilterEnum.Stop) picks.Add(chip);
+        foreach (var chip in Ordered(row))
+            if (chip.MouseFilter == Control.MouseFilterEnum.Stop) picks.Add(chip);
         return picks;
     }
 
     private static bool AllAfterActive(BoxContainer row)
     {
         bool passedActive = false;
-        foreach (var child in row.GetChildren())
+        foreach (var chip in Ordered(row))
         {
-            if (child is not Control chip) continue;
             if (IsActive(chip)) { passedActive = true; continue; }
             if (chip.MouseFilter == Control.MouseFilterEnum.Stop && !passedActive) return false;
         }
@@ -130,47 +140,39 @@ public partial class DelayTurnSpike
 
     private static string ChipName(Node chip) => chip.GetNode<Label>("%Label").Text;
 
-    private static bool IsActive(Control chip) => chip.ThemeTypeVariation == ThemeNames.TurnChipActive;
+    private static bool IsActive(Control chip) =>
+        (chip.GetNodeOrNull<Control>("%Frame") ?? chip).ThemeTypeVariation == ThemeNames.TurnChipActive;
 
     private static bool IsDivider(Node chip) => ChipName(chip).StartsWith("Round ");
 
     private static int ActiveIndex(BoxContainer row)
     {
-        for (int i = 0; i < row.GetChildCount(); i++)
-            if (row.GetChild(i) is Control chip && IsActive(chip)) return i;
+        var rows = Ordered(row);
+        for (int i = 0; i < rows.Count; i++)
+            if (IsActive(rows[i])) return i;
         return -1;
     }
+
+    private static string ChipNameAt(BoxContainer row, int index) => ChipName(Ordered(row)[index]);
 
     /// <summary>The combatant before <paramref name="index"/> in turn order: the strip starts at the
     /// actor, so the one before the first chip is the last chip.</summary>
     private static string PreviousChipName(BoxContainer row, int index)
     {
-        int count = row.GetChildCount();
+        var rows = Ordered(row);
+        int count = rows.Count;
         for (int step = 1; step < count; step++)
         {
-            var chip = row.GetChild(((index - step) % count + count) % count);
+            var chip = rows[((index - step) % count + count) % count];
             if (!IsDivider(chip)) return ChipName(chip);
         }
         return "";
     }
 
-    private static int ChipIndex(BoxContainer row, string name)
-    {
-        int i = 0;
-        foreach (var child in row.GetChildren())
-        {
-            if (ChipName(child) == name) return i;
-            i++;
-        }
-        return -1;
-    }
+    private static int ChipIndex(BoxContainer row, string name) =>
+        Ordered(row).FindIndex(chip => ChipName(chip) == name);
 
-    private static string ChipNames(BoxContainer row)
-    {
-        var names = new List<string>();
-        foreach (var child in row.GetChildren()) names.Add(ChipName(child));
-        return string.Join(" | ", names);
-    }
+    private static string ChipNames(BoxContainer row) => string.Join(" | ", Ordered(row).Select(ChipName));
 
     private void Click(Vector2 screen)
     {

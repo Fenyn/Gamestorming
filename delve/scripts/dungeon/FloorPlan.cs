@@ -139,20 +139,31 @@ public partial class FloorPlan : Control
     private Rect2 Cell(DungeonRoom room)
         => new(new Vector2(room.X * (CellSize.X + Gap), room.Y * (CellSize.Y + Gap)), CellSize);
 
+    /// <summary>Draw in dark ink for a parchment frame instead of the bone-on-slate HUD colours.</summary>
+    [Export] public bool OnParchment { get; set; }
+
+    private Color Strong => OnParchment ? UiColors.ParchmentInk : UiColors.Accent;
+    private Color Faint => OnParchment ? UiColors.ParchmentLine : UiColors.Line;
+    private Color CellFill => OnParchment ? UiColors.ParchmentCell : UiColors.Inset;
+    private Color CellHot => OnParchment ? UiColors.ParchmentCellHot : UiColors.Surface;
+    // The party's room wears the ward colour, the one hue on the parchment, so it reads at a glance.
+    private Color Current => OnParchment ? UiColors.Ward : UiColors.Focus;
+    private Color Dim => OnParchment ? UiColors.ParchmentDim : UiColors.TextDim;
+
     public override void _Draw()
     {
         if (_floor == null || _state == null) return;
         var shown = _floor.Rooms.Where(r => Shown(_floor, r)).ToHashSet();
         // Unseen rooms keep a faint slot, so the floor's size reads without its contents.
         foreach (var room in _floor.Rooms.Where(r => !shown.Contains(r)))
-            DrawCircle(Cell(room).GetCenter(), UnseenDotRadius, UiColors.Line);
+            DrawCircle(Cell(room).GetCenter(), UnseenDotRadius, Faint);
         foreach (var room in shown)
             foreach (var door in room.Doors.Where(d => d.A == room.Id))
             {
                 var other = _floor.Rooms[door.B];
                 if (!shown.Contains(other)) continue;
                 bool walked = room.Discovered && other.Discovered;
-                DrawLine(Cell(room).GetCenter(), Cell(other).GetCenter(), walked ? UiColors.Accent : UiColors.Line,
+                DrawLine(Cell(room).GetCenter(), Cell(other).GetCenter(), walked ? Strong : Faint,
                     walked ? WalkedLinkWidth : LinkWidth);
             }
         foreach (var room in shown)
@@ -160,10 +171,10 @@ public partial class FloorPlan : Control
             var cell = Cell(room);
             bool current = room.Id == _state.CurrentNodeId;
             bool focused = room.Id == _focusedRoom;
-            DrawRect(cell, focused ? UiColors.Surface : UiColors.Inset);
-            DrawRect(cell, current || focused ? UiColors.Focus : room.Discovered ? UiColors.Accent : UiColors.Line, false,
+            DrawRect(cell, current || focused ? CellHot : CellFill);
+            DrawRect(cell, current || focused ? Current : room.Discovered ? Strong : Faint, false,
                 current || focused ? CurrentFrameWidth : 1);
-            var tint = room.Discovered || room.Scouted ? UiColors.Accent : UiColors.TextDim;
+            var tint = room.Discovered || room.Scouted ? Strong : Dim;
             if (room.Completed && !current) tint = tint with { A = ClearedAlpha };
             var icon = new Rect2(cell.GetCenter() - Vector2.One * IconSize / 2, Vector2.One * IconSize);
             DrawTextureRect(Icon(IconKey(_floor, _state, room)), icon, false, tint);

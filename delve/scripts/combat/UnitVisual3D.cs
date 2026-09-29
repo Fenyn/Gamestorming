@@ -70,6 +70,9 @@ public partial class UnitVisual3D : Node3D
     private Vector3 _spriteRest;
     private Tween? _modulateTween;
 
+    /// <summary>The sprite's resting modulate: the active look's sprite tint.</summary>
+    private Color _restTint = Colors.White;
+
     /// <summary>See <see cref="BillboardSpriteAnimator.SwingImpactDelay"/>.</summary>
     public static float SwingImpactDelay => BillboardSpriteAnimator.SwingImpactDelay;
 
@@ -97,7 +100,7 @@ public partial class UnitVisual3D : Node3D
         if (_sprite == null) return;
         _sprite.SetMoving(moving);
         // A tile-conforming footprint belongs to discrete occupied squares, not the sliding pose.
-        _ring.Visible = !moving;
+        _ring.Visible = !moving && !_ringHidden;
     }
 
     /// <summary>Pop the ring and start its breath while this unit has the turn.</summary>
@@ -106,6 +109,7 @@ public partial class UnitVisual3D : Node3D
     {
         _active = active;
         _ring.SetActive(active);
+        ShowCrystal(active);
         RefreshSelection();
     }
     public void SetFocused(bool focused) { _focused = focused; RefreshSelection(); }
@@ -160,11 +164,14 @@ public partial class UnitVisual3D : Node3D
         _ring.SetTeamColor(_character.TeamId == 1 ? UiColors.Ally : UiColors.Enemy);
         _ring.SetFootprint(_character.TileWidth);
         ConfigureSprite();
+        _restTint = Delve.Look.LookScene.ActiveSpriteTint;
+        _sprite.Modulate = _restTint;
+        ConfigureMarkers();
         // The column reaches the HP bar: the one size cue that already separates a hero from a rat.
         _pick.Configure(_character.TileWidth, _hpBarY);
         _pick.Sprite = _sprite;
         _pick.GridTile = () => _character.GridPosition;
-        _hpBar.Position = new Vector3(0f, _hpBarY, 0f);
+        _hpBar.Position = new Vector3(0f, _hpBarY + BoardPlateLift, 0f);
         _plate.Configure(_character.Name, _letter, UiColors.Enemy, TeamRing.RadiusPerTile * _character.TileWidth);
         _plate.Position = new Vector3(0f, _hpBarY, 0f);
         // Snap at spawn: the bar has no previous value to travel from, and a fight that opens with
@@ -172,7 +179,7 @@ public partial class UnitVisual3D : Node3D
         UpdateHealthBar(instant: true);
         _character.Health.OnHealthChanged += OnLiveHealthChanged;
         _dying.Configure(_character, _hpBar.ScreenWidth);
-        _dying.Position = new Vector3(0, _hpBarY, 0);
+        _dying.Position = new Vector3(0, _hpBarY + BoardPlateLift, 0);
         _sprite.ApplyFacing();
     }
 
@@ -215,103 +222,5 @@ public partial class UnitVisual3D : Node3D
         _hpBar.SetRatio(max > 0 ? (float)_character.Health.CurrentHP / max : 0f, instant);
     }
 
-    public void FlashHit() => FlashModulate(new Color(1.6f, 0.6f, 0.6f), 0.05f, 0.18f);
-
-    public void FlashShield() => FlashModulate(new Color(0.7f, 0.85f, 1.4f), 0.1f, 0.25f);
-
-    /// <summary>Tint %Sprite and return it to white, through the single modulate handle. Dead units
-    /// are immune, because the <see cref="PlayDeath"/> corpse tint is final.</summary>
-    private void FlashModulate(Color tint, float inDuration, float outDuration)
-    {
-        if (_dead) return;
-        _modulateTween?.Kill();
-        _sprite.Modulate = Colors.White;
-        _modulateTween = CreateTween();
-        _modulateTween.TweenProperty(_sprite, "modulate", tint, inDuration);
-        _modulateTween.TweenProperty(_sprite, "modulate", Colors.White, outDuration);
-    }
-
-    /// <summary>Commit-forward lunge on the token ROOT. <paramref name="distance"/> and the timings
-    /// are caller-set, so a hero, whose swing art already carries the strike, can lean a short way over
-    /// the length of the wind-up instead of hopping the way an art-less enemy does.</summary>
-    public void FlashAttack(float distance = 0.2f, float outDuration = 0.05f, float backDuration = 0.08f)
-    {
-        // Rest is the position the LAST lunge started from, not wherever the token is now: a second
-        // strike in the same turn would otherwise adopt a mid-lunge position as home and creep.
-        if (_lungeTween != null && _lungeTween.IsValid())
-        {
-            _lungeTween.Kill();
-            Position = _lungeRest;
-        }
-        _lungeTween = null;
-
-        var lunge = new Vector3(_facing.X, 0f, _facing.Y);
-        if (lunge.LengthSquared() > 0.0001f) lunge = lunge.Normalized() * distance;
-        _lungeRest = Position;
-        _lungeTween = CreateTween();
-        _lungeTween.TweenProperty(this, "position", _lungeRest + lunge, outDuration)
-            .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.Out);
-        _lungeTween.TweenProperty(this, "position", _lungeRest, backDuration)
-            .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
-    }
-
-    /// <summary>Small lateral jitter on %Sprite for a landed hit, layered under
-    /// <see cref="FlashHit"/>. Skipped on a kill — <see cref="PlayDeath"/> owns that beat.</summary>
-    public void PlayHurtShake()
-    {
-        if (_dead) return;
-        RestartSpriteMove();
-        const float amp = 0.05f;
-        _spriteMoveTween!.TweenProperty(_sprite, "position", _spriteRest + new Vector3(amp, 0f, 0f), 0.05f);
-        _spriteMoveTween.TweenProperty(_sprite, "position", _spriteRest + new Vector3(-amp * 0.8f, 0f, 0f), 0.05f);
-        _spriteMoveTween.TweenProperty(_sprite, "position", _spriteRest, 0.05f);
-    }
-
-    /// <summary>Duck away from a whiffed attack: %Sprite leans out along the horizontal direction of
-    /// <paramref name="awayDir"/> and springs back. World-space rather than sprite-local, so the duck
-    /// reads as "away from the attacker" from any camera angle.</summary>
-    public void PlayDodgeLean(Vector3 awayDir)
-    {
-        if (_dead) return;
-        var lean = new Vector3(awayDir.X, 0f, awayDir.Z);
-        lean = lean.LengthSquared() > 0.0001f ? lean.Normalized() * 0.12f : new Vector3(0.12f, 0f, 0f);
-
-        RestartSpriteMove();
-        _spriteMoveTween!.TweenProperty(_sprite, "position", _spriteRest + lean, 0.07f)
-            .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.Out);
-        _spriteMoveTween.TweenProperty(_sprite, "position", _spriteRest, 0.11f)
-            .SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
-    }
-
-    /// <summary>Kill whatever is moving %Sprite, snap back to the configured rest offset, and open a
-    /// fresh handle — so a flurry jitters in place instead of stacking offsets.</summary>
-    private void RestartSpriteMove()
-    {
-        _spriteMoveTween?.Kill();
-        _sprite.Position = _spriteRest;
-        _spriteMoveTween = CreateTween();
-    }
-
     public void DisablePicking() => _pick.SetPickable(false);
-
-    public void PlayDeath()
-    {
-        _dead = true;
-        _hpBar.Visible = false;
-        _dying.ProcessMode = ProcessModeEnum.Disabled;
-        _dying.Hide();
-        _plate.Retire();
-        _sprite.Frozen = true;
-        // The corpse tint is final, so it takes the modulate handle over from any flash still running
-        // (a killing blow FlashHit is always in flight when this lands) and _dead locks out the next.
-        _modulateTween?.Kill();
-        _spriteMoveTween?.Kill();
-        _spriteMoveTween = null;
-        _sprite.Position = _spriteRest;
-
-        _modulateTween = CreateTween();
-        _modulateTween.TweenProperty(_sprite, "modulate", new Color(0.4f, 0.4f, 0.4f, 0.25f), DeathFadeDuration);
-        _ring.FadeOut(DeathRingFadeDuration);
-        _pick.SetPickable(false);
-    }
 }

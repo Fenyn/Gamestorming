@@ -7,19 +7,25 @@ using Godot;
 
 namespace Delve.Dev;
 
-/// <summary>Layout budget for the v3c combat HUD: zone boxes, their share of the 1920x1080 frame,
-/// and the board area every zone must leave clear.</summary>
+/// <summary>Layout budget for the FFT combat HUD (2026-09-28): the timeline down the left edge,
+/// the unit card bottom left, the command menu on the right, the defender card bottom right and
+/// the forecast bottom centre. Zone boxes, their share of the 1920x1080 frame, and the board area
+/// every zone must leave clear.</summary>
 public partial class CombatShotSpike
 {
-    [Export(PropertyHint.Range, "0,100,0.5")] public float IdleBudgetPercent { get; set; } = 18f;
-    [Export(PropertyHint.Range, "0,100,0.5")] public float EnemyBudgetPercent { get; set; } = 20.5f;
+    [Export(PropertyHint.Range, "0,100,0.5")] public float IdleBudgetPercent { get; set; } = 24f;
+    [Export(PropertyHint.Range, "0,100,0.5")] public float EnemyBudgetPercent { get; set; } = 26f;
     /// <summary>Cap for the transient H1 hero roll over a player-turn frame with an opened log row.
     /// It lasts about a second.</summary>
-    [Export(PropertyHint.Range, "0,100,0.5")] public float HeroTransientBudgetPercent { get; set; } = 27f;
-    [Export] public Rect2 IdleClearBox { get; set; } = new(320, 16, 1200, 904);
-    [Export] public Rect2 RollClearBox { get; set; } = new(320, 16, 1200, 836);
+    [Export(PropertyHint.Range, "0,100,0.5")] public float HeroTransientBudgetPercent { get; set; } = 32f;
+    [Export] public Rect2 IdleClearBox { get; set; } = new(232, 16, 1256, 880);
+    [Export] public Rect2 RollClearBox { get; set; } = new(232, 16, 1256, 840);
 
     private static readonly Rect2 Canvas = new(0, 0, 1920, 1080);
+
+    /// <summary>The FFT command menu and what opens from it float beside the active unit, over
+    /// the board, so the clear-box and overlap rules skip them.</summary>
+    private static readonly HashSet<string> FloatingZones = new() { "action bar", "signature row", "flyout", "control options" };
 
     private static List<(string Name, Rect2 Rect)> HudZones(CombatScene scene)
     {
@@ -30,7 +36,6 @@ public partial class CombatShotSpike
             if (control.IsVisibleInTree() && control.Size.X > 0 && control.Size.Y > 0)
                 zones.Add((name, control.GetGlobalRect()));
         }
-        Add("party column", scene.GetNode<Control>("%SquadPanel"));
         Add("card slot", scene.GetNode<Control>("%UnitInspect"));
         Add("initiative", scene.GetNode<TurnOrderBar>("%TurnOrderBar").Row);
         Add("log", scene.GetNode<CombatLogPanel>("%CombatLog").GetNode<Control>("%Shell"));
@@ -62,7 +67,8 @@ public partial class CombatShotSpike
         {
             if (!Canvas.Encloses(zones[i].Rect)) clashes.Add($"{zones[i].Name} leaves the canvas {zones[i].Rect}");
             for (int j = i + 1; j < zones.Count; j++)
-                if (zones[i].Rect.Intersects(zones[j].Rect))
+                if (zones[i].Rect.Intersects(zones[j].Rect)
+                    && FloatingZones.Contains(zones[i].Name) == FloatingZones.Contains(zones[j].Name))
                     clashes.Add($"{zones[i].Name} {zones[i].Rect} overlaps {zones[j].Name} {zones[j].Rect}");
         }
         Check($"{shot}: {zones.Count} HUD zones keep apart at 1920x1080 ({string.Join("; ", clashes)})", clashes.Count == 0);
@@ -81,7 +87,8 @@ public partial class CombatShotSpike
         if (maxPercent > 0)
             Check($"{state}: HUD covers {percent:0.0}% of the frame (budget {maxPercent}%)", percent <= maxPercent);
         if (clearBox is not { } clear) return;
-        var intruders = zones.Where(z => z.Rect.Intersects(clear)).Select(z => $"{z.Name} {z.Rect}").ToList();
+        var intruders = zones.Where(z => !FloatingZones.Contains(z.Name) && z.Rect.Intersects(clear))
+            .Select(z => $"{z.Name} {z.Rect}").ToList();
         Check($"{state}: no HUD zone enters the clear board box {clear} ({string.Join("; ", intruders)})", intruders.Count == 0);
     }
 

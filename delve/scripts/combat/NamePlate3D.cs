@@ -73,6 +73,17 @@ public partial class NamePlate3D : Node3D
         return new Rect2(centre - size / 2, size);
     }
 
+    public float Nudge => _nudge;
+
+    /// <summary>Screen rectangle the plate would take at <paramref name="nudge"/>, without moving
+    /// it: the nudge only shifts the label along its lane (up for Head and Crown, down for Foot).</summary>
+    public Rect2 PlateRect(Camera3D camera, float nudge)
+    {
+        var rect = PlateRect(camera);
+        float down = _lane == PlateLane.Foot ? 1f : -1f;
+        return rect with { Position = rect.Position + new Vector2(0, down * (nudge - _nudge)) };
+    }
+
     /// <summary>A dead unit's labels never return.</summary>
     public void Retire()
     {

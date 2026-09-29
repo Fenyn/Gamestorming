@@ -53,9 +53,13 @@ public partial class ReactionPromptSpike : SpikeBase
             });
             Check($"(4) title and accept label ('{view.Title}', '{view.AcceptLabel}')",
                 view.Title == "Reactive Strike?" && view.AcceptLabel == "Strike");
-            Check($"(4) figures read Hit and Damage ({string.Join(", ", view.Figures)})",
-                view.Figures.Count == 2 && view.Figures[0].Caption == "Hit" && view.Figures[0].Value.EndsWith("%")
+            Check($"(4) figures read Hit (or Attack while AC is masked) and Damage ({string.Join(", ", view.Figures)})",
+                view.Figures.Count == 2
+                && (view.Figures[0].Caption == "Hit" && view.Figures[0].Value.EndsWith("%")
+                    || view.Figures[0].Caption == "Attack" && view.Figures[0].Value.Length > 1)
                 && view.Figures[1].Caption == "Damage" && view.Figures[1].Value.Length > 0 && !view.Figures[0].IsChange);
+            Check($"(4) the trigger line names the mover and the reactor ('{view.Trigger}')",
+                view.Trigger == $"{goblin.Name} leaves {vet.Name}'s reach.");
             Check("(4) the hover sentence names the mover without a gendered pronoun",
                 view.Description.Contains(goblin.Name) && !System.Text.RegularExpressions.Regex.IsMatch(view.Description, @"\b(he|she|his|her|him)\b"));
         }

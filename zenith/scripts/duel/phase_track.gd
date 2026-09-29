@@ -1,7 +1,7 @@
 class_name PhaseTrack
 extends Node3D
-## The turn printed on the table as a row of icons along the waist: the turn's opening steps in
-## the left notch, Combat's five across the ring, the closing steps in the right notch. The step
+## The turn printed on the table as a row of icons along the centre line, right of the fighters:
+## the turn's opening steps, Combat's five, then the closing steps, in three groups. The step
 ## the beat stands on is lit, the ones behind it are dimmed, the ones ahead are faint. It reads the
 ## same per-beat `live` stamp as everything else a replay draws.
 

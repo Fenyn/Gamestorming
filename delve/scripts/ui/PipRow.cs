@@ -14,15 +14,23 @@ public partial class PipRow : HBoxContainer
     /// <summary>Square pip side length in px (14 on the action bar, 8 on chips).</summary>
     [Export] public Vector2 PipSize { get; set; } = new(14, 14);
 
+    /// <summary>Pip styles for a row on a light surface (the parchment command menu); empty keeps
+    /// the default dark-HUD styles.</summary>
+    [Export] public StringName FilledVariation { get; set; } = "";
+    [Export] public StringName SpentVariation { get; set; } = "";
+
+    private string Filled => FilledVariation.IsEmpty ? ThemeNames.PipFilled : FilledVariation.ToString();
+    private string Spent => SpentVariation.IsEmpty ? ThemeNames.PipSpent : SpentVariation.ToString();
+
     /// <summary>Action-economy readout: <paramref name="max"/> pips, the first
     /// <paramref name="remaining"/> filled, the rest spent.</summary>
     public void SetActionEconomy(int remaining, int max)
-        => Rebuild(max, i => i < remaining ? ThemeNames.PipFilled : ThemeNames.PipSpent);
+        => Rebuild(max, i => i < remaining ? Filled : Spent);
 
     /// <summary>Cost readout: <paramref name="count"/> pips, filled when the owning control is
     /// enabled, dimmed otherwise.</summary>
     public void SetCost(int count, bool enabled)
-        => Rebuild(count, _ => enabled ? ThemeNames.PipFilled : ThemeNames.PipDisabled);
+        => Rebuild(count, _ => enabled ? Filled : ThemeNames.PipDisabled);
 
     /// <summary>Reuse existing pip Panels and add/remove to match the requested count — never
     /// QueueFree-and-readd, which would double the row for a frame on same-frame re-renders.</summary>

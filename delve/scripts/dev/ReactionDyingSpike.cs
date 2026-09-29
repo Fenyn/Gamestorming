@@ -338,6 +338,7 @@ public partial class ReactionDyingSpike : SpikeBase
                 controller = new PlayerTurnController(exec);
                 controller.EndTurnRequested += () => turnEnded.TrySetResult();
                 controller.BeginTurn(mover);
+                controller.BeginMove();
                 controller.TileClicked(new PF2eVec(10, 5));
                 action = turnEnded.Task;
             }

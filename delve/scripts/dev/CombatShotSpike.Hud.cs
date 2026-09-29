@@ -41,20 +41,23 @@ public partial class CombatShotSpike
         bar._UnhandledInput(new InputEventAction { Action = InputNames.UiCancel, Pressed = true });
         Check("Escape closes preferences", !options.Visible && !controls.ButtonPressed);
 
-        var inspect = scene.GetNode<UnitInspectPanel>("%UnitInspect");
+        var inspect = scene.GetNode<UnitInspectPanel>("%TargetCard");
         inspect.Render(new UnitInspectView
         {
             Name = "Goblin Warrior E", Letter = "E", BaseName = "Goblin Warrior", IsAlly = false, Hp = 14, MaxHp = 20,
             AcText = "AC ?", HpText = "?/?",
+            SpriteFolder = Delve.Data.EnemySpriteMap.FolderForCreature("Goblin Warrior", PF2e.Data.CreatureSize.Small),
             Conditions = new[] { "Frightened 2", "Off-guard", "Shield Raised" },
         });
+        // Live targeting closes the command menu, so the capture does too.
+        bar.SetMenuShown(false);
         bar.SetTargetingHint(true);
         bar.ShowAttackPreview(new AttackPreviewView
         {
             AttackerName = "Fenwick", TargetName = "Goblin Warrior E", WeaponName = "Crossbow",
             TotalAttackBonus = 3, TargetAcText = "?", HitChanceText = "?%",
             CritChanceText = "?%", DamageFormula = "1d8 piercing",
-            Figures = new FigureView[] { new("Hit", "?%"), new("Crit", "?%"), new("Damage", "1d8 piercing") },
+            Figures = new FigureView[] { new("Attack", "+3"), new("AC", "?"), new("Damage", "1d8 piercing") },
             Modifiers = new ModifierChip[] { new("MAP", -5), new("Off-guard (Prone)", 2, "Prone"), new("Frightened 1", -1, "Frightened") },
         });
         await WaitSeconds(PoseSeconds);
@@ -64,7 +67,7 @@ public partial class CombatShotSpike
         Check("inspect and attack forecast have separate space", !inspect.GetGlobalRect().Intersects(card.GetGlobalRect()));
         var figures = bar.Decision.FigureLabels;
         Check($"forecast draws labelled figures ({string.Join(", ", figures.Select(f => $"{f.CaptionText} {f.ValueText}"))})",
-            figures.Count == 3 && figures[0].CaptionText == "Hit" && figures[0].ValueText == "?%");
+            figures.Count == 3 && figures[0].CaptionText == "Attack" && figures[1].ValueText == "?");
         Check("forecast keeps the sentences on its hover", card.TooltipText.Contains("?% hit"));
         Check($"forecast draws the modifier line in order ({string.Join(", ", bar.Decision.ModifierTexts)})",
             bar.Decision.ModifierTexts.SequenceEqual(new[] { "MAP -5", "Off-guard (Prone) +2", "Frightened 1 -1" }));
@@ -72,9 +75,9 @@ public partial class CombatShotSpike
         var nameLabel = inspect.GetNode<Label>("%NameLabel");
         float nameWidth = nameLabel.GetThemeFont("font").GetStringSize(nameLabel.Text, HorizontalAlignment.Left, -1,
             nameLabel.GetThemeFontSize("font_size")).X;
-        Check($"the card slot hides unknown HP and AC, fits the base name beside the badge and stays 288x72 ('{inspect.NameText}' {nameWidth:0}/{nameLabel.Size.X:0}; {slot.Size})",
+        Check($"the unit card hides unknown HP and AC, fits the base name beside the badge and stays 520 wide and under 160 tall ('{inspect.NameText}' {nameWidth:0}/{nameLabel.Size.X:0}; {slot.Size})",
             !inspect.HpShown && !inspect.AcShown && inspect.NameText == "Goblin Warrior" && nameWidth <= nameLabel.Size.X + 1
-            && Mathf.Abs(slot.Size.X - 288) <= 1 && slot.Size.Y <= 72.5f);
+            && Mathf.Abs(slot.Size.X - 520) <= 1 && slot.Size.Y <= 160f);
         Check("inspect carries the enemy letter", inspect.GetNode<Label>("%BadgeLabel").Text == "E"
             && inspect.GetNode<Control>("%Badge").Visible);
         AssertZones(scene, "combat_target_preview.png");
@@ -94,5 +97,6 @@ public partial class CombatShotSpike
         inspect.Render(null);
         bar.ShowAttackPreview(null);
         bar.SetTargetingHint(false);
+        bar.SetMenuShown(true);
     }
 }

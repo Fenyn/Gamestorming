@@ -8,7 +8,8 @@ extends Node3D
 const DIR: String = "res://assets/courtyard"
 ## Where the duel table's top sits, and its footprint.
 const TABLE_TOP: float = 0.0
-const TABLE_SIZE: Vector2 = Vector2(10.4, 7.4)
+const TABLE_SIZE: Vector2 = Vector2(13.0, 8.2)
+const TABLE_TINT: Color = Color(0.55, 0.52, 0.48)
 ## The yard's floor, a step below the dais.
 const YARD_Y: float = -0.62
 ## Light shafts: pale warm daylight, faint.
@@ -74,11 +75,10 @@ func apply_environment(env: Environment, sun: DirectionalLight3D) -> void:
 		sun.rotation_degrees = Vector3(-52.0, 32.0, 0.0)
 
 
-## The stone table under the playmat, top and sides: large grey slabs, wrapped so the rim shows
-## the same stone as the border around the mat.
+## The stone dais the board is printed on, top and sides: large grey slabs.
 static func table_material() -> StandardMaterial3D:
 	var m: StandardMaterial3D = stone_material("dais", Vector3.ONE * 0.25, true)
-	m.albedo_color = Color(0.55, 0.52, 0.48)
+	m.albedo_color = TABLE_TINT
 	return m
 
 

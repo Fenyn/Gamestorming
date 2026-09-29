@@ -35,19 +35,22 @@ public partial class DungeonHud : Control
     private Label _roomCardTitle = null!, _roomCardDetail = null!;
     private Tween? _wardTween, _cardTween;
     private int _shownWard = -1;
-    private Label _status = null!, _notice = null!;
+    private Label _notice = null!;
     private Control _expedition = null!;
     private Label _wardValue = null!, _wardDanger = null!, _roomProgress = null!;
-    private ProgressBar _wardBar = null!, _roomsBar = null!;
+    private ProgressBar _wardBar = null!;
     private StyleBoxFlat _wardFill = null!;
     private LineEdit _seed = null!;
     private HBoxContainer _sizes = null!;
-    private Button _rest = null!, _camp = null!, _potion = null!, _stairs = null!, _layout = null!, _entry = null!;
+    private CaptionButton _rest = null!, _camp = null!, _potion = null!, _stairs = null!;
+    private Button _layout = null!, _entry = null!;
     private DungeonFloor? _floor;
     private RunState? _state;
     private FloorPlan _floorPlan = null!;
     private Control _plan = null!;
     private Label _planTitle = null!, _planGoal = null!;
+    private Control _partyMenu = null!;
+    private Label _travelHint = null!;
 
     /// <summary>The floor's objective as the party knows it: find the chamber, beat its guardian, descend.</summary>
     public static string Goal(DungeonFloor floor)
@@ -59,14 +62,12 @@ public partial class DungeonHud : Control
     }
     public override void _Ready()
     {
-        _status = GetNode<Label>("%Status");
         _notice = GetNode<Label>("%Notice");
         _expedition = GetNode<Control>("%Expedition");
         _wardValue = GetNode<Label>("%WardValue");
         _wardDanger = GetNode<Label>("%WardDanger");
         _roomProgress = GetNode<Label>("%RoomProgress");
         _wardBar = GetNode<ProgressBar>("%WardBar");
-        _roomsBar = GetNode<ProgressBar>("%RoomsBar");
         _wardFill = (StyleBoxFlat)_wardBar.GetThemeStylebox("fill").Duplicate();
         _wardBar.AddThemeStyleboxOverride("fill", _wardFill);
         _wardTicks = GetNode<ThresholdTicks>("%WardTicks");
@@ -77,14 +78,14 @@ public partial class DungeonHud : Control
         _plan = GetNode<Control>("%Plan");
         _planTitle = GetNode<Label>("%PlanTitle");
         _planGoal = GetNode<Label>("%PlanGoal");
+        _partyMenu = GetNode<Control>("%PartyMenu");
+        _travelHint = GetNode<Label>("%TravelHint");
         HideRoomCard();
         _seed = GetNode<LineEdit>("%Seed");
         _sizes = GetNode<HBoxContainer>("%Sizes");
-        _rest = GetNode<Button>("%Rest");
-        _stairs = GetNode<Button>("%Stairs");
-        // shortcut_in_tooltip appends each button's key to these.
+        _rest = GetNode<CaptionButton>("%Rest");
+        _stairs = GetNode<CaptionButton>("%Stairs");
         _rest.TooltipText = "Ten minutes for the whole party: Treat Wounds, Refocus or Repair Shield.";
-        _stairs.TooltipText = "Leave this floor by the guardian's stairs.";
         GetNode<Button>("%Restart").Pressed += () =>
         {
             if (int.TryParse(_seed.Text, out int seed))
@@ -92,11 +93,10 @@ public partial class DungeonHud : Control
         };
         GetNode<Button>("%NewSeed").Pressed += () => RestartPressed?.Invoke((int)(GD.Randi() & 0x7fffffff));
         _rest.Pressed += () => RestPressed?.Invoke();
-        _camp = GetNode<Button>("%Camp");
+        _camp = GetNode<CaptionButton>("%Camp");
         _camp.Pressed += () => CampPressed?.Invoke();
-        _potion = GetNode<Button>("%Potion");
+        _potion = GetNode<CaptionButton>("%Potion");
         _potion.Pressed += () => PotionPressed?.Invoke();
-        _potion.TooltipText = "The most wounded hero drinks a healing potion of the party's level.";
         _stairs.Pressed += () => StairsPressed?.Invoke();
         foreach (int n in new[]
         {
@@ -140,14 +140,15 @@ public partial class DungeonHud : Control
         _layout.Text = openLayout ? "Layout: Open" : "Layout: Furnished";
         _entry.Text = $"Entry: {entry}";
         bool fighting = phase is DungeonPhase.Combat or DungeonPhase.Results or DungeonPhase.Transition;
-        _plan.Visible = !fighting;
-        _status.Visible = !fighting;
+        _fighting = fighting;
+        _choosingDoor = phase == DungeonPhase.Doors;
         _expedition.Visible = !fighting;
         _notice.Visible = !fighting;
         RenderParty(state, fighting);
+        ApplyOverlay();
         int id = state.CurrentNodeId ?? 0;
         var room = floor.Rooms[id];
-        _status.Text = $"{StationPlan.Name(room.Purpose)}    ·    {state.Gold} gold";
+        _travelHint.Text = $"Click a doorway to travel ({state.Wardstone.Rules.NodeBurn} ward)";
         _planTitle.Text = $"Floor {state.Stratum + 1} of {Delve.Data.FloorThemes.Count}";
         _planGoal.Text = Goal(floor);
         _floorPlan.Render(floor, state);
@@ -164,40 +165,55 @@ public partial class DungeonHud : Control
         _wardDanger.Text = ward.IsSpent ? "EXHAUSTED · Expedition ends"
             : ward.Upshift == 0 ? "Danger: normal"
             : $"Danger: +{ward.Upshift} {(ward.Upshift == 1 ? "tier" : "tiers")}";
+        // Normal danger needs no line; the readout speaks up only when fights get harder.
+        _wardDanger.Visible = ward.IsSpent || ward.Upshift > 0;
         _expedition.TooltipText = $"Ward {ward.Ward} of {ward.Rules.MaxWard}.\nEach doorway costs {ward.Rules.NodeBurn} ward, including backtracking.\nShort rests cost {ward.Rules.ShortRestBurn} ward. Zero ward ends the expedition.\nEncounter danger rises below {ward.Rules.SteadyAbove}, {ward.Rules.FirstShiftAbove}, and {ward.Rules.SecondShiftAbove} ward.\nCleared rooms stay cleared when you return.";
         int cleared = floor.Rooms.Count(r => r.Completed);
-        _roomProgress.Text = $"Rooms cleared  {cleared}/{floor.Rooms.Count}";
-        _roomsBar.MaxValue = floor.Rooms.Count;
-        _roomsBar.Value = cleared;
-        _rest.Text = $"Short rest · Ward {ward.Ward} → {ward.WardAfterShortRest}";
+        _roomProgress.Text = $"Rooms cleared {cleared}/{floor.Rooms.Count}  ·  {state.Gold} gold";
         bool guardianDown = floor.Rooms[floor.GuardianId].Completed;
         _notice.Text = phase switch
         {
             DungeonPhase.Travel => $"Crossing…  −{state.Wardstone.Rules.NodeBurn} ward",
             DungeonPhase.Doors when guardianDown => FloorCompleteNotice,
-            // The how-to line stays only until the first crossing of the run.
+            // The how-to line stays only until the first crossing of the run. The party menu
+            // already says how to travel, so this one covers what it does not.
             DungeonPhase.Doors when state.Stratum == 0 && floor.Rooms.Count(r => r.Discovered) <= 1
-                => $"Click a character for details. Click a doorway to travel ({state.Wardstone.Rules.NodeBurn} ward).",
+                => "Click a character for details.",
             DungeonPhase.Combat => comparison ? $"Guard hall comparison: {size} × {size}. Same seed and enemies; compare movement and congestion." : "Resolve the encounter to open the doors.",
             DungeonPhase.End => state.Outcome == RunOutcome.Victory ? FloorCompleteNotice : "The expedition ends. Restart or try a new seed.",
             _ => ""
         };
-        _rest.Visible = phase == DungeonPhase.Doors;
         if (phase == DungeonPhase.Doors && CharacterPromotion.HasPending(state.Party))
             _notice.Text = "Promotion available: " + string.Join(", ", state.Party.Living()
                 .Where(c => CharacterPromotion.For(c).PendingLevels(c) > 0).Select(c => c.Name))
                 + ". Click a character to open their sheet before the next encounter.";
-        _rest.Disabled = !state.Wardstone.CanAffordShortRest && state.FreeRests == 0;
-        if (state.FreeRests > 0) _rest.Text = $"Short rest · Free ({state.FreeRests})";
-        _camp.Visible = phase == DungeonPhase.Doors && room.Family == RoomFamily.Camp && !room.Resolved;
-        _potion.Visible = phase == DungeonPhase.Doors && state.Potions > 0;
-        _potion.Text = $"Drink potion · {state.Potions} left";
-        _potion.Disabled = state.Party.Living().All(m => m.Health.CurrentHP >= m.Health.MaxHP);
+        // FFT keeps every command in the menu and greys the ones not open now; the hover says why.
+        bool doors = phase == DungeonPhase.Doors;
+        _rest.Visible = doors;
+        _rest.SetEnabled(state.Wardstone.CanAffordShortRest || state.FreeRests > 0);
+        _rest.SetActionText(state.FreeRests > 0 ? $"Short rest · Free ({state.FreeRests})"
+            : $"Short rest · Ward {ward.Ward} → {ward.WardAfterShortRest}");
+        bool canCamp = room.Family == RoomFamily.Camp && !room.Resolved;
         int campWard = Math.Min(ward.Rules.MaxWard, ward.Ward + ward.Rules.CampsiteRefill);
-        _camp.Text = $"Make camp · Ward {ward.Ward} → {campWard}";
-        _camp.TooltipText = "Rest until morning, once per refuge. Recovers HP, clears Wounded, restores spell slots and focus, and starts a new day.";
-        _stairs.Text = state.OnFinalStratum ? "Complete expedition" : $"Descend to floor {state.Stratum + 2}";
-        _stairs.Visible = phase == DungeonPhase.Doors && room.Family == RoomFamily.Guardian && room.Completed;
+        _camp.Visible = doors;
+        _camp.SetEnabled(canCamp);
+        _camp.SetActionText(canCamp ? $"Make camp · Ward {ward.Ward} → {campWard}" : "Make camp");
+        _camp.TooltipText = canCamp
+            ? "Rest until morning, once per refuge. Recovers HP, clears Wounded, restores spell slots and focus, and starts a new day."
+            : "Unavailable: only in a refuge you have not rested in.";
+        bool hurt = state.Party.Living().Any(m => m.Health.CurrentHP < m.Health.MaxHP);
+        _potion.Visible = doors;
+        _potion.SetEnabled(state.Potions > 0 && hurt);
+        _potion.SetActionText($"Drink potion · {state.Potions} left");
+        _potion.TooltipText = state.Potions == 0 ? "Unavailable: no potions."
+            : !hurt ? "Unavailable: nobody is hurt."
+            : "The most wounded hero drinks a healing potion of the party's level.";
+        bool canDescend = room.Family == RoomFamily.Guardian && room.Completed;
+        _stairs.Visible = doors;
+        _stairs.SetEnabled(canDescend);
+        _stairs.SetActionText(state.OnFinalStratum ? "Complete expedition" : $"Descend to floor {state.Stratum + 2}");
+        _stairs.TooltipText = canDescend ? "Leave this floor by the guardian's stairs."
+            : "Unavailable: defeat the guardian in the ward chamber first.";
     }
 
     public const string FloorCompleteNotice = "Floor complete. The stairs lead onward.";

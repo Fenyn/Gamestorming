@@ -7,9 +7,9 @@ namespace Delve.Combat;
 
 /// <summary>
 /// The one condition mark on the board: a dying unit's Dying icon and value on an ink plate with an
-/// accent top edge, left of its HP bar so it never covers the unit behind. Every part is drawn under
-/// the name plates. The node sits at the HP bar's centre; each frame it faces the camera like the bar
-/// and lays the parts out leftward from the bar's edge in screen pixels.
+/// accent top edge, right of its HP bar: the timeline number holds the left. Every part is drawn
+/// under the name plates. The node sits at the HP bar's centre; each frame it faces the camera like
+/// the bar and lays the parts out rightward from the bar's edge in screen pixels.
 /// </summary>
 public partial class DyingBadge : Node3D
 {
@@ -60,8 +60,8 @@ public partial class DyingBadge : Node3D
     {
         if (!IsVisibleInTree() || camera.IsPositionBehind(_value.GlobalPosition)) return null;
         var size = PlateSize();
-        var edge = camera.UnprojectPosition(GlobalPosition) - new Vector2(_barHalfPixels, 0);
-        return new Rect2(edge.X - Gap - size.X, edge.Y - size.Y / 2, size.X, size.Y);
+        var edge = camera.UnprojectPosition(GlobalPosition) + new Vector2(_barHalfPixels, 0);
+        return new Rect2(edge.X + Gap, edge.Y - size.Y / 2, size.X, size.Y);
     }
 
     public override void _Process(double delta)
@@ -76,17 +76,17 @@ public partial class DyingBadge : Node3D
         float unit = pixel * (GlobalPosition - camera.GlobalPosition).Dot(-camera.GlobalBasis.Z);
         _value.Text = Value.ToString();
         _value.PixelSize = pixel;
-        var anchor = new Vector3(-_barHalfPixels * unit, 0, 0);
+        var anchor = new Vector3(_barHalfPixels * unit, 0, 0);
         _value.Position = anchor;
         _icon.Position = anchor;
         float valueWidth = ValueWidth();
-        _value.Offset = new Vector2(-Gap - Padding - valueWidth / 2, 0);
+        _value.Offset = new Vector2(2 * Gap + Padding + IconPixels + valueWidth / 2, 0);
         int texture = _icon.Texture?.GetWidth() ?? 1;
         _icon.PixelSize = pixel * IconPixels / texture;
-        _icon.Offset = new Vector2(-(2 * Gap + Padding + valueWidth + IconPixels / 2) * texture / IconPixels, 0);
+        _icon.Offset = new Vector2((Gap + Padding + IconPixels / 2) * texture / IconPixels, 0);
 
         var size = PlateSize();
-        float centre = -(Gap + size.X / 2);
+        float centre = Gap + size.X / 2;
         _plate.Position = anchor + new Vector3(centre * unit, 0, 0);
         _plate.Scale = new Vector3(size.X * unit, size.Y * unit, 1);
         _edge.Position = anchor + new Vector3(centre * unit, (size.Y - EdgeHeight) / 2 * unit, 0);

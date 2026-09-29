@@ -66,10 +66,11 @@ func _run() -> void:
 	card.position.x += 0.1
 	display.anchor_to_card(card, camera)
 	_check(requests > before_move, "The card moving on the table moves its fixture")
-	before_move = requests
+	# The Life Deck lies at the board's edge, away from the printed canvas; its count follows it.
+	var life_before: Vector3 = display.life_value.global_position
 	display.life_transform.origin.x += 1.0
 	display.anchor_to_card(card, camera)
-	_check(requests > before_move, "Life pile movement updates the resource cluster")
+	_check(display.life_value.global_position.distance_to(life_before) > 0.9, "Life pile movement moves the Life count with it")
 	display.viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	display.readout._set_flash(0.5)
 	_check(display.viewport.render_target_update_mode == SubViewport.UPDATE_ONCE, "Flash animation wakes the resource viewport")

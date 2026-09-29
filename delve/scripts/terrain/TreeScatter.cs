@@ -43,7 +43,8 @@ public static class TreeScatter
         TreeFader fader,
         TreeMix halo,
         TreeMix board,
-        List<(int X, int Y)> treeWallSpots)
+        List<(int X, int Y)> treeWallSpots,
+        Func<int, float>? haloShade = null)
     {
         var box = BattlefieldBox(skirt, heightScale);
         fader.Configure(box);
@@ -58,11 +59,12 @@ public static class TreeScatter
             // gating which kinds are allowed to stand this close to the clearing.
             int dx = Math.Max(Math.Max(skirt.Margin - x, x - (skirt.Margin + boardW - 1)), 0);
             int dy = Math.Max(Math.Max(skirt.Margin - y, y - (skirt.Margin + boardH - 1)), 0);
-            Spawn(root, skirt, heights, fader, box, halo, x, y, Math.Max(dx, dy), HaloJitter);
+            int ring = Math.Max(dx, dy);
+            Spawn(root, skirt, heights, fader, box, halo, x, y, ring, HaloJitter, haloShade?.Invoke(ring) ?? 1f);
         }
 
         foreach (var (x, y) in treeWallSpots)
-            Spawn(root, skirt, heights, fader, box, board, x, y, int.MaxValue, BoardJitter);
+            Spawn(root, skirt, heights, fader, box, board, x, y, int.MaxValue, BoardJitter, 1f);
 
         if (root.GetChildCount() > 0) return root;
         root.QueueFree();
@@ -71,7 +73,7 @@ public static class TreeScatter
 
     private static void Spawn(
         Node3D root, SkirtResult skirt, TerrainHeightMap heights, TreeFader fader, Aabb box,
-        TreeMix mix, int x, int y, int ring, float jitter)
+        TreeMix mix, int x, int y, int ring, float jitter, float shade)
     {
         int seed = skirt.Layout.Seed;
         int pick = PickWeighted(MapHash.Hash01(x, y, seed + PickSalt), ring, mix);
@@ -82,6 +84,7 @@ public static class TreeScatter
         float radius = MapHash.Hash01(y, x, seed + PickSalt + 2) * jitter;
         tree.Position = GridSpace.GridToWorld(new PF2eVec(x, y), heights)
                         + new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+        if (tree is TreeProp shaded) shaded.Shade = shade;
         root.AddChild(tree);
         if (tree is not TreeProp prop) return;
         fader.Track(prop);

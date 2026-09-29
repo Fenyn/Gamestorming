@@ -87,23 +87,20 @@ public partial class TerrainSkirtRenderSpike : SpikeBase
     // ─────────────────────────── the stage under test ───────────────────────────
 
     /// <summary>
-    /// A live TerrainStage for one map, with the environment and sun a host scene would own. Returns
+    /// A live TerrainStage for one map, with the lighting setup combat.tscn wires. Returns
     /// the host so the caller can free the whole subtree when it is done reading it.
     /// </summary>
     private Node3D BuildStage(MapLayout board, string biome, out TerrainStage stage)
     {
         var host = new Node3D { Name = "SkirtRenderHost" };
-        var environment = new WorldEnvironment { Environment = new Godot.Environment() };
-        var sun = new DirectionalLight3D();
         stage = new TerrainStage { Name = "TerrainStage", PlaceholderFloorPath = new NodePath() };
         DevTreeMix.Apply(stage);
+        DevLooks.Apply(stage);
 
-        host.AddChild(environment);
-        host.AddChild(sun);
         host.AddChild(stage);
         AddChild(host);
 
-        stage.Build(board, biome, board.Width, board.Height, environment, sun);
+        stage.Build(board, biome, board.Width, board.Height);
         return host;
     }
 

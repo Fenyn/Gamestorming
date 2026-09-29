@@ -21,11 +21,23 @@ uniform vec4 tint : source_color = vec4(1.0);
 // the theme's height scale; the default is that value for the shipped 0.125 scale.
 uniform float drape_depth : hint_range(0.05, 4.0) = 0.5;
 
+// Darkening per metre below the lip, so tall faces fall into shade toward their foot.
+uniform float depth_darken : hint_range(0.0, 0.5) = 0.12;
+
+#include "res://assets/shaders/look_halo.gdshaderinc"
+
+varying vec3 world_pos;
+
+void vertex() {
+    world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+
 void fragment() {
     vec3 c = UV.y < drape_depth
         ? texture(top_texture, UV).rgb
         : texture(body_texture, vec2(UV.x, UV.y - drape_depth)).rgb;
-    ALBEDO = c * tint.rgb;
+    c *= max(0.45, 1.0 - depth_darken * UV.y);
+    ALBEDO = look_halo_apply(c * tint.rgb, world_pos);
     ROUGHNESS = 1.0;
     SPECULAR = 0.0;
 }

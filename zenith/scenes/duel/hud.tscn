@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="3_face"]
 [ext_resource type="PackedScene" path="res://scenes/duel/dev_panel.tscn" id="4_dev"]
 [ext_resource type="Shader" path="res://scripts/duel/ribbon.gdshader" id="5_ribbon"]
 [ext_resource type="Script" path="res://scripts/ui/gear_button.gd" id="6_gear"]
+[ext_resource type="FontFile" path="res://assets/fonts/pirata_one/PirataOne-Regular.ttf" id="9_title"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ribbon"]
 shader = ExtResource("5_ribbon")
@@ -50,6 +51,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme_override_fonts/font = ExtResource("9_title")
 theme_override_font_sizes/font_size = 32
 text = "Combat"
 horizontal_alignment = 1

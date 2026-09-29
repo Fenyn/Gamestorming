@@ -4,8 +4,9 @@ using Godot;
 
 namespace Delve.UI;
 
-/// <summary>One party member in the combat party column: portrait, name, condition icons and reaction
-/// diamond on the top row, the HP bar with current/max under it. The only HUD surface that prints hero HP.</summary>
+/// <summary>One party member card: portrait, name, condition icons and reaction
+/// diamond on the top row, the HP bar with current/max under it. Used by the exploration party
+/// cards (party_card.tscn).</summary>
 public partial class PartyChip : Button
 {
     [Export] public ConditionIconSet? Icons { get; set; }
@@ -13,6 +14,9 @@ public partial class PartyChip : Button
 
     /// <summary>Icons before "+N". Matches the initiative row's count.</summary>
     [Export] public int MaxMarks { get; set; } = 2;
+
+    /// <summary>Show the head-and-shoulders face crop instead of the full-body portrait.</summary>
+    [Export] public bool UseFace { get; set; }
 
     private TextureRect _portrait = null!;
     private Label _name = null!;
@@ -51,7 +55,7 @@ public partial class PartyChip : Button
     public void Setup(SquadMemberView member)
     {
         MemberId = member.Id;
-        _portrait.Texture = HeroPortraits.For(member.HeroId);
+        _portrait.Texture = UseFace ? HeroPortraits.Face(member.HeroId) : HeroPortraits.For(member.HeroId);
         _name.Text = member.Name;
     }
 

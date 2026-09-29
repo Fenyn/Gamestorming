@@ -9,6 +9,7 @@ namespace Delve.UI;
 /// </summary>
 public static class InputNames
 {
+    public const string Move = "combat_move";
     public const string Action1 = "combat_action_1";
     public const string Action2 = "combat_action_2";
     public const string EndTurn = "combat_end_turn";
@@ -22,6 +23,10 @@ public static class InputNames
     public const string Journal = "combat_journal";
     /// <summary>Re-centre the combat camera on the active unit.</summary>
     public const string Focus = "combat_focus";
+
+    /// <summary>Turn the camera a quarter turn around the pivot.</summary>
+    public const string RotateLeft = "camera_rotate_left";
+    public const string RotateRight = "camera_rotate_right";
 
     /// <summary>Godot's built-in cancel action. Listed here so no script carries the literal.</summary>
     public const string UiCancel = "ui_cancel";

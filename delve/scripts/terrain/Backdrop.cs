@@ -5,10 +5,9 @@ using PF2e.MapGen;
 namespace Delve.Terrain;
 
 /// <summary>
-/// Dresses the space around the battle map for one biome: swaps the WorldEnvironment onto a
-/// <see cref="ProceduralSkyMaterial"/> gradient with depth fog, retunes the scene's one
-/// DirectionalLight3D, and builds the far scenery that is not terrain (the ground surround, drifting
-/// motes) as its own children. The ground outside the board is no longer scenery at all — it is the
+/// Dresses the space around the battle map for one biome: builds the far scenery that is not
+/// terrain (the ground surround, drifting motes) as its own children. Sky, fog and light belong to
+/// the biome's <see cref="Delve.Look.LookScene"/>. The ground outside the board is no longer scenery at all — it is the
 /// generated halo of <see cref="SkirtLayout"/>, rendered by the ordinary terrain mesh builder — so
 /// what is left here is the matte surround the halo rim dissolves into, plus the HD-2D sprite
 /// scatter <see cref="TileDecor"/> spreads over board AND halo alike.
@@ -35,14 +34,6 @@ public partial class Backdrop : Node3D
     /// </summary>
     private const float GroundPlaneY = -0.05f;
 
-    /// <summary>Board size, in tiles, the biome fog densities were authored against. A larger board
-    /// is framed from further out, so its fog is thinned by the same ratio.</summary>
-    private const float FogReferenceBoardTiles = 14f;
-
-    /// <summary>Floor on that thinning — past it the board reads as unfogged, which loses the depth
-    /// cue the fog is there for.</summary>
-    private const float FogScaleMin = 0.8f;
-
     // ── Motes: deliberately sparse, small, and faint — ambience in motion, never readable as
     //    stray white squares in a still frame. ──
     private const float MoteLifetimeSeconds = 12f;
@@ -55,8 +46,7 @@ public partial class Backdrop : Node3D
 
     /// <summary>
     /// Apply <paramref name="biomeId"/>'s backdrop (null/unknown → the neutral default) around a
-    /// board of the given tile bounds. Reconfigures <paramref name="worldEnvironment"/> and
-    /// <paramref name="sun"/> in place and rebuilds this node's scenery children.
+    /// board of the given tile bounds. Rebuilds this node's scenery children.
     ///
     /// <paramref name="skirt"/> is the rendered board-plus-halo layout and
     /// <paramref name="skirtHeights"/> its heights, both in SKIRT tile coordinates; the tile decor
@@ -69,14 +59,10 @@ public partial class Backdrop : Node3D
         TerrainHeightMap skirtHeights,
         int gridWidth,
         int gridHeight,
-        WorldEnvironment worldEnvironment,
-        DirectionalLight3D sun,
-        Shader? outskirtsMistShader = null)
+        Shader? outskirtsMistShader = null,
+        System.Func<int, float>? haloShade = null)
     {
         var theme = BackdropThemes.Get(biomeId);
-
-        ApplyEnvironment(worldEnvironment, theme, gridWidth, gridHeight);
-        ApplySun(sun, theme);
 
         this.ClearChildren();
         Vector3 center = GridSpace.BoardCenter(gridWidth, gridHeight);
@@ -88,60 +74,13 @@ public partial class Backdrop : Node3D
         var decor = TileDecor.Build(
             theme, decorLayout,
             decorLayout?.Width ?? gridWidth, decorLayout?.Height ?? gridHeight,
-            skirtHeights, margin);
+            skirtHeights, margin, haloShade);
         if (decor != null) AddChild(decor);
 
         if (theme.Particles == BackdropParticleKind.Motes)
             AddMotes(center, gridWidth, gridHeight, theme);
         if (outskirtsMistShader != null && theme.OutskirtsMistOpacity > 0 && margin > 4)
             AddChild(OutskirtsMist.Build(outskirtsMistShader, gridWidth, gridHeight, margin, theme));
-    }
-
-    // ---------------------------------------------------------------- Atmosphere
-
-    /// <summary>
-    /// Replace the environment resource wholesale: sky gradient + exponential fog + flat ambient.
-    /// A fresh resource (rather than mutating the .tscn baseline) keeps the swap deterministic — the
-    /// inline Environment stays the untouched pre-backdrop baseline.
-    /// </summary>
-    private static void ApplyEnvironment(
-        WorldEnvironment worldEnvironment, BackdropThemeDefinition theme, int gridWidth, int gridHeight)
-    {
-        var sky = new ProceduralSkyMaterial
-        {
-            SkyTopColor = MapMaterials.ToGodot(theme.SkyTop),
-            SkyHorizonColor = MapMaterials.ToGodot(theme.SkyHorizon),
-            // Ground side of the horizon matches the sky side so the seam reads as one haze band.
-            GroundHorizonColor = MapMaterials.ToGodot(theme.SkyHorizon),
-            GroundBottomColor = MapMaterials.ToGodot(theme.SkyGround),
-        };
-
-        worldEnvironment.Environment = new Godot.Environment
-        {
-            BackgroundMode = Godot.Environment.BGMode.Sky,
-            Sky = new Sky { SkyMaterial = sky },
-            // Flat colour ambient, same source mode as the scene's baseline environment.
-            AmbientLightSource = Godot.Environment.AmbientSource.Color,
-            AmbientLightColor = MapMaterials.ToGodot(theme.AmbientColor),
-            AmbientLightEnergy = theme.AmbientEnergy,
-            FogEnabled = true,
-            FogMode = Godot.Environment.FogModeEnum.Exponential,
-            FogLightColor = MapMaterials.ToGodot(theme.FogColor),
-            // Densities were authored on a 14-tile board; a bigger one is framed from further away,
-            // so the same density would swallow it. Thin it by the size ratio, never below half, and
-            // never THICKEN a small board (the authored value is already its worst case).
-            FogDensity = theme.FogDensity * Mathf.Clamp(
-                FogReferenceBoardTiles / Mathf.Max(gridWidth, gridHeight), FogScaleMin, 1f),
-            FogSkyAffect = theme.FogSkyAffect,
-        };
-    }
-
-    /// <summary>Retune the scene's existing sun in place — colour, energy, direction. Never adds a second light.</summary>
-    private static void ApplySun(DirectionalLight3D sun, BackdropThemeDefinition theme)
-    {
-        sun.LightColor = MapMaterials.ToGodot(theme.SunColor);
-        sun.LightEnergy = theme.SunEnergy;
-        sun.RotationDegrees = new Vector3(-theme.SunElevationDegrees, theme.SunAzimuthDegrees, 0f);
     }
 
     // ---------------------------------------------------------------- Scenery

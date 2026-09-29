@@ -16,6 +16,7 @@ uniform vec3 battlefield_size = vec3(0.0);
 uniform float clear_depth = 3.0;
 uniform float fade_alpha = 0.25;
 uniform float feather = 2.0;
+uniform vec4 tint : source_color = vec4(1.0);
 
 varying vec3 world_pos;
 
@@ -63,6 +64,8 @@ void fragment() {
 		}
 	}
 
-	ALBEDO = tex.rgb;
+	// The sprite's modulate (TreeProp.Shade), passed as an sRGB uniform so a fading halo tree
+	// keeps the exact shade the stock material drew.
+	ALBEDO = tex.rgb * tint.rgb;
 	ALPHA = mix(1.0, fade_alpha, occl);
 }

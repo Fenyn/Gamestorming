@@ -18,6 +18,11 @@ internal static class TargetPreviewFactory
         SavingThrow.Reflex => CreatureKnowledgeField.RefSave,
         _ => CreatureKnowledgeField.WillSave
     };
+    /// <summary>Flat DCs read from the target's own statistics: Feint's 10 + Perception, Escape's
+    /// grabber DC. The bestiary reveals neither, so against an enemy they stay masked.</summary>
+    private static bool FlatDcFromTarget(SkillActionBase skill) =>
+        skill is PF2e.Actions.SkillActions.FeintAction or PF2e.Actions.SkillActions.EscapeAction;
+
     private static bool Known(ICharacter target, CreatureKnowledgeField field) => target.TeamId == 1
         || PlayerActionExecutor.IsCreatureFieldKnown(target.CreatureStats?.CreatureId, field);
 
@@ -45,9 +50,11 @@ internal static class TargetPreviewFactory
                 + (basic ? " · Basic save" : ""));
             return view with
             {
-                Figures = string.IsNullOrEmpty(save.DamageFormula)
+                Figures = (known
                     ? new FigureView[] { new("Fails", fails), new("Crit fail", critFails) }
-                    : new FigureView[] { new("Fails", fails), new("Crit fail", critFails), new("Damage", save.DamageFormula) },
+                    : new FigureView[] { new("Spell DC", save.SpellDC.ToString()), new(save.SaveName, "?") })
+                    .Concat(string.IsNullOrEmpty(save.DamageFormula) ? Array.Empty<FigureView>() : new[] { new FigureView("Damage", save.DamageFormula) })
+                    .ToArray(),
                 Tags = basic ? new[] { $"{save.SaveName} DC {save.SpellDC}", "Basic save" } : new[] { $"{save.SaveName} DC {save.SpellDC}" },
                 Modifiers = ForecastModifiers.Save(actor, target, spell.Spell.SaveType),
             };
@@ -67,7 +74,9 @@ internal static class TargetPreviewFactory
         {
             var check = CombatPreviewCalculator.CalculateSkillCheckPreview(actor, target, skill);
             if (check == null) return null;
-            bool known = !skill.PreviewTargetSave.HasValue || Known(target, SaveField(skill.PreviewTargetSave.Value));
+            bool known = target.TeamId == 1 || (skill.PreviewTargetSave is { } save
+                ? Known(target, SaveField(save))
+                : !FlatDcFromTarget(skill));
             string success = Percent(check.SuccessChance, known);
             string crit = Percent(check.CritSuccessChance, known);
             string dc = known ? check.DC.ToString() : "?";
@@ -75,7 +84,9 @@ internal static class TargetPreviewFactory
                 $"{success} success · {crit} critical success",
                 $"{check.SkillName} {check.TotalBonus:+0;-0;0} vs {check.DefenseLabel} DC {dc}") with
             {
-                Figures = new FigureView[] { new("Success", success), new("Crit", crit) },
+                Figures = known
+                    ? new FigureView[] { new("Success", success), new("Crit", crit) }
+                    : new FigureView[] { new(check.SkillName, check.TotalBonus.ToString("+0;-0;0")), new("DC", "?") },
                 Tags = new[] { $"{check.SkillName} {check.TotalBonus:+0;-0;0}", $"{check.DefenseLabel} DC {dc}" },
                 Modifiers = ForecastModifiers.Check(actor, target, skill.GetPreviewSkill(actor, target),
                     skill.PreviewUsesFlatDC ? null : skill.PreviewTargetSave, check.MAP),

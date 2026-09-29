@@ -35,8 +35,6 @@ public partial class CombatScene : Node3D
     private Node3D _popupLayer = null!;
     private GridInput3D _input = null!;
     private OrbitCameraRig _cameraRig = null!;
-    private WorldEnvironment _worldEnvironment = null!;
-    private DirectionalLight3D _sun = null!;
     private CanvasLayer _hud = null!;
 
     /// <summary>
@@ -46,19 +44,8 @@ public partial class CombatScene : Node3D
     /// </summary>
     private TerrainStage _terrain = null!;
     private TerrainHeightMap? _borrowedHeights;
-    private Godot.Environment? _ownedEnvironment;
     private TerrainHeightMap SurfaceHeights => _borrowedHeights ?? _terrain.HeightMap;
     public Camera3D ActiveCamera => _cameraRig.Camera;
-
-    /// <summary>Release combat-owned objects without touching terrain supplied by a dungeon.</summary>
-    public void EndHostedEncounter()
-    {
-        ResetEncounter();
-        SetPresentationVisible(false);
-        ProcessMode = ProcessModeEnum.Disabled;
-        _worldEnvironment.Environment = null;
-        _sun.Visible = false;
-    }
 
     private ActionBar _actionBar = null!;
     private CombatLogPanel _log = null!;
@@ -108,9 +95,6 @@ public partial class CombatScene : Node3D
         _input = GetNode<GridInput3D>("%GridInput");
         _cameraRig = GetNode<OrbitCameraRig>("%CameraRig");
         _terrain = GetNode<TerrainStage>("%TerrainStage");
-        _worldEnvironment = GetNode<WorldEnvironment>("WorldEnvironment");
-        _ownedEnvironment = _worldEnvironment.Environment;
-        _sun = GetNode<DirectionalLight3D>("DirectionalLight3D");
         _hud = GetNode<CanvasLayer>("%HUD");
 
         _turnBar = GetNode<TurnOrderBar>("%TurnOrderBar");
@@ -199,19 +183,10 @@ public partial class CombatScene : Node3D
 
         // Board surface first: everything below is positioned against it.
         _terrain.Visible = borrowedHeights == null;
-        _sun.Visible = borrowedHeights == null;
         if (borrowedHeights == null)
-        {
-            _worldEnvironment.Environment = _ownedEnvironment;
-            _terrain.Build(_session.MapLayout, setup.BiomeId,
-                setup.GridWidth, setup.GridHeight, _worldEnvironment, _sun);
-        }
+            _terrain.Build(_session.MapLayout, setup.BiomeId, setup.GridWidth, setup.GridHeight);
         else
-        {
-            _terrain.Visible = false;
-            _worldEnvironment.Environment = null;
-            _sun.Visible = false;
-        }
+            _terrain.SetLookActive(false);
 
         _presenter = new GodotPresenter3D(_popupLayer, SurfaceHeights);
         // Crits and deaths kick the camera through the rig's shake seam (rig > ShakePivot > Camera3D);
@@ -225,7 +200,6 @@ public partial class CombatScene : Node3D
             setup.GridWidth, setup.GridHeight);
         SpawnUnits();
         _partyMembers = setup.Party.Select(p => p.Unit).ToArray();
-        _squad.Setup(SquadViews());
         NoteEncountered();
 
         var logBridge = new CombatLogBridge(_log, _session.Team1, _session.Team2);
@@ -233,10 +207,11 @@ public partial class CombatScene : Node3D
         _logBridge = logBridge;
         var presenter = _presenter;
         var session = _session;
+        var tree = GetTree();
         _session.SetPresenter(async evt =>
         {
             if (evt.Source != null)
-                await AiActionPacing.Wait(GetTree(), evt,session.IsPlayerControlled(evt.Source), AiActionDelaySeconds, presenter.CancellationToken);
+                await AiActionPacing.Wait(tree, evt, session.IsPlayerControlled(evt.Source), AiActionDelaySeconds, presenter.CancellationToken);
             await _dice.WaitForResultsAsync(presenter.CancellationToken);
             logBridge.Present(evt);
             if (evt.Type is BattleEventType.AttackRolled or BattleEventType.SpellCast
@@ -281,6 +256,7 @@ public partial class CombatScene : Node3D
                 || _controller != null && _controller.Mode != PlayerTurnMode.Idle;
             _input.FocusRequested += () => { ClearPartyFocus(); RefreshCard(); _cameraRig.FocusOnActive(); };
             _turnBar.ChipPressed += id => _controller.DelayAnchorClicked(id);
+            _turnBar.UnitPressed += FocusPartyMember;
             WireActionBar();
         }
 
@@ -300,98 +276,15 @@ public partial class CombatScene : Node3D
             TaskContinuationOptions.OnlyOnFaulted);
     }
 
-    /// <summary>The torn-down session may still resume once on the sync context; with
-    /// <see cref="_session"/> cleared, its handlers see a stale session and leave the freed HUD alone.</summary>
-    public override void _ExitTree()
-    {
-        Delve.Settings.UserSettings.Changed -= ApplyUserSettings;
-        StopEncounter();
-        _session = null!;
-    }
-
     private void ApplyUserSettings() => _dice.AnimationsEnabled = Delve.Settings.UserSettings.DiceReveal;
-
-    /// <summary>
-    /// Stop the encounter loop and unwire everything it owns: log subscription, cancellation source,
-    /// and the session (engine globals). Node children are NOT touched — the scene may be leaving
-    /// the tree, where re-parenting children is unsafe; <see cref="ResetEncounter"/> adds that step,
-    /// terrain included.
-    /// Null-tolerant and idempotent, so it is safe before the first encounter and twice in a row.
-    /// </summary>
-    private void StopEncounter()
-    {
-        _logBridge?.Dispose();
-        // Cancel the awaited pipeline before clearing dice can release its presentation gate.
-        _encounterCts?.Cancel();
-        _cameraRig?.CancelIntro();
-        _cameraRig?.RestorePlanningView(true);
-        EndIntro();
-        _dice?.ClearRoll();
-        _inspectPanel?.Render(null);
-        _logBridge = null;
-        // Cancel BEFORE teardown: the loop may be parked in a presenter pacing delay / tween wait or on the
-        // player-turn TCS. Cancelling releases those so it unwinds without resuming on freed nodes;
-        // Teardown then clears the engine statics/delegates and completes any still-pending player turn.
-        _session?.Teardown();
-        _encounterCts?.Dispose();
-        _encounterCts = null;
-    }
-
-    /// <summary>
-    /// Put the scene back in the state <see cref="StartEncounter"/> expects. On top of
-    /// <see cref="StopEncounter"/> it frees the previous encounter's unit tokens, damage popups and
-    /// effect nodes, drops the presenter's unit registry (which would otherwise hold freed visuals),
-    /// releases the controller, and clears the terrain back to the flat placeholder board. Called at
-    /// the top of every StartEncounter, so the first call runs against an empty scene and does nothing.
-    /// </summary>
-    private void ResetEncounter()
-    {
-        StopEncounter();
-        ResetTacticalPresentation();
-
-        _controller?.EndControl();
-        _controller = null!;
-        _session = null!;
-
-        // Registrations first, nodes second: the map must never hand out a freed visual.
-        _presenter?.ClearUnits();
-        _presenter = null!;
-
-        FreeChildren(_unitLayer);
-        FreeChildren(_popupLayer);
-
-        // Terrain last, after the loop is released and the session is unwired: nothing may still be
-        // resolving a position against the map when its meshes and collider go away. Clear also shows
-        // the checker plane again, which a generated map hid.
-        _terrain.Clear();
-        _borrowedHeights = null;
-
-        _victoryBanner.HideResult();
-        _journalPanel.Hide();
-    }
-
-    /// <summary>
-    /// Free every child of <paramref name="parent"/> NOW. RemoveChild before QueueFree, because
-    /// QueueFree alone leaves the node in the tree until the end of the frame, and the caller
-    /// (and its tests) reads the child count immediately after.
-    /// </summary>
-    private static void FreeChildren(Node parent)
-    {
-        foreach (var child in parent.GetChildren())
-        {
-            parent.RemoveChild(child);
-            child.QueueFree();
-        }
-    }
-
-    // ---------------------------------------------------------------- Build
 
     public override void _Process(double delta)
     {
         _session?.ReconcileOccupancy();
-        RefreshSquad(delta);
+        RefreshTurnRowsThrottled(delta);
         LayoutBand();
         if (_session != null) LayoutPlates();
+        AnchorCommandMenu();
     }
 
     private void SpawnUnits()
@@ -402,19 +295,19 @@ public partial class CombatScene : Node3D
 
     private void AddUnitVisual(ICharacter character)
     {
-        // Heroes (PC sheets) have no CreatureStatBlock and resolve their sheet from HeroSpriteMap;
-        // enemies do, and get their sprite folder by creature from EnemySpriteMap (real art or the
-        // size-matched missing-art placeholder).
-        string? enemyFolder = character.CreatureStats != null
-            ? EnemySpriteMap.FolderForCreature(_session.Letters.BaseNameFor(character), character.CreatureStats.Size)
-            : null;
-
-        var visual = UnitVisual3D.Spawn(UnitTokenScene, character, enemyFolder, _session.Letters.LetterFor(character));
+        var visual = UnitVisual3D.Spawn(UnitTokenScene, character, EnemyFolderFor(character), _session.Letters.LetterFor(character));
         visual.Position = GridSpace.CreatureToWorld(character.GridPosition, character.TileWidth, SurfaceHeights);
         _unitLayer.AddChild(visual);
         visual.PlaceOnGround(character.GridPosition, SurfaceHeights);
         _presenter.RegisterUnit(character, visual);
         _tacticalUnits[character.UniqueId] = visual;
     }
+
+    /// <summary>Heroes (PC sheets) have no CreatureStatBlock and resolve their sheet from
+    /// HeroSpriteMap, so they get null. Enemies get their sprite folder by creature from
+    /// EnemySpriteMap: real art or the size-matched missing-art placeholder.</summary>
+    private string? EnemyFolderFor(ICharacter character) => character.CreatureStats != null
+        ? EnemySpriteMap.FolderForCreature(_session.Letters.BaseNameFor(character), character.CreatureStats.Size)
+        : null;
 
 }

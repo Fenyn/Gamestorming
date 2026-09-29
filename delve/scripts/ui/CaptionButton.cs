@@ -21,6 +21,37 @@ public partial class CaptionButton : Button
     /// <summary>Input action whose first key fills the keycap. Empty keeps the authored text.</summary>
     [Export] public StringName InputAction { get; set; } = "";
 
+    /// <summary>Menu row layout: the caption sits left and the keycap right, across the whole
+    /// button, instead of both centred.</summary>
+    [Export] public bool FillRow { get; set; }
+
+    /// <summary>Keycap style; empty keeps the authored one.</summary>
+    [Export] public StringName KeycapVariation { get; set; } = "";
+
+    /// <summary>Inset of a <see cref="FillRow"/> caption from the button's edges, pixels.</summary>
+    [Export] public float RowInset { get; set; } = 14f;
+
+    /// <summary>Caption and keycap label styles for this button's surface (the parchment menus
+    /// use dark ink). Empty keeps the labels as authored.</summary>
+    [Export] public StringName LabelVariation { get; set; } = "";
+    [Export] public StringName DisabledLabelVariation { get; set; } = "";
+    [Export] public StringName KeyVariation { get; set; } = "";
+
+    /// <summary>Enable or grey the button and restyle its labels to match; a Label child does not
+    /// follow its Button's disabled colour on its own.</summary>
+    public void SetEnabled(bool enabled)
+    {
+        Disabled = !enabled;
+        ApplyLabelStyles();
+    }
+
+    private void ApplyLabelStyles()
+    {
+        if (ActionLabel != null && !LabelVariation.IsEmpty)
+            ActionLabel.ThemeTypeVariation = Disabled && !DisabledLabelVariation.IsEmpty ? DisabledLabelVariation : LabelVariation;
+        if (KeyLabel != null && !KeyVariation.IsEmpty) KeyLabel.ThemeTypeVariation = KeyVariation;
+    }
+
     private Control? _content;
     private float _authoredMinHeight;
 
@@ -42,7 +73,17 @@ public partial class CaptionButton : Button
         if (KeyLabel != null && !InputAction.IsEmpty)
             KeyLabel.Text = InputNames.KeyLabelFor(InputAction);
 
+        ApplyLabelStyles();
         if (_content == null) return;
+        if (!KeycapVariation.IsEmpty && GetNodeOrNull<Control>("Content/Keycap") is { } keycap)
+            keycap.ThemeTypeVariation = KeycapVariation;
+        if (FillRow)
+        {
+            _content.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+            _content.OffsetLeft = RowInset;
+            _content.OffsetRight = -RowInset;
+            if (ActionLabel != null) ActionLabel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        }
         // Content is a Container, so it republishes its own minimum size when a label grows. This
         // Button is not a Container and must forward that upward itself.
         _content.MinimumSizeChanged += FitToContent;

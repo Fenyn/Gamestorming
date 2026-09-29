@@ -35,6 +35,7 @@ Colors = Dictionary[String, Color]({
 "stone": Color(0.45098, 0.466667, 0.501961, 1),
 "torch_flame": Color(1, 0.756863, 0.415686, 1),
 "torch_light": Color(1, 0.788235, 0.513725, 1),
+"pool_light": Color(1, 0.84, 0.62, 1),
 "valve": Color(0.333333, 0.494118, 0.498039, 1),
 "votive_flame": Color(0.545098, 0.866667, 0.866667, 1),
 "ward_crystal": Color(0.466667, 0.835294, 0.839216, 1),

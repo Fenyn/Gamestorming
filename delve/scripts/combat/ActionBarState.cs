@@ -39,6 +39,10 @@ public sealed record ActionBarState
     public string? ShieldDisabledReason { get; init; }
     public string? DelayDisabledReason { get; init; }
 
+    /// <summary>True when Move has at least one reachable tile.</summary>
+    public bool CanMove { get; init; }
+    public string? MoveDisabledReason { get; init; }
+
     /// <summary>Why the move bands are limited or absent, for the hint line. Null when the actor
     /// may Stride.</summary>
     public string? MoveRestriction { get; init; }

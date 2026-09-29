@@ -31,10 +31,13 @@ public partial class GridOverlay3D : Node3D
     private int _pathUsed;
     private int _areaUsed;
 
-    private readonly Dictionary<HighlightKind, StandardMaterial3D> _highlightMats = new();
+    /// <summary>Glowing-rim shader for highlighted tiles. Unset, fills are flat colour.</summary>
+    [Export] public Shader? TileShader { get; set; }
+
+    private readonly Dictionary<HighlightKind, Material> _highlightMats = new();
     private StandardMaterial3D _pathMat = null!;
     private readonly Dictionary<int, StandardMaterial3D> _pathBandMats = new();
-    private StandardMaterial3D _areaTemplateMat = null!;
+    private Material _areaTemplateMat = null!;
 
     /// <summary>The Idle bands, kept so a path dot can take the colour of the band it crosses.</summary>
     private IReadOnlyDictionary<PF2eVec, MoveOption>? _bands;
@@ -44,10 +47,10 @@ public partial class GridOverlay3D : Node3D
         foreach (HighlightKind kind in System.Enum.GetValues<HighlightKind>())
         {
             if (kind != HighlightKind.None)
-                _highlightMats[kind] = HighlightMeshes.FlatMaterial(UiColors.BoardHighlight(kind));
+                _highlightMats[kind] = HighlightMeshes.TileMaterial(TileShader, UiColors.BoardHighlight(kind));
         }
         _pathMat = HighlightMeshes.FlatMaterial(UiColors.BoardPath);
-        _areaTemplateMat = HighlightMeshes.FlatMaterial(UiColors.BoardArea);
+        _areaTemplateMat = HighlightMeshes.TileMaterial(TileShader, UiColors.BoardArea);
     }
 
     /// <summary>

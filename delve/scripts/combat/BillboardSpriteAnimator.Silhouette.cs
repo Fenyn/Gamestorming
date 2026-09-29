@@ -10,6 +10,9 @@ public partial class BillboardSpriteAnimator
     private bool _silhouetteConnected;
     public bool HoverHighlighted { get; private set; }
 
+    /// <summary>Colour of the see-through outline drawn where something hides the body.</summary>
+    public void SetSilhouetteColor(Color color) => _silhouette?.SetShaderParameter("silhouette_color", color);
+
     public void SetHoverHighlight(bool highlighted, Color color)
     {
         HoverHighlighted = highlighted;

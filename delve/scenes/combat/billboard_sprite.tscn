@@ -1,6 +1,8 @@
 [gd_scene load_steps=4 format=3]
 
-; Billboarded pixel-art sprite: the drawn body of any 2.5D entity. The pixel-art draw rules
+; Billboarded pixel-art sprite: the drawn body of any 2.5D entity. Full camera-facing billboard,
+; as FFT and HD-2D draw units: the sprite tilts back with the camera, so a high camera pitch
+; never foreshortens the body (a fixed-Y billboard squashed it by cos(pitch)). The pixel-art draw rules
 ; (unshaded, nearest filtering, alpha scissor) are applied in code by PixelSprite.Configure, which
 ; tile decor shares, so the rules exist in one place. Only the billboard mode is authored here,
 ; because it is the placement choice that makes this scene a token body rather than ground cover.
@@ -14,10 +16,12 @@
 render_priority = 1
 shader = ExtResource("2_silhouette")
 shader_parameter/silhouette_color = Color(0.82, 0.88, 0.77, 0.3)
-shader_parameter/edge_opacity = 0.5
+shader_parameter/edge_opacity = 0.35
 shader_parameter/depth_bias = 0.025
 
 [node name="BillboardSprite" type="Sprite3D"]
-billboard = 2
+layers = 2
+cast_shadow = 0
+billboard = 1
 material_overlay = SubResource("Silhouette")
 script = ExtResource("1_anim")

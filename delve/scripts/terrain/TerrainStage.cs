@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Delve.Data;
+using Delve.Look;
 using Godot;
 using PF2e.MapGen;
 using PF2e.MapGen.Biomes;
@@ -16,15 +17,28 @@ namespace Delve.Terrain;
 ///     TerrainStage
 ///       ├─ PlaceholderFloor  (authored MeshInstance3D, shown only on a flat board)
 ///       ├─ MapView           (built per encounter, absent on a flat board)
-///       └─ Backdrop          (created on first Build, re-applied never duplicated)
+///       ├─ Backdrop          (created on first Build, re-applied never duplicated)
+///       └─ Look              (the biome's LookScene, swapped when the biome changes)
 ///
 /// Knows nothing about combat: a hub or overworld scene places the same node and calls the same
-/// Build. The host keeps owning its WorldEnvironment and sun and hands them in, because a scene has
-/// exactly one of each and they are not the terrain's to create.
+/// Build. The biome's lighting setup (<see cref="LookScene"/>) is instanced here too, because the
+/// biome id that picks it arrives with the build.
 /// </summary>
 public partial class TerrainStage : Node3D
 {
     [Export] public Shader? OutskirtsMistShader { get; set; }
+
+    /// <summary>Lighting setup per biome id. A biome with no entry gets <see cref="DefaultLook"/>.</summary>
+    [Export] public Godot.Collections.Dictionary<string, PackedScene> Looks { get; set; } = new();
+
+    /// <summary>Lighting setup for the flat board and any biome without its own.</summary>
+    [Export] public PackedScene? DefaultLook { get; set; }
+
+    private LookScene? _look;
+    private PackedScene? _lookSource;
+
+    /// <summary>The lighting setup the last build instanced, or null before the first build.</summary>
+    public LookScene? Look => _look;
     /// <summary>Name of the per-build terrain view child.</summary>
     private const string MapViewName = "MapView";
 
@@ -122,15 +136,7 @@ public partial class TerrainStage : Node3D
     /// back to the default theme with a warning; ignored on a flat board.</param>
     /// <param name="width">Board width in tiles.</param>
     /// <param name="height">Board height in tiles.</param>
-    /// <param name="worldEnvironment">The host scene's environment, reconfigured in place.</param>
-    /// <param name="sun">The host scene's one directional light, retuned in place.</param>
-    public void Build(
-        MapLayout? layout,
-        string? biomeId,
-        int width,
-        int height,
-        WorldEnvironment worldEnvironment,
-        DirectionalLight3D sun)
+    public void Build(MapLayout? layout, string? biomeId, int width, int height)
     {
         Clear();
 
@@ -138,6 +144,8 @@ public partial class TerrainStage : Node3D
         // dress the map in the fallback palette. The resolved id also dresses the backdrop, so the
         // halo the skirt style grows and the ground it runs out onto are always the same biome's.
         string id = biomeId ?? MapThemes.Forest.BiomeId;
+        // First, so halo scenery below can take the look's shading.
+        ApplyLook(layout != null ? id : null, width, height);
 
         if (layout != null)
         {
@@ -178,12 +186,36 @@ public partial class TerrainStage : Node3D
                 skirt, _skirtHeights, theme.HeightScale, _fader,
                 new TreeMix(HaloTreeScenes, HaloTreeWeights, HaloTreeMinRings),
                 new TreeMix(BoardTreeScenes, BoardTreeWeights, Array.Empty<float>()),
-                treeWallSpots);
+                treeWallSpots,
+                _look == null ? null : ring => _look.HaloShade(ring));
             if (_trees != null) AddChild(_trees);
         }
 
-        ApplyBackdrop(layout != null ? id : null, width, height, worldEnvironment, sun);
+        ApplyBackdrop(layout != null ? id : null, width, height);
         ApplyFloor(width, height);
+    }
+
+    /// <summary>Switch this stage's lighting setup on or off. A host that borrows another scene's
+    /// ground (a dungeon-hosted fight) turns it off so the other scene's look applies.</summary>
+    public void SetLookActive(bool active) => _look?.SetActive(active);
+
+    /// <summary>Instance the biome's lighting setup, reusing the current one when the biome maps to
+    /// the same scene, and fit its fog to the board.</summary>
+    private void ApplyLook(string? biomeId, int width, int height)
+    {
+        var source = biomeId != null && Looks.TryGetValue(biomeId, out var scene) ? scene : DefaultLook;
+        if (source != _lookSource)
+        {
+            _look?.SetActive(false);
+            _look?.QueueFree();
+            _look = source?.Instantiate<LookScene>();
+            _lookSource = source;
+            if (_look != null) AddChild(_look);
+        }
+        _look?.SetActive(true);
+        _look?.FitBoard(width, height);
+        // Board tile (0, 0) sits on the world origin; the halo shading starts past the far edge.
+        RenderingServer.GlobalShaderParameterSet(LookScene.BoardRectGlobal, new Vector4(0f, 0f, width, height));
     }
 
     private TreeFader AddFader()
@@ -226,18 +258,18 @@ public partial class TerrainStage : Node3D
     }
 
     /// <summary>
-    /// Dress the space around the board: biome sky/fog/sun plus far scenery. Reuses one backdrop
-    /// node so a rebuild never stacks backdrops.
+    /// Dress the space around the board with far scenery. Reuses one backdrop node so a rebuild
+    /// never stacks backdrops.
     /// </summary>
-    private void ApplyBackdrop(
-        string? biomeId, int width, int height, WorldEnvironment worldEnvironment, DirectionalLight3D sun)
+    private void ApplyBackdrop(string? biomeId, int width, int height)
     {
         if (_backdrop == null)
         {
             _backdrop = new Backdrop { Name = BackdropName };
             AddChild(_backdrop);
         }
-        _backdrop.Apply(biomeId, Skirt, _skirtHeights, width, height, worldEnvironment, sun, OutskirtsMistShader);
+        _backdrop.Apply(biomeId, Skirt, _skirtHeights, width, height, OutskirtsMistShader,
+            _look == null ? null : ring => _look.HaloShade(ring));
     }
 
     /// <summary>

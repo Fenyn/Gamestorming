@@ -92,8 +92,8 @@ public partial class KnowledgeJournalSpike
             await WaitSeconds(0.3f);
             var rail = scene.GetNode<TurnOrderBar>("%TurnOrderBar").Row.GetGlobalRect();
             var rect = panel.GetGlobalRect();
-            Check($"the rail's Journal button opens it left of the rail ({rect} vs rail x {rail.Position.X})",
-                panel.Visible && rect.End.X <= rail.Position.X - 16 && rect.Position.Y >= 16);
+            Check($"the Journal button opens it clear of the timeline ({rect} vs timeline end x {rail.End.X})",
+                panel.Visible && rect.Position.X >= rail.End.X + 16 && rect.Position.Y >= 16);
             Capture("knowledge_journal_combat.png");
             hud._UnhandledInput(new InputEventAction { Action = InputNames.Journal, Pressed = true });
             Check("J closes it again", !panel.Visible);

@@ -23,10 +23,15 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/dice_roll_panel.tscn" id="dice_roll"]
 [ext_resource type="Shader" uid="uid://brto6821irko8" path="res://assets/shaders/combat_outskirts_mist.gdshader" id="outskirts_mist"]
 
-[ext_resource type="PackedScene" path="res://scenes/ui/squad_panel.tscn" id="squad"]
 [ext_resource type="PackedScene" path="res://scenes/combat/destination_preview.tscn" id="destination"]
 [ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="caption"]
 [ext_resource type="PackedScene" path="res://scenes/ui/combat_journal_panel.tscn" id="journal"]
+[ext_resource type="PackedScene" path="res://scenes/looks/forest.tscn" id="look_forest"]
+[ext_resource type="PackedScene" path="res://scenes/looks/sewer.tscn" id="look_sewer"]
+[ext_resource type="PackedScene" path="res://scenes/looks/default.tscn" id="look_default"]
+[ext_resource type="Shader" path="res://assets/shaders/board_tile_glow.gdshader" id="tile_glow"]
+[ext_resource type="PackedScene" path="res://scenes/ui/tile_readout.tscn" id="tile_readout"]
+[ext_resource type="PackedScene" path="res://scenes/ui/command_prompt.tscn" id="command_prompt"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
 size = Vector2(12, 10)
@@ -63,13 +68,8 @@ shader_parameter/color_a = Color(0.17, 0.18, 0.22, 1)
 shader_parameter/color_b = Color(0.12, 0.13, 0.16, 1)
 shader_parameter/line_color = Color(0.3, 0.32, 0.38, 1)
 
-[sub_resource type="Environment" id="Environment_1"]
-background_mode = 1
-background_color = Color(0.08, 0.09, 0.12, 1)
-ambient_light_source = 2
-ambient_light_color = Color(0.62, 0.64, 0.72, 1)
-
 [node name="Combat" type="Node3D" unique_id=101358353]
+process_priority = 1
 script = ExtResource("1_scene")
 BandGap = 8.0
 
@@ -77,6 +77,11 @@ BandGap = 8.0
 unique_name_in_owner = true
 script = ExtResource("14_terrain")
 OutskirtsMistShader = ExtResource("outskirts_mist")
+Looks = Dictionary[String, PackedScene]({
+"forest": ExtResource("look_forest"),
+"sewer": ExtResource("look_sewer")
+})
+DefaultLook = ExtResource("look_default")
 HaloTreeScenes = [ExtResource("15_tree_canopy"), ExtResource("16_tree_conifer"), ExtResource("17_tree_bush"), ExtResource("18_tree_dead"), ExtResource("19_tree_giant")]
 BoardTreeScenes = [ExtResource("15_tree_canopy"), ExtResource("16_tree_conifer")]
 
@@ -90,10 +95,12 @@ unique_name_in_owner = true
 script = ExtResource("2_bands")
 BandEdgeWidth = 0.08
 BandEdgeAlpha = 0.8
+TileShader = ExtResource("tile_glow")
 
 [node name="GridOverlay" type="Node3D" parent="." unique_id=1537565848]
 unique_name_in_owner = true
 script = ExtResource("2_overlay")
+TileShader = ExtResource("tile_glow")
 
 [node name="UnitLayer" type="Node3D" parent="." unique_id=63708946]
 unique_name_in_owner = true
@@ -104,8 +111,13 @@ unique_name_in_owner = true
 [node name="CameraRig" type="Node3D" parent="." unique_id=1598345121]
 unique_name_in_owner = true
 script = ExtResource("3_camera")
-InitialPitchDegrees = 40.0
-PlanningDistanceCap = 17.0
+PitchMinDegrees = 28.0
+PitchMaxDegrees = 50.0
+ZoomMin = 12.0
+ZoomMax = 32.0
+InitialPitchDegrees = 35.0
+FramingDistancePerTile = 2.4
+PlanningDistanceCap = 24.0
 TacticalBlendSeconds = 0.3
 
 [node name="ShakePivot" type="Node3D" parent="CameraRig" unique_id=465050350]
@@ -113,17 +125,11 @@ unique_name_in_owner = true
 script = ExtResource("12_shake")
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig/ShakePivot" unique_id=1627736919]
+fov = 22.0
 
 [node name="GridInput" type="Node3D" parent="." unique_id=1072675196]
 unique_name_in_owner = true
 script = ExtResource("4_input")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1463942010]
-transform = Transform3D(0.766, -0.469, 0.44, 0, 0.685, 0.729, -0.643, -0.558, 0.524, 0, 12, 0)
-shadow_enabled = true
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1624819055]
-environment = SubResource("Environment_1")
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1221636320]
 unique_name_in_owner = true
@@ -191,27 +197,32 @@ mouse_filter = 2
 theme_type_variation = &"IntroSubtitle"
 horizontal_alignment = 1
 
-[node name="SquadPanel" parent="HUD/HudRoot" instance=ExtResource("squad")]
+[node name="TurnOrderBar" parent="HUD/HudRoot" unique_id=1094648664 instance=ExtResource("5_turn")]
 unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 216.0
+offset_bottom = -206.0
 
 [node name="RightRail" type="VBoxContainer" parent="HUD/HudRoot"]
 layout_mode = 1
-anchors_preset = 11
+anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-anchor_bottom = 1.0
 offset_left = -384.0
 offset_top = 16.0
 offset_right = -16.0
-offset_bottom = -104.0
+offset_bottom = 330.0
 grow_horizontal = 0
 mouse_filter = 2
 theme_override_constants/separation = 16
 
-[node name="TurnOrderBar" parent="HUD/HudRoot/RightRail" unique_id=1094648664 instance=ExtResource("5_turn")]
+[node name="TileReadout" parent="HUD/HudRoot/RightRail" instance=ExtResource("tile_readout")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 8
 
 [node name="CombatLog" parent="HUD/HudRoot/RightRail" unique_id=1673882180 instance=ExtResource("6_log")]
 unique_name_in_owner = true
@@ -235,41 +246,51 @@ layout_mode = 1
 [node name="UnitInspect" parent="HUD/HudRoot" unique_id=1867311933 instance=ExtResource("11_inspect")]
 unique_name_in_owner = true
 layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -16.0
+offset_right = 536.0
+offset_bottom = -16.0
+grow_vertical = 0
 
 [node name="ActorCard" parent="HUD/HudRoot" instance=ExtResource("11_inspect")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(288, 72)
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
+anchors_preset = 2
 anchor_top = 1.0
-anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -604.0
+offset_left = 16.0
 offset_top = -16.0
-offset_right = -316.0
+offset_right = 536.0
 offset_bottom = -16.0
 grow_vertical = 0
 
 [node name="TargetCard" parent="HUD/HudRoot" instance=ExtResource("11_inspect")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(288, 72)
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
+anchors_preset = 3
+anchor_left = 1.0
 anchor_top = 1.0
-anchor_right = 0.5
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 316.0
-offset_top = -16.0
-offset_right = 604.0
-offset_bottom = -16.0
+offset_left = -536.0
+offset_top = -56.0
+offset_right = -16.0
+offset_bottom = -56.0
+grow_horizontal = 0
 grow_vertical = 0
+
+[node name="CommandPrompt" parent="HUD/HudRoot" instance=ExtResource("command_prompt")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
 
 [node name="ActionBar" parent="HUD/HudRoot" unique_id=1546362475 instance=ExtResource("7_ab")]
 unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 7
+anchors_preset = 15
 
 [node name="CombatJournal" parent="HUD/HudRoot" instance=ExtResource("journal")]
 unique_name_in_owner = true

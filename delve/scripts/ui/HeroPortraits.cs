@@ -16,6 +16,26 @@ namespace Delve.UI;
 public static class HeroPortraits
 {
     private static readonly Dictionary<string, Texture2D?> Cache = new();
+    private static readonly Dictionary<string, Texture2D?> Faces = new();
+
+    /// <summary>Head-and-shoulders square of the same stand frame, for timeline tiles and unit
+    /// cards; null when the sheet is missing.</summary>
+    public static Texture2D? Face(string characterId)
+    {
+        if (Faces.TryGetValue(characterId, out var cached)) return cached;
+        string path = ManaSeedSheet.SheetPath(HeroSpriteMap.FolderFor(characterId), ManaSeedSheet.WalkPage);
+        var page = ResourceLoader.Exists(path) ? GD.Load<Texture2D>(path) : null;
+        Texture2D? face = page == null ? null : new AtlasTexture
+        {
+            Atlas = page,
+            Region = new Rect2(
+                ManaSeedSheet.FaceX,
+                ManaSeedSheet.RowSouth * ManaSeedSheet.CellPx + ManaSeedSheet.FaceY,
+                ManaSeedSheet.FaceSize, ManaSeedSheet.FaceSize),
+        };
+        Faces[characterId] = face;
+        return face;
+    }
 
     /// <summary>Portrait for a hero id, or null when its sheet is missing.</summary>
     public static Texture2D? For(string characterId)

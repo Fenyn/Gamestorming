@@ -6,6 +6,8 @@ namespace Delve.Combat;
 public enum PlayerTurnMode
 {
     Idle,
+    /// <summary>Move was picked from the command menu: the smart-move bands are up.</summary>
+    Moving,
     SelectingMove,
     SelectingStrike,
     SelectingSpellTarget,

@@ -68,6 +68,7 @@ public partial class DungeonDirector
         {
             var token = UnitVisual3D.Spawn(UnitPrefab, member);
             _partyLayer.AddChild(token);
+            token.UseExplorationMarkers();
             token.GetNode<UnitPickArea>("%PickArea").SetPickable(true);
             var tile = useCombatPositions ? member.GridPosition : new PF2eVec(n / 2 + i % 2, n / 2 + i / 2);
             token.Position = GridSpace.GridToWorld(tile, CurrentView.Heights);
@@ -210,6 +211,7 @@ public partial class DungeonDirector
         foreach (var (view, _, _) in _corridors)
             if (view.Visible && view is DungeonPassage passage)
                 passage.Cutaway(camera);
+        AnchorPartyMenu();
     }
 
     private Vector2? _doorPress;

@@ -20,11 +20,11 @@ public partial class DungeonRunSpike
         var hud = dungeon.GetNode<DungeonHud>("%DungeonHud");
         await Frames(2);
         var strip = hud.PartyStrip;
-        var combatColumn = run.GetChildren().OfType<CombatScene>().Single().GetNode<SquadPanel>("%SquadPanel");
-        Check($"the exploration strip shows one chip per member ({strip.Chips.Count})",
+        Check($"the exploration party row shows one card per member ({strip.Chips.Count})",
             strip.IsVisibleInTree() && strip.Chips.Count == state.Party.Members.Count);
-        Check($"the strip uses the combat column's box ({strip.Position} {strip.Size.X} vs {combatColumn.Position} {combatColumn.Size.X})",
-            strip.Position == combatColumn.Position && Mathf.IsEqualApprox(strip.Size.X, combatColumn.Size.X));
+        var row = strip.GetGlobalRect();
+        Check($"the party row sits along the bottom centre ({row} in {hud.Size})",
+            Mathf.Abs(row.GetCenter().X - hud.Size.X / 2) <= 2 && Mathf.Abs(row.End.Y - (hud.Size.Y - 16)) <= 2);
         var top = hud.GetNode<Control>("%Top");
         Check($"the Wardstone panel sits at the top right, clear of the strip ({top.GetGlobalRect()})",
             top.GetGlobalRect().End.X >= hud.Size.X - 24 && !top.GetGlobalRect().Intersects(strip.GetGlobalRect()));

@@ -88,6 +88,7 @@ public partial class MovementConditionsSpike : SpikeBase
             Check("prone: the refused Stride spent nothing", c.GridPosition == start && c.Actions.TotalActionsRemaining == actions);
 
             var crawlTile = plan.Options.First(o => o.Value.Actions == 1 && o.Key.x > start.x).Key;
+            controller.BeginMove();
             await Click(controller, () => controller.TileClicked(crawlTile));
             Check("prone: a band click crawls 5 ft", c.GridPosition == crawlTile);
             Check("prone: the Crawl spent 1 action and kept prone",

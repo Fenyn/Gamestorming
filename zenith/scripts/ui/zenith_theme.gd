@@ -51,6 +51,9 @@ const MIGHT: Color = Color(0.78, 0.82, 0.90)
 const XP: Color = Color(0.62, 0.55, 0.90)
 const MOTES: Color = Color(0.48, 0.72, 1.00)               # arcane blue, drawn with a soft glow
 
+## Titles, banners and card names. Everything else uses the project font, Kurale.
+const TITLE_FONT: Font = preload("res://assets/fonts/pirata_one/PirataOne-Regular.ttf")
+
 ## Radii: 0 for framed panels and buttons, 4 for flat tiles, chips and bars.
 const RADIUS: int = 4
 ## Type scale at the 1920x1080 design size. Multiples of 6 draw whole pixels at 900p and 720p.
@@ -146,7 +149,9 @@ static func build() -> Theme:
 
 	t.set_color("font_color", "Label", TEXT)
 	_label(t, "TitleLabel", SIZE_TITLE, TEXT)
+	t.set_font("font", "TitleLabel", TITLE_FONT)
 	_label(t, "GroupLabel", SIZE_GROUP, TEXT)
+	t.set_font("font", "GroupLabel", TITLE_FONT)
 	_label(t, "HeaderLabel", SIZE_ROW, TEXT)
 	_label(t, "RowTitleLabel", SIZE_ROW, TEXT)
 	_label(t, "BodyLabel", SIZE_BODY, TEXT_SOFT)

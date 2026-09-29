@@ -9,13 +9,13 @@
 [ext_resource type="PackedScene" path="res://scenes/duel/hand_3d.tscn" id="7_hand"]
 [ext_resource type="PackedScene" path="res://scenes/duel/duelist_display.tscn" id="8_display"]
 [ext_resource type="Texture2D" path="res://assets/courtyard/textures/playmat.png" id="9_playmat"]
-[ext_resource type="Texture2D" path="res://assets/courtyard/textures/playmat_edge.png" id="12_playmat_edge"]
 [ext_resource type="Script" path="res://scripts/duel/arena_atmosphere.gd" id="10_atmosphere"]
 [ext_resource type="Script" path="res://scripts/duel/duel_presence.gd" id="11_presence"]
 [ext_resource type="Shader" path="res://scripts/duel/playmat.gdshader" id="13_playmat_shader"]
 [ext_resource type="Shader" path="res://scripts/duel/arena_veil.gdshader" id="14_veil_shader"]
 [ext_resource type="PackedScene" path="res://scenes/duel/phase_track.tscn" id="15_track"]
 [ext_resource type="PackedScene" path="res://scenes/duel/lead_in_overlay.tscn" id="16_lead_in"]
+[ext_resource type="PackedScene" path="res://scenes/duel/turn_token.tscn" id="17_token"]
 
 [sub_resource type="Environment" id="Environment_duel"]
 background_mode = 2
@@ -30,19 +30,19 @@ glow_intensity = 0.45
 glow_hdr_threshold = 1.2
 
 [sub_resource type="BoxMesh" id="BoxMesh_table"]
-size = Vector3(10.4, 0.2, 7.4)
+size = Vector3(13, 0.2, 8.2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_table"]
 albedo_color = Color(0.085, 0.13, 0.16, 1)
 roughness = 0.9
 
 [sub_resource type="PlaneMesh" id="Plane_surface"]
-size = Vector2(10.4, 7.4)
+size = Vector2(13, 8.2)
 
 [sub_resource type="ShaderMaterial" id="Material_surface"]
+render_priority = -1
 shader = ExtResource("13_playmat_shader")
 shader_parameter/fabric = ExtResource("9_playmat")
-shader_parameter/rim_fabric = ExtResource("12_playmat_edge")
 
 [sub_resource type="PlaneMesh" id="Plane_veil"]
 size = Vector2(40, 40)
@@ -123,11 +123,13 @@ material_override = SubResource("Material_surface")
 
 [node name="PhaseTrack" parent="." instance=ExtResource("15_track")]
 
+[node name="TurnToken" parent="." instance=ExtResource("17_token")]
+
 [node name="CameraRig" type="Node3D" parent="."]
 
 [node name="Camera" type="Camera3D" parent="CameraRig"]
-transform = Transform3D(1, 0, 0, 0, 0.615661, 0.788011, 0, -0.788011, 0.615661, 0, 7.01, 5.98)
-fov = 50.0
+transform = Transform3D(1, 0, 0, 0, 0.275637, 0.961262, 0, -0.961262, 0.275637, 0, 9.42, 2.85)
+fov = 34.0
 script = ExtResource("5_camera")
 
 [node name="Hand3D" parent="CameraRig/Camera" instance=ExtResource("7_hand")]
@@ -149,40 +151,46 @@ script = ExtResource("2_layout")
 [node name="P0" type="Node3D" parent="Zones"]
 
 [node name="Duelist" type="Marker3D" parent="Zones/P0"]
-position = Vector3(0, 0, 1.65)
+position = Vector3(0, 0, 1.13)
 
 [node name="AllyStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-2.2, 0, 2.15)
-
-[node name="SealStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(2.0, 0, 2.215)
-
-[node name="RemainStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-3.35, 0, 3.07)
-
-[node name="LifeDeck" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-1.35, 0, 1.05)
-
-[node name="Discard" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-1.35, 0, 2.1)
-
-[node name="Removed" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-2.75, 0, 3.07)
+position = Vector3(-1.1, 0, 0.62)
 
 [node name="Mastery" type="Marker3D" parent="Zones/P0"]
-position = Vector3(1.27, 0, 1.65)
+position = Vector3(1.32, 0, 1.13)
 
 [node name="DrillStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-2.2, 0, 1.15)
-
-[node name="Resolving" type="Marker3D" parent="Zones/P0"]
-position = Vector3(0.72, 0, 0)
+position = Vector3(2.14, 0, 0.62)
 
 [node name="NonCombatStart" type="Marker3D" parent="Zones/P0"]
-position = Vector3(2.4, 0, 1.15)
+position = Vector3(2.14, 0, 1.57)
+
+[node name="Relic" type="Marker3D" parent="Zones/P0"]
+position = Vector3(3.9, 0, 1.57)
+
+[node name="Removed" type="Marker3D" parent="Zones/P0"]
+position = Vector3(3.9, 0, 2.49)
+
+[node name="LifeDeck" type="Marker3D" parent="Zones/P0"]
+position = Vector3(4.6, 0, 0.93)
+
+[node name="Discard" type="Marker3D" parent="Zones/P0"]
+position = Vector3(4.6, 0, 1.93)
+
+[node name="SealStart" type="Marker3D" parent="Zones/P0"]
+position = Vector3(-4.73, 0, 1.57)
+
+[node name="RemainStart" type="Marker3D" parent="Zones/P0"]
+position = Vector3(-3.2, 0, 2.33)
+
+[node name="Plate" type="Marker3D" parent="Zones/P0"]
+position = Vector3(-1.66, 0, 1.53)
+
+[node name="Resolving" type="Marker3D" parent="Zones/P0"]
+position = Vector3(-1.6, 0, 0)
 
 [node name="HandStart" type="Marker3D" parent="Zones/P0"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.02, 3.35)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.02, 3.2)
 
 [node name="ArenaVeil" type="MeshInstance3D" parent="."]
 visible = false

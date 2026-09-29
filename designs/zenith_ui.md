@@ -52,6 +52,9 @@ approved with the mockups the same day.
 - **Spacing:** multiples of 6 (6, 12, 18, 24, 36).
 - **Type scale** (1080p design size; multiples of 6 draw whole pixels at 900p and 720p):
   18 caption, 24 body, 30 row title, 36 group heading, 48 screen title, 72 display.
+- **Typefaces:** Pirata One for screen titles, group headings, card and duelist names and the duel
+  banner (`ZenithTheme.TITLE_FONT`). Kurale for everything else (the project default font). Both
+  have one weight, so emphasis comes from size and colour.
 
 ## 3. Components
 

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Delve.Autoload;
 using Delve.Combat;
+using Delve.UI;
 using Godot;
 
 namespace Delve.Dev;
@@ -57,8 +58,8 @@ public partial class CombatShotSpike : SpikeBase
         AddChild(combat);
         await WaitSeconds(0.1f);
         var terrain = combat.FindChild("TerrainStage", recursive: true, owned: false);
-        Check("forest outskirts have two mist layers",
-            terrain?.GetNodeOrNull<Node3D>("Backdrop/OutskirtsMist")?.GetChildCount() == 2);
+        Check("forest outskirts carry no mist shelves (the look's halo shading does the falloff)",
+            terrain?.GetNodeOrNull<Node3D>("Backdrop/OutskirtsMist") == null);
         GD.Print("[combatshot] spike ready");
 
         string captureDirectory = OS.GetEnvironment("DELVE_SHOT_DIRECTORY");
@@ -69,14 +70,15 @@ public partial class CombatShotSpike : SpikeBase
         await WaitSeconds(BootSeconds);
         Capture("combat_shot.png");
 
-        // The Idle bands are the default board: they must be up on the player's turn, and hovering
+        // Move is a command, as in FFT: the Idle board is clear, Move shows the bands, and hovering
         // a two-action tile draws the route with its second leg in that band's colour.
         var scene = GetNode<CombatScene>("CombatTest/Combat");
-        int bandTiles = 0;
-        foreach (Node child in scene.GetNode<Node3D>("%MoveBands").GetChildren())
-            if (child is MeshInstance3D { Visible: true }) bandTiles++;
-        Check($"movement bands show on the player's Idle turn ({bandTiles} markers)",
-            scene.IsPlayerTurn && bandTiles > 0);
+        Check($"the Idle board shows no movement bands ({scene.MoveBandTileCount} tiles)",
+            scene.IsPlayerTurn && scene.MoveBandTileCount == 0);
+        scene.GetNode<ActionBar>("%ActionBar")._UnhandledInput(
+            new InputEventAction { Action = InputNames.Move, Pressed = true });
+        await WaitSeconds(0.1f);
+        Check($"Move shows the movement bands ({scene.MoveBandTileCount} tiles)", scene.MoveBandTileCount > 0);
         if (scene.HoverBandTile(2))
         {
             await WaitSeconds(PoseSeconds);
@@ -105,6 +107,12 @@ public partial class CombatShotSpike : SpikeBase
         {
             GD.Print("[combatshot] no sloped band tile on this board; slope close-up skipped");
         }
+        // A second Move puts the bands away and the command menu opens again.
+        scene.GetNode<ActionBar>("%ActionBar")._UnhandledInput(
+            new InputEventAction { Action = InputNames.Move, Pressed = true });
+        await WaitSeconds(0.1f);
+        Check("a second Move closes the bands and reopens the menu",
+            scene.MoveBandTileCount == 0 && scene.GetNode<ActionBar>("%ActionBar").MenuShown);
 
         if (CaptureEnemyCloseup && Rig() is { } closeupRig)
         {

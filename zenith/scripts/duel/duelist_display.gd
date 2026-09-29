@@ -1,28 +1,24 @@
 class_name DuelistDisplay
 extends Node3D
-## A duelist's resources as objects on the table. The stat tracker is a plate standing on a
-## stone slab in front of the duelist card, leaning back toward the viewer; the rest (status
-## lines, Seals, the rival's hand) is printed flat on the felt around the card. The Life count
-## lies on top of the Life Deck. Accepts only the public seat view and the same event snapshots
-## used by the table.
+## A duelist's resources as objects on the table. The stat tracker is a nameplate on a thin stone
+## slab lying beside the duelist card, under its Ally wing (`plate_home`); the rest (status lines,
+## Seals, the rival's hand) is printed flat on the board around the plate. The Life count lies on
+## top of the Life Deck. Accepts only the public seat view and the same event snapshots used by
+## the table.
 
 signal clicked(uid: int)
 signal inspected(uid: int)
 signal hovered(uid: int, on: bool)
 
-## World units per canvas pixel, for the printed canvas and the plate alike.
-## Sized so the near plate fills the gap between Out and the Relic without covering either.
-const PIXEL: float = 0.0041
+## World units per canvas pixel, for the printed canvas and the plate alike. Sized so the plate
+## spans the Ally wing between the duelist and the Seals; TableLayout keeps that footprint clear.
+const PIXEL: float = 0.0029
 ## The Life count's own scale; it lies on the pile and keeps one size for both seats.
 const LIFE_PIXEL: float = 0.0044
-## The printed canvas lies just over the felt and under the cards.
+## The printed canvas lies just over the board and under the cards.
 const PRINT_Y: float = 0.006
-## How far each plate leans back from flat. The far one leans further, since it is further off.
-const NEAR_TILT: float = deg_to_rad(12.0)
-const FAR_TILT: float = deg_to_rad(30.0)
-## The far seat's fixture is made this much larger, so across the table it reads about as well
-## as the near one. Perspective hides the difference.
-const FAR_SCALE: float = 1.25
+## The plate lies almost flat; from above, the same lean reads the same for both seats.
+const PLATE_TILT: float = deg_to_rad(4.0)
 ## The slab's thickness under the plate's face.
 const PLATE_DEPTH: float = 0.045
 ## The Life count on the pile: the number just past its centre, the caption toward the viewer.
@@ -45,9 +41,9 @@ var _hovering: bool = false
 @onready var life_caption: Label3D = $LifeCaption
 var life_transform: Transform3D = Transform3D.IDENTITY
 var flag_row: PackedVector3Array = PackedVector3Array()   # where the status chips print, inner end first
+var plate_home: Vector3 = Vector3.ZERO   # the centre of the plate's face on the table, world space
 var _anchor_inputs: Array = []
 var _life_pulse: Tween = null
-var _pixel: float = PIXEL   # world units per canvas pixel for this seat
 
 
 func _ready() -> void:
@@ -130,13 +126,11 @@ func status_text() -> String:
 func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
 	# Static fixtures retain their texture and layout until the card, the pile or the side moves.
 	var toward: float = 1.0 if camera.global_position.z >= 0.0 else -1.0
-	var far: bool = readout._player_index != readout._viewer
-	var inputs: Array = [global_transform, card.global_transform, life_transform, flag_row, toward, far, camera.global_position]
+	var inputs: Array = [global_transform, card.global_transform, life_transform, flag_row, plate_home, toward]
 	if inputs == _anchor_inputs:
 		return
 	_anchor_inputs = inputs
-	_pixel = PIXEL * (FAR_SCALE if far else 1.0)
-	surface.pixel_size = _pixel
+	surface.pixel_size = PIXEL
 	life_value.pixel_size = LIFE_PIXEL
 	life_caption.pixel_size = LIFE_PIXEL
 	var yaw: Basis = Basis(Vector3.UP, 0.0 if toward > 0.0 else PI)
@@ -153,20 +147,17 @@ func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
 			else:
 				bounds = bounds.expand(point)
 	readout.duelist_bounds = bounds
-	# Reserve the neighbouring Life Deck too; its single counter lives on the pile.
-	for x: float in [-0.315, 0.315]:
-		for z: float in [-0.44, 0.44]:
-			bounds = bounds.expand(_canvas_point(life_transform * Vector3(x, 0, z)))
 	var flat: Basis = yaw * Basis(Vector3.RIGHT, -PI * 0.5)
 	var forward: Vector3 = Vector3(0, 0, toward)
 	life_value.global_transform = Transform3D(flat, life_transform.origin + Vector3.UP * 0.004 - forward * LIFE_NUMBER_BACK)
 	life_caption.global_transform = Transform3D(flat, life_transform.origin + Vector3.UP * 0.004 + forward * LIFE_CAPTION_FORWARD)
 	readout.card_bounds = bounds
+	readout.plate_home = _canvas_point(plate_home)
 	if flag_row.size() == 2:
 		var inner: Vector2 = _canvas_point(flag_row[0])
 		var outer: Vector2 = _canvas_point(flag_row[1])
 		readout.flag_home = Rect2(Vector2(minf(inner.x, outer.x), inner.y), Vector2(absf(outer.x - inner.x), 0.0))
-	_place_plate(yaw, far, camera)
+	_place_plate(yaw)
 	# Expand the transparent canvas as the cluster grows; fixed textures clip wide zooms.
 	for rect: Rect2 in readout.stat_hit_rects:
 		bounds = bounds.merge(rect)
@@ -231,7 +222,7 @@ func hit_test(point: Vector2, camera: Camera3D) -> bool:
 	return false
 
 
-## The screen rectangle the fixture covers: every printed stat region and the standing plate.
+## The screen rectangle the fixture covers: every printed stat region and the plate.
 ## The hand keeps below it.
 func screen_rect(camera: Camera3D) -> Rect2:
 	var bounds: Rect2 = Rect2(camera.unproject_position(plate_face.global_position), Vector2.ZERO)
@@ -244,34 +235,23 @@ func screen_rect(camera: Camera3D) -> Rect2:
 	return bounds
 
 
-## Stands the plate on the table at the tracker's place in the printed layout: its edge nearest the
-## viewer on the felt, leaning back. The far seat's status lines move past the table it hides.
-func _place_plate(yaw: Basis, far: bool, camera: Camera3D) -> void:
+## Lays the plate on the table at the tracker's place in the printed layout: its edge nearest the
+## viewer on the board, the far edge raised by PLATE_TILT.
+func _place_plate(yaw: Basis) -> void:
 	var tracker: Rect2 = readout.update_layout()["tracker"]
 	var canvas: Rect2 = Rect2(tracker.position - DuelistReadout.PLATE_PAD, Vector2(DuelistReadout.PLATE_CANVAS))
 	var pivot: Vector3 = _world_point(Vector2(canvas.get_center().x, canvas.end.y))
-	var tilt: float = FAR_TILT if far else NEAR_TILT
-	var grow: float = _pixel / PIXEL
-	plate.global_transform = Transform3D((yaw * Basis(Vector3.RIGHT, tilt)).scaled_local(Vector3.ONE * grow), Vector3(pivot.x, 0.003, pivot.z))
-	var clearance: float = 0.0
-	if far:
-		# The plate's top edge, and where the camera's line over it meets the felt beyond.
-		var top: Vector3 = plate.global_transform * Vector3(0, PLATE_DEPTH, -canvas.size.y * PIXEL)
-		var sight: Vector3 = top - camera.global_position
-		if sight.y < -0.001:
-			var beyond: Vector3 = top - sight * (top.y / sight.y)
-			clearance = maxf(0.0, beyond.distance_to(Vector3(pivot.x, beyond.y, pivot.z)) - canvas.size.y * _pixel) / _pixel
-	readout.flag_clearance = roundf(clearance / 8.0) * 8.0
+	plate.global_transform = Transform3D(yaw * Basis(Vector3.RIGHT, PLATE_TILT), Vector3(pivot.x, 0.003, pivot.z))
 
 
 ## A point on the printed canvas (pixels from its centre) in the world, and back.
 func _world_point(canvas_point: Vector2) -> Vector3:
-	return surface.global_transform * Vector3(canvas_point.x * _pixel, -canvas_point.y * _pixel, 0)
+	return surface.global_transform * Vector3(canvas_point.x * PIXEL, -canvas_point.y * PIXEL, 0)
 
 
 func _canvas_point(world: Vector3) -> Vector2:
 	var local: Vector3 = surface.global_transform.affine_inverse() * world
-	return Vector2(local.x, -local.y) / _pixel
+	return Vector2(local.x, -local.y) / PIXEL
 
 
 ## Where a screen ray meets a flat sprite, in that sprite's canvas pixels from its centre.

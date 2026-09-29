@@ -9,8 +9,8 @@ namespace Delve.Combat;
 /// quantity to show. It knows nothing about characters, damage or rules.
 ///
 /// The fill travels to a new value rather than snapping, so a drop reads as a drop. Its colour steps
-/// through the palette's HP tiers at the HUD's thresholds (<see cref="UiColors.HpFillColor"/>), so
-/// the bar over a token and the vitals on the action bar never disagree about how hurt a unit is.
+/// through the palette's HP tiers (<see cref="UiColors.HpFillColor"/>) unless a team colour is set
+/// (<see cref="SetTeam"/>), which combat tokens do, FFT style.
 /// One stored tween owns scale, position and colour together, so a second hit cannot leave the fill
 /// and its colour out of step.
 ///
@@ -35,6 +35,8 @@ public partial class WorldHpBar : Node3D
 
     private MeshInstance3D _bg = null!;
     private MeshInstance3D _fill = null!;
+    private Label3D _number = null!;
+    private Color? _teamFill;
     private StandardMaterial3D _fillMat = null!;
     private Tween? _tween;
     private Camera3D? _camera;
@@ -56,6 +58,7 @@ public partial class WorldHpBar : Node3D
     {
         _bg = GetNode<MeshInstance3D>("HpBarBg");
         _fill = GetNode<MeshInstance3D>("HpFill");
+        _number = GetNode<Label3D>("%Number");
 
         // Per-instance materials stay in code (the fill colour is tweened), assigned as overrides on
         // the scene meshes so the shared scene sub-resources never diverge across bars.
@@ -87,6 +90,20 @@ public partial class WorldHpBar : Node3D
         return _camera;
     }
 
+    /// <summary>FFT style: the fill takes one team colour at every HP level and the bar's length
+    /// carries the health, and the number beside it is the unit's place on the timeline.</summary>
+    public void SetTeam(Color color)
+    {
+        _teamFill = color;
+        _fillMat.AlbedoColor = color;
+        _number.Modulate = color.Lightened(0.25f);
+    }
+
+    /// <summary>Timeline number shown left of the bar; 0 hides it.</summary>
+    public void SetNumber(int number) => _number.Text = number > 0 ? number.ToString() : "";
+
+    public string NumberText => _number.Text;
+
     /// <param name="ratio">Fill fraction, 0..1. Values outside the range are clamped.</param>
     /// <param name="instant">Snap instead of travelling. Used at spawn, where there is no previous
     /// value to animate from.</param>
@@ -98,7 +115,7 @@ public partial class WorldHpBar : Node3D
         // An emptied bar rests one thousandth wide, which is invisible at any gameplay distance.
         var scale = new Vector3(Mathf.Max(ratio, 0.001f), 1f, 1f);
         var position = new Vector3(-_width * 0.5f + _width * ratio * 0.5f, 0f, _fill.Position.Z);
-        Color color = UiColors.HpFillColor(ratio);
+        Color color = _teamFill ?? UiColors.HpFillColor(ratio);
 
         _tween?.Kill();
         _tween = null;

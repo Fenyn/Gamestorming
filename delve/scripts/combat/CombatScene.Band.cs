@@ -13,6 +13,7 @@ public partial class CombatScene
     private UnitInspectPanel _actorCard = null!;
     private UnitInspectPanel _targetCard = null!;
     private float _rollRestBottom;
+    private int? _reactionSourceId;
 
     private void BuildBand()
     {
@@ -23,26 +24,50 @@ public partial class CombatScene
 
     private bool EnemyTurnShowing => _session?.CurrentActor is { TeamId: not 1 } && !_tacticalFinished && !_introPlaying;
 
+    /// <summary>FFT forecast: the attacker card bottom left and the defender card bottom right. On
+    /// an enemy turn they show the acting enemy and its target; on a player turn the defender card
+    /// shows the unit the player is aiming at, else the hovered unit.</summary>
     private void RefreshBand()
     {
         var actor = _session?.CurrentActor;
-        bool band = EnemyTurnShowing && actor?.Health?.IsAlive == true;
-        _actorCard.Render(band ? InspectFor(actor!) : null);
-        int? targetId = _actionTargetId ?? _reactorId;
+        // During a reaction prompt, on any turn, the reactor is the one acting: it takes the left
+        // card and the creature that set it off the right.
+        ICharacter? reactor = _promptOpen && !_tacticalFinished && _reactorId is { } rid
+            && _tacticalUnits.TryGetValue(rid, out var r) ? r.Character : null;
+        bool band = reactor != null || EnemyTurnShowing && actor?.Health?.IsAlive == true;
+        var left = reactor ?? actor;
+        _actorCard.Render(band ? InspectFor(left!) : null);
+        int? targetId = reactor != null ? _reactionSourceId ?? actor?.UniqueId
+            : band ? _actionTargetId ?? _reactorId : _playerTargetId ?? _hoveredId;
         ICharacter? target = targetId is { } id && _tacticalUnits.TryGetValue(id, out var unit) ? unit.Character : null;
-        _targetCard.Render(band && target != null && target != actor ? InspectFor(target) : null);
+        _targetCard.Render(target != null && target != left && !_tacticalFinished ? InspectFor(target) : null);
     }
 
     private void LayoutBand()
     {
         float height = _tacticalHud.Size.Y;
         float bottom = height + _rollRestBottom;
-        if (_actionBar.Visible) bottom = _actionBar.ContentTop - BandGap;
+        if (_actionBar.Visible) bottom = _actionBar.DecisionTop - BandGap;
         else if (_reactionPrompt.Visible) bottom = _reactionPrompt.Dock.GetGlobalRect().Position.Y - BandGap;
         float offset = bottom - height;
         if (Mathf.IsEqualApprox(offset, _dice.OffsetBottom)) return;
         _dice.OffsetBottom = offset;
         _dice.OffsetTop = offset;
+    }
+
+    /// <summary>Metres above a unit's feet the command menu centres on: about chest height.</summary>
+    [Export] public float MenuAnchorLift { get; set; } = 0.9f;
+
+    /// <summary>Keep the FFT command menu beside the unit whose turn it is, following the camera.</summary>
+    private void AnchorCommandMenu()
+    {
+        if (!_actionBar.Visible || _session?.CurrentActor is not { } actor
+            || !_tacticalUnits.TryGetValue(actor.UniqueId, out var visual)) return;
+        var camera = _cameraRig.Camera;
+        var point = visual.GlobalPosition + Vector3.Up * MenuAnchorLift;
+        if (camera.IsPositionBehind(point)) return;
+        // Under canvas_items stretch, UnprojectPosition already returns HUD (canvas) coordinates.
+        _actionBar.AnchorMenu(camera.UnprojectPosition(point));
     }
 
     private void ClearBand()

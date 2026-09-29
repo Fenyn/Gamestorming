@@ -75,6 +75,10 @@ public sealed record MapThemeDefinition
     /// </summary>
     public float HeightScale { get; init; } = MapThemes.DefaultHeightScale;
 
+    /// <summary>Pixels per board tile in the baked ground atlas. Every top texture of the theme
+    /// is authored at this size.</summary>
+    public int TilePx { get; init; } = 48;
+
     public MapColor FallbackTop { get; init; } = new(0.55f, 0.55f, 0.57f);
     public MapColor FallbackWall { get; init; } = new(0.35f, 0.35f, 0.38f);
 
@@ -137,42 +141,45 @@ public static class MapThemes
     {
         BiomeId = "forest",
         DisplayName = "Woodland",
+        TilePx = 64,
+        // FFT tiles carry no drawn lattice; a faint one keeps squares countable.
+        TopGridLineColor = new(0f, 0f, 0f, 0.14f),
+        // A faint warm lip on every ledge instead of a dark one, as on FFT's block tops. Stronger
+        // reads as a drawn UI line.
+        EdgeStripColor = new(1f, 0.93f, 0.78f, 0.12f),
         Surfaces = new Dictionary<SurfaceType, MapSurfaceStyle>
         {
-            // Textured surfaces: seamless 48px Winlu ground tiles (assets/textures/terrain/), one
-            // repeat per board tile. Cliffs share the mossy rock face; mud has its own wet art.
+            // Hand-painted Golden Skull textures (assets/textures/terrain/gs/, 64 px a tile; the
+            // *_field textures span 4x4 tiles), imported by tools/art/import_goldenskull.py.
             [SurfaceType.Grass] = Style(new(0.33f, 0.55f, 0.24f), new(0.20f, 0.33f, 0.15f)) with
             {
-                TopTextures = Tex("grass_a", "grass_b", "grass_c"),
-                WallTexture = Tex1("rock_b"),
-                WallTopTexture = Tex1("cliff_grass"),
+                // One field spanning 4x4 tiles, not per-tile variants: variants read as a patchwork.
+                TopTextures = Gs("grass_field"),
+                WallTexture = Gs1("earth_side"),
+                WallTopTexture = Gs1("grass_side"),
             },
             [SurfaceType.Dirt] = Style(new(0.48f, 0.36f, 0.24f), new(0.30f, 0.22f, 0.15f)) with
             {
-                TopTextures = Tex("dirt_a", "dirt_b"),
-                WallTexture = Tex1("rock_b"),
-                WallTopTexture = Tex1("cliff_earth"),
+                TopTextures = Gs("dirt_field"),
+                WallTexture = Gs1("earth_side"),
             },
             [SurfaceType.Stone] = Style(new(0.55f, 0.55f, 0.57f), new(0.35f, 0.35f, 0.38f)) with
             {
-                TopTextures = Tex("stone_b"),
-                WallTexture = Tex1("stone_a"),
-                WallTint = new(0.75f, 0.75f, 0.78f),
+                TopTextures = Gs("stone_top"),
+                WallTexture = Gs1("mossy_side"),
+                WallTopTexture = Gs1("mossy_side_top"),
             },
-            // Deck boards carry staggered end-joints (bridge_deck); the slab sides read as stacked
-            // lengthwise beams (bridge_beam = the same boards rotated).
+            // Deck planks run crosswise to travel; the slab sides are the same planks rotated.
             [SurfaceType.Wood] = Style(new(0.62f, 0.46f, 0.28f), new(0.40f, 0.29f, 0.17f)) with
             {
-                TopTextures = Tex("bridge_deck"),
-                WallTexture = Tex1("bridge_beam"),
-                WallTint = new(0.78f, 0.74f, 0.70f),
+                TopTextures = Gs("wood_deck"),
+                WallTexture = Gs1("wood_beam"),
             },
             [SurfaceType.Water] = Style(new(0.16f, 0.38f, 0.62f, 0.8f), new(0.10f, 0.24f, 0.40f)),
             [SurfaceType.Mud] = Style(new(0.32f, 0.25f, 0.18f), new(0.20f, 0.16f, 0.11f)) with
             {
-                TopTextures = Tex("mud_a", "mud_b"),
-                WallTexture = Tex1("rock_b"),
-                WallTopTexture = Tex1("cliff_earth"),
+                TopTextures = Gs("mud_field"),
+                WallTexture = Gs1("earth_side"),
             },
             [SurfaceType.Sand] = Style(new(0.80f, 0.72f, 0.50f), new(0.58f, 0.51f, 0.34f)),
             [SurfaceType.Snow] = Style(new(0.90f, 0.92f, 0.95f), new(0.68f, 0.72f, 0.78f)),
@@ -236,6 +243,15 @@ public static class MapThemes
     {
         var paths = new string[names.Length];
         for (int i = 0; i < names.Length; i++) paths[i] = Tex1(names[i]);
+        return paths;
+    }
+
+    private static string Gs1(string name) => Tex1($"gs/{name}");
+
+    private static string[] Gs(params string[] names)
+    {
+        var paths = new string[names.Length];
+        for (int i = 0; i < names.Length; i++) paths[i] = Gs1(names[i]);
         return paths;
     }
 }

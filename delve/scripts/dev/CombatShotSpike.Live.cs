@@ -41,22 +41,34 @@ public partial class CombatShotSpike
                 .Invoke(scene, new object?[] { (PF2e.Vector2Int?)enemy.GridPosition });
         await WaitSeconds(PoseSeconds);
         if (striking)
+        {
             Check($"a live strike forecast fills the decision slot ({string.Join(", ", bar.Decision.FigureLabels.Select(f => $"{f.CaptionText} {f.ValueText}"))})",
                 bar.Decision.Card.Visible && bar.Decision.FigureLabels.Count >= 2);
-        var inspect = scene.GetNode<UnitInspectPanel>("%UnitInspect");
+            Check("the command menu is closed while a Strike target is picked", !bar.MenuShown);
+            var actorBefore = session.CurrentActor;
+            bar._UnhandledInput(new InputEventAction { Action = InputNames.EndTurn, Pressed = true });
+            await WaitSeconds(0.2f);
+            Check("End Turn does nothing while a target is picked",
+                session.CurrentActor == actorBefore && controller.Mode == PlayerTurnMode.SelectingStrike);
+        }
+        var inspect = scene.GetNode<UnitInspectPanel>("%TargetCard");
         string letter = enemy == null ? "" : session.Letters.LetterFor(enemy);
         string occupant = enemy == null ? "none" : session.Grid.GetGroundOccupant(enemy.GridPosition)?.Name ?? "nobody";
-        Check($"hovered enemy fills the card slot with its letter ({letter}; {enemy?.Name} at {enemy?.GridPosition}, tile holds {occupant})",
+        Check($"hovered enemy fills the right-hand card with its letter ({letter}; {enemy?.Name} at {enemy?.GridPosition}, tile holds {occupant})",
             inspect.Visible && inspect.GetNode<Label>("%BadgeLabel").Text == letter && letter.Length > 0);
+        var actorCard = scene.GetNode<UnitInspectPanel>("%UnitInspect");
+        Check($"the actor card keeps the acting hero while an enemy is hovered ('{actorCard.NameText}')",
+            actorCard.Visible && actorCard.NameText == session.CurrentActor?.Name);
         var token = scene.GetNode<Node3D>("%UnitLayer").GetChildren().OfType<UnitVisual3D>()
             .FirstOrDefault(u => u.Character == enemy);
         Check(striking ? "the targeted enemy shows its name plate" : "the hovered enemy shows its letter badge and no plate",
             token != null && (striking ? token.Plate.PlateVisible : token.Plate.BadgeVisible && !token.Plate.PlateVisible));
         var actorToken = scene.GetNode<Node3D>("%UnitLayer").GetChildren().OfType<UnitVisual3D>()
             .FirstOrDefault(u => u.Character == session.CurrentActor);
-        Check("the actor shows its name plate", actorToken?.Plate.PlateVisible == true);
+        Check("the actor carries the turn crystal and no name plate (FFT style)",
+            actorToken != null && !actorToken.Plate.PlateVisible && actorToken.GetNode<Node3D>("%Crystal").Visible);
         int plates = scene.GetNode<Node3D>("%UnitLayer").GetChildren().OfType<UnitVisual3D>().Count(u => u.Plate.PlateVisible);
-        Check($"name plates show only for the actor, target and reactor ({plates})", plates <= 2);
+        Check($"name plates show only for the target and reactor ({plates})", plates <= 2);
         CheckPlates(scene);
         Check("the Current Turn panel is gone on player turns", scene.GetNodeOrNull("%ActiveCharacter") == null);
         Check("the action bar prints no name, HP or AC", bar.GetNodeOrNull("%ActorLabel") == null && bar.GetNodeOrNull("%VitalsLabel") == null);
@@ -164,18 +176,20 @@ public partial class CombatShotSpike
             Mathf.Abs(dock.End.Y - 1064) <= 1 && Mathf.Abs(dock.GetCenter().X - 960) <= 1 && Mathf.Abs(dock.Size.X - 600) <= 1);
         var actorCard = scene.GetNode<Control>("%ActorCard").GetGlobalRect();
         var targetCard = scene.GetNode<Control>("%TargetCard").GetGlobalRect();
-        Check($"the attacker and target cards sit 16 px either side of the prompt on the baseline ({actorCard}, {targetCard})",
+        Check($"the attacker card sits in the bottom-left corner and the target card in the bottom-right, clear of the prompt ({actorCard}, {targetCard}, prompt {dock}, shown {scene.GetNode<Control>("%ActorCard").Visible}/{scene.GetNode<Control>("%TargetCard").Visible})",
             scene.GetNode<Control>("%ActorCard").Visible && scene.GetNode<Control>("%TargetCard").Visible
-            && Mathf.Abs(dock.Position.X - actorCard.End.X - 16) <= 1 && Mathf.Abs(targetCard.Position.X - dock.End.X - 16) <= 1
-            && Mathf.Abs(actorCard.End.Y - 1064) <= 1 && Mathf.Abs(targetCard.End.Y - 1064) <= 1);
+            && Mathf.Abs(actorCard.Position.X - 16) <= 1 && Mathf.Abs(targetCard.End.X - 1904) <= 1
+            && actorCard.End.X < dock.Position.X && targetCard.Position.X > dock.End.X
+            && Mathf.Abs(actorCard.End.Y - 1064) <= 1 && Mathf.Abs(targetCard.End.Y - 1024) <= 1);
         Check($"the band cards share one height ({actorCard.Size.Y}, {targetCard.Size.Y})", Mathf.Abs(actorCard.Size.Y - targetCard.Size.Y) <= 0.5f);
         Check("the action bar hides while the prompt holds the bottom", !bar.IsVisibleInTree());
         Check($"prompt title reads '{prompt.TitleText}'", prompt.TitleText == view.Title && view.Title.EndsWith("?"));
         var figures = prompt.FigureLabels;
         Check($"prompt shows {figures.Count} compact figures ({string.Join(", ", figures.Select(f => $"{f.CaptionText} {f.BeforeText}→{f.ValueText}"))})",
             figures.Count == view.Figures.Count && figures.Count is > 0 and <= 2);
-        var reactor = scene.GetNode<SquadPanel>("%SquadPanel").Chips.FirstOrDefault(c => c.MemberId == view.ReactorId);
-        Check("the reactor's party chip takes the bone frame", reactor?.Framed == true);
+        var reactor = scene.GetNode<Node3D>("%UnitLayer").GetChildren().OfType<UnitVisual3D>()
+            .FirstOrDefault(u => u.Character.UniqueId == view.ReactorId);
+        Check("the reactor carries its name plate over the board", reactor?.Plate.PlateVisible == true);
         var dice = scene.GetNode<DiceRollPanel>("%DiceRoll");
         if (dice.Visible)
         {

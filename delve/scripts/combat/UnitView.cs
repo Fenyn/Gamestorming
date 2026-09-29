@@ -16,6 +16,12 @@ public sealed record UnitView
     public int Id { get; init; }
     public int TeamId { get; init; }
 
+    /// <summary>Hero sheet id for the portrait, empty for creatures.</summary>
+    public string HeroId { get; init; } = "";
+
+    /// <summary>Enemy sprite folder for the portrait, empty for heroes.</summary>
+    public string SpriteFolder { get; init; } = "";
+
     /// <summary>True for a party member. Team 1 is always the player's side.</summary>
     public bool IsAlly => TeamId == 1;
 

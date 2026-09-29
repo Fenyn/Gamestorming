@@ -210,13 +210,13 @@ public partial class DelayTurnSpike : SpikeBase
         await Frames(2);
         var picks = PickableChips(row);
         Check($"[hud] the Delay hotkey offers the later chips as a pick ({picks.Count} chips, hint '{hint.Text}')",
-            picks.Count > 0 && hint.Text == "Act after" && bar.Decision.CancelKeyVisible);
+            picks.Count > 0 && hint.Text == "Act after" && CancelHinted(scene));
         Check("[hud] every offered chip comes after the active one", AllAfterActive(row));
 
         input._UnhandledInput(new InputEventAction { Action = InputNames.UiCancel, Pressed = true });
         await Frames(2);
         Check($"[hud] Esc cancels the pick ({PickableChips(row).Count} chips offered, hint '{hint.Text}')",
-            PickableChips(row).Count == 0 && hint.Text != "Act after" && !bar.Decision.CancelKeyVisible);
+            PickableChips(row).Count == 0 && hint.Text != "Act after" && !CancelHinted(scene));
 
         bar._UnhandledInput(new InputEventAction { Action = InputNames.Delay, Pressed = true });
         await Frames(2);
@@ -238,7 +238,7 @@ public partial class DelayTurnSpike : SpikeBase
         await WaitForAllyTurn(scene, bar, ally);
         int activeIndex = ActiveIndex(row);
         Check($"[hud] {ally} returns as the active chip right after {anchorName} (chips: {ChipNames(row)})",
-            activeIndex >= 0 && ChipName(row.GetChild(activeIndex)) == ally && PreviousChipName(row, activeIndex) == anchorName);
+            activeIndex >= 0 && ChipNameAt(row, activeIndex) == ally && PreviousChipName(row, activeIndex) == anchorName);
         Check($"[hud] the resumed turn opens with Delay closed (a turn only delays once; tooltip '{delayBtn.TooltipText}')",
             delayBtn.Disabled && delayBtn.TooltipText.Contains(CombatSession.ResumedTurnReason));
 
@@ -250,6 +250,7 @@ public partial class DelayTurnSpike : SpikeBase
         await WaitForAllyTurn(scene, bar, ally);
         Check($"[hud] a fresh turn re-opens Delay ('{delayBtn.TooltipText}', chips: {ChipNames(row)})",
             scene.IsPlayerTurn && !delayBtn.Disabled);
+        bar._UnhandledInput(new InputEventAction { Action = InputNames.Move, Pressed = true });
         if (scene.HoverSteepestBandTile(out Vector3 world) || scene.HoverBandTile(1, out world))
         {
             scene.ClearHover();

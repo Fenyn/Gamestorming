@@ -6,9 +6,10 @@ using Godot;
 namespace Delve.UI;
 
 /// <summary>
-/// Bottom action bar for the active ally: action pips, resource pips and the Strike,
-/// Shield, Spells, Abilities, Delay, End Turn and Control buttons, with the signature row and the
-/// <see cref="DecisionSlot"/> stacked above it. No name, HP or AC: the party column owns those.
+/// The FFT command menu for the active ally, a parchment panel beside the unit: the actor's name,
+/// action and resource pips, then Move, Strike, Shield, Spells, Abilities, Delay, End Turn and
+/// Control, with the signature row and flyouts stacked above it. The <see cref="DecisionSlot"/>
+/// (forecast) sits apart at the bottom centre, between the unit cards.
 /// Renders from <see cref="ActionBarState"/> and raises intent events only. Hotkeys gate on
 /// <see cref="HudRoot.ModalActive"/> so the reaction prompt blocks them.
 /// </summary>
@@ -19,6 +20,7 @@ public partial class ActionBar : Control
 
     public event Action? ConfirmTargetsPressed;
     public event Action? ConfirmOrderPressed;
+    public event Action? MovePressed;
     public event Action? StrikePressed;
     public event Action? RaiseShieldPressed;
     public event Action? DelayPressed;
@@ -34,8 +36,10 @@ public partial class ActionBar : Control
     public event Action<string>? SkillChipPressed;
 
     private Control _stack = null!;
+    private Label _menuTitle = null!;
     private PipRow _actionPips = null!;
     private VBoxContainer _resources = null!;
+    private CaptionButton _moveBtn = null!;
     private CaptionButton _strikeBtn = null!;
     private CaptionButton _shieldBtn = null!;
     private CaptionButton _delayBtn = null!;
@@ -68,24 +72,16 @@ public partial class ActionBar : Control
     public string ActorName => _lastActorName;
     public bool StageOrders => _stageOrders.ButtonPressed;
 
-    /// <summary>Global top edge of the highest visible, non-empty piece of the bar's stack.</summary>
-    public float ContentTop
-    {
-        get
-        {
-            float top = _stack.GetGlobalRect().End.Y;
-            foreach (var child in _stack.GetChildren())
-                if (child is Control { Visible: true } piece && piece.Size.Y > 0)
-                    top = Mathf.Min(top, piece.GetGlobalRect().Position.Y);
-            return top;
-        }
-    }
+    /// <summary>Global top edge of the forecast slot at the bottom centre (its bottom edge when empty).</summary>
+    public float DecisionTop => Decision.GetGlobalRect().Position.Y;
 
     public override void _Ready()
     {
         _stack = GetNode<Control>("%Stack");
+        _menuTitle = GetNode<Label>("%MenuTitle");
         _actionPips = GetNode<PipRow>("%ActionPips");
         _resources = GetNode<VBoxContainer>("%Resources");
+        _moveBtn = GetNode<CaptionButton>("%MoveButton");
         _strikeBtn = GetNode<CaptionButton>("%StrikeButton");
         _shieldBtn = GetNode<CaptionButton>("%ShieldButton");
         _spellsBtn = GetNode<CaptionButton>("%SpellsButton");
@@ -103,7 +99,7 @@ public partial class ActionBar : Control
         Decision = GetNode<DecisionSlot>("%DecisionSlot");
         _hud = HudRoot.Find(this);
 
-        _captions = new[] { _strikeBtn, _shieldBtn, _spellsBtn, _skillsBtn, _delayBtn, _endBtn };
+        _captions = new[] { _moveBtn, _strikeBtn, _shieldBtn, _spellsBtn, _skillsBtn, _delayBtn, _endBtn };
         RefreshCaptionColors();
 
         _controlButton.Toggled += on => SetFlyout(on ? FlyoutCategory.Control : FlyoutCategory.None);
@@ -114,6 +110,7 @@ public partial class ActionBar : Control
         GetNode<Button>("%Overview").Pressed += () => OverviewPressed?.Invoke();
         _stageOrders.Toggled += _ => StagingChanged?.Invoke();
 
+        _moveBtn.Pressed += () => MovePressed?.Invoke();
         _strikeBtn.Pressed += () => StrikePressed?.Invoke();
         _shieldBtn.Pressed += () => RaiseShieldPressed?.Invoke();
         _delayBtn.Pressed += () => DelayPressed?.Invoke();
@@ -137,6 +134,7 @@ public partial class ActionBar : Control
         _interactable = interactable;
         if (!interactable)
         {
+            _moveBtn.Disabled = true;
             _strikeBtn.Disabled = true;
             _shieldBtn.Disabled = true;
             _delayBtn.Disabled = true;
@@ -158,10 +156,11 @@ public partial class ActionBar : Control
 
     private void RefreshCaptionColors()
     {
+        // The command menu is parchment, so its captions take the dark ink labels.
         foreach (var btn in _captions)
         {
-            if (btn.ActionLabel != null) btn.ActionLabel.ThemeTypeVariation = btn.Disabled ? ThemeNames.CaptionDisabled : "";
-            if (btn.KeyLabel != null) btn.KeyLabel.ThemeTypeVariation = btn.Disabled ? ThemeNames.CaptionDisabled : ThemeNames.HintLabel;
+            if (btn.ActionLabel != null) btn.ActionLabel.ThemeTypeVariation = btn.Disabled ? ThemeNames.CommandLabelDisabled : ThemeNames.CommandLabel;
+            if (btn.KeyLabel != null) btn.KeyLabel.ThemeTypeVariation = ThemeNames.CommandKey;
         }
     }
 
@@ -198,6 +197,8 @@ public partial class ActionBar : Control
         RenderResources(state);
         Decision.SetMoveRestriction(state.MoveRestriction);
 
+        _moveBtn.Disabled = !_interactable || !state.CanMove;
+        _moveBtn.TooltipText = UnavailableTooltip(state.MoveDisabledReason);
         _strikeBtn.SetActionText(state.Map < 0 ? $"Strike {state.Map}" : "Strike");
         _strikeBtn.Disabled = !_interactable || !state.CanStrike;
         _shieldBtn.Disabled = !_interactable || !state.CanRaiseShield;
@@ -218,6 +219,7 @@ public partial class ActionBar : Control
 
         bool actorChanged = state.ActorName != _lastActorName;
         _lastActorName = state.ActorName;
+        _menuTitle.Text = state.ActorName;
         _spells = state.SpellEntries;
         _skills = state.SkillEntries;
         RebuildSignatures();
@@ -245,9 +247,12 @@ public partial class ActionBar : Control
         }
         while (_resources.GetChildCount() < state.ResourcePips.Count && ResourcePipScene != null)
         {
-            var row = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
-            row.AddChild(new Label { ThemeTypeVariation = ThemeNames.HintLabel, MouseFilter = MouseFilterEnum.Ignore });
-            row.AddChild(ResourcePipScene.Instantiate<PipRow>());
+            var row = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore, Alignment = BoxContainer.AlignmentMode.End };
+            row.AddChild(new Label { ThemeTypeVariation = ThemeNames.CommandKey, MouseFilter = MouseFilterEnum.Ignore });
+            var pips = ResourcePipScene.Instantiate<PipRow>();
+            pips.FilledVariation = _actionPips.FilledVariation;
+            pips.SpentVariation = _actionPips.SpentVariation;
+            row.AddChild(pips);
             _resources.AddChild(row);
         }
         for (int i = 0; i < _resources.GetChildCount(); i++)
@@ -271,46 +276,4 @@ public partial class ActionBar : Control
     public void SetMoveHint(MoveHoverView? hover) => Decision.SetMoveHover(hover);
 
     public void SetSpellTargetSelection(int count, int limit) => Decision.SetSpellTargetSelection(count, limit);
-
-    /// <summary>combat_action_1..2, combat_spells / combat_skills, combat_delay and
-    /// combat_end_turn, gated off while a modal is up. Esc closes an open flyout and is consumed
-    /// here; otherwise it reaches GridInput3D's targeting cancel.</summary>
-    public override void _UnhandledInput(InputEvent @event)
-    {
-        if (_hud?.ModalActive == true || !IsVisibleInTree())
-            return;
-
-        if (_openCategory != FlyoutCategory.None && @event.IsActionPressed(InputNames.UiCancel))
-        {
-            CloseFlyout();
-            GetViewport().SetInputAsHandled();
-            return;
-        }
-
-        if (!_interactable) return;
-
-        if (@event.IsActionPressed(InputNames.Confirm) && Decision.CanConfirmTargets)
-            Activate(Decision.ConfirmTargetsButton, () => ConfirmTargetsPressed?.Invoke());
-        else if (@event.IsActionPressed(InputNames.Action1))
-            Activate(_strikeBtn, () => StrikePressed?.Invoke());
-        else if (@event.IsActionPressed(InputNames.Action2))
-            Activate(_shieldBtn, () => RaiseShieldPressed?.Invoke());
-        else if (@event.IsActionPressed(InputNames.Spells))
-            Activate(_spellsBtn, () => SetFlyout(
-                _openCategory == FlyoutCategory.Spells ? FlyoutCategory.None : FlyoutCategory.Spells));
-        else if (@event.IsActionPressed(InputNames.Skills))
-            Activate(_skillsBtn, () => SetFlyout(
-                _openCategory == FlyoutCategory.Skills ? FlyoutCategory.None : FlyoutCategory.Skills));
-        else if (@event.IsActionPressed(InputNames.Delay))
-            Activate(_delayBtn, () => DelayPressed?.Invoke());
-        else if (@event.IsActionPressed(InputNames.EndTurn))
-            Activate(_endBtn, () => EndTurnPressed?.Invoke());
-    }
-
-    private void Activate(Button button, Action fire)
-    {
-        if (button.Disabled || !button.Visible) return;
-        fire();
-        GetViewport().SetInputAsHandled();
-    }
 }

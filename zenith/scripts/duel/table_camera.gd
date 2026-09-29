@@ -5,21 +5,24 @@ extends Camera3D
 ## home framing. Pitch and yaw never change, so the perspective the layout was tuned for holds.
 ## Everything happens in the rig's local space, so the hotseat swing keeps working underneath.
 
-const LOOK_AT: Vector3 = Vector3(0, 0, 0.5)
+const LOOK_AT: Vector3 = Vector3(0, 0, 0.15)
 const IDLE_SECONDS: float = 4.0
 const GLIDE: float = 9.0                 # exponential smoothing rate toward the target position
 const ZOOM_STEP: float = 0.14            # share of the distance to the cursor point per wheel notch
-const MIN_HEIGHT: float = 1.6
-const MAX_HEIGHT: float = 7.6
+const MIN_HEIGHT: float = 3.0
+const MAX_HEIGHT: float = 9.6
 const KEY_PAN_SPEED: float = 3.2         # table units per second at home height
 const DRAG_PAN: float = 0.0075           # table units per pixel of middle-drag at home height
-const BOUNDS: Rect2 = Rect2(-5.2, -3.7, 10.4, 7.4)   # the table top; the look point stays inside
-const ROAM_MARGIN: Vector2 = Vector2(0.62, 0.45)     # table units kept clear of each edge, per unit of camera height
+## The board, centred on the home look point; the look point stays inside.
+const BOUNDS: Rect2 = Rect2(-5.6, -3.25, 11.2, 6.8)
+## Table units kept clear of each edge, per unit of camera height. At the home height the margin
+## takes the whole of BOUNDS, so the full-board framing cannot be panned off.
+const ROAM_MARGIN: Vector2 = Vector2(0.6, 0.37)
 
-## While an exchange is live the view leans in on the arena ring between the fighters, a slower,
+## While an exchange is live the view leans in on the centre line between the fighters, a slower,
 ## eased glide than an ordinary return so the push reads as a deliberate move.
-const ARENA_LOOK: Vector3 = Vector3(0, 0, -0.2)
-const ARENA_DISTANCE: float = 7.5
+const ARENA_LOOK: Vector3 = Vector3(0, 0, 0)
+const ARENA_DISTANCE: float = 9.3
 const ARENA_GLIDE: float = 4.5
 
 ## The opening shot under a lead-in: high over the courtyard's open corner, looking down on the

@@ -1,34 +1,55 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
+
+; FFT-style unit card: a portrait tile framed in the team colour, then the name in the display
+; face with level and class, and the HP and AC lines over a wide HP bar. Used for the hovered or
+; acting unit bottom left, and for the attacker and target on the enemy-turn band.
 
 [ext_resource type="Script" path="res://scripts/ui/UnitInspectPanel.cs" id="1_uip"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="2_pips"]
 
 [node name="UnitInspectPanel" type="PanelContainer"]
-custom_minimum_size = Vector2(288, 0)
+custom_minimum_size = Vector2(520, 154)
 offset_left = 16.0
 offset_top = 312.0
-offset_right = 304.0
+offset_right = 536.0
 offset_bottom = 312.0
 mouse_filter = 2
-theme_type_variation = &"HudPanel"
+theme_type_variation = &"UnitCard"
 script = ExtResource("1_uip")
 
 [node name="Row" type="HBoxContainer" parent="."]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 16
 
 [node name="Accent" type="ColorRect" parent="Row"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(3, 0)
+custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
+
+[node name="PortraitFrame" type="PanelContainer" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"TurnChipAlly"
+
+[node name="Portrait" type="TextureRect" parent="Row/PortraitFrame"]
+unique_name_in_owner = true
+texture_filter = 1
+custom_minimum_size = Vector2(110, 110)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Col" type="VBoxContainer" parent="Row"]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="NameRow" type="HBoxContainer" parent="Row/Col"]
@@ -57,36 +78,84 @@ layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 text = "—"
-theme_type_variation = &"EmphasisLabel"
+theme_type_variation = &"CardName"
 text_overrun_behavior = 3
 
-[node name="AcLabel" type="Label" parent="Row/Col/NameRow"]
+[node name="LevelLabel" type="Label" parent="Row/Col/NameRow"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 2
+text = ""
+theme_type_variation = &"EmphasisLabel"
+
+[node name="ClassRow" type="HBoxContainer" parent="Row/Col"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="ClassLabel" type="Label" parent="Row/Col/ClassRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 mouse_filter = 2
 text = ""
 theme_type_variation = &"HintLabel"
 
+[node name="ActionPips" parent="Row/Col/ClassRow" instance=ExtResource("2_pips")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+PipSize = Vector2(14, 14)
+
+[node name="ReactionSlot" type="Control" parent="Row/Col/ClassRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+tooltip_text = "Reaction"
+
+[node name="Reaction" type="Panel" parent="Row/Col/ClassRow/ReactionSlot"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 14.0
+offset_bottom = 14.0
+rotation = 0.785398
+pivot_offset = Vector2(6, 6)
+mouse_filter = 2
+theme_type_variation = &"ReactionReady"
+
 [node name="StatRow" type="HBoxContainer" parent="Row/Col"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
-
-[node name="HpBar" type="ProgressBar" parent="Row/Col/StatRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 8)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-mouse_filter = 2
-theme_type_variation = &"HpBarHigh"
-show_percentage = false
+theme_override_constants/separation = 16
 
 [node name="HpLabel" type="Label" parent="Row/Col/StatRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 mouse_filter = 2
 text = ""
+theme_type_variation = &"EmphasisLabel"
+
+[node name="AcLabel" type="Label" parent="Row/Col/StatRow"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = ""
+theme_type_variation = &"EmphasisLabel"
+
+[node name="HpBar" type="ProgressBar" parent="Row/Col"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HpBarHigh"
+show_percentage = false
 
 [node name="ConditionsLabel" type="Label" parent="Row/Col"]
 unique_name_in_owner = true

@@ -33,7 +33,7 @@ project/assembly_name="Zenith"
 
 [gui]
 
-theme/custom_font="uid://cikisu5bac6qy"
+theme/custom_font="res://assets/fonts/kurale/Kurale-Regular.ttf"
 
 [zenith]
 

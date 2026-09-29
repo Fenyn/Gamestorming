@@ -1,0 +1,71 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/look/LookScene.cs" id="look"]
+[ext_resource type="Shader" path="res://assets/shaders/post_grain_vignette.gdshader" id="post"]
+[ext_resource type="Script" path="res://scripts/look/ScreenOverlay.cs" id="overlay"]
+
+[sub_resource type="Environment" id="environment"]
+resource_local_to_scene = true
+background_mode = 1
+background_color = Color(0.012, 0.012, 0.016, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.45, 0.52, 0.62, 1)
+ambient_light_energy = 0.16
+tonemap_mode = 2
+tonemap_exposure = 1.1
+ssao_enabled = true
+ssao_radius = 1.0
+ssao_intensity = 1.5
+glow_enabled = true
+glow_levels/6 = 0.0
+glow_levels/7 = 0.0
+glow_intensity = 0.6
+glow_bloom = 0.0
+glow_hdr_threshold = 1.2
+fog_enabled = true
+fog_light_color = Color(0.012, 0.012, 0.016, 1)
+fog_density = 0.02
+fog_sky_affect = 0.0
+
+[sub_resource type="CameraAttributesPractical" id="camera"]
+resource_local_to_scene = true
+dof_blur_far_enabled = true
+dof_blur_far_distance = 22.0
+dof_blur_far_transition = 4.0
+dof_blur_near_enabled = true
+dof_blur_near_distance = 18.0
+dof_blur_near_transition = 2.0
+dof_blur_amount = 0.06
+
+[sub_resource type="ShaderMaterial" id="post_material"]
+shader = ExtResource("post")
+shader_parameter/vignette_color = Color(0, 0, 0, 1)
+shader_parameter/vignette_strength = 0.62
+shader_parameter/vignette_radius = 0.45
+shader_parameter/vignette_softness = 0.6
+shader_parameter/grain_strength = 0.0
+shader_parameter/grain_size = 1.5
+shader_parameter/grain_fps = 8.0
+
+[node name="DungeonLook" type="Node3D" node_paths=PackedStringArray("Environment", "Post")]
+script = ExtResource("look")
+Environment = NodePath("WorldEnvironment")
+Post = NodePath("Post")
+SpriteTint = Color(0.8, 0.76, 0.7, 1)
+
+[node name="Post" type="CanvasLayer" parent="."]
+layer = 0
+
+[node name="Overlay" type="Node2D" parent="Post"]
+material = SubResource("post_material")
+script = ExtResource("overlay")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("environment")
+camera_attributes = SubResource("camera")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-65, -25, 0)
+light_color = Color(0.62, 0.7, 0.86, 1)
+light_energy = 0.7
+shadow_enabled = true

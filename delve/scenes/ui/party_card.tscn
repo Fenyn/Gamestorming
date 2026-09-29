@@ -1,10 +1,14 @@
 [gd_scene load_steps=3 format=3]
 
+; Exploration party card (OAG/FFT style): a face tile framed in the ally colour, the name in the
+; display face, HP as text and a wide bar. Same PartyChip script and unique names as the combat
+; party chip, so the squad panel drives either.
+
 [ext_resource type="Script" path="res://scripts/ui/PartyChip.cs" id="1_chip"]
 [ext_resource type="Resource" path="res://assets/ui/conditions/condition_icons.tres" id="2_icons"]
 
-[node name="PartyChip" type="Button"]
-custom_minimum_size = Vector2(288, 64)
+[node name="PartyCard" type="Button"]
+custom_minimum_size = Vector2(250, 104)
 focus_mode = 0
 toggle_mode = true
 theme_type_variation = &"PartyChip"
@@ -12,6 +16,7 @@ script = ExtResource("1_chip")
 Icons = ExtResource("2_icons")
 ConditionIconSize = 22
 MaxMarks = 2
+UseFace = true
 
 [node name="Row" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -19,18 +24,23 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 8.0
-offset_top = 4.0
-offset_right = -8.0
-offset_bottom = -4.0
+offset_top = 8.0
+offset_right = -10.0
+offset_bottom = -8.0
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
-[node name="Portrait" type="TextureRect" parent="Row"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(40, 0)
+[node name="Frame" type="PanelContainer" parent="Row"]
 layout_mode = 2
 mouse_filter = 2
+theme_type_variation = &"TurnChipAlly"
+
+[node name="Portrait" type="TextureRect" parent="Row/Frame"]
+unique_name_in_owner = true
 texture_filter = 1
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
@@ -38,31 +48,26 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 alignment = 1
 
 [node name="Top" type="HBoxContainer" parent="Row/Col"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="Name" type="Label" parent="Row/Col/Top"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
-theme_type_variation = &"EmphasisLabel"
+theme_type_variation = &"CardName"
 clip_text = true
-
-[node name="Conditions" type="HBoxContainer" parent="Row/Col/Top"]
-unique_name_in_owner = true
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 4
 
 [node name="ReactionSlot" type="Control" parent="Row/Col/Top"]
 unique_name_in_owner = true
+visible = false
 custom_minimum_size = Vector2(16, 16)
 layout_mode = 2
 size_flags_vertical = 4
@@ -80,30 +85,36 @@ pivot_offset = Vector2(6, 6)
 mouse_filter = 2
 theme_type_variation = &"ReactionReady"
 
-[node name="BarRow" type="HBoxContainer" parent="Row/Col"]
+[node name="HealthRow" type="HBoxContainer" parent="Row/Col"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
-[node name="HpBar" type="ProgressBar" parent="Row/Col/BarRow"]
+[node name="Health" type="Label" parent="Row/Col/HealthRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 4
 mouse_filter = 2
-theme_type_variation = &"HpBarHigh"
-show_percentage = false
+theme_type_variation = &"EmphasisLabel"
 
-[node name="Health" type="Label" parent="Row/Col/BarRow"]
+[node name="Conditions" type="HBoxContainer" parent="Row/Col/HealthRow"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/separation = 4
 
-[node name="Promotion" type="Label" parent="Row/Col/BarRow"]
+[node name="Promotion" type="Label" parent="Row/Col/HealthRow"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 mouse_filter = 2
 theme_type_variation = &"TipTag"
 text = "Feat"
+
+[node name="HpBar" type="ProgressBar" parent="Row/Col"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HpBarHigh"
+show_percentage = false

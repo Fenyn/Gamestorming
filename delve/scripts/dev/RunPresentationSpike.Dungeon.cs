@@ -54,7 +54,7 @@ public partial class RunPresentationSpike
             await dungeon.Travel(dungeon.Current.Doors.First(d => d.Other(start) == next).Side(start));
         }
         Check("arriving at the refuge opens no popup; the camp waits on the HUD",
-            dungeon.Phase == DungeonPhase.Doors && dungeon.GetNode<DungeonHud>("%DungeonHud").GetNode<Button>("%Camp").Visible);
+            dungeon.Phase == DungeonPhase.Doors && dungeon.GetNode<DungeonHud>("%DungeonHud").GetNode<Button>("%Camp") is { Visible: true, Disabled: false });
         state.Party.Members[0].Health.SetCurrentHP(1);
         int day = state.Clock.Day, ward = state.Wardstone.Ward;
         dungeon.MakeCamp();

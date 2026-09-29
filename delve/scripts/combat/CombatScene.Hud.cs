@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Delve.UI;
+using Godot;
 using PF2e.Core;
 
 namespace Delve.Combat;
@@ -44,6 +46,8 @@ public partial class CombatScene
         _turnRound = _session.RoundNumber + 1;
         _turnSignature = RowSignature(views);
         _turnBar.Render(views, _turnWrap, _turnRound);
+        foreach (var (id, visual) in _tacticalUnits)
+            visual.SetTimelineNumber(_turnBar.Numbers.TryGetValue(id, out int number) ? number : 0);
         _tacticalOrder = views;
         ClearStagedOrder();
 
@@ -70,6 +74,8 @@ public partial class CombatScene
             BaseName = _session.Letters.BaseNameFor(c),
             Id = c.UniqueId,
             TeamId = c.TeamId,
+            HeroId = c.CreatureStats == null ? c.Id : "",
+            SpriteFolder = EnemyFolderFor(c) ?? "",
             IsCurrent = c == current,
             IsDead = c.Health != null && c.Health.IsDead,
             IsDelayed = delayed,
@@ -79,6 +85,23 @@ public partial class CombatScene
             MaxHp = c.Health?.MaxHP ?? 0,
             Conditions = ConditionMarks.For(c),
         };
+    }
+
+    private TileReadout? _tileReadout;
+
+    /// <summary>The FFT height readout for the hovered tile: its surface height in feet (one
+    /// elevation step is 5 ft) and its surface name.</summary>
+    private void RefreshTileReadout(PF2e.Vector2Int? tile)
+    {
+        var readout = _tileReadout ??= GetNode<TileReadout>("%TileReadout");
+        if (tile is not { } p || _session?.MapLayout is not { } layout || !layout.IsInBounds(p.x, p.y))
+        {
+            readout.Render(null, "");
+            return;
+        }
+        float units = layout.GetCornerHeights(p.x, p.y).SampleSurfaceHeight(0.5f, 0.5f);
+        int feet = Mathf.RoundToInt(units / PF2e.Grid.TileCornerHeights.UnitsPerElevation * PF2e.Grid.TileCornerHeights.FeetPerElevation);
+        readout.Render(feet, layout.GetSurface(p.x, p.y).ToString());
     }
 
     private int _turnWrap = -1;
@@ -102,31 +125,39 @@ public partial class CombatScene
     private static string RowSignature(IEnumerable<UnitView> views)
         => string.Join("|", views.Select(v => $"{v.Id}:{v.Hp}:" + string.Join(",", v.Conditions.Select(c => $"{c.IconKey}{c.Value}"))));
 
-    /// <summary>Inspect view with the encounter letter. Party members keep their HP number on the party column only.</summary>
+    /// <summary>Inspect view with the encounter letter, the portrait source and, for the acting
+    /// hero, the action economy.</summary>
     private UnitInspectView InspectFor(ICharacter character)
     {
         var view = UnitInspectFactory.BuildInspectView(character) with
         {
             Letter = _session.Letters.LetterFor(character),
             BaseName = _session.Letters.BaseNameFor(character),
+            SpriteFolder = EnemyFolderFor(character) ?? "",
         };
-        return _partyMembers.Contains(character) ? view with { HpText = "" } : view;
+        // The acting hero's card carries the action economy, as FFT's card carries CT and MP.
+        if (character == _session.CurrentActor && character.CreatureStats == null)
+            view = view with
+            {
+                ActionsRemaining = character.Actions?.TotalActionsRemaining ?? 0,
+                MaxActions = character.Actions?.MaxBaseActions ?? 0,
+            };
+        return view;
     }
 
-    /// <summary>The card slot under the party column shows the hovered unit, else the focused party
-    /// member, else an acting guest ally. The acting enemy and its target take the band cards.</summary>
+    /// <summary>The FFT unit card bottom left shows the focused party member, else the ally whose
+    /// turn it is, so the actor's pips never leave the screen; a hovered unit goes to the card
+    /// bottom right (<see cref="RefreshBand"/>). On an enemy turn the band's attacker card takes
+    /// the left corner, so this card stays hidden.</summary>
     private void RefreshCard()
     {
         if (_session == null) { _inspectPanel.Render(null); ClearBand(); return; }
         ICharacter? shown = null;
-        if (_hoveredId is { } hovered && _tacticalUnits.TryGetValue(hovered, out var hoveredUnit))
-            shown = hoveredUnit.Character;
-        else if (_focusedMember is { } focused && _tacticalUnits.TryGetValue(focused, out var focusedUnit))
+        if (_focusedMember is { } focused && _tacticalUnits.TryGetValue(focused, out var focusedUnit))
             shown = focusedUnit.Character;
-        else if (_session.CurrentActor is { TeamId: 1 } actor && !_session.IsPlayerControlled(actor)
-                 && !_partyMembers.Contains(actor) && actor.Health?.IsAlive == true)
+        else if (_session.CurrentActor is { TeamId: 1 } actor && actor.Health?.IsAlive == true)
             shown = actor;
-        _inspectPanel.Render(shown == null ? null : InspectFor(shown));
+        _inspectPanel.Render(shown == null || EnemyTurnShowing || _promptOpen ? null : InspectFor(shown));
         RefreshBand();
     }
 
@@ -138,6 +169,22 @@ public partial class CombatScene
         bool enemyTurn = current != null && current.TeamId != 1;
         _actionBar.Visible = !enemyTurn && !_promptOpen && !_tacticalFinished && !_introPlaying;
         RefreshBand();
+        RefreshCommandPrompt();
+    }
+
+    /// <summary>FFT style: the command menu is open only while the player is choosing, never while
+    /// a tile or target is being picked or an action plays out.</summary>
+    private void RefreshMenuShown() =>
+        _actionBar.SetMenuShown(_controller.Mode == PlayerTurnMode.Idle && !_controller.Busy);
+
+    private CommandPromptView? _commandPrompt;
+
+    /// <summary>The FFT instruction pill and button hints follow the player's turn mode, and hide
+    /// with the command menu.</summary>
+    private void RefreshCommandPrompt()
+    {
+        _commandPrompt ??= GetNode<CommandPromptView>("%CommandPrompt");
+        _commandPrompt.Render(_actionBar.Visible && _controller is { Busy: false } ? CommandPrompts.For(_controller.Mode) : null);
     }
 
     private void NoteBoardTarget(ICharacter target)
@@ -151,6 +198,7 @@ public partial class CombatScene
     {
         _playerTargetId = previewing ? _hoveredId : null;
         RefreshPlates();
+        RefreshBand();
     }
 
     private void ClearBoardTargets()
@@ -159,8 +207,8 @@ public partial class CombatScene
         _actionTargetId = null;
     }
 
-    /// <summary>Name plates for the actor, the target and the reactor; letter badges for the
-    /// hovered, active or targeted enemy.</summary>
+    /// <summary>Name plates for the target and the reactor; a letter badge on every living enemy,
+    /// so the board matches the log ("Goblin B") while the timeline numbers change each turn.</summary>
     private void RefreshPlates()
     {
         if (_session == null) return;
@@ -168,8 +216,10 @@ public partial class CombatScene
         foreach (var (id, visual) in _tacticalUnits)
         {
             bool target = id == _playerTargetId || id == _actionTargetId;
-            bool plate = id == actor || target || id == _reactorId;
-            bool badge = visual.Character.TeamId != 1 && (id == _hoveredId || id == actor || target);
+            // FFT style: the crystal, the card and the timeline mark the actor, so only a target or
+            // a reactor carries its name over the board.
+            bool plate = target || id == _reactorId;
+            bool badge = visual.Character.TeamId != 1 && visual.Character.Health?.IsAlive == true;
             var lane = id == actor ? PlateLane.Head : id == _reactorId && !target ? PlateLane.Crown : PlateLane.Foot;
             visual.Plate.SetMode(plate && !_tacticalFinished, badge && !_tacticalFinished, lane);
         }
@@ -178,33 +228,51 @@ public partial class CombatScene
 
     /// <summary>Each visible plate keeps its lane; one that would cover an earlier plate or a Dying
     /// badge moves further along its lane until it is clear.</summary>
+    private readonly List<Godot.Rect2> _takenPlateRects = new();
+    private readonly List<NamePlate3D> _visiblePlates = new();
+
     private void LayoutPlates()
     {
         var camera = _cameraRig.Camera;
-        var tokens = _unitLayer.GetChildren().OfType<UnitVisual3D>().ToList();
-        var taken = tokens.Select(v => v.Dying.ScreenRect(camera)).OfType<Godot.Rect2>().ToList();
-        var plates = tokens.Select(v => v.Plate).Where(p => p.PlateVisible)
-            .OrderBy(p => p.Lane).ToList();
-        foreach (var plate in plates)
+        _takenPlateRects.Clear();
+        _visiblePlates.Clear();
+        foreach (var visual in _tacticalUnits.Values)
         {
-            plate.SetNudge(0);
-            var rect = plate.PlateRect(camera);
-            for (int step = 1; step <= PlateNudgeSteps && taken.Any(r => r.Intersects(rect)); step++)
-            {
-                plate.SetNudge(step * rect.Size.Y);
-                rect = plate.PlateRect(camera);
-            }
-            taken.Add(rect);
+            if (visual.Dying.ScreenRect(camera) is { } badge) _takenPlateRects.Add(badge);
+            if (visual.Plate.PlateVisible) _visiblePlates.Add(visual.Plate);
         }
+        if (_visiblePlates.Count == 0) return;
+        _visiblePlates.Sort((a, b) => a.Lane.CompareTo(b.Lane));
+        foreach (var plate in _visiblePlates)
+        {
+            // Measure each candidate nudge without moving the plate; move it once, only on change.
+            float nudge = 0;
+            var rect = plate.PlateRect(camera, nudge);
+            for (int step = 1; step <= PlateNudgeSteps && Overlaps(rect); step++)
+            {
+                nudge = step * rect.Size.Y;
+                rect = plate.PlateRect(camera, nudge);
+            }
+            if (!Mathf.IsEqualApprox(plate.Nudge, nudge)) plate.SetNudge(nudge);
+            _takenPlateRects.Add(rect);
+        }
+    }
+
+    private bool Overlaps(Godot.Rect2 rect)
+    {
+        foreach (var taken in _takenPlateRects)
+            if (taken.Intersects(rect)) return true;
+        return false;
     }
 
     private async Task<bool> ShowReactionPrompt(ReactionPromptView view)
     {
         _reactorId = view.ReactorId;
+        _reactionSourceId = view.SourceId;
         _promptOpen = true;
         RefreshBarVisibility();
         RefreshPlates();
-        _squad.Render(SquadViews());
+        RefreshCard();
         try
         {
             return await _reactionPrompt.ShowAsync(view);
@@ -212,10 +280,11 @@ public partial class CombatScene
         finally
         {
             _reactorId = null;
+            _reactionSourceId = null;
             _promptOpen = false;
             RefreshBarVisibility();
             RefreshPlates();
-            if (_session != null) _squad.Render(SquadViews());
+            if (_session != null) RefreshCard();
         }
     }
 }

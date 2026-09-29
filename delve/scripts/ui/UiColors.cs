@@ -113,6 +113,13 @@ public static class UiColors
     /// <summary>Near-black: text outlines over open ground, deepest fills.</summary>
     public static Color Ink => Get("ink");
 
+    /// <summary>Drawing colours for maps and marks on parchment surfaces (the minimap, menus).</summary>
+    public static Color ParchmentCell => Get("parchment_cell");
+    public static Color ParchmentCellHot => Get("parchment_cell_hot");
+    public static Color ParchmentInk => Get("parchment_ink");
+    public static Color ParchmentLine => Get("parchment_line");
+    public static Color ParchmentDim => Get("parchment_dim");
+
     /// <summary>Standard translucent panel field.</summary>
     public static Color Surface => Get("surface");
 
@@ -204,6 +211,19 @@ public static class UiColors
 
     /// <summary>Path-preview dots.</summary>
     public static Color BoardPath => Get("board_path");
+
+    /// <summary>The crystal that hovers over the unit whose turn it is.</summary>
+    public static Color BoardCrystal => Get("board_crystal");
+
+    /// <summary>Sprite flash on a landed hit, and on a shield taking one. Above 1, so they overbright.</summary>
+    public static Color BoardFlashHit => Get("board_flash_hit");
+    public static Color BoardFlashShield => Get("board_flash_shield");
+
+    /// <summary>The final tint of a dead unit's sprite.</summary>
+    public static Color BoardCorpse => Get("board_corpse");
+
+    /// <summary>Glowing threshold tile in a dungeon doorway, in ward teal; hot while hovered.</summary>
+    public static Color BoardDoor(bool hot) => Get(hot ? "board_door_hot" : "board_door");
 
     /// <summary>Area-template fill while aiming an area spell.</summary>
     public static Color BoardArea => Get("board_area");

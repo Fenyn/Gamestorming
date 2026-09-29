@@ -1,20 +1,24 @@
 [gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/TurnOrderBar.cs" id="1_turn"]
-[ext_resource type="PackedScene" path="res://scenes/ui/turn_order_chip.tscn" id="2_chip"]
+[ext_resource type="PackedScene" path="res://scenes/ui/timeline_tile.tscn" id="2_chip"]
 [ext_resource type="Resource" path="res://assets/ui/conditions/condition_icons.tres" id="3_icons"]
 
 [node name="TurnOrderBar" type="VBoxContainer"]
-custom_minimum_size = Vector2(368, 0)
 mouse_filter = 2
+alignment = 2
 script = ExtResource("1_turn")
 ChipScene = ExtResource("2_chip")
 Icons = ExtResource("3_icons")
 MaxMarks = 2
 MarkIconSize = 22
-MaxHeight = 560.0
-ActiveChipHeight = 40.0
+MaxHeight = 700.0
 DividerHeight = 24.0
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 2
+theme_type_variation = &"TimelineTitle"
+text = "Timeline"
 
 [node name="Row" type="VBoxContainer" parent="."]
 unique_name_in_owner = true

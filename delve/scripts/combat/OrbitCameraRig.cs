@@ -46,6 +46,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
     {
         token.ThrowIfCancellationRequested();
         CancelIntro();
+        CompleteSnap();
         KillFocus();
         var tactical = _camera.GlobalTransform;
         float tacticalFov = _camera.Fov;
@@ -164,6 +165,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
     /// </summary>
     public void FrameBoard(Vector3 worldPivot, int boardWidth, int boardHeight)
     {
+        CompleteSnap();
         RestorePlanningView(true);
         float framing = Mathf.Max(boardWidth, boardHeight) * FramingDistancePerTile;
         _overviewCenter = worldPivot;
@@ -247,6 +249,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
 
     public override void _Process(double delta)
     {
+        UpdateDof(delta);
         if (IntroPlaying) return;
         // WASD pans the pivot across the ground plane, camera-relative (W = screen-up).
         var pan = Vector2.Zero;
@@ -276,11 +279,17 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
     public override void _UnhandledInput(InputEvent @event)
     {
         if (IntroPlaying) return;
+        if (HandleSnapInput(@event))
+        {
+            GetViewport().SetInputAsHandled();
+            return;
+        }
         switch (@event)
         {
             case InputEventMouseButton mb:
                 if (mb.ButtonIndex == MouseButton.Middle)
                 {
+                    if (_middleDragging && !mb.Pressed) OnOrbitReleased();
                     _middleDragging = mb.Pressed;
                     GetViewport().SetInputAsHandled();
                 }
@@ -288,6 +297,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
                 {
                     // Observe only — never consume. GridInput3D decides on release whether the
                     // gesture was a cancel click (under the threshold) using the same travel rule.
+                    if (_rightHeld && !mb.Pressed && _rightTravel > DragThresholdPixels) OnOrbitReleased();
                     _rightHeld = mb.Pressed;
                     if (mb.Pressed) _rightTravel = 0f;
                 }
@@ -321,6 +331,7 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
 
     private void Orbit(Vector2 relative)
     {
+        _snapTween?.Kill();
         RestorePlanningView(true);
         _yaw -= relative.X * OrbitSensitivity;
         _pitch = Mathf.Clamp(_pitch + relative.Y * OrbitSensitivity, PitchMinDegrees, PitchMaxDegrees);

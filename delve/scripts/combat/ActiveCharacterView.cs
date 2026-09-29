@@ -42,10 +42,8 @@ public sealed record ActiveCharacterView(string Id, string Name, int Hp, int Max
         }
         var status = hero ? Delve.Rules.ClassStatus.Active(actor).ToList() : new List<string>();
         if (hero && StanceRules.IsInStance(actor, "inspiring-marshal-stance")) status.Add("Marshal Stance");
-        var reactions = hero ? actor.Features?.ActiveFeatures
-            .Where(f => f is IMovementReaction or IActionReaction or IDamageReaction).Select(f => f.DisplayName).Distinct().ToArray()
-            ?? System.Array.Empty<string>() : System.Array.Empty<string>();
-        bool ready = actor.Conditions?.AreReactionsBlocked() != true && actor.Actions?.ReactionAvailable == true;
+        var reactions = ReactionNames(actor);
+        bool ready = ReactionReady(actor);
         if (reactions.Length > 0)
             status.Add(actor.Conditions?.AreReactionsBlocked() == true ? "Reactions blocked"
                 : ready ? "Reaction ready" : "Reaction spent");
@@ -54,7 +52,21 @@ public sealed record ActiveCharacterView(string Id, string Name, int Hp, int Max
         {
             Status = string.Join(" · ", status),
             StatusTip = reactions.Length > 0 ? string.Join(", ", reactions) + "\nUse reactions when their trigger and requirements are met." : "",
-            Reaction = reactions.Length == 0 ? ReactionMark.None : ready ? ReactionMark.Ready : ReactionMark.Spent,
+            Reaction = ReactionOf(actor),
         };
     }
+
+    /// <summary>The reaction features a hero has; creatures report none.</summary>
+    private static string[] ReactionNames(ICharacter actor) => actor.CreatureStats != null
+        ? System.Array.Empty<string>()
+        : actor.Features?.ActiveFeatures
+            .Where(f => f is IMovementReaction or IActionReaction or IDamageReaction).Select(f => f.DisplayName).Distinct().ToArray()
+          ?? System.Array.Empty<string>();
+
+    private static bool ReactionReady(ICharacter actor)
+        => actor.Conditions?.AreReactionsBlocked() != true && actor.Actions?.ReactionAvailable == true;
+
+    /// <summary>The hero's reaction mark: none without a reaction feature, else ready or spent.</summary>
+    internal static ReactionMark ReactionOf(ICharacter actor)
+        => ReactionNames(actor).Length == 0 ? ReactionMark.None : ReactionReady(actor) ? ReactionMark.Ready : ReactionMark.Spent;
 }

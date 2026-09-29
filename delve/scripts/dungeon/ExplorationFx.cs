@@ -33,6 +33,7 @@ public partial class ExplorationFx : Node3D
         (RoomPurpose.Workshop, "tool_bench", BenchSparks),
         (RoomPurpose.Shrine, "shrine", ShrineRays),
         (RoomPurpose.WardChamber, "ward_engine", EnginePortal),
+        (RoomPurpose.WardChamber, "beacon", EnginePortal),
     };
 
     /// <summary>Places the room's signature effect on top of its signature prop. Returns the number placed.</summary>

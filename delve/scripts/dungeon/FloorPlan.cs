@@ -181,14 +181,17 @@ public partial class FloorPlan : Control
         }
     }
 
+    /// <summary>The floor's words for room names in the tooltips.</summary>
+    public CrawlWords Words { get; set; } = CrawlWordsTable.For("station");
+
     public override string _GetTooltip(Vector2 atPosition)
     {
         if (_floor == null || _state == null) return "";
         var room = _floor.Rooms.FirstOrDefault(r => Shown(_floor, r) && Cell(r).HasPoint(atPosition));
         if (room == null) return "";
-        if (!room.Discovered) return room.Scouted ? $"{StationPlan.Name(room.Purpose)}\nScouted, not visited" : "Unexplored room";
+        if (!room.Discovered) return room.Scouted ? $"{Words.Name(room.Purpose)}\nScouted, not visited" : Words.UnexploredTitle;
         string status = room.Id == _state.CurrentNodeId ? "You are here" : room.Completed ? "Cleared" : "Visited";
-        return $"{StationPlan.Name(room.Purpose)}\n{status}";
+        return $"{Words.Name(room.Purpose)}\n{status}";
     }
 
     /// <summary>What the plan shows, for spikes: room id to icon key, for every drawn room.</summary>

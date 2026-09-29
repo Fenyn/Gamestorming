@@ -26,7 +26,7 @@ Codes seen that still need checking against `tools/source_cards.tsv`: `SZ`, `GK`
 | Freestyle MBS Trunks Sword | 98 / 57 | Caedan Vale, `personality_caedan_vale_*` | not started |
 | Blue MBS Goku | 98 / 55 | Sir Edric Rooke, `personality_edric_rooke_*` | built, `tide_deepwater` |
 | Black TS Majin Vegeta | 98 / 49 | Gideon Mourne, the Lord Mourne line | built, `shade_mind_siege` |
-| Orange TS Yamcha | 94 / 58 | new, Storm, `PLACEHOLDER Duelist` | built, `storm_mentor` |
+| Orange TS Yamcha | 94 / 58 | new, Storm, Idris Sparrow | built, `storm_mentor` |
 | Blue CS Roshi Speedball | 54 / 46 | new, Tide | not started |
 
 Slots counts every printed copy, distinct counts unique card faces. The first five sheets reuse a
@@ -192,7 +192,11 @@ trigger, `down_to` / `all` / `reveal` on `discard_hand`, a `tag:` hand filter, a
 `own_successful_attack` window, a kind on `stop_next`, `no_shuffle` on `shuffle_discard`, and
 `reserve_only` in the deck validator.
 
-## Orange TS Yamcha, built 2026-09-28 as `storm_mentor`, "PLACEHOLDER Sensei"
+## Orange TS Yamcha, built 2026-09-28 as `storm_mentor`, "Endless Squall"
+
+Named 2026-09-28: Yamcha is Idris Sparrow (Scrapper, Cut Loose, Stillwind, Stormedge), Krillin is
+Aldo Voss, Maraikoh is Sandmaw, and Master Roshi Sensei is The Champion's Laurel. Uub's Energy Drill
+keeps its placeholder. The fiction is in `cast.md`.
 
 58 distinct faces, 94 copies: a four-level Yamcha (Fusion Saga 092, Kid Buu Saga 092, Cell Saga
 088, Androids Saga 123), Orange Style Mastery 146 (the Trunks Saga printing we already ship as
@@ -211,7 +215,7 @@ those groups.
 
 **Twelve real cards are new:** the four Yamcha levels (`personality_63` to `_66`, Vigil, no
 bloodline), Master Roshi Sensei (`relic_05`), Kid Trunks Buu Saga 166 as Tavin Vale's second print
-(`personality_67`, "the Fledgling"; our `personality_51` is the Kid Buu Saga print and a different
+(`personality_67`, "Fostered Son"; our `personality_51` is the Kid Buu Saga print and a different
 card), Krillin, the Father (`personality_68`), Maraikoh, the Vicious (`personality_69`, a Celestial
 Fighter, so either side), Orange 5-Finger Focus (`storm_art_25`), Orange Energy Catch (`storm_art_26`),
 Orange Destruction Drill (`storm_drill_09`), Orange Haulting Drill (`storm_drill_10`), Gohan's Braced

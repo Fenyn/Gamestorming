@@ -29,6 +29,8 @@ public partial class GladeSpike : SpikeBase
     [Export] public PackedScene? LookScene { get; set; }
     [Export] public PackedScene? CameraScene { get; set; }
     [Export] public PackedScene? UnitPrefab { get; set; }
+    [Export] public PackedScene? ForestCrawl { get; set; }
+    [Export] public PackedScene? DeepCrawl { get; set; }
     [Export] public int Seeds { get; set; } = 100;
 
     /// <summary>Mean generation time per glade the crawl can afford: twelve glades per floor
@@ -37,11 +39,16 @@ public partial class GladeSpike : SpikeBase
 
     [Export] public float SettleSeconds { get; set; } = 2.5f;
 
+    /// <summary>The rendered row: a lookout, the guardian glade with its landmarks, and a refuge.</summary>
+    private static readonly RoomPurpose[] RowPurposes = { RoomPurpose.Checkpoint, RoomPurpose.WardChamber, RoomPurpose.Refuge };
+
     protected override string Banner => "===================== GLADE SPIKE =====================";
 
     protected override async Task RunSpikeAsync(DataManager data)
     {
         CheckGeneration();
+        await CheckCrawl(ForestCrawl, "fringe");
+        await CheckCrawl(DeepCrawl, "deepwood");
         if (DisplayServer.GetName() != "headless") await RenderRow();
         FinishAndQuit("GladeSpike");
     }
@@ -49,28 +56,52 @@ public partial class GladeSpike : SpikeBase
     private void CheckGeneration()
     {
         var sides = Enum.GetValues<DoorSide>();
-        int[] sizes = { 12, 14, 16 };
-        int invalid = 0, rebuilt = 0, cliffs = 0;
+        int[] sizes = { 12, 14, 16, 18 };
+        string[] floors = { "grassland", "deepforest" };
+        int invalid = 0, rebuilt = 0, raised = 0, wet = 0, bare = 0, fights = 0, withBroad = 0, openBroad = 0;
         var clock = Stopwatch.StartNew();
         for (int seed = 1; seed <= Seeds; seed++)
         {
             var rng = new Random(seed);
             var doors = sides.Where(_ => rng.Next(2) == 0).DefaultIfEmpty(sides[rng.Next(4)]).ToArray();
-            var room = GladeGeneration.Generate(seed, sizes[seed % sizes.Length], doors);
+            var purpose = (RoomPurpose)(seed % 12);
+            var recipe = GladeRecipes.For(floors[seed % 2], purpose);
+            var shape = new GladeShape(recipe, Combat: seed % 3 != 0, ZoneHalf: seed % 2 == 0 ? 4 : 5);
+            int size = recipe.Size > 0 ? recipe.Size : sizes[seed % sizes.Length];
+            var room = GladeGeneration.Generate(seed, size, doors, shape);
             if (!GladeGeneration.Valid(room)) invalid++;
-            var again = GladeGeneration.Generate(seed, sizes[seed % sizes.Length], doors);
-            if (!again.Layout.Tiles.SequenceEqual(room.Layout.Tiles) || !again.Layout.Elevations.SequenceEqual(room.Layout.Elevations)) rebuilt++;
-            if (MaxRise(room.Layout) > 0) cliffs++;
+            var again = GladeGeneration.Generate(seed, size, doors, shape);
+            if (!again.Layout.Tiles.SequenceEqual(room.Layout.Tiles) || !again.Layout.Elevations.SequenceEqual(room.Layout.Elevations)
+                || !again.Layout.CornerHeights.SequenceEqual(room.Layout.CornerHeights) || !again.Layout.Surfaces.SequenceEqual(room.Layout.Surfaces)) rebuilt++;
+            var tiles = Interior(room.Layout).ToArray();
+            if (tiles.Any(p => room.Layout.GetElevation(p.x, p.y) > 0)) raised++;
+            if (tiles.Any(p => room.Layout.GetTile(p.x, p.y) == TileRole.Water)) wet++;
+            if (!shape.Combat) continue;
+            fights++;
+            int cover = tiles.Count(p => room.Layout.GetTile(p.x, p.y) == TileRole.Cover);
+            var landmarks = GladeGeneration.LandmarkTiles(room.Props).ToHashSet();
+            int trunks = tiles.Count(p => room.Layout.GetTile(p.x, p.y) == TileRole.Wall && !landmarks.Contains((p.x, p.y)));
+            var broad = room.Props.Where(p => p.Kind == GladeGeneration.BigTree).ToArray();
+            if (cover < 3 || trunks + broad.Length < 2) bare++;
+            if (broad.Length > 0) withBroad++;
+            foreach (var tile in GladeGeneration.LandmarkTiles(broad))
+                if (room.Layout.GetTile(tile.X, tile.Y) != TileRole.Wall) openBroad++;
         }
         double ms = clock.Elapsed.TotalMilliseconds / (Seeds * 2.0);
         Check($"{Seeds} glades keep the room contract (mouths at ground level, reachable, zones open): {invalid} invalid", invalid == 0);
-        Check($"the same seed builds the same glade: {rebuilt} differ", rebuilt == 0);
+        Check($"the same seed builds the same glade, corners and surfaces included: {rebuilt} differ", rebuilt == 0);
         Check($"glades build fast enough for a 12-room floor ({ms:F0} ms each, limit {MaxMillisecondsPerGlade})", ms <= MaxMillisecondsPerGlade);
-        GD.Print($"[GladeSpike] glades with some raised ground: {cliffs} of {Seeds}");
+        Check($"every fight glade has 3+ cover rocks and 2+ trees inside: {bare} of {fights} bare", bare == 0);
+        Check($"broad trees fill a whole 2x2 block, like a Large creature: {openBroad} open tiles, {withBroad} of {fights} fight glades have one", openBroad == 0 && withBroad > fights / 2);
+        GD.Print($"[GladeSpike] raised ground in {raised} of {Seeds}, water in {wet} of {Seeds}");
     }
 
-    /// <summary>Highest elevation in the glade, to report how much relief survives the shaping.</summary>
-    private static int MaxRise(MapLayout layout) => layout.Elevations.Max();
+    private static IEnumerable<PF2e.Vector2Int> Interior(MapLayout layout)
+    {
+        for (int y = 1; y < layout.Height - 1; y++)
+            for (int x = 1; x < layout.Width - 1; x++)
+                yield return new PF2e.Vector2Int(x, y);
+    }
 
     private async Task RenderRow()
     {
@@ -93,6 +124,8 @@ public partial class GladeSpike : SpikeBase
         {
             var glade = GladeScene.Instantiate<DungeonRoomPrefab>();
             world.AddChild(glade);
+            glade.PurposeOverride = RowPurposes[i];
+            glade.Combat = i == 1;
             glade.Generate(RunRng.StableSeed(7, i, "glade-row"), doors[i]);
             glades.Add(glade);
         }
@@ -105,10 +138,15 @@ public partial class GladeSpike : SpikeBase
             x += glade.Width + 2 * rim;
         }
         var middle = glades[1];
+        var marks = GladeGeneration.LandmarkTiles(middle.Generated.Props).ToHashSet();
+        var inside = Interior(middle.Generated.Layout).Where(p => middle.Generated.Layout.GetTile(p.x, p.y) == TileRole.Wall && !marks.Contains((p.x, p.y))).Count();
+        int broad = middle.Generated.Props.Count(p => p.Kind == GladeGeneration.BigTree);
+        Check($"the guardian glade has its landmarks, broad trees and trunks ({string.Join(", ", middle.Generated.Props.Select(p => p.Kind))}; {inside} small trunks)", middle.Generated.Props.Count - broad == 2 && broad + inside >= 2);
         world.Position = -middle.Position;
         middle.SetDoorsOpen(true, instant: true);
         foreach (var glade in glades) glade.SetDoorsOpen(true, instant: true);
-        RenderingServer.GlobalShaderParameterSet(Look.LookScene.BoardRectGlobal, new Vector4(0, 0, middle.Width, middle.Width));
+        glades[0].Shell!.SetLight(0.5f);
+        glades[2].Shell!.SetLight(0.15f);
         SpawnParty(middle);
 
         rig.Camera.Current = true;

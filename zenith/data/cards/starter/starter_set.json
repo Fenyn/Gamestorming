@@ -12745,12 +12745,12 @@
   },
   {
    "id": "personality_63",
-   "title": "PLACEHOLDER Duelist",
+   "title": "Idris Sparrow",
    "type": "personality",
    "school": "",
-   "character": "PLACEHOLDER Duelist",
+   "character": "Idris Sparrow",
    "aspect": 1,
-   "aspect_title": "Scavenger",
+   "aspect_title": "Scrapper",
    "surge": 2,
    "might": [
 	0,
@@ -12791,12 +12791,12 @@
   },
   {
    "id": "personality_64",
-   "title": "PLACEHOLDER Duelist",
+   "title": "Idris Sparrow",
    "type": "personality",
    "school": "",
-   "character": "PLACEHOLDER Duelist",
+   "character": "Idris Sparrow",
    "aspect": 2,
-   "aspect_title": "Pinning",
+   "aspect_title": "Cut Loose",
    "surge": 3,
    "might": [
 	0,
@@ -12831,12 +12831,12 @@
   },
   {
    "id": "personality_65",
-   "title": "PLACEHOLDER Duelist",
+   "title": "Idris Sparrow",
    "type": "personality",
    "school": "",
-   "character": "PLACEHOLDER Duelist",
+   "character": "Idris Sparrow",
    "aspect": 3,
-   "aspect_title": "Deflating",
+   "aspect_title": "Stillwind",
    "surge": 3,
    "might": [
 	0,
@@ -12867,12 +12867,12 @@
   },
   {
    "id": "personality_66",
-   "title": "PLACEHOLDER Duelist",
+   "title": "Idris Sparrow",
    "type": "personality",
    "school": "",
-   "character": "PLACEHOLDER Duelist",
+   "character": "Idris Sparrow",
    "aspect": 4,
-   "aspect_title": "Seal-Taker",
+   "aspect_title": "Stormedge",
    "surge": 3,
    "might": [
 	0,
@@ -12955,7 +12955,7 @@
 	 }
 	]
    },
-   "variant": "the Fledgling",
+   "variant": "Fostered Son",
    "alignment_only": "vigil",
    "limit_per_deck": 1,
    "bloodline": "draconic"
@@ -13165,13 +13165,13 @@
   },
   {
    "id": "signature_art_17",
-   "title": "PLACEHOLDER's Skillful Guard",
+   "title": "Sparrow's Skillful Guard",
    "type": "art",
    "school": "",
    "defense": {
 	"stops": "any"
    },
-   "character": "PLACEHOLDER Duelist",
+   "character": "Idris Sparrow",
    "remove_after_use": true
   },
   {

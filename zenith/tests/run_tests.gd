@@ -11412,7 +11412,7 @@ func test_art_costs_can_be_paid_with_a_life_card() -> void:
 ## discard pile for a card that can perform an energy attack with a Base Damage of less than 6 life
 ## cards and place it into your hand."
 func test_scavenger_trades_three_discards_for_a_small_art() -> void:
-	var e: DuelEngine = real_engine(real_deck([], "vigil", "", "PLACEHOLDER Duelist"), real_deck([], "pact"))
+	var e: DuelEngine = real_engine(real_deck([], "vigil", "", "Idris Sparrow"), real_deck([], "pact"))
 	var fodder: Array[CardInstance] = []
 	for i in range(3):
 		fodder.append(real_to_discard(e, 0, "root_strike_04"))

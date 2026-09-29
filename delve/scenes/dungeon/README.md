@@ -5,6 +5,12 @@ resources while generating a fresh dungeon from the run's floor seed.
 The standalone test below still builds a temporary party and ends after one floor.
 The original node-map run is preserved at `scenes/run/run.tscn`.
 
+# Forest glade crawl (floors 1 and 2)
+
+Floors 1 and 2 use the same crawl as glades. `DungeonDirector.SceneryByFloor` picks a `CrawlScenery` per floor id (`crawls/fringe.tres`, `deepwood.tres`, `station.tres`): room prefabs, look scene, passage scene, the ground under the gaps, and the fog tiers (current glade lit, visited glades half-dim, unvisited neighbours dark). A room prefab builds through its `RoomShell`: `GladeShell` for glades, `MasonryShell` for station rooms.
+
+`GladeGeneration` shapes a forest map generator board into a glade: a tree ring with trail mouths at ground level, relief capped near the ring, deployment boxes kept open, and in fight glades cover rocks, small 1x1 trees and broad trees that fill a 2x2 block like a Large creature. `GladeRecipes` sets the landform and landmarks per room purpose. `CrawlWordsTable` holds each floor's place names, histories, goals and exit words; `GladeScenes` holds the forest events. Open `forest_test.tscn` or `deepwood_test.tscn` and press F6 to walk a standalone forest floor. `scenes/dev/glade_spike.tscn` checks the glade contract over 100 seeds and, rendered, photographs both floors.
+
 # Ward-station dungeon experiment
 
 Open `dungeon_test.tscn` and press F6. This isolated twelve-room floor does not write campaign progress. Resolve the receiving-hall event, then click the world-space doorways. Hover an exit for its status and crossing cost. Each crossing, including backtracking, consumes five ward. The refuge offers one long rest before the terminal ward chamber. Defeat its guardian and use Descend stairs.

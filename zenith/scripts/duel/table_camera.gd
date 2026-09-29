@@ -2,12 +2,11 @@ class_name TableCamera
 extends Camera3D
 ## Free look over the table. The wheel dollies toward the point under the cursor, middle-drag or
 ## WASD / arrows pan along the table, and after a few idle seconds the view glides back to its
-## home framing. Pitch and yaw never change, so the perspective the layout was tuned for holds.
-## Everything happens in the rig's local space, so the hotseat swing keeps working underneath.
+## home framing. Pitch and yaw never change. Everything happens in the rig's local space, so the
+## hotseat swing keeps working underneath.
 
-## Right of the board's centre, so the board sits in the middle of the play area left of the HUD
-## column rather than in the middle of the screen.
-const LOOK_AT: Vector3 = Vector3(0.8, 0, 0.02)
+## The duelists' centre line.
+const LOOK_AT: Vector3 = Vector3(0, 0, 0.02)
 const IDLE_SECONDS: float = 4.0
 const GLIDE: float = 9.0                 # exponential smoothing rate toward the target position
 const ZOOM_STEP: float = 0.14            # share of the distance to the cursor point per wheel notch
@@ -16,20 +15,17 @@ const MAX_HEIGHT: float = 9.6
 const KEY_PAN_SPEED: float = 3.2         # table units per second at home height
 const DRAG_PAN: float = 0.0075           # table units per pixel of middle-drag at home height
 ## The board, centred on the home look point; the look point stays inside.
-const BOUNDS: Rect2 = Rect2(-4.8, -3.38, 11.2, 6.8)
+const BOUNDS: Rect2 = Rect2(-5.6, -3.38, 11.2, 6.8)
 ## Table units kept clear of each edge, per unit of camera height. At the home height the margin
 ## takes the whole of BOUNDS, so the full-board framing cannot be panned off.
 const ROAM_MARGIN: Vector2 = Vector2(0.6, 0.37)
 
-## While an exchange is live the view leans in on the centre line, a slower, eased glide than an
-## ordinary return so the push reads as a deliberate move. The lean is slight and keeps LOOK_AT's
-## offset, so the whole board stays clear of the HUD column and the history strip.
-const ARENA_LOOK: Vector3 = Vector3(0.78, 0, 0)
+## While an exchange is live the view leans in on the centre line with a slower glide.
+const ARENA_LOOK: Vector3 = Vector3(0, 0, 0)
 const ARENA_DISTANCE: float = 9.5
 const ARENA_GLIDE: float = 4.5
 
-## The opening shot under a lead-in: high over the courtyard's open corner, looking down on the
-## dais, then a slow descending swing to the home framing.
+## The opening shot under a lead-in starts here and swings down to the home framing.
 const INTRO_FROM: Vector3 = Vector3(-5.0, 12.0, 6.0)
 const INTRO_LOOK: Vector3 = Vector3(0, 0, -1.0)
 
@@ -58,9 +54,9 @@ func _ready() -> void:
 	_target = position
 
 
-## A single punch of the view for a heavy hit: the lens offset jumps `strength` table units along
-## `direction` (screen right, screen up) and settles back. It moves the offsets, not the camera,
-## so the glide and the pan never see it. The caller skips it under Reduced motion.
+## A punch of the lens offset, `strength` table units along `direction` (screen right, screen up),
+## settling back. Moves the offsets, not the camera, so the glide and pan never see it. The caller
+## skips it under Reduced motion.
 func kick(direction: Vector2, strength: float = 0.04) -> void:
 	if _kick != null and _kick.is_valid():
 		_kick.kill()
@@ -215,8 +211,7 @@ func _pan(right: float, ahead: float) -> void:
 	_clamp_target()
 
 
-## Dolly along the line to the point under the cursor on the table plane: the spot under the
-## pointer stays under the pointer, so zooming reads as leaning in rather than as a lens change.
+## Dolly along the line to the point under the cursor on the table plane, which stays under it.
 func _zoom(direction: float, screen_pos: Vector2) -> void:
 	_glide = GLIDE
 	var origin: Vector3 = project_ray_origin(screen_pos)
@@ -237,9 +232,7 @@ func _zoom(direction: float, screen_pos: Vector2) -> void:
 	_clamp_target()
 
 
-## Keeps the point the camera looks at inside the table, less a margin that grows with height:
-## close in the view may roam to the edges, from above it stays near the centre so the table
-## never slides off into the void.
+## Keeps the look point inside BOUNDS less a margin that grows with height.
 func _clamp_target() -> void:
 	var f: Vector3 = -_home.basis.z
 	var reach: float = _target.y / -f.y

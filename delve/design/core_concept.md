@@ -45,7 +45,7 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 ```
 
 - A run descends through 3 floors (code: strata). Each floor is one full node tree ending in its authored floor boss; beating it recharges 50-100% of the missing ward (an Identify Magic roll, 75% on a plain success or failure) and opens the next floor's tree. The last floor's boss is the Depths Warden; beating it wins the run.
-- The wilderness crawl: floor 1 grasslands and light forest (The Fringe), floor 2 deep spooky forest (The Deep Wood), floor 3 swamp (The Drowning Dark). Cave or underground floors can mix in later. `FloorThemes` is the per-floor table: identity, terrain biome, creature roster, base threat weights.
+- The crawl: floor 1 light autumn forest (The Fringe), floor 2 deep dusk forest (The Deep Wood), floor 3 the drowned ward station (The Ward Station). The forest floors are glade crawls: twelve forest glades from the forest map generator, joined by trails, with the same room graph, ward cost and hosted fights as the station. `FloorThemes` is the per-floor table: identity, crawl setting, terrain biome, creature roster, base threat weights. `CrawlScenery` (scenes/dungeon/crawls/) dresses each floor and `CrawlWordsTable` names its places.
 - Level flow across a run: party levels 1-4 on floor 1, 5-7 on floor 2, 8-10 on floor 3. Levels are per-run and reset with it.
 - Leveling is XP-based and RAW: a won fight awards its encounter XP total (the budget IS the award), relative to the party's level. The threshold is heavily accelerated (tunable in `LevelingRules`) so three small floors carry the 1-10 flow. The whole party levels together, in place, mid-run; a newcomer joins at the party's current level.
 - One `RunState` per run: seed, stratum, map, current node, party, day clock, Wardstone, history, outcome.
@@ -179,7 +179,7 @@ Outpost -> Floor 1 tree -> floor boss -> Floor 2 tree -> floor boss -> Floor 3 t
 - Run boons and curses: [system proposal](run_intercessions.md), [48-effect catalog](run_intercessions_catalog.md), and [source/licensing notes](run_intercessions_sources.md). Original local lore, three severities, no external deity references; design only, not implemented.
 - Feat attunement mechanics: what counts as "use", attunement progress and thresholds, how attuned feats slot in (extra grants vs pre-unlocked picks), caps; requires extending the campaign persistence model.
 - Level-up choice UI (auto-assigned boosts/skills today; combo scripts carry the feats); L6-10 archetype feats without compiled engine features stay unscripted.
-- Terrain biomes for the floor themes: grassland dress, deep-forest dress, swamp (new); all floors generate forest boards until then.
+- Terrain biomes for the forest floors: grassland and deep-forest map generator dress; both forest floors generate forest glades from per-purpose recipes (`GladeRecipes`) until then.
 - Node roster expansion (proposed: Cache; Campsite doubles as extraction point) and extraction flow.
 - Food / fatigue mechanics (seam: DayClock, which still counts days and blocks).
 - Wardstone details: passive burn unit; whether the upshift governs events and guest encounters.

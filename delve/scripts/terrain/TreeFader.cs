@@ -43,6 +43,17 @@ public partial class TreeFader : Node
         _dirty = true;
     }
 
+    /// <summary>Move the protected box and keep the tracked trees, for a crawl whose current room
+    /// changes while its forest stays built.</summary>
+    public void Retarget(Aabb board)
+    {
+        _board = board;
+        _dirty = true;
+        foreach (var tree in _trees) tree.SetBattlefield(board);
+    }
+
+    public IReadOnlyList<TreeProp> Trees => _trees;
+
     /// <summary>Add one tree to the pass.</summary>
     public void Track(TreeProp tree)
     {

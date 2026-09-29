@@ -55,14 +55,6 @@ public partial class DungeonHud : Control
     /// <summary>Keycap text on the Travel row: travel is a click on a doorway, not a key.</summary>
     [Export] public string TravelKey { get; set; } = "LMB";
 
-    /// <summary>The floor's objective as the party knows it: find the chamber, beat its guardian, descend.</summary>
-    public static string Goal(DungeonFloor floor)
-    {
-        var chamber = floor.Rooms[floor.GuardianId];
-        return chamber.Completed ? "Goal: take the stairs down"
-            : chamber.Discovered ? "Goal: defeat the guardian"
-            : "Goal: find the ward chamber";
-    }
     public override void _Ready()
     {
         _notice = GetNode<Label>("%Notice");
@@ -155,7 +147,7 @@ public partial class DungeonHud : Control
         var room = floor.Rooms[id];
         int wardNow = state.Wardstone.Ward;
         _travelHint.SetActionText($"Travel · Ward {wardNow} → {Math.Max(0, wardNow - state.Wardstone.Rules.NodeBurn)}");
-        _planTitle.Text = $"Floor {state.Stratum + 1} of {Delve.Data.FloorThemes.Count}";
+        _planTitle.Text = $"{_floorName}, floor {state.Stratum + 1} of {Delve.Data.FloorThemes.Count}";
         _planGoal.Text = Goal(floor);
         _floorPlan.Render(floor, state);
         var ward = state.Wardstone;
@@ -173,16 +165,16 @@ public partial class DungeonHud : Control
             : $"Danger: +{ward.Upshift} {(ward.Upshift == 1 ? "tier" : "tiers")}";
         // Normal danger needs no line; the readout speaks up only when fights get harder.
         _wardDanger.Visible = ward.IsSpent || ward.Upshift > 0;
-        _expedition.TooltipText = $"Ward {ward.Ward} of {ward.Rules.MaxWard}.\nEach doorway costs {ward.Rules.NodeBurn} ward, including backtracking.\nShort rests cost {ward.Rules.ShortRestBurn} ward. Zero ward ends the expedition.\nEncounter danger rises below {ward.Rules.SteadyAbove}, {ward.Rules.FirstShiftAbove}, and {ward.Rules.SecondShiftAbove} ward.\nCleared rooms stay cleared when you return.";
+        _expedition.TooltipText = $"Ward {ward.Ward} of {ward.Rules.MaxWard}.\nEach {_words.CrossingNoun} costs {ward.Rules.NodeBurn} ward, including backtracking.\nShort rests cost {ward.Rules.ShortRestBurn} ward. Zero ward ends the expedition.\nEncounter danger rises below {ward.Rules.SteadyAbove}, {ward.Rules.FirstShiftAbove}, and {ward.Rules.SecondShiftAbove} ward.\nCleared places stay cleared when you return.";
         int cleared = floor.Rooms.Count(r => r.Completed);
-        _roomProgress.Text = $"Rooms cleared {cleared}/{floor.Rooms.Count}  ·  {state.Gold} gold";
+        _roomProgress.Text = $"{_words.ProgressLabel} {cleared} of {floor.Rooms.Count}  ·  {state.Gold} gold";
         bool guardianDown = floor.Rooms[floor.GuardianId].Completed;
         _notice.Text = phase switch
         {
             DungeonPhase.Travel => $"Crossing…  −{state.Wardstone.Rules.NodeBurn} ward",
-            DungeonPhase.Doors when guardianDown => FloorCompleteNotice,
+            DungeonPhase.Doors when guardianDown => _words.FloorComplete,
             DungeonPhase.Combat => comparison ? $"Guard hall comparison: {size} × {size}. Same seed and enemies; compare movement and congestion." : "Resolve the encounter to open the doors.",
-            DungeonPhase.End => state.Outcome == RunOutcome.Victory ? FloorCompleteNotice : "The expedition ends. Restart or try a new seed.",
+            DungeonPhase.End => state.Outcome == RunOutcome.Victory ? _words.FloorComplete : "The expedition ends. Restart or try a new seed.",
             _ => ""
         };
         if (phase == DungeonPhase.Doors && CharacterPromotion.HasPending(state.Party))
@@ -213,12 +205,11 @@ public partial class DungeonHud : Control
         bool canDescend = room.Family == RoomFamily.Guardian && room.Completed;
         _stairs.Visible = doors;
         _stairs.SetEnabled(canDescend);
-        _stairs.SetActionText(state.OnFinalStratum ? "Complete expedition" : $"Descend to floor {state.Stratum + 2}");
-        _stairs.TooltipText = canDescend ? "Leave this floor by the guardian's stairs."
-            : "Unavailable: defeat the guardian in the ward chamber first.";
+        _stairs.SetActionText(state.OnFinalStratum ? "Complete expedition" : string.Format(_words.ExitAction, state.Stratum + 2));
+        _stairs.TooltipText = canDescend ? _words.ExitTip
+            : _words.ExitBlockedTip;
     }
 
-    public const string FloorCompleteNotice = "Floor complete. The stairs lead onward.";
 
     /// <summary>Slides the bar to the new ward and pulses the panel. The first value of a run snaps.</summary>
     private void ShowWard(int ward)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/card_3d.gd" id="1_card"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_border_fx.tscn" id="2_fx"]
@@ -15,10 +15,6 @@ orientation = 1
 size = Vector2(0.80, 1.05)
 orientation = 1
 
-[sub_resource type="QuadMesh" id="QuadMesh_acting"]
-size = Vector2(0.86, 1.11)
-orientation = 1
-
 [sub_resource type="BoxShape3D" id="BoxShape3D_pick"]
 size = Vector3(0.63, 0.03, 0.88)
 
@@ -28,11 +24,6 @@ script = ExtResource("1_card")
 [node name="Body" type="Node3D" parent="."]
 
 [node name="Surface" type="Node3D" parent="Body"]
-
-[node name="Acting" type="MeshInstance3D" parent="Body/Surface"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0065, 0)
-visible = false
-mesh = SubResource("QuadMesh_acting")
 
 [node name="Role" type="MeshInstance3D" parent="Body/Surface"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.006, 0)

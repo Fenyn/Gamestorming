@@ -1,12 +1,17 @@
 class_name StatusMarkers
 extends Node3D
-## The live marks on a personality in play, drawn into a small texture laid over its cached face:
-## the ladder's live layer (`MightLadder.show_live`) and, on a duelist, its Fervor pips and who
-## is in control (`DuelistTabs`). The texture renders only when a mark changes. An Ally's Energy is
-## also spelled out under its card, where the row is too small to read the ladder.
+## The live marks on a personality in play, rendered over its cached face only when one changes:
+## the ladder's live layer and, on a duelist, its `DuelistTabs`. An Ally's Energy is also spelled
+## out under its card.
 
 const LIFT: float = 0.004                 # above the card quad, no z-fight
 const FLASH_TIME: float = 0.55
+## An Ally's Energy value and caption, in card units: under the card, or over it for the far seat
+## with the value still above the caption on screen.
+const NEAR_VALUE_Z: float = 0.57
+const NEAR_CAPTION_Z: float = 0.77
+const FAR_VALUE_Z: float = -0.7
+const FAR_CAPTION_Z: float = -0.51
 
 @export var reduced_motion: bool = false
 @onready var viewport: SubViewport = $Viewport
@@ -48,15 +53,15 @@ func set_duelist(energy: int, might: int, reach: int, fervor: int, need: int, co
 	stat_caption.visible = false
 
 
-## An Ally: the gauge only, and its Energy under the card. Energy decides whether it can take
-## control, attack or be spent, and it is the one number the row is too tight to spell out twice.
-## Might stays on the hover view.
-func set_ally(energy: int, might: int) -> void:
+## An Ally: the gauge only, and its Energy spelled out past the card's edge toward its owner.
+func set_ally(energy: int, might: int, far: bool = false) -> void:
 	_pulse_on_change(energy, -1)
 	ladder.show_live(energy, might, -1, ladder.preview_cost())
 	tabs.show_tabs(-1, 0, "")
 	stat_value.visible = true
 	stat_caption.visible = true
+	stat_value.position.z = FAR_VALUE_Z if far else NEAR_VALUE_Z
+	stat_caption.position.z = FAR_CAPTION_Z if far else NEAR_CAPTION_Z
 	stat_value.text = str(energy)
 	stat_value.modulate = ZenithTheme.WARN if energy <= 0 else ZenithTheme.ENERGY
 

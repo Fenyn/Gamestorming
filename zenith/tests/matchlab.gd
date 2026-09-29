@@ -38,6 +38,8 @@ const SPEC_BASE: Dictionary = {
 	"decks": {"type": "str", "default": ""},
 	"a-field": {"type": "str", "default": ""},
 	"b-field": {"type": "str", "default": ""},
+	# A folder of trial deck lists, fielded by exact name alongside `data/decks`.
+	"deck-dir": {"type": "str", "default": ""},
 
 	"policy": {"type": "str", "default": "search"},
 	"a": {"type": "str", "default": ""},
@@ -83,7 +85,7 @@ func _init() -> void:
 	var field: String = args.str_of("field")
 	if field.strip_edges().is_empty():
 		field = args.str_of("decks")
-	var roster: SimRoster = SimRoster.build(field, args.str_of("a-field"), args.str_of("b-field"))
+	var roster: SimRoster = SimRoster.build(field, args.str_of("a-field"), args.str_of("b-field"), args.str_of("deck-dir"))
 	if not roster.error.is_empty():
 		push_error(roster.error)
 		print("matchlab: %s" % roster.error)

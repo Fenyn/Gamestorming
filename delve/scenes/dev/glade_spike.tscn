@@ -2,9 +2,11 @@
 
 [ext_resource type="Script" path="res://scripts/dev/GladeSpike.cs" id="1_spike"]
 [ext_resource type="PackedScene" path="res://scenes/dungeon/glade.tscn" id="2_glade"]
-[ext_resource type="PackedScene" path="res://scenes/looks/forest.tscn" id="3_look"]
+[ext_resource type="PackedScene" path="res://scenes/looks/fringe.tscn" id="3_look"]
 [ext_resource type="PackedScene" path="res://scenes/dungeon/camera.tscn" id="4_camera"]
 [ext_resource type="PackedScene" path="res://scenes/combat/unit_token.tscn" id="5_unit"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/forest_test.tscn" id="6_crawl"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/deepwood_test.tscn" id="7_deep"]
 
 [node name="GladeSpike" type="Node"]
 script = ExtResource("1_spike")
@@ -12,3 +14,5 @@ GladeScene = ExtResource("2_glade")
 LookScene = ExtResource("3_look")
 CameraScene = ExtResource("4_camera")
 UnitPrefab = ExtResource("5_unit")
+ForestCrawl = ExtResource("6_crawl")
+DeepCrawl = ExtResource("7_deep")

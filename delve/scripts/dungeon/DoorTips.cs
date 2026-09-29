@@ -10,14 +10,13 @@ namespace Delve.Dungeon;
 /// warning. Godot-free, so the spike reads the same words the tooltip prints.</summary>
 public static class DoorTips
 {
-    public const string UnexploredTitle = "Unexplored room";
     public const string ClearedSubtitle = "Cleared";
     public const string WardOutWarning = "The ward goes out.";
     public const string FeatsFirstWarning = "Choose feats first";
 
-    public static SheetTip For(DungeonRoom destination, Wardstone ward, IEnumerable<string> pendingPromotions)
+    public static SheetTip For(DungeonRoom destination, Wardstone ward, IEnumerable<string> pendingPromotions, CrawlWords words)
     {
-        string title = destination.Discovered || destination.Completed || destination.Scouted ? StationPlan.Name(destination.Purpose) : UnexploredTitle;
+        string title = destination.Discovered || destination.Completed || destination.Scouted ? words.Name(destination.Purpose) : words.UnexploredTitle;
         string subtitle = destination.Completed ? ClearedSubtitle : "";
         int after = System.Math.Max(0, ward.Ward - ward.Rules.NodeBurn);
         var body = new List<string>();

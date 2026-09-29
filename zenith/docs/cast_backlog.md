@@ -44,6 +44,12 @@ sit is already settled in `cast.md`; only the names are missing.
 - **Gideon Mourne**, a stripped lord who still signs the title, clears the whole Vegeta row: seven
   cards across five decks, ids and titles both.
 - **Siphon, Tithe, Sledge, Mercy, Scorn** retired the Collegium's numbering.
+- **2026-09-28, the Orange sheet.** Yamcha is **Idris Sparrow**, the eleventh duelist, and Krillin is
+  **Aldo Voss**, both from the King's Tourney team with Edric (`cast.md`). Voss' five cards now lead
+  with his name and carry `character`, which moved them from Freestyle to Signature. Maraikoh is
+  **Sandmaw**, a Tourney arena beast. Master Roshi Sensei is The Champion's Laurel under the Relic
+  exemption. This supersedes the old placement of Krillin as the Kingsguard's form at contact, which
+  is left without a mirror.
 - **2026-09-19, ten titles.** Every card whose character already existed now leads with the name,
   which cleared Rules 1 and 2 outright. `signature_strike_02` Ashmark's Relentless Fury,
   `signature_art_02` Ashmark Leaves Nothing, `signature_combat_03` Vale Cuts It Short, `signature_noncombat_06` Vale's
@@ -101,7 +107,6 @@ with the character's title name once it is approved. Ids are unchanged.
 
 | source character | n | cards | card types |
 |---|---|---|---|
-| **Krillin** | 5 | `freestyle_art_08`, `freestyle_art_02`, `freestyle_combat_16`, `freestyle_noncombat_03`, `freestyle_noncombat_15` | Art, Combat, Non-Combat |
 | **Cell** | 4 | `freestyle_strike_01`, `freestyle_combat_17`, `freestyle_combat_04`, `freestyle_combat_03` | Combat, Pacts only, Strike |
 | **Nappa** | 2 | `signature_art_01`, `signature_strike_04` | Art, Strike |
 | **Bulma** | 1 | `freestyle_noncombat_14` | Vigils only |
@@ -134,8 +139,9 @@ with the character's title name once it is approved. Ids are unchanged.
 
 Placed in `cast.md` (then `world.md`) on 2026-09-19, so only the name is outstanding. (Gohan is placed there as a
 Rooke by blood, Vale-trained in the sword and Thornwald-taught in the rest; that is Emrys Rooke
-and it is done.) Krillin is the Kingsguard's form at
-contact; Corin Thrace, who is done, was its form at distance. Bulma is a Vale and Caedan's mother. Nappa is the
+and it is done.) Krillin was placed as the Kingsguard's form at contact until 2026-09-28, when he
+became Aldo Voss of the King's Tourney; that form has no mirror now. Corin Thrace, who is done, was
+its form at distance. Bulma is a Vale and Caedan's mother. Nappa is the
 broken company's third survivor. Ginyu captains the retained guard. Babidi lays the demons' mark
 and works the toll gate. Supreme Kai holds the Vigil's highest office, which is what `freestyle_art_04`
 reaches past. Uub ties back to Bram Ashmark. Hercule claims a Kingsguard form he was never taught.

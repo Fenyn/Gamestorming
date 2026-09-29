@@ -51,8 +51,7 @@ func _run() -> void:
 				var result: Dictionary = host.apply(seat, option.to_command(seat).to_dict())
 				_check(str(result.get("problem", "")) == "", "Reserve completion must be an accepted engine option")
 				break
-	# Build a crowded hand and a genuinely private opposing hand with supported debug
-	# effects through the referee, without mutating engine state or fabricating cards.
+	# A crowded hand and a private opposing hand, drawn through the referee's debug effects.
 	for seat in range(2):
 		var draw_result: Dictionary = host.dev(seat, {"op": "draw", "amount": 12 if seat == 0 else 3})
 		_check(str(draw_result.get("problem", "")) == "", "Debug draw must produce a valid integration fixture")
@@ -65,7 +64,7 @@ func _run() -> void:
 	duel._refresh_displays()
 	await process_frame
 	var hand: Node3D = duel.hand_3d
-	# This direct public-view fixture bypasses prompt delivery; explicitly enable its hand.
+	# This fixture bypasses prompt delivery, so the hand is enabled by hand.
 	hand.set_available(true)
 	_check(not hand._items.is_empty(), "Opening hand must be presented after Reserve")
 	hand.clicked.connect(func(_uid: int) -> void: clicks += 1)
@@ -127,8 +126,7 @@ func _run() -> void:
 		_check(card != null and not card.hidden() and duel.view.player(0).hand.has(card.uid), "Physical hand must contain only viewer-owned visible hand cards")
 	for uid in duel.view.player(1).hand:
 		_check(duel.view.card(uid).hidden(), "Opponent hand identities must remain hidden")
-	# A legal choice's glow and the role aura lie just under each card's face. The duelist's slot
-	# is scaled 2.6x; a scaled offset used to sink both under the mat, hiding a usable Power.
+	# A legal choice's glow and the role aura stay above the mat, the 2.6x duelist slot included.
 	var mat_top: float = (duel.get_node("Table/Inlay") as Node3D).global_position.y
 	for uid in duel.views.keys():
 		var table_card: Card3D = duel.views[uid]
@@ -140,8 +138,6 @@ func _run() -> void:
 	_check(duel.near_duelist.life_value.text == str(duel.view.player(0).life_deck.size()), "Life Deck counter must display the actual remaining deck size")
 	_check(duel.near_duelist.life_value.visible and duel.far_duelist.life_value.visible, "Life must remain attached to each physical Life Deck")
 	_check(not duel.near_duelist.has_node("Plate") and not duel.near_duelist.has_node("PlateViewport"), "The separate stat plate is gone")
-	# Energy, Might and Fervor are on each duelist card: the gauge at its Energy, the Surge rail to
-	# where the next Recover lands, and one Fervor pip per point the next Aspect needs.
 	for seat in range(2):
 		var standing: SeatPlayer = duel.view.player(seat)
 		var marks: StatusMarkers = duel._markers.get(standing.duelist)
@@ -154,14 +150,12 @@ func _run() -> void:
 		var reach: int = mini(10, own.energy + gain) if gain > 0 and own.energy < 10 else -1
 		_check(marks.ladder.reach() == reach, "The Surge rail reaches the stage the next Recover lands on (%d, %d)" % [marks.ladder.reach(), reach])
 		_check(marks.tabs.fervor() == standing.fervor and marks.tabs.fervor_needed() == standing.fervor_needed, "The Fervor pips read the seat's Fervor out of what it needs")
-		_check(marks.ladder.surge() == _printed_surge(own), "The ladder's header prints the card's Surge")
-		var acting: bool = duel.view.deciding == seat and not duel.view.is_over()
-		_check(duel.views[standing.duelist].is_acting() == acting, "Only the deciding seat's duelist wears the acting ring")
+		_check(marks.ladder.surge() == _printed_surge(own), "The ladder's header prints the card's Surge with the flat bonus")
+		_check(not duel.views[standing.duelist].has_node("Body/Surface/Acting"), "The duelist wears no acting ring")
 		var in_control: SeatCard = duel.view.card(standing.controlling)
 		var control: String = "" if in_control.uid == standing.duelist else "%s IN CONTROL" % in_control.title.to_upper()
 		_check(marks.tabs.control_text() == control, "The duelist names an Ally in control on its bottom tab, and nothing otherwise")
-	# The gauge's geometry: the lit pill overhangs the box, the rail runs from its top to the
-	# divider above the rung the next Recover reaches, and a full ladder has no rail.
+	_check_mechanical_colours(duel)
 	var gauge: MightLadder = MightLadder.new()
 	root.add_child(gauge)
 	gauge.size = Vector2(154, 434)
@@ -184,16 +178,11 @@ func _run() -> void:
 	for seat in range(2):
 		var life_slot: Transform3D = duel.zones.slot(seat, &"life_deck", 0, 1, 0)
 		var identity_slot: Transform3D = duel.zones.slot(seat, &"duelist", 0, 1, 0)
-		# The Life Deck sits toward the centre of the table, level with the duelist's inner half,
-		# to leave its Discard room below.
 		_check(absf(life_slot.origin.z) < absf(identity_slot.origin.z) and absf(life_slot.origin.z - identity_slot.origin.z) < 0.7, "Each Life Deck must sit beside its duelist, nudged toward the centre")
 		var life_top: float = absf(life_slot.origin.z) - TableLayout.CARD_SIZE.y * life_slot.basis.get_scale().z * 0.5
 		var duelist_top: float = absf(identity_slot.origin.z) - TableLayout.CARD_SIZE.y * identity_slot.basis.get_scale().z * 0.5
 		_check(life_top >= duelist_top - 0.001, "A Life Deck must not reach past its duelist's inner edge")
-		# Everything packs around the duelist. On the Life Deck's side: the Life Deck over the
-		# Discard, then the Ally row with the Seals and the status spot under it. On the other side: the
-		# Mastery with the Relic and Out side by side under it, then the Drill row with the
-		# Non-Combat row under it. Player 1 mirrors, so sides are read relative to the duelist.
+		# Player 1 mirrors, so sides are read relative to the duelist.
 		var discard_slot: Transform3D = duel.zones.slot(seat, &"discard", 0, 1, 0)
 		var out_slot: Transform3D = duel.zones.slot(seat, &"removed", 0, 1, 0)
 		var mastery_slot: Transform3D = duel.zones.slot(seat, &"mastery", 0, 1, 0)
@@ -226,11 +215,9 @@ func _run() -> void:
 		_check(is_equal_approx(discard_slot.origin.x, life_slot.origin.x) and absf(discard_slot.origin.z) > absf(life_slot.origin.z), "Each Discard must sit directly below its Life Deck")
 		_check(relic_slot.basis.get_scale().x > out_slot.basis.get_scale().x, "The Relic must read larger than the Out pile beside it")
 		_check(discard_slot.basis.get_scale().x < life_slot.basis.get_scale().x, "The Discard must read smaller than the Life Deck above it")
-		# The Reserve sits under the Relic: lower in the stack, its edge showing past it.
 		var reserve_slot: Transform3D = duel.zones.slot(seat, &"relic", 1, 2, 0)
 		var relic_top: Transform3D = duel.zones.slot(seat, &"relic", 0, 2, 0)
 		_check(reserve_slot.origin.y < relic_top.origin.y and reserve_slot.origin.distance_to(relic_top.origin) > 0.01, "A Reserve card must tuck under its Relic with an edge showing")
-	# The focus card always stands on the rail, a live exchange included.
 	# The HUD script reads autoloads, so it is reached through the scene rather than by class name.
 	var hud: CanvasLayer = duel.hud
 	var constants: Dictionary = hud.get_script().get_script_constant_map()
@@ -240,12 +227,10 @@ func _run() -> void:
 	var rail_centre: float = float(constants["RAIL_LEFT"]) + float(constants["RAIL_WIDTH"]) * 0.5
 	_check(is_equal_approx((hud.focus.offset_left + hud.focus.offset_right) * 0.5, rail_centre) and is_equal_approx(hud.focus.offset_top, hud.rail_top()), "The focus card must stand on the rail")
 	hud.focus.visible = focus_shown
-	# Every off-field card is on the felt, and the screen-edge rail is gone.
 	for zone in [&"discard", &"removed", &"mastery", &"relic"]:
 		_check(TableLayout.SINGLES.has(zone), "The table must hold a %s zone" % zone)
 	_check(duel.hud.get_node_or_null("Root/NearBackline") == null and duel.hud.get_node_or_null("Root/FarBackline") == null, "The backline rail must be gone")
-	# Every pile keeps a caption on the felt, empty or not, and the caption carries the count.
-	# The captions follow the view at each sync; this script moved the view on since the last one.
+	# Captions follow the view at each sync, and this script moved the view on since the last one.
 	duel.zones.refresh_occupancy(duel.view)
 	for label: Label3D in duel.zones._labels:
 		var zone: StringName = label.get_meta("zone")
@@ -259,7 +244,6 @@ func _run() -> void:
 			continue
 		var count: int = pile_player.discard.size() if zone == &"discard" else pile_player.removed.size()
 		_check(label.text.ends_with(" %d" % count) if count > 0 else not label.text.contains(" "), "The %s caption must carry the pile count" % zone)
-	# The Relic pile reads the Relic first, then the Reserve, and never shows a hidden card.
 	for seat in range(2):
 		var holder: SeatPlayer = duel.view.player(seat)
 		var listed: Array[int] = duel.hud.pile_contents(holder, &"relic")
@@ -281,6 +265,16 @@ func _run() -> void:
 	var far_fighter: Transform3D = duel.zones.slot(1, &"duelist", 0, 1, 0)
 	_check(near_resolving.origin.z > far_fighter.origin.z and near_resolving.origin.z < near_fighter.origin.z, "Committed cards must occupy the exchange lane between fighters")
 	_check(near_resolving.origin.x < 0.0 and far_resolving.origin.x > 0.0, "Attack and response cards must retain readable owner sides in the exchange lane")
+	var band: Rect2 = PhaseTrack.band_rect()
+	var band_centre: Vector3 = duel.phase_track.band.global_position
+	_check(is_zero_approx(band_centre.x) and is_zero_approx(band_centre.z) and band.get_center().is_zero_approx(), "The phase track's band is centred between the duelists at x 0")
+	var centre_line: Array[Rect2] = [duel.zones._zone_rect(&"grounds"), duel.zones._zone_rect(&"resolving")]
+	var ghost_size: Vector2 = TableLayout.CARD_SIZE * TableLayout.STANDING_SCALE * 0.92
+	for i in range(TableLayout.STANDING_CHECKED):
+		var ghost: Transform3D = duel.zones.slot(0, &"standing", i, TableLayout.STANDING_CHECKED, 0)
+		centre_line.append(Rect2(Vector2(ghost.origin.x, ghost.origin.z) - ghost_size * 0.5, ghost_size))
+	for r in centre_line:
+		_check(not r.intersects(band) and not duel.zones._mirrored(r).intersects(band), "The Grounds, the cards in play and the standing ghosts stay off the phase track's band (%s)" % r)
 	var controller: SeatCard = duel.view.card(duel.view.player(0).controlling)
 	_check(readout._energy == controller.energy, "Medallion Energy must belong to the controlling personality")
 	# The printed readout lies on the table, so camera zoom leaves its layout where it is, still
@@ -328,7 +322,7 @@ func _run() -> void:
 	duel._refresh_markers()
 	duel.near_duelist.refresh(duel.view, 0, 0)
 	_check(duel.near_duelist.life_value.text == str(duel.view.player(0).life_deck.size()), "Life Deck counter must return to the settled count after replay")
-	# A real newly drawn public card joins the existing hand without snapping its neighbours.
+	# A newly drawn card joins the hand without snapping its neighbours.
 	var poses: Dictionary = {}
 	for item in hand._items:
 		poses[int(item["uid"])] = item["node"].transform
@@ -368,7 +362,7 @@ func _run() -> void:
 	hand.preview_index(hand._items.size() - 1)
 	_check(hand._page > 0 and hand._items[hand._hovered]["node"].visible, "Keyboard browsing must reach visible cards beyond the first page")
 	_check(clicks == 0 and host.view_for(0).to_dict() == before, "Browsing hand must never submit a player choice")
-	# Real viewport resizing must preserve the focused card even when page capacity changes.
+	# Resizing the viewport keeps the focused card even when page capacity changes.
 	var original_scale: Vector2i = root.content_scale_size
 	var original_window_size: Vector2i = root.size
 	for scale_size: Vector2i in [Vector2i(1280, 720), Vector2i(1600, 900), Vector2i(1800, 720)]:
@@ -540,10 +534,28 @@ func _run() -> void:
 
 
 ## The Surge a personality card prints for the Aspect it stands at.
+## Rings and frames on table cards are mechanical: they draw only the fixed cue colours, never a
+## school colour, whatever the decks.
+func _check_mechanical_colours(duel: Node) -> void:
+	var allowed: Array[Color] = [ZenithTheme.USABLE, ZenithTheme.ACCENT, ZenithTheme.ATTACK, Card3D.HOVER_TINT]
+	var bad: Array[String] = []
+	for v: Card3D in duel.views.values():
+		for pair: Array in [[v.glow, v._glow_mat], [v.role, v._role_mat]]:
+			if not (pair[0] as MeshInstance3D).visible:
+				continue
+			var tint: Color = (pair[1] as ShaderMaterial).get_shader_parameter("tint")
+			var fixed: bool = false
+			for c: Color in allowed:
+				fixed = fixed or (is_equal_approx(tint.r, c.r) and is_equal_approx(tint.g, c.g) and is_equal_approx(tint.b, c.b))
+			if not fixed:
+				bad.append("%d %s" % [v.uid, tint.to_html(false)])
+	_check(bad.is_empty(), "Card rings and frames use only the fixed cue colours: %s" % ", ".join(bad))
+
+
 func _printed_surge(card: SeatCard) -> int:
 	var def: CardDef = (root.get_node("Session").get("library") as CardLibrary).get_def(card.def_id)
 	var aspect: int = def.aspect if def.aspect > 0 else card.aspect
-	return int(def.aspect_data(aspect).get("surge", 0))
+	return int(def.aspect_data(aspect).get("surge", 0)) + DuelEngine.STYLE_SURGE_BONUS
 
 
 func _check_fixture_geometry(duel: Node3D, fixture: Node3D) -> void:

@@ -1,0 +1,23 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/dungeon/glade.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_conifer.tscn" id="conifer"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_giant_dark.tscn" id="giant_dark"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_dead.tscn" id="dead"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_canopy.tscn" id="canopy"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_lean.tscn" id="lean"]
+
+[node name="deepwood_glade" instance=ExtResource("1")]
+SizeVariants = PackedInt32Array(16, 18)
+
+[node name="Shell" parent="." index="0"]
+FloorId = "deepforest"
+ZoneHalf = 5
+BoardTreeScenes = [ExtResource("conifer"), ExtResource("dead")]
+BigTreeScenes = [ExtResource("canopy"), ExtResource("lean")]
+BigTreeWeights = PackedFloat32Array(1, 1)
+BoardTreeWeights = PackedFloat32Array(3, 1)
+RimTreeScenes = [ExtResource("conifer"), ExtResource("giant_dark"), ExtResource("dead"), ExtResource("canopy"), ExtResource("lean")]
+RimTreeWeights = PackedFloat32Array(3, 1, 1, 1, 1)
+RimTreeMinRings = PackedFloat32Array(0, 2, 0, 0, 0)
+TreeTint = Color(0.66, 0.76, 0.72, 1)

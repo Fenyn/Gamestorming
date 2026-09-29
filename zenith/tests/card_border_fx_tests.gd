@@ -45,6 +45,17 @@ func _run() -> void:
 	_check(card.border_fx.sparks.emitting, "Hover inspection works even without a legal play")
 	card.set_hovered(false)
 	_check(not card.border_fx.sparks.emitting, "Leaving an idle card ends hover particles")
+	card.set_role(ZenithTheme.ATTACK)
+	card.set_highlight(true)
+	card.set_usable(true)
+	var blue: Color = Color(ZenithTheme.USABLE, 1.0)
+	_check(card.glow.visible and card._glow_mat.get_shader_parameter("tint") == blue and card.border_fx._material.get_shader_parameter("tint") == blue,
+		"A card the viewer can use now wears the blue frame over any other cue")
+	card.set_usable(false)
+	_check(card._glow_mat.get_shader_parameter("tint") == Color(ZenithTheme.ACCENT, 1.0), "Without a use, a choice keeps the bone-white frame")
+	card.set_highlight(false)
+	_check(not card.glow.visible and card.border_fx._material.get_shader_parameter("tint") == Color(ZenithTheme.ATTACK, 1.0), "and the attacker keeps its red")
+	card.set_role(Color.TRANSPARENT)
 	# The duelist's slot scales the card 2.6x, height included; the glow must stay just under the
 	# face rather than sink through the mat.
 	card.transform = Transform3D(Basis().scaled(Vector3.ONE * 2.4), Vector3(0, 0.01, 0))

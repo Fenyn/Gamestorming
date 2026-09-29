@@ -4,7 +4,7 @@ using Godot;
 namespace Delve.Dungeon;
 
 /// <summary>Stone infill between socket thresholds, with the same wall cutaway as rooms.</summary>
-public partial class DungeonPassage : Node3D
+public partial class DungeonPassage : Node3D, IPassage
 {
     public DungeonPalette? Palette { get; set; }
 
@@ -12,8 +12,9 @@ public partial class DungeonPassage : Node3D
     private readonly List<(Node3D Wall, int Sign)> _walls = new();
     private bool _horizontal;
 
-    public void Build(Vector3 a, Vector3 b)
+    public void Build(DungeonRoomPrefab from, Vector3 a, Vector3 b)
     {
+        Palette = from.Palette;
         Position = (a + b) / 2;
         var delta = (a - b).Abs();
         _horizontal = delta.X > delta.Z;
@@ -33,6 +34,10 @@ public partial class DungeonPassage : Node3D
             _walls.Add((wall, sign));
         }
     }
+
+    public void SetLight(float light) { }
+
+    public void Focus(Aabb box) { }
 
     public void Cutaway(Camera3D camera)
     {

@@ -3,6 +3,9 @@
 [resource]
 script = ExtResource("1")
 Colors = Dictionary[String, Color]({
+"beacon_flame": Color(1, 0.72, 0.38, 1),
+"beacon_light": Color(1, 0.78, 0.5, 1),
+"beacon_stone": Color(0.46, 0.48, 0.44, 1),
 "bed_blanket": Color(0.423529, 0.301961, 0.298039, 1),
 "bed_linen": Color(0.788235, 0.74902, 0.639216, 1),
 "bedroll_heather": Color(0.4, 0.345098, 0.384314, 1),
@@ -11,6 +14,7 @@ Colors = Dictionary[String, Color]({
 "brazier_flame": Color(1, 0.768627, 0.482353, 1),
 "bunk_pillow": Color(0.784314, 0.741176, 0.647059, 1),
 "camp_embers": Color(0.937255, 0.643137, 0.384314, 1),
+"earth": Color(0.3, 0.23, 0.16, 1),
 "dining_cup": Color(0.745098, 0.662745, 0.509804, 1),
 "dining_plate": Color(0.8, 0.721569, 0.580392, 1),
 "door_frame": Color(0.572549, 0.564706, 0.541176, 1),
@@ -27,6 +31,7 @@ Colors = Dictionary[String, Color]({
 "masonry": Color(0.34902, 0.376471, 0.427451, 1),
 "notice_paper": Color(0.823529, 0.772549, 0.658824, 1),
 "passage_floor": Color(0.384314, 0.411765, 0.458824, 1),
+"root": Color(0.28, 0.2, 0.14, 1),
 "shrine_crystal": Color(0.486275, 0.85098, 0.866667, 1),
 "shrine_light": Color(0.521569, 0.85098, 0.87451, 1),
 "station_iron": Color(0.337255, 0.376471, 0.415686, 1),

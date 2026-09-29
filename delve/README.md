@@ -42,7 +42,7 @@ Headless, each prints `SPIKE RESULT: PASS`:
 ...console.exe --path G:/Godot/Gamestorming/delve --headless res://scenes/dev/<name>_spike.tscn
 ```
 
-for `combat_juice`, `player_turn`, `encounter_reset`, `reaction_dying`, `reaction_prompt`, `spell_cast`, `terrain_spatial`, `terrain_cliff`, `terrain_skirt`, `terrain_skirt_render`, `elevation_move`, `ai_stack`, `ai_caster`, `ai_caution`, `ai_tactics`, `strike_audit`, `chassis`, `class_combo`, `run_map`, `run_recovery`, `run_short_rest`, `rest_presentation`, `run_event`, `run_encounter`, `run_flow`, `run_meeting`, `hero_select`, `party_control`, `campaign_progress`, `combat_log`, `target_click`, `move_chain`, `delay_turn`, `focus`, `theme_lint`, `pause_menu`, `knowledge_journal`, `movement_conditions`.
+for `combat_juice`, `player_turn`, `encounter_reset`, `reaction_dying`, `reaction_prompt`, `spell_cast`, `terrain_spatial`, `terrain_cliff`, `terrain_skirt`, `terrain_skirt_render`, `elevation_move`, `ai_stack`, `ai_caster`, `ai_caution`, `ai_tactics`, `strike_audit`, `chassis`, `class_combo`, `run_map`, `run_recovery`, `run_short_rest`, `rest_presentation`, `run_event`, `run_encounter`, `run_flow`, `run_meeting`, `hero_select`, `party_control`, `campaign_progress`, `combat_log`, `target_click`, `move_chain`, `delay_turn`, `focus`, `theme_lint`, `pause_menu`, `knowledge_journal`, `movement_conditions`, `glade`.
 
 Movement conditions: Grabbed, Restrained and Immobilized allow no move actions, so Move is unavailable and the hint reads "Immobilized: cannot move". A prone hero gets 5 ft Crawl bands, the hint "Prone: Crawl 5 ft or Stand", and a Stand chip first on the signature row. A grabbed hero gets an Escape chip. `movement_conditions_spike` checks these and that a grabbed or prone AI never Strides.
 
@@ -86,7 +86,7 @@ The schedule spends ward once. Invalid or duplicate assignments spend nothing.
 run it with rendering enabled to save previews under `.godot/`.
 Condition markers use the supplied P2eConditionMarkers pack in `assets/ui/conditions`. HUD rows use 22 px tiles baked from it (bone on a dark tile, Palette colours): re-run `python tools/art/bake_condition_tiles.py` after a palette change.
 
-The default game (F5) now runs `scenes/run/dungeon_run.tscn`: select a party, explore rooms,
+The default game (F5) now runs `scenes/run/dungeon_run.tscn`: select a party, cross two forest floors of glades and the ward station,
 resolve encounters, and descend through all three floors. It shares XP, recovery, recruitment,
 campaign progress, and the run summary with the original run flow.
 The original node-map mode remains at `scenes/run/run.tscn` (F6); its scenes and generator remain available.

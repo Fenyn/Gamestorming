@@ -72,7 +72,7 @@ public partial class RunPresentationSpike
             && (state.Wardstone.Ward == ward ? wardPair == null : wardPair?.BeforeText == ward.ToString() && wardPair.ValueText == state.Wardstone.Ward.ToString())
             && aldricHp?.BeforeText == "1" && report.MemberRows.All(r => r.FigureLabels.Count > 0));
         var study = dungeon.LastStudy;
-        var leadLine = StationGuardians.ForStratum(state.Stratum).Spawns[0];
+        var leadLine = BossEncounters.ForStratum(state.Stratum).Spawns[0];
         var lead = Delve.Autoload.DataManager.Instance!.ResolveCreature(leadLine.Creature)!;
         var journalPair = report.FigureLabels.FirstOrDefault(f => f.CaptionText == lead.CreatureName);
         Check($"the camp night studies the guardian and the morning shows the journal pair ({study?.Actor} {study?.Skill} {study?.Total} vs {study?.Dc}, {study?.Degree}; {journalPair?.BeforeText} → {journalPair?.ValueText})",

@@ -1,11 +1,9 @@
 shader_type spatial;
 render_mode blend_mix, cull_back, depth_draw_never;
 
-// A transparent print over the stone dais: each seat's half washed in its Mastery school's colour
-// (ArenaAtmosphere.set_schools), fading out toward the board's edge, one faint rule along the
-// centre line, and a darkening toward the frame's edges. Distances are in table units on a plane
-// of `plane_size`, centred on the table. The stone itself is ArenaAtmosphere's `stone_tint` and
-// `stone_brightness`. Whose turn it is shows on the TurnToken, not in the print.
+// A transparent print over the stone: each seat's half washed in its school colour
+// (ArenaAtmosphere.set_schools), a rule on the centre line, and a screen vignette. Distances are
+// in table units on a plane of `plane_size`, centred on the table.
 
 uniform sampler2D fabric : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform vec2 plane_size = vec2(13.0, 8.2);
@@ -23,10 +21,9 @@ uniform float wash_fade = 0.9;
 uniform float weave = 0.35;
 uniform vec4 ink : source_color = vec4(0.72, 0.68, 0.62, 0.08);
 uniform float rule_half_length = 4.1;
-// The vignette, in screen space: its centre (the board's, left of the HUD column), how dark the
-// frame's corners get, and where the darkening starts and ends as a share of the distance from
-// the screen centre to a corner.
-uniform vec2 vignette_centre = vec2(0.42, 0.5);
+// The vignette, in screen space: its centre, how dark the frame's corners get, and where the
+// darkening starts and ends as a share of the distance from the screen centre to a corner.
+uniform vec2 vignette_centre = vec2(0.5, 0.5);
 uniform float vignette_strength = 0.35;
 uniform float vignette_start = 0.55;
 uniform float vignette_end = 1.1;

@@ -11,6 +11,10 @@ public partial class DungeonProp : Node3D
     /// <summary>Every lamp this prop lit, so the room can warm them without scanning its tree.</summary>
     public List<OmniLight3D> Lamps { get; } = new();
 
+    /// <summary>Every mesh and tree this prop built, so the room can dim them with its fog tier.</summary>
+    public List<GeometryInstance3D> Meshes { get; } = new();
+    public List<Delve.Props.TreeProp> Trees { get; } = new();
+
     private Color Tint(string key) => Palette?.Tint(key) ?? Colors.Magenta;
 
     private void AddLamp(OmniLight3D lamp)
@@ -26,7 +30,7 @@ public partial class DungeonProp : Node3D
         var stone = Tint("stone");
         var wood = Tint("wood");
         var iron = Tint("iron");
-        if (BuildStation(p) || BuildFeature(p)) return;
+        if (BuildStation(p) || BuildFeature(p) || BuildForest(p)) return;
         switch (p.Kind)
         {
             case "stairs":
@@ -126,6 +130,7 @@ public partial class DungeonProp : Node3D
             MaterialOverride = material
         };
         AddChild(mesh);
+        Meshes.Add(mesh);
         return mesh;
     }
 }

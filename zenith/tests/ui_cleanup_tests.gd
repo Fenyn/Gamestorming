@@ -4,7 +4,7 @@ extends SceneTree
 ## rival's tab and the reconnect card.
 const PLAYER_STATUS: Script = preload("res://scripts/duel/player_status.gd")
 const TOOLS: Array[String] = ["Reduced motion", "Fullscreen"]
-## Words the menu and the result card no longer use for a way out.
+## Words the menu and the result card must not use for a way out.
 const RETIRED: Array[String] = ["Leave duel", "Leave match", "Title", "Give up", "Leave", "Save and quit to title"]
 var checks: int = 0
 var failures: int = 0

@@ -43,7 +43,7 @@ func _init() -> void:
 
 	var a_side: SimSeat = SimSeat.from_dict(config.get("a_side", {}))
 	var b_side: SimSeat = SimSeat.from_dict(config.get("b_side", {}))
-	var roster: SimRoster = SimRoster.build("", ",".join(PackedStringArray(config.get("a_field", []))), ",".join(PackedStringArray(config.get("b_field", []))))
+	var roster: SimRoster = SimRoster.build("", ",".join(PackedStringArray(config.get("a_field", []))), ",".join(PackedStringArray(config.get("b_field", []))), str(config.get("deck-dir", "")))
 	if not roster.error.is_empty():
 		print("merge_matchlab: %s" % roster.error)
 		quit(2)

@@ -1,9 +1,7 @@
 class_name CourtyardSet
 extends Node3D
-## The duel's ruined courtyard: a flagstone dais in a walled yard gone to moss, broken columns and
-## rubble, grass and trees beyond the walls, under an overcast sky, with leaves drifting and a few
-## shafts of light. Every texture and model is library art (assets/courtyard/SOURCES.md); the set
-## only places and lights it. Decorative: it never reads the game.
+## The duel's ruined courtyard around the table. Art is library art (assets/courtyard/SOURCES.md);
+## the set only places and lights it. Decorative: it never reads the game.
 
 const DIR: String = "res://assets/courtyard"
 ## Where the duel table's top sits, and its footprint.
@@ -37,8 +35,7 @@ func _ready() -> void:
 	_build_air()
 
 
-## Sets the duel's sky, light and fog to an overcast afternoon. The duel scene owns its
-## WorldEnvironment and sun; the set only tunes them.
+## Tunes the duel scene's own WorldEnvironment and sun: sky, light and fog.
 func apply_environment(env: Environment, sun: DirectionalLight3D) -> void:
 	var sky_material: PanoramaSkyMaterial = PanoramaSkyMaterial.new()
 	sky_material.panorama = load(DIR + "/sky_overcast.png")
@@ -83,7 +80,6 @@ static func table_material() -> StandardMaterial3D:
 
 
 func _build_ground() -> void:
-	# A plinth one step below the table, the yard's flagstones around it, and grass beyond.
 	var plinth: StandardMaterial3D = stone_material("brick", Vector3.ONE * 0.8, true)
 	plinth.albedo_color = Color(0.7, 0.68, 0.64) * SET_DIM
 	_box(Vector3(TABLE_SIZE.x + 1.2, 0.5, TABLE_SIZE.y + 1.2), Vector3(0, YARD_Y + 0.25, 0), plinth)
@@ -93,15 +89,13 @@ func _build_ground() -> void:
 	var grass: StandardMaterial3D = stone_material("grass", Vector3(40.0, 40.0, 1.0))
 	grass.albedo_color = Color(0.62, 0.66, 0.55) * SET_DIM
 	_plane(Vector2(160, 160), Vector3(0, YARD_Y - 0.02, 0), grass)
-	# Worn earth where the flagstones have broken up.
 	var dirt: StandardMaterial3D = stone_material("dirt", Vector3(3.0, 3.0, 1.0))
 	for spot: Vector3 in [Vector3(-9.5, 0, -7.5), Vector3(9.8, 0, -2.5), Vector3(-10.0, 0, 2.5), Vector3(7.5, 0, -9.0)]:
 		_plane(Vector2(_rng.randf_range(3.0, 5.0), _rng.randf_range(2.5, 4.0)), Vector3(spot.x, YARD_Y + 0.005, spot.z), dirt)
 
 
 func _build_walls() -> void:
-	# Three sides of a broken enclosure: behind the far seat and down both flanks. Each run is
-	# stones of varying height with gaps where it has fallen.
+	# Behind the far seat and down both flanks.
 	var wall: StandardMaterial3D = stone_material("wall", Vector3.ONE * 0.55, true)
 	var coping: StandardMaterial3D = stone_material("brick", Vector3.ONE * 0.9, true)
 	coping.albedo_color = Color(0.66, 0.64, 0.6) * SET_DIM
@@ -127,13 +121,11 @@ func _wall_run(from: Vector3, to: Vector3, wall: Material, coping: Material) -> 
 			var cap: MeshInstance3D = _box(Vector3(1.1, 0.22, step * _rng.randf_range(0.5, 1.0)), Vector3(at.x, YARD_Y + height + 0.11, at.z), coping)
 			cap.rotation.y = angle
 		if _rng.randf() < 0.35:
-			# A fallen block at the foot of the wall.
 			var fallen: MeshInstance3D = _box(Vector3(0.8, 0.5, 1.1), at + Vector3(_rng.randf_range(-1.2, 1.2), YARD_Y + 0.25, _rng.randf_range(-1.2, 1.2)), wall)
 			fallen.rotation = Vector3(0, _rng.randf() * TAU, _rng.randf_range(-0.2, 0.2))
 
 
 func _build_columns() -> void:
-	# The yard's old colonnade: a few columns still standing, one broken short, one fallen.
 	var stone: StandardMaterial3D = stone_material("brick", Vector3.ONE * 0.7, true)
 	stone.albedo_color = Color(0.74, 0.72, 0.68) * SET_DIM
 	var spots: Array[Vector3] = [Vector3(-8.2, 0, -7.6), Vector3(8.2, 0, -7.6), Vector3(-8.2, 0, -1.8), Vector3(8.2, 0, -1.8), Vector3(-8.2, 0, 3.6)]
@@ -158,7 +150,6 @@ func _build_columns() -> void:
 
 
 func _scatter_nature() -> void:
-	# Rubble and growth along the walls, trees past them. PSX Nature models, varied by scale and turn.
 	var along_walls: Array[Vector3] = []
 	for x in range(-10, 11, 3):
 		along_walls.append(Vector3(x + _rng.randf_range(-1.0, 1.0), 0, WALL_BACK_Z + 1.1 + _rng.randf_range(-0.4, 0.4)))
@@ -172,13 +163,12 @@ func _scatter_nature() -> void:
 			_model(["stone_1", "stone_3"][_rng.randi_range(0, 1)], Vector3(spot.x + _rng.randf_range(-1, 1), YARD_Y, spot.z + _rng.randf_range(-1, 1)), _rng.randf_range(0.25, 0.55))
 	_model("tree_stump_1", Vector3(-9.8, YARD_Y, -5.0), 1.2)
 	_model("tree_log_1", Vector3(9.9, YARD_Y, 2.0), 1.1)
-	# Trees stay behind the far wall and well out on the flanks, so no canopy hangs over the camera.
+	# Kept clear of the camera's view overhead.
 	for spot: Vector3 in [Vector3(-16, 0, -17), Vector3(-6, 0, -19), Vector3(4, 0, -20), Vector3(14, 0, -17), Vector3(21, 0, -10), Vector3(-21, 0, -9)]:
 		_model(["tree_1", "tree_5"][_rng.randi_range(0, 1)], Vector3(spot.x, YARD_Y, spot.z), _rng.randf_range(1.8, 2.4))
 
 
 func _build_air() -> void:
-	# Leaves blowing across the yard, and two shafts of light where the cloud thins.
 	for spot: Vector3 in [Vector3(-6, 5, -6), Vector3(6, 5, -3)]:
 		var leaves: GPUParticles3D = EffectBlocks.make("other/falling_leaves") as GPUParticles3D
 		leaves.name = "EffectBlocksCourtyardLeaves"
@@ -202,7 +192,7 @@ func _build_air() -> void:
 		_rays.append(rays)
 
 
-## The pack's rays are a saturated teal at full strength; here they are thin, pale daylight.
+## Recolours the pack's teal rays to RAY_TINT at RAY_ALPHA.
 func _soften_rays(node: Node) -> void:
 	if node is MeshInstance3D:
 		var mesh_node: MeshInstance3D = node

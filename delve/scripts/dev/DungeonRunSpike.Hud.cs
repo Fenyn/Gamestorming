@@ -123,10 +123,10 @@ public partial class DungeonRunSpike
         while (state.Wardstone.Ward > saved) state.Wardstone.BurnNode();
 
         var fight = new DungeonRoom { Id = 99, X = 0, Y = 0, Family = RoomFamily.GuardHall, Seed = 1 };
-        var blocked = DoorTips.For(fight, state.Wardstone, new[] { "Aldric", "Elara" });
+        var blocked = DoorTips.For(fight, state.Wardstone, new[] { "Aldric", "Elara" }, dungeon.Words);
         Check($"pending promotions before a fight warn in the tooltip ('{blocked.Body}')",
             blocked.Body.Contains($"{DoorTips.FeatsFirstWarning}: Aldric, Elara"));
-        Check("an unexplored room keeps its name hidden", blocked.Title == DoorTips.UnexploredTitle);
+        Check("an unexplored room keeps its name hidden", blocked.Title == dungeon.Words.UnexploredTitle);
 
         dungeon._UnhandledInput(new InputEventAction { Action = InputNames.Confirm, Pressed = true });
         var deadline = DateTime.UtcNow.AddSeconds(20);

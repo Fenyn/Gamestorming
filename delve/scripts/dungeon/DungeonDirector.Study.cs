@@ -21,7 +21,7 @@ public partial class DungeonDirector
     /// <summary>The guardian roster's first line, the creature the party studies.</summary>
     private (EnemyDefinition Creature, CreatureAdjustment Adjustment)? GuardianLead()
     {
-        var spec = StationGuardians.ForStratum(State.Stratum);
+        var spec = BossEncounters.ForStratum(State.Stratum);
         if (spec.Spawns.Count == 0) return null;
         var lead = spec.Spawns[0];
         var creature = DataManager.Instance?.ResolveCreature(lead.Creature);

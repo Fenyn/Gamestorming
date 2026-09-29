@@ -3,14 +3,9 @@ extends Control
 ## Draws one card face procedurally. Rendered once per definition into a texture by CardFaceCache,
 ## and also used directly for the hover zoom.
 ##
-## Two layouts share the frame. Personalities (Duelists, Allies) get a portrait: aspect box, name,
-## and title with the type line across the top, art filling the left, the Might ladder
-## (`MightLadder`: stages 10 to 0, banded by the Strike Table, the printed Surge over it) down the
-## right, and the power text in a fixed box along the bottom. Everything else gets the standard face:
-## title, type chip, an art box of a set height for that type, an Energy cost badge over the art,
-## and the rules text in the fixed box that remains. Both set their text in RulesLayout blocks in
-## an inset panel, with bookkeeping chips under it. Boxes never move between cards of one type;
-## the text shrinks to fit.
+## Two layouts share the frame. Personalities (Duelists, Allies) get a portrait with the Might
+## ladder down the right; everything else gets the standard face, with an art box whose height is
+## set by type. Boxes never move between cards of one type; the text shrinks to fit.
 
 const ART_DIR: String = "res://assets/card_art/"
 const INK: Color = Color(0.10, 0.08, 0.06)
@@ -23,9 +18,8 @@ const TYPE_REST_SIZES: Array[int] = [22, 20, 18, 17, 16, 15, 14]
 const TYPE_CHIP_SIZE: int = 24          # the chip's own font size, from the scene
 const TYPE_CHIP_FIXED: float = 30.0 + 8.0 + 20.0   # icon, gap, chip padding
 const TYPE_ROW_GAP: float = 10.0
-## Art box height per type, twice the art canvas in the roster (226 wide) so pictures fill the
-## box without cropping. Cards that act (Strikes, Arts, Combat, Seals) carry little text and get
-## the tall picture; cards that stay in play carry rules and get the shorter one.
+## Art box height per type, twice the roster's art canvas (226 wide) so pictures fill it uncropped.
+## Cards that stay in play carry more rules, so they get the shorter box.
 const ART_HEIGHTS: Dictionary = {
 	CardDef.Type.STRIKE: 320, CardDef.Type.ART: 320, CardDef.Type.COMBAT: 300, CardDef.Type.SEAL: 320,
 	CardDef.Type.NON_COMBAT: 240, CardDef.Type.DRILL: 240, CardDef.Type.GROUNDS: 240,
@@ -48,19 +42,17 @@ const PERSON_DARK: Color = Color("3b3226")
 const LIT_FALLBACK: Color = Color("8fe0b8")
 const LIT_LIGHTEN: float = 0.25
 ## The bone outer rule on a Signature frame, in face pixels. The face is 512 wide and drawn at
-## about a quarter of that in the hand, so 6 here is the 1 to 2 px the player actually sees.
+## about a quarter of that in the hand, so 6 here draws as 1 to 2 px.
 const SIGNATURE_EDGE: int = 6
-## Personality portraits are painted on a clear background, so the art box behind them shows the
-## colour of the deck the card is being shown for: its Mastery's school hue, darkened. Callers
-## that know the deck pass it as `backdrop`; a clear colour means `default_backdrop`, which the
-## adventure screens set to the run deck and is the neutral dark everywhere else.
+## Personality portraits have a clear background, so the art box behind them shows the deck's
+## Mastery hue, darkened. A clear `backdrop` means `default_backdrop` (the run deck in adventure).
 const BACKDROP_DARKEN: float = 0.72
 const NEUTRAL_BACKDROP: Color = Color(0.11, 0.10, 0.10)
 const NO_BACKDROP: Color = Color(0, 0, 0, 0)
 
 ## Kenney border rules inlaid in the frame band (tools/import_map_art.py writes them). Per style:
 ## the texture's corner size in its own pixels, and how far in from the card edge it sits so its
-## lines land inside the band. Squarer frame corners suit the squared rules.
+## lines land inside the band.
 const CARD_RULES_DIR: String = "res://assets/ui/card_rules/"
 const RULE_STYLES: Dictionary = {"inner_rule": [48, 6], "double": [32, 0], "notched": [32, -2]}
 const RULE_LIGHTEN: float = 0.45
@@ -182,13 +174,12 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D, table_base: 
 	words_box.add_theme_stylebox_override("panel", text_box)
 	var room: float = CONTENT_HEIGHT - STANDARD_FIXED - art_height - 4.0
 	_place_rules(text_label, CardText.rules_text(def), room, _inset(text_box), tags_row, stamps)
-	# Energy cost as a round badge over the art, where the eye checks it first.
 	var cost: int = 0
 	if def.is_attack():
 		cost = int(def.attack.get("cost_stages", 2 if def.attack_kind() == "art" else 0))
 	cost_badge.visible = cost > 0
 	cost_num.text = str(cost)
-	# The base attack in the other corner: what the card adds before the table and the modifiers.
+	# The base attack: what the card adds before the table and the modifiers.
 	var badge: Dictionary = CardText.attack_badge(def, table_base)
 	attack_badge.visible = not badge.is_empty()
 	if not badge.is_empty():
@@ -220,8 +211,7 @@ func _show_person(def: CardDef, aspect: int, picture: Texture2D, backdrop: Color
 	var name_font: Font = p_name.get_theme_font("font")
 	var name_room: float = CONTENT_WIDTH - 64.0 - 10.0
 	p_name.add_theme_font_size_override("font_size", 32 if name_font.get_string_size(def.title, HORIZONTAL_ALIGNMENT_LEFT, -1, 32).x <= name_room else 16)
-	# An untitled card prints its line's word, or nothing: "Aspect 1" only repeats the box. The
-	# type line rides on the same row, which leaves the Power box its full height.
+	# An untitled card prints its variant word or nothing, and the type line shares the row.
 	var head_parts: PackedStringArray = PackedStringArray()
 	for part in [def.aspect_title if def.aspect_title != "" else def.variant, person_type_line(def)]:
 		if str(part) != "":
@@ -242,8 +232,7 @@ func _show_person(def: CardDef, aspect: int, picture: Texture2D, backdrop: Color
 	_place_rules(p_text, plain, PERSON_TEXT_HEIGHT, _inset(words), p_tags, null)
 
 
-## The inset panel that holds a card's words or its ladder: a shade darker than the cream, with
-## a thin rule.
+## The inset panel that holds a card's words or its ladder.
 func _box_style(pad_x: float, pad_y: float) -> StyleBoxFlat:
 	var box: StyleBoxFlat = StyleBoxFlat.new()
 	box.content_margin_left = pad_x
@@ -303,11 +292,8 @@ static func resolve_backdrop(backdrop: Color) -> Color:
 	return backdrop if backdrop.a > 0.0 else default_backdrop
 
 
-## Card art lives in assets/card_art/<group>/<id>.png, where the group is the id's first word
-## (pyre_strike_07 is in pyre/). Ids are generic and never follow a title, so a rename leaves the
-## art alone. An .svg of the same name is taken when no painting is there yet, which is how the
-## placeholder crests are picked up. Missing art falls back to the type glyph. `aspect` is kept so
-## callers need not know which is which.
+## Card art is assets/card_art/<id's first word>/<id>.png, else an .svg placeholder of the same
+## name, else null (the face draws the type glyph). `aspect` is unused.
 static func art_texture(def: CardDef, aspect: int = 0) -> Texture2D:
 	var _unused: int = aspect
 	var stem: String = art_path(def.id)
@@ -358,11 +344,8 @@ func _place_rules(label: KeywordLabel, plain: String, box_height: float, inset: 
 		_show_stamps(stamp_box, stamped)
 
 
-## Rules text set as RulesLayout blocks: the gate as a muted line on top, each block its own
-## paragraph with its lead-in in capitals, branches indented. The text takes the largest size
-## from TEXT_SIZES whose blocks fit, so a wordy card and a short one share the layout and only the
-## type size differs. `inset` is the padding the box takes from the content width and from
-## `box_height`.
+## Rules text as RulesLayout blocks at the largest TEXT_SIZES size that fits. `inset` is the
+## padding the box takes from the content width and from `box_height`.
 func _fit_rules(label: KeywordLabel, layout: Dictionary, box_height: float, inset: Vector2) -> void:
 	var font: Font = label.get_theme_font("normal_font")
 	var width: float = CONTENT_WIDTH - 6.0 - inset.x
@@ -496,8 +479,7 @@ func _show_stamps(box: VBoxContainer, tags: Array[Dictionary]) -> void:
 			stamp.add_theme_stylebox_override("panel", box_style)
 
 
-## The cream body. A Signature card gets a second rule just inside the frame, a bone line no
-## school card has, so the group reads from across the table and not only by the frame's colour.
+## The cream body. A Signature card also gets a bone rule just inside the frame.
 func _inner_style(def: CardDef) -> void:
 	var box: StyleBoxFlat = StyleBoxFlat.new()
 	box.bg_color = CREAM
@@ -509,9 +491,7 @@ func _inner_style(def: CardDef) -> void:
 	inner.add_theme_stylebox_override("panel", box)
 
 
-## Placeholder art (the `.svg` sketches and crests that stand in until a painting arrives) is drawn
-## in a warm sepia, so a card without its painting reads as a pencil study rather than a grey
-## debug image next to the painted ones. A painting is drawn as it is.
+## Placeholder `.svg` art is tinted sepia; a painting is drawn as it is.
 static func placeholder_tint(picture: Texture2D) -> Color:
 	if picture != null and picture.resource_path.ends_with(".svg"):
 		return PLACEHOLDER_SEPIA
@@ -541,8 +521,7 @@ func _rule_style(def: CardDef, color: Color) -> void:
 	_rule.offset_bottom = -inset
 
 
-## `edge` draws a thin outer rule on the frame. Only the Signature group uses it, so its obsidian
-## frame has an outline on the dark table instead of vanishing into it.
+## `edge` draws a thin outer rule on the frame, which only the Signature group's obsidian frame uses.
 func _style(panel: Panel, color: Color, radius: int = 22, edge: Color = Color(0, 0, 0, 0)) -> void:
 	var box: StyleBoxFlat = StyleBoxFlat.new()
 	box.bg_color = color
@@ -574,9 +553,8 @@ func _chip(chip: PanelContainer, icon: TypeIcon, name_label: Label, type: CardDe
 	name_label.add_theme_color_override("font_color", Color.WHITE)
 
 
-## Every type mark on the standard face in one place: the chip under the title, the big icon in
-## an art-less art box, and the round badge over real art. Seals keep their number as the big
-## glyph since the number is what matters at the table.
+## Every type mark on the standard face: the chip under the title, the big icon in an art-less
+## box, and the round badge over art. A Seal's big glyph is its number.
 func _mark_type(def: CardDef, has_art: bool) -> void:
 	_chip(type_chip, type_icon, type_name, def.type)
 	var seal: bool = def.type == CardDef.Type.SEAL
@@ -597,10 +575,8 @@ func _mark_type(def: CardDef, has_art: bool) -> void:
 	corner_icon.color = Color.WHITE
 
 
-## What follows the type chip: the card's group, and any alignment gate. A Signature card says so
-## here and names its character, which is the identity the group stands for.
-## A Seal, a Grounds and a Relic now answer `card_group()` with their own group, whose word is the
-## type word, so printing it here would read "SEAL · Seal". The chip beside it already says it.
+## What follows the type chip: the card's group and any alignment gate. A group whose word is the
+## type word (Seal, Grounds, Relic) is left out, since the chip already says it.
 func _type_rest(def: CardDef) -> String:
 	var parts: PackedStringArray = PackedStringArray()
 	var group: String = CardText.card_group_line(def)
@@ -611,10 +587,8 @@ func _type_rest(def: CardDef) -> String:
 	return " · ".join(parts)
 
 
-## The group line is the one row whose length the card does not control: a Signature card prints
-## a character's name after the word. It steps down through TYPE_REST_SIZES until it fits the
-## space the type chip leaves, so the longest name in the data still reads instead of trimming to
-## an ellipsis. The chip is measured rather than read from the tree, since nothing has laid out yet.
+## Steps the group line down through TYPE_REST_SIZES until it fits beside the type chip. The chip
+## is measured rather than read from the tree, since nothing has laid out yet.
 func _fit_type_rest(def: CardDef) -> void:
 	var text: String = _type_rest(def)
 	type_rest.text = text

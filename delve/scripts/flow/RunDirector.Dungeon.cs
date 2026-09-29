@@ -16,7 +16,7 @@ public partial class RunDirector
     /// attunement DC. Falls back to the party level when the creature does not resolve.</summary>
     private int GuardianLevel()
     {
-        var spec = UseDungeonMap ? Delve.Data.StationGuardians.ForStratum(_state!.Stratum) : Delve.Data.BossEncounters.ForStratum(_state!.Stratum);
+        var spec = Delve.Data.BossEncounters.ForStratum(_state!.Stratum);
         var lead = spec.Spawns.Count > 0 ? spec.Spawns[0] : null;
         var creature = lead == null ? null : DataManager.Instance?.ResolveCreature(lead.Creature);
         if (creature == null) return _state.Party.Level;
@@ -61,7 +61,7 @@ public partial class RunDirector
         if (_transition.Busy) return;
         bool final = _state.OnFinalStratum;
         _ = PlayRunTransition(final ? "The last guardian has fallen.\nThe expedition is complete."
-            : $"Descending to floor {_state.Stratum + 2}\nFind the next ward chamber.", () =>
+            : CrawlWordsTable.For(Delve.Data.FloorThemes.ForStratum(_state.Stratum + 1).Id).ArrivalCaption, () =>
         {
             if (final) EndRun(RunOutcome.Victory);
             else { _state.AdvanceStratum(); StartDungeonFloor(); }

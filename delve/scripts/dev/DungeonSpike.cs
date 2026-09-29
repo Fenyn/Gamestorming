@@ -138,14 +138,14 @@ public partial class DungeonSpike : SpikeBase
             routeFloors.All(f => !f.Skippable(f.EntranceId) && !f.Skippable(f.GuardianId) && !f.Skippable(10)));
         var edge = new Wardstone(new WardstoneRules { NodeBurn = 5 });
         while (edge.Ward > edge.Rules.SteadyAbove) edge.BurnNode();
-        var danger = DoorTips.For(routeFloors[0].Rooms[1], edge, Array.Empty<string>()).Figures!;
+        var danger = DoorTips.For(routeFloors[0].Rooms[1], edge, Array.Empty<string>(), CrawlWordsTable.For("station")).Figures!;
         Check($"a crossing that raises the danger shows the pair (Danger {danger.ElementAtOrDefault(1)?.Before} → {danger.ElementAtOrDefault(1)?.Value})",
             danger.Count == 2 && danger[1].Before == "normal" && danger[1].Value == "+1");
-        var steady = DoorTips.For(routeFloors[0].Rooms[1], new Wardstone(new WardstoneRules { NodeBurn = 5 }), Array.Empty<string>()).Figures!;
+        var steady = DoorTips.For(routeFloors[0].Rooms[1], new Wardstone(new WardstoneRules { NodeBurn = 5 }), Array.Empty<string>(), CrawlWordsTable.For("station")).Figures!;
         Check("a crossing that keeps the danger shows only the ward pair", steady.Count == 1);
         var unseenEvent = routeFloors[0].Rooms.First(r => DungeonFloor.Kind(r.Family) == NodeKind.Event && r.Id != 0);
         Check("pending feats hold back unseen rooms of every kind, so the warning reveals nothing",
-            DoorTips.NeedsPromotionsFirst(unseenEvent) && DoorTips.For(unseenEvent, edge, new[] { "Aldric" }).Body.Contains(DoorTips.FeatsFirstWarning));
+            DoorTips.NeedsPromotionsFirst(unseenEvent) && DoorTips.For(unseenEvent, edge, new[] { "Aldric" }, CrawlWordsTable.For("station")).Body.Contains(DoorTips.FeatsFirstWarning));
         int eventSeed = Enumerable.Range(1, 100).First(seed =>
         {
             var f = DungeonFloor.Generate(seed);
@@ -161,7 +161,7 @@ public partial class DungeonSpike : SpikeBase
             && host.Current.Completed && host.State.Wardstone.Ward == 100);
         var entranceHud = host.GetNode<DungeonHud>("Screens/DungeonHud");
         Check($"the hall's banner names the room in title case under the floor kicker, and the history is the floor plan's hover ('{entranceHud.RoomCardKicker}' / '{entranceHud.RoomCardText}')",
-            entranceHud.RoomCardText == "Receiving Hall" && entranceHud.RoomCardKicker.StartsWith("Floor ")
+            entranceHud.RoomCardText == "Receiving Hall" && entranceHud.RoomCardKicker.Contains("floor 1 of")
             && entranceHud.RoomCardDetail.Length == 0 && entranceHud.FloorHistory == StationPlan.Account(host.Floor.History));
         var plan = entranceHud.Plan.Drawn();
         Check($"the floor plan shows the hall and only the rooms beyond its doors ({string.Join(",", plan.Select(p => $"{p.Key}:{p.Value}"))})",
@@ -206,7 +206,7 @@ public partial class DungeonSpike : SpikeBase
         host.CloseEvent();
         Check("entrance resolves exactly once", host.Current.Completed && host.Phase == DungeonPhase.Doors);
         Check($"the rooms line tracks completed rooms ('{hud.GetNode<Label>("%RoomProgress").Text}')",
-            hud.GetNode<Label>("%RoomProgress").Text.StartsWith($"Rooms cleared 1/"));
+            hud.GetNode<Label>("%RoomProgress").Text.StartsWith($"Rooms cleared 1 of"));
         await CheckCharacterDetails(host);
         var first = host.Current.Doors.First(d => DungeonFloor.Kind(host.Floor.Rooms[d.Other(0)].Family) == NodeKind.Event);
         var task = host.Travel(first.Side(0));
@@ -346,7 +346,7 @@ public partial class DungeonSpike : SpikeBase
         world.Visible = party.Visible = screens.Visible = false;
         foreach (var purpose in Enum.GetValues<RoomPurpose>())
         {
-            var room = host.PurposePrefabs[(int)purpose].Instantiate<DungeonRoomPrefab>();
+            var room = host.SceneryByFloor["station"].PurposePrefabs[(int)purpose].Instantiate<DungeonRoomPrefab>();
             host.AddChild(room);
             room.History = StationHistory.Flooded;
             room.LayoutVariant = 0;

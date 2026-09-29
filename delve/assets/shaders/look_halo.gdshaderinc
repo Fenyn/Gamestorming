@@ -4,7 +4,11 @@
 global uniform vec4 look_board_rect; // x0, z0, x1, z1 in world metres
 global uniform vec4 look_halo; // desaturate 0..1, darken 0..1, falloff metres, enabled
 
+// Crawl fog of war: the room the party stands in is 1, visited rooms dimmer, unvisited darker.
+instance uniform float room_light : hint_range(0.0, 1.0) = 1.0;
+
 vec3 look_halo_apply(vec3 color, vec3 world) {
+	color *= room_light;
 	if (look_halo.w < 0.5) {
 		return color;
 	}

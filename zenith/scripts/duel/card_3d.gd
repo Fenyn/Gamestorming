@@ -1,9 +1,8 @@
 class_name Card3D
 extends Node3D
-## One card on the table: a textured quad, a back, a glow for legal choices, a wider role glow
-## for the personalities in a fight, a still wider ring on the duelist whose seat is acting, and a
-## pick area. The quads sit under `Body`, which shakes
-## and lunges on its own so the table can keep tweening the card's own transform meanwhile.
+## One card on the table: face and back quads, a frame glow (blue when usable now, bone-white for
+## a target or pick), a wider role aura, and a pick area. The quads sit
+## under `Body`, which shakes and lunges on its own so the table can tween the card's transform.
 
 signal clicked(uid: int)
 signal hovered(uid: int, over: bool)
@@ -19,14 +18,13 @@ const STRIKE_TIME: float = 0.08
 const RECOIL_TIME: float = 0.22
 ## When a lunge's strike makes contact, for a caller timing the streak to it.
 const LUNGE_TIME: float = WINDUP_TIME + STRIKE_TIME
-## How far under the face the legal-choice glow and the role aura lie, in world units. The table
-## scales a slot's whole basis, height included, so a local offset would sink the duelist's (2.6x)
-## under the mat; `_keep_underlays` holds these fixed instead.
+## How far under the face the underlays lie, in world units. Slots scale the whole basis, so
+## `_keep_underlays` holds these fixed rather than as local offsets.
 const GLOW_DROP: float = 0.004
 const ROLE_DROP: float = 0.006
-const ACTING_DROP: float = 0.0065
-## Hover is a softer bone than the legal-choice glow, so the two still read apart.
 const HOVER_TINT: Color = Color(ZenithTheme.ACCENT, 0.6)
+## Heavier than a plain choice so it reads on the small Remain and Relic cards.
+const USABLE_GLOW: float = 1.8
 var uid: int = -1
 var face_up: bool = true
 @export var reduced_motion: bool = false:
@@ -41,7 +39,6 @@ var face_up: bool = true
 @onready var back: MeshInstance3D = $Body/Surface/Back
 @onready var glow: MeshInstance3D = $Body/Surface/Glow
 @onready var role: MeshInstance3D = $Body/Surface/Role
-@onready var acting: MeshInstance3D = $Body/Surface/Acting
 @onready var pick: Area3D = $Pick
 @onready var border_fx: Node3D = $Body/Surface/BorderFx
 
@@ -49,11 +46,11 @@ var _front_mat: StandardMaterial3D = StandardMaterial3D.new()
 var _back_mat: StandardMaterial3D = StandardMaterial3D.new()
 var _glow_mat: ShaderMaterial = ShaderMaterial.new()
 var _role_mat: ShaderMaterial = ShaderMaterial.new()
-var _acting_mat: ShaderMaterial = ShaderMaterial.new()
 var _flash: Tween = null
 var _motion: Tween = null
 var _hover_motion: Tween = null
 var _highlighted: bool = false
+var _usable: bool = false
 var _hovering: bool = false
 var _role_color: Color = Color.TRANSPARENT
 var _presence_color: Color = Color.TRANSPARENT   # the other online player's hover, in their seat colour
@@ -65,22 +62,16 @@ func _ready() -> void:
 		m.disable_fog = true
 		m.cull_mode = BaseMaterial3D.CULL_BACK
 		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-	for m in [_glow_mat, _role_mat, _acting_mat]:
+	for m in [_glow_mat, _role_mat]:
 		m.shader = preload("res://scripts/duel/card_aura.gdshader")
 	_glow_mat.set_shader_parameter("plane_size", Vector2(0.72, 0.97))
 	_role_mat.set_shader_parameter("plane_size", Vector2(0.80, 1.05))
 	_role_mat.set_shader_parameter("border_extent", Vector2(0.337, 0.462))
-	# Outside the role filament, past the Fervor and control tabs on the duelist's edges, and drawn
-	# at the legal-choice weight so it reads as a ring of its own beside a role.
-	_acting_mat.set_shader_parameter("plane_size", Vector2(0.86, 1.11))
-	_acting_mat.set_shader_parameter("border_extent", Vector2(0.358, 0.486))
-	_acting_mat.set_shader_parameter("highlight", 1.0)
 	_glow_mat.set_shader_parameter("tint", HOVER_TINT)
 	front.material_override = _front_mat
 	back.material_override = _back_mat
 	glow.material_override = _glow_mat
 	role.material_override = _role_mat
-	acting.material_override = _acting_mat
 	pick.input_event.connect(_on_pick_input)
 	pick.mouse_entered.connect(func() -> void: set_hovered(true); hovered.emit(uid, true))
 	pick.mouse_exited.connect(func() -> void: set_hovered(false); hovered.emit(uid, false))
@@ -98,7 +89,7 @@ func _keep_underlays() -> void:
 	if not is_equal_approx(glow.position.y * height, -GLOW_DROP):
 		glow.position.y = -GLOW_DROP / height
 		role.position.y = -ROLE_DROP / height
-		acting.position.y = -ACTING_DROP / height
+		_glow_mat.set_shader_parameter("thickness", clampf(1.0 / global_basis.get_scale().x, 1.0, 2.5))
 
 
 func set_textures(front_tex: Texture2D, back_tex: Texture2D) -> void:
@@ -110,8 +101,8 @@ func set_face_texture(front_tex: Texture2D) -> void:
 	_front_mat.albedo_texture = front_tex
 
 
-## A card that is not on the table any more but whose effect still stands. It reads as a faded
-## marker and still answers hover and inspect, so the passive can be read like any other card.
+## A faded marker for a card gone from the table whose effect still stands. It still answers
+## hover and inspect.
 func set_ghost(on: bool) -> void:
 	for m in [_front_mat, _back_mat]:
 		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA if on else BaseMaterial3D.TRANSPARENCY_DISABLED
@@ -120,35 +111,50 @@ func set_ghost(on: bool) -> void:
 
 func set_highlight(on: bool) -> void:
 	_highlighted = on
-	var presence_only: bool = not on and not _hovering and _presence_color.a > 0.0 and face_up
-	glow.visible = on or _hovering or presence_only
+	_update_glow()
+
+
+## The viewer's pending decision offers to use this card itself (its Power, a Drill, a Remain
+## attack), as opposed to choosing it as a target.
+func set_usable(on: bool) -> void:
+	_usable = on
+	_update_glow()
+
+
+func is_usable() -> bool:
+	return _usable
+
+
+func _update_glow() -> void:
+	var chosen: bool = _usable or _highlighted
+	var presence_only: bool = not chosen and not _hovering and _presence_color.a > 0.0 and face_up
+	glow.visible = chosen or _hovering or presence_only
 	var tint: Color = HOVER_TINT
-	if on:
+	if _usable:
+		tint = Color(ZenithTheme.USABLE, 1.0)
+	elif _highlighted:
 		tint = Color(ZenithTheme.ACCENT, 1.0)
 	elif presence_only:
 		tint = Color(_presence_color, 0.9)
 	_glow_mat.set_shader_parameter("tint", tint)
-	_glow_mat.set_shader_parameter("highlight", 1.0 if on else 0.0)
+	_glow_mat.set_shader_parameter("highlight", USABLE_GLOW if _usable else (1.0 if chosen else 0.0))
 	_update_border()
 
 
-## The other online player's pointer is over this card: the same glow and border a local hover
-## gets, in their seat colour, plus the wide role aura when the card has no fight role. A
-## transparent colour clears it. The viewer's own hover and a legal choice take the inner glow and
-## the border first; the wide aura still shows theirs.
+## The other online player's hover, in their seat colour; transparent clears it. The viewer's own
+## hover and choices take the glow and border first; the role aura still shows theirs.
 func set_presence(color: Color) -> void:
 	if _presence_color == color:
 		return
 	_presence_color = color
 	_update_role()
-	set_highlight(_highlighted)
+	_update_glow()
 
 
-## Visual lift does not move the picking area, or contend with resolution motion on Body.
-## Keyboard focus can use this same feedback without synthesizing pointer events.
+## Lifts `surface`, so the pick area and Body motion are untouched.
 func set_hovered(on: bool) -> void:
 	_hovering = on and face_up
-	set_highlight(_highlighted)
+	_update_glow()
 	_glow_mat.set_shader_parameter("selected", 1.0 if _hovering else 0.0)
 	if _hover_motion != null:
 		_hover_motion.kill()
@@ -158,27 +164,14 @@ func set_hovered(on: bool) -> void:
 	_hover_motion.tween_property(surface, "scale", Vector3.ONE * (1.035 if _hovering and not reduced_motion else 1.0), duration)
 
 
-## A standing tint under the card for its part in the fight (attacking red, defending blue);
-## a transparent colour clears it.
+## A standing tint under the attacking card; a transparent colour clears it.
 func set_role(color: Color) -> void:
 	_role_color = color
 	_update_role()
 	_update_border()
 
 
-## A duelist whose seat is deciding now, which swings back and forth through Combat, wears a ring
-## in its Mastery school's colour outside any role aura; a transparent colour clears it.
-func set_acting(color: Color) -> void:
-	acting.visible = color.a > 0.0 and face_up
-	_acting_mat.set_shader_parameter("tint", Color(color, 0.9))
-
-
-func is_acting() -> bool:
-	return acting.visible
-
-
-## The wide aura carries the fight role, and otherwise the other online player's hover, so their
-## hover still reads on a card that already glows as a legal choice.
+## The wide aura shows the fight role, else the other online player's hover.
 func _update_role() -> void:
 	var color: Color = _role_color if _role_color.a > 0.0 else _presence_color
 	role.visible = color.a > 0.0 and (face_up or _role_color.a > 0.0)
@@ -186,18 +179,18 @@ func _update_role() -> void:
 
 
 func _update_border() -> void:
-	var active: bool = face_up and (_highlighted or _hovering or _role_color.a > 0.0 or _presence_color.a > 0.0)
-	# A legal choice outranks the fight role on the border, so a personality whose Power can be used
-	# mid-Combat still reads as clickable; the role keeps the wide aura under the card.
+	var active: bool = face_up and (_usable or _highlighted or _hovering or _role_color.a > 0.0 or _presence_color.a > 0.0)
 	var color: Color = HOVER_TINT
-	if _highlighted:
+	if _usable:
+		color = ZenithTheme.USABLE
+	elif _highlighted:
 		color = ZenithTheme.ACCENT
 	elif _role_color.a > 0.0:
 		color = _role_color
 	elif not _hovering and _presence_color.a > 0.0:
 		color = _presence_color
 	border_fx.set_effect(Color(color, 1.0), active, reduced_motion)
-	for m: ShaderMaterial in [_glow_mat, _role_mat, _acting_mat]:
+	for m: ShaderMaterial in [_glow_mat, _role_mat]:
 		m.set_shader_parameter("motion", 0.0 if reduced_motion else 1.0)
 
 
@@ -241,8 +234,7 @@ func lunge(direction: Vector3, distance: float = 0.45) -> void:
 	await _motion_end(t)
 
 
-## The blow landing: a short jab along `direction` that holds on the contact frame for `stop`
-## seconds before it comes home, so a heavy hit reads heavier. Awaitable.
+## A short jab along `direction` that holds on the contact frame for `stop` seconds. Awaitable.
 func jab(direction: Vector3, stop: float = 0.0, distance: float = 0.2) -> void:
 	if reduced_motion:
 		_stop_motion()

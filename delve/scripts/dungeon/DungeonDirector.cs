@@ -30,7 +30,6 @@ public partial class DungeonDirector : Node3D
     [Export]
     public PackedScene[] RoomPrefabs { get; set; } = Array.Empty<PackedScene>();
 
-    [Export] public PackedScene[] PurposePrefabs { get; set; } = Array.Empty<PackedScene>();
 
     [Export]
     public PackedScene CombatPrefab { get; set; } = null!;
@@ -200,25 +199,27 @@ public partial class DungeonDirector : Node3D
         _partyLayer.Position = Vector3.Zero;
         Floor = floor;
         State = state;
+        ApplyScenery(state);
         WatchWard();
         SetHostedVisible(true);
         foreach (var room in Floor.Rooms)
         {
             var family = ComparisonMode && room.Id == 0 ? RoomFamily.GuardHall : StationPlan.Prefab(room.Purpose);
-            var scene = !ComparisonMode && PurposePrefabs.Length > (int)room.Purpose ? PurposePrefabs[(int)room.Purpose] : RoomPrefabs[(int)family];
+            var scene = !ComparisonMode && Scenery.PurposePrefabs.Length > (int)room.Purpose ? Scenery.PurposePrefabs[(int)room.Purpose] : RoomPrefabs[(int)family];
             var prefab = scene.Instantiate<DungeonRoomPrefab>();
             _world.AddChild(prefab);
             prefab.PurposeOverride = ComparisonMode && room.Id == 0 ? RoomPurpose.Checkpoint : room.Purpose;
             prefab.History = Floor.History;
+            prefab.Combat = DungeonFloor.Kind(room.Family) is NodeKind.Combat or NodeKind.Elite or NodeKind.Boss;
             prefab.Generate(room.Seed, room.Doors.Select(d => d.Side(room.Id)).ToArray(), ComparisonMode && room.Id == 0 ? ComparisonSize : 0, ComparisonMode && room.Id == 0 && ComparisonOpen);
             prefab.Visible = false;
             _rooms[room.Id] = prefab;
             _fx.Dress(prefab, prefab.PurposeOverride ?? room.Purpose, prefab.Generated.Props);
         }
 
-        var placement = DungeonPlacement.Pack(Floor, _rooms.ToDictionary(p => p.Key, p => p.Value.Width));
+        var placement = DungeonPlacement.Pack(Floor, _rooms.ToDictionary(p => p.Key, p => p.Value.Width + 2 * p.Value.Shell!.Margin));
         foreach (var (id, bounds) in placement)
-            _rooms[id].Position = new Vector3(bounds.X, 0, bounds.Y);
+            _rooms[id].Position = new Vector3(bounds.X + _rooms[id].Shell!.Margin, 0, bounds.Y + _rooms[id].Shell!.Margin);
         BuildCorridors();
         State.Advance(0);
         Current.Discovered = true;

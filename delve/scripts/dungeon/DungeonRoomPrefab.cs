@@ -66,6 +66,12 @@ public partial class DungeonRoomPrefab : Node3D
     public int Seed { get; private set; }
     public int Size { get; private set; }
     public bool OpenLayout { get; private set; }
+
+    /// <summary>Set before <see cref="Generate"/>: the room hosts a fight, so its layout gets cover.</summary>
+    public bool Combat { get; set; }
+
+    /// <summary>Tiles the door marker sits inside the doorway.</summary>
+    [Export] public float DoorMarkerInset { get; set; }
     private readonly List<DungeonProp> _focals = new();
     private readonly List<OmniLight3D> _lamps = new();
     private readonly Dictionary<DoorSide, Area3D> _doorAreas = new();
@@ -89,7 +95,7 @@ public partial class DungeonRoomPrefab : Node3D
             };
             AddChild(door);
             var marker = DoorMarkerScene.Instantiate<MeshInstance3D>();
-            marker.Position = new Vector3(0, DoorMarkerLift, 0);
+            marker.Position = new Vector3(0, DoorMarkerLift, 0) + door.Basis.Inverse() * Inward(side) * DoorMarkerInset;
             door.AddChild(marker);
             _doorMarkers[side] = marker;
             var leaf = Shell.BuildDoor(this, door, side);
@@ -113,12 +119,52 @@ public partial class DungeonRoomPrefab : Node3D
             AddChild(prop);
             prop.Palette = Palette;
             prop.Build(p);
+            if (p.Raised) prop.Position += Vector3.Up * GridSpace.GridToWorld(new PF2e.Vector2Int((int)p.X, (int)p.Y), Heights).Y;
             _lamps.AddRange(prop.Lamps);
+            _props.Add(prop);
             if (p.Kind is "shrine" or "cache" or "collapse" or "camp" or "entrance")
                 _focals.Add(prop);
         }
         if (Shell.LightPool) AddLightPool();
     }
+
+    /// <summary>Black overlay the fog tiers fade props with (assets/shaders/room_fog_overlay).
+    /// Unset, props stay at full brightness in every tier.</summary>
+    [Export] public Material? FogOverlay { get; set; }
+
+    private readonly List<DungeonProp> _props = new();
+    private readonly Dictionary<OmniLight3D, float> _lampRest = new();
+
+    /// <summary>Fog-of-war brightness for the whole room: its shell, its props and their lamps.</summary>
+    public void SetLight(float light)
+    {
+        Shell?.SetLight(light);
+        foreach (var lamp in _lamps)
+        {
+            if (!_lampRest.ContainsKey(lamp)) _lampRest[lamp] = lamp.LightEnergy;
+            lamp.LightEnergy = _lampRest[lamp] * light;
+        }
+        foreach (var prop in _props)
+        {
+            foreach (var tree in prop.Trees) tree.SetLight(light);
+            if (FogOverlay == null) continue;
+            foreach (var mesh in prop.Meshes)
+            {
+                mesh.MaterialOverlay ??= FogOverlay;
+                mesh.SetInstanceShaderParameter(FogDarkParameter, 1f - light);
+            }
+        }
+    }
+
+    private const string FogDarkParameter = "room_dark";
+
+    private static Vector3 Inward(DoorSide side) => side switch
+    {
+        DoorSide.North => Vector3.Back,
+        DoorSide.South => Vector3.Forward,
+        DoorSide.West => Vector3.Right,
+        _ => Vector3.Left
+    };
 
     public Vector3 DoorPosition(DoorSide side) => side switch
     {

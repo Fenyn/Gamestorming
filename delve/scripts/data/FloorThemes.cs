@@ -3,6 +3,9 @@ using PF2e.Data;
 
 namespace Delve.Data;
 
+/// <summary>Forest glades joined by trails, or the ward station's stone rooms.</summary>
+public enum CrawlSetting { Wilds, Station }
+
 /// <summary>Relative weights for the base threat-tier roll of one floor. Trivial never rolls;
 /// Lethal is reached only through the Wardstone upshift.</summary>
 public sealed record TierWeights(int Low, int Moderate, int Severe, int Extreme);
@@ -17,9 +20,12 @@ public sealed record FloorTheme
     public required string Id { get; init; }
     public required string DisplayName { get; init; }
 
-    /// <summary>MapGenerator biome for battle maps. Grassland, deep forest and swamp terrain do
-    /// not exist yet, so every floor generates forest boards until their biomes are authored.</summary>
+    /// <summary>MapGenerator biome for battle maps. Grassland and deep forest terrain do not exist
+    /// yet, so both forest floors generate forest boards.</summary>
     public required string TerrainBiome { get; init; }
+
+    /// <summary>What the floor's rooms are built as in the crawl.</summary>
+    public CrawlSetting Crawl { get; init; } = CrawlSetting.Wilds;
 
     public required IReadOnlyList<CreatureRef> Roster { get; init; }
 
@@ -91,23 +97,27 @@ public static class FloorThemes
             Best("Web Lurker", "web-lurker"),                  //  3
             Core("Grizzly Bear", "grizzly-bear"),              //  3
             Core("Ogre Warrior", "ogre-warrior"),              //  3
+            Core("Werewolf", "werewolf"),                      //  3
             Best("Owlbear", "owlbear"),                        //  4
+            Core("Arboreal Warden", "arboreal-warden"),        //  4
             Core("Forest Troll", "forest-troll"),              //  5
+            Core("Redcap", "redcap"),                          //  5
             Best("Shambler", "shambler"),                      //  6
+            Core("Giant Tarantula", "giant-tarantula"),        //  6
+            // The one Severe solo: Large, so it fits a glade's three-wide mouths.
             Core("Chimera", "chimera"),                        //  8
-            Core("Giant Anaconda", "giant-anaconda"),          //  8
-            Core("Megaprimatus", "megaprimatus"),              //  8
         },
         // Rarely Low, Moderate and Severe carry the floor.
         Weights = new TierWeights(Low: 1, Moderate: 5, Severe: 4, Extreme: 0),
     };
 
-    private static readonly FloorTheme Swamp = new()
+    private static readonly FloorTheme Station = new()
     {
-        Id = "swamp",
-        DisplayName = "The Drowning Dark",
-        TerrainBiome = "forest",
-        // Party levels 8-10: drowned horrors, creature levels 5..10.
+        Id = "station",
+        DisplayName = "The Ward Station",
+        TerrainBiome = "sewer",
+        Crawl = CrawlSetting.Station,
+        // Party levels 8-10: drowned things that took the flooded station, creature levels 5..10.
         Roster = new[]
         {
             Core("Bogwid", "bogwid"),                          //  5
@@ -125,10 +135,13 @@ public static class FloorThemes
         Weights = new TierWeights(Low: 0, Moderate: 4, Severe: 5, Extreme: 1),
     };
 
-    private static readonly FloorTheme[] ByStratum = { Grassland, DeepForest, Swamp };
+    private static readonly FloorTheme[] ByStratum = { Grassland, DeepForest, Station };
 
     /// <summary>Floors in a run.</summary>
     public static int Count => ByStratum.Length;
+
+    /// <summary>The floor with this id, or the first floor when no floor has it.</summary>
+    public static FloorTheme ById(string id) => System.Array.Find(ByStratum, f => f.Id == id) ?? ByStratum[0];
 
     /// <summary>Theme for a stratum index, clamped to the table.</summary>
     public static FloorTheme ForStratum(int stratum)

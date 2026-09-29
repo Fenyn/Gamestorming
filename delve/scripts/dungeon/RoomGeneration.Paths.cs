@@ -72,6 +72,9 @@ public static partial class RoomGeneration
                 var next = new Vector2Int(p.x + d.x, p.y + d.y);
                 if (next.x < 1 || next.y < 1 || next.x >= l.Width - 1 || next.y >= l.Height - 1 || l.GetTile(next.x, next.y)is TileRole.Wall or TileRole.Water || previous.ContainsKey(next))
                     continue;
+                // Travellers walk up and down one step at a time, never up a cliff.
+                if (Math.Abs(l.GetElevation(next.x, next.y) - l.GetElevation(p.x, p.y)) > GladeGeneration.MaxStep)
+                    continue;
                 previous[next] = p;
                 q.Enqueue(next);
             }

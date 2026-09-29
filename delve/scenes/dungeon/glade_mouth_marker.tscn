@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/board_tile_glow.gdshader" id="1_glow"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_mouth"]
+size = Vector2(3, 2)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mouth"]
+resource_local_to_scene = true
+render_priority = -1
+shader = ExtResource("1_glow")
+shader_parameter/tint = Color(0.5, 0.85, 0.78, 0.28)
+shader_parameter/fill_alpha = 0.35
+shader_parameter/rim_width = 0.06
+shader_parameter/rim_alpha = 0.5
+shader_parameter/rim_boost = 1.2
+shader_parameter/bevel = 0.0
+shader_parameter/pulse_hz = 0.7
+shader_parameter/pulse_depth = 0.25
+shader_parameter/faint_below = 0.2
+shader_parameter/faint_fill = 0.25
+
+[node name="MouthMarker" type="MeshInstance3D"]
+layers = 4
+cast_shadow = 0
+mesh = SubResource("PlaneMesh_mouth")
+surface_material_override/0 = SubResource("ShaderMaterial_mouth")

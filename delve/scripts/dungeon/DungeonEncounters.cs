@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Delve.Combat;
 using Delve.Data;
@@ -70,11 +71,22 @@ public static partial class DungeonEncounters
             }
         }
     };
-    /// <summary>The selected family stays fixed; party level and ward affect the first-entry composition.</summary>
-    public static CombatSetup? Build(RunState state, DungeonRoom room, DungeonRoomPrefab prefab, DoorSide entry, Func<CreatureRef, EnemyDefinition?> resolve, bool campaign = false) => Build(state, room, prefab.Generated, entry, resolve, campaign);
-    public static CombatSetup? Build(RunState state, DungeonRoom room, GeneratedRoom generated, DoorSide entry, Func<CreatureRef, EnemyDefinition?> resolve, bool campaign = false)
+    /// <summary>Who holds a named place, by floor and purpose, so the name predicts the fight. Places
+    /// without a row draw from the floor's whole roster.</summary>
+    private static readonly Dictionary<(string Floor, RoomPurpose Purpose), string[]> RoomSpecies = new()
     {
-        var floor = FloorThemes.ForStratum(campaign ? state.Stratum : 0);
+        [("grassland", RoomPurpose.Barracks)] = new[] { "goblin-warrior", "goblin-commando", "goblin-war-chanter" },
+        [("grassland", RoomPurpose.Stores)] = new[] { "kobold-warrior", "kobold-scout" },
+        [("grassland", RoomPurpose.Cistern)] = new[] { "viper", "giant-rat", "giant-viper", "giant-monitor-lizard" },
+    };
+
+    /// <summary>The selected family stays fixed; party level and ward affect the first-entry composition.</summary>
+    public static CombatSetup? Build(RunState state, DungeonRoom room, DungeonRoomPrefab prefab, DoorSide entry, Func<CreatureRef, EnemyDefinition?> resolve, bool campaign = false, string? floorId = null) => Build(state, room, prefab.Generated, entry, resolve, campaign, prefab.Shell?.BiomeId, floorId);
+    public static CombatSetup? Build(RunState state, DungeonRoom room, GeneratedRoom generated, DoorSide entry, Func<CreatureRef, EnemyDefinition?> resolve, bool campaign = false, string? biome = null, string? floorId = null)
+    {
+        // A standalone forest crawl fights its own floor's roster; the standalone station keeps the level 1 test roster.
+        var wilds = !campaign && floorId != null && FloorThemes.ById(floorId) is { Crawl: CrawlSetting.Wilds } own ? own : null;
+        var floor = campaign ? FloorThemes.ForStratum(state.Stratum) : wilds ?? FloorThemes.ForStratum(0);
         string[] species = StationPlan.Prefab(room.Purpose) switch
         {
             RoomFamily.Cistern => new[]
@@ -100,10 +112,13 @@ public static partial class DungeonEncounters
                 "goblin-war-chanter"
             }
         };
+        var roster = !campaign && wilds == null ? floor.Roster.Where(r => species.Contains(r.Slug)).ToArray()
+            : RoomSpecies.TryGetValue((floor.Id, room.Purpose), out var locals) ? floor.Roster.Where(r => locals.Contains(r.Slug)).ToArray()
+            : floor.Roster;
         var theme = floor with
         {
-            TerrainBiome = "sewer",
-            Roster = !campaign || state.Stratum == 0 ? floor.Roster.Where(r => species.Contains(r.Slug)).ToArray() : floor.Roster
+            TerrainBiome = biome ?? MapThemes.Sewer.BiomeId,
+            Roster = roster.Count > 0 ? roster : floor.Roster
         };
         var node = state.Map.Node(room.Id)!;
         if (room.Family == RoomFamily.Guardian)
@@ -113,16 +128,16 @@ public static partial class DungeonEncounters
             };
         var rules = new EncounterGenRules();
         var encounter = campaign && node.Kind == NodeKind.Boss
-            ? EncounterFactory.BuildBoss(StationGuardians.ForStratum(state.Stratum), resolve)
+            ? EncounterFactory.BuildBoss(BossEncounters.ForStratum(state.Stratum), resolve)
             : GeneratedEncounters.Generate(state, node, resolve, rules, theme);
         if (encounter == null)
             return null;
         var layout = generated.Layout;
-        layout.DeploymentZones = RoomGeneration.Zones(layout.Width, entry);
+        layout.DeploymentZones = RoomGeneration.Zones(layout.Width, entry, generated.ZoneHalf);
         var setup = new CombatSetup
         {
             Layout = layout,
-            BiomeId = "sewer",
+            BiomeId = biome ?? MapThemes.Sewer.BiomeId,
             RngSeed = RunRng.StableSeed(campaign ? state.StratumSeed : state.Seed, room.Id, "fight"),
             XpAward = EncounterXPCalculator.CalculateTotalXP(encounter, state.Party.Level)
         };

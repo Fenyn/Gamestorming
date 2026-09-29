@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CrawlScenery" load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://scripts/dungeon/CrawlScenery.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/looks/dungeon.tscn" id="look"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/passage_stone.tscn" id="passage"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/receiving.tscn" id="p0"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/checkpoint.tscn" id="p1"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/barracks.tscn" id="p2"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/mess_hall.tscn" id="p3"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/stores.tscn" id="p4"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/kitchen.tscn" id="p5"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/cistern.tscn" id="p6"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/workshop.tscn" id="p7"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/shrine.tscn" id="p8"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/maintenance.tscn" id="p9"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/refuge.tscn" id="p10"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/ward_chamber.tscn" id="p11"]
+
+[sub_resource type="StandardMaterial3D" id="void"]
+shading_mode = 0
+albedo_color = Color(0.012, 0.012, 0.016, 1)
+
+[resource]
+script = ExtResource("1")
+PurposePrefabs = Array[PackedScene]([ExtResource("p0"), ExtResource("p1"), ExtResource("p2"), ExtResource("p3"), ExtResource("p4"), ExtResource("p5"), ExtResource("p6"), ExtResource("p7"), ExtResource("p8"), ExtResource("p9"), ExtResource("p10"), ExtResource("p11")])
+Look = ExtResource("look")
+Passage = ExtResource("passage")
+VoidMaterial = SubResource("void")

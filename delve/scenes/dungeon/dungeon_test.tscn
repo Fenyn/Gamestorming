@@ -25,25 +25,12 @@
 [ext_resource type="PackedScene" path="res://scenes/dungeon/camp.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/dungeon/elite.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/dungeon/guardian.tscn" id="9"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/receiving.tscn" id="purpose0"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/checkpoint.tscn" id="purpose1"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/barracks.tscn" id="purpose2"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/mess_hall.tscn" id="purpose3"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/stores.tscn" id="purpose4"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/kitchen.tscn" id="purpose5"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/cistern.tscn" id="purpose6"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/workshop.tscn" id="purpose7"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/shrine.tscn" id="purpose8"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/maintenance.tscn" id="purpose9"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/refuge.tscn" id="purpose10"]
-[ext_resource type="PackedScene" path="res://scenes/dungeon/rooms/ward_chamber.tscn" id="purpose11"]
 [ext_resource type="PackedScene" path="res://scenes/run/scene_transition.tscn" id="transition"]
-[ext_resource type="PackedScene" path="res://scenes/looks/dungeon.tscn" id="look"]
+[ext_resource type="Resource" path="res://scenes/dungeon/crawls/station.tres" id="crawl_station"]
+[ext_resource type="Resource" path="res://scenes/dungeon/crawls/fringe.tres" id="crawl_fringe"]
+[ext_resource type="Resource" path="res://scenes/dungeon/crawls/deepwood.tres" id="crawl_deepwood"]
 [sub_resource type="PlaneMesh" id="bedrock_mesh"]
 size = Vector2(600, 600)
-[sub_resource type="StandardMaterial3D" id="bedrock_material"]
-shading_mode = 0
-albedo_color = Color(0.012, 0.012, 0.016, 1)
 [node name="DungeonTest" type="Node3D"]
 process_priority = 1
 script = ExtResource("dir")
@@ -52,7 +39,11 @@ EventPrefab = ExtResource("event")
 ShortRestPrefab = ExtResource("rest")
 UnitPrefab = ExtResource("unit")
 RoomPrefabs = Array[PackedScene]([ExtResource("0"), ExtResource("1"), ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9")])
-PurposePrefabs = Array[PackedScene]([ExtResource("purpose0"), ExtResource("purpose1"), ExtResource("purpose2"), ExtResource("purpose3"), ExtResource("purpose4"), ExtResource("purpose5"), ExtResource("purpose6"), ExtResource("purpose7"), ExtResource("purpose8"), ExtResource("purpose9"), ExtResource("purpose10"), ExtResource("purpose11")])
+SceneryByFloor = Dictionary[String, Resource]({
+"grassland": ExtResource("crawl_fringe"),
+"deepforest": ExtResource("crawl_deepwood"),
+"station": ExtResource("crawl_station")
+})
 [node name="DungeonWorld" type="Node3D" parent="."]
 unique_name_in_owner = true
 [node name="TravelParty" type="Node3D" parent="."]
@@ -82,10 +73,10 @@ DescendSound = NodePath("DescendSound")
 [node name="ExploreCamera" parent="." instance=ExtResource("camera")]
 unique_name_in_owner = true
 [node name="Bedrock" type="MeshInstance3D" parent="."]
+unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.35, 0)
 mesh = SubResource("bedrock_mesh")
-surface_material_override/0 = SubResource("bedrock_material")
-[node name="Look" parent="." instance=ExtResource("look")]
+[node name="LookSlot" type="Node3D" parent="."]
 unique_name_in_owner = true
 [node name="Screens" type="CanvasLayer" parent="."]
 unique_name_in_owner = true

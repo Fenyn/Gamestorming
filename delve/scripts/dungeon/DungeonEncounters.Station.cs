@@ -17,22 +17,21 @@ public static partial class DungeonEncounters
         };
     }
 
-    public static EventDefinition StationEvent(DungeonRoom room, StationHistory history)
+    /// <summary>The scene a quiet room offers, in its floor's words.</summary>
+    public static EventDefinition RoomEvent(DungeonRoom room, StationHistory history, CrawlWords words) => new()
     {
-        string body = room.Purpose switch
-        {
-            RoomPurpose.Shrine => Event(RoomFamily.Shrine).Body,
-            RoomPurpose.Stores => Event(RoomFamily.Cache).Body,
-            _ => $"The {StationPlan.Name(room.Purpose).ToLowerInvariant()} is quiet. {Observation(room.Purpose, history)}",
-        };
-        return new EventDefinition
-        {
-            Id = $"station-{room.Id}",
-            Title = StationPlan.Name(room.Purpose),
-            Body = body,
-            Options = StationScenes.For(room.Purpose, history),
-        };
-    }
+        Id = $"station-{room.Id}",
+        Title = words.Name(room.Purpose),
+        Body = words.Body(room.Purpose, history),
+        Options = words.Scenes(room.Purpose, history),
+    };
+
+    public static string StationBody(RoomPurpose purpose, StationHistory history) => purpose switch
+    {
+        RoomPurpose.Shrine => Event(RoomFamily.Shrine).Body,
+        RoomPurpose.Stores => Event(RoomFamily.Cache).Body,
+        _ => $"The {StationPlan.Name(purpose).ToLowerInvariant()} is quiet. {Observation(purpose, history)}",
+    };
     private static string Observation(RoomPurpose purpose, StationHistory history) => purpose switch
     {
         RoomPurpose.Barracks => "Beds and lockers mark the sleeping bays. Someone has since made a rough sleeping place among them.",

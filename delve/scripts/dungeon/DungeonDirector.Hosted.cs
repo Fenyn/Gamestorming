@@ -24,7 +24,7 @@ public partial class DungeonDirector
         Visible = visible;
         if (!visible) SetHoveredPartyMember(null);
         if (!visible) _details.Close();
-        if (Hosted) GetNode<LookScene>("%Look").SetActive(visible);
+        if (Hosted) _look?.SetActive(visible);
         GetNode<CanvasLayer>("%Screens").Visible = visible;
         _hud.SetDevelopmentControlsVisible(!Hosted);
         if (!visible) _camera.ProcessMode = ProcessModeEnum.Disabled;

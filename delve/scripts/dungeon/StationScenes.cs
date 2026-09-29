@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Delve.Run.Events;
 using PF2e.Data;
+using static Delve.Dungeon.SceneOptions;
 
 namespace Delve.Dungeon;
 
@@ -106,23 +107,7 @@ public static class StationScenes
                     haunted ? Do("The haunting lashes out.", Effect(EventEffectKind.HazardDamage, HazardCritFailPercent)) : Nothing("The shrine is silent.")));
                 break;
         }
-        options.Add(Free("Leave it undisturbed", Do("You move on and save your strength.", Effect(EventEffectKind.WardDelta, LeaveWard))));
+        options.Add(Leave());
         return options;
     }
-
-    private static EventOption Check(string label, Skill skill, int dc, EventOutcome critical, EventOutcome success,
-        EventOutcome failure, EventOutcome? criticalFailure = null, bool fixedDc = false) => new()
-    {
-        Label = label,
-        Check = new EventCheck(skill, dc, true, fixedDc),
-        CriticalSuccess = critical,
-        Success = success,
-        Failure = failure,
-        CriticalFailure = criticalFailure ?? failure,
-    };
-
-    private static EventOption Free(string label, EventOutcome outcome) => new() { Label = label, Success = outcome };
-    private static EventOutcome Do(string text, params EventEffect[] effects) => new(text, effects);
-    private static EventOutcome Nothing(string text) => EventOutcome.Nothing(text);
-    private static EventEffect Effect(EventEffectKind kind, int value = 0) => new(kind, value);
 }

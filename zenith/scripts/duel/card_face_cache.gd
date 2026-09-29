@@ -19,9 +19,8 @@ var _strike_table: StrikeTable = null
 var _mights: Array[Vector2i] = []
 
 
-## Sets the default portrait backdrop for screens that do not name a deck: the run deck's inside
-## an adventure, the neutral dark anywhere else. Session is looked up by path so this script still
-## compiles in `-s` test runs, which have no autoloads.
+## Sets the default portrait backdrop: the run deck's in an adventure, neutral elsewhere. Session
+## is looked up by path because `-s` test runs have no autoloads.
 func _ready() -> void:
 	CardFace.default_backdrop = CardFace.NEUTRAL_BACKDROP
 	var session: Node = get_tree().root.get_node_or_null("Session")
@@ -140,8 +139,7 @@ func render_def(def: CardDef, backdrop: Color = CardFace.NO_BACKDROP, owner: int
 
 
 ## The cards a deck list names, personalities on that deck's backdrop. `public_only` renders just
-## the parts anyone can see (duelist, Mastery, Relic), which is all a client should assume about
-## the other seat's deck.
+## the duelists, Mastery and Relic.
 func render_deck(deck: DeckList, library: CardLibrary, public_only: bool = false) -> void:
 	var backdrop: Color = CardFace.mastery_backdrop(deck, library)
 	await render_back()

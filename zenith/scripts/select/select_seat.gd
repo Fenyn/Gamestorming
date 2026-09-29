@@ -70,8 +70,7 @@ func _ready() -> void:
 		mastery_zoom.hide())
 
 
-## Opens the deck detail tab: the whole Life Deck grouped by card type. The Details
-## button does the same; this is what `--dev-details` calls for a screenshot.
+## Opens the deck detail tab, as the Details button does. `--dev-details` calls it.
 func show_details() -> void:
 	if deck != null:
 		($Row/Scroll/Content/Tabs as TabContainer).current_tab = 1
@@ -148,8 +147,7 @@ func _shown_aspects() -> Array[int]:
 	return out
 
 
-## Shows one Aspect: its art in the portrait, its title and power in the Aspect block, its chip lit.
-## Each Aspect is its own card, so this looks up the card for that tier.
+## Shows one Aspect in the portrait and the Aspect block. Each Aspect is its own card.
 func show_aspect(aspect: int) -> void:
 	var stack: PersonalityStack = deck.duelist_stack(Session.library) if deck != null else null
 	var duelist: CardDef = stack.def_for(aspect) if stack != null else null
@@ -165,9 +163,7 @@ func show_aspect(aspect: int) -> void:
 	silhouette.text = duelist.title.left(1)
 	silhouette.add_theme_color_override("font_color", _color)
 	_layout_portrait()
-	# The tier is the card's own Aspect number, not its place in the row: a stack is consecutive
-	# from 1, so the two agree, and reading it off the card is what stays true if that ever changes.
-	aspect_header.text = "ASPECT %d OF %d  ·  SURGE %d" % [duelist.aspect, aspects.size(), int(duelist.aspect_data(aspect).get("surge", 0))]
+	aspect_header.text = "ASPECT %d OF %d  ·  SURGE %d" % [duelist.aspect, aspects.size(), int(duelist.aspect_data(aspect).get("surge", 0)) + DuelEngine.STYLE_SURGE_BONUS]
 	# The line word appears only where a stack climbs through more than one of a character's lines.
 	aspect_title.text = CardText.aspect_name(aspect, duelist)
 	if mixed and duelist.variant != "":
@@ -185,8 +181,7 @@ func _on_portrait_input(event: InputEvent) -> void:
 			show_aspect(aspects[(aspects.find(_aspect) + 1) % aspects.size()])
 
 
-## Online the button reads "Lock in". In a queue room the name field goes, since strangers see each
-## other by duelist name only, and the lock-in countdown shows left of Details.
+## Online the button reads "Lock in". A queue room hides the name field and shows the countdown.
 func set_online(on: bool, queue: bool) -> void:
 	online = on
 	name_edit.visible = not queue
@@ -214,8 +209,6 @@ func set_locked(on: bool) -> void:
 	_paint()
 
 
-## The school light behind the portrait and the seat-coloured lock stamp carry identity; the panel
-## itself is the plain iron frame.
 func _paint() -> void:
 	add_theme_stylebox_override("panel", SanctumUI.panel())
 	var aura: ArcaneBackdrop = portrait_box.get_node("Aura")
@@ -231,9 +224,8 @@ func _paint() -> void:
 		hint_label.text = ""
 
 
-## Fit the complete portrait to the available stage without cropping or stretching, at a whole
-## number of screen pixels per art pixel. A fractional scale draws some art pixels two screen
-## pixels wide and their neighbours three, which reads as blur on pixel art.
+## Fits the whole portrait at a whole number of screen pixels per art pixel; a fractional scale
+## blurs pixel art.
 func _layout_portrait() -> void:
 	if portrait.texture == null:
 		return

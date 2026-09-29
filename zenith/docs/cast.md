@@ -115,8 +115,10 @@ connections onto the road; how that works in play is in `../../designs/zenith_ad
 link is listed on both sides.
 
 - **Edric**: Alder (wife), Emrys and Ansel (sons), Wren (kin), Tavin (fostered, Caedan's son),
-  Caedan (war companion, taught him the sword), Mourne (a man who serves against one who would not
-  kneel), Ashmark (hero and monster).
+  Caedan (war companion, taught him the sword), Idris and Aldo (his King's Tourney team), Mourne (a
+  man who serves against one who would not kneel), Ashmark (hero and monster).
+- **Idris**: Edric and Aldo (the Tourney team).
+- **Aldo**: Edric and Idris (the Tourney team), on fine terms with both and mostly done fighting.
 - **Alder**: the Rooke family, Osric (taught her son), Sable (matriarch and captain).
 - **Emrys**: Edric and Alder (parents), Caedan and Osric (his teachers), Quarr (both field Steel).
 - **Caedan**: Tavin (son), Emrys (pupil), Edric (war companion).
@@ -163,7 +165,7 @@ field more than one school later; Sir Edric Rooke already does.
 | Sir Edric Rooke | Vigil | Draconic | The Rooke Coven, Kingsguard-trained, born a Hask | Pyre own, Tide beside the coven | Duelist, 2 decks, and Ally |
 | Emrys Rooke | Vigil | Draconic | The Rooke Coven, Vale- and Grove-taught | Steel | Duelist |
 | Wren Rooke, Ansel Rooke | Vigil | Draconic | The Rooke Coven | Tide | Allies |
-| Tavin Vale | Vigil | Draconic | The Vale line, fostered with the Rookes | Tide | Ally, plus the Ansel-and-Tavin bond card |
+| Tavin Vale | Vigil | Draconic | The Vale line, fostered with the Rookes | Tide | Ally in two printings, plus the Ansel-and-Tavin bond card |
 | Torvan Hask | Pact | Draconic | The line Edric left | none yet | One named card, no personality |
 | Caedan Vale | Vigil | Draconic | The Vale line | Freestyle | Duelist |
 | Osric Thornwald | Vigil | Verdant | The Thornwald Grove | Root | Duelist |
@@ -176,11 +178,14 @@ field more than one school later; Sir Edric Rooke already does.
 | Gideon Mourne | Pact | Draconic, marked | The broken company | Shade | Duelist, and Ally in Marrow's deck |
 | The Fortress | Pact | Draconic | The broken company | Freestyle | Two named cards, no personality |
 | Sledge, Mercy, Scorn | Pact | construct | no one | Freestyle | One named card each, no personality |
+| Idris Sparrow | Vigil | none | The King's Tourney team | Storm | Duelist |
+| Aldo Voss | Vigil | none | The King's Tourney team | Storm as an Ally, Freestyle in his named cards | Ally, five named cards |
+| Sandmaw | neither | a beast | The King's Tourney | none of its own | Ally |
 
 Duelist decks in data: Wildfire Rush and Last Standing (Ashmark), Ironblood Onslaught (Quarr),
 Hexbound Company (Sable), Tidesworn Coven (Alder), Ember Ascendant and Crushing Depths (Edric),
 Steel Inheritance (Emrys), Blade Legacy (Caedan), Sevenfold Grove (Osric), Tempest Engine and
-Stormlock (Siphon), Scrap Requiem (Marrow), Mind Siege (Mourne).
+Stormlock (Siphon), Scrap Requiem (Marrow), Mind Siege (Mourne), Endless Squall (Idris Sparrow).
 
 ---
 
@@ -317,8 +322,9 @@ water raised, furious. Stops a Strike aimed at Edric or Emrys.
 **Look.** Knight in grey mail, plain longsword, open helm under one arm, weathered and unhurried.
 
 **Who he is.** Draconic. Born a Hask, from a line he left; his elder brother Torvan Hask still
-carries it. Trained with the Kingsguard before he married into the coven, which is the coven's
-only tie to the order. Caedan Vale fought beside him in the two kings' war and taught him the Vale
+carries it. Fresh from leaving the Hask line he fought the King's Tourney for purses, on a team with
+Idris Sparrow and Aldo Voss, and the Kingsguard recruited him off the sand. Trained with the
+Kingsguard before he married into the coven, which is the coven's only tie to the order. Caedan Vale fought beside him in the two kings' war and taught him the Vale
 sword, the only time the Vales have taught it outside the blood. Fields Pyre in his own list and Tide beside his
 wife. He is the first character to field two schools, which settled the rule that a card's look
 comes from the card and not from a fixed element on the person.
@@ -388,6 +394,11 @@ casting. Ally art: a globe of water between his hands, pages settling into a dec
 **Who he is.** Caedan's son, fostered with the Rookes since he was small because his father's road
 is no place for a child. He grew up beside Ansel. Draconic, and fielding Tide rather than the
 family sword. Art 6, puts two discards under the Life Deck.
+
+**Fostered Son** (`personality_67`, fielded in Endless Squall). The earlier print, from when the
+Rookes first took him in: a boy in a coven cloak too big for him, a small globe of water held
+clumsily between his hands. Art 5, and on a hit he may pay for his Arts with the top card of his
+Life Deck for the rest of the Combat.
 
 **Ansel and Tavin, Back to Back.** The Bond. Standing back to back, shield and water between them,
 both looking outward. Strike 7, Focused for a discard, twice a Combat.
@@ -495,6 +506,63 @@ out; nothing else about that is written.
 
 **Named cards.** Corin's Practiced Guard, Corin Throws Smoke, Corin's Suppressing Shot, Corin's
 Threefold Bolt, Corin's Conditioning (a shaven-headed ascetic seated on bare stone before dawn).
+
+---
+
+## The King's Tourney
+
+Settled 2026-09-28. A gladiator arena the two kings ran against each other before the war. Each king
+backed stables of fighters, and a bout was their rivalry fought by proxy: mages, blades and beasts
+on the same sand, alone or in teams, whatever the crowd paid for. When the rivalry became the war,
+the stables marched with their kings and the Tourney closed. Nobody has reopened it.
+
+Most stables fought under one king's colours. One team fought under none, which the crowd loved and
+both kings resented: Sir Edric, Idris Sparrow and Aldo Voss, each of them dangerous alone as well as
+together. They sold their bouts to neither crown and still leaned Vigil.
+
+**The Champion's Laurel** (`relic_05`) is the token the Tourney's champions carried, a wreath of dull
+bronze leaves. It belongs to the Tourney rather than to anyone in it: your attacks do +1 wound and
+the rival's do 1 less.
+
+### Idris Sparrow
+
+**Look.** Lean, quick man, a scar through one eyebrow, a patched duelling coat, a plain sabre,
+spell-chalk smudged on his free hand.
+
+**Who he is.** The Tourney's best blade and barely a caster: a master of close work who knows one or
+two small spells and learned them the hard way. The storm reaches him through the sabre. No line.
+Deck: Endless Squall, which refills after every hit and keeps the Arts coming.
+
+**Arc.** The Vigil shows as the storm finally answering him, until the blade and the lightning are
+one thing.
+
+| Aspect | Look | Does |
+|---|---|---|
+| 1 Scrapper | Mid-duel, snatching a guttering spark off the sand with his free hand, sabre up | Burns 3 discards to take back a small Art |
+| 2 Cut Loose | A sabre stroke that leaves the blade and flies on as a white arc | Focused Art 5, hit breaks an Ally or a Drill |
+| 3 Stillwind | A blow so fast the rival's momentum drains away, the air around them gone dead | Strike, hit drops their Fervor to 0 |
+| 4 Stormedge | A single arc of lightning where the sabre should be, mid-stroke | Strike, hit takes a Seal |
+
+**Named cards.** Sparrow's Skillful Guard.
+
+### Aldo Voss
+
+**Look.** Short, round-faced man, cropped hair, spectacles, ink-stained fingers, a thin book of loose
+pages he tears out and throws.
+
+**Who he is.** The team's mage: gifted with spells and held back in melee by his strength and reach.
+He is mostly done with fighting now and steps in reluctantly. A father. On fine terms with Idris.
+No line. Ally: an Art, and on a hit he may set any card from his Life Deck aside into the discard.
+
+**Named cards.** Voss' Blinding Flare, Voss' Unerring Bolt, Voss' Keen Eye, Voss' Clear Mind, Voss'
+Sleight.
+
+### Sandmaw
+
+**Look.** Big blue-scaled pack-drake, heavy jaw, sand packed into its scales, old harness scars.
+
+**Who it is.** A Tourney arena beast that either side can hire. It belongs to no team. Its charge
+lands 7 wounds, and a charge that misses wrecks enough around it to cost its side 3 Life Deck cards.
 
 ---
 

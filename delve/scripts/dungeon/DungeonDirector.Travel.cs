@@ -25,19 +25,6 @@ public partial class DungeonDirector
         _camera.FrameBoard(new(CurrentView.Width / 2f, 0, CurrentView.Width / 2f), CurrentView.Width, CurrentView.Width);
     }
 
-    /// <summary>Only the current room and the discovered rooms one door away render. Farther rooms
-    /// sink into the fog, and the floor plan carries the overview; the renderer draws a few rooms
-    /// instead of the whole floor.</summary>
-    private void RefreshVisibility()
-    {
-        int here = Current.Id;
-        bool Near(DungeonRoom room) => room.Id == here || room.Doors.Any(d => d.Other(room.Id) == here);
-        foreach (var room in Floor.Rooms)
-            _rooms[room.Id].Visible = room.Discovered && Near(room);
-        foreach (var (view, a, b) in _corridors)
-            view.Visible = _rooms[a].Visible && _rooms[b].Visible;
-    }
-
     /// <summary>Rooms drawn right now, for spikes.</summary>
     public int VisibleRoomCount => _rooms.Values.Count(r => r.Visible);
 
@@ -50,10 +37,10 @@ public partial class DungeonDirector
                 var bv = _rooms[door.B];
                 var a = av.Position + av.DoorPosition(door.Side(door.A));
                 var b = bv.Position + bv.DoorPosition(door.Side(door.B));
-                var prop = new DungeonPassage { Palette = av.Palette };
-                _world.AddChild(prop);
-                prop.Build(a, b);
-                _corridors.Add((prop, door.A, door.B));
+                var view = Scenery.Passage!.Instantiate<Node3D>();
+                _world.AddChild(view);
+                ((IPassage)view).Build(av, a, b);
+                _corridors.Add((view, door.A, door.B));
             }
     }
 
@@ -104,7 +91,7 @@ public partial class DungeonDirector
         {
             if (!target.Completed && DungeonFloor.Kind(target.Family)is Delve.Run.NodeKind.Combat or Delve.Run.NodeKind.Elite or Delve.Run.NodeKind.Boss)
             {
-                var setup = DungeonEncounters.Build(State, target, nextView, entry, DataManager.Instance!.ResolveCreature, campaign: Hosted);
+                var setup = DungeonEncounters.Build(State, target, nextView, entry, DataManager.Instance!.ResolveCreature, campaign: Hosted, floorId: FloorId);
                 if (setup == null)
                     throw new InvalidOperationException("Unable to prepare encounter.");
                 _encounters[target.Id] = setup;
@@ -209,7 +196,7 @@ public partial class DungeonDirector
             if (room.Visible)
                 room.Cutaway(camera);
         foreach (var (view, _, _) in _corridors)
-            if (view.Visible && view is DungeonPassage passage)
+            if (view.Visible && view is IPassage passage)
                 passage.Cutaway(camera);
         AnchorPartyMenu();
     }

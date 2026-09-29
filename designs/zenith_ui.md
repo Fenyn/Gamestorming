@@ -6,7 +6,13 @@ every value below from one theme builder (`scripts/ui/zenith_theme.gd`); no scre
 colours, sizes or radii.
 
 Colour rules: no gold-and-blue scheme. Gold survives only on card identity (Aspect frames). Blue
-survives only where it means something: the defend role and Motes.
+survives only where it means something: usable now, the defend role and Motes.
+
+Mechanics versus theme (user, 2026-09-28): if a colour itself tells the player something, it is a
+fixed `game.*` or `accent.*` token, the same for every deck. If position or shape carries the
+meaning, it may wear the Mastery colour (the board wash, the lit rung and Surge rail, the phase
+track's lit edge and light pool, printed trim, backdrops, screen tints). Rings, frames and glows on
+table cards are always mechanical; a school colour never outlines a card.
 
 ## 1. Colour tokens
 
@@ -28,12 +34,13 @@ approved with the mockups the same day.
 | `text.muted` | (0.60, 0.59, 0.60) | Captions, inactive steps |
 | `text.disabled` | (0.42, 0.42, 0.42) | Disabled controls |
 | `text.on_light` | (0.12, 0.10, 0.09) | Text on card faces and light fills |
-| **`accent.act`** | **bone-white (0.94, 0.91, 0.84)** | Act here: primary button, legal-card glow, YOUR TURN, current step |
+| **`accent.act`** | **bone-white (0.94, 0.91, 0.84)** | Primary button, targets and picks, YOUR TURN, current step; a board card usable now glows blue (`ZenithTheme.USABLE`) |
 | `state.selected` | bone-white 2 px ring plus a raised fill | Selected tile, card or tab |
 | `state.hover` | white at 0.12 (2D), bone glow (3D) | Hover everywhere; replaces both cyans |
 | `state.warn` | ember (0.93, 0.55, 0.30) | Warnings and refusals; free now that orange is no longer Fervor |
 | `game.attack` | (0.90, 0.38, 0.30) | Attacker, Strike type |
-| `game.defend` | (0.40, 0.62, 0.92) | Defender role only (one of two blues) |
+| `game.usable` | (0.36, 0.66, 0.98) (`USABLE`) | Frame on a table card the viewer can use now, and nothing else |
+| `game.defend` | (0.40, 0.62, 0.92) | Stopped and answered lines in the HUD; no card aura |
 | **`game.fervor`** | **crimson (0.86, 0.22, 0.30)** | Fervor pips, numbers and keyword, everywhere |
 | `game.energy` | (0.36, 0.76, 0.58) | Energy |
 | `game.might` | (0.78, 0.82, 0.90) | Might |

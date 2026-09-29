@@ -13,8 +13,12 @@ namespace Delve.Dungeon;
 public partial class MasonryShell : RoomShell
 {
     private readonly List<(Node3D Wall, DoorSide Side)> _upperWalls = new();
+    private MapView3D? _map;
+
+    public override void SetLight(float light) => _map?.SetLight(light);
 
     public override float HeightScale => MapThemes.Sewer.HeightScale;
+    public override string BiomeId => MapThemes.Sewer.BiomeId;
 
     public override GeneratedRoom Generate(DungeonRoomPrefab room, int seed, int size, IReadOnlyList<DoorSide> doors, bool openLayout)
     {
@@ -29,11 +33,11 @@ public partial class MasonryShell : RoomShell
         foreach (var side in doors)
             foreach (var p in RoomGeneration.Threshold(render.Width, side))
                 render.SetTile(p.x, p.y, TileRole.Ground);
-        var map = new MapView3D();
-        room.AddChild(map);
+        var map = _map = new MapView3D();
+        AddChild(map);
         map.Build(render, room.Palette?.Theme() ?? MapThemes.Sewer);
         var masonry = new DungeonProp { Palette = room.Palette };
-        room.AddChild(masonry);
+        AddChild(masonry);
         int n = room.Width, seed = room.Seed;
         foreach (DoorSide side in Enum.GetValues<DoorSide>())
         {

@@ -1,19 +1,19 @@
-"""New cards for the Storm Sensei list (`data/decks/storm_mentor.json`), built from the Orange TS
+"""New cards for Endless Squall (`data/decks/storm_mentor.json`), built from the Orange TS
 tournament sheet. See docs/tournament_import.md for the sheet, the card-by-card read and the nine
 fan prints swapped out for Score cards.
 
     python tools/add_card.py tools/decks/storm_mentor.py
 
-Titles and the new characters are drafts: the duelist, both new Allies and the Relic carry
-PLACEHOLDER until the lore pass names them. Mechanics follow the printed text exactly; the
-approximations are the Might ladders, which are designed on the compact scale the way every shipped
-ladder is (designs/zenith.md, Strike Table) and keep the printed Surge.
+Names approved 2026-09-28 (Idris Sparrow, Aldo Voss, Sandmaw, The Champion's Laurel); the Surging
+Drill still carries PLACEHOLDER. Mechanics follow the printed text exactly; the approximations are the
+Might ladders, which are designed on the compact scale the way every shipped ladder is
+(designs/zenith.md, Strike Table) and keep the printed Surge.
 """
 from cardlib import (add, art, block, noncombat, drill, duelist, aspect, personality, generic_id,
                      E, OPP, OPP_ACC, VIG, FLOAT, SEARCH, IFS, IFSTOP, USE, DISCARD_IN_PLAY,
                      KAPPA, MOURNE)
 
-DUELIST = "PLACEHOLDER Duelist"
+DUELIST = "Idris Sparrow"
 COMPANION = "Aldo Voss"
 BRUTE = "Sandmaw"
 TAVIN = "Tavin Vale"
@@ -38,7 +38,7 @@ duelist(DUELIST, [
                                "effects": [IFS(OPP("set_fervor", amount=0))]}),
     # "Physical attack. If successful, also capture an opponent's Dragon Ball."
     aspect(4, 3, 38, 1, power={"attack": {"kind": "strike"}, "effects": [IFS(E("capture_seal"))]}),
-], ["Scavenger", "Pinning", "Deflating", "Seal-Taker"])
+], ["Scrapper", "Cut Loose", "Stillwind", "Stormedge"])
 
 # --- The Relic ------------------------------------------------------------
 # The Sensei: a 9-card Reserve and a standing line both ways. "All of your attacks do +1 life cards
@@ -51,7 +51,7 @@ add(id=generic_id("relic", {"type": "relic", "reserve_size": 9}), title="The Cha
 # Tavin Vale's earlier printing (the source's Buu Saga level 1). "Energy attack doing 5 life cards
 # of damage. If successful, for the remainder of Combat you may discard the top card of your Life
 # Deck instead of paying costs for any energy attacks Kid Trunks performs."
-personality(TAVIN, 1, 2, 16, 1, variant="the Fledgling", alignment_only="vigil", limit_per_deck=1,
+personality(TAVIN, 1, 2, 16, 1, variant="Fostered Son", alignment_only="vigil", limit_per_deck=1,
             bloodline="draconic",
             power={"attack": {"kind": "art", "printed_life": 5},
                    "effects": [{"trigger": "if_successful", "op": "float", "what": "life_for_art_costs",
@@ -104,7 +104,7 @@ art(generic_id("signature_art", {"title": "Mourne's Unpaid Bolt"}), "Mourne's Un
 drill(generic_id("signature_drill", {"title": "PLACEHOLDER's Surging Drill"}), "PLACEHOLDER's Surging Drill",
       limit_per_deck=1, modifiers=[{"scope": "own", "kind": "art", "life_per_performer_surge": True}])
 # "Stops a physical or energy attack. Remove from the game after use."
-block(generic_id("signature_art", {"title": "PLACEHOLDER's Skillful Guard"}), "PLACEHOLDER's Skillful Guard",
+block(generic_id("signature_art", {"title": "Sparrow's Skillful Guard"}), "Sparrow's Skillful Guard",
       "any", "art", character=DUELIST, remove_after_use=True)
 # "Raise any personality in play to its highest power stage. The next energy attack that
 # personality performs this Combat costs 0 power stages to perform."

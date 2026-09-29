@@ -86,7 +86,7 @@ public static class UiColors
     public static Color MapBase(string themeId) => themeId switch
     {
         "deepforest" => Get("map_base_deepforest"),
-        "swamp" => Get("map_base_swamp"),
+        "station" => Get("map_base_swamp"),
         _ => Get("map_base_grassland"),
     };
 
@@ -94,7 +94,7 @@ public static class UiColors
     public static Color MapFog(string themeId) => themeId switch
     {
         "deepforest" => Get("map_fog_deepforest"),
-        "swamp" => Get("map_fog_swamp"),
+        "station" => Get("map_fog_swamp"),
         _ => Get("map_fog_grassland"),
     };
 

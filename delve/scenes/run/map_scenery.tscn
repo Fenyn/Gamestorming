@@ -41,7 +41,7 @@ ClearingChance = 0.04
 
 [sub_resource type="Resource" id="swamp"]
 script = ExtResource("biome")
-Id = "swamp"
+Id = "station"
 Trees = Array[Texture2D]([ExtResource("dead_a"), ExtResource("dead_b"), ExtResource("bush")])
 Ground = ExtResource("mud")
 GroundTint = Color(0.32, 0.43, 0.44, 1)

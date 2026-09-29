@@ -8,8 +8,7 @@ extends RefCounted
 ## keep their own colours.
 
 const DIR: String = "res://assets/adventure_map"
-## A school colour is capped at this saturation and brightness before it tints the trim, so the
-## hot schools (Pyre, Shade, Storm) come out muted like Tide instead of loud.
+## Caps on a school colour's saturation and brightness before it tints the trim (see `muted`).
 const TINT_MAX_SATURATION: float = 0.5
 const TINT_MAX_VALUE: float = 0.78
 ## The panel texture's rule and corner squares, in its own pixels, kept whole when it stretches.
@@ -26,10 +25,9 @@ const BRACKET_MARGIN: int = 24
 
 ## The trim colour: iron on every screen (designs/zenith_ui.md, frame.metal).
 static var tint: Color = ZenithTheme.FRAME
-## The "act here" marks on the map (the node the run stands on, the choice glow): bone-white.
+## The map's current node and choice glow.
 static var tint_strong: Color = ZenithTheme.ACCENT
-## The run's school colour, muted like the trim, or clear outside a run. It appears only as the
-## edge under a screen title and on the map's walked road.
+## The run's muted school colour, clear outside a run: the edge under a title and the walked road.
 static var school: Color = Color(0, 0, 0, 0)
 static var _cache: Dictionary = {}
 
@@ -59,8 +57,7 @@ static func tint_for_school(school_id: String) -> void:
 	school = Color(0, 0, 0, 0) if school_id == "" else muted(Palette.school_ui(school_id))
 
 
-## Any colour capped the way the trim tint is, so a loud group or school colour sits as quietly
-## as the rest of the trim.
+## `color` capped at the trim tint's saturation and brightness.
 static func muted(color: Color) -> Color:
 	return Color.from_hsv(color.h, minf(color.s, TINT_MAX_SATURATION), minf(color.v, TINT_MAX_VALUE))
 
@@ -73,8 +70,7 @@ const BUTTON_MARGIN: int = 24
 const USE_TINT: Color = Color(0, 0, 0, 0)
 
 
-## The default panel: a dark fill under a thin rule with small corner squares (Kenney border 009), in `color`, or
-## the trim tint when none is given. The shared theme asks for white so it never caches a school.
+## The default panel (Kenney border 009) in `color`, or the trim tint when none is given.
 static func panel_box(content: int, color: Color = USE_TINT) -> StyleBox:
 	return _sliced("panel", PANEL_MARGIN, content, tint if color == USE_TINT else color)
 
@@ -170,9 +166,8 @@ static func draw_brackets(canvas: CanvasItem, rect: Rect2, color: Color) -> void
 	canvas.draw_style_box(box, rect)
 
 
-## A button face: Kenney's corner-block rule over a flat fill, one piece per state, composed by
-## tools/import_map_art.py. Never tinted. The face is flat, so the text centres on it and drops a
-## pixel when pressed.
+## A button face, one piece per state from tools/import_map_art.py. Never tinted. Pressed text
+## drops a pixel.
 static func button_box(piece: String) -> StyleBox:
 	var box: StyleBox = _sliced(piece, BUTTON_MARGIN, 0, Color.WHITE)
 	box.content_margin_left = 24

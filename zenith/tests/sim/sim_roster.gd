@@ -27,10 +27,13 @@ const DECK_DIR: String = "res://data/decks"
 
 
 ## Loads every deck once and resolves both sides. `a_field` and `b_field` fall back to `field`
-## when empty; `field` falls back to every deck.
-static func build(field: String, a_field: String, b_field: String) -> SimRoster:
+## when empty; `field` falls back to every deck. `deck_dir`, when set, adds the decks in that folder
+## under their exact names only, so a trial list can be measured without touching `data/decks`.
+static func build(field: String, a_field: String, b_field: String, deck_dir: String = "") -> SimRoster:
 	var out: SimRoster = SimRoster.new()
 	out._load_all()
+	if out.error.is_empty() and not deck_dir.is_empty():
+		out._load_extra(deck_dir)
 	if not out.error.is_empty():
 		return out
 	var base: String = field if not field.strip_edges().is_empty() else "*"
@@ -130,6 +133,20 @@ func _load_all() -> void:
 					decks[file.trim_suffix(".json")] = adventure
 	if all_names.size() < 2:
 		error = "Need at least two decks in %s" % DECK_DIR
+
+
+func _load_extra(path: String) -> void:
+	if DirAccess.open(path) == null:
+		error = "Cannot open --deck-dir %s" % path
+		return
+	for file in DirAccess.get_files_at(path):
+		if not file.ends_with(".json"):
+			continue
+		var loaded: DeckList = DeckList.load_from(path.path_join(file))
+		if loaded == null:
+			error = "Cannot load deck %s" % path.path_join(file)
+			return
+		decks[file.trim_suffix(".json")] = loaded
 
 
 func _resolve(field: String, weights: Dictionary) -> Array[String]:

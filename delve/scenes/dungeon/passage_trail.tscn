@@ -1,0 +1,12 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/dungeon/TrailPassage.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_canopy.tscn" id="canopy"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_conifer.tscn" id="conifer"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_bush.tscn" id="bush"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_dead.tscn" id="dead"]
+
+[node name="TrailPassage" type="Node3D"]
+script = ExtResource("1")
+TreeScenes = [ExtResource("canopy"), ExtResource("conifer"), ExtResource("bush"), ExtResource("dead")]
+TreeWeights = PackedFloat32Array(3, 3, 2, 0.5)

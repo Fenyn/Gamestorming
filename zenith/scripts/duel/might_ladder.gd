@@ -1,14 +1,11 @@
 class_name MightLadder
 extends Control
-## The Might ladder down a personality face: stages 10 to 0, each rung's stage number small on
-## the left and the Might it prints large on the right, the Strike Table band letters in the
-## gutter beside the box, and the printed Surge in a quiet line over the rungs.
+## The Might ladder down a personality face: stages 10 to 0 with their printed Might, the Strike
+## Table band letters in the gutter, and the printed Surge over the rungs.
 ##
-## The live layer marks a personality in play: the rungs under its current Energy filled pale,
-## the current stage a pill in the deck's Mastery colour that overhangs the box with the live
-## Might on it (and its difference from the printed rung, signed), and the Surge rail, the box's
-## right outline lit from the pill up to the rung the next Recover reaches. With `printed` off
-## only the live layer is drawn, as an overlay on a cached face; it redraws the numbers it covers.
+## The live layer marks a personality in play: filled rungs up to its Energy, the current stage as
+## a pill with the live Might, and the Surge rail up to the rung the next Recover reaches. With
+## `printed` off only the live layer draws, as an overlay on a cached face.
 
 signal changed
 
@@ -71,7 +68,8 @@ func show_card(def: CardDef, aspect: int, backdrop: Color) -> void:
 		prev_band = band
 	for stage in range(STAGES + 1):
 		might.append(int(raw[stage]) if raw.size() > stage else -1)
-	var surge: int = int(td.get("surge", 0))
+	# The printed rate plus the flat bonus every deck gets.
+	var surge: int = int(td.get("surge", 0)) + DuelEngine.STYLE_SURGE_BONUS
 	var lit: Color = CardFace.lit_color(backdrop)
 	if might == _might and bands == _bands and surge == _surge and lit.is_equal_approx(_lit):
 		return

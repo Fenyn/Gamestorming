@@ -10,10 +10,10 @@ extends RefCounted
 ## ChipLabel: a quiet read-only chip on a label, such as the match score beside the options gear.
 ## RatingLabel: the rating sentence on a match result, body size in the primary text colour.
 ##
-## Colour roles. Bone-white is "act here": the primary button, legal cards, YOUR TURN, the current
-## step, the selection ring. Iron frames every panel and button. Meaning colours (Energy, Might,
-## Fervor, attack, defence, XP, Motes) mean the same thing on every screen. School colours mark
-## identity only: card frames, school chips, one edge or title per adventure screen.
+## Colour roles. Blue (USABLE) marks a board card the viewer can use now; bone-white marks the
+## primary button, targets and picks, YOUR TURN, the current step and the selection ring. Iron
+## frames every panel and button. Meaning colours (Energy, Might, Fervor, attack, defence, XP,
+## Motes) mean the same thing on every screen. School colours mark identity only.
 
 const BG_SCREEN: Color = Color(0.055, 0.050, 0.055)
 const SCRIM: Color = Color(0.03, 0.025, 0.03, 0.70)
@@ -43,6 +43,7 @@ const ATTACK: Color = Color(0.90, 0.38, 0.30)
 const ATTACK_SOFT: Color = Color(0.90, 0.38, 0.30, 0.22)
 const DEFEND: Color = Color(0.40, 0.62, 0.92)
 const DEFEND_SOFT: Color = Color(0.40, 0.62, 0.92, 0.22)
+const USABLE: Color = Color(0.36, 0.66, 0.98)              # a table card the viewer can use now
 const FERVOR: Color = Color(0.86, 0.22, 0.30)              # crimson
 const FERVOR_TEXT: Color = Color(0.95, 0.42, 0.48)         # the same crimson lifted for text on dark
 const ENERGY: Color = Color(0.36, 0.76, 0.58)
@@ -238,10 +239,7 @@ static func selected_box(pad_x: int = 18, pad_y: int = 12) -> StyleBoxFlat:
 	return box(BG_ACTIVE, ACCENT, RADIUS, 2, pad_x, pad_y)
 
 
-## A button that draws an icon on one side (the OptionButton arrow, the CheckButton toggle on the
-## right, the CheckBox box on the left) centres its text in what the icon leaves, so the text sits
-## off the middle of the frame. Padding the other side by the icon's width puts it back. Widths
-## come from the icons themselves, so a new icon keeps the text centred.
+## Pads the side opposite a button's icon by the icon's width, so the text centres in the frame.
 static func _balance_icon_buttons(t: Theme) -> void:
 	var base: Theme = ThemeDB.get_default_theme()
 	# The arrow is placed from the button's edge, not its content margin, so without this it lands

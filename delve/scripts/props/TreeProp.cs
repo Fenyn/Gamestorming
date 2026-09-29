@@ -80,7 +80,7 @@ public partial class TreeProp : Node3D
         sprite.FlipH = HashedFlip && MapHash.Hash01(hx, hz, 0x51C7) < 0.5f;
         PixelSprite.Configure(sprite);
         sprite.Shaded = ReceiveLighting;
-        sprite.Modulate = new Color(Tint.R * Shade, Tint.G * Shade, Tint.B * Shade, Tint.A);
+        sprite.Modulate = LitTint;
 
         float worldHeight = tex.GetHeight() / PixelsPerTile;
         sprite.Position = new Vector3(0f, worldHeight * 0.5f - Sink, 0f);
@@ -121,4 +121,17 @@ public partial class TreeProp : Node3D
         }
         _sprite.MaterialOverride = _occluderMaterial;
     }
+
+    private float _light = 1f;
+
+    /// <summary>Fog-of-war brightness on top of <see cref="Shade"/>, for the crawl's room tiers.</summary>
+    public void SetLight(float light)
+    {
+        _light = light;
+        if (_sprite == null) return;
+        _sprite.Modulate = LitTint;
+        _occluderMaterial?.SetShaderParameter("tint", LitTint);
+    }
+
+    private Color LitTint => new(Tint.R * Shade * _light, Tint.G * Shade * _light, Tint.B * Shade * _light, Tint.A);
 }

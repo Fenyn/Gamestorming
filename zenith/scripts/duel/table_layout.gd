@@ -1,33 +1,24 @@
 class_name TableLayout
 extends Node3D
-## A near top-down board, the two duelists nose to nose across a thin centre band, every zone
-## packed around them so the whole board stays left of the HUD column. Each seat's half is
-## point-mirrored. The duelist stands in the middle, its top edge on the band. Just left of it the
-## Life Deck sits over the Discard; just right of it stands the Mastery, a second, smaller hero,
-## with the Relic and Out side by side under it. The Ally row runs left of the Life Deck with the
-## Seals and then the seat's status spot (the `StatusHome` marker: the rival's hand fan, and the
-## status chips while an Ally holds the row) under it; the Drill row runs right of the Mastery
-## with the Non-Combat row under it. Remain lies under the Discard, between the status spot and
-## the duelist. Rows and heroes all start level with the duelist's top edge. The centre band holds
-## the turn token at the viewer's left end, the standing ghosts and the Grounds, the cards in play
-## between the two duelists, and the phase track on the right. Zone bounds use the same scales as
-## card slots, so placement checks include the hero cards.
+## A near top-down board: the two duelists nose to nose across a thin centre band, every zone
+## packed around them and left of the HUD column. Seat 1's half is seat 0's, point-mirrored. Zone
+## bounds use the same scales as card slots, so the placement check covers the hero cards.
 
 const CARD_SIZE: Vector2 = Vector2(0.63, 0.88)
 const SEAL_SCALE: float = 0.4
 const STANDING_STEP: float = 0.22
 const STANDING_SCALE: float = 0.35
-## Standing ghosts line up on the centre band's outer end, left of the Grounds for seat 0 and past
-## the phase track for seat 1, just over the line on their owner's side.
-const STANDING_START: Vector3 = Vector3(-2.9, 0.001, 0.05)
+## Standing ghosts line up at the centre line's outer ends, just over the line on their owner's side.
+const STANDING_START: Vector3 = Vector3(-2.97, 0.001, 0.05)
 ## How many standing ghosts per seat the placement check keeps clear.
 const STANDING_CHECKED: int = 2
 ## The Grounds lie on the centre line on the viewer's left, between the ghosts and the cards in play.
-const GROUNDS_POS: Vector3 = Vector3(-2.2, 0.001, 0.0)
+const GROUNDS_POS: Vector3 = Vector3(-2.58, 0.001, 0.0)
 const GROUNDS_SCALE: float = 0.55
 const HAND_STEP: float = 0.32
 const HAND_SCALE: float = 0.70
 const STACK_STEP: float = 0.0015
+const ROW_LIFT: float = 0.004
 const CARD_LIFT: float = 0.01         # keeps card quads off the table plane so they never z-fight with it
 const RESOLVING_LIFT: float = 0.25
 const ZONE_PAD: float = 0.04          # zones keep this much clear stone outside their cards
@@ -37,15 +28,16 @@ const LABEL_HEIGHT: float = 0.003
 ## Every zone and the band's pieces stay inside this rectangle. The home framing shows it whole,
 ## left of the HUD column.
 const BOARD: Rect2 = Rect2(-3.35, -2.4, 6.7, 4.8)
-## Ivory ink printed on the board, like a real mat's zone marks.
+## Ivory ink printed on the board.
 const LABEL_COLOR: Color = Color(ZenithTheme.TEXT, 0.85)
 const LINE_COLOR: Color = Color(0.86, 0.82, 0.74, 0.32)
 
 ## Row zones: marker, slots before cards start overlapping, and per-card scale.
 const ROWS: Dictionary = {
 	&"ally": {"marker": "AllyStart", "slots": 3, "step": 0.5, "direction": -1, "scale": 0.8, "label": "Allies"},
-	&"drill": {"marker": "DrillStart", "slots": 3, "step": 0.5, "scale": 0.8, "label": "Drills"},
-	&"non_combat": {"marker": "NonCombatStart", "slots": 3, "step": 0.5, "scale": 0.8, "label": "Non-Combat"},
+	# `reach` keeps the row clear of the HUD column; `min_step` keeps each card's side clickable.
+	&"drill": {"marker": "DrillStart", "slots": 3, "step": 0.5, "reach": 0.38, "min_step": 0.12, "scale": 0.8, "label": "Drills"},
+	&"non_combat": {"marker": "NonCombatStart", "slots": 3, "step": 0.5, "reach": 0.38, "min_step": 0.12, "scale": 0.8, "label": "Non-Combat"},
 	&"seal": {"marker": "SealStart", "slots": 6, "step": 0.255, "scale": SEAL_SCALE, "label": "Seals"},
 	# Cards kept out by Remain, under the Discard.
 	&"remain": {"marker": "RemainStart", "slots": 2, "step": 0.25, "direction": -1, "scale": 0.4, "label": "Remain"},
@@ -73,8 +65,8 @@ const MASTERY_SCALE: float = 1.38
 ## caption and short of the Relic below.
 const BOSS_PEEK: float = 0.2
 const RELIC_SCALE: float = 0.65       # the Relic with its Reserve
-## Cards in play sit in the centre band between the two duelists, small: the HUD rail shows them at
-## reading size.
+## Cards in play sit on the centre line just past the phase track's end on their owner's side,
+## small: the HUD rail shows them at reading size.
 const RESOLVING_SCALE: float = 0.45
 const LIFE_SCALE: float = 0.85
 const PILE_SCALE: float = 0.55        # Out
@@ -128,15 +120,14 @@ func status_point(player: int) -> Vector3:
 
 
 ## World transform for a card in a zone. `index` and `count` place it within a row or stack.
-## Positions mirror for player 1; every card turns to read upright for `viewer`, as a digital
-## client does, rather than facing its owner as on a physical table.
+## Positions mirror for player 1; every card turns to read upright for `viewer`, not its owner.
 func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer: int = 0) -> Transform3D:
 	var pos: Vector3 = Vector3.ZERO
 	var scale_factor: float = _card_scale(zone)
 	var yaw: float = 0.0
 	if ROWS.has(zone):
 		var row: Dictionary = ROWS[zone]
-		pos = marker(str(row["marker"])) + Vector3(_row_offset(row, index, count), 0.002 * index, 0)
+		pos = marker(str(row["marker"])) + Vector3(_row_offset(row, index, count), ROW_LIFT * index, 0)
 		scale_factor = float(row["scale"])
 	else:
 		match zone:
@@ -144,7 +135,7 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 				pos = marker(str(SINGLES[zone]["marker"])) + Vector3(0, STACK_STEP * index, 0)
 			&"relic":
 				# Index 0 is the Relic, on top; the Reserve fans out under it toward the owner's
-				# edge, inside the outline's padding, so the stack shows cards wait there.
+				# edge, inside the outline's padding.
 				var step: float = minf(RESERVE_PEEK, RESERVE_FAN / float(maxi(1, count - 1)))
 				pos = marker("Relic") + Vector3(0, STACK_STEP * float(count - 1 - index), step * index)
 			&"hand":
@@ -154,8 +145,6 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 			&"resolving":
 				pos = marker("Resolving") + Vector3(0, RESOLVING_LIFT, 0)
 			&"grounds":
-				# The shared field lies sideways on the centre line, on the viewer's left, since
-				# the phase track holds the right.
 				pos = GROUNDS_POS
 				if viewer == 1:
 					pos = Vector3(-pos.x, pos.y, -pos.z)
@@ -168,8 +157,7 @@ func slot(player: int, zone: StringName, index: int = 0, count: int = 1, viewer:
 			_:
 				assert(SINGLES.has(zone), "TableLayout has no zone %s" % zone)
 				pos = marker(str(SINGLES[zone]["marker"]))
-				# A boss power shares the Mastery's spot: it peeks out below the Mastery toward the
-				# owner's edge, the way the Reserve fans under the Relic.
+				# A boss power peeks out below the Mastery toward the owner's edge.
 				if zone == &"mastery" and index > 0:
 					pos += Vector3(0, -STACK_STEP * index, CARD_SIZE.y * MASTERY_SCALE * BOSS_PEEK * index)
 	if player == 1 and zone != &"grounds":
@@ -190,7 +178,7 @@ func set_viewer(viewer: int) -> void:
 			l.position = Vector3(-home.x, home.y, -home.z) if viewer == 1 else home
 
 
-## Empty zones do not compete with playable objects. Counts stay with their physical piles.
+## Hides the captions of empty zones. Piles keep theirs while empty and carry their count.
 func refresh_occupancy(view: SeatView) -> void:
 	for label in _labels:
 		var zone: StringName = label.get_meta("zone")
@@ -213,8 +201,7 @@ func refresh_occupancy(view: SeatView) -> void:
 			&"relic": count = int(p.relic >= 0) + p.reserve.size()
 		label.visible = count > 0 and zone not in [&"duelist", &"resolving", &"life_deck"]
 		label.text = str(label.get_meta("title"))
-		# A pile keeps its caption while empty, so the felt still says what lands there, and
-		# carries its count once it holds cards. The Relic's count is its Reserve.
+		# The Relic's count is its Reserve.
 		if zone in PILES:
 			label.visible = true
 			label.modulate = LABEL_COLOR if count > 0 else Color(LABEL_COLOR, LABEL_COLOR.a * 0.6)
@@ -231,6 +218,9 @@ func refresh_occupancy(view: SeatView) -> void:
 func _row_offset(row: Dictionary, index: int, count: int) -> float:
 	var slots: int = int(row["slots"])
 	var step: float = float(row["step"]) * float(row.get("direction", 1))
+	if row.has("reach"):
+		var spaced: float = float(row["step"]) if count < 2 else minf(float(row["step"]), float(row["reach"]) / float(count - 1))
+		return maxf(spaced, float(row["min_step"])) * float(row.get("direction", 1)) * index
 	if count <= slots:
 		return step * index
 	return step * (slots - 1) * float(index) / float(count - 1)
@@ -245,7 +235,7 @@ func _zone_rect(zone: StringName) -> Rect2:
 	var center: Vector3 = Vector3.ZERO
 	if ROWS.has(zone):
 		var row: Dictionary = ROWS[zone]
-		var span: float = float(row["step"]) * (int(row["slots"]) - 1)
+		var span: float = float(row["reach"]) if row.has("reach") else float(row["step"]) * (int(row["slots"]) - 1)
 		size.x += span
 		center = marker(str(row["marker"])) + Vector3(span * 0.5 * float(row.get("direction", 1)), 0, 0)
 	elif zone == &"grounds":
@@ -253,8 +243,7 @@ func _zone_rect(zone: StringName) -> Rect2:
 		center = GROUNDS_POS
 	else:
 		center = marker(str(SINGLES[zone]["marker"]))
-	# Resolving cards have no felt mark or label. Validate their visible footprint rather than
-	# reserving decorative padding that would falsely overlap the enlarged fighter cards.
+	# Resolving cards have no felt, so their rect is the bare card footprint.
 	if zone != &"resolving":
 		size += Vector2.ONE * _pad(zone) * 2.0
 	var r: Rect2 = Rect2(Vector2(center.x, center.z) - size * 0.5, size)
@@ -299,10 +288,8 @@ func _draw_marks() -> void:
 	for zone in zones:
 		for player in range(2):
 			var r: Rect2 = _zone_rect(zone)
-			# Small inlaid ticks replace the full rectangular zone grid.
 			if zone in PILES:
-				# An empty pile is still a place: its card-sized outline stays on the felt, and
-				# the whole mark, caption included, opens the pile when clicked.
+				# A pile keeps its outline while empty, and its whole mark, caption included, opens it.
 				_add_rect(mesh, _card_rect(zone), player == 1)
 				_add_pick(zone, r, player)
 			elif SINGLES.has(zone) and zone != &"resolving":
@@ -319,6 +306,7 @@ func _draw_marks() -> void:
 		var ghost: Rect2 = Rect2(Vector2(ghost_centre.x, ghost_centre.z) - ghost_size * 0.5, ghost_size)
 		placed.append(ghost)
 		placed.append(_mirrored(ghost))
+	placed.append(PhaseTrack.band_rect())
 	mesh.surface_end()
 	_assert_no_overlap(placed)
 	var lines: MeshInstance3D = MeshInstance3D.new()

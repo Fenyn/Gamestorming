@@ -96,12 +96,12 @@ public partial class DungeonRunSpike : SpikeBase
                 {
                     string notice = dungeon.GetNode<DungeonHud>("%DungeonHud").NoticeText;
                     Check($"after the guardian falls the notice points to the stairs ('{notice}')",
-                        notice == DungeonHud.FloorCompleteNotice && !notice.Contains("doorway"));
+                        notice == dungeon.GetNode<DungeonHud>("%DungeonHud").FloorCompleteNotice && !notice.Contains("doorway"));
                 }
-                var setup = DungeonEncounters.Build(state, guardian, dungeon.CurrentView.Generated,
+                var setup = DungeonEncounters.Build(state, guardian, dungeon.CurrentView,
                     DoorSide.South, data.ResolveCreature, campaign: true);
                 Check($"floor {floor + 1} uses its authored boss roster", setup != null
-                    && setup.Enemies.Count == StationGuardians.ForStratum(floor).Spawns.Sum(s => s.Count));
+                    && setup.Enemies.Count == BossEncounters.ForStratum(floor).Spawns.Sum(s => s.Count));
                 // Completed-floor fixtures isolate stairs from random attrition balance.
                 state.Wardstone.RefillFull();
                 int previousSeed = dungeon.Seed;

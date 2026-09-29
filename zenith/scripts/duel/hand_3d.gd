@@ -16,12 +16,12 @@ const EXPANDED_WIDTH: float = 390.0
 const REVEAL_FRACTION: float = 0.15
 ## The tucked hand shows each card's title band and the top of its art.
 const RESTING_VISIBLE_FRACTION: float = 0.28
-## The open hand shows a little more: enough to pick a card, since the reading face above it
-## carries the detail.
+## The open hand shows a little more; the reading face above it carries the detail.
 const OPEN_VISIBLE_FRACTION: float = 0.55
 ## How much of its height the hovered card rises out of the open fan.
 const HOVER_RISE: float = 0.08
 const AURA: Shader = preload("res://scripts/duel/card_aura.gdshader")
+const GHOST: Shader = preload("res://scripts/duel/card_ghost.gdshader")
 const BORDER_FX: PackedScene = preload("res://scenes/duel/card_border_fx.tscn")
 const HOVER_TINT: Color = ZenithTheme.ACCENT
 const DIM_TINT: Color = Color(0.20, 0.20, 0.20)     # the aura of a card that is not a choice now
@@ -94,7 +94,9 @@ func _ready() -> void:
 	_preview.hide()
 
 
-func set_hand(cards: Array[SeatCard], cache: CardFaceCache, legal: Dictionary, view: SeatView, prompt: PromptView = null) -> void:
+## `ghosts` are the viewer's Remain cards: they stay on the table and are drawn again after the
+## hand cards, faded, so they can be read and used from here. They are never hand cards.
+func set_hand(cards: Array[SeatCard], cache: CardFaceCache, legal: Dictionary, view: SeatView, prompt: PromptView = null, ghosts: Array[SeatCard] = []) -> void:
 	var old_uid: int = int(_items[_hovered]["uid"]) if _hovered >= 0 and _hovered < _items.size() else -1
 	var viewer_changed: bool = _viewer != view.seat
 	var retained: Dictionary = {}
@@ -102,18 +104,22 @@ func set_hand(cards: Array[SeatCard], cache: CardFaceCache, legal: Dictionary, v
 		retained[int(item["uid"])] = item
 	var next_items: Array[Dictionary] = []
 	var created: Array[Dictionary] = []
-	for card in cards:
+	var entries: Array[SeatCard] = cards.duplicate()
+	entries.append_array(ghosts)
+	for i in range(entries.size()):
+		var card: SeatCard = entries[i]
+		var ghost: bool = i >= cards.size()
 		if card.hidden():
 			continue
 		var def: CardDef = Session.library.defs.get(card.def_id)
 		if def == null:
 			continue
 		var item: Dictionary
-		if not viewer_changed and retained.has(card.uid):
+		if not viewer_changed and retained.has(card.uid) and bool(retained[card.uid]["ghost"]) == ghost:
 			item = retained[card.uid]
 			retained.erase(card.uid)
 		else:
-			item = _create_item(card, def, cache, legal)
+			item = _create_item(card, def, cache, legal, ghost)
 			created.append(item)
 		_refresh_item(item, card, def, cache, legal, view, prompt)
 		next_items.append(item)
@@ -147,7 +153,7 @@ func set_hand(cards: Array[SeatCard], cache: CardFaceCache, legal: Dictionary, v
 		hovered.emit(old_uid, true)
 
 
-func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dictionary) -> Dictionary:
+func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dictionary, ghost: bool = false) -> Dictionary:
 	var holder: Node3D = Node3D.new()
 	add_child(holder)
 	var face: Sprite3D = Sprite3D.new()
@@ -156,6 +162,13 @@ func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dic
 	face.no_depth_test = true
 	face.double_sided = false
 	face.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	var chip: Label3D = null
+	if ghost:
+		var spectral: ShaderMaterial = ShaderMaterial.new()
+		spectral.shader = GHOST
+		face.material_override = spectral
+		chip = _label(20, ZenithTheme.ACCENT)
+		holder.add_child(chip)
 	holder.add_child(face)
 	var edge: MeshInstance3D = MeshInstance3D.new()
 	edge.mesh = QuadMesh.new()
@@ -167,7 +180,6 @@ func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dic
 	holder.add_child(edge)
 	var border_fx: Node3D = BORDER_FX.instantiate()
 	holder.add_child(border_fx)
-	# The edge is a slightly enlarged silhouette behind the actual face.
 	var title: Label3D = _label(24, ZenithTheme.TEXT)
 	title.text = card.title
 	title.width = CARD_WIDTH * 2.0 - 12.0
@@ -177,7 +189,7 @@ func _create_item(card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dic
 	holder.add_child(summary)
 	return {"uid": card.uid, "node": holder, "face": face, "edge": edge, "border_fx": border_fx, "effect_tint": ZenithTheme.ACCENT,
 		"title": title, "summary": summary, "legal": legal.has(card.uid), "rect": Rect2(),
-		"target": Vector3.ZERO, "scale": 1.0, "angle": 0.0}
+		"target": Vector3.ZERO, "scale": 1.0, "angle": 0.0, "ghost": ghost, "chip": chip}
 
 
 func _refresh_item(item: Dictionary, card: SeatCard, def: CardDef, cache: CardFaceCache, legal: Dictionary, view: SeatView, prompt: PromptView) -> void:
@@ -191,7 +203,12 @@ func _refresh_item(item: Dictionary, card: SeatCard, def: CardDef, cache: CardFa
 				break
 			if option.type in [&"attack", &"final_strike"]:
 				item["effect_tint"] = ZenithTheme.ATTACK
-	(item["face"] as Sprite3D).texture = cache.face(def, card.aspect, CardFace.NO_BACKDROP, card.owner)
+	var face: Sprite3D = item["face"]
+	face.texture = cache.face(def, card.aspect, CardFace.NO_BACKDROP, card.owner)
+	if bool(item["ghost"]):
+		(face.material_override as ShaderMaterial).set_shader_parameter("face_texture", face.texture)
+		# 99 uses stands for "for the rest of this Combat".
+		(item["chip"] as Label3D).text = "REMAIN" if card.remain >= 99 else "REMAIN %d" % card.remain
 	(item["title"] as Label3D).text = card.title
 	item["title_text"] = card.title
 	var aura: ShaderMaterial = (item["edge"] as MeshInstance3D).material_override
@@ -253,9 +270,10 @@ func remove_uid(uid: int) -> void:
 			return
 
 
+## A ghost has none: its card leaves from its place on the table.
 func world_card_transform(uid: int) -> Variant:
 	for item in _items:
-		if int(item["uid"]) == uid:
+		if int(item["uid"]) == uid and not bool(item["ghost"]):
 			var node: Node3D = item["node"]
 			var face: Sprite3D = item["face"]
 			var factor: float = face.pixel_size * FACE_SIZE.x * node.scale.x / TableLayout.CARD_SIZE.x
@@ -269,6 +287,7 @@ func receive_card(card: SeatCard, cache: CardFaceCache, view: SeatView, from: Ve
 	if card == null or card.hidden():
 		return
 	var cards: Array[SeatCard] = []
+	var ghosts: Array[SeatCard] = []
 	var poses: Dictionary = {}
 	for item in _items:
 		var uid: int = int(item["uid"])
@@ -276,10 +295,13 @@ func receive_card(card: SeatCard, cache: CardFaceCache, view: SeatView, from: Ve
 			return
 		var existing: SeatCard = view.card(uid)
 		if existing != null and not existing.hidden():
-			cards.append(existing)
+			if bool(item["ghost"]):
+				ghosts.append(existing)
+			else:
+				cards.append(existing)
 			poses[uid] = (item["node"] as Node3D).transform
 	cards.append(card)
-	set_hand(cards, cache, {}, view)
+	set_hand(cards, cache, {}, view, null, ghosts)
 	for item in _items:
 		var node: Node3D = item["node"]
 		var uid: int = int(item["uid"])
@@ -327,8 +349,7 @@ func _layout(snap: bool = false) -> void:
 	_expanded_rect = Rect2()
 	_handoff_rect = Rect2()
 	_preview.hide()
-	# The open fan rises over the lower table, the player's readout included, while it is held
-	# open. The tucked hand uses the same size so tucking is a pure drop.
+	# The tucked and open hand share one card size, so tucking is a pure drop.
 	var width: float = minf(CARD_WIDTH, _size.x * WIDTH_FRACTION)
 	var height: float = width * FACE_SIZE.y / FACE_SIZE.x
 	var band: float = minf(minf(_size.x * 0.53, 1040.0), 2.0 * (_size.x * (1.0 - FAN_CENTRE) - rail_clear - PREVIEW_MARGIN))
@@ -350,8 +371,7 @@ func _layout(snap: bool = false) -> void:
 		var node: Node3D = item["node"]
 		node.visible = i >= first and i < first + count
 		var over: bool = revealed and i == _hovered
-		# Tucked or open, it is the same fan: playable cards keep their rim and sparks, only the
-		# hover highlight needs the hand open.
+		# Playable cards keep their rim and sparks while tucked; only the hover needs the hand open.
 		var lit: bool = visible and node.visible and (over or (enabled and bool(item["legal"])))
 		var effect_tint: Color = HOVER_TINT if over else (item["effect_tint"] as Color)
 		var border_fx: Node3D = item["border_fx"]
@@ -371,7 +391,6 @@ func _layout(snap: bool = false) -> void:
 			center.y -= height * HOVER_RISE
 		item["rect"] = Rect2(center - Vector2(width, height) * 0.5, Vector2(width, height)) if revealed else Rect2()
 		if not revealed:
-			# A shallow strip of real card tops advertises the tucked hand.
 			center.y = _size.y + height * (0.5 - RESTING_VISIBLE_FRACTION) + absf(offset) * 5.0
 		if asks_hand and bool(item["legal"]) and not over:
 			center.y -= _legal_lift(center, width, height, lift)
@@ -384,14 +403,24 @@ func _layout(snap: bool = false) -> void:
 		var face: Sprite3D = item["face"]
 		face.pixel_size = width / FACE_SIZE.x * units
 		face.render_priority = 30 if over else 10 + i % _per_page
-		# A card the pending prompt has no option for greys out, so the hand says what this phase
-		# will take without being read card by card. While the decision is not ours there is no
-		# option list to judge against, so the whole hand stays in colour.
+		# A card the prompt has no option for greys out. While the decision is not the viewer's
+		# there is no option list, so the whole hand stays in colour.
 		var dulled: bool = enabled and not over and not bool(item["legal"])
 		face.modulate = DULL_FACE if dulled else Color.WHITE
+		if bool(item["ghost"]):
+			var spectral: ShaderMaterial = face.material_override
+			spectral.render_priority = face.render_priority
+			spectral.set_shader_parameter("dim", 1.0 if dulled else 0.0)
+			spectral.set_shader_parameter("motion", 0.0 if reduced_motion else 1.0)
+			var chip: Label3D = item["chip"]
+			chip.render_priority = face.render_priority + 1
+			chip.pixel_size = units * 0.5
+			chip.modulate = ZenithTheme.MUTED if dulled else ZenithTheme.ACCENT
+			# Over the top of the art, inside the strip the tucked hand still shows.
+			chip.position = Vector3(0, height * units * 0.30, 0.006)
 		var edge: MeshInstance3D = item["edge"]
-		# The rim sits on the card's own edge, which follows the hand's actual size rather than
-		# the shader's nominal card, so a narrow viewport keeps the filament on the border.
+		# The rim follows the hand's drawn size, not the shader's nominal card, so a narrow
+		# viewport keeps the filament on the border.
 		var world: Vector2 = Vector2(width, height) * units
 		(edge.mesh as QuadMesh).size = world * 1.10
 		aura.set_shader_parameter("plane_size", world * 1.10)
@@ -419,15 +448,14 @@ func _layout(snap: bool = false) -> void:
 	var pages: int = maxi(1, ceili(float(_items.size()) / _per_page))
 	_hint.text = "H · browse hand   Right-click · inspect" if pages == 1 else "Hand %d / %d   Wheel · browse   H · select" % [_page + 1, pages]
 	if not revealed:
-		_hint.text = "Hand %d  |  H" % _items.size()
+		_hint.text = "Hand %d  |  H" % hand_count()
 	_hint.pixel_size = units * 0.5
 	_hint.position = _camera.to_local(_camera.project_position(Vector2(_size.x * FAN_CENTRE, _size.y - 15.0), DEPTH - 0.25))
 	_hint.visible = revealed and not _items.is_empty() and _hovered < 0
 
 
-## The source card stays in its fan slot for direct pointer tracking. A separate face stands
-## directly above it, over the field, so the rest of the hand stays uncovered. Every card in a
-## given viewport gets the same preview size and baseline.
+## The hovered card stays in its fan slot for pointer tracking; a separate face stands above it,
+## the same size and baseline for every card in a viewport.
 func _layout_preview(item: Dictionary, width: float, height: float, units: float) -> void:
 	var source: Rect2 = item["rect"]
 	var s: float = _size.y / 1080.0
@@ -486,6 +514,30 @@ func _units_per_pixel() -> float:
 	var a: Vector3 = _camera.project_position(Vector2.ZERO, DEPTH)
 	var b: Vector3 = _camera.project_position(Vector2(1, 0), DEPTH)
 	return a.distance_to(b)
+
+
+## Hand cards only, without the Remain ghosts.
+func hand_count() -> int:
+	var count: int = 0
+	for item in _items:
+		if not bool(item["ghost"]):
+			count += 1
+	return count
+
+
+## A hand card or a Remain ghost with this uid is in the fan.
+func has_uid(uid: int) -> bool:
+	for item in _items:
+		if int(item["uid"]) == uid:
+			return true
+	return false
+
+
+func is_ghost(uid: int) -> bool:
+	for item in _items:
+		if int(item["uid"]) == uid:
+			return bool(item["ghost"])
+	return false
 
 
 ## The uid of the hand card the pointer or keyboard is on, -1 for none.

@@ -1,9 +1,7 @@
 class_name DuelistReadout
 extends Control
-## What prints on the board around the duelist card (`DuelistDisplay`): the Aspect past the
-## card's outer edge (with the lives in a duel played to more than one point), the rival's hand
-## fan, the Seal sets and the status chips, and online the rival's tab. The canvas lies on the
-## table centred on the card. Energy, Might and Fervor are on the card itself (`StatusMarkers`).
+## The canvas printed on the board around the duelist card (`DuelistDisplay`), centred on it: the
+## Aspect and lives, the rival's hand fan, Seal sets, status chips and the rival's online tab.
 
 signal redraw_requested
 
@@ -13,30 +11,25 @@ const TEXT: Color = ZenithTheme.TEXT
 const MUTED: Color = ZenithTheme.TEXT_SOFT
 const IVORY: Color = ZenithTheme.ACCENT
 const STATUS: Color = ZenithTheme.WARN
-## Baseline of the Aspect caption past the duelist card's outer edge, in canvas pixels. Clear of
-## the Fervor and control tabs that reach past the card's edges.
+## Aspect caption baseline past the card's outer edge, in canvas pixels, clear of the edge tabs.
 const ASPECT_GAP: float = 46.0
 const CAPTION_WIDTH: float = 220.0
 const CAPTION_FONT: int = 30
 ## The width the status spot's chips run across, from its left end.
 const STATUS_WIDTH: float = 540.0
-## Status lines print in three rows along the seat's Ally row, or in two at the status spot while
-## an Ally holds the row.
+## Chip rows along the empty Ally row, or at the status spot while an Ally holds it.
 const FLAG_ROWS_HOME: int = 3
 const FLAG_ROWS_BESIDE: int = 2
 ## The rival's hand fan, at the status spot's left end, the status lines beside it.
 const FAN_SIZE: Vector2 = Vector2(205, 190)
 const FAN_GAP: float = 16.0
-## Status flags are chips, one row step apart.
 const CHIP_FONT: int = 32
 const CHIP_PAD: float = 12.0
 const CHIP_GAP: float = 10.0
 const LIFE_RED: Color = Color(0.93, 0.36, 0.36)
 const HEART_STEP: float = 32.0
-## Online, the rival's tab past their Aspect caption. BANK reads "Time bank 0:48" while they spend
-## their bank, AWAY "Disconnected 1:16" while their connection is down; NONE, while they decide on
-## their timer or not at all, draws nothing, since the decision panel already says it waits on
-## them. Fixed size and type, whatever the name.
+## The rival's online tab past their Aspect caption: BANK ("Time bank 0:48"), AWAY
+## ("Disconnected 1:16"), or NONE, which draws nothing.
 enum Tab { NONE, BANK, AWAY }
 const TAB_SIZE: Vector2 = Vector2(440, 54)
 const TAB_FONT: int = 44
@@ -60,9 +53,8 @@ var status_home: Vector2 = Vector2.ZERO:
 		status_home = value
 		update_layout()
 		request_redraw()
-## The seat's Ally row in canvas pixels (left edge, row centre line, width; height unused). While
-## the seat has no Ally in play the status chips and Seal sets print there, out of the way; with
-## an Ally in the row they fall back to the status spot. Zero width until the display sets it.
+## The seat's Ally row in canvas pixels (left edge, centre line, width; height unused), where chips
+## and Seals print while it is empty. Zero width until the display sets it.
 var flag_home: Rect2 = Rect2():
 	set(value):
 		if flag_home.is_equal_approx(value):
@@ -204,8 +196,7 @@ func _fan_rect() -> Rect2:
 	return Rect2(Vector2(status_home.x - STATUS_WIDTH * 0.5, status_home.y - FAN_SIZE.y * 0.5), FAN_SIZE)
 
 
-## The Aspect caption past the duelist card's outer edge: under the near card, over the far one,
-## since the two cards meet at the centre line. The lives ride on its right when shown.
+## The Aspect caption: under the near card, over the far one, with the lives on its right.
 func caption_rect() -> Rect2:
 	var width: float = CAPTION_WIDTH + (HEART_STEP * float(_lives) if _show_lives else 0.0)
 	var baseline: float = duelist_bounds.position.y - ASPECT_GAP + 22.0 if _player_index != _viewer else duelist_bounds.end.y + ASPECT_GAP
@@ -372,7 +363,7 @@ func _draw_opponent_hand(origin: Vector2) -> void:
 func _draw_seals(baseline: float, middle_x: float = 0.0, width: float = 690.0) -> void:
 	var set_ids: Array = _seal_sets.keys()
 	set_ids.sort()
-	# Each set gets its own count. Never add unrelated sets into one victory track.
+	# Each set gets its own count.
 	if set_ids.size() > 1:
 		var parts: PackedStringArray = PackedStringArray()
 		for set_id in set_ids:
@@ -394,8 +385,7 @@ func _draw_seals(baseline: float, middle_x: float = 0.0, width: float = 690.0) -
 			draw_rect(box, Color(IVORY, 0.45), false, 2.0)
 
 
-## The rival's tab (`Tab`): what it is, its whole line ("Time bank 0:48"), and whether it warns.
-## Redraws only when one of them changes.
+## Redraws only when the tab's kind, line or warning changes.
 func set_tab(kind: Tab, text: String, warn: bool) -> void:
 	var shown: String = text if kind != Tab.NONE else ""
 	var warns: bool = warn and kind != Tab.NONE
@@ -420,7 +410,6 @@ func tab_warns() -> bool:
 	return _tab_warn
 
 
-## Where the tab sits: centred on the card, past the Aspect caption on the card's outer side.
 func tab_rect() -> Rect2:
 	var caption: Rect2 = caption_rect()
 	var y: float = caption.position.y - TAB_GAP - TAB_SIZE.y if _player_index != _viewer else caption.end.y + TAB_GAP
@@ -500,7 +489,7 @@ func _row_width(row: PackedStringArray) -> float:
 	return total
 
 
-## One row of status chips on `baseline`: dark fill, a warning-coloured rule, the flag inside.
+## One row of status chips on `baseline`.
 func _draw_chip_row(row: PackedStringArray, left: float, baseline: float, width: float, centred: bool) -> void:
 	var x: float = left + (width - _row_width(row)) * 0.5 if centred else left
 	for flag in row:

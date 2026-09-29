@@ -30,7 +30,7 @@ public partial class DungeonDirector
         var camera = _camera.Camera;
         var world = CurrentView.ToGlobal(CurrentView.DoorPosition(shown) + Vector3.Up * DoorTipHeight);
         if (camera.IsPositionBehind(world)) { _hud.HideDoorTip(); return; }
-        _hud.ShowDoorTip(DoorTips.For(destination, State.Wardstone, pending), camera.UnprojectPosition(world) + DoorTipOffset);
+        _hud.ShowDoorTip(DoorTips.For(destination, State.Wardstone, pending, Words), camera.UnprojectPosition(world) + DoorTipOffset);
     }
 
     /// <summary>Tab cycles the doors, an arrow picks the door that way on screen, Enter travels.</summary>

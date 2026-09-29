@@ -66,7 +66,7 @@ func set_tab(kind: DuelistReadout.Tab, text: String, warn: bool) -> void:
 		readout.set_tab(kind, text, warn)
 
 
-## The count reacts at the pile the card just left, keeping the visual loss tied to its source.
+## Flashes and pops the Life count for a card lost from the pile.
 func pulse_life_loss() -> void:
 	if _life_pulse != null:
 		_life_pulse.kill()
@@ -82,11 +82,9 @@ func status_text() -> String:
 	return readout.status_text() if is_node_ready() else ""
 
 
-## Lay the fixture out around the card where it rests on the table (its hover lift is ignored, so
-## nothing printed slides). Only which end of the table the camera sits at matters: everything
-## reads the right way up for that side.
+## Lays the fixture out around the card at rest (hover lift ignored), upright for whichever end of
+## the table the camera sits at. A no-op until an input changes.
 func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
-	# Static fixtures retain their texture and layout until the card, the pile or the side moves.
 	var toward: float = 1.0 if camera.global_position.z >= 0.0 else -1.0
 	var inputs: Array = [global_transform, card.global_transform, life_transform, flag_row, status_home, toward]
 	if inputs == _anchor_inputs:
@@ -119,12 +117,9 @@ func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
 		var inner: Vector2 = _canvas_point(flag_row[0])
 		var outer: Vector2 = _canvas_point(flag_row[1])
 		readout.flag_home = Rect2(Vector2(minf(inner.x, outer.x), inner.y), Vector2(absf(outer.x - inner.x), 0.0))
-	# Expand the transparent canvas as the cluster grows; fixed textures clip wide zooms.
 	for rect: Rect2 in readout.stat_hit_rects:
 		bounds = bounds.merge(rect)
-	# The status chips' home is covered whether or not anything is printed there yet: the canvas
-	# only regrows when the card moves, and a first chip or Seal arrives without that. The same
-	# goes for the rival's tab, which comes and goes with their clock.
+	# Covered even while empty: the canvas regrows only when the card moves.
 	if readout.flag_home.size.x > 0.0:
 		bounds = bounds.merge(readout.flag_home_area())
 	bounds = bounds.merge(readout.tab_rect())
@@ -167,7 +162,7 @@ func peek_screen(slot: int, camera: Camera3D) -> Variant:
 	return camera.unproject_position(_world_point(local as Vector2))
 
 
-## Only the printed regions are interactive. The center belongs to the actual card.
+## Only the printed regions are interactive; the centre belongs to the card.
 func hit_test(point: Vector2, camera: Camera3D) -> bool:
 	if camera.is_position_behind(global_position):
 		return false

@@ -196,7 +196,7 @@ public partial class RunDirector : Node
             wardRules: UseDungeonMap ? new WardstoneRules { NodeBurn = _dungeon!.CrossingBurn } : null, unlocks: _unlocks);
         if (UseDungeonMap)
         {
-            _ = PlayRunTransition("Leaving the outpost\nFind the guardian in the ward chamber.", StartDungeonFloor, holdForInput: true);
+            _ = PlayRunTransition(Delve.Dungeon.CrawlWordsTable.For(Delve.Data.FloorThemes.ForStratum(0).Id).ArrivalCaption, StartDungeonFloor, holdForInput: true);
             return;
         }
         GD.Print($"[RunDirector] run seed {seed}, party level {StartLevel}, {_state.Map.Floors} floors.");

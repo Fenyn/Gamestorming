@@ -52,11 +52,8 @@ const TRAY_COLUMNS: int = 6          # cards per row before the tray wraps
 const TRAY_ROWS_SHOWN: int = 2       # rows before the tray scrolls
 const PILE_ROWS_SHOWN: int = 3       # a browsed pile is only read, so it may be taller
 const FOCUS_CAPTION_HEIGHT: float = 32.0
-## The response stack laid over the pinned attack, inside the Focus rect. A response is drawn at
-## this share of the Focus face, and each level steps up and to the left with a small alternating
-## tilt, so the newest card is wholly in view and the one under it still shows its caption strip.
-## The stack never needs room of its own, so a decision column can open with the state still up.
-## The card narrows with the column, so the steps are shares of its width.
+## The response stack over the pinned attack, inside the Focus rect. Scale and steps are shares of
+## the Focus card's width, which narrows with the column.
 const STACK_SCALE: float = 0.8
 const STACK_STEP: Vector2 = Vector2(-0.065, -0.085)
 const STACK_INSET: float = 0.04
@@ -67,9 +64,8 @@ const STACK_LEAVE: float = 0.25        # how long a resolved response takes to l
 ## Meta on a face the pending list put on the stack, so a later refresh knows which faces are its
 ## own to take off again and which a replay beat owns.
 const PENDING_KEY: StringName = &"pending_key"
-## The filament from the pinned card to its target on the table. It is the 2D reading of the same
-## cue `DuelFx.show_attack_link` draws between the two cards: one bowed thread in the attack
-## colour, a transverse cap when the attack is stopped and a second chevron once it has landed.
+## The filament from the pinned card to its target on the table, the 2D twin of
+## `DuelFx.show_attack_link`.
 const FILAMENT_SAMPLES: int = 24
 const FILAMENT_BOW: float = 0.09          # side offset of the curve, as a share of its own length
 const FILAMENT_TAIL: float = 8.0          # gap between the card's edge and the start of the thread
@@ -79,11 +75,8 @@ const FILAMENT_CAP: float = 13.0          # half-width of the transverse cap on 
 const CARD_FACE: PackedScene = preload("res://scenes/duel/card_face.tscn")
 const CARD_ASPECT: float = 716.0 / 512.0
 const DECISION_GAP: float = 10.0
-## The column on the right edge, GUTTER in from it and RAIL_WIDTH across. The card a decision is
-## about has one home at its top, RAIL_CARD_WIDTH wide from RAIL_TOP, its caption strip under it.
-## The decision frame's top stands DECISION_GAP under that home (`panel_top`), whether or not a card
-## is showing, so the frame never hops; it grows down with what it says, and a list that would
-## pass GUTTER short of the screen's bottom edge scrolls instead.
+## The right-edge rail. The decision frame's top stands DECISION_GAP under the card's home
+## (`panel_top`) whether or not a card is showing, and scrolls once it would pass GUTTER from the bottom.
 const GUTTER: float = 18.0
 const RAIL_TOP: float = 74.0
 const RAIL_WIDTH: float = 400.0
@@ -99,10 +92,9 @@ const HISTORY_THUMB: Vector2 = Vector2(48, 67)
 const HISTORY_TIP_GAP: float = 8.0
 const HISTORY_OLD_ALPHA: float = 0.82
 const ACTION_HEIGHT: float = 48.0
-const SINGLE_ACTION_HEIGHT: float = 56.0   # a lone action is the whole decision, so it stands taller
+const SINGLE_ACTION_HEIGHT: float = 56.0
 const DECISION_RESULT_HEIGHT: float = 30.0   # one line at the body size
-## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand:
-## the decision is about the cards themselves, as in a discard-step keep or a Reserve swap.
+## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand.
 const TRAY_KINDS: Array[StringName] = [&"reserve", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card", &"pick_discard"]
 ## Tray captions by option type; anything else shows the option's own label.
 const TRAY_VERBS: Dictionary = {
@@ -114,11 +106,8 @@ const TRAY_VERBS: Dictionary = {
 const TRAY_WHO: String = "YOUR DECISION"
 ## The over-bright flash a face takes for a beat that happened on it, bone rather than warm.
 const PULSE_BRIGHT: Color = Color(1.6, 1.58, 1.5, 1)
-## The beat banner laid across the ring between the duelists. One home for every beat: a
-## hand-over (Combat opens, the exchange changes hands, a turn starts) sweeps in, an outcome (a
-## hit, a stop, a wound) pops, and a quiet beat (a pass, a window that opened on nothing) is a
-## thin translucent line that never cuts short a louder banner still being read. Each tier stops
-## short of the phase track's notches either side of the ring.
+## The beat banner across the ring. A hand-over sweeps in, an outcome pops, and a quiet line never
+## cuts short a louder banner. Widths stop short of the phase track's notches either side of the ring.
 enum Banner { HANDOVER, OUTCOME, QUIET }
 const BANNER_HOLD: Array[float] = [1.4, 1.1, 0.6]
 const BANNER_HEIGHT: Array[float] = [72.0, 60.0, 40.0]
@@ -131,8 +120,7 @@ const BANNER_POP: float = 0.16
 const BANNER_FADE: float = 0.25
 ## A quiet line waits behind a louder banner until that one has been up this long.
 const BANNER_MIN_READ: float = 0.6
-## The label one lone non-card action carries, by prompt kind then option type. A single button is
-## the whole decision, so it says what happens rather than naming the rule it comes from.
+## The label a lone non-card action carries, by option type; ACTION_LABELS_BY_KIND overrides by prompt kind.
 const ACTION_LABELS: Dictionary = {
 	&"pass": "Pass", &"no_defense": "No Defense", &"decline": "Let it resolve", &"done": "Done",
 	&"no_endure": "Take the wound", &"declare": "Declare Combat",
@@ -140,10 +128,7 @@ const ACTION_LABELS: Dictionary = {
 const ACTION_LABELS_BY_KIND: Dictionary = {
 	&"combat_end": {&"done": "End Combat"}, &"declare": {&"skip": "No Combat"},
 }
-## Only explicit batch confirmation gets a filled accent. Routine alternatives stay equal.
-## Prompt kinds answered by the buttons in the panel even though their options name a card. An
-## Endurance choice is a yes or no about one card that is already in a pile, so hunting for it on
-## the table to click it is the wrong way to ask.
+## Prompt kinds answered by panel buttons even though their options name a card.
 const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 ## The confirm button of each options-menu item that asks first.
 const MENU_VERBS: Dictionary = {&"concede": "Concede", &"concede_match": "Concede", &"rematch": "Rematch", &"leave": "Back to title"}
@@ -368,7 +353,6 @@ var _match_replay: bool = false
 func _ready() -> void:
 	root.theme = SanctumUI.theme()
 	reduced_motion_toggle.toggled.connect(func(on: bool) -> void: reduced_motion_changed.emit(on))
-	# The decision column is a framed plate too, so its text never sits bare on the courtyard.
 	prompt_panel.add_theme_stylebox_override("panel", MapArt.panel_box(PROMPT_PAD, FRAME_TINT))
 	prompt_panel.minimum_size_changed.connect(_stand_prompt)
 	prompt_panel.visibility_changed.connect(_stand_prompt)
@@ -377,11 +361,9 @@ func _ready() -> void:
 	history.add_theme_stylebox_override("panel", ZenithTheme.box(Color(ZenithTheme.BG, 0.72), ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, 6, 6))
 	history_tip.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG, ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, 12, 8))
 	history_open.pressed.connect(func() -> void: set_log_expanded(not _log_expanded))
-	# The inspect hint sits on a small framed panel instead of floating over the table.
 	var inspect_hint: Label = $Root/Inspect/Center/Column/Hint
 	inspect_hint.add_theme_stylebox_override("normal", ZenithTheme.panel(24))
 	inspect_hint.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	# The caption under the focus card lands on whatever the table has there, so it gets a plate.
 	focus_caption.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.BG, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 6, 0))
 	table = get_parent()
 	for scrim: ColorRect in [tray, pile, modal]:
@@ -424,7 +406,6 @@ func _ready() -> void:
 	fullscreen_toggle.toggled.connect(func(on: bool) -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if on else DisplayServer.WINDOW_MODE_WINDOWED))
 	dev_panel.command.connect(func(effect: Dictionary) -> void: dev_command.emit(effect))
-	# A transport strip rather than a framed dialog: the flat panel's fill and 1 px edge, tight.
 	replay_bar.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG, ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, ZenithTheme.GAP_XS, ZenithTheme.GAP_XS))
 	replay_back.pressed.connect(func() -> void: replay_command.emit(&"back", 0))
 	replay_play.pressed.connect(func() -> void: replay_command.emit(&"play", 0))
@@ -441,12 +422,8 @@ func _ready() -> void:
 	_compact_prompt()
 
 
-## One bounded column: a real card, the decision and its consequence, then offered controls.
-## Printed identity and rules remain on the face. The question and terse instruction stay visible
-## because a readable card is not enough to say what input the game is waiting for.
 func _compact_prompt() -> void:
-	# The owner line is only ever "YOUR MOVE": a waiting panel's title already names who decides. A
-	# replay says whose decision it was and how it went, so it keeps both lines.
+	# A waiting panel's title already names who decides; a replay keeps both lines.
 	prompt_who.visible = (_current_prompt != null or _match_replay) and not prompt_who.text.is_empty()
 	prompt_title.visible = _current_prompt != null or not focus.visible
 	prompt_hint.visible = (_current_prompt != null or _match_replay) and not prompt_hint.text.is_empty()
@@ -499,12 +476,10 @@ func _place_focus() -> void:
 	focus.offset_top = rail_top()
 	focus.offset_bottom = focus.offset_top + _slot_height()
 	focus_face.scale = Vector2.ONE * RAIL_CARD_WIDTH / 512.0
-	# The response stack lives inside the Focus rect, so it costs the decision column nothing.
 	_layout_stack()
 
 
-## The action list's height. The frame hangs from its top edge and grows down to fit, so its
-## question never moves; a list that would push the frame past its floor scrolls instead.
+## The action list's height; a list that would push the frame past its floor scrolls.
 func _fit_actions() -> void:
 	if _fitting_actions or actions_scroll == null:
 		return
@@ -518,8 +493,7 @@ func _fit_actions() -> void:
 	_stand_prompt()
 
 
-## The frame hangs from its top edge at exactly its content's height. Set outright, because a
-## Control only grows to its minimum on its own, and a hidden one misses the change entirely.
+## Set outright: a Control only grows to its minimum on its own, and a hidden one misses the change.
 func _stand_prompt() -> void:
 	prompt_panel.offset_top = panel_top()
 	prompt_panel.offset_bottom = prompt_panel.offset_top + prompt_panel.get_combined_minimum_size().y
@@ -695,9 +669,8 @@ static func result_buttons(state: ResultState, mode: Mode, can_rematch: bool, fa
 
 
 ## Sets every node of the result card, and the series chip, for `state` from `facts`, reading what
-## to show from `RESULT_NODES`, `result_texts` and `result_buttons`. The table calls it again from
-## every fact it hears, so the card always says what the facts now say. Entering a result from
-## NONE clears the decision, the hand and the clocks. `facts`:
+## to show from `RESULT_NODES`, `result_texts` and `result_buttons`. Entering a result from NONE
+## clears the decision, the hand and the clocks. `facts`:
 ## - viewer: the seat at this table, -1 in hotseat; names: both seats' names; winner: the seat that
 ##   won the duel or game, -1 for none; reason: how it ended, a server word (see `OFF_RULES`) or a
 ##   rules one; rules_text: offline, the line for a rules finish.
@@ -723,8 +696,7 @@ func apply_result(state: ResultState, facts: Dictionary = {}) -> void:
 		var text: String = str(texts[pair[0]])
 		if label.text != text:
 			label.text = text
-		# The note keeps its line in every state that can say one, so a line arriving later (a
-		# rematch asked for, the rival leaving) does not move the card.
+		# The note keeps its line even when empty, so a later note does not move the card.
 		label.visible = shown.has(pair[0]) and (text != "" or label == game_over_note)
 	var buttons: Dictionary = result_buttons(state, _mode, _can_rematch, facts)
 	_button_actions.clear()
@@ -859,8 +831,7 @@ func _read_filament(view: SeatView) -> void:
 		_filament_target = int(item.get("target", -1))
 		_filament_uid = int(item.get("uid", -1))
 		break
-	# A trigger anchored in the slot without being the engine's `current` job still aims somewhere,
-	# and the thread is the only thing that says where. No target anywhere means no thread.
+	# An anchored trigger that is not the engine's `current` job still aims somewhere.
 	if _filament_target < 0 and _anchor_target >= 0:
 		_filament_target = _anchor_target
 		_filament_uid = _anchor_uid
@@ -872,11 +843,8 @@ func _read_filament(view: SeatView) -> void:
 		_filament_state = &"pending"
 
 
-## `SeatView.pending` drives the Focus slot and the stack laid over it, so everything waiting to
-## resolve is one pile on the right rather than a second column somewhere else. The anchor is the
-## declared attack when there is one and otherwise whatever resolves first; every other job is a
-## face stacked over it with the one resolving next on top. A `wounds` job is the attack's own loop
-## rather than a card, so it is a line on the anchor's caption instead of a face of its own.
+## `SeatView.pending` drives the Focus slot and its stack. The anchor is the declared attack, else the
+## first job; the rest stack over it, next to resolve on top. A `wounds` job is a caption line, not a face.
 func _reconcile_pending(view: SeatView, live: Dictionary) -> void:
 	var queued: Array[Dictionary] = []
 	var wounds: String = ""
@@ -897,8 +865,7 @@ func _reconcile_pending(view: SeatView, live: Dictionary) -> void:
 	if anchor < 0 and not queued.is_empty():
 		anchor = 0
 	var attacker: int = int(live.get("attacker", view.attacker))
-	# A declared attack pinned by the replay, or the card an open decision is about, owns the slot
-	# and its own caption. Anything this HUD anchored itself is ours to move on or take away.
+	# A replay pin or the open decision's card owns the slot; only a HUD-anchored item is ours to move.
 	var borrowed: bool = focus.visible and _pending_anchor.is_empty()
 	var anchor_uid: int = -1
 	if borrowed:
@@ -931,8 +898,7 @@ func _anchor_pending(view: SeatView, item: Dictionary, attacker: int) -> bool:
 	var tint: Color = ZenithTheme.ATTACK if attacker >= 0 and owner == attacker else ZenithTheme.DEFEND
 	var key: String = _pending_key(item, 0)
 	if key == _pending_anchor and focus.visible:
-		# Already the face in the slot. Only the caption can have moved on, and redrawing the card
-		# every beat would restart the face for nothing.
+		# Already in the slot: only the caption can have moved on.
 		set_focus_caption(_pending_caption(item), tint)
 		_pending_anchor = key
 		return true
@@ -957,7 +923,7 @@ func _pending_caption(item: Dictionary) -> String:
 	return note if not note.is_empty() else "Resolving"
 
 
-## The caption strip a stacked pending job carries. One word, because the face under it says the rest.
+## The caption strip a stacked pending job carries.
 func _pending_strip(kind: StringName, item: Dictionary) -> String:
 	match kind:
 		&"hidden":
@@ -1134,7 +1100,7 @@ func toast(text: String, color: Color) -> void:
 	show_banner(text, color, Banner.OUTCOME)
 
 
-## A skipped or passed window still gets a beat, so nothing resolves silently.
+## The beat for a skipped or passed window.
 func quiet_beat(text: String, color: Color) -> void:
 	show_banner(text, color, Banner.QUIET)
 
@@ -1150,8 +1116,7 @@ func _banner_age() -> float:
 	return float(Time.get_ticks_msec() - _banner_since) / 1000.0 * Engine.time_scale
 
 
-## The banner's home is the middle of the table, between the two duelists, wherever the camera
-## puts that on screen. It sits in the gap the painted ring marks and never covers the rail.
+## The table's centre on screen, clamped clear of the rail.
 func _place_banner() -> void:
 	var centre: Vector2 = root.size * 0.5
 	if table != null and table.has_method("table_centre_screen"):
@@ -1270,9 +1235,8 @@ func _show_history_tip(thumb: Control, text: String) -> void:
 
 ## Where each option of a prompt is offered. Four buckets: `primary` buttons in the side panel,
 ## `browse` tiles in the tray, `finals` behind the Final Strike button, and `click` for options
-## the player takes on the card itself, wherever it is drawn. An option in `click` is only
-## reachable if the table actually draws that card, so `tests/prompt_reach_tests.gd` checks
-## every one of them against the client's own layout. Pure: it reads the views and nothing else.
+## the player takes on the card itself. A `click` option is reachable only if the table draws that
+## card; `tests/prompt_reach_tests.gd` checks each. Pure: it reads the views and nothing else.
 func routes(p: PromptView, view: SeatView) -> Dictionary:
 	var browse: Array[OptionView] = []
 	var primary: Array[OptionView] = []
@@ -1282,8 +1246,7 @@ func routes(p: PromptView, view: SeatView) -> Dictionary:
 		if opt.type == &"final_strike":
 			finals.append(opt)
 		elif opt.type == &"pick_option" and opt.card < 0:
-			# A choice between wordings rather than cards ("all their Allies or all their Drills").
-			# It reads as a card-sized tile in the tray, not as a row of small buttons.
+			# A choice between wordings rather than cards, shown as card-sized tray tiles.
 			browse.append(opt)
 		elif BUTTON_KINDS.has(p.kind) or (opt.card < 0 and opt.type != &"name_card"):
 			primary.append(opt)
@@ -1295,35 +1258,28 @@ func routes(p: PromptView, view: SeatView) -> Dictionary:
 
 
 func show_prompt(p: PromptView, view: SeatView) -> void:
-	hide_pile()   # a decision arrived; the browser is not what the player needs to be looking at
+	hide_pile()
 	prompt_panel.show()
 	_center_prompt_text(false)
 	_view = view
 	_current_prompt = p
 	_owner_marks = CardText.option_side_marks(p, _viewer_seat)
-	# The frame's place on the rail already says the move is ours; the owner line is for waiting.
+	# The owner line is only for a waiting panel.
 	prompt_who.text = ""
 	_who_color = SeatColors.accent(view, p.player, Session.color_seed)
 	prompt_title.text = _prompt_title(p, view)
-	# The response stack stays up. It is laid over the pinned attack inside the same rect, so it
-	# takes no room from the decision column and the player sees the state they are answering.
 	_show_attack(view, p)
 	show_focus(_focus_uid(p), _focus_caption(p))
 	_hint_base = _hint_for(p)
 	_title_base = ""
 	prompt_hint.text = _hint_base
 	prompt_hint.visible = prompt_hint.text != ""
-	# A decision whose options carry previews keeps their row from the start, so hovering one
-	# fills a line that is already there rather than growing the frame.
+	# Options with previews reserve their row up front, so hovering one does not grow the frame.
 	_reserve_outcome = false
 	for o in p.options:
 		_reserve_outcome = _reserve_outcome or not o.outcome.is_empty()
 	_preview_outcome({})
 	_compact_prompt()
-	# Cards the player can already click in the hand or on the table stay there, highlighted.
-	# Cards that need browsing (a Reserve, a look at the deck, a keep) open in the tray.
-	# A Final Strike is offered on every hand card and commits the rest of the Combat, so it
-	# gets its own button and tray rather than firing from a card click.
 	var routed: Dictionary = routes(p, view)
 	var browse: Array[OptionView] = routed["browse"]
 	var primaries: Array[OptionView] = routed["primary"]
@@ -1352,9 +1308,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 		_show_tray(TRAY_WHO, prompt_title.text, prompt_hint.text, browse, primaries, false, p if p.has_batch() else null)
 
 
-## One lone action is the whole decision, so it is offered as one large accent button across the
-## frame's foot that says what will happen rather than naming the rule behind it. Space takes it.
-## Two or more alternatives stay equal-weighted rows, because choosing between them is the decision.
+## A lone action becomes one large accent button that says what will happen; Space takes it.
 func _make_single_action(p: PromptView, opt: OptionView, view: SeatView) -> void:
 	if primary_box.get_child_count() != 1:
 		return
@@ -1387,7 +1341,7 @@ func _needs_tray_in(p: PromptView, opt: OptionView, view: SeatView) -> bool:
 	return c == null or c.zone == &"life_deck" or c.zone == &"reserve"
 
 
-## A public exchange, not a simulated stack. Pending and resolved quantities stay separate.
+## The exchange rail, from the public attack. Pending and resolved amounts stay separate.
 func _show_attack(view: SeatView, p: PromptView = null) -> void:
 	prompt_outcome.hide()
 	_damage_available = false
@@ -1406,8 +1360,7 @@ func _show_attack(view: SeatView, p: PromptView = null) -> void:
 		if card != null and not card.hidden():
 			resolving.append(card.title)
 	if source.is_empty() and not resolving.is_empty():
-		# One public card names itself; a run of them is the pending pile's job, in order, and the
-		# rail only says where to look. `resolving` carries no order to report here.
+		# `resolving` carries no order; the pending pile shows a run of them in order.
 		source = resolving[0] if resolving.size() == 1 else "Resolving, in order on the right"
 	if source.is_empty() and p != null:
 		var pending: SeatCard = view.card(int(p.context.get("source", p.context.get("card", -1))))
@@ -1492,8 +1445,8 @@ func _show_attack(view: SeatView, p: PromptView = null) -> void:
 
 
 func _reserve_status_height() -> void:
-	# Both labels keep a one-line floor. Measuring a wrapping label before its parent has
-	# width makes a one-line result hundreds of pixels tall and can push the actions off-screen.
+	# A fixed one-line floor: a wrapping label measured before its parent has width comes out
+	# hundreds of pixels tall.
 	exchange_damage.custom_minimum_size.y = DECISION_RESULT_HEIGHT
 	prompt_outcome.custom_minimum_size.y = DECISION_RESULT_HEIGHT
 
@@ -1628,7 +1581,7 @@ func _hint_for(p: PromptView) -> String:
 		&"keep":
 			return "Everything else goes to the discard pile."
 		&"endurance":
-			return "Spending it removes it from the game."   # the one thing the number cannot say
+			return "Spending it removes it from the game."
 		&"recover":
 			return "One discard card may go back under the deck."
 		&"respond":
@@ -1676,7 +1629,6 @@ func show_waiting(player_name: String, kind: StringName, view: SeatView) -> void
 	if exchange_rail.visible:
 		prompt_title.text = "Opponent deciding"
 	_title_base = prompt_title.text
-	# Whatever they are deciding about, this seat is looking at the same card and the same count.
 	show_focus(_focus_uid(null), _focus_caption(null))
 	_hint_base = _waiting_hint(kind)
 	prompt_hint.text = _hint_base
@@ -1748,8 +1700,7 @@ func show_sending() -> void:
 func show_card_choice(options: Array[OptionView]) -> void:
 	var c: SeatCard = _view.card(options[0].card)
 	var single: Array[OptionView] = [options[0]]
-	# A card whose only action is a Final Strike says so up front, and the button stays quiet:
-	# the player came here expecting to play the card, not to discard it and pass.
+	# A card whose only action is a Final Strike warns up front, and its button is not the default.
 	var only_final: bool = true
 	for o in options:
 		if o.type != &"final_strike":
@@ -1803,8 +1754,7 @@ func clear_prompt() -> void:
 	_fill_buttons([], primary_box, true)
 
 
-## Alternatives without a card use equal emphasis; neither passing nor accepting a hit is
-## presented as a recommendation. Vertical in the side panel, a row in the tray.
+## Equal-emphasis buttons: vertical in the side panel, a row in the tray.
 func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, _first_is_default: bool = false) -> void:
 	if into == primary_box:
 		_single_action = null
@@ -1827,24 +1777,20 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 		b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
 		b.pressed.connect(func() -> void: option_chosen.emit(opt))
 		if not opt.outcome.is_empty():
-			# Hovering a choice answers "what does this leave me with" on the number itself.
 			b.mouse_entered.connect(func() -> void: _preview_outcome(opt.outcome))
 			b.mouse_exited.connect(func() -> void: _preview_outcome({}))
 			b.focus_entered.connect(func() -> void: _preview_outcome(opt.outcome))
 			b.focus_exited.connect(func() -> void: _preview_outcome({}))
 		into.add_child(b)
-	# The action area shows itself from the box's minimum-size signal, which is deferred and only
-	# fires when the size differs from the last one recorded. Buttons the same size as the ones
-	# just removed leave it silent, and the panel would show its question with nothing under it.
+	# The box's minimum-size signal is deferred and stays silent when the new buttons match the old
+	# size, so the fit is called outright.
 	if into == primary_box:
 		_fit_actions()
 
 
 # --- Match replay ---------------------------------------------------------
 
-## A recorded duel played back: the replay bar shows at the foot of the rail, under the decision
-## it steps through, where neither the hand nor the stat crest reaches. Its turn list is filled,
-## the view switch names the two players, and the result panel's way out leads to the title.
+## A recorded duel played back: shows the replay bar, fills its turn list and names both views.
 func set_match_replay(names: Array[String], turns: Array[Dictionary], view_index: int) -> void:
 	_match_replay = true
 	_mode = Mode.REPLAY
@@ -1964,7 +1910,7 @@ func show_replay_result(title: String, reason: String) -> void:
 	prompt_title.text = title
 	_hint_base = reason
 	prompt_hint.text = reason
-	# A duel can end with wounds still owed; the result, not the attack left pending, is the read.
+	# A duel can end with wounds still owed; the attack left pending is not shown.
 	hide_focus()
 
 
@@ -2018,7 +1964,7 @@ func _show_tray(who: String, title: String, hint: String, cards: Array[OptionVie
 	_entries.clear()
 	hide_pile()
 	hide_peek()
-	hide_focus()   # the tray is the middle of the screen while it is open
+	hide_focus()
 	tray_who.text = who
 	tray_who.add_theme_color_override("font_color", _who_color)
 	tray_title.text = title
@@ -2162,10 +2108,7 @@ func _refresh_selection() -> void:
 
 func _hide_tray() -> void:
 	hide_peek()
-	# Opening the tray hid the decision panel behind it. Closing it has to put the panel back
-	# while a decision is still pending, or the player is left with a prompt and nothing on
-	# screen to answer it with. It only ever turns the panel on: the callers that mean to leave
-	# it hidden clear the prompt first.
+	# Only ever turns the panel back on; callers that want it hidden clear the prompt first.
 	if tray.visible and _current_prompt != null:
 		prompt_panel.visible = true
 	tray.visible = false
@@ -2176,10 +2119,7 @@ func _hide_tray() -> void:
 	_entries.clear()
 
 
-## A face with its caption. Clicking the face picks the option unless it is a sub-choice, where
-## the buttons decide. Named-card options carry a title instead of a uid and draw from the library.
-## A choice with no card behind it, shown at card size with its wording set in the middle, so the
-## two halves of "all their Allies or all their Drills" are read side by side and weighed like cards.
+## A choice with no card behind it, as a card-sized tile with its wording in the middle.
 func _tray_choice_entry(opt: OptionView) -> Control:
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
@@ -2206,6 +2146,8 @@ func _tray_choice_entry(opt: OptionView) -> Control:
 	return column
 
 
+## A face with its caption. Clicking it picks the option unless it is a sub-choice. A named-card
+## option carries a title instead of a uid.
 func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 	if opt.type == &"pick_option" and opt.card < 0:
 		return _tray_choice_entry(opt)
@@ -2260,8 +2202,7 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 			show_inspect(def, aspect, uid))
 	frame.add_child(b)
 	column.add_child(frame)
-	# Two faces in one tray can be the same card of the same character on opposite sides of the
-	# table. The marker says which is which, and appears only when the labels would read alike.
+	# The owner mark is set only when two faces' labels would read alike.
 	var mark: String = str(_owner_marks.get(uid, ""))
 	if mark != "":
 		b.tooltip_text = opt.label + mark
@@ -2296,9 +2237,7 @@ func _def(def_id: String) -> CardDef:
 
 # --- Pile browser ---------------------------------------------------------
 
-## Reads a public pile the way a Life Deck search reads a deck: every card in it, top first,
-## with nothing to pick. Discard and Removed are open to both seats, so either seat may open
-## either player's pile at any time.
+## Reads a public pile top first, with nothing to pick. Either seat may open either player's pile.
 func show_pile(view: SeatView, player: int, zone: StringName) -> void:
 	_view = view
 	_pile_player = player
@@ -2413,8 +2352,7 @@ func _fill_pile() -> void:
 	pile_scroll.custom_minimum_size = Vector2(maxf(720.0, cols * (cell.x + 12.0) + 12.0), minf(rows * (cell.y + 12.0), root.size.y * 0.57))
 
 
-## One card in a browsed pile: the face at full strength, hover for the expanded rules,
-## right-click to bring it up. Nothing here is clickable, because nothing here is a choice.
+## One card in a browsed pile: hover for the quick view, right-click to inspect.
 func _pile_entry(c: SeatCard, is_top: bool) -> Control:
 	var def: CardDef = _def(c.def_id)
 	var aspect: int = c.aspect
@@ -2471,11 +2409,9 @@ func set_hand(cards: Array[SeatCard], faces: CardFaceCache, legal: Dictionary) -
 		b.modulate = Color(1, 1, 1, 1) if is_legal else Color(0.6, 0.6, 0.6, 1)
 		var uid: int = c.uid
 		var aspect: int = c.aspect
-		# What this attack would deal right now, worked out by the referee: the sum after the
-		# table and every modifier, so the player compares totals rather than printed bonuses.
+		# The referee's total after the table and every modifier.
 		var forecast: Dictionary = _view.forecast(uid) if _view != null else {}
 		if not forecast.is_empty():
-			# A card that can only be thrown away for a Final Strike says so, quietly.
 			var final: bool = bool(forecast.get("is_final", false))
 			var chip: Label = Label.new()
 			chip.text = ("Final: " if final else "") + CardText.short_damage(int(forecast.get("stages", 0)), int(forecast.get("life", 0)))
@@ -2594,10 +2530,8 @@ func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	inspect.visible = true
 
 
-## The card a decision is about, held at readable size in the middle of the screen while the
-## decision is open: the attack coming in, the life card that could endure, the card asking a
-## question. Both seats see it, the one deciding and the one waiting, and it never takes the
-## mouse so the table underneath stays clickable.
+## The card a decision is about, in the Focus slot on the rail. Both seats see it, and it never
+## takes the mouse.
 func show_focus(uid: int, caption: String) -> void:
 	var c: SeatCard = _view.card(uid) if _view != null else null
 	if c == null or c.hidden() or tray.visible or inspect.visible:
@@ -2618,11 +2552,8 @@ func show_focus(uid: int, caption: String) -> void:
 	_compact_prompt()
 
 
-## During a replay beat the decision column is empty. The same slot, at the same place, holds the
-## card the beat is about: a declared attack pinned for the exchange, or an opponent's card being
-## read. The rect never moves, so a prompt's own `show_focus` can take the same card over without
-## the face jumping between the two. `uid` names the card when the caller has one, so the pending
-## column knows this card is already on screen and the filament knows where to start.
+## A replay beat's card in the same Focus slot. `uid`, when known, tells the pending stack and the
+## filament which card is up.
 func show_replay_card(def: CardDef, caption: String, color: Color, uid: int = -1) -> bool:
 	if def == null or tray.visible or inspect.visible:
 		hide_focus()
@@ -2637,24 +2568,20 @@ func show_replay_card(def: CardDef, caption: String, color: Color, uid: int = -1
 	return true
 
 
-## The pinned card stays where it is and only its caption moves on, so one attack reads as one
-## continuous thing from declaration to outcome.
+## Recaptions the pinned card without redrawing it.
 func set_focus_caption(caption: String, color: Color) -> void:
 	_caption_base = caption
 	focus_caption.add_theme_color_override("font_color", color)
 	_apply_caption()
 
 
-## The caption the slot shows: what the anchored card is doing, plus the wound loop the attack still
-## owes when there is one. The wounds are the attack's own job rather than a card, so they are a
-## line here instead of a face on the pile.
+## The slot's caption, plus the wound loop the attack still owes.
 func _apply_caption() -> void:
 	var text: String = _caption_base
 	if not _wounds_note.is_empty() and focus.visible:
 		text += " · %s to resolve" % _wounds_note
 	focus_caption.text = text.to_upper()
-	# The slot is one card wide and the caption is one clipped line, so a long one steps down to
-	# the caption floor before it loses its end to an ellipsis.
+	# One clipped line one card wide: a long caption drops to the caption size.
 	var size: int = ZenithTheme.SIZE_BODY if text.length() <= 24 else ZenithTheme.SIZE_CAPTION
 	focus_caption.add_theme_font_size_override("font_size", size)
 
@@ -2673,19 +2600,15 @@ func hide_focus() -> void:
 	_compact_prompt()
 
 
-## A card answering the pinned attack, pushed onto the stack laid over it. The attack never moves;
-## each response covers it from a little further up and to the left, newest on top, so the exchange
-## reads as one pile that cards enter and leave. `owner` is `&"attack"` for the attacker's own
-## follow-ups and `&"defend"` for the other seat's, and it picks the tint and the leaving direction.
-## `uid` is what `pop_response` will name when the beat that resolves this card arrives.
+## A response pushed onto the stack over the pinned attack. `owner` (`&"attack"` or `&"defend"`)
+## picks the tint and the leaving direction; `pop_response` later names it by `uid`.
 func push_response(def: CardDef, caption: String, owner: StringName, uid: int = -1) -> bool:
 	if def == null or stack == null or tray.visible or inspect.visible or not focus.visible:
 		return false
 	var tint: Color = ZenithTheme.ATTACK if owner == &"attack" else ZenithTheme.DEFEND
 	var held: Control = _entry_for_uid(uid)
 	if held != null:
-		# The pending list already dealt this card. The beat renames the face the player is looking
-		# at rather than putting a second copy of the same card on the pile.
+		# Already dealt by the pending list: rename it rather than stack a copy.
 		_recaption(held, caption, tint)
 		return true
 	return _push_face(def, caption, tint, uid) != null
@@ -2708,8 +2631,7 @@ func _push_face(def: CardDef, caption: String, tint: Color, uid: int) -> Control
 	return entry
 
 
-## A masked job's face: the card back under the same caption strip, because a card this seat may
-## not read is still a card waiting in the pile.
+## A masked job's face: the card back under the same caption strip.
 func _push_back(caption: String, tint: Color) -> Control:
 	if stack == null or not focus.visible:
 		return null
@@ -2764,9 +2686,7 @@ func _stack_entry(caption: String, tint: Color, uid: int) -> Control:
 	return entry
 
 
-## Where each level of the stack sits inside the Focus rect. Level 0 lies over the lower half of
-## the attack and every level after it steps up and to the left, so the attack keeps its caption
-## and its top band and the newest response is the one wholly in view.
+## Level 0 lies over the attack's lower half; each level after steps up and left, newest on top.
 func _layout_stack() -> void:
 	if stack == null or focus == null or _stack.is_empty():
 		if _overflow != null and is_instance_valid(_overflow):
@@ -2799,7 +2719,6 @@ func _layout_stack() -> void:
 		strip.position = Vector2(0.0, face_height - STACK_STRIP)
 		strip.size = Vector2(face_width, STACK_STRIP)
 	if _overflow != null and is_instance_valid(_overflow):
-		# The badge rides the face on top, because that is the one the eye is already on.
 		var top: Control = _stack.back()
 		_overflow.visible = true
 		_overflow.size = Vector2(52.0, 26.0)
@@ -2807,8 +2726,7 @@ func _layout_stack() -> void:
 
 
 ## The beat that resolves a response takes it off the stack. `key` is the card's uid when the stack
-## carries one, and otherwise a level index counted from the bottom. A beat that resolves something
-## the stack never held does nothing, which is what a caller replaying a hidden card wants.
+## carries one, and otherwise a level index counted from the bottom. False when the stack never held it.
 func pop_response(key: int) -> bool:
 	var index: int = -1
 	for i in range(_stack.size()):
@@ -2823,8 +2741,7 @@ func pop_response(key: int) -> bool:
 	return true
 
 
-## One face off the pile with the same leaving animation, whichever side asked for it: the beat
-## that resolved it, or a refresh finding it gone from `SeatView.pending`.
+## One face off the pile with the leaving animation, from a beat or a refresh.
 func _take_off(entry: Control) -> void:
 	var index: int = _stack.find(entry)
 	if index < 0:
@@ -2847,8 +2764,6 @@ func _leave_stack(entry: Control) -> void:
 	leaving.chain().tween_callback(entry.queue_free)
 
 
-## Every reset that takes the Focus down empties the stack with it, so nothing goes stale across
-## an exchange, a cleared decision or the end of Combat.
 func clear_stack() -> void:
 	for entry in _stack:
 		if is_instance_valid(entry):
@@ -2865,9 +2780,8 @@ func has_response(uid: int) -> bool:
 	return _entry_for_uid(uid) != null
 
 
-## A card already in the Focus slot or on the pile over it, lit where it stands. A trigger firing
-## from the slot is read there, so it does not hop on the table as well. False when that card is
-## nowhere on the right and the caller should fall back to the table spotlight.
+## Lights a card in the Focus slot or on its stack. False when it is not on the rail, so the caller
+## falls back to the table spotlight.
 func pulse_pending(uid: int) -> bool:
 	if uid < 0 or not focus.visible:
 		return false
@@ -2993,11 +2907,8 @@ func set_rejoined(on: bool) -> void:
 	_refresh_hint()
 
 
-## The waiting panel's title and a decision's hint with the line the clock adds. While the panel
-## waits on a rival who is cut off, the away line takes the title's place ("Sable Draik has 1:16 to
-## come back." rather than "Waiting for Sable Draik" as well), so the name is said once. After a
-## rejoin, "You have 0:34 left." goes under the decision's hint until it is answered. Leaves a
-## panel alone that neither line touches.
+## The waiting panel's title and a decision's hint plus the clock's line. The away line replaces the
+## waiting title; after a rejoin, "You have 0:34 left." goes under the hint until it is answered.
 func _refresh_hint() -> void:
 	if prompt_hint == null or not prompt_panel.visible:
 		return
@@ -3021,10 +2932,8 @@ func _refresh_hint() -> void:
 	prompt_hint.visible = text != ""
 
 
-## This seat's own countdown on whichever decision panel is up, the prompt panel or the tray when
-## the decision is about cards, in the head row's right end. Once timer and bank together are 10 s
-## or less it becomes "You lose in 0:09." in the warning colour and the fuse under it burns down.
-## Redrawn on the 1 s tick and when a clock state arrives, never per frame, and never offline.
+## This seat's countdown in the prompt panel's or the tray's head row. Redrawn on the 1 s tick and
+## when a clock state arrives, never per frame.
 func _show_clock() -> void:
 	if not _clocked:
 		return
@@ -3065,12 +2974,8 @@ func _sync_head() -> void:
 		prompt_head.visible = shown
 
 
-## The thread from the pinned card to what it is aimed at, in the language the 3D link on the table
-## already speaks: a bowed line in the attack colour, a transverse cap when the attack is stopped
-## and a double chevron once it has landed. It leaves the left edge of the card in the Focus slot,
-## or of the response on top of the stack when that response is the job resolving now, so the one
-## card on the right is the one the line comes from. Hidden when nothing is pinned, when no job is
-## aimed anywhere, or when the table cannot say where the target is.
+## The thread from the pinned card to its target: a cap when stopped, a double chevron once landed.
+## Hidden when nothing is aimed or the table cannot place the target.
 func _draw_filament() -> void:
 	if filament == null:
 		return
@@ -3111,7 +3016,6 @@ func _draw_filament() -> void:
 	filament_head.visible = not stopped
 	filament_head_trail.visible = _filament_state == &"landed"
 	if stopped:
-		# A transverse ward closes the path; a stopped attack never gets an arrowhead.
 		filament_cap.points = PackedVector2Array([end - side * FILAMENT_CAP - base, end + side * FILAMENT_CAP - base])
 		filament_cap.default_color = Color(color, 0.9)
 	else:
@@ -3215,8 +3119,7 @@ func hover_primary(index: int) -> void:
 		(buttons[index] as Button).mouse_entered.emit()
 
 
-## The options menu, from the gear or Esc. While it is open the shade under it takes the mouse, so
-## nothing on the table or the panels answers, and a click on the shade closes it.
+## The options menu, from the gear or Esc. Its shade takes the mouse while open; a click on it closes the menu.
 func set_options_open(on: bool) -> void:
 	options_button.set_pressed_no_signal(on)
 	options_button.queue_redraw()
@@ -3227,10 +3130,9 @@ func set_options_open(on: bool) -> void:
 		_refresh_menu()
 
 
-## Read each time the menu opens. While a game runs: Concede (Concede game and Concede match in a
-## ranked match), Rematch in hotseat and vs AI, and Back to title offline, where leaving costs
-## nothing. Between ranked games only Concede match. Once a result is up only Back to title, since
-## the result card holds everything else.
+## Read each time the menu opens. While a game runs: Concede (game and match when ranked), Rematch
+## in hotseat and vs AI, and Back to title offline. Between ranked games only Concede match. Once a
+## result is up only Back to title.
 func _refresh_menu() -> void:
 	var running: bool = _result == ResultState.NONE and not _match_replay
 	var between: bool = _result == ResultState.GAME_PENDING or _result == ResultState.BETWEEN
@@ -3329,8 +3231,8 @@ func set_log_expanded(on: bool) -> void:
 	create_tween().tween_property(log_panel, "modulate:a", 1.0, 0.14)
 
 
-## Expanded rules in the quick view's fixed home on the left, beside the history strip, opposite
-## the rail. It never follows the pointer. The open log owns that column, so the quick view waits.
+## Expanded rules in the quick view's fixed home on the left. The open log owns that column, so the
+## quick view waits.
 func show_peek(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	if def == null or inspect.visible or _log_expanded:
 		return
@@ -3438,9 +3340,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-## Space takes the lone offered action, and only that: with two alternatives on screen there is
-## nothing for it to mean. A focused button answers Space itself, and the hand answers it while
-## keyboard browsing, so neither reaches here.
+## Space takes the lone offered action. A focused button and the keyboard-browsing hand take Space first.
 func _space_takes_single_action(event: InputEvent) -> bool:
 	if _single_action == null or not (event is InputEventKey):
 		return false

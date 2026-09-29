@@ -112,6 +112,7 @@ public partial class DungeonProp
             MaterialOverride = Palette?.Material(color, surface) ?? new StandardMaterial3D { AlbedoColor = color, Roughness = 0.9f }
         };
         AddChild(mesh);
+        Meshes.Add(mesh);
         return mesh;
     }
 }

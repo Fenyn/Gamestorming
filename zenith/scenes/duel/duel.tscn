@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_view.gd" id="1_view"]
 [ext_resource type="Script" path="res://scripts/duel/table_camera.gd" id="5_camera"]
@@ -15,7 +15,6 @@
 [ext_resource type="Shader" path="res://scripts/duel/arena_veil.gdshader" id="14_veil_shader"]
 [ext_resource type="PackedScene" path="res://scenes/duel/phase_track.tscn" id="15_track"]
 [ext_resource type="PackedScene" path="res://scenes/duel/lead_in_overlay.tscn" id="16_lead_in"]
-[ext_resource type="PackedScene" path="res://scenes/duel/turn_token.tscn" id="17_token"]
 
 [sub_resource type="Environment" id="Environment_duel"]
 background_mode = 2
@@ -123,12 +122,10 @@ material_override = SubResource("Material_surface")
 
 [node name="PhaseTrack" parent="." instance=ExtResource("15_track")]
 
-[node name="TurnToken" parent="." instance=ExtResource("17_token")]
-
 [node name="CameraRig" type="Node3D" parent="."]
 
 [node name="Camera" type="Camera3D" parent="CameraRig"]
-transform = Transform3D(1, 0, 0, 0, 0.275637, 0.961262, 0, -0.961262, 0.275637, 0.8, 9.373, 2.706)
+transform = Transform3D(1, 0, 0, 0, 0.275637, 0.961262, 0, -0.961262, 0.275637, 0, 9.373, 2.706)
 fov = 34.0
 script = ExtResource("5_camera")
 
@@ -187,7 +184,7 @@ position = Vector3(-0.902, 0, 1.976)
 position = Vector3(-2.171, 0, 2.011)
 
 [node name="Resolving" type="Marker3D" parent="Zones/P0"]
-position = Vector3(-0.4, 0, 0)
+position = Vector3(-2.1, 0, 0)
 
 [node name="HandStart" type="Marker3D" parent="Zones/P0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, 0.02, 3.2)

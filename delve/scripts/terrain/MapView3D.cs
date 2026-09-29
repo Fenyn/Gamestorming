@@ -51,7 +51,7 @@ public partial class MapView3D : Node3D
         Vector2 origin = options?.WorldOrigin ?? Vector2.Zero;
         Position = new Vector3(origin.X, 0f, origin.Y);
 
-        var terrain = new MeshInstance3D
+        var terrain = _terrain = new MeshInstance3D
         {
             Name = TerrainNodeName,
             Mesh = built.Visual,
@@ -76,10 +76,16 @@ public partial class MapView3D : Node3D
         SurfaceCount = built.SurfaceCount;
     }
 
+    private MeshInstance3D? _terrain;
+
+    /// <summary>Fog-of-war brightness for the terrain shaders' <c>room_light</c> uniform.</summary>
+    public void SetLight(float light) => _terrain?.SetInstanceShaderParameter("room_light", light);
+
     /// <summary>Drop the current terrain and collider.</summary>
     public void Clear()
     {
         this.ClearChildren();
+        _terrain = null;
         Position = Vector3.Zero;
         Layout = null;
         SurfaceCount = 0;

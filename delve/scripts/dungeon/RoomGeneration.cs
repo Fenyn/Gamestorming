@@ -7,8 +7,10 @@ using PF2e.Grid;
 using PF2e.MapGen;
 
 namespace Delve.Dungeon;
-public sealed record RoomProp(string Kind, float X, float Y, float Width, float Depth, float Height, float Angle = 0);
-public sealed record GeneratedRoom(MapLayout Layout, IReadOnlyList<RoomProp> Props, IReadOnlyList<DoorSide> Doors);
+/// <summary>A dressing piece in room tiles. <paramref name="Raised"/> seats it on the ground under its
+/// centre tile, for rooms whose floor is not level.</summary>
+public sealed record RoomProp(string Kind, float X, float Y, float Width, float Depth, float Height, float Angle = 0, bool Raised = false);
+public sealed record GeneratedRoom(MapLayout Layout, IReadOnlyList<RoomProp> Props, IReadOnlyList<DoorSide> Doors, int ZoneHalf = RoomGeneration.ZoneHalf);
 public sealed record RoomVariation(int MinPillarInset = 3, int MaxPillarInset = 4, int MinCover = 2, int MaxCover = 4, int DebrisCount = 8, int FeatureCount = 4, int LayoutVariant = -1, bool StationRooms = true);
 /// <summary>Pure generation used by the prefab owning this profile. Cosmetic RNG cannot alter geometry.</summary>
 public static partial class RoomGeneration
@@ -148,10 +150,14 @@ public static partial class RoomGeneration
         DoorSide.South => new(n / 2, n - 3),
         DoorSide.West => new(2, n / 2),
         _ => new(n - 3, n / 2)};
-    public static DeploymentZoneData[] Zones(int n, DoorSide entry)
+    /// <summary>Tiles from the room centre to the middle of each deployment box: the two front
+    /// rows stand 2 x (half - 1) tiles apart.</summary>
+    public const int ZoneHalf = 4;
+
+    public static DeploymentZoneData[] Zones(int n, DoorSide entry, int half = ZoneHalf)
     {
         // Keep initial engagement distance near current compact battles even in a wider chamber.
-        int near = Math.Max(2, n / 2 - 4), far = Math.Min(n - 3, n / 2 + 4);
+        int near = Math.Max(2, n / 2 - half), far = Math.Min(n - 3, n / 2 + half);
         DeploymentZoneData Zone(DoorSide side, int team) => side switch
         {
             DoorSide.North => new()

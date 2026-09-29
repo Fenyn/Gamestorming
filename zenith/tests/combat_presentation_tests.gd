@@ -325,7 +325,7 @@ func _test_legal_actions(hud: Node) -> void:
 	for child in hud.primary_box.get_children():
 		if child is Button:
 			child.pressed.emit()
-	# Card-based counters remain available through their real per-card action chooser.
+	# Card-based counters stay available through the per-card action chooser.
 	var tested_cards: Dictionary = {}
 	for option in prompt.options:
 		if option.card < 0 or tested_cards.has(option.card):
@@ -517,8 +517,33 @@ func _test_strip_and_queue(hud: Node, base: SeatView) -> void:
 	view.phase = GameState.Phase.ATTACK
 	view.consecutive_passes = 1
 	track.refresh(view)
+	var owner_color: Color = Palette.school_ui(view.player(view.active).style)
 	_check(track.lit == &"attack", "Combat lights its Attack icon in the ring")
-	_check(track.icon(&"attack").modulate == Color(ZenithTheme.ATTACK, 1.0), "The Attack icon wears the attack colour")
+	_check(track.icon(&"attack").modulate == Color(owner_color, 1.0), "The lit icon wears the turn owner's school colour")
+	_check(is_zero_approx(track.global_position.x) and track.band_rect().get_center().is_zero_approx() and is_zero_approx(track.band.position.x), "The band is centred on the centre line at x 0")
+	_check(track.step_label.visible and track.step_label.text == "Attack", "The lit step's name shows on the band")
+	var lit_x: float = track.icon(&"attack").position.x
+	_check(is_equal_approx(track.pool_centre().x, lit_x) and track.pool_alpha() > 0.0, "The light pool sits under the current step's icon")
+	_check(signf(track.pool_centre().y) == track.edge_side(), "The pool leans toward the turn owner's edge")
+	for seat_viewer in range(2):
+		track.set_viewer(seat_viewer)
+		for turn_owner in range(2):
+			view.active = turn_owner
+			track.refresh(view)
+			var edge_world: Vector3 = track.band.to_global(Vector3(0, 0, track.edge_z()))
+			# Seat 0 sits at +z on the table, seat 1 at -z, whoever views it.
+			var owner_side: float = 1.0 if turn_owner == 0 else -1.0
+			_check(track.edge_alpha() > 0.0 and signf(edge_world.z) == owner_side and is_equal_approx(absf(track.edge_z()), track.HALF_SIZE.y), "Viewer %d, seat %d's turn: the lit edge is the band's edge on seat %d's side" % [seat_viewer, turn_owner, turn_owner])
+			var pool_world: Vector3 = track.band.to_global(Vector3(track.pool_centre().x, 0, track.pool_centre().y))
+			_check(signf(pool_world.z) == owner_side, "Viewer %d, seat %d's turn: the pool leans to seat %d's side" % [seat_viewer, turn_owner, turn_owner])
+	track.set_viewer(0)
+	view.active = base.active
+	track.refresh(view)
+	view.winner = 0
+	track.refresh(view)
+	_check(is_zero_approx(track.edge_alpha()) and is_zero_approx(track.pool_alpha()) and not track.step_label.visible, "No edge, pool or step name is lit once the duel is over")
+	view.winner = -1
+	track.refresh(view)
 	_check(is_equal_approx(track.icon(&"declare").modulate.a, track.DONE_ALPHA) and is_equal_approx(track.icon(&"discard").modulate.a, track.AHEAD_ALPHA), "Steps behind are dimmed and steps ahead are faint")
 	_check(track.icon(&"end").modulate == Color(ZenithTheme.WARN, track.WARN_ALPHA), "One pass so far warms the End icon: the next pass ends Combat")
 	view.phase = GameState.Phase.FIGHT_BACK

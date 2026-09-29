@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CrawlScenery" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/dungeon/CrawlScenery.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/looks/deepwood.tscn" id="look"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/passage_trail.tscn" id="passage"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/deepwood_glade.tscn" id="glade"]
+
+[sub_resource type="StandardMaterial3D" id="void"]
+shading_mode = 0
+albedo_color = Color(0.012, 0.018, 0.016, 1)
+
+[resource]
+script = ExtResource("1")
+PurposePrefabs = Array[PackedScene]([ExtResource("glade"), ExtResource("glade"), ExtResource("glade"), ExtResource("glade"), ExtResource("glade"), ExtResource("glade"), ExtResource("glade"), ExtResource("glade"), ExtResource("glade"), ExtResource("glade"), ExtResource("glade"), ExtResource("glade")])
+Look = ExtResource("look")
+Passage = ExtResource("passage")
+VoidMaterial = SubResource("void")
+ExploredLight = 0.45
+UnexploredLight = 0.2
+ShowExplored = false
+ShowUnexplored = true

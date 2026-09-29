@@ -34,7 +34,7 @@ public partial class DungeonDirector
         var roster = _encounters[Current.Id].Enemies
             .GroupBy(e => e.Unit.CreatureStats?.SourceDefinition?.CreatureName ?? e.Unit.Name)
             .Select(g => g.Key + (g.Count() > 1 ? $" ×{g.Count()}" : ""));
-        _hud.ShowRoomCard(StationPlan.Name(Current.Purpose), string.Join("  ·  ", roster));
+        _hud.ShowRoomCard(Words.Name(Current.Purpose), string.Join("  ·  ", roster));
         _camera.FocusOn(focus ?? new Vector3(CurrentView.Width / 2f, 0, CurrentView.Width / 2f), (float)seconds / 2, false);
         _travelTween = CreateTween();
         _travelTween.TweenInterval(seconds);
@@ -47,7 +47,7 @@ public partial class DungeonDirector
     /// <summary>The party walks to the stairs and sinks out of sight before the floor ends.</summary>
     private async Task WalkDownStairs(int epoch)
     {
-        var stairs = SignatureProp("stairs");
+        var stairs = SignatureProp(Words.ExitProp);
         if (stairs is { } foot && _tokens.Count > 0)
         {
             _travelTween = CreateTween().SetParallel(true);

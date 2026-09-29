@@ -106,18 +106,20 @@ referee's presentation data.
   crest. Empty piles keep their outline and caption; every pile is browsable in one click. Recent
   history is about two lines with full History expandable. Reduced Motion and Dev sit behind the
   options gear at the top right.
-- **Phase track** (2026-09-25, replaced the top phase bar): the turn is printed on the table along
-  the waist between the duelists as Kenney board-game icons (`scenes/duel/phase_track.tscn`,
-  `PhaseTrack`): Draw, Place, Power Up and Declare in the left notch, Enter, Attack, Defend,
-  Resolve and End across the ring, Discard, Recover and End turn in the right notch, ordered for
-  whoever sits at the table. The step the beat stands on is lit (larger, with a halo; Attack in
-  the attack colour, Defend in the table's defence slate), steps behind are dimmed, steps ahead
-  faint, and End warms when one more pass ends Combat. PREPARE_* and OPPOSING_DRAW read as Enter,
-  FIGHT_BACK as Attack. A beat inside a step pulses its icon. There is no text: whose turn it is
-  shows as a soft light along the inside edge of the active seat's half of the mat
-  (`playmat.gdshader` `active_lobe`), which crosses the table at a turn change.
-  Everything is read from the beat's own state first, so a replaying update never draws ahead of
-  the cards on the table.
+- **Phase track** (2026-09-25, replaced the top phase bar; reworked 2026-09-28): the turn is
+  printed on the table as Kenney board-game icons on a dark inlaid band centred between the two
+  duelists (`scenes/duel/phase_track.tscn`, `PhaseTrack`, band shader `phase_band.gdshader`):
+  Draw, Place, Power Up and Declare, then Enter, Attack, Defend, Resolve and End, then Discard,
+  Recover and End Turn, in three groups ordered for whoever sits at the table. The step the beat
+  stands on is lit (larger, in the turn owner's school colour, with a pool of that colour under
+  it toward the owner's edge), steps behind are dimmed, steps ahead faint, and End warms when one
+  more pass ends Combat. The lit step's name sits in the band's right end. PREPARE_* and
+  OPPOSING_DRAW read as Enter, FIGHT_BACK as Attack. A beat inside a step pulses its icon. Whose
+  turn it is shows as the band's edge on the turn owner's side, lit in their school colour; the
+  light sweeps to the other edge when the turn passes, and no edge is lit once the duel is over.
+  Past each end of the band lie one seat's cards in play, then the Grounds and the standing
+  ghosts. Everything is read from the beat's own state first, so a replaying
+  update never draws ahead of the cards on the table.
 - **Beat banner**: one ribbon across the ring (`Root/Banner`, `DuelHud.show_banner`), fading at
   both ends and stopping short of the notches. Hand-overs (Combat opening with its first attacker,
   "X attacks", "Combat over", a new turn) sweep open; outcomes (the attack's name,

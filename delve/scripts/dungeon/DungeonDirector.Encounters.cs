@@ -16,7 +16,6 @@ namespace Delve.Dungeon;
 public partial class DungeonDirector
 {
     /// <summary>The banner kicker on a room's first visit.</summary>
-    private const string NewRoomKicker = "New room";
 
     private void Enter(DoorSide entry)
     {
@@ -36,15 +35,15 @@ public partial class DungeonDirector
             CompleteRoom();
             ShowDoors();
             // The station's history is prose, so it lives on the floor plan's hover, not the banner.
-            _hud.SetFloorHistory(StationPlan.Account(Floor.History));
-            if (first) _hud.ShowRoomCard(StationPlan.Name(Current.Purpose), kicker: _hud.FloorLabel);
+            _hud.SetFloorHistory(Words.Account(Floor.History));
+            if (first) _hud.ShowRoomCard(Words.Name(Current.Purpose), kicker: _hud.FloorLabel);
             return;
         }
 
         switch (DungeonFloor.Kind(Current.Family))
         {
             case NodeKind.Boss when !Instant:
-                _ = RevealRoster(_epoch, GuardianRevealSeconds, SignatureProp("ward_engine"));
+                _ = RevealRoster(_epoch, GuardianRevealSeconds, SignatureProp(Words.RevealProp));
                 break;
             case NodeKind.Elite when !Instant && first:
                 _ = RevealRoster(_epoch, LairRevealSeconds, null);
@@ -57,18 +56,18 @@ public partial class DungeonDirector
             case NodeKind.Rest:
                 // The night waits for the player: Make camp stays on the HUD while the refuge is unused.
                 ShowDoors();
-                if (first) _hud.ShowRoomCard(StationPlan.Name(Current.Purpose), kicker: NewRoomKicker);
+                if (first) _hud.ShowRoomCard(Words.Name(Current.Purpose), kicker: Words.NewRoomKicker);
                 break;
             default:
-                var scene = DungeonEncounters.AtLevel(DungeonEncounters.StationEvent(Current, Floor.History), State.Party.Level);
+                var scene = DungeonEncounters.AtLevel(DungeonEncounters.RoomEvent(Current, Floor.History, Words), State.Party.Level);
                 if (StationScenes.AppliesOnArrival(scene.Options))
                 {
                     // A free scene with nothing to decide happens on arrival; Leave would only compete with it.
                     var result = EventResolver.Resolve(State, scene, 0, null);
                     CompleteRoom();
                     ShowDoors();
-                    _hud.ShowRoomCard(StationPlan.Name(Current.Purpose), string.Join("  ", result.Lines),
-                        first ? NewRoomKicker : "");
+                    _hud.ShowRoomCard(Words.Name(Current.Purpose), string.Join("  ", result.Lines),
+                        first ? Words.NewRoomKicker : "");
                     break;
                 }
                 _hud.ClearRoomCard();

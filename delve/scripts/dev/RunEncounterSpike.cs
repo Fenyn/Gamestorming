@@ -71,7 +71,7 @@ public partial class RunEncounterSpike : SpikeBase
                 unresolved == 0 && unspawnable == 0);
 
             int bossUnresolved = 0;
-            foreach (var line in BossEncounters.ForStratum(stratum).Spawns.Concat(StationGuardians.ForStratum(stratum).Spawns))
+            foreach (var line in BossEncounters.ForStratum(stratum).Spawns)
             {
                 if (data.ResolveCreature(line.Creature) == null) bossUnresolved++;
             }
@@ -382,7 +382,7 @@ public partial class RunEncounterSpike : SpikeBase
     private void CheckBossMath(DataManager data)
     {
         for (int stratum = 0; stratum < FloorThemes.Count; stratum++)
-        foreach (var spec in new[] { BossEncounters.ForStratum(stratum), StationGuardians.ForStratum(stratum) }.Distinct())
+        foreach (var spec in new[] { BossEncounters.ForStratum(stratum) })
         {
             int xp = 0;
             foreach (var line in spec.Spawns)

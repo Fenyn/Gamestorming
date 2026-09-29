@@ -1,11 +1,9 @@
 class_name ArenaAtmosphere
 extends Node3D
-## The duel's surroundings: the ruined courtyard (CourtyardSet) around a flagstone table, lit as
-## an overcast afternoon. Decorative, public school identity only. Never reads decks or private
-## cards.
+## The duel's surroundings: the courtyard (CourtyardSet) around the table. Decorative; reads
+## public school identity only, never decks or private cards.
 
-## The dais stone under the board: its colour, and a brightness multiplier over it. The board's
-## own print (wash, rule, vignette) is set on Table/Inlay's shader.
+## The stone under the board. The board's own print is set on Table/Inlay's shader.
 @export var stone_tint: Color = CourtyardSet.TABLE_TINT:
 	set(value):
 		stone_tint = value
@@ -15,8 +13,7 @@ extends Node3D
 		stone_brightness = value
 		_tint_table()
 
-## The wash is the school colour held to this saturation and value, so every school sits as a
-## tint in the stone rather than a painted floor.
+## Caps on the school colour's saturation and value for the board wash.
 const WASH_SATURATION: float = 0.6
 const WASH_VALUE: float = 0.6
 
@@ -28,8 +25,6 @@ var _print: ShaderMaterial = null
 
 func _ready() -> void:
 	var duel: Node = get_parent()
-	# The table is a block of the courtyard's stone, lit by the sun like everything else. The
-	# board printed on top of it (Table/Inlay) is the scene's own.
 	var table: MeshInstance3D = duel.get_node_or_null("Table") as MeshInstance3D
 	if table != null and table.mesh != null:
 		_table_material = CourtyardSet.table_material()

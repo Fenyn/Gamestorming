@@ -131,6 +131,16 @@ CAST = [
     ("Corin Thrace", "Vigil", "(unaffiliated)",
      "Corin Thrace: spare, severe man in his forties, shaven head, a plain undyed wrap belted at the waist, bare feet, a third scar across the brow where a mark was cut out, hands open and empty.",
      "Pilots no deck of his own. An ascetic who teaches a discipline rather than a school, so his forms turn up in other people's hands all over the field."),
+    # The King's Tourney team, with Sir Edric. Unallied in the kings' rivalry, mostly Vigil.
+    ("Idris Sparrow", "Vigil", "Endless Squall",
+     "Idris Sparrow: lean, quick man, a scar through one eyebrow, a patched duelling coat, a plain sabre, spell-chalk smudged on his free hand.",
+     "The Tourney's best blade and barely a caster. The storm reaches him through the sabre, and the Vigil shows as it finally answering him."),
+    ("Aldo Voss", "Vigil", "Endless Squall",
+     "Aldo Voss: short, round-faced man, cropped hair, spectacles, ink-stained fingers, a thin book of loose pages he tears out and throws.",
+     "The Tourney team's mage, gifted with spells and held back in melee by his strength and reach. Mostly done with fighting and steps in reluctantly. A father."),
+    ("Sandmaw", "Either", "(arena beast)",
+     "Sandmaw: big blue-scaled pack-drake, heavy jaw, sand packed into its scales, old harness scars.",
+     "A King's Tourney arena beast, hired by either side."),
 ]
 IDENTITY = {c[0]: c[3] for c in CAST}
 SEAL_PALETTE = {
@@ -737,6 +747,25 @@ ART = {
     "freestyle_noncombat_19": "A spell unravelling in mid-air into loose threads of light, a calm hand closing on it.",
     "freestyle_noncombat_20": "Two duellists frozen mid-stride under a vast reptilian eye opening in the sky.",
     "freestyle_combat_21": "A fighter stooping to gather spent scraps and fallen weapons from the ground as they run.",
+    # Endless Squall, 2026-09-28: Idris Sparrow, Aldo Voss and Sandmaw from the King's Tourney.
+    "personality_63": "Scrapper. Mid-duel, snatching a guttering spark off the sand with his free hand, sabre up.",
+    "personality_64": "Cut Loose. A sabre stroke that leaves the blade and flies on as a white arc across the field.",
+    "personality_65": "Stillwind. A blow landed so fast the rival's momentum drains away, the air around them gone dead and still.",
+    "personality_66": "Stormedge. A single arc of lightning where the sabre should be, caught mid-stroke.",
+    "relic_05": "A laurel wreath of dull bronze leaves on worn sand-coloured cloth, one leaf bent.",
+    "personality_67": "As a boy newly taken in by the Rookes, a coven cloak too big for him, a small globe of water held clumsily between his hands.",
+    "personality_68": "Standing well back from the fight, tearing a page from a thin book and throwing it, the page flaring into a spell.",
+    "personality_69": "Mid-charge across an arena floor, sand spraying from its claws, jaw wide.",
+    "storm_art_25": "Five small sparks flicking off five fingertips at once from a caster's open hand.",
+    "storm_art_26": "A bolt caught and bent aside by a raised palm, the charge running harmlessly into the ground.",
+    "storm_drill_09": "A slow arc of lightning sweeping along a row of standing wards, knocking them down one by one.",
+    "storm_drill_10": "A heavy swing dragged to a halt in a crackling haze a hand's breadth from its target.",
+    "signature_art_15": "Braced low with both hands forward, a heavy beam of force driving across the ground and changing it.",
+    "signature_art_16": "Loosing a bolt from a crackling hand without breaking stride, the brand on the wrist quiet.",
+    "signature_drill_07": "A caster's stance held against a rising current that grows stronger with every breath.",
+    "signature_art_17": "Turning a bolt aside on the flat of a sabre, sparks scattering off the steel.",
+    "freestyle_noncombat_21": "A duellist kneeling with eyes closed, spent charge flowing back into open hands.",
+    "freestyle_art_12": "A lone duellist driving one great bolt forward against a far larger foe, feet planted.",
 }
 
 # Seals: one brief per set, the number added by the generator.
@@ -1073,6 +1102,25 @@ NEW_SOURCES = {
     "storm_art_24": "Orange Energy Break (Fusion Saga 65)",
     "storm_mastery_03": "Orange Style Mastery (World Games)",
     "storm_mastery_04": "Orange Style Mastery (Buu Saga)",
+    # Orange TS Yamcha tournament sheet, 2026-09-28.
+    "personality_63": "Yamcha, the Amazing (Lv 1, Fusion Saga 92)",
+    "personality_64": "Yamcha, the Single (Lv 2, Kid Buu Saga 92)",
+    "personality_65": "Yamcha, the Powerful (Lv 3, Cell Saga 88)",
+    "personality_66": "Yamcha (Lv 4, Androids Saga 123)",
+    "relic_05": "Master Roshi Sensei (Buu Saga 153)",
+    "personality_67": "Kid Trunks (Lv 1, Buu Saga 166)",
+    "personality_68": "Krillin, the Father (Lv 1, World Games Saga 99)",
+    "personality_69": "Maraikoh, the Vicious (Lv 1, World Games Saga 182)",
+    "storm_art_25": "Orange 5-Finger Focus (Buu Saga Preview 3)",
+    "storm_art_26": "Orange Energy Catch (Buu Saga 23)",
+    "storm_drill_09": "Orange Destruction Drill (Frieza Saga 67)",
+    "storm_drill_10": "Orange Haulting Drill (Cell Saga 147)",
+    "signature_art_15": "Gohan's Braced Energy Beam (Movie Promo M13)",
+    "signature_art_16": "Vegeta's Energy Focus (Promo X2)",
+    "signature_drill_07": "Uub's Energy Drill (Kid Buu Saga Preview 3)",
+    "signature_art_17": "Yamcha's Skillful Defense (Frieza Saga 59)",
+    "freestyle_noncombat_21": "Focusing (Cell Saga 115)",
+    "freestyle_art_12": "Heroic Effort (Fusion Saga 9)",
 }
 
 

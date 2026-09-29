@@ -4,6 +4,7 @@ extends SceneTree
 var checks: int = 0
 var failures: int = 0
 var requests: int = 0
+var marks_changes: int = 0
 
 
 func _initialize() -> void:
@@ -33,7 +34,6 @@ func _run() -> void:
 	display.surface.pixel_size = 0.001
 	display.life_transform.origin = Vector3(0.8, 0, 0)
 	display.readout.redraw_requested.connect(func() -> void: requests += 1)
-	display.plate_readout.redraw_requested.connect(func() -> void: requests += 1)
 	display.anchor_to_card(card, camera)
 	_check(requests > 0, "Initial anchoring requests a resource texture")
 	var initial: int = requests
@@ -43,20 +43,27 @@ func _run() -> void:
 	display.readout.duelist_bounds = display.readout.duelist_bounds
 	display.readout.card_bounds = display.readout.card_bounds
 	_check(requests == initial, "Equal projected bounds do not invalidate layout")
-	display.viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
-	display.preview_energy(3)
-	_check(requests == initial + 1, "Changed Energy preview requests one redraw")
-	_check(display.viewport.render_target_update_mode == SubViewport.UPDATE_ONCE, "Preview wakes the viewport for one frame")
-	display.preview_energy(3)
-	_check(requests == initial + 1, "Unchanged preview does not redraw")
-	display.preview_energy()
-	_check(requests == initial + 2, "Leaving a preview removes its projected cost")
+	# The live marks on the card render into their own small texture, only when a mark changes.
+	var marks: StatusMarkers = load("res://scenes/duel/status_markers.tscn").instantiate()
+	card.surface.add_child(marks)
+	marks.set_ally(5, 3)
+	marks.ladder.changed.connect(func() -> void: marks_changes += 1)
+	marks.viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	marks.preview_energy(3)
+	_check(marks_changes == 1, "Changed Energy preview requests one redraw")
+	_check(marks.viewport.render_target_update_mode == SubViewport.UPDATE_ONCE, "Preview wakes the viewport for one frame")
+	marks.preview_energy(3)
+	_check(marks_changes == 1, "Unchanged preview does not redraw")
+	marks.preview_energy()
+	_check(marks_changes == 2 and marks.ladder.preview_cost() == 0, "Leaving a preview removes its projected cost")
+	marks.set_ally(5, 3)
+	_check(marks_changes == 2, "An unchanged Energy and Might leave the marks idle")
 	# The fixture lies on the table: a hover lift on the card's face and any camera move leave it
 	# where it is; only the card itself moving to a new place does not.
 	var before_move: int = requests
 	card.front.position.x += 0.1
 	display.anchor_to_card(card, camera)
-	_check(requests == before_move, "A hover lift on the card's face leaves the plate in place")
+	_check(requests == before_move, "A hover lift on the card's face leaves the printed readout in place")
 	camera.position.z += 1.0
 	display.anchor_to_card(card, camera)
 	_check(requests == before_move, "Camera movement leaves the table layout alone")
@@ -71,9 +78,12 @@ func _run() -> void:
 	display.life_transform.origin.x += 1.0
 	display.anchor_to_card(card, camera)
 	_check(display.life_value.global_position.distance_to(life_before) > 0.9, "Life pile movement moves the Life count with it")
-	display.viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
-	display.readout._set_flash(0.5)
-	_check(display.viewport.render_target_update_mode == SubViewport.UPDATE_ONCE, "Flash animation wakes the resource viewport")
+	marks.viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	marks.ladder.flash = 0.5
+	_check(marks.viewport.render_target_update_mode == SubViewport.UPDATE_ONCE, "Flash animation wakes the marks' viewport")
+	marks.viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	marks.set_ally(4, 3)
+	_check(marks.viewport.render_target_update_mode == SubViewport.UPDATE_ONCE and marks.ladder.flash > 0.9, "A change of Energy flashes the lit pill")
 	world.queue_free()
 	await process_frame
 	print("display invalidation: %d checks, %d failures" % [checks, failures])

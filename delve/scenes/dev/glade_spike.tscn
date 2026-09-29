@@ -1,0 +1,14 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/GladeSpike.cs" id="1_spike"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/glade.tscn" id="2_glade"]
+[ext_resource type="PackedScene" path="res://scenes/looks/forest.tscn" id="3_look"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/camera.tscn" id="4_camera"]
+[ext_resource type="PackedScene" path="res://scenes/combat/unit_token.tscn" id="5_unit"]
+
+[node name="GladeSpike" type="Node"]
+script = ExtResource("1_spike")
+GladeScene = ExtResource("2_glade")
+LookScene = ExtResource("3_look")
+CameraScene = ExtResource("4_camera")
+UnitPrefab = ExtResource("5_unit")

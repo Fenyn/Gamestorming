@@ -39,6 +39,8 @@ const FLOAT_TEXT: Dictionary = {
 	"damage_removes": "wounds from your attacks are removed from the game",
 	"no_gain": "your opponent's duelist and Allies cannot gain Energy",
 	"no_ally_control": "your opponent's Allies cannot take control or take damage",
+	"no_ally_takeover": "your opponent cannot have Allies take control of Combat",
+	"life_for_art_costs": "you may discard the top card of your Life Deck instead of paying costs for any Arts this personality performs",
 	"keep_hand": "you keep your hand through the Discard step",
 	"endurance_boost": "your next Endurance prevents all remaining damage",
 	"no_endurance": "your opponent cannot use Endurance",
@@ -500,7 +502,7 @@ static func rules_text(def: CardDef) -> String:
 	if def.is_attack():
 		lines.append(attack_text(def.attack))
 		for v in def.attack.get("variants", []):
-			if not bool(v.get("after_empower", false)):
+			if not bool(v.get("after_empower", false)) and not bool(v.get("on_empower", false)):
 				lines.append(_conditional(v.get("when", {}), variant_text(v)))
 	if def.is_defense():
 		lines.append(defense_text(def.defense))
@@ -522,6 +524,10 @@ static func rules_text(def: CardDef) -> String:
 		for v in def.attack.get("variants", []):
 			if bool(v.get("after_empower", false)):
 				lines.append(_conditional(v.get("when", {}), variant_text(v)))
+			elif bool(v.get("on_empower", false)) and v.has("focused") and not bool(v["focused"]):
+				lines.append("This attack is no longer Focused.")
+		if int(def.raw.get("empower_remain", 0)) > 0:
+			lines.append("This attack stays on the table to be used %d more times this Combat without its Empower." % int(def.raw["empower_remain"]))
 	# A card with its own timing already said when it is used, so drop the default "Use in Combat".
 	if str(def.raw.get("use_at", "")) != "":
 		for i in range(effect_lines.size()):
@@ -1143,6 +1149,8 @@ static func _effect_body(e: Dictionary) -> String:
 					"any":
 						whose = "any one personality's"
 				body = "Raise %s Energy to full." % whose
+				if bool(e.get("next_art_free", false)):
+					body += " The next Art that personality performs this Combat costs no Energy to perform."
 			elif str(e.get("target", "")) == "allies" and not opp:
 				body = "Each of your Allies %s %d Energy." % [("gains" if n >= 0 else "loses"), absi(n)]
 			elif str(e.get("target", "")) == "all" and not opp:
@@ -1721,6 +1729,8 @@ static func _trigger_head(e: Dictionary) -> String:
 		"turn_start":
 			if str(e.get("on_turn", "")) == "opponent":
 				return "At the start of your opponent's turn"
+			if bool(e.get("each_turn", false)):
+				return "At the start of each turn"
 			return "At the start of your turn"
 		"on_attack":
 			return "When you perform an attack"
@@ -2102,6 +2112,10 @@ static func _search_text_body(e: Dictionary) -> String:
 		what += " that adds damage to your attacks"
 	if str(e.get("exclude_title", "")) != "":
 		what += " other than \"%s\"" % str(e["exclude_title"])
+	if str(e.get("attack_kind", "")) != "":
+		what += " that can perform %s" % _a(str(e["attack_kind"]).capitalize())
+		if e.has("max_base_life"):
+			what += " with a Base Damage of fewer than %d wounds" % (int(e["max_base_life"]) + 1)
 	var dest: String = "your hand"
 	if str(e.get("to", "hand")) == "play":
 		var at: Variant = e.get("stages")
@@ -2185,7 +2199,20 @@ static func modifier_text(m: Dictionary) -> String:
 		amount += " for each %s personality you have in play" % bloodline_name(str(m["per_bloodline"]))
 	if bool(m.get("per_fervor", false)):
 		amount = amount.replace("+1 ", "+X ") + ", X = your Fervor"
+	if bool(m.get("life_per_performer_surge", false)):
+		amount = "+X wounds, X = the Surge of the personality performing the attack"
 	var s: String = ""
+	if m.has("cap_stages") or m.has("cap_life"):
+		# "A maximum of 3 power stages of damage": a ceiling on what lands, not a reduction.
+		var caps: PackedStringArray = PackedStringArray()
+		if m.has("cap_stages"):
+			caps.append("%d Energy" % int(m["cap_stages"]))
+		if m.has("cap_life"):
+			caps.append("%d %s" % [int(m["cap_life"]), "wound" if int(m["cap_life"]) == 1 else "wounds"])
+		s = "%s against you deal at most %s." % [_cap(what), " and ".join(caps)]
+		if m.has("when"):
+			s = _conditional(m["when"], s)
+		return s
 	if scope == "opponent_cost":
 		# A tax on the other side: "your opponent's attacks cost an additional +1".
 		s = "Your opponent's %s cost %d more Energy to perform%s." % [what, int(m.get("stages", 0)), (" instead" if bool(m.get("instead", false)) else "")]
@@ -2977,7 +3004,7 @@ static func _floating_line(engine: DuelEngine, d: Dictionary) -> String:
 			return "%s%s's damage cannot be prevented%s." % [lead, pname, span]
 		"no_endurance":
 			return "%s%s cannot use Endurance%s." % [lead, pname, span]
-		"no_ally_control":
+		"no_ally_control", "no_ally_takeover":
 			return "%s%s's Allies cannot take control%s." % [lead, pname, span]
 		"damage_removes":
 			return "%s%s's wounds remove cards from the game%s." % [lead, pname, span]

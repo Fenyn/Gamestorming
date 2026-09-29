@@ -11,7 +11,7 @@ signal _render_done
 
 var _cache: Dictionary = {}   # key -> Texture2D
 var _back: Texture2D = null
-var _ladder: Array[Rect2] = []
+var _ladder: Rect2 = Rect2()
 var _rendering: bool = false
 var _strike_table: StrikeTable = null
 ## Per owning seat, the Might its Strikes are performed at and the Might they land on; empty
@@ -102,15 +102,16 @@ func render_face(def: CardDef, aspect: int = 0, backdrop: Color = CardFace.NO_BA
 	face_control.show_def(def, aspect, -1, null, backdrop, table)
 	var tex: Texture2D = await _render()
 	_cache[key] = tex
-	if def.is_personality() and _ladder.is_empty():
-		_ladder = face_control.ladder_rects()
+	if def.is_personality() and not _ladder.has_area():
+		_ladder = face_control.ladder_rect()
 	_rendering = false
 	_render_done.emit()
 	return tex
 
 
-## Rung rects in face pixels, top first; known once a personality has rendered.
-func ladder_rects() -> Array[Rect2]:
+## The Might ladder's rect in face pixels, the same on every personality face; known once a
+## personality has rendered.
+func ladder_rect() -> Rect2:
 	return _ladder
 
 

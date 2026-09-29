@@ -1,7 +1,7 @@
 extends SceneTree
 ## UID retention, immediate private-face removal, shared public status presentation, and the duel
 ## HUD's online presentation: the options menu, the result card in every state, the clocks, the
-## rival's plate tab and the reconnect card.
+## rival's tab and the reconnect card.
 const PLAYER_STATUS: Script = preload("res://scripts/duel/player_status.gd")
 const TOOLS: Array[String] = ["Reduced motion", "Fullscreen"]
 ## Words the menu and the result card no longer use for a way out.
@@ -346,7 +346,7 @@ func _check_card_size() -> void:
 	hud.free()
 
 
-# --- Clocks and the plate tab -------------------------------------------------
+# --- Clocks and the rival's tab -----------------------------------------------
 
 ## The decision clock: nothing offline or before the server sends a state, the timer and the bank
 ## in words, the warning and the fuse only in the last 10 s of both together, in a head row that
@@ -404,22 +404,22 @@ func _check_clock() -> void:
 	rejoined.free()
 
 
-## The rival's plate tab per PlateTab: nothing while they decide on their timer, the bank, their
-## connection down, and the readout that draws it at one size clear of the base line.
-func _check_plate_tab() -> void:
-	var tabs: Dictionary = readout_script.get_script_constant_map()["PlateTab"]
+## The rival's tab per DuelistReadout.Tab: nothing while they decide on their timer, the bank,
+## their connection down, and the readout that draws it at one size past the Aspect caption.
+func _check_rival_tab() -> void:
+	var tabs: Dictionary = readout_script.get_script_constant_map()["Tab"]
 	var hud: Node = _hud("CODE", true, true)
-	_check(int(hud.plate_tab(1, -1)["tab"]) == int(tabs["NONE"]), "No clock, no tab")
+	_check(int(hud.rival_tab(1, -1)["tab"]) == int(tabs["NONE"]), "No clock, no tab")
 	hud.set_clock(1, 23000, 60000, "run")
-	_check(int(hud.plate_tab(1, -1)["tab"]) == int(tabs["NONE"]), "A rival deciding on their timer shows no tab, the panel says it")
+	_check(int(hud.rival_tab(1, -1)["tab"]) == int(tabs["NONE"]), "A rival deciding on their timer shows no tab, the panel says it")
 	hud.set_clock(1, 0, 48000, "bank")
-	_check(hud.plate_tab(1, -1) == {"tab": int(tabs["BANK"]), "text": "Time bank 0:48", "warn": false}, "On their bank: %s" % str(hud.plate_tab(1, -1)))
+	_check(hud.rival_tab(1, -1) == {"tab": int(tabs["BANK"]), "text": "Time bank 0:48", "warn": false}, "On their bank: %s" % str(hud.rival_tab(1, -1)))
 	hud.set_clock(1, 0, 8000, "bank")
-	_check(bool(hud.plate_tab(1, -1)["warn"]), "which warns in its last 10 s")
+	_check(bool(hud.rival_tab(1, -1)["warn"]), "which warns in its last 10 s")
 	hud.set_clock(1, 30000, 60000, "run")
-	_check(hud.plate_tab(1, 76000) == {"tab": int(tabs["AWAY"]), "text": "Disconnected 1:16", "warn": true}, "Their connection down: %s" % str(hud.plate_tab(1, 76000)))
+	_check(hud.rival_tab(1, 76000) == {"tab": int(tabs["AWAY"]), "text": "Disconnected 1:16", "warn": true}, "Their connection down: %s" % str(hud.rival_tab(1, 76000)))
 	hud.set_clock(1, 0, 20000, "bank")
-	_check(str(hud.plate_tab(1, 76000)["text"]) == "Disconnected 0:20", "counting the clock when it ends before their grace")
+	_check(str(hud.rival_tab(1, 76000)["text"]) == "Disconnected 0:20", "counting the clock when it ends before their grace")
 	_check(hud_script.away_line("Sable Draik", 76000) == "Sable Draik has 1:16 to come back.", "The panel's away line")
 	hud.show_waiting("Bryn", &"declare", SeatView.new())
 	_check(not hud.prompt_hint.visible, "A waiting panel has no hint")
@@ -429,26 +429,30 @@ func _check_plate_tab() -> void:
 	hud.set_rival_away("")
 	_check(hud.prompt_title.text == "Waiting for Bryn" and not hud.prompt_hint.visible, "and waits on them again when they are back")
 	hud.apply_result(_state("RESULT"), _facts({"winner": 0, "reason": "left"}))
-	_check(int(hud.plate_tab(1, 76000)["tab"]) == int(tabs["NONE"]), "A result takes the tab down")
+	_check(int(hud.rival_tab(1, 76000)["tab"]) == int(tabs["NONE"]), "A result takes the tab down")
 	hud.free()
 	var unclocked: Node = _hud("CODE", false, false)
-	_check(int(unclocked.plate_tab(1, 76000)["tab"]) == int(tabs["NONE"]), "A LAN duel has no tab")
+	_check(int(unclocked.rival_tab(1, 76000)["tab"]) == int(tabs["NONE"]), "A LAN duel has no tab")
 	unclocked.free()
 	var readout: Control = readout_script.new()
 	root.add_child(readout)
 	readout.set_tab(int(tabs["BANK"]), "Time bank 0:48", false)
-	_check(readout.tab_kind() == int(tabs["BANK"]) and readout.tab_text() == "Time bank 0:48" and not readout.tab_warns(), "The plate keeps the tab it is given")
+	_check(readout.tab_kind() == int(tabs["BANK"]) and readout.tab_text() == "Time bank 0:48" and not readout.tab_warns(), "The readout keeps the tab it is given")
 	readout.set_tab(int(tabs["AWAY"]), "Disconnected 1:16", true)
 	_check(readout.tab_text() == "Disconnected 1:16" and readout.tab_warns(), "The away tab warns")
 	readout.set_tab(int(tabs["NONE"]), "Time bank 0:48", true)
 	_check(readout.tab_text() == "" and not readout.tab_warns(), "NONE clears it")
 	var constants: Dictionary = readout_script.get_script_constant_map()
-	var pad: Vector2 = constants["PLATE_PAD"]
-	var tracker: Rect2 = Rect2(pad, constants["TRACKER_SIZE"])
-	var tab: Rect2 = readout.tab_rect(tracker)
-	var canvas: Vector2i = constants["PLATE_CANVAS"]
-	_check(tab.size == Vector2(440, 54) and int(constants["TAB_FONT"]) == 44 and tab.position.y > tracker.position.y + 150.0 and tab.end.y <= canvas.y,
-		"The tab is 440 wide at 44, under the base line and inside the plate: %s" % str(tab))
+	readout.duelist_bounds = Rect2(-230, -320, 460, 640)
+	for far: bool in [false, true]:
+		readout._player_index = 1 if far else 0
+		readout._viewer = 0
+		var tab: Rect2 = readout.tab_rect()
+		var caption: Rect2 = readout.caption_rect()
+		var outside: bool = tab.end.y <= caption.position.y if far else tab.position.y >= caption.end.y
+		_check(tab.size == Vector2(440, 54) and int(constants["TAB_FONT"]) == 44 and outside and not tab.intersects(readout.duelist_bounds)
+			and is_equal_approx(tab.get_center().x, readout.duelist_bounds.get_center().x),
+			"The tab is 440 wide at 44, centred on the card past its Aspect caption, off the card (%s): %s" % ["far" if far else "near", str(tab)])
 	readout.free()
 
 
@@ -684,7 +688,7 @@ func _run() -> void:
 	_check(readout._flags == PLAYER_STATUS.flags(p), "Field readout must use the same complete status formatter as inspection")
 	_check("Needs 7 Fervor" in readout.status_text() and "Fervor gain x0" in readout.status_text() and "Cannot gain Energy" in readout.status_text(), "Changed thresholds, blocked gains and restrictions must remain available in full status")
 	readout.refresh(view, 0, 0, {"zones": [[42, 3, 0, 0]]})
-	_check(readout._life == 42 and "Life 42" in readout.status_text(), "The plate carries the Life Deck count, read from the beat's own pile counts")
+	_check(readout._life == 42 and "Life 42" in readout.status_text(), "The status text carries the Life Deck count, read from the beat's own pile counts")
 	readout.redraw_requested.connect(func() -> void: redraws += 1)
 	readout.card_bounds = readout.card_bounds
 	readout.duelist_bounds = readout.duelist_bounds
@@ -696,7 +700,7 @@ func _run() -> void:
 	_check_result_states()
 	await _check_card_size()
 	_check_clock()
-	_check_plate_tab()
+	_check_rival_tab()
 	_check_reconnect()
 	_check_replay()
 	await _check_theme()

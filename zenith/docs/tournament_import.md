@@ -26,7 +26,7 @@ Codes seen that still need checking against `tools/source_cards.tsv`: `SZ`, `GK`
 | Freestyle MBS Trunks Sword | 98 / 57 | Caedan Vale, `personality_caedan_vale_*` | not started |
 | Blue MBS Goku | 98 / 55 | Sir Edric Rooke, `personality_edric_rooke_*` | built, `tide_deepwater` |
 | Black TS Majin Vegeta | 98 / 49 | Gideon Mourne, the Lord Mourne line | built, `shade_mind_siege` |
-| Orange TS Yamcha | 94 / 58 | new, Storm | not started |
+| Orange TS Yamcha | 94 / 58 | new, Storm, `PLACEHOLDER Duelist` | built, `storm_mentor` |
 | Blue CS Roshi Speedball | 54 / 46 | new, Tide | not started |
 
 Slots counts every printed copy, distinct counts unique card faces. The first five sheets reuse a
@@ -191,6 +191,57 @@ the opponent's duelist with `no_prevent`, `damage_trade`, `reserve_ransom`, a `d
 trigger, `down_to` / `all` / `reveal` on `discard_hand`, a `tag:` hand filter, an attacker-side
 `own_successful_attack` window, a kind on `stop_next`, `no_shuffle` on `shuffle_discard`, and
 `reserve_only` in the deck validator.
+
+## Orange TS Yamcha, built 2026-09-28 as `storm_mentor`, "PLACEHOLDER Sensei"
+
+58 distinct faces, 94 copies: a four-level Yamcha (Fusion Saga 092, Kid Buu Saga 092, Cell Saga
+088, Androids Saga 123), Orange Style Mastery 146 (the Trunks Saga printing we already ship as
+`storm_mastery_01`), Master Roshi Sensei (Buu Saga 153, Deck Size 9), a 9-card Sensei Deck and 79
+Life Deck cards. 85 by our count. The user wanted the list built card for card: a card we already
+ship is reused only when its behaviour matches the print exactly, otherwise it is a new card.
+
+**Reused, checked against the print and the rulings document:** 37 of the 49 real faces. Tokui-Waza
+conditions stay unconditional (standing deviation, every deck has a Mastery). Our "Limit 1 per deck"
+on Energy Lob, Vegeta's Physical Stance, both Nappa cards, Super Saiyan Effect, Expectant Trunks and
+Orange Uppercut is the rulings document's Restricted list, not an invented limit, and Fatherly
+Advice's errata reads "Combat, Physical Combat, or Energy Combat card", which is what ours does. The
+sheet runs Vegeta's Physical Stance with Nappa's Physical Resistance, which the rulings document's
+11/24/04 one-per-group rule forbids; the user kept it as printed, and `DeckValidator` does not enforce
+those groups.
+
+**Twelve real cards are new:** the four Yamcha levels (`personality_63` to `_66`, Vigil, no
+bloodline), Master Roshi Sensei (`relic_05`), Kid Trunks Buu Saga 166 as Tavin Vale's second print
+(`personality_67`, "the Fledgling"; our `personality_51` is the Kid Buu Saga print and a different
+card), Krillin, the Father (`personality_68`), Maraikoh, the Vicious (`personality_69`, a Celestial
+Fighter, so either side), Orange 5-Finger Focus (`storm_art_25`), Orange Energy Catch (`storm_art_26`),
+Orange Destruction Drill (`storm_drill_09`), Orange Haulting Drill (`storm_drill_10`), Gohan's Braced
+Energy Beam (`signature_art_15`, Emrys), Vegeta's Energy Focus (`signature_art_16`, Mourne) and Uub's
+Energy Drill (`signature_drill_07`). Might ladders are designed on the compact scale like every other
+(tops 20 / 26 / 32 / 38 for the duelist); Surge is printed.
+
+**Nine fan prints, 22 copies of 94**, swapped at the user's call for Score cards of the job the user
+described: Orange Rising Energy NZ146 x3 (an Energy top-off to keep casting after a hit) to Orange
+Strength `storm_strike_03`; Lonely Canyon NZ193 x3 (Arts for free) to Focusing, new as
+`freestyle_noncombat_21` "Centering"; Frieza's Deception NZ41 x2 (Sensei Deck; it advances the
+opponent's Main Personality, a tech card against decks that keep Drills and Allies) to Drills are for
+the Weak `freestyle_noncombat_01` and a third Orange Obliteration `storm_art_05` (Android 17 Smirks is
+Villains only); Orange Kaio-Ken Outburst NZ149 x3 to Orange Ki Assailment `storm_art_18`; Orange Right
+Blast NZ67 x2 to Orange Focused Attack `storm_art_17`; Heroic Deeds NZ161 x3 to Heroic Effort, new as
+`freestyle_art_12` "Vigilant Effort"; Orange Aura Deflection NZ147 x3 to Orange Sidestep
+`storm_strike_04`; Left Leg Check NZ195 x2 to Yamcha's Skillful Defense, new as `signature_art_17`;
+Orange Negation NZ66 to a second Trunks' Energy Sphere `signature_combat_03`. Three of the fan prints
+carried a "Transform." keyword no rules document defines.
+
+**Sensei Deck, 9 cards:** Majin Buu's Fury x3 (`signature_strike_02`), Cell's Presence x2
+(`freestyle_combat_17`), the two Frieza's Deception replacements, HUH??? (`freestyle_noncombat_10`),
+You're Invited (`freestyle_noncombat_09`).
+
+**Engine work this sheet needed:** Relic modifiers (a Sensei's standing line), a modifier worth the
+performer's Surge, attack variants that apply only on Empower plus `empower_remain`, one-use cost
+modifiers spent at payment, `next_art_free` on an Energy raise, paying an Art's cost with the top Life
+Deck card (`life_for_art_costs`, with a choice when Energy could pay), a `max_base_life` search filter
+on printed Base Damage, and `no_ally_takeover` for "cannot have Allies take control" without the
+damage lock `no_ally_control` also carries.
 
 ## Per deck, the order of work
 

@@ -1,111 +1,83 @@
 class_name StatusMarkers
 extends Node3D
-## Tracking marks on a personality card, in the card's frame. Energy lights the rung of the Might
-## ladder printed on the face. An Ally has no stat crest of its own, so its Energy and Might are
-## also spelled out under the card.
+## The live marks on a personality in play, drawn into a small texture laid over its cached face:
+## the ladder's live layer (`MightLadder.show_live`) and, on a duelist, its Fervor pips and who
+## is in control (`DuelistTabs`). The texture renders only when a mark changes. An Ally's Energy is
+## also spelled out under its card, where the row is too small to read the ladder.
 
-const CARD: Vector2 = Vector2(0.63, 0.88)
-const FACE: Vector2 = Vector2(512, 716)   # face pixels the ladder rects are measured in
 const LIFT: float = 0.004                 # above the card quad, no z-fight
-const BAR_HEIGHT: float = 0.004
-const BAR_GROW: float = 1.18
-const PULSE_TIME: float = 0.9
-## The lit bar breathes between these. The floor is the faintest it can be and still read on the
-## cream face.
-const BAR_ALPHA_MIN: float = 0.55
-const BAR_ALPHA_MAX: float = 0.8
-const OUTLINE: Color = Color(0.03, 0.025, 0.03, 0.95)
+const FLASH_TIME: float = 0.55
 
-const STAT_GAP: float = 0.13              # clear of the card's outer edge
-const STAT_STEP: float = 0.20             # caption beyond the number, clear of its own line
-
-var _stat_value: Label3D = null
-var _stat_caption: Label3D = null
-var _bar: MeshInstance3D = null
-var _bar_mat: StandardMaterial3D = null
-var _rungs: Array[Vector3] = []           # card-local rung centres, index 0 = stage 10, last = stage 0
-var _lit: Color = ZenithTheme.ENERGY
-var _rung_size: Vector3 = Vector3.ZERO
-var _pulse: Tween = null
+@export var reduced_motion: bool = false
+@onready var viewport: SubViewport = $Viewport
+@onready var ladder: MightLadder = $Viewport/Face/Ladder
+@onready var tabs: DuelistTabs = $Viewport/Face/Tabs
+@onready var overlay: MeshInstance3D = $Overlay
+@onready var stat_value: Label3D = $StatValue
+@onready var stat_caption: Label3D = $StatCaption
+var _flash: Tween = null
+var _shown: bool = false
 
 
 func _ready() -> void:
-	_bar = MeshInstance3D.new()
-	_bar.mesh = BoxMesh.new()
-	_bar_mat = StandardMaterial3D.new()
-	_bar_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_bar_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_bar_mat.albedo_color = Color(ZenithTheme.ENERGY, 0.55)
-	_bar.material_override = _bar_mat
-	_bar.visible = false
-	add_child(_bar)
-	_stat_value = _stat_label(60, ZenithTheme.ENERGY)
-	_stat_caption = _stat_label(30, ZenithTheme.MUTED)
-	_place_stats()
+	(overlay.material_override as StandardMaterial3D).albedo_texture = viewport.get_texture()
+	ladder.changed.connect(_render)
+	tabs.changed.connect(_render)
 
 
-## A billboarded line beside the card. The card's own scale carries through, so the ladder and
-## these numbers keep their proportions at every row scale.
-func _stat_label(size: int, color: Color) -> Label3D:
-	var l: Label3D = Label3D.new()
-	l.font_size = size
-	l.pixel_size = 0.0042
-	l.modulate = color
-	l.outline_size = 14
-	l.outline_modulate = OUTLINE
-	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	l.shaded = false
-	l.no_depth_test = true
-	l.double_sided = true
-	l.visible = false
-	add_child(l)
-	return l
+## `ladder_rect` is where the face lays out its ladder, in face pixels (`CardFaceCache.ladder_rect`).
+func setup(ladder_rect: Rect2) -> void:
+	if Rect2(ladder.position, ladder.size).is_equal_approx(ladder_rect):
+		return
+	ladder.position = ladder_rect.position
+	ladder.size = ladder_rect.size
+	_render()
 
 
-## The Ally's numbers sit beyond the card edge nearest the viewer, on both sides of the table,
-## so reading the opponent's Allies never means looking past their cards. Card local +z faces
-## the viewer whichever seat holds the table, because `TableLayout.slot` yaws by viewer.
-func _place_stats() -> void:
-	_stat_value.position = Vector3(0.0, LIFT, CARD.y * 0.5 + STAT_GAP)
-	_stat_caption.position = Vector3(0.0, LIFT, CARD.y * 0.5 + STAT_GAP + STAT_STEP)
+func show_card(def: CardDef, aspect: int, backdrop: Color) -> void:
+	ladder.show_card(def, aspect, backdrop)
 
 
-## Rung rects in face pixels, stage 10 first down to stage 0, from the face layout. `lit` is the
-## owner's Mastery colour, the same one the face paints its live rung in.
-func setup(ladder: Array[Rect2], lit: Color = ZenithTheme.ENERGY) -> void:
-	_lit = lit
-	_rungs.clear()
-	for r in ladder:
-		var c: Vector2 = r.get_center()
-		_rungs.append(Vector3((c.x / FACE.x - 0.5) * CARD.x, LIFT, (c.y / FACE.y - 0.5) * CARD.y))
-		_rung_size = Vector3(r.size.x / FACE.x * CARD.x * BAR_GROW, BAR_HEIGHT, r.size.y / FACE.y * CARD.y * BAR_GROW)
-	(_bar.mesh as BoxMesh).size = _rung_size
+## A duelist: the gauge at `energy` with its live `might`, the Surge rail to `reach` (-1 for
+## none), its Fervor pips, and `control` naming the Ally in control ("" while it fights itself).
+func set_duelist(energy: int, might: int, reach: int, fervor: int, need: int, control: String) -> void:
+	_pulse_on_change(energy, fervor)
+	ladder.show_live(energy, might, reach, ladder.preview_cost())
+	tabs.show_tabs(fervor, need, control)
+	stat_value.visible = false
+	stat_caption.visible = false
 
 
-## Energy 0 lights the stage 0 rung like any other. `standing` is the owning player for a
-## duelist, null for an Ally. `might` turns on the Ally's Energy and Might line beside the card; a
-## duelist's stat crest already carries both, so it stays off there.
-func set_status(energy: int, standing: SeatPlayer, might: int = -1) -> void:
-	var stages: int = CardInstance.MAX_STAGE
-	if _rungs.size() == stages + 1:
-		_bar.visible = true
-		_bar.position = _rungs[stages - clampi(energy, 0, stages)]
-		_bar_mat.albedo_color = Color(_lit, BAR_ALPHA_MAX)
-		_start_pulse()
-	var spell_out: bool = standing == null and might >= 0
-	_stat_value.visible = spell_out
-	_stat_caption.visible = spell_out
-	if spell_out:
-		# Energy only: it decides whether the Ally can take control, attack or be spent, and it is
-		# the one number the row is too tight to spell out twice. Might stays on the hover view.
-		_stat_value.text = str(energy)
-		_stat_value.modulate = ZenithTheme.WARN if energy <= 0 else ZenithTheme.ENERGY
-		_stat_caption.text = "ENERGY"
+## An Ally: the gauge only, and its Energy under the card. Energy decides whether it can take
+## control, attack or be spent, and it is the one number the row is too tight to spell out twice.
+## Might stays on the hover view.
+func set_ally(energy: int, might: int) -> void:
+	_pulse_on_change(energy, -1)
+	ladder.show_live(energy, might, -1, ladder.preview_cost())
+	tabs.show_tabs(-1, 0, "")
+	stat_value.visible = true
+	stat_caption.visible = true
+	stat_value.text = str(energy)
+	stat_value.modulate = ZenithTheme.WARN if energy <= 0 else ZenithTheme.ENERGY
 
 
-func _start_pulse() -> void:
-	if _pulse != null:
-		_pulse.kill()
-	_pulse = create_tween().set_loops()
-	_pulse.tween_property(_bar_mat, "albedo_color:a", BAR_ALPHA_MIN, PULSE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_pulse.tween_property(_bar_mat, "albedo_color:a", BAR_ALPHA_MAX, PULSE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+## Preview only: the rung a projected cost would drop Energy to, outlined.
+func preview_energy(cost: int = 0) -> void:
+	ladder.set_preview(cost)
+
+
+## The lit pill brightens for a moment when Energy or Fervor moves.
+func _pulse_on_change(energy: int, fervor: int) -> void:
+	var moved: bool = _shown and (energy != ladder.energy() or fervor != tabs.fervor())
+	_shown = true
+	if not moved or reduced_motion:
+		return
+	if _flash != null:
+		_flash.kill()
+	ladder.flash = 1.0
+	_flash = create_tween()
+	_flash.tween_property(ladder, "flash", 0.0, FLASH_TIME)
+
+
+func _render() -> void:
+	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE

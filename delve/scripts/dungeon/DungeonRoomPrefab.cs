@@ -50,7 +50,7 @@ public partial class DungeonRoomPrefab : Node3D
     public StationHistory History { get; set; } = StationHistory.Evacuated;
     [Export] public DungeonPalette? Palette { get; set; }
 
-    private Color PaletteTint(string key) => Palette?.Tint(key) ?? Colors.Magenta;
+    public Color PaletteTint(string key) => Palette?.Tint(key) ?? Colors.Magenta;
     [Export] public int FeatureCount { get; set; } = 4;
     [Export(PropertyHint.Range, "-1,2,1")] public int LayoutVariant { get; set; } = -1;
     [Export] public bool HangingBanners { get; set; }
@@ -61,7 +61,11 @@ public partial class DungeonRoomPrefab : Node3D
     private readonly Dictionary<DoorSide, Vector3> _leafRest = new();
     public DoorSide? HoveredDoor { get; private set; }
 
-    private readonly List<(Node3D Wall, DoorSide Side)> _upperWalls = new();
+    /// <summary>What the room is built from. Left unset, the prefab builds masonry.</summary>
+    [Export] public RoomShell? Shell { get; set; }
+    public int Seed { get; private set; }
+    public int Size { get; private set; }
+    public bool OpenLayout { get; private set; }
     private readonly List<DungeonProp> _focals = new();
     private readonly List<OmniLight3D> _lamps = new();
     private readonly Dictionary<DoorSide, Area3D> _doorAreas = new();
@@ -69,74 +73,26 @@ public partial class DungeonRoomPrefab : Node3D
     private bool _resolved;
     public void Generate(int seed, IReadOnlyList<DoorSide> doors, int sizeOverride = 0, bool openLayout = false)
     {
-        int size = sizeOverride > 0 ? sizeOverride : SizeVariants.Length > 0 ? SizeVariants[new Random(Delve.Run.RunRng.StableSeed(seed, 0, "size")).Next(SizeVariants.Length)] : InteriorSize;
-        var profile = new RoomVariation(MinPillarInset, MaxPillarInset, MinCover, MaxCover, DebrisCount, FeatureCount, LayoutVariant);
-        Generated = RoomGeneration.Generate(Family, seed, size, doors, openLayout, profile, PurposeOverride ?? (UsePurpose ? Purpose : null), History);
-        Heights = new TerrainHeightMap(Generated.Layout, MapThemes.Sewer.HeightScale);
-        // The visual copy opens door thresholds; the tactical copy keeps them closed.
-        var render = RoomGeneration.Generate(Family, seed, size, doors, openLayout, profile, PurposeOverride ?? (UsePurpose ? Purpose : null), History).Layout;
+        Seed = seed;
+        OpenLayout = openLayout;
+        Size = sizeOverride > 0 ? sizeOverride : SizeVariants.Length > 0 ? SizeVariants[new Random(Delve.Run.RunRng.StableSeed(seed, 0, "size")).Next(SizeVariants.Length)] : InteriorSize;
+        if (Shell == null) AddChild(Shell = new MasonryShell { Name = "Shell" });
+        Generated = Shell.Generate(this, seed, Size, doors, openLayout);
+        Heights = new TerrainHeightMap(Generated.Layout, Shell.HeightScale);
+        Shell.Build(this, doors);
         foreach (var side in doors)
-            foreach (var p in RoomGeneration.Threshold(render.Width, side))
-                render.SetTile(p.x, p.y, TileRole.Ground);
-        var map = new MapView3D();
-        AddChild(map);
-        map.Build(render, Palette?.Theme() ?? MapThemes.Sewer);
-        var masonry = new DungeonProp { Palette = Palette };
-        AddChild(masonry);
-        int n = Width;
-        foreach (DoorSide side in Enum.GetValues<DoorSide>())
         {
-            bool open = doors.Contains(side);
-            for (int i = 0; i < n; i++)
-            {
-                if (open && i >= n / 2 - 1 && i <= n / 2 + 1)
-                    continue;
-                var at = side switch
-                {
-                    DoorSide.North => new Vector3(i + 0.5f, 1.3f, 0.5f),
-                    DoorSide.South => new(i + 0.5f, 1.3f, n - 0.5f),
-                    DoorSide.West => new(0.5f, 1.3f, i + 0.5f),
-                    _ => new(n - 0.5f, 1.3f, i + 0.5f)};
-                var wall = masonry.Box(at, new(1, 1.6f, 1), PaletteTint("masonry"));
-                _upperWalls.Add((wall, side));
-                if (HangingBanners && i > 1 && i < n - 2 && (i + (seed & 3)) % 4 == 0)
-                {
-                    var banner = new MeshInstance3D
-                    {
-                        Mesh = new BoxMesh { Size = new(0.65f, 1.1f, 0.04f) },
-                        MaterialOverride = Palette?.Material(Colors.White, "cloth"),
-                        Position = side switch
-                        {
-                            DoorSide.North => new(0, 0.1f, 0.52f),
-                            DoorSide.South => new(0, 0.1f, -0.52f),
-                            DoorSide.West => new(0.52f, 0.1f, 0),
-                            _ => new(-0.52f, 0.1f, 0)
-                        },
-                        RotationDegrees = new(0, side is DoorSide.East or DoorSide.West ? 90 : 0, 0)
-                    };
-                    wall.AddChild(banner); // Cutaway hides the furnishing with its wall.
-                }
-            }
-
-            if (!open)
-                continue;
-            var pos = DoorPosition(side);
             var door = new Node3D
             {
-                Position = pos,
+                Position = DoorPosition(side),
                 RotationDegrees = new Vector3(0, side is DoorSide.East or DoorSide.West ? 90 : 0, 0)
             };
             AddChild(door);
-            var frame = new DungeonProp { Palette = Palette };
-            door.AddChild(frame);
-            frame.Box(new(-1.65f, 1, 0), new(0.3f, 2, 0.6f), PaletteTint("door_frame"));
-            frame.Box(new(1.65f, 1, 0), new(0.3f, 2, 0.6f), PaletteTint("door_frame"));
-            frame.Box(new(0, 2.1f, 0), new(3.6f, 0.25f, 0.6f), PaletteTint("door_frame"));
             var marker = DoorMarkerScene.Instantiate<MeshInstance3D>();
             marker.Position = new Vector3(0, DoorMarkerLift, 0);
             door.AddChild(marker);
             _doorMarkers[side] = marker;
-            var leaf = frame.Box(new(0, 0.9f, 0), new(3, 1.8f, 0.18f), PaletteTint("door_leaf"), surface: "wood");
+            var leaf = Shell.BuildDoor(this, door, side);
             DoorLeaves[side] = leaf;
             _leafRest[side] = leaf.Position;
             var area = new Area3D
@@ -161,7 +117,7 @@ public partial class DungeonRoomPrefab : Node3D
             if (p.Kind is "shrine" or "cache" or "collapse" or "camp" or "entrance")
                 _focals.Add(prop);
         }
-        AddLightPool();
+        if (Shell.LightPool) AddLightPool();
     }
 
     public Vector3 DoorPosition(DoorSide side) => side switch
@@ -264,16 +220,5 @@ public partial class DungeonRoomPrefab : Node3D
         }
     }
 
-    public void Cutaway(Camera3D camera)
-    {
-        var relative = camera.GlobalPosition - (GlobalPosition + new Vector3(Width / 2f, 0, Width / 2f));
-        foreach (var(wall, side)in _upperWalls)
-            wall.Visible = side switch
-            {
-                DoorSide.North => relative.Z > 0,
-                DoorSide.South => relative.Z < 0,
-                DoorSide.West => relative.X > 0,
-                _ => relative.X < 0
-            };
-    }
+    public void Cutaway(Camera3D camera) => Shell?.Cutaway(this, camera);
 }

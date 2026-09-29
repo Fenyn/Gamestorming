@@ -8,6 +8,7 @@ extends Node3D
 ## through its Referee and sends seat 1 its update; the joiner holds no engine at all.
 
 const CARD_SCENE: PackedScene = preload("res://scenes/duel/card_3d.tscn")
+const MARKERS_SCENE: PackedScene = preload("res://scenes/duel/status_markers.tscn")
 ## The title screen's script, which keeps which queue a client sent back to it waits in.
 const TITLE: Script = preload("res://scripts/main.gd")
 const SYNC_DURATION: float = 0.3
@@ -67,9 +68,6 @@ const PILE_ZONES: Array[StringName] = [&"discard", &"removed", &"relic"]   # ind
 ## Drill, a Remain card) is never held: its own zone is where it is read.
 const HOLD_ZONES: Array[StringName] = [&"resolving", &"discard", &"removed", &"life_deck"]
 const ARENA_FADE: float = 0.35        # seconds for the table to dim or come back around an exchange
-## The stat plaques stand up through the veil and their numbers change during exchanges, so they
-## only dim a little.
-const PLATE_DIM: Color = Color(0.85, 0.85, 0.85)
 const ARENA_COMBAT: float = 0.6       # the veil through a Combat, between exchanges
 const HANDOVER_BEAT: float = 0.8      # a change of hands: Combat opening, a fight back, a new turn
 const HANDOVER_FLOOR: float = 0.4     # a busy queue shortens a hand-over no further than this
@@ -205,7 +203,7 @@ var _answer_title: String = ""      # what last answered the pinned attack, for 
 var _defense_uids: Array[int] = []
 var _window_skips: int = 0           # skipped response windows in the update being replayed
 var _fast_triggers: Dictionary = {}  # line index -> run length, for a batched run of triggers
-var _shown_stats: Dictionary = {}    # player -> [energy, might] as the readout last drew them
+var _shown_stats: Dictionary = {}    # player -> [energy, might, duelist uid] as last floated
 var _reduced_motion: bool = false
 var _exchange_live: bool = false     # the exchange holds a card in play, as of the last `_targets`
 var _arena_amount: float = 0.0       # how far the table is dimmed now (`_set_arena`)
@@ -490,19 +488,14 @@ func _set_arena(level: float) -> void:
 	if _arena_fade != null and _arena_fade.is_valid():
 		_arena_fade.kill()
 	var veil: ShaderMaterial = arena_veil.material_override
-	var plate_tint: Color = Color.WHITE.lerp(PLATE_DIM, level)
 	arena_veil.visible = true
 	if _reduced_motion:
 		veil.set_shader_parameter("amount", level)
 		arena_veil.visible = level > 0.0
-		for fixture: DuelistDisplay in [near_duelist, far_duelist]:
-			fixture.plate_face.modulate = plate_tint
 		return
 	var shown: float = float(veil.get_shader_parameter("amount")) if veil.get_shader_parameter("amount") != null else from
 	_arena_fade = create_tween().set_parallel().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_arena_fade.tween_method(func(value: float) -> void: veil.set_shader_parameter("amount", value), shown, level, ARENA_FADE)
-	for fixture: DuelistDisplay in [near_duelist, far_duelist]:
-		_arena_fade.tween_property(fixture.plate_face, "modulate", plate_tint, ARENA_FADE)
 	if level <= 0.0:
 		_arena_fade.chain().tween_callback(func() -> void: arena_veil.visible = false)
 		return
@@ -544,7 +537,7 @@ func _layout_fixtures() -> void:
 		var count: int = view.player(owner).life_deck.size()
 		fixture.life_transform = zones.global_transform * zones.slot(owner, &"life_deck", maxi(0, count - 1), count, viewer)
 		fixture.flag_row = _flag_row(owner)
-		fixture.plate_home = zones.to_global(zones.plate_point(owner))
+		fixture.status_home = zones.to_global(zones.status_point(owner))
 		fixture.anchor_to_card(card, camera)
 	if viewer >= 0 and near_duelist.visible:
 		near_duelist.readout.update_layout()
@@ -580,8 +573,8 @@ func _refresh_displays() -> void:
 	hud.far_flags.hide()
 
 
-## The signed change in a fighter's Energy or Might, floated over its readout in the colour the
-## readout itself now draws that number in. The numbers come from the readout, which reads the
+## The signed change in a fighter's Energy or Might, floated over its duelist card, green for a
+## gain and the warning colour for a loss. The numbers come from the readout, which reads the
 ## beat's own state; nothing here works out what they should be.
 func _float_stat_delta(fixture: DuelistDisplay, player: int) -> void:
 	if player < 0 or player >= view.players.size():
@@ -602,8 +595,8 @@ func _float_stat_delta(fixture: DuelistDisplay, player: int) -> void:
 		fx.float_text(anchor, "%+d Energy" % (energy - int(previous[0])), ZenithTheme.ENERGY if gained else ZenithTheme.WARN, 52)
 	if might != int(previous[1]):
 		var stronger: bool = might > int(previous[1])
-		# Beside, not above: the far seat's readout sits over its card, so a stacked number lands on it.
-		# Far enough across that a wide Energy hit number on the card itself stays clear of it.
+		# Beside, not above, and far enough across that a wide Energy hit number on the card itself
+		# stays clear of it.
 		fx.float_text(anchor + camera.global_basis.x * 1.5 - camera.global_basis.y * 0.2,"%+d Might" % (might - int(previous[1])), ZenithTheme.ENERGY if stronger else ZenithTheme.WARN, 52)
 
 
@@ -618,7 +611,9 @@ func _on_hand_hovered(uid: int, on: bool) -> void:
 		hud.hide_peek()
 	hud.preview_hand_card(uid, on)
 	var forecast: Dictionary = view.forecast(uid) if on and view != null else {}
-	near_duelist.preview_energy(int(forecast.get("cost_stages", 0)))
+	var marks: StatusMarkers = _markers.get(near_duelist.duelist_uid)
+	if marks != null:
+		marks.preview_energy(int(forecast.get("cost_stages", 0)))
 
 
 ## Hotseat and hosting: the rules run here, behind a DuelHost that also serves the remote seat.
@@ -2709,7 +2704,7 @@ func _on_find_another() -> void:
 
 
 ## Server room: a seat's clock. The HUD counts it down on this seat's own decision panel; the other
-## seat's goes on their plate's tab (`_on_tick`).
+## seat's goes on their tab by their duelist (`_on_tick`).
 func _on_clock(seat: int, left_ms: int, bank_ms: int, phase: String) -> void:
 	if not is_inside_tree() or _finished():
 		return
@@ -2719,7 +2714,7 @@ func _on_clock(seat: int, left_ms: int, bank_ms: int, phase: String) -> void:
 		_dev_finish()
 
 
-## Once a second, and at once when a clock or a seat's presence changes: the rival's plate tab and,
+## Once a second, and at once when a clock or a seat's presence changes: the rival's tab and,
 ## while they are cut off, the waiting panel's line saying how long they have.
 func _on_tick() -> void:
 	if not online or viewer < 0:
@@ -2734,8 +2729,8 @@ func _on_tick() -> void:
 				break
 	var rival: int = 1 - viewer
 	var away: int = Net.away_left_ms(rival) if not _finished() else -1
-	var tab: Dictionary = hud.plate_tab(rival, away)
-	far_duelist.set_tab(int(tab["tab"]) as DuelistReadout.PlateTab, str(tab["text"]), bool(tab["warn"]))
+	var tab: Dictionary = hud.rival_tab(rival, away)
+	far_duelist.set_tab(int(tab["tab"]) as DuelistReadout.Tab, str(tab["text"]), bool(tab["warn"]))
 	var line: String = ""
 	if away >= 0:
 		var clock: int = hud.clock_left_ms(rival)
@@ -2826,7 +2821,7 @@ func _on_give_up() -> void:
 	Session.go_to_title()
 
 
-## Server room: the other seat's connection dropped. Their plate and the waiting panel count down
+## Server room: the other seat's connection dropped. Their tab and the waiting panel count down
 ## how long they have (`_on_tick`).
 func _on_peer_away(seat: int, _grace_ms: int) -> void:
 	if not is_inside_tree():
@@ -3345,51 +3340,61 @@ func _targets() -> Dictionary:
 	return out
 
 
-## Energy marks on duelists and Allies in play. Fervor lives on the stat tracker only.
+## The live marks on personalities in play (`StatusMarkers`): the Energy gauge on each, and on a
+## duelist the Surge rail, its Fervor pips and who is in control. The duelist of the seat deciding
+## now wears its school's ring (`Card3D.set_acting`).
 func _refresh_markers() -> void:
 	var live_energy: Dictionary = _live.get("energy", {})
 	var live_might: Dictionary = _live.get("might", {})
-	var wanted: Dictionary = {}   # uid -> [energy, SeatPlayer or null, might, owner]
+	var live_aspect: Dictionary = _live.get("aspect", {})
+	var fervors: Array = _live.get("fervor", [])
+	var wanted: Dictionary = {}   # uid -> the owning SeatPlayer
 	for p in view.players:
-		wanted[p.duelist] = [_live_energy(live_energy, p.duelist), p, -1, p.index]
+		wanted[p.duelist] = p
 		for uid in p.allies:
-			wanted[uid] = [_live_energy(live_energy, uid), null, _live_might(live_might, uid), p.index]
+			wanted[uid] = p
 	for uid in _markers.keys():
-		if not wanted.has(uid):
-			(_markers[uid] as StatusMarkers).queue_free()
+		var old: Variant = _markers[uid]
+		if not is_instance_valid(old) or not wanted.has(uid) or not views.has(uid):
+			if is_instance_valid(old):
+				(old as StatusMarkers).queue_free()
 			_markers.erase(uid)
-	for uid in wanted.keys():
+	for uid: int in wanted.keys():
 		var v: Card3D = views.get(uid)
-		if v == null:
+		var c: SeatCard = view.card(uid)
+		var def: CardDef = Session.library.get_def(c.def_id) if c != null else null
+		if v == null or def == null:
 			continue
+		var p: SeatPlayer = wanted[uid]
 		var m: StatusMarkers = _markers.get(uid)
 		if m == null:
-			m = StatusMarkers.new()
-			v.body.add_child(m)
-			m.setup(faces.ladder_rects(), CardFace.lit_color(hud.seat_backdrop(int(wanted[uid][3])), true))
+			m = MARKERS_SCENE.instantiate()
+			m.reduced_motion = _reduced_motion
+			v.surface.add_child(m)
 			_markers[uid] = m
-		m.set_status(int(wanted[uid][0]), wanted[uid][1] as SeatPlayer, int(wanted[uid][2]))
+		m.setup(faces.ladder_rect())
+		m.show_card(def, _live_stat(live_aspect, uid, c.aspect), hud.seat_backdrop(p.index))
+		var energy: int = _live_stat(live_energy, uid, c.energy)
+		var might: int = _live_stat(live_might, uid, c.might)
+		if uid != p.duelist:
+			m.set_ally(energy, might)
+			continue
+		var fervor: int = int(fervors[p.index]) if p.index < fervors.size() else p.fervor
+		var controller: SeatCard = view.card(_controlling_uid(p.index))
+		var control: String = "%s IN CONTROL" % controller.title.to_upper() if controller != null and controller.uid != uid else ""
+		m.set_duelist(energy, might, CardFace.recover_reach(energy, p), fervor, p.fervor_needed, control)
+		var acting: bool = view.deciding == p.index and not view.is_over()
+		v.set_acting(Palette.school_ui(p.style) if acting else Color(0, 0, 0, 0))
 
 
-## The Energy to draw for a card: what the beat says, else what the view ends on. The map is
-## keyed by uid, and JSON brings its keys back as strings.
-func _live_energy(live: Dictionary, uid: int) -> int:
+## A number the beat stamps for a card, else what the view ends on. The map is keyed by uid, and
+## JSON brings its keys back as strings.
+func _live_stat(live: Dictionary, uid: int, settled: int) -> int:
 	if live.has(uid):
 		return int(live[uid])
 	if live.has(str(uid)):
 		return int(live[str(uid)])
-	var c: SeatCard = view.card(uid)
-	return c.energy if c != null else 0
-
-
-## The same for Might, which the beat carries whenever a modifier moved it.
-func _live_might(live: Dictionary, uid: int) -> int:
-	if live.has(uid):
-		return int(live[uid])
-	if live.has(str(uid)):
-		return int(live[str(uid)])
-	var c: SeatCard = view.card(uid)
-	return c.might if c != null else 0
+	return settled
 
 
 func _sync_layout(animated: bool, pinned_uid: int = -1) -> void:

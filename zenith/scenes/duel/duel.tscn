@@ -183,7 +183,7 @@ position = Vector3(-2.79, 0, 1.31)
 [node name="RemainStart" type="Marker3D" parent="Zones/P0"]
 position = Vector3(-0.902, 0, 1.976)
 
-[node name="Plate" type="Marker3D" parent="Zones/P0"]
+[node name="StatusHome" type="Marker3D" parent="Zones/P0"]
 position = Vector3(-2.171, 0, 2.011)
 
 [node name="Resolving" type="Marker3D" parent="Zones/P0"]

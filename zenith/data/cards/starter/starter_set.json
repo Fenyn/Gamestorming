@@ -3514,7 +3514,8 @@
   {
    "id": "freestyle_combat_16",
    "limit_per_deck": 1,
-   "title": "PLACEHOLDER's Keen Eye",
+   "title": "Voss' Keen Eye",
+   "character": "Aldo Voss",
    "type": "combat",
    "school": "",
    "effects": [
@@ -3615,7 +3616,8 @@
   },
   {
    "id": "freestyle_art_02",
-   "title": "PLACEHOLDER's Unerring Bolt",
+   "title": "Voss' Unerring Bolt",
+   "character": "Aldo Voss",
    "type": "art",
    "school": "",
    "attack": {
@@ -4607,7 +4609,8 @@
   {
    "id": "freestyle_noncombat_03",
    "limit_per_deck": 1,
-   "title": "PLACEHOLDER's Clear Mind",
+   "title": "Voss' Clear Mind",
+   "character": "Aldo Voss",
    "type": "non_combat",
    "school": "",
    "effects": [
@@ -5220,7 +5223,8 @@
   },
   {
    "id": "freestyle_art_08",
-   "title": "PLACEHOLDER's Blinding Flare",
+   "title": "Voss' Blinding Flare",
+   "character": "Aldo Voss",
    "type": "art",
    "school": "",
    "attack": {
@@ -5364,7 +5368,8 @@
   },
   {
    "id": "freestyle_noncombat_15",
-   "title": "PLACEHOLDER's Sleight",
+   "title": "Voss' Sleight",
+   "character": "Aldo Voss",
    "type": "non_combat",
    "school": "",
    "remove_after_use": true,
@@ -12737,6 +12742,483 @@
    "remove_after_use": true,
    "banned": true,
    "limit_per_deck": 1
+  },
+  {
+   "id": "personality_63",
+   "title": "PLACEHOLDER Duelist",
+   "type": "personality",
+   "school": "",
+   "character": "PLACEHOLDER Duelist",
+   "aspect": 1,
+   "aspect_title": "Scavenger",
+   "surge": 2,
+   "might": [
+	0,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20
+   ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "may": true,
+	  "when": {
+	   "discard_min": 3
+	  },
+	  "op": "remove_discard",
+	  "amount": 3,
+	  "choose": true,
+	  "then": [
+	   {
+		"op": "search",
+		"source": "discard",
+		"to": "hand",
+		"attack_kind": "art",
+		"max_base_life": 5
+	   }
+	  ]
+	 }
+	]
+   }
+  },
+  {
+   "id": "personality_64",
+   "title": "PLACEHOLDER Duelist",
+   "type": "personality",
+   "school": "",
+   "character": "PLACEHOLDER Duelist",
+   "aspect": 2,
+   "aspect_title": "Pinning",
+   "surge": 3,
+   "might": [
+	0,
+	17,
+	18,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "focused": true,
+	 "printed_life": 5
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "discard_in_play",
+	  "who": "opponent",
+	  "card_type": "drill_or_ally",
+	  "amount": 1,
+	  "choose": true
+	 }
+	]
+   }
+  },
+  {
+   "id": "personality_65",
+   "title": "PLACEHOLDER Duelist",
+   "type": "personality",
+   "school": "",
+   "character": "PLACEHOLDER Duelist",
+   "aspect": 3,
+   "aspect_title": "Deflating",
+   "surge": 3,
+   "might": [
+	0,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28,
+	29,
+	30,
+	31,
+	32
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike"
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "set_fervor",
+	  "who": "opponent",
+	  "amount": 0
+	 }
+	]
+   }
+  },
+  {
+   "id": "personality_66",
+   "title": "PLACEHOLDER Duelist",
+   "type": "personality",
+   "school": "",
+   "character": "PLACEHOLDER Duelist",
+   "aspect": 4,
+   "aspect_title": "Seal-Taker",
+   "surge": 3,
+   "might": [
+	0,
+	29,
+	30,
+	31,
+	32,
+	33,
+	34,
+	35,
+	36,
+	37,
+	38
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike"
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "capture_seal"
+	 }
+	]
+   }
+  },
+  {
+   "id": "relic_05",
+   "title": "The Champion's Laurel",
+   "type": "relic",
+   "school": "",
+   "reserve_size": 9,
+   "limit_per_deck": 1,
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "life": 1
+	},
+	{
+	 "scope": "against",
+	 "kind": "any",
+	 "life": 1
+	}
+   ]
+  },
+  {
+   "id": "personality_67",
+   "title": "Tavin Vale",
+   "type": "personality",
+   "school": "",
+   "character": "Tavin Vale",
+   "aspect": 1,
+   "surge": 2,
+   "might": [
+	0,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "printed_life": 5
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "op": "float",
+	  "what": "life_for_art_costs",
+	  "duration": "combat",
+	  "this_personality": true
+	 }
+	]
+   },
+   "variant": "the Fledgling",
+   "alignment_only": "vigil",
+   "limit_per_deck": 1,
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_68",
+   "title": "Aldo Voss",
+   "type": "personality",
+   "school": "",
+   "character": "Aldo Voss",
+   "aspect": 1,
+   "surge": 2,
+   "might": [
+	0,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art"
+	},
+	"effects": [
+	 {
+	  "trigger": "if_successful",
+	  "may": true,
+	  "op": "search",
+	  "to": "discard"
+	 }
+	]
+   },
+   "alignment_only": "vigil",
+   "limit_per_deck": 1
+  },
+  {
+   "id": "personality_69",
+   "title": "Sandmaw",
+   "type": "personality",
+   "school": "",
+   "character": "Sandmaw",
+   "aspect": 1,
+   "surge": 1,
+   "might": [
+	0,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20
+   ],
+   "power": {
+	"attack": {
+	 "kind": "art",
+	 "printed_life": 7
+	},
+	"effects": [
+	 {
+	  "trigger": "if_stopped",
+	  "op": "discard_life",
+	  "amount": 3
+	 }
+	]
+   },
+   "limit_per_deck": 1
+  },
+  {
+   "id": "storm_art_25",
+   "title": "Storm Fivefold Spark",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art",
+	"focused": true,
+	"printed_life": 2,
+	"cost_stages": 1,
+	"variants": [
+	 {
+	  "on_empower": true,
+	  "focused": false
+	 }
+	]
+   },
+   "empower": 4,
+   "empower_remain": 2,
+   "remove_after_use": true
+  },
+  {
+   "id": "storm_art_26",
+   "title": "Storm Caught Current",
+   "type": "art",
+   "school": "storm",
+   "defense": {
+	"stops": "art"
+   },
+   "endurance": 2,
+   "effects": [
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -2
+	}
+   ]
+  },
+  {
+   "id": "storm_drill_09",
+   "title": "Storm Razing Drill",
+   "type": "drill",
+   "school": "storm",
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "turn_start",
+	 "each_turn": true,
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "non_combat_or_drill",
+	 "amount": 1,
+	 "choose": true
+	}
+   ]
+  },
+  {
+   "id": "storm_drill_10",
+   "title": "Storm Braking Drill",
+   "type": "drill",
+   "school": "storm",
+   "limit_per_deck": 1,
+   "modifiers": [
+	{
+	 "scope": "against",
+	 "kind": "strike",
+	 "cap_stages": 3
+	}
+   ]
+  },
+  {
+   "id": "signature_art_15",
+   "title": "Emrys' Braced Beam",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art",
+	"focused": true,
+	"cost_stages": 3
+   },
+   "character": "Emrys Rooke",
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "card_type": "grounds",
+	 "to": "play"
+	}
+   ]
+  },
+  {
+   "id": "signature_art_16",
+   "title": "Mourne's Unpaid Bolt",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art",
+	"focused": true,
+	"printed_life": 5
+   },
+   "character": "Gideon Mourne",
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "this_personality": true,
+	 "params": {
+	  "scope": "cost",
+	  "kind": "art",
+	  "set": 0
+	 }
+	}
+   ]
+  },
+  {
+   "id": "signature_drill_07",
+   "title": "PLACEHOLDER's Surging Drill",
+   "type": "drill",
+   "school": "",
+   "limit_per_deck": 1,
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "art",
+	 "life_per_performer_surge": true
+	}
+   ]
+  },
+  {
+   "id": "signature_art_17",
+   "title": "PLACEHOLDER's Skillful Guard",
+   "type": "art",
+   "school": "",
+   "defense": {
+	"stops": "any"
+   },
+   "character": "PLACEHOLDER Duelist",
+   "remove_after_use": true
+  },
+  {
+   "id": "freestyle_noncombat_21",
+   "title": "Centering",
+   "type": "non_combat",
+   "school": "",
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "energy",
+	 "target": "any",
+	 "amount": "max",
+	 "next_art_free": true
+	}
+   ]
+  },
+  {
+   "id": "freestyle_art_12",
+   "title": "Vigilant Effort",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art",
+	"printed_life": 6,
+	"variants": [
+	 {
+	  "when": {
+	   "defender_alignment": "pact"
+	  },
+	  "focused": true,
+	  "effects": [
+	   {
+		"op": "energy",
+		"amount": 2
+	   },
+	   {
+		"op": "float",
+		"who": "opponent",
+		"what": "no_ally_takeover",
+		"duration": "combat"
+	   }
+	  ]
+	 }
+	]
+   },
+   "alignment_only": "vigil"
   }
  ]
 }

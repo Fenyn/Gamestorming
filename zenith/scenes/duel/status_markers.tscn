@@ -1,0 +1,83 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/status_markers.gd" id="1_markers"]
+[ext_resource type="Script" path="res://scripts/duel/might_ladder.gd" id="2_ladder"]
+[ext_resource type="Script" path="res://scripts/duel/duelist_tabs.gd" id="3_tabs"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_overlay"]
+size = Vector2(0.63, 0.939)
+orientation = 1
+
+[sub_resource type="StandardMaterial3D" id="Material_overlay"]
+resource_local_to_scene = true
+transparency = 1
+shading_mode = 0
+disable_fog = true
+texture_filter = 1
+
+[node name="StatusMarkers" type="Node3D"]
+script = ExtResource("1_markers")
+
+[node name="Viewport" type="SubViewport" parent="."]
+transparent_bg = true
+size = Vector2i(384, 573)
+size_2d_override = Vector2i(512, 764)
+size_2d_override_stretch = true
+render_target_update_mode = 1
+
+[node name="Face" type="Control" parent="Viewport"]
+layout_mode = 3
+anchors_preset = 0
+offset_top = 24.0
+offset_right = 512.0
+offset_bottom = 740.0
+mouse_filter = 2
+
+[node name="Ladder" type="Control" parent="Viewport/Face"]
+layout_mode = 0
+mouse_filter = 2
+script = ExtResource("2_ladder")
+printed = false
+
+[node name="Tabs" type="Control" parent="Viewport/Face"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_tabs")
+
+[node name="Overlay" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.004, 0)
+cast_shadow = 0
+mesh = SubResource("QuadMesh_overlay")
+material_override = SubResource("Material_overlay")
+
+[node name="StatValue" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.004, 0.57)
+visible = false
+billboard = 1
+double_sided = true
+no_depth_test = true
+pixel_size = 0.0042
+modulate = Color(0.36, 0.76, 0.58, 1)
+outline_modulate = Color(0.03, 0.025, 0.03, 0.95)
+font_size = 60
+outline_size = 14
+shaded = false
+
+[node name="StatCaption" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.004, 0.77)
+visible = false
+billboard = 1
+double_sided = true
+no_depth_test = true
+pixel_size = 0.0042
+modulate = Color(0.6, 0.59, 0.6, 1)
+outline_modulate = Color(0.03, 0.025, 0.03, 0.95)
+text = "ENERGY"
+font_size = 30
+outline_size = 14
+shaded = false

@@ -1635,7 +1635,9 @@ func _end_combat() -> void:
 ## Whether `p` may put an Ally in control right now: the Duelist is spent (Energy 0 or 1) or a
 ## constant power allows it at any stage, an Ally is in play, and nothing forbids the takeover.
 func may_ally_control(p: PlayerState) -> bool:
-	if _has_floating(p.index, "no_ally_control"):
+	# `no_ally_takeover` is only "cannot have Allies take control of Combat"; `no_ally_control`
+	# also keeps damage off them.
+	if _has_floating(p.index, "no_ally_control") or _has_floating(p.index, "no_ally_takeover"):
 		return false
 	return not _control_allies(p).is_empty()
 

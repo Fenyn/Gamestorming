@@ -1,8 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/card_face.gd" id="1_face"]
 [ext_resource type="Script" path="res://scripts/ui/type_icon.gd" id="2_icon"]
 [ext_resource type="Script" path="res://scripts/ui/keyword_label.gd" id="3_keyword"]
+[ext_resource type="Script" path="res://scripts/duel/might_ladder.gd" id="4_ladder"]
+[ext_resource type="Script" path="res://scripts/duel/duelist_tabs.gd" id="5_tabs"]
 [ext_resource type="FontFile" path="res://assets/fonts/pirata_one/PirataOne-Regular.ttf" id="9_title"]
 
 [node name="CardFace" type="Control"]
@@ -294,16 +296,16 @@ layout_mode = 2
 theme_override_constants/separation = -6
 alignment = 1
 
-[node name="Num" type="Label" parent="Person/Column/Head/AspectBox/Col"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "1"
-horizontal_alignment = 1
-
 [node name="Word" type="Label" parent="Person/Column/Head/AspectBox/Col"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "ASPECT"
+horizontal_alignment = 1
+
+[node name="Num" type="Label" parent="Person/Column/Head/AspectBox/Col"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "1"
 horizontal_alignment = 1
 
 [node name="Names" type="VBoxContainer" parent="Person/Column/Head"]
@@ -331,7 +333,7 @@ text = "ASPECT 1"
 [node name="Body" type="HBoxContainer" parent="Person/Column"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 2
 
 [node name="Art" type="Panel" parent="Person/Column/Body"]
 layout_mode = 2
@@ -366,47 +368,11 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_icon")
 
-[node name="Side" type="VBoxContainer" parent="Person/Column/Body"]
-custom_minimum_size = Vector2(140, 0)
+[node name="Ladder" type="Control" parent="Person/Column/Body"]
+custom_minimum_size = Vector2(154, 0)
 layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="LadderBox" type="PanelContainer" parent="Person/Column/Body/Side"]
-layout_mode = 2
-
-[node name="Ladder" type="VBoxContainer" parent="Person/Column/Body/Side/LadderBox"]
-layout_mode = 2
-theme_override_constants/separation = 2
-
-[node name="Spacer" type="Control" parent="Person/Column/Body/Side"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="Stats" type="HBoxContainer" parent="Person/Column/Body/Side"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="Surge" type="PanelContainer" parent="Person/Column/Body/Side/Stats"]
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Col" type="VBoxContainer" parent="Person/Column/Body/Side/Stats/Surge"]
-layout_mode = 2
-theme_override_constants/separation = -4
-alignment = 1
-
-[node name="Num" type="Label" parent="Person/Column/Body/Side/Stats/Surge/Col"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "2"
-horizontal_alignment = 1
-
-[node name="Word" type="Label" parent="Person/Column/Body/Side/Stats/Surge/Col"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "SURGE"
-horizontal_alignment = 1
+mouse_filter = 2
+script = ExtResource("4_ladder")
 
 [node name="Words" type="PanelContainer" parent="Person/Column"]
 custom_minimum_size = Vector2(0, 150)
@@ -430,3 +396,13 @@ bbcode_enabled = true
 text = "Power"
 scroll_active = false
 script = ExtResource("3_keyword")
+
+[node name="Tabs" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("5_tabs")

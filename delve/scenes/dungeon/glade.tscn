@@ -1,0 +1,32 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/dungeon/DungeonRoomPrefab.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/dungeon/GladeShell.cs" id="shell"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/door_marker.tscn" id="door_marker"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/prop.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_canopy.tscn" id="canopy"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_conifer.tscn" id="conifer"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_bush.tscn" id="bush"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_dead.tscn" id="dead"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_giant.tscn" id="giant"]
+
+[node name="glade" type="Node3D" node_paths=PackedStringArray("Shell")]
+script = ExtResource("1")
+Family = 1
+InteriorSize = 14
+SizeVariants = PackedInt32Array(12, 14, 16)
+PropScene = ExtResource("2")
+DoorMarkerScene = ExtResource("door_marker")
+LightPool = false
+Shell = NodePath("Shell")
+
+[node name="Shell" type="Node3D" parent="."]
+script = ExtResource("shell")
+BoardTreeScenes = [ExtResource("canopy"), ExtResource("conifer")]
+BoardTreeWeights = PackedFloat32Array(1, 1)
+RimTreeScenes = [ExtResource("canopy"), ExtResource("conifer"), ExtResource("bush"), ExtResource("dead"), ExtResource("giant")]
+RimTreeWeights = PackedFloat32Array(3, 3, 2, 0.5, 0.6)
+RimTreeMinRings = PackedFloat32Array(0, 0, 0, 1, 2)
+GateScene = ExtResource("bush")
+TrailShoulder = 2
+RimTreeChanceNear = 0.4

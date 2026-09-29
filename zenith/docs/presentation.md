@@ -184,13 +184,13 @@ demo keyboard scripts are detached, and combat effects clean up after their anim
   PSX library art copied in by `tools/import_courtyard_art.py` (sources and licences in
   `../assets/courtyard/SOURCES.md`). The courtyard is the same for every matchup; school colour
   lives on the cards and the HUD. Board state sits on the board (2026-09-23): each duelist's
-  Energy / Might / Fervor tracker is a plate on a stone slab leaning back toward the viewer
-  (`DuelistDisplay`, near seat below the Out and Relic captions, far seat scaled 1.25x and
-  tilted further so it reads across the table), status chips and Seal sets are printed flat along
-  the seat's Ally row (beside the plate while an Ally is in play), the rival's hand is printed flat
-  on the felt, and the Life count lies on its pile. Text a banner already says is not floated on the
-  table as well: no "STOPPED", "Wound N", "Endurance", "Gain blocked" or "Shield" labels. The plate wears the Kenney inner rule in
-  the seat's muted colour over warm charcoal; zone names and outlines are ivory ink. Meta
+  Energy, Might and Fervor are on its own card since 2026-09-28 (`StatusMarkers`: the Might
+  ladder as a gauge with the Surge rail, Fervor pips on a tab over the top edge, and a ring in the
+  school colour on the duelist whose seat is deciding), status chips and Seal sets are printed flat
+  along the seat's Ally row (at the status spot under the Seals while an Ally is in play), the
+  rival's hand is printed flat on the felt, and the Life count lies on its pile. Text a banner
+  already says is not floated on the table as well: no "STOPPED", "Wound N", "Endurance", "Gain
+  blocked" or "Shield" labels. Zone names and outlines are ivory ink. Meta
   information (log, prompt, inspect) stays on screen in framed panels; the phase track is on the felt. Table effects draw the HUD's defence blue and accent gold in
   pale slate and old ivory (`DuelFx.tone`), because the saturated pair glowed like neon on stone.
 

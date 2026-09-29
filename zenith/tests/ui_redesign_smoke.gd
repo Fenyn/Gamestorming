@@ -139,9 +139,48 @@ func _run() -> void:
 	_check(readout._life == duel.view.player(0).life_deck.size(), "Medallion Life must match the displayed seat")
 	_check(duel.near_duelist.life_value.text == str(duel.view.player(0).life_deck.size()), "Life Deck counter must display the actual remaining deck size")
 	_check(duel.near_duelist.life_value.visible and duel.far_duelist.life_value.visible, "Life must remain attached to each physical Life Deck")
-	_check(is_equal_approx(float(readout.update_layout()["tracker"].size.x), 540.0), "Fighter readout must keep Energy, Might, and Fervor in one consistent strip")
-	var plate_canvas: Vector2i = readout.get_script().get_script_constant_map()["PLATE_CANVAS"]
-	_check(TableLayout.PLATE_SIZE.is_equal_approx(Vector2(plate_canvas) * float(duel.near_duelist.PIXEL)), "The layout must keep clear the plate's real footprint")
+	_check(not duel.near_duelist.has_node("Plate") and not duel.near_duelist.has_node("PlateViewport"), "The separate stat plate is gone")
+	# Energy, Might and Fervor are on each duelist card: the gauge at its Energy, the Surge rail to
+	# where the next Recover lands, and one Fervor pip per point the next Aspect needs.
+	for seat in range(2):
+		var standing: SeatPlayer = duel.view.player(seat)
+		var marks: StatusMarkers = duel._markers.get(standing.duelist)
+		var own: SeatCard = duel.view.card(standing.duelist)
+		_check(marks != null and duel.views[standing.duelist].is_ancestor_of(marks), "Seat %d's duelist carries its live marks on the card" % seat)
+		if marks == null:
+			continue
+		_check(marks.ladder.energy() == own.energy, "The gauge lights the duelist's Energy stage")
+		var gain: int = 0 if standing.energy_blocked else standing.recover_gain
+		var reach: int = mini(10, own.energy + gain) if gain > 0 and own.energy < 10 else -1
+		_check(marks.ladder.reach() == reach, "The Surge rail reaches the stage the next Recover lands on (%d, %d)" % [marks.ladder.reach(), reach])
+		_check(marks.tabs.fervor() == standing.fervor and marks.tabs.fervor_needed() == standing.fervor_needed, "The Fervor pips read the seat's Fervor out of what it needs")
+		_check(marks.ladder.surge() == _printed_surge(own), "The ladder's header prints the card's Surge")
+		var acting: bool = duel.view.deciding == seat and not duel.view.is_over()
+		_check(duel.views[standing.duelist].is_acting() == acting, "Only the deciding seat's duelist wears the acting ring")
+		var in_control: SeatCard = duel.view.card(standing.controlling)
+		var control: String = "" if in_control.uid == standing.duelist else "%s IN CONTROL" % in_control.title.to_upper()
+		_check(marks.tabs.control_text() == control, "The duelist names an Ally in control on its bottom tab, and nothing otherwise")
+	# The gauge's geometry: the lit pill overhangs the box, the rail runs from its top to the
+	# divider above the rung the next Recover reaches, and a full ladder has no rail.
+	var gauge: MightLadder = MightLadder.new()
+	root.add_child(gauge)
+	gauge.size = Vector2(154, 434)
+	gauge.show_card((session.library as CardLibrary).get_def(duel.view.card(duel.view.player(0).duelist).def_id), 1, CardFace.NO_BACKDROP)
+	gauge.show_live(6, -1, 9)
+	var pill: Rect2 = gauge.pill_rect()
+	var box: Rect2 = gauge.box_rect()
+	_check(pill.position.x < box.position.x and pill.end.x > box.end.x and pill.get_center().y > gauge.rung_rect(6).position.y and pill.get_center().y < gauge.rung_rect(6).end.y,
+		"The lit pill sits on the Energy rung and overhangs the ladder on both sides")
+	var rail: Rect2 = gauge.rail_rect()
+	_check(is_equal_approx(rail.position.y, gauge.rung_rect(9).position.y) and is_equal_approx(rail.end.y, pill.position.y) and absf(rail.get_center().x - box.end.x) < 2.0,
+		"The Surge rail runs up the right outline from the pill to the divider above the Recover rung: %s" % str(rail))
+	gauge.show_live(8, -1, 12)
+	_check(gauge.reach() == 10 and is_equal_approx(gauge.rail_rect().position.y, gauge.rung_rect(10).position.y), "A Recover past the top stops the rail at stage 10")
+	gauge.show_live(10, -1, 12)
+	_check(not gauge.rail_rect().has_area(), "A full ladder has no rail")
+	gauge.show_live(4, gauge.printed_might(4) + 2)
+	_check(gauge.might_delta() == 2, "A live Might above the printed rung reads as a signed difference")
+	gauge.free()
 	for seat in range(2):
 		var life_slot: Transform3D = duel.zones.slot(seat, &"life_deck", 0, 1, 0)
 		var identity_slot: Transform3D = duel.zones.slot(seat, &"duelist", 0, 1, 0)
@@ -152,7 +191,7 @@ func _run() -> void:
 		var duelist_top: float = absf(identity_slot.origin.z) - TableLayout.CARD_SIZE.y * identity_slot.basis.get_scale().z * 0.5
 		_check(life_top >= duelist_top - 0.001, "A Life Deck must not reach past its duelist's inner edge")
 		# Everything packs around the duelist. On the Life Deck's side: the Life Deck over the
-		# Discard, then the Ally row with the Seals and the plate under it. On the other side: the
+		# Discard, then the Ally row with the Seals and the status spot under it. On the other side: the
 		# Mastery with the Relic and Out side by side under it, then the Drill row with the
 		# Non-Combat row under it. Player 1 mirrors, so sides are read relative to the duelist.
 		var discard_slot: Transform3D = duel.zones.slot(seat, &"discard", 0, 1, 0)
@@ -163,7 +202,7 @@ func _run() -> void:
 		var first_seal: Transform3D = duel.zones.slot(seat, &"seal", 0, 1, 0)
 		var drill_slot: Transform3D = duel.zones.slot(seat, &"drill", 0, 3, 0)
 		var first_non_combat: Transform3D = duel.zones.slot(seat, &"non_combat", 0, 3, 0)
-		var plate: Vector3 = duel.zones.plate_point(seat)
+		var status_spot: Vector3 = duel.zones.status_point(seat)
 		var side: float = signf(life_slot.origin.x - identity_slot.origin.x)
 		var reach: Callable = func(slot: Transform3D) -> float: return (slot.origin.x - identity_slot.origin.x) * side
 		var top: Callable = func(slot: Transform3D) -> float: return absf(slot.origin.z) - TableLayout.CARD_SIZE.y * slot.basis.get_scale().z * 0.5
@@ -175,8 +214,8 @@ func _run() -> void:
 		_check(absf(float(top.call(mastery_slot)) - float(top.call(identity_slot))) < 0.002, "The Mastery's top edge must sit level with its duelist's, as a pair")
 		_check(absf(float(top.call(first_ally)) - float(top.call(identity_slot))) < 0.002 and absf(float(top.call(drill_slot)) - float(top.call(identity_slot))) < 0.002,
 			"The Ally and Drill rows must start level with the duelist's top edge")
-		_check(top.call(first_seal) > bottom.call(first_ally) and absf(plate.z) > bottom.call(first_seal) and signf(plate.x - identity_slot.origin.x) == side,
-			"The Seals must lie under the Ally row and the plate under the Seals")
+		_check(top.call(first_seal) > bottom.call(first_ally) and absf(status_spot.z) > bottom.call(first_seal) and signf(status_spot.x - identity_slot.origin.x) == side,
+			"The Seals must lie under the Ally row and the status spot under the Seals")
 		_check(top.call(first_non_combat) > bottom.call(drill_slot) and is_equal_approx(first_non_combat.origin.x, drill_slot.origin.x), "The Non-Combat row must lie under the Drill row")
 		_check(top.call(relic_slot) > bottom.call(mastery_slot) and top.call(out_slot) > bottom.call(mastery_slot), "The Relic and Out must lie under the Mastery")
 		_check(absf(float(top.call(relic_slot)) - float(top.call(out_slot))) < 0.002 and reach.call(out_slot) < reach.call(relic_slot) and reach.call(relic_slot) < 0.0,
@@ -244,7 +283,7 @@ func _run() -> void:
 	_check(near_resolving.origin.x < 0.0 and far_resolving.origin.x > 0.0, "Attack and response cards must retain readable owner sides in the exchange lane")
 	var controller: SeatCard = duel.view.card(duel.view.player(0).controlling)
 	_check(readout._energy == controller.energy, "Medallion Energy must belong to the controlling personality")
-	# The resource plate lies on the table, so camera zoom leaves its layout where it is, still
+	# The printed readout lies on the table, so camera zoom leaves its layout where it is, still
 	# outside the card's footprint and leaving the physical card available for its own picking.
 	var home_camera: Transform3D = duel.camera.transform
 	var home_target: Vector3 = duel.camera._target
@@ -275,9 +314,18 @@ func _run() -> void:
 		"aspect": {str(duelist_uid): 2}, "controlling": [controller.uid],
 		"zones": [[17, 4, 2, 0]], "fervor": [2]}
 	duel.near_duelist.refresh(duel.view, 0, 0, live)
-	_check(readout._life == 17 and readout._energy == 3 and readout._fervor == 2, "Intermediate event counts must override final counts together")
+	var settled_live: Dictionary = duel._live
+	duel._live = live
+	duel._refresh_markers()
+	var near_marks: StatusMarkers = duel._markers.get(duelist_uid)
+	_check(readout._life == 17 and readout._energy == 3 and near_marks != null and near_marks.tabs.fervor() == 2, "Intermediate event counts must override final counts together")
 	_check(duel.near_duelist.life_value.text == "17", "Life Deck counter must show the current event snapshot rather than the final deck count")
 	_check(readout._might == 27 and readout._aspect == 2, "Readout must trust replay Might and Aspect instead of inferring them from the final card")
+	if controller.uid == duelist_uid and near_marks != null:
+		_check(near_marks.ladder.energy() == 3 and near_marks.ladder.might_delta() == 27 - near_marks.ladder.printed_might(3),
+			"The gauge trusts replay Energy and Might, and signs the Might's difference from the printed rung")
+	duel._live = settled_live
+	duel._refresh_markers()
 	duel.near_duelist.refresh(duel.view, 0, 0)
 	_check(duel.near_duelist.life_value.text == str(duel.view.player(0).life_deck.size()), "Life Deck counter must return to the settled count after replay")
 	# A real newly drawn public card joins the existing hand without snapping its neighbours.
@@ -491,6 +539,13 @@ func _run() -> void:
 	quit(1 if failures > 0 else 0)
 
 
+## The Surge a personality card prints for the Aspect it stands at.
+func _printed_surge(card: SeatCard) -> int:
+	var def: CardDef = (root.get_node("Session").get("library") as CardLibrary).get_def(card.def_id)
+	var aspect: int = def.aspect if def.aspect > 0 else card.aspect
+	return int(def.aspect_data(aspect).get("surge", 0))
+
+
 func _check_fixture_geometry(duel: Node3D, fixture: Node3D) -> void:
 	var readout: Control = fixture.readout
 	_check(readout.card_bounds.has_area(), "Readout must measure a real projected card footprint")
@@ -506,8 +561,8 @@ func _check_fixture_geometry(duel: Node3D, fixture: Node3D) -> void:
 	var physical: Node3D = duel.views[fixture.duelist_uid]
 	var owner: int = duel.view.card(fixture.duelist_uid).owner
 	var ally: Vector3 = duel.zones.to_global(duel.zones.slot(owner, &"ally", 0, 3, 0).origin)
-	_check(signf(fixture.plate_face.global_position.x - physical.global_position.x) == signf(ally.x - physical.global_position.x), "Each plate must lie beside its duelist, on the Ally side")
-	_check(fixture.plate_face.global_basis.z.normalized().y > 0.99, "Each plate must lie almost flat")
+	var spot: Vector3 = duel.zones.to_global(duel.zones.status_point(owner))
+	_check(signf(spot.x - physical.global_position.x) == signf(ally.x - physical.global_position.x), "Each status spot must lie beside its duelist, on the Ally side")
 	var card_center: Vector2 = duel.camera.unproject_position(physical.front.global_position)
 	_check(not fixture.hit_test(card_center, duel.camera), "A click on the actual card center must never be intercepted by its resource display")
 	var life_center: Vector2 = duel.camera.unproject_position(fixture.life_transform.origin)

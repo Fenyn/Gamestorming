@@ -285,7 +285,7 @@ const CLOCK_WARN_MS: int = 10000
 @onready var tray_fuse: ProgressBar = $Root/Tray/Center/Panel/Column/Head/Fuse
 @onready var tray_balance: Control = $Root/Tray/Center/Panel/Column/Head/Row/Balance
 @onready var tray_panel: PanelContainer = $Root/Tray/Center/Panel
-## Once a second: the between-games count, the away and rejoin lines, and the table's plate tab.
+## Once a second: the between-games count, the away and rejoin lines, and the rival's tab.
 @onready var tick: Timer = $Tick
 @onready var far_hand: HBoxContainer = $Root/FarHand
 @onready var replay_bar: PanelContainer = $Root/ReplayBar
@@ -2571,7 +2571,7 @@ func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 		return
 	hide_peek()
 	hide_focus()
-	inspect_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid), _uid_table(def, uid))
+	inspect_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid), _uid_table(def, uid), _live_might(uid))
 	var standing: SeatPlayer = _standing(uid)
 	if standing == null and _view != null:
 		for player in _view.players:
@@ -2613,7 +2613,7 @@ func show_focus(uid: int, caption: String) -> void:
 	_replay_focus = false
 	_focus_card_uid = uid
 	_pending_anchor = ""
-	focus_face.show_def(def, c.aspect, _live_energy(uid), _standing(uid), seat_backdrop(c.owner), _uid_table(def, uid))
+	focus_face.show_def(def, c.aspect, _live_energy(uid), _standing(uid), seat_backdrop(c.owner), _uid_table(def, uid), _live_might(uid))
 	focus.visible = true
 	_compact_prompt()
 
@@ -2954,20 +2954,20 @@ func clock_left_ms(seat: int) -> int:
 	return int(clock_now(seat)["total"])
 
 
-## The rival's plate tab, `{tab, text, warn}` with `tab` a `DuelistReadout.PlateTab`: AWAY while
-## their connection is down ("Disconnected 1:16", `away_ms` being Net's grace for them, -1 while they
-## are here, or their clock when it ends first), BANK while they spend their bank ("Time bank 0:48",
-## warning in its last 10 s), NONE while they decide on their timer or not at all.
-func plate_tab(seat: int, away_ms: int) -> Dictionary:
-	var none: Dictionary = {"tab": DuelistReadout.PlateTab.NONE, "text": "", "warn": false}
+## The rival's tab by their duelist, `{tab, text, warn}` with `tab` a `DuelistReadout.Tab`: AWAY
+## while their connection is down ("Disconnected 1:16", `away_ms` being Net's grace for them, -1
+## while they are here, or their clock when it ends first), BANK while they spend their bank ("Time
+## bank 0:48", warning in its last 10 s), NONE while they decide on their timer or not at all.
+func rival_tab(seat: int, away_ms: int) -> Dictionary:
+	var none: Dictionary = {"tab": DuelistReadout.Tab.NONE, "text": "", "warn": false}
 	if not _clocked or _duel_over:
 		return none
 	var c: Dictionary = clock_now(seat)
 	if away_ms >= 0:
 		var left: int = away_ms if int(c["total"]) < 0 else mini(away_ms, int(c["total"]))
-		return {"tab": DuelistReadout.PlateTab.AWAY, "text": "Disconnected %s" % clock_text(left), "warn": true}
+		return {"tab": DuelistReadout.Tab.AWAY, "text": "Disconnected %s" % clock_text(left), "warn": true}
 	if str(c["phase"]) == DuelClock.BANK:
-		return {"tab": DuelistReadout.PlateTab.BANK, "text": "Time bank %s" % clock_text(int(c["ms"])),
+		return {"tab": DuelistReadout.Tab.BANK, "text": "Time bank %s" % clock_text(int(c["ms"])),
 			"warn": int(c["total"]) <= CLOCK_WARN_MS}
 	return none
 
@@ -3194,6 +3194,13 @@ func _live_energy(uid: int) -> int:
 	return _view.live_energy(uid)
 
 
+## The Might of a personality in play, -1 for anything else.
+func _live_might(uid: int) -> int:
+	if _live_energy(uid) < 0:
+		return -1
+	return _view.card(uid).might
+
+
 func _standing(uid: int) -> SeatPlayer:
 	if _view == null or uid < 0:
 		return null
@@ -3327,7 +3334,7 @@ func set_log_expanded(on: bool) -> void:
 func show_peek(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	if def == null or inspect.visible or _log_expanded:
 		return
-	peek_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid), _uid_table(def, uid))
+	peek_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid), _uid_table(def, uid), _live_might(uid))
 	var forecast: String = _forecast_text(uid)
 	peek_forecast.visible = forecast != ""
 	peek_forecast_text.text = forecast

@@ -1,19 +1,7 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duelist_display.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/duel/duelist_readout.gd" id="2"]
-[ext_resource type="Texture2D" path="res://assets/courtyard/textures/dais.png" id="3_stone"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_plate"]
-size = Vector3(2.46, 0.045, 0.86)
-
-[sub_resource type="StandardMaterial3D" id="Material_plate"]
-albedo_color = Color(0.46, 0.44, 0.41, 1)
-albedo_texture = ExtResource("3_stone")
-roughness = 0.9
-uv1_scale = Vector3(1.6, 1.6, 1.6)
-uv1_triplanar = true
-texture_filter = 5
 
 [node name="DuelistDisplay" type="Node3D"]
 script = ExtResource("1")
@@ -29,36 +17,9 @@ offset_right = 1600.0
 offset_bottom = 1600.0
 mouse_filter = 2
 script = ExtResource("2")
-part = 1
-
-[node name="PlateViewport" type="SubViewport" parent="."]
-transparent_bg = true
-size = Vector2i(560, 196)
-render_target_update_mode = 1
-
-[node name="Plate" type="Control" parent="PlateViewport"]
-layout_mode = 0
-offset_right = 560.0
-offset_bottom = 196.0
-mouse_filter = 2
-script = ExtResource("2")
-part = 2
 
 [node name="Surface" type="Sprite3D" parent="."]
-pixel_size = 0.0044
-shaded = false
-double_sided = true
-texture_filter = 1
-
-[node name="Plate" type="Node3D" parent="."]
-
-[node name="Body" type="MeshInstance3D" parent="Plate"]
-mesh = SubResource("BoxMesh_plate")
-material_override = SubResource("Material_plate")
-
-[node name="Face" type="Sprite3D" parent="Plate"]
-transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.047, -0.43)
-pixel_size = 0.0044
+pixel_size = 0.0029
 shaded = false
 double_sided = true
 texture_filter = 1

@@ -1,47 +1,48 @@
 class_name DuelistReadout
 extends Control
-## Transparent resource ornaments around the actual duelist card in the scene. The canvas lies on
-## the table centred on the card (`DuelistDisplay`); the stat tracker itself lies at `plate_home`
-## as a separate plate, drawn by a second readout with `part` set to PLATE.
+## What prints on the board around the duelist card (`DuelistDisplay`): the Aspect past the
+## card's outer edge (with the lives in a duel played to more than one point), the rival's hand
+## fan, the Seal sets and the status chips, and online the rival's tab. The canvas lies on the
+## table centred on the card. Energy, Might and Fervor are on the card itself (`StatusMarkers`).
 
 signal redraw_requested
 
-enum Part { ALL, PRINT, PLATE }
-
 const PLAYER_STATUS: Script = preload("res://scripts/duel/player_status.gd")
-## Warm charcoal and ivory, the table's own colours; seat colour only on the plate's rule.
 const INK: Color = Color(0.085, 0.08, 0.075, 0.96)
 const TEXT: Color = ZenithTheme.TEXT
 const MUTED: Color = ZenithTheme.TEXT_SOFT
 const IVORY: Color = ZenithTheme.ACCENT
-const ENERGY: Color = ZenithTheme.ENERGY
-const FERVOR: Color = ZenithTheme.FERVOR
-const FERVOR_TEXT: Color = ZenithTheme.FERVOR_TEXT
 const STATUS: Color = ZenithTheme.WARN
-const TRACKER_SIZE: Vector2 = Vector2(540, 160)
-## The plate's own canvas: the tracker inset by PLATE_PAD, with room under it for the lives tab and
-## the rival's tab (`PlateTab`).
-const PLATE_PAD: Vector2 = Vector2(10, 10)
-const PLATE_CANVAS: Vector2i = Vector2i(560, 220)
-## Baseline of the Aspect caption past the duelist card's outer edge, in canvas pixels.
-const ASPECT_GAP: float = 34.0
-## Status lines print in two rows on the plate's outer side (under the near seat's plate, over the
-## far seat's), unless the seat's Ally row is empty and holds them.
+## Baseline of the Aspect caption past the duelist card's outer edge, in canvas pixels. Clear of
+## the Fervor and control tabs that reach past the card's edges.
+const ASPECT_GAP: float = 46.0
+const CAPTION_WIDTH: float = 220.0
+const CAPTION_FONT: int = 30
+## The width the status spot's chips run across, from its left end.
+const STATUS_WIDTH: float = 540.0
+## Status lines print in three rows along the seat's Ally row, or in two at the status spot while
+## an Ally holds the row.
 const FLAG_ROWS_HOME: int = 3
 const FLAG_ROWS_BESIDE: int = 2
-const FLAG_GAP: float = 10.0
-## The rival's hand fan, over their plate at its left end, the status lines beside it.
+## The rival's hand fan, at the status spot's left end, the status lines beside it.
 const FAN_SIZE: Vector2 = Vector2(205, 190)
 const FAN_GAP: float = 16.0
 ## Status flags are chips, one row step apart.
 const CHIP_FONT: int = 32
 const CHIP_PAD: float = 12.0
 const CHIP_GAP: float = 10.0
-## ALL draws everything on one canvas; PRINT leaves the tracker to the plate; PLATE draws only
-## the tracker and its lives tab.
-@export var part: Part = Part.ALL
+const LIFE_RED: Color = Color(0.93, 0.36, 0.36)
+const HEART_STEP: float = 32.0
+## Online, the rival's tab past their Aspect caption. BANK reads "Time bank 0:48" while they spend
+## their bank, AWAY "Disconnected 1:16" while their connection is down; NONE, while they decide on
+## their timer or not at all, draws nothing, since the decision panel already says it waits on
+## them. Fixed size and type, whatever the name.
+enum Tab { NONE, BANK, AWAY }
+const TAB_SIZE: Vector2 = Vector2(440, 54)
+const TAB_FONT: int = 44
+const TAB_GAP: float = 10.0
+
 var reduced_motion: bool = false
-var preview_cost: int = 0
 ## Projected front-face bounds, in texture pixels relative to the card's world anchor.
 var card_bounds: Rect2 = Rect2(-80, -90, 160, 180):
 	set(value):
@@ -51,17 +52,17 @@ var card_bounds: Rect2 = Rect2(-80, -90, 160, 180):
 		update_layout()
 		request_redraw()
 var stat_hit_rects: Array[Rect2] = []
-## The centre of the plate, in canvas pixels. Set by DuelistDisplay from the table's Plate marker.
-var plate_home: Vector2 = Vector2.ZERO:
+## The seat's status spot under its Seals, in canvas pixels, from the table's StatusHome marker.
+var status_home: Vector2 = Vector2.ZERO:
 	set(value):
-		if plate_home.is_equal_approx(value):
+		if status_home.is_equal_approx(value):
 			return
-		plate_home = value
+		status_home = value
 		update_layout()
 		request_redraw()
 ## The seat's Ally row in canvas pixels (left edge, row centre line, width; height unused). While
 ## the seat has no Ally in play the status chips and Seal sets print there, out of the way; with
-## an Ally in the row they fall back beside the plate. Zero width until the display sets it.
+## an Ally in the row they fall back to the status spot. Zero width until the display sets it.
 var flag_home: Rect2 = Rect2():
 	set(value):
 		if flag_home.is_equal_approx(value):
@@ -79,11 +80,7 @@ var duelist_bounds: Rect2 = Rect2(-80, -90, 160, 180):
 var _life: int = 0
 var _hand: int = 0
 var _energy: int = 0
-var _energy_printed: int = 10
 var _might: int = 0
-var _might_printed: int = 0
-var _fervor: int = 0
-var _threshold: int = 5
 var _aspect: int = 1
 var _title: String = ""
 var _control: String = ""
@@ -95,33 +92,13 @@ var _reserve: int = 0
 var _lives: int = 1          # how many points the rival needs against this seat
 var _lives_lost: int = 0     # how many of them the rival has scored
 var _show_lives: bool = false  # only when either side has more than one (adventure duels)
-const LIFE_RED: Color = Color(0.93, 0.36, 0.36)
-## Online, the rival's plate: a tab under its lower edge, clear of the tracker's base line. BANK
-## reads "Time bank 0:48" while they spend their bank, AWAY "Disconnected 1:16" while their
-## connection is down; NONE, while they decide on their timer or not at all, draws nothing, since
-## the decision panel already says it waits on them. Fixed size and type, whatever the name.
-enum PlateTab { NONE, BANK, AWAY }
-const TAB_SIZE: Vector2 = Vector2(440, 54)
-const TAB_FONT: int = 44
-const TAB_RISE: float = 8.0   # how far the tab reaches up over the tracker's lower edge
-var _tab: PlateTab = PlateTab.NONE
+var _tab: Tab = Tab.NONE
 var _tab_text: String = ""
 var _tab_warn: bool = false
 var _accent: Color = IVORY
-## Who acts right now, which swings back and forth through Combat: this seat (ACTING, the plate
-## lit in its Mastery school's colour), the other seat (IDLE, the plate dimmed), or nobody.
-enum Acting { NOBODY, ACTING, IDLE }
-const ACTING_RULE_WIDTH: float = 6.0
-const ACTING_GLOW: float = 10.0
-const IDLE_SHADE: Color = Color(0.0, 0.0, 0.0, 0.5)
-var _acting: Acting = Acting.NOBODY
-var _school: Color = IVORY
 var _initialized: bool = false
 var _player_index: int = -1
 var _viewer: int = -1
-var _duelist_uid: int = -1
-var _flash: float = 0.0
-var _tween: Tween
 var _font: Font = ThemeDB.fallback_font
 const PEEK_RISE: float = 18.0   # canvas pixels the back the rival is reading rises
 const PEEK_TIP: float = 0.12    # and how far it tips outward, in radians
@@ -141,44 +118,23 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 		return
 	if controller == null:
 		controller = duelist
-	var same_identity: bool = _player_index == player_index and _viewer == viewer and _duelist_uid == duelist.uid
-	if not same_identity or reduced_motion:
-		if _tween != null:
-			_tween.kill()
-		_flash = 0.0
-	if not same_identity:
-		preview_cost = 0
 	_player_index = player_index
 	_viewer = viewer
-	_duelist_uid = duelist.uid
-	var old_values: Array[int] = [_life, _energy, _fervor, _aspect]
 	var energies: Dictionary = live.get("energy", {})
 	var mights: Dictionary = live.get("might", {})
 	var aspects: Dictionary = live.get("aspect", {})
-	var fervors: Array = live.get("fervor", [])
 	var zones: Array = live.get("zones", [])
 	var counts: Array = zones[player_index] if zones.size() > player_index else []
 	_life = int(counts[0]) if counts.size() > 0 else p.life_deck.size()
 	_energy = int(energies.get(controller.uid, energies.get(str(controller.uid), controller.energy)))
 	_might = int(mights.get(controller.uid, mights.get(str(controller.uid), controller.might)))
-	# The baselines are the engine's: printed Energy and the ladder rung that Energy prints at.
-	# The client only subtracts, which is the same difference `SeatPlayer` publishes.
-	_energy_printed = p.energy_printed
-	_might_printed = p.might_printed
-	_fervor = int(fervors[player_index]) if fervors.size() > player_index else p.fervor
-	_threshold = maxi(1, p.fervor_needed)
 	_aspect = int(aspects.get(duelist.uid, aspects.get(str(duelist.uid), duelist.aspect)))
 	_title = duelist.title
 	_control = "YOU" if player_index == viewer else "OPPONENT"
 	if controller.uid != duelist.uid:
 		_control = "%s IN CONTROL" % controller.title
 	_accent = SeatColors.accent(view, player_index, Session.color_seed)
-	_school = Palette.school_ui(p.style)
-	if view.deciding < 0 or view.is_over():
-		_acting = Acting.NOBODY
-	else:
-		_acting = Acting.ACTING if view.deciding == player_index else Acting.IDLE
-	_hand =maxi(0, int(counts[1]) if counts.size() > 1 else p.hand.size())
+	_hand = maxi(0, int(counts[1]) if counts.size() > 1 else p.hand.size())
 	var discard: int = int(counts[2]) if counts.size() > 2 else p.discard.size()
 	var removed: int = int(counts[3]) if counts.size() > 3 else p.removed.size()
 	_piles = "Discard %d" % discard if player_index != viewer else "Hand %d   Discard %d" % [_hand, discard]
@@ -206,48 +162,32 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 	_lives = maxi(1, int(view.points_to_win[rival])) if view.points_to_win.size() == 2 else 1
 	_lives_lost = clampi(int(view.points[rival]), 0, _lives) if view.points.size() == 2 else 0
 	_show_lives = view.points_to_win.size() == 2 and (int(view.points_to_win[0]) > 1 or int(view.points_to_win[1]) > 1)
-	if _initialized and same_identity and old_values != [_life, _energy, _fervor, _aspect] and not reduced_motion:
-		if _tween != null:
-			_tween.kill()
-		_flash = 1.0
-		_tween = create_tween()
-		_tween.tween_method(_set_flash, 1.0, 0.0, 0.55)
 	_initialized = true
 	update_layout()
 	request_redraw()
 
 
-func _set_flash(value: float) -> void:
-	_flash = value
-	request_redraw()
-
-
-## All core fighter data shares one fixture outside the duelist card.
+## Everything printed around the card, and the click regions it covers.
 func update_layout() -> Dictionary:
 	stat_hit_rects.clear()
 	var far_side: bool = _player_index != _viewer
-	var plate: Rect2 = Rect2(plate_home - Vector2(PLATE_CANVAS) * 0.5, Vector2(PLATE_CANVAS))
-	var tracker: Rect2 = Rect2(plate.position + PLATE_PAD, TRACKER_SIZE)
-	var middle_x: float = tracker.get_center().x
-	# Status lines on the plate's outer side: under the near plate, over the far one beside the
-	# rival's hand fan. The last line of the far block sits FLAG_GAP clear of the plate.
-	var text_width: float = TRACKER_SIZE.x
-	var flag_left: float = tracker.position.x
-	var first_row: float = plate.end.y + FLAG_GAP + _chip_font()
+	var text_width: float = STATUS_WIDTH
+	var flag_left: float = status_home.x - STATUS_WIDTH * 0.5
+	# The block of lines at the status spot is centred on it.
+	var first_row: float = status_home.y - _chip_step() * float(FLAG_ROWS_BESIDE - 1) * 0.5 + _chip_font() * 0.35
 	if far_side:
 		text_width -= FAN_SIZE.x + FAN_GAP
 		flag_left += FAN_SIZE.x + FAN_GAP
-		first_row = plate.position.y - FLAG_GAP - (_chip_height() - _chip_font()) - _chip_step() * (FLAG_ROWS_BESIDE - 1)
 	var at_home: bool = _flags_at_home()
 	if at_home:
 		text_width = flag_home.size.x
 		flag_left = flag_home.position.x
 		first_row = flag_home.position.y - _chip_step() * 0.5
-	stat_hit_rects.append(tracker)
+	stat_hit_rects.append(caption_rect())
 	if far_side:
-		stat_hit_rects.append(_fan_rect(plate))
-	if _show_lives:
-		stat_hit_rects.append(_lives_tab(tracker))
+		stat_hit_rects.append(_fan_rect())
+	if _tab != Tab.NONE:
+		stat_hit_rects.append(tab_rect())
 	var flag_rows: int = _flag_row_count(at_home)
 	if not _seal_sets.is_empty():
 		stat_hit_rects.append(Rect2(flag_left, first_row - 34, text_width, 42))
@@ -256,12 +196,20 @@ func update_layout() -> Dictionary:
 	for i in range(mini(lines.size(), flag_rows)):
 		var baseline: float = _chip_baseline(i, first_row)
 		stat_hit_rects.append(Rect2(flag_left, baseline - font - 6.0, text_width, font + 20.0))
-	return {"tracker": tracker, "plate": plate, "flags": first_row, "middle": middle_x, "flag_left": flag_left, "flag_width": text_width, "home": at_home}
+	return {"flags": first_row, "flag_left": flag_left, "flag_width": text_width, "home": at_home}
 
 
-## The rival's hand fan: over the plate, at its left end.
-func _fan_rect(plate: Rect2) -> Rect2:
-	return Rect2(Vector2(plate.position.x + PLATE_PAD.x, plate.position.y - FLAG_GAP - FAN_SIZE.y), FAN_SIZE)
+## The rival's hand fan: at the status spot's left end.
+func _fan_rect() -> Rect2:
+	return Rect2(Vector2(status_home.x - STATUS_WIDTH * 0.5, status_home.y - FAN_SIZE.y * 0.5), FAN_SIZE)
+
+
+## The Aspect caption past the duelist card's outer edge: under the near card, over the far one,
+## since the two cards meet at the centre line. The lives ride on its right when shown.
+func caption_rect() -> Rect2:
+	var width: float = CAPTION_WIDTH + (HEART_STEP * float(_lives) if _show_lives else 0.0)
+	var baseline: float = duelist_bounds.position.y - ASPECT_GAP + 22.0 if _player_index != _viewer else duelist_bounds.end.y + ASPECT_GAP
+	return Rect2(duelist_bounds.get_center().x - width * 0.5, baseline - CAPTION_FONT, width, CAPTION_FONT + 8.0)
 
 
 ## Everything the Ally row home can hold: the Seal line and three rows of chips.
@@ -274,7 +222,7 @@ func _flags_at_home() -> bool:
 	return flag_home.size.x > 0.0 and not _has_allies
 
 
-## Rows of chips shown: three in the Ally row, two beside the plate, one fewer under Seal sets.
+## Rows of chips shown: three in the Ally row, two at the status spot, one fewer under Seal sets.
 func _flag_row_count(at_home: bool) -> int:
 	return (FLAG_ROWS_HOME if at_home else FLAG_ROWS_BESIDE) - (0 if _seal_sets.is_empty() else 1)
 
@@ -287,32 +235,17 @@ func _chip_baseline(row: int, first_row: float) -> float:
 func _draw() -> void:
 	if not _initialized:
 		return
-	if part == Part.PLATE:
-		var plate: Rect2 = Rect2(PLATE_PAD, TRACKER_SIZE)
-		_draw_tracker(plate)
-		if _show_lives:
-			_draw_lives(plate)
-		if _tab != PlateTab.NONE:
-			_draw_tab(plate)
-		return
 	draw_set_transform(size * 0.5)
 	var layout: Dictionary = update_layout()
-	var tracker: Rect2 = layout["tracker"]
-	var middle_x: float = float(layout["middle"])
 	var first_row: float = float(layout["flags"])
 	var text_width: float = float(layout["flag_width"])
 	var flag_left: float = float(layout["flag_left"])
 	var centred: bool = bool(layout["home"])
 	if _player_index != _viewer:
-		_draw_opponent_hand(_fan_rect(layout["plate"]).position)
-	if part == Part.ALL:
-		_draw_tracker(tracker)
-		if _show_lives:
-			_draw_lives(tracker)
-	# The Aspect, printed on the board past the duelist card's outer edge: under the near card,
-	# over the far one, since the two cards meet at the centre line.
-	var aspect_y: float = duelist_bounds.position.y - ASPECT_GAP + 22.0 if _player_index != _viewer else duelist_bounds.end.y + ASPECT_GAP
-	_text("ASPECT %d" % _aspect, Vector2(duelist_bounds.get_center().x - 110.0, aspect_y), 220, 30, IVORY, true)
+		_draw_opponent_hand(_fan_rect().position)
+	_draw_caption()
+	if _tab != Tab.NONE:
+		_draw_tab()
 	var rows: Array[PackedStringArray] = _flag_rows(text_width)
 	var flag_rows: int = _flag_row_count(bool(layout["home"]))
 	if not _seal_sets.is_empty():
@@ -332,68 +265,15 @@ func _draw() -> void:
 		_draw_chip_row(row, flag_left, _chip_baseline(i, first_row), text_width, centred)
 
 
-## The stat tracker: name, Aspect and seat along the top, then Energy, Might and Fervor. A
-## Kenney inner-rule plate in the seat's colour, muted like the rest of the trim; a change
-## brightens the rule for a moment. The acting seat's plate is ringed in its school colour; the
-## other seat's is shaded while it waits.
-func _draw_tracker(tracker: Rect2) -> void:
-	var origin: Vector2 = tracker.position
-	var rule: Color = MapArt.muted(_accent).lerp(Color.WHITE, 0.3 + _flash * 0.4)
-	draw_rect(tracker.grow(-4), INK)
-	if _acting == Acting.ACTING:
-		# Drawn inside the tracker: the plate's texture ends at its edge.
-		for i in range(int(ACTING_GLOW), 0, -2):
-			draw_rect(tracker.grow(-ACTING_RULE_WIDTH - float(i)), Color(_school.lightened(0.2), 0.10), false, 2.0)
-	draw_style_box(MapArt.panel_box(0, rule), tracker)
-	if _acting == Acting.ACTING:
-		draw_rect(tracker.grow(-ACTING_RULE_WIDTH * 0.5), _school.lightened(0.2), false, ACTING_RULE_WIDTH)
-	# The Life Deck count at the top left, since the decision column can cover the pile itself; the
-	# fighter's name centred along the rest of the top; the Aspect is printed under the card instead.
-	_text("LIFE", origin + Vector2(16, 34), 56, 24, MUTED)
-	_text(str(_life), origin + Vector2(68, 36), 56, 34, TEXT)
-	_text(_title, origin + Vector2(122, 35), 250, 32, TEXT, true)
-	_text(_control, origin + Vector2(372, 34), 156, 28, MapArt.muted(_accent).lerp(Color.WHITE, 0.45), true)
-	for x in [180.0, 360.0]:
-		draw_line(origin + Vector2(x, 48), origin + Vector2(x, 140), Color(MUTED, 0.25), 1, true)
-	_text("ENERGY", origin + Vector2(10, 65), 160, 34, ENERGY, true)
-	_text("MIGHT", origin + Vector2(190, 65), 160, 34, TEXT, true)
-	_text("FERVOR", origin + Vector2(370, 65), 160, 34, FERVOR_TEXT, true)
-	_text("%d / 10" % _energy, origin + Vector2(10, 111), 160, 42, _stat_color(energy_delta()), true)
-	_text(CardText.short_number(_might), origin + Vector2(190, 111), 160, 44, _stat_color(might_delta()), true)
-	# Might has no printed maximum on the strip, so a moved ladder says what it moved from.
-	if might_delta() != 0:
-		_text("base %s" % CardText.short_number(_might_printed), origin + Vector2(190, 146), 160, 28, MUTED, true)
-	_text("%d / %d" % [_fervor, _threshold], origin + Vector2(370, 111), 160, 40, TEXT, true)
-	for i in range(10):
-		var on: bool = i < _energy
-		var ghost: bool = on and i >= _energy - preview_cost
-		var segment: Rect2 = Rect2(origin + Vector2(18 + 15 * i, 126), Vector2(11, 10))
-		if ghost:
-			draw_rect(segment, ENERGY, false, 2)
-		else:
-			draw_rect(segment, ENERGY if on else Color(ENERGY, 0.18))
-	# Fervor pips match the Energy segments: square, filled when earned.
-	var step: float = minf(24.0, 150.0 / float(_threshold))
-	var pip: float = minf(12.0, step - 4.0)
-	var pip_start: float = origin.x + 450.0 - step * (_threshold - 1) * 0.5
-	for i in range(_threshold):
-		var box: Rect2 = Rect2(Vector2(pip_start + step * i - pip * 0.5, origin.y + 131 - pip * 0.5), Vector2(pip, pip))
-		if i < _fervor:
-			draw_rect(box, FERVOR)
-		else:
-			draw_rect(box, Color(MUTED, 0.45), false, 1.5)
-	if _acting == Acting.IDLE:
-		draw_rect(tracker, IDLE_SHADE)
-
-
-## Above the printed baseline the number is green, below it warns, at it stays plain. The colour
-## is the state display, the way a power/toughness box is in Arena.
-func _stat_color(delta: int) -> Color:
-	if delta > 0:
-		return ENERGY
-	if delta < 0:
-		return ZenithTheme.WARN
-	return TEXT
+func _draw_caption() -> void:
+	var box: Rect2 = caption_rect()
+	var baseline: float = box.position.y + CAPTION_FONT
+	_text("ASPECT %d" % _aspect, Vector2(box.position.x, baseline), CAPTION_WIDTH, CAPTION_FONT, IVORY, true)
+	if not _show_lives:
+		return
+	for i in range(_lives):
+		var left: bool = i < _lives - _lives_lost
+		_heart(Vector2(box.position.x + CAPTION_WIDTH + HEART_STEP * (float(i) + 0.5), baseline - 11.0), 9.5, LIFE_RED if left else INK, LIFE_RED if left else Color(MUTED, 0.5))
 
 
 func energy_value() -> int:
@@ -402,14 +282,6 @@ func energy_value() -> int:
 
 func might_value() -> int:
 	return _might
-
-
-func energy_delta() -> int:
-	return _energy - _energy_printed
-
-
-func might_delta() -> int:
-	return _might - _might_printed
 
 
 func status_text() -> String:
@@ -457,8 +329,7 @@ func _set_peek_amount(value: float) -> void:
 func peek_point(slot: int) -> Variant:
 	if _player_index == _viewer or _hand <= 0:
 		return null
-	var layout: Dictionary = update_layout()
-	var origin: Vector2 = _fan_rect(layout["plate"]).position
+	var origin: Vector2 = _fan_rect().position
 	var shown: int = mini(_hand, 7)
 	var offset: float = _fan_index(slot, shown) - (shown - 1) * 0.5
 	return origin + Vector2(102 + offset * 18, 56 + absf(offset) * 3 - PEEK_RISE)
@@ -523,36 +394,21 @@ func _draw_seals(baseline: float, middle_x: float = 0.0, width: float = 690.0) -
 			draw_rect(box, Color(IVORY, 0.45), false, 2.0)
 
 
-## The lives tab straddles the plate's bottom border, centred under the Might column.
-func _lives_tab(tracker: Rect2) -> Rect2:
-	var width: float = 104.0 + 32.0 * float(_lives)
-	return Rect2(tracker.get_center().x - width * 0.5, tracker.end.y - 12.0, width, 26.0)
-
-
-func _draw_lives(tracker: Rect2) -> void:
-	var tab: Rect2 = _lives_tab(tracker)
-	draw_rect(tab, INK)
-	draw_rect(tab, MapArt.muted(_accent).lerp(Color.WHITE, 0.3 + _flash * 0.4), false, 2.0)
-	_text("LIVES", tab.position + Vector2(10, 21), 80, 24, MUTED, false)
-	for i in range(_lives):
-		var left: bool = i < _lives - _lives_lost
-		_heart(Vector2(tab.position.x + 96.0 + 32.0 * i, tab.get_center().y), 9.5, LIFE_RED if left else INK, LIFE_RED if left else Color(MUTED, 0.5))
-
-
-## The rival's tab (`PlateTab`): what it is, its whole line ("Time bank 0:48"), and whether it
-## warns. Redraws only when one of them changes.
-func set_tab(kind: PlateTab, text: String, warn: bool) -> void:
-	var shown: String = text if kind != PlateTab.NONE else ""
-	var warns: bool = warn and kind != PlateTab.NONE
+## The rival's tab (`Tab`): what it is, its whole line ("Time bank 0:48"), and whether it warns.
+## Redraws only when one of them changes.
+func set_tab(kind: Tab, text: String, warn: bool) -> void:
+	var shown: String = text if kind != Tab.NONE else ""
+	var warns: bool = warn and kind != Tab.NONE
 	if kind == _tab and shown == _tab_text and warns == _tab_warn:
 		return
 	_tab = kind
 	_tab_text = shown
 	_tab_warn = warns
+	update_layout()
 	request_redraw()
 
 
-func tab_kind() -> PlateTab:
+func tab_kind() -> Tab:
 	return _tab
 
 
@@ -564,14 +420,15 @@ func tab_warns() -> bool:
 	return _tab_warn
 
 
-## Where the tab sits on the plate canvas: centred under the tracker, reaching TAB_RISE up over its
-## lower edge and no further, so the base line above stays clear.
-func tab_rect(tracker: Rect2) -> Rect2:
-	return Rect2(tracker.get_center().x - TAB_SIZE.x * 0.5, tracker.end.y - TAB_RISE, TAB_SIZE.x, TAB_SIZE.y)
+## Where the tab sits: centred on the card, past the Aspect caption on the card's outer side.
+func tab_rect() -> Rect2:
+	var caption: Rect2 = caption_rect()
+	var y: float = caption.position.y - TAB_GAP - TAB_SIZE.y if _player_index != _viewer else caption.end.y + TAB_GAP
+	return Rect2(duelist_bounds.get_center().x - TAB_SIZE.x * 0.5, y, TAB_SIZE.x, TAB_SIZE.y)
 
 
-func _draw_tab(tracker: Rect2) -> void:
-	var box: Rect2 = tab_rect(tracker)
+func _draw_tab() -> void:
+	var box: Rect2 = tab_rect()
 	var color: Color = ZenithTheme.WARN if _tab_warn else TEXT
 	draw_rect(box, INK)
 	draw_rect(box, ZenithTheme.WARN if _tab_warn else MapArt.muted(_accent).lerp(Color.WHITE, 0.3), false, 2.0)

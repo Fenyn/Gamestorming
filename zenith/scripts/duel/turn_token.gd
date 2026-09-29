@@ -2,7 +2,7 @@ class_name TurnToken
 extends Node3D
 ## Marks whose turn it is: a stone token on the viewer's left end of the centre line, resting on
 ## the turn owner's side of it and hopping across when the turn passes. Who acts right now, which
-## swings back and forth through Combat, is lit on the duelists' plates instead.
+## swings back and forth through Combat, is a ring around that seat's duelist card instead.
 
 ## Out from the centre toward the viewer's left, and off the centre line toward the owner.
 const REST_X: float = 3.6

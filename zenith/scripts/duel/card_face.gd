@@ -4,9 +4,9 @@ extends Control
 ## and also used directly for the hover zoom.
 ##
 ## Two layouts share the frame. Personalities (Duelists, Allies) get a portrait: aspect box, name,
-## and title with the type line across the top, art filling the left, the Might ladder (stages
-## 10 to 0, banded by the Strike Table) down the right with the Surge badge under it,
-## and the power text in a fixed box along the bottom. Everything else gets the standard face:
+## and title with the type line across the top, art filling the left, the Might ladder
+## (`MightLadder`: stages 10 to 0, banded by the Strike Table, the printed Surge over it) down the
+## right, and the power text in a fixed box along the bottom. Everything else gets the standard face:
 ## title, type chip, an art box of a set height for that type, an Energy cost badge over the art,
 ## and the rules text in the fixed box that remains. Both set their text in RulesLayout blocks in
 ## an inset panel, with bookkeeping chips under it. Boxes never move between cards of one type;
@@ -33,11 +33,9 @@ const ART_HEIGHTS: Dictionary = {
 }
 const STANDARD_FIXED: float = 44.0 + 36.0 + 3.0 * 8.0   # title, type row, gaps
 const PERSON_TEXT_HEIGHT: float = 150.0
-const RUNG_HEIGHT: float = 28.0
-## Padding inside the text box and the ladder box.
+## Padding inside the text box.
 const PAD_X: float = 10.0
 const PAD_Y: float = 6.0
-const LADDER_PAD: float = 6.0
 const PARA_GAP: int = 6
 const INDENT_PX: float = 32.0
 const TAG_HEIGHT: float = 30.0
@@ -52,7 +50,6 @@ const LIT_LIGHTEN: float = 0.25
 ## The bone outer rule on a Signature frame, in face pixels. The face is 512 wide and drawn at
 ## about a quarter of that in the hand, so 6 here is the 1 to 2 px the player actually sees.
 const SIGNATURE_EDGE: int = 6
-const STAGES: int = CardInstance.MAX_STAGE
 ## Personality portraits are painted on a clear background, so the art box behind them shows the
 ## colour of the deck the card is being shown for: its Mastery's school hue, darkened. Callers
 ## that know the deck pass it as `backdrop`; a clear colour means `default_backdrop`, which the
@@ -111,22 +108,13 @@ static var strike_table: StrikeTable = null
 @onready var p_art: Panel = $Person/Column/Body/Art
 @onready var p_art_image: TextureRect = $Person/Column/Body/Art/Image
 @onready var p_glyph_icon: TypeIcon = $Person/Column/Body/Art/GlyphIcon
-@onready var p_ladder_box: PanelContainer = $Person/Column/Body/Side/LadderBox
-@onready var p_ladder: VBoxContainer = $Person/Column/Body/Side/LadderBox/Ladder
-@onready var p_surge: PanelContainer = $Person/Column/Body/Side/Stats/Surge
-@onready var p_surge_num: Label = $Person/Column/Body/Side/Stats/Surge/Col/Num
-@onready var p_surge_word: Label = $Person/Column/Body/Side/Stats/Surge/Col/Word
+@onready var p_ladder: MightLadder = $Person/Column/Body/Ladder
 @onready var p_words: PanelContainer = $Person/Column/Words
 @onready var p_tags: HFlowContainer = $Person/Column/Words/Col/Tags
 @onready var p_text: KeywordLabel = $Person/Column/Words/Col/Text
+@onready var tabs: DuelistTabs = $Tabs
 
 var _rule: Panel = null
-var _stage_rows: Array[PanelContainer] = []   # the rung's own pill, stage 10 first
-var _stage_frames: Array[PanelContainer] = [] # the whole row, which carries the band rule
-var _stage_tags: Array[PanelContainer] = []
-var _stage_letters: Array[Label] = []
-var _stage_labels: Array[Label] = []
-var _stage_values: Array[Label] = []
 
 
 func _ready() -> void:
@@ -137,65 +125,39 @@ func _ready() -> void:
 	add_child(_rule)
 	move_child(_rule, frame.get_index() + 1)
 	_rule.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	# Eleven fixed rungs, stage 10 at the top down to stage 0. Built once; only the numbers change.
-	# Each row is a band tag (shown where a Strike Table band starts) and the rung's pill.
-	for i in range(STAGES + 1):
-		var frame_row: PanelContainer = PanelContainer.new()
-		frame_row.custom_minimum_size = Vector2(0, RUNG_HEIGHT)
-		var h: HBoxContainer = HBoxContainer.new()
-		h.add_theme_constant_override("separation", 4)
-		var tag: PanelContainer = PanelContainer.new()
-		tag.custom_minimum_size = Vector2(22, 20)
-		tag.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		var letter: Label = Label.new()
-		letter.add_theme_font_size_override("font_size", 16)
-		letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		tag.add_child(letter)
-		h.add_child(tag)
-		var pill: PanelContainer = PanelContainer.new()
-		pill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var inside: HBoxContainer = HBoxContainer.new()
-		var stage: Label = Label.new()
-		stage.text = str(STAGES - i)
-		stage.add_theme_font_size_override("font_size", 16)
-		inside.add_child(stage)
-		var value: Label = Label.new()
-		value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		value.add_theme_font_size_override("font_size", 24)
-		inside.add_child(value)
-		pill.add_child(inside)
-		h.add_child(pill)
-		frame_row.add_child(h)
-		p_ladder.add_child(frame_row)
-		_stage_frames.append(frame_row)
-		_stage_tags.append(tag)
-		_stage_letters.append(letter)
-		_stage_rows.append(pill)
-		_stage_labels.append(stage)
-		_stage_values.append(value)
 
 
-## `energy` is live Energy for a personality in play (-1 for none): the rung for the current stage
-## lights up in the deck's Mastery colour. `_standing` is kept for callers; the face prints only
-## what is on the card.
+## `energy` is live Energy for a personality in play (-1 for none) and `might` its live Might (-1
+## for the printed rung): the ladder draws its live layer (`MightLadder.show_live`). `standing` is
+## the owning player when the card is their duelist, null otherwise: it adds the Surge rail up to
+## where the next Recover lands and the Fervor pips on the top edge.
 ## `backdrop` is the deck colour behind a personality portrait (see NO_BACKDROP). `table_base` is
 ## the Strike Table result for the matchup the card is shown in, -1 outside a duel.
-func show_def(def: CardDef, aspect: int = 0, energy: int = -1, _standing: SeatPlayer = null, backdrop: Color = NO_BACKDROP, table_base: int = -1) -> void:
+func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPlayer = null, backdrop: Color = NO_BACKDROP, table_base: int = -1, might: int = -1) -> void:
 	inner.visible = true
 	var color: Color = Palette.frame_color(def)
 	_style(frame, color, FRAME_RADIUS, Palette.frame_edge(def))
 	_rule_style(def, color)
 	_inner_style(def)
 	var picture: Texture2D = art_texture(def, aspect)
+	var live_duelist: bool = def.is_personality() and energy >= 0 and standing != null
+	tabs.show_tabs(standing.fervor if live_duelist else -1, standing.fervor_needed if live_duelist else 0, "")
 	if def.is_personality():
 		margin.visible = false
 		person.visible = true
-		_show_person(def, aspect, picture, energy, resolve_backdrop(backdrop))
+		_show_person(def, aspect, picture, resolve_backdrop(backdrop))
+		p_ladder.show_live(energy, might, recover_reach(energy, standing) if live_duelist else -1)
 	else:
 		person.visible = false
 		margin.visible = true
 		_show_standard(def, color, picture, table_base)
+
+
+## The stage a duelist at `energy` reaches with its next Recover, or -1 when it gains nothing.
+static func recover_reach(energy: int, standing: SeatPlayer) -> int:
+	if standing == null or energy < 0 or standing.energy_blocked or standing.recover_gain <= 0:
+		return -1
+	return mini(CardInstance.MAX_STAGE, energy + standing.recover_gain)
 
 
 func _show_standard(def: CardDef, color: Color, picture: Texture2D, table_base: int = -1) -> void:
@@ -245,7 +207,7 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D, table_base: 
 	cost_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
 
 
-func _show_person(def: CardDef, aspect: int, picture: Texture2D, energy: int = -1, backdrop: Color = NEUTRAL_BACKDROP) -> void:
+func _show_person(def: CardDef, aspect: int, picture: Texture2D, backdrop: Color = NEUTRAL_BACKDROP) -> void:
 	# A personality card is one Aspect, so the card decides which number and row it shows.
 	var t: int = def.aspect if def.aspect > 0 else aspect
 	var td: Dictionary = def.aspect_data(t)
@@ -273,15 +235,9 @@ func _show_person(def: CardDef, aspect: int, picture: Texture2D, energy: int = -
 	p_glyph_icon.visible = picture == null
 	p_glyph_icon.type = def.type
 	p_glyph_icon.color = Color(1, 1, 1, 0.3)
-	_show_ladder(td.get("might", []), energy, backdrop)
-	# The printed rate only. The live gain is a fact about the player, not the card.
-	_round(p_surge, PERSON_DARK, 10)
-	p_surge_num.text = str(int(td.get("surge", 0)))
-	p_surge_num.add_theme_color_override("font_color", lit_color(backdrop))
-	p_surge_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
+	p_ladder.show_card(def, t, backdrop)
 	var words: StyleBoxFlat = _box_style(PAD_X, PAD_Y)
 	p_words.add_theme_stylebox_override("panel", words)
-	p_ladder_box.add_theme_stylebox_override("panel", _box_style(LADDER_PAD, LADDER_PAD))
 	var plain: String = "\n".join(CardText.aspect_text(def, t))
 	_place_rules(p_text, plain, PERSON_TEXT_HEIGHT, _inset(words), p_tags, null)
 
@@ -305,45 +261,6 @@ static func _inset(box: StyleBox) -> Vector2:
 	return Vector2(box.content_margin_left + box.content_margin_right, box.content_margin_top + box.content_margin_bottom)
 
 
-## Stage 10 down to 0. Numbers sit in ink on the cream; a hairline and a letter tag mark where a
-## Strike Table band starts; the live stage is a pill in the deck's Mastery colour.
-func _show_ladder(might: Array, energy: int, backdrop: Color) -> void:
-	var lit_fill: Color = lit_color(backdrop)
-	var lit_ink: Color = lit_ink_color(lit_fill)
-	var prev_band: int = -1
-	for i in range(STAGES + 1):
-		var stage: int = STAGES - i
-		var value: int = int(might[stage]) if might.size() > stage else 0
-		var band: int = strike_table.band(value) if strike_table != null else -1
-		var starts: bool = strike_table != null and band != prev_band
-		prev_band = band
-		var rule: StyleBoxFlat = StyleBoxFlat.new()
-		rule.draw_center = false
-		if starts and i > 0:
-			rule.border_color = Color(INK, 0.35)
-			rule.border_width_top = 2
-			rule.content_margin_top = 2
-		_stage_frames[i].add_theme_stylebox_override("panel", rule)
-		_stage_tags[i].self_modulate.a = 1.0 if starts else 0.0
-		_stage_letters[i].text = CardText.band_letter(band) if starts else ""
-		_stage_letters[i].add_theme_color_override("font_color", CREAM)
-		_round(_stage_tags[i], Color(INK, 0.75), 3, 0, 0)
-		var lit: bool = stage == energy
-		var pill: StyleBoxFlat = StyleBoxFlat.new()
-		pill.draw_center = lit
-		pill.bg_color = lit_fill
-		pill.set_corner_radius_all(6)
-		pill.content_margin_left = 6
-		pill.content_margin_right = 6
-		if lit:
-			pill.border_color = lit_fill.darkened(0.55)
-			pill.set_border_width_all(2)
-		_stage_rows[i].add_theme_stylebox_override("panel", pill)
-		_stage_labels[i].add_theme_color_override("font_color", Color(lit_ink, 0.9) if lit else Color(INK, 0.5))
-		_stage_values[i].text = CardText.short_number(value) if might.size() > stage else ""
-		_stage_values[i].add_theme_color_override("font_color", lit_ink if lit else INK)
-
-
 ## Bloodline, alignment gate and tags, in words, over the Power text.
 static func person_type_line(def: CardDef) -> String:
 	var parts: PackedStringArray = PackedStringArray()
@@ -357,15 +274,13 @@ static func person_type_line(def: CardDef) -> String:
 
 
 ## The live-stage colour: the deck's Mastery hue that `backdrop` was darkened from, lifted so it
-## reads on the cream. With no deck named, a neutral mint. `deep` skips the lift: the table's
-## see-through bar washes out over the cream unless its colour starts at full depth.
-static func lit_color(backdrop: Color, deep: bool = false) -> Color:
+## reads on the cream. With no deck named, a neutral mint.
+static func lit_color(backdrop: Color) -> Color:
 	var b: Color = resolve_backdrop(backdrop)
 	if b.is_equal_approx(NEUTRAL_BACKDROP):
-		return LIT_FALLBACK.darkened(LIT_LIGHTEN) if deep else LIT_FALLBACK
+		return LIT_FALLBACK
 	var keep: float = 1.0 - BACKDROP_DARKEN
-	var hue: Color = Color(b.r / keep, b.g / keep, b.b / keep)
-	return hue if deep else hue.lightened(LIT_LIGHTEN)
+	return Color(b.r / keep, b.g / keep, b.b / keep).lightened(LIT_LIGHTEN)
 
 
 static func lit_ink_color(fill: Color) -> Color:
@@ -413,16 +328,13 @@ func show_back() -> void:
 	inner.visible = false
 	margin.visible = false
 	person.visible = false
+	tabs.show_tabs(-1, 0, "")
 
 
-## Rung rects in face pixels, stage 10 first; valid after a personality layout.
-func ladder_rects() -> Array[Rect2]:
-	var out: Array[Rect2] = []
-	var origin: Vector2 = get_global_rect().position
-	for row in _stage_rows:
-		var r: Rect2 = row.get_global_rect()
-		out.append(Rect2(r.position - origin, r.size))
-	return out
+## The Might ladder's rect in face pixels; valid after a personality layout.
+func ladder_rect() -> Rect2:
+	var local: Transform2D = get_global_transform().affine_inverse() * p_ladder.get_global_transform()
+	return Rect2(local.origin, p_ladder.size)
 
 
 ## Sets a card's rules text and its chips. Chips go in `row`, the first line inside the text box.

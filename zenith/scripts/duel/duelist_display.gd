@@ -1,26 +1,20 @@
 class_name DuelistDisplay
 extends Node3D
-## A duelist's resources as objects on the table. The stat tracker is a nameplate on a thin stone
-## slab lying under the seat's Ally wing and Seals (`plate_home`); the rest (status lines,
-## Seals, the rival's hand) is printed flat on the board around the plate. The Life count lies on
-## top of the Life Deck. Accepts only the public seat view and the same event snapshots used by
-## the table.
+## What a duelist's seat prints on the table around its card (`DuelistReadout`: the Aspect, status
+## lines, Seals, the rival's hand and online tab), and the Life count lying on top of the Life
+## Deck. Energy, Might and Fervor are on the card (`StatusMarkers`). Accepts only the public seat
+## view and the same event snapshots used by the table.
 
 signal clicked(uid: int)
 signal inspected(uid: int)
 signal hovered(uid: int, on: bool)
 
-## World units per canvas pixel, for the printed canvas and the plate alike. Sized so the plate
-## spans the Ally wing; TableLayout keeps that footprint clear.
+## World units per canvas pixel.
 const PIXEL: float = 0.0029
 ## The Life count's own scale; it lies on the pile and keeps one size for both seats.
 const LIFE_PIXEL: float = 0.0044
 ## The printed canvas lies just over the board and under the cards.
 const PRINT_Y: float = 0.006
-## The plate lies almost flat; from above, the same lean reads the same for both seats.
-const PLATE_TILT: float = deg_to_rad(4.0)
-## The slab's thickness under the plate's face.
-const PLATE_DEPTH: float = 0.045
 ## The Life count on the pile: the number just past its centre, the caption toward the viewer.
 const LIFE_NUMBER_BACK: float = 0.07
 const LIFE_CAPTION_FORWARD: float = 0.22
@@ -32,45 +26,24 @@ var _hovering: bool = false
 @onready var surface: Sprite3D = $Surface
 @onready var viewport: SubViewport = $ReadoutViewport
 @onready var readout: DuelistReadout = $ReadoutViewport/Readout
-@onready var plate_viewport: SubViewport = $PlateViewport
-@onready var plate_readout: DuelistReadout = $PlateViewport/Plate
-@onready var plate: Node3D = $Plate
-@onready var plate_body: MeshInstance3D = $Plate/Body
-@onready var plate_face: Sprite3D = $Plate/Face
 @onready var life_value: Label3D = $LifeValue
 @onready var life_caption: Label3D = $LifeCaption
 var life_transform: Transform3D = Transform3D.IDENTITY
 var flag_row: PackedVector3Array = PackedVector3Array()   # where the status chips print, inner end first
-var plate_home: Vector3 = Vector3.ZERO   # the centre of the plate's face on the table, world space
+var status_home: Vector3 = Vector3.ZERO   # the seat's status spot on the table, world space
 var _anchor_inputs: Array = []
 var _life_pulse: Tween = null
 
 
 func _ready() -> void:
 	surface.texture = viewport.get_texture()
-	plate_face.texture = plate_viewport.get_texture()
-	plate_viewport.size = DuelistReadout.PLATE_CANVAS
-	plate_readout.size = Vector2(DuelistReadout.PLATE_CANVAS)
-	var extent: Vector2 = Vector2(DuelistReadout.PLATE_CANVAS) * PIXEL
-	plate_face.pixel_size = PIXEL
-	plate_face.position = Vector3(0, PLATE_DEPTH + 0.002, -extent.y * 0.5)
-	(plate_body.mesh as BoxMesh).size = Vector3(extent.x, PLATE_DEPTH, extent.y)
-	plate_body.position = Vector3(0, PLATE_DEPTH * 0.5, -extent.y * 0.5)
-	surface.pixel_size = PIXEL
 	readout.redraw_requested.connect(_request_render)
-	plate_readout.redraw_requested.connect(_request_plate_render)
 	_request_render()
-	_request_plate_render()
 
 
-## The printed canvas on the felt, the large one, renders only when its own readout changed.
+## The printed canvas renders only when its readout changed.
 func _request_render() -> void:
 	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
-
-
-## The standing plate renders on its own, so its tab counting down re-renders nothing else.
-func _request_plate_render() -> void:
-	plate_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 
 
 func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = {}) -> void:
@@ -82,26 +55,15 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 	duelist_uid = view.player(player_index).duelist
 	readout.reduced_motion = reduced_motion
 	readout.refresh(view, player_index, viewer, live)
-	plate_readout.reduced_motion = reduced_motion
-	plate_readout.refresh(view, player_index, viewer, live)
 	var counts: Array = live.get("zones", [])
 	var player_counts: Array = counts[player_index] if player_index < counts.size() else []
 	life_value.text = str(int(player_counts[0]) if not player_counts.is_empty() else view.player(player_index).life_deck.size())
 
 
-## Online: the tab on this seat's plate (`DuelistReadout.set_tab`), PlateTab.NONE to clear it.
-func set_tab(kind: DuelistReadout.PlateTab, text: String, warn: bool) -> void:
+## Online: the rival's tab (`DuelistReadout.set_tab`), Tab.NONE to clear it.
+func set_tab(kind: DuelistReadout.Tab, text: String, warn: bool) -> void:
 	if is_node_ready():
-		plate_readout.set_tab(kind, text, warn)
-
-
-## Preview only: outlined Energy segments distinguish projected spending from resolution.
-func preview_energy(cost: int = 0) -> void:
-	var next_cost: int = maxi(0, cost)
-	if plate_readout.preview_cost != next_cost:
-		readout.preview_cost = next_cost
-		plate_readout.preview_cost = next_cost
-		plate_readout.request_redraw()
+		readout.set_tab(kind, text, warn)
 
 
 ## The count reacts at the pile the card just left, keeping the visual loss tied to its source.
@@ -121,12 +83,12 @@ func status_text() -> String:
 
 
 ## Lay the fixture out around the card where it rests on the table (its hover lift is ignored, so
-## the plate never slides). Only which end of the table the camera sits at matters: everything
+## nothing printed slides). Only which end of the table the camera sits at matters: everything
 ## reads the right way up for that side.
 func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
 	# Static fixtures retain their texture and layout until the card, the pile or the side moves.
 	var toward: float = 1.0 if camera.global_position.z >= 0.0 else -1.0
-	var inputs: Array = [global_transform, card.global_transform, life_transform, flag_row, plate_home, toward]
+	var inputs: Array = [global_transform, card.global_transform, life_transform, flag_row, status_home, toward]
 	if inputs == _anchor_inputs:
 		return
 	_anchor_inputs = inputs
@@ -152,19 +114,20 @@ func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
 	life_value.global_transform = Transform3D(flat, life_transform.origin + Vector3.UP * 0.004 - forward * LIFE_NUMBER_BACK)
 	life_caption.global_transform = Transform3D(flat, life_transform.origin + Vector3.UP * 0.004 + forward * LIFE_CAPTION_FORWARD)
 	readout.card_bounds = bounds
-	readout.plate_home = _canvas_point(plate_home)
+	readout.status_home = _canvas_point(status_home)
 	if flag_row.size() == 2:
 		var inner: Vector2 = _canvas_point(flag_row[0])
 		var outer: Vector2 = _canvas_point(flag_row[1])
 		readout.flag_home = Rect2(Vector2(minf(inner.x, outer.x), inner.y), Vector2(absf(outer.x - inner.x), 0.0))
-	_place_plate(yaw)
 	# Expand the transparent canvas as the cluster grows; fixed textures clip wide zooms.
 	for rect: Rect2 in readout.stat_hit_rects:
 		bounds = bounds.merge(rect)
 	# The status chips' home is covered whether or not anything is printed there yet: the canvas
-	# only regrows when the card moves, and a first chip or Seal arrives without that.
+	# only regrows when the card moves, and a first chip or Seal arrives without that. The same
+	# goes for the rival's tab, which comes and goes with their clock.
 	if readout.flag_home.size.x > 0.0:
 		bounds = bounds.merge(readout.flag_home_area())
+	bounds = bounds.merge(readout.tab_rect())
 	var extent: Vector2 = Vector2(maxf(absf(bounds.position.x), absf(bounds.end.x)), maxf(absf(bounds.position.y), absf(bounds.end.y))) + Vector2(400, 400)
 	var canvas_size: Vector2i = Vector2i(maxi(1600, ceili(extent.x * 2.0 / 128.0) * 128), maxi(1600, ceili(extent.y * 2.0 / 128.0) * 128))
 	if viewport.size != canvas_size:
@@ -204,16 +167,11 @@ func peek_screen(slot: int, camera: Camera3D) -> Variant:
 	return camera.unproject_position(_world_point(local as Vector2))
 
 
-## Only the plate and the printed status are interactive. The center belongs to the actual card.
+## Only the printed regions are interactive. The center belongs to the actual card.
 func hit_test(point: Vector2, camera: Camera3D) -> bool:
 	if camera.is_position_behind(global_position):
 		return false
-	var from: Vector3 = camera.project_ray_origin(point)
-	var direction: Vector3 = camera.project_ray_normal(point)
-	var on_plate: Variant = _ray_on(plate_face, from, direction)
-	if on_plate != null and Rect2(-Vector2(DuelistReadout.PLATE_CANVAS) * 0.5, Vector2(DuelistReadout.PLATE_CANVAS)).has_point(on_plate):
-		return true
-	var on_felt: Variant = _ray_on(surface, from, direction)
+	var on_felt: Variant = _ray_on(surface, camera.project_ray_origin(point), camera.project_ray_normal(point))
 	if on_felt == null:
 		return false
 	for rect: Rect2 in readout.stat_hit_rects:
@@ -222,26 +180,16 @@ func hit_test(point: Vector2, camera: Camera3D) -> bool:
 	return false
 
 
-## The screen rectangle the fixture covers: every printed stat region and the plate.
-## The hand keeps below it.
+## The screen rectangle every printed region covers. The hand keeps below it.
 func screen_rect(camera: Camera3D) -> Rect2:
-	var bounds: Rect2 = Rect2(camera.unproject_position(plate_face.global_position), Vector2.ZERO)
-	var half: Vector2 = Vector2(DuelistReadout.PLATE_CANVAS) * 0.5 * PIXEL
-	for corner: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
-		bounds = bounds.expand(camera.unproject_position(plate_face.to_global(Vector3(corner.x * half.x, corner.y * half.y, 0))))
+	var bounds: Rect2 = Rect2()
+	var first: bool = true
 	for rect: Rect2 in readout.stat_hit_rects:
 		for corner: Vector2 in [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]:
-			bounds = bounds.expand(camera.unproject_position(_world_point(corner)))
+			var point: Vector2 = camera.unproject_position(_world_point(corner))
+			bounds = Rect2(point, Vector2.ZERO) if first else bounds.expand(point)
+			first = false
 	return bounds
-
-
-## Lays the plate on the table at the tracker's place in the printed layout: its edge nearest the
-## viewer on the board, the far edge raised by PLATE_TILT.
-func _place_plate(yaw: Basis) -> void:
-	var tracker: Rect2 = readout.update_layout()["tracker"]
-	var canvas: Rect2 = Rect2(tracker.position - DuelistReadout.PLATE_PAD, Vector2(DuelistReadout.PLATE_CANVAS))
-	var pivot: Vector3 = _world_point(Vector2(canvas.get_center().x, canvas.end.y))
-	plate.global_transform = Transform3D(yaw * Basis(Vector3.RIGHT, PLATE_TILT), Vector3(pivot.x, 0.003, pivot.z))
 
 
 ## A point on the printed canvas (pixels from its centre) in the world, and back.

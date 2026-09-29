@@ -5,12 +5,13 @@ extends Node3D
 ## point-mirrored. The duelist stands in the middle, its top edge on the band. Just left of it the
 ## Life Deck sits over the Discard; just right of it stands the Mastery, a second, smaller hero,
 ## with the Relic and Out side by side under it. The Ally row runs left of the Life Deck with the
-## Seals and then the stat plate (the `Plate` marker) under it; the Drill row runs right of the
-## Mastery with the Non-Combat row under it. Remain lies under the Discard, between the plate and
+## Seals and then the seat's status spot (the `StatusHome` marker: the rival's hand fan, and the
+## status chips while an Ally holds the row) under it; the Drill row runs right of the Mastery
+## with the Non-Combat row under it. Remain lies under the Discard, between the status spot and
 ## the duelist. Rows and heroes all start level with the duelist's top edge. The centre band holds
 ## the turn token at the viewer's left end, the standing ghosts and the Grounds, the cards in play
 ## between the two duelists, and the phase track on the right. Zone bounds use the same scales as
-## card slots, so placement checks include the hero cards and the plate.
+## card slots, so placement checks include the hero cards.
 
 const CARD_SIZE: Vector2 = Vector2(0.63, 0.88)
 const SEAL_SCALE: float = 0.4
@@ -33,12 +34,9 @@ const ZONE_PAD: float = 0.04          # zones keep this much clear stone outside
 const LABEL_STRIP: float = 0.14       # room under the cards for the zone name
 const LINE_HEIGHT: float = 0.004
 const LABEL_HEIGHT: float = 0.003
-## Every zone, the plate and the band's pieces stay inside this rectangle. The home framing shows
-## it whole, left of the HUD column.
+## Every zone and the band's pieces stay inside this rectangle. The home framing shows it whole,
+## left of the HUD column.
 const BOARD: Rect2 = Rect2(-3.35, -2.4, 6.7, 4.8)
-## The stat plate's footprint: DuelistReadout.PLATE_CANVAS at DuelistDisplay.PIXEL. Spelled out
-## here because the layout compiles without the client scripts.
-const PLATE_SIZE: Vector2 = Vector2(1.624, 0.638)
 ## Ivory ink printed on the board, like a real mat's zone marks.
 const LABEL_COLOR: Color = Color(ZenithTheme.TEXT, 0.85)
 const LINE_COLOR: Color = Color(0.86, 0.82, 0.74, 0.32)
@@ -123,9 +121,9 @@ func marker(name: String) -> Vector3:
 	return m.position
 
 
-## Where a seat's stat plate lies, the centre of its face on the table.
-func plate_point(player: int) -> Vector3:
-	var pos: Vector3 = marker("Plate")
+## A seat's status spot on the table.
+func status_point(player: int) -> Vector3:
+	var pos: Vector3 = marker("StatusHome")
 	return Vector3(-pos.x, pos.y, -pos.z) if player == 1 else pos
 
 
@@ -311,10 +309,6 @@ func _draw_marks() -> void:
 				_add_tick(mesh, r, player == 1)
 			_add_label(zone, r, player == 1)
 			placed.append(_mirrored(r) if player == 1 else r)
-	var plate_centre: Vector3 = marker("Plate")
-	var plate: Rect2 = Rect2(Vector2(plate_centre.x, plate_centre.z) - PLATE_SIZE * 0.5, PLATE_SIZE)
-	placed.append(plate)
-	placed.append(_mirrored(plate))
 	_add_label(&"grounds", _zone_rect(&"grounds"), false)
 	# The Grounds follow the viewer, so both of their places must stay clear.
 	placed.append(_zone_rect(&"grounds"))

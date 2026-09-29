@@ -410,6 +410,18 @@ func _init() -> void:
 		test_shade_masteries_discard_to_hurt_their_hand,
 		test_root_vine_and_thorns_shuffle_discards_back,
 		test_root_seed_burst_sifts_four_and_removes_two,
+		test_storm_sensei_relic_moves_one_wound_each_way,
+		test_surging_drill_adds_the_performers_surge,
+		test_fivefold_spark_empowers_into_three_unfocused_uses,
+		test_unpaid_bolt_waives_art_costs_for_the_combat,
+		test_centering_raises_a_personality_and_frees_its_next_art,
+		test_art_costs_can_be_paid_with_a_life_card,
+		test_scavenger_trades_three_discards_for_a_small_art,
+		test_braking_drill_caps_strike_energy_damage,
+		test_razing_drill_fires_at_the_start_of_every_turn,
+		test_braced_beam_puts_grounds_into_play,
+		test_vigilant_effort_hardens_against_a_pact_duelist,
+		test_storm_sensei_cards_read_as_printed,
 		test_root_new_shoots_takes_the_top_or_bottom_three,
 		test_root_swallowing_earth_puts_a_seal_under_its_deck,
 		test_root_guards_stop_their_kind,
@@ -7598,8 +7610,9 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 			check(CardText.rules_text(def) != "" or def.type == CardDef.Type.DRILL, "%s prints something" % id)
 	# 397 before the personality split; the 27 stack cards became 62 one-Aspect cards. The Pyre
 	# expansion added 27, Steel 23, Tide 24, Shade 23, the second Root batch 15, Storm 9, and three
-	# banned cards came in as adventure bombs.
-	eq(shipped().defs.size(), 562, "and the set is 500 other cards plus 62 Aspect cards")
+	# banned cards came in as adventure bombs. The Storm Sensei sheet added 11 cards and 7
+	# personality cards (a four-Aspect duelist and three Allies).
+	eq(shipped().defs.size(), 580, "and the set is 511 other cards plus 69 personality cards")
 
 
 ## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
@@ -11254,6 +11267,265 @@ func test_root_seed_burst_sifts_four_and_removes_two() -> void:
 	eq(burning.zone, &"removed", "and the hit removes the card itself")
 
 
+## The last `type` event's data, or {} when there was none.
+func last_event(e: DuelEngine, type: StringName) -> Dictionary:
+	var out: Dictionary = {}
+	for ev in e.events:
+		if ev.type == type:
+			out = ev.data
+	return out
+
+
+## Answers any open response window for the other seat with its quiet option.
+func decline_responses(e: DuelEngine) -> void:
+	var guard: int = 0
+	while prompt_kind(e) == &"respond" and guard < 4:
+		guard += 1
+		var quiet: Command = e.prompt.find(&"decline")
+		if quiet == null:
+			quiet = e.prompt.find(&"pass")
+		if quiet == null:
+			return
+		e.submit(quiet)
+
+
+## The Storm Sensei's Relic: "All of your attacks do +1 life cards of damage. All of your
+## opponent's attacks do -1 life cards of damage." A standing line, read like a Mastery's.
+func test_storm_sensei_relic_moves_one_wound_each_way() -> void:
+	var e: DuelEngine = real_engine(real_deck(["storm_art_16"]), real_deck([], "pact"))
+	e.player(0).relic = e._instance(shipped().get_def("relic_05"), 0, &"side")
+	to_attack(e, 0)
+	var before: int = e.player(1).life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "storm_art_16"))
+	eq(before - e.player(1).life_deck.size(), 7, "a 6-wound Art lands 7 with the Relic behind it")
+	var f: DuelEngine = real_engine(real_deck(["storm_art_16"]), real_deck([], "pact"))
+	f.player(1).relic = f._instance(shipped().get_def("relic_05"), 1, &"side")
+	to_attack(f, 0)
+	before = f.player(1).life_deck.size()
+	answer(f, &"attack", uid_in_hand(f, 0, "storm_art_16"))
+	eq(before - f.player(1).life_deck.size(), 5, "and 5 against it")
+
+
+## "Your energy attacks do an additional +X life cards of damage, where X is the PUR of the
+## personality performing the attack."
+func test_surging_drill_adds_the_performers_surge() -> void:
+	var e: DuelEngine = real_engine(real_deck(["storm_art_16", "root_strike_04"]), real_deck([], "pact"))
+	real_inject(e, 0, "signature_drill_07")
+	to_attack(e, 0)
+	var surge: int = e.player(0).in_control().surge()
+	check(surge > 0, "the duelist has a Surge to add (%d)" % surge)
+	var before: int = e.player(1).life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "storm_art_16"))
+	eq(before - e.player(1).life_deck.size(), 6 + surge, "a 6-wound Art gains the performer's Surge")
+	eq(e.card(uid_in_hand(e, 0, "root_strike_04")) != null, true, "the Strike is still in hand")
+
+
+## "Focused energy attack doing 2 life cards of damage. Costs 1 power stage to perform. Remove from
+## the game after use. Empower 4. This attack is no longer focused. This attack stays on the table
+## to be used 2 more times this Combat without using its Empower."
+func test_fivefold_spark_empowers_into_three_unfocused_uses() -> void:
+	var e: DuelEngine = real_engine(real_deck(["storm_art_25"]), real_deck([], "pact"))
+	to_attack(e, 0)
+	var uid: int = uid_in_hand(e, 0, "storm_art_25")
+	var before: int = e.player(1).life_deck.size()
+	answer(e, &"attack", uid, "empower")
+	eq(before - e.player(1).life_deck.size(), 6, "2 wounds plus Empower 4")
+	eq(bool(last_event(e, &"attack_declared").get("focused", true)), false, "Empower takes the Focus off")
+	eq(e.card(uid).zone, &"in_play", "the card stays on the table")
+	eq(e.card(uid).remain, 2, "for two more uses this Combat")
+	answer(e, &"pass")
+	check(e.prompt.find(&"attack", uid) != null, "the table copy attacks again")
+	check(e.prompt.find(&"attack", uid, "empower") == null, "without its Empower")
+	var g: DuelEngine = real_engine(real_deck(["storm_art_25"]), real_deck([], "pact"))
+	to_attack(g, 0)
+	var plain: int = uid_in_hand(g, 0, "storm_art_25")
+	answer(g, &"attack", plain)
+	eq(bool(last_event(g, &"attack_declared").get("focused", false)), true, "unempowered it is Focused")
+	eq(g.card(plain).zone, &"removed", "and removed from the game after use")
+
+
+## "Focused Energy Attack doing 5 life cards of damage. If successful, this personality does not
+## have to pay any costs for energy attacks for the remainder of combat."
+func test_unpaid_bolt_waives_art_costs_for_the_combat() -> void:
+	var e: DuelEngine = real_engine(real_deck(["signature_art_16", "storm_art_16"]), real_deck([], "pact"))
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "signature_art_16"))
+	answer(e, &"pass")
+	var energy: int = e.player(0).in_control().energy
+	answer(e, &"attack", uid_in_hand(e, 0, "storm_art_16"))
+	eq(e.player(0).in_control().energy, energy, "the next Art this Combat costs nothing")
+
+
+## "Raise any personality in play to its highest power stage. The next energy attack that
+## personality performs this Combat costs 0 power stages to perform."
+func test_centering_raises_a_personality_and_frees_its_next_art() -> void:
+	var e: DuelEngine = real_engine(real_deck(["storm_art_16", "storm_art_16"]), real_deck([], "pact"))
+	var centering: CardInstance = real_inject(e, 0, "freestyle_noncombat_21")
+	to_attack(e, 0)
+	var me: CardInstance = e.player(0).duelist
+	me.energy = 1
+	answer(e, &"use", centering.uid)
+	decline_responses(e)
+	if prompt_kind(e) == &"pick_option":
+		answer(e, &"pick_option", me.uid)
+	eq(me.energy, CardInstance.MAX_STAGE, "raised to full")
+	# Using it took the attack phase; the rival's comes next.
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 0, "storm_art_16"))
+	eq(me.energy, CardInstance.MAX_STAGE, "and its next Art costs 0")
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 0, "storm_art_16"))
+	eq(me.energy, CardInstance.MAX_STAGE - DuelEngine.ART_COST, "the one after pays again")
+
+
+## "For the remainder of Combat you may discard the top card of your Life Deck instead of paying
+## costs for any energy attacks Kid Trunks performs."
+func test_art_costs_can_be_paid_with_a_life_card() -> void:
+	var e: DuelEngine = real_engine(real_deck(["storm_art_16", "storm_art_16"]), real_deck([], "pact"))
+	to_attack(e, 0)
+	var me: PlayerState = e.player(0)
+	var art: Dictionary = shipped().get_def("storm_art_16").attack
+	me.duelist.energy = 0
+	check(not e._can_pay(me.duelist, me, art), "no Energy, no Art")
+	e._float(0, "life_for_art_costs", "combat", {"performer": me.duelist.uid})
+	check(e._can_pay(me.duelist, me, art), "until a Life Deck card can pay for it")
+	var life: int = me.life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "storm_art_16"))
+	eq(me.life_deck.size(), life - 1, "with no Energy the top Life Deck card pays")
+	eq(me.duelist.energy, 0, "and no Energy is spent")
+	answer(e, &"pass")
+	me.duelist.energy = CardInstance.MAX_STAGE
+	life = me.life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "storm_art_16"))
+	eq(prompt_kind(e), &"pick_option", "with Energy to spare it asks how to pay")
+	answer(e, &"pick_option", -1, "life")
+	eq(me.life_deck.size(), life - 1, "a Life Deck card, as chosen")
+	eq(me.duelist.energy, CardInstance.MAX_STAGE, "and the Energy is kept")
+	var power: Dictionary = shipped().get_def("personality_67").raw.get("power", {})
+	var pinned: bool = false
+	for effect in power.get("effects", []):
+		pinned = pinned or (str(effect.get("what", "")) == "life_for_art_costs" and bool(effect.get("this_personality", false)) and str(effect.get("trigger", "")) == "if_successful")
+	check(pinned, "Tavin Vale's earlier print puts that out on a hit, pinned to him")
+
+
+## "When entering Combat, you may remove 3 cards in your discard pile from the game to search your
+## discard pile for a card that can perform an energy attack with a Base Damage of less than 6 life
+## cards and place it into your hand."
+func test_scavenger_trades_three_discards_for_a_small_art() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "vigil", "", "PLACEHOLDER Duelist"), real_deck([], "pact"))
+	var fodder: Array[CardInstance] = []
+	for i in range(3):
+		fodder.append(real_to_discard(e, 0, "root_strike_04"))
+	var small: CardInstance = real_to_discard(e, 0, "storm_art_06")
+	var other_small: CardInstance = real_to_discard(e, 0, "storm_art_07")
+	var big: CardInstance = real_to_discard(e, 0, "storm_art_16")
+	to_attack(e, 0)
+	eq(prompt_kind(e), &"pick_option", "entering Combat asks whether to pay")
+	answer(e, &"pick_option", -1, "yes")
+	eq(prompt_kind(e), &"pick_discard", "then which three go")
+	var uids: Array[int] = [fodder[0].uid, fodder[1].uid, fodder[2].uid]
+	check(e.submit(Command.new(0, &"pick_option", -1, uids)), "three are picked")
+	for c in fodder:
+		eq(c.zone, &"removed", "a paid card left the game")
+	eq(prompt_kind(e), &"pick_option", "then the pile is searched")
+	check(e.prompt.find(&"pick_option", small.uid) != null and e.prompt.find(&"pick_option", other_small.uid) != null, "a 5-wound Art qualifies")
+	check(e.prompt.find(&"pick_option", big.uid) == null, "a 6-wound Art does not")
+	answer(e, &"pick_option", small.uid)
+	eq(small.zone, &"hand", "the Art is taken into hand")
+
+
+## "All successful physical attacks performed against you do a maximum of 3 power stages of
+## damage." Wounds a Strike prints are untouched (rulings document, #147).
+func test_braking_drill_caps_strike_energy_damage() -> void:
+	var e: DuelEngine = real_engine(real_deck(["root_strike_04"]), real_deck([], "pact"))
+	real_inject(e, 1, "storm_drill_10")
+	to_attack(e, 0)
+	var them: CardInstance = e.player(1).in_control()
+	them.energy = CardInstance.MAX_STAGE
+	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	eq(CardInstance.MAX_STAGE - them.energy, 3, "a Strike doing more takes 3 Energy at most")
+
+
+## "At the beginning of every turn, discard 1 opponent's non-combat-non-dragon ball card in play."
+func test_razing_drill_fires_at_the_start_of_every_turn() -> void:
+	var e: DuelEngine = real_engine(real_deck([]), real_deck([], "pact"))
+	var razing: CardDef = shipped().get_def("storm_drill_09")
+	eq(e._turn_start_lines(razing.effects_for("turn_start"), true).size(), 1, "on its owner's turn")
+	eq(e._turn_start_lines(razing.effects_for("turn_start"), false).size(), 1, "and on the other player's")
+	var drill: CardInstance = real_inject(e, 0, "storm_drill_09")
+	var theirs: CardInstance = real_inject(e, 1, "storm_drill_03")
+	e._apply_effect(razing.effects[0], 0, {}, drill)
+	if prompt_kind(e) == &"pick_in_play":
+		answer(e, &"pick_in_play", theirs.uid)
+	eq(theirs.zone, &"discard", "one of the opponent's Drills or Non-Combats goes")
+
+
+## "Focused energy attack. Costs 3 power stages to perform. If successful, search your Life Deck for
+## any Location and place it into play."
+func test_braced_beam_puts_grounds_into_play() -> void:
+	var e: DuelEngine = real_engine(real_deck(["signature_art_15", "grounds_05"]), real_deck([], "pact"))
+	var yard: CardInstance = null
+	for c in e.player(0).hand:
+		if c.def.id == "grounds_05":
+			yard = c
+	e.player(0).hand.erase(yard)
+	yard.zone = &"life_deck"
+	e.player(0).life_deck.append(yard)
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "signature_art_15"))
+	eq(prompt_kind(e), &"pick_option", "a hit searches the Life Deck")
+	answer(e, &"pick_option", yard.uid)
+	eq(e.state.grounds, yard, "and the Grounds are put into play")
+
+
+## "Heroes only. Energy attack doing 6 life cards of damage. If performed against a villain, this
+## attack is focused, gain 2 power stages, and for the remainder of Combat your opponent cannot
+## have Allies take control of Combat."
+func test_vigilant_effort_hardens_against_a_pact_duelist() -> void:
+	var e: DuelEngine = real_engine(real_deck(["freestyle_art_12"]), real_deck([], "pact"))
+	to_attack(e, 0)
+	e.player(0).duelist.energy = 5
+	var before: int = e.player(1).life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "freestyle_art_12"))
+	eq(bool(last_event(e, &"attack_declared").get("focused", false)), true, "Focused against a Pact duelist")
+	eq(before - e.player(1).life_deck.size(), 6, "for 6 wounds")
+	eq(e.player(0).duelist.energy, 5 - DuelEngine.ART_COST + 2, "gaining 2 Energy after the cost")
+	check(e._has_floating(1, "no_ally_takeover"), "and their Allies cannot take control")
+	check(not e._has_floating(1, "no_ally_control"), "which leaves damage free to land on an Ally")
+	var f: DuelEngine = real_engine(real_deck(["freestyle_art_12"]), real_deck([], "vigil"))
+	to_attack(f, 0)
+	answer(f, &"attack", uid_in_hand(f, 0, "freestyle_art_12"))
+	eq(bool(last_event(f, &"attack_declared").get("focused", true)), false, "a plain Art against a Vigil duelist")
+	check(not f._has_floating(1, "no_ally_takeover"), "with nothing else")
+
+
+## The rest of the Storm Sensei sheet's new cards use mechanics already covered; this pins their
+## data to the printed text.
+func test_storm_sensei_cards_read_as_printed() -> void:
+	var lib: CardLibrary = shipped()
+	var duelist: Array[CardDef] = []
+	for i in range(63, 67):
+		duelist.append(lib.get_def("personality_%d" % i))
+	eq(duelist.map(func(d: CardDef) -> int: return int(d.raw.get("surge", 0))), [2, 3, 3, 3], "the printed Surge of all four levels")
+	var two: Dictionary = duelist[1].raw["power"]
+	check(bool(two["attack"].get("focused", false)) and int(two["attack"].get("printed_life", 0)) == 5, "level 2 is a Focused 5-wound Art")
+	eq(str(two["effects"][0].get("card_type", "")), "drill_or_ally", "that discards an Ally or a Drill on a hit")
+	eq(str(duelist[2].raw["power"]["effects"][0].get("op", "")), "set_fervor", "level 3 zeroes their Fervor on a hit")
+	eq(str(duelist[3].raw["power"]["effects"][0].get("op", "")), "capture_seal", "level 4 captures a Seal on a hit")
+	var brute: CardDef = lib.get_def("personality_69")
+	eq(int(brute.raw["power"]["attack"].get("printed_life", 0)), 7, "the Brute's Art does 7")
+	eq(str(brute.raw["power"]["effects"][0].get("trigger", "")), "if_stopped", "and costs 3 Life Deck cards when stopped")
+	eq(brute.alignment_only, "", "fielded by either side")
+	var companion: CardDef = lib.get_def("personality_68")
+	eq(str(companion.raw["power"]["effects"][0].get("to", "")), "discard", "the Companion's hit sends a card from the Life Deck to the discard pile")
+	var catch: CardDef = lib.get_def("storm_art_26")
+	check(catch.stops_kind("art", false) and not catch.stops_kind("strike", false), "Caught Current stops an Art")
+	eq(catch.endurance, 2, "with Endurance 2")
+	var guard: CardDef = lib.get_def("signature_art_17")
+	check(guard.stops_kind("art", false) and guard.stops_kind("strike", false) and guard.remove_after_use, "Skillful Guard stops either kind, once")
+	eq(lib.get_def("relic_05").raw.get("reserve_size", 0), 9, "the Relic's Reserve holds 9")
+
+
 ## "Namekian Heritage only. Shuffle the top or bottom 3 cards from your discard pile into your Life
 ## Deck."
 func test_root_new_shoots_takes_the_top_or_bottom_three() -> void:
@@ -11967,8 +12239,12 @@ func test_signature_cards_match_their_printed_text() -> void:
 	# "If performed by a Main Personality with 'Android' in the title."
 	eq(str(shipped().get_def("signature_art_11").effects[0]["when"].get("performed_by", "")), "duelist", "Sledge's Set Stance needs the duelist to perform it")
 	# Named printed cards whose character has no name yet carry the placeholder.
-	for id in ["freestyle_art_02", "freestyle_combat_17", "freestyle_noncombat_14", "grounds_03", "grounds_06"]:
+	for id in ["freestyle_combat_17", "freestyle_noncombat_14", "grounds_03", "grounds_06"]:
 		check(shipped().get_def(id).title.begins_with("PLACEHOLDER's "), "%s waits on a name" % id)
+	# Named 2026-09-28: the Tourney team's mage.
+	for id in ["freestyle_art_02", "freestyle_art_08", "freestyle_combat_16", "freestyle_noncombat_03", "freestyle_noncombat_15"]:
+		var named: CardDef = shipped().get_def(id)
+		check(named.title.begins_with("Voss' ") and named.character == "Aldo Voss", "%s leads with Aldo Voss" % id)
 
 
 ## A card on the CRD's banned list (Black Weakness Drill) is legal in adventure decks as a bomb and

@@ -594,6 +594,7 @@ func _on_cut_open() -> void:
 	_cut_selected_id = ""
 	cut_confirm.disabled = true
 	cut_deck_list.show_cards(Session.run.cards, Session.library, faces)
+	cut_deck_list.show_reserve(Session.run.relic_id, Session.run.reserve)
 	cut_status_label.visible = false
 	cut_panel.visible = true
 
@@ -713,7 +714,7 @@ func _dev_setup() -> void:
 	var stage_arg: String = AdventureDev.flag("--dev-stage=")
 	if stage_arg != "":
 		AdventureDev.walk(maxi(0, int(stage_arg)))
-	if not Session.run.walk_to_next_duel(Session.map):
+	if not Session.run.walk_to_next_duel(Session.map, Session.library):
 		return
 	AdventureRewards.finish_stage(Session.run, Session.map, Session.library, true)
 	if AdventureDev.args().has("--dev-after-aspect") and Session.run.status == "aspect":

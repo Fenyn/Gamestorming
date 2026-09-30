@@ -1,0 +1,381 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/shop.gd" id="1_shop"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="2_faces"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="3_face"]
+[ext_resource type="Texture2D" path="res://assets/courtyard/textures/brick.png" id="4_brick"]
+[ext_resource type="Texture2D" path="res://assets/courtyard/textures/wall.png" id="5_wall"]
+[ext_resource type="Texture2D" path="res://assets/courtyard/textures/playmat.png" id="6_cloth"]
+
+[sub_resource type="Gradient" id="lamp_gradient"]
+offsets = PackedFloat32Array(0, 0.55, 1)
+colors = PackedColorArray(1, 0.75, 0.47, 0.3, 1, 0.72, 0.45, 0.12, 1, 0.7, 0.45, 0)
+
+[sub_resource type="GradientTexture2D" id="lamp"]
+gradient = SubResource("lamp_gradient")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StyleBoxFlat" id="cloth_shadow"]
+bg_color = Color(0, 0, 0, 0.55)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="cloth"]
+bg_color = Color(0.16, 0.11, 0.2, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="cloth_rule"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.59, 0.47, 0.67, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+anti_aliasing = true
+
+[sub_resource type="StyleBoxEmpty" id="none"]
+
+[node name="Shop" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_shop")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.03, 0.025, 0.025, 1)
+
+[node name="CardFaceCache" parent="." instance=ExtResource("2_faces")]
+
+[node name="Brick" type="TextureRect" parent="."]
+texture_filter = 1
+self_modulate = Color(0.38, 0.35, 0.34, 1)
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.3333
+anchor_bottom = 1.3333
+scale = Vector2(0.75, 0.75)
+mouse_filter = 2
+texture = ExtResource("4_brick")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="Lamp" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -760.0
+offset_top = -800.0
+offset_right = 760.0
+offset_bottom = 360.0
+mouse_filter = 2
+texture = SubResource("lamp")
+expand_mode = 1
+
+[node name="Counter" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 271.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="Front" type="ColorRect" parent="Counter"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.17, 0.1, 0.06, 1)
+
+[node name="Grain" type="TextureRect" parent="Counter"]
+texture_filter = 1
+self_modulate = Color(0.6, 0.42, 0.29, 0.75)
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.6667
+anchor_bottom = 1.6667
+scale = Vector2(0.6, 0.6)
+mouse_filter = 2
+texture = ExtResource("5_wall")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="Edge" type="ColorRect" parent="Counter"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 22.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.376, 0.235, 0.141, 1)
+
+[node name="EdgeLine" type="ColorRect" parent="Counter"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 22.0
+offset_bottom = 26.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.157, 0.094, 0.063, 1)
+
+[node name="Strip" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+
+[node name="Row" type="HBoxContainer" parent="Strip"]
+layout_mode = 2
+theme_override_constants/separation = 36
+
+[node name="RunName" type="Label" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"GroupLabel"
+text = ""
+
+[node name="Standing" type="Label" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"BodyLabel"
+text = ""
+
+[node name="Spacer" type="Control" parent="Strip/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ManaBox" type="HBoxContainer" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="ManaIcon" type="TextureRect" parent="Strip/Row/ManaBox"]
+texture_filter = 1
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Mana, spent at Shops during this run"
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ManaValue" type="Label" parent="Strip/Row/ManaBox"]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Mana, spent at Shops during this run"
+mouse_filter = 1
+theme_type_variation = &"HeaderLabel"
+text = "0"
+
+[node name="MotesBox" type="HBoxContainer" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="MoteIcon" type="TextureRect" parent="Strip/Row/MotesBox"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Motes"
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MotesValue" type="Label" parent="Strip/Row/MotesBox"]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Motes"
+mouse_filter = 1
+theme_type_variation = &"HeaderLabel"
+text = "0"
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_top = -418.0
+offset_bottom = -418.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"TitleLabel"
+text = "The Shop"
+horizontal_alignment = 1
+
+[node name="ClothShadow" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -730.0
+offset_top = -338.0
+offset_right = 748.0
+offset_bottom = 226.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("cloth_shadow")
+
+[node name="Cloth" type="Panel" parent="."]
+clip_children = 2
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -738.0
+offset_top = -348.0
+offset_right = 738.0
+offset_bottom = 216.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("cloth")
+
+[node name="Weave" type="TextureRect" parent="Cloth"]
+self_modulate = Color(0.9, 0.66, 1, 0.6)
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.6667
+anchor_bottom = 1.6667
+scale = Vector2(0.6, 0.6)
+mouse_filter = 2
+texture = ExtResource("6_cloth")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="Rule" type="Panel" parent="Cloth"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("cloth_rule")
+
+[node name="Help" type="Label" parent="Cloth"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -62.0
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_type_variation = &"BodyLabel"
+text = "Click a card to buy it. It joins your deck at once."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slots" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -738.0
+offset_top = -284.0
+offset_right = 738.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 42
+alignment = 1
+
+[node name="Leave" type="Button" parent="."]
+custom_minimum_size = Vector2(312, 62)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -156.0
+offset_top = 348.0
+offset_right = 156.0
+offset_bottom = 410.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Leave the Shop"
+
+[node name="Inspect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.025, 0.03, 0.88)
+
+[node name="Center" type="CenterContainer" parent="Inspect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Column" type="VBoxContainer" parent="Inspect/Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+mouse_filter = 2
+
+[node name="Hint" type="Label" parent="Inspect/Center/Column"]
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = "Click outside the card or press Esc to close."
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="Face" parent="Inspect/Center/Column" instance=ExtResource("3_face")]
+layout_mode = 2
+size_flags_horizontal = 4

@@ -121,6 +121,10 @@ PHASE_ICONS = {
 ## Single icons copied whole: name -> path under the art library.
 ICONS = {
     "mote": "Sprites/Raven Megapack/Treasure, Currency, Gems and Loot/64X64/44.png",
+    "mana": "Sprites/Raven Megapack/Treasure, Currency, Gems and Loot/64X64/45.png",
+    # The Forge's two choices, white for the screen to tint.
+    "card_remove": KENNEY_ICONS + "/card_remove.png",
+    "card_add": KENNEY_ICONS + "/card_add.png",
 }
 
 

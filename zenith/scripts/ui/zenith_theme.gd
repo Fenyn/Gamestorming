@@ -13,7 +13,7 @@ extends RefCounted
 ## Colour roles. Blue (USABLE) marks a board card the viewer can use now; bone-white marks the
 ## primary button, targets and picks, YOUR TURN, the current step and the selection ring. Iron
 ## frames every panel and button. Meaning colours (Energy, Might, Fervor, attack, defence, XP,
-## Motes) mean the same thing on every screen. School colours mark identity only.
+## Motes, Mana) mean the same thing on every screen. School colours mark identity only.
 
 const BG_SCREEN: Color = Color(0.055, 0.050, 0.055)
 const SCRIM: Color = Color(0.03, 0.025, 0.03, 0.70)
@@ -51,6 +51,8 @@ const ENERGY_SOFT: Color = Color(0.36, 0.76, 0.58, 0.22)
 const MIGHT: Color = Color(0.78, 0.82, 0.90)
 const XP: Color = Color(0.62, 0.55, 0.90)
 const MOTES: Color = Color(0.48, 0.72, 1.00)               # arcane blue, drawn with a soft glow
+const MANA: Color = Color(0.77, 0.63, 0.94)                # lavender, the run's own currency
+const SHORT: Color = Color(0.92, 0.47, 0.39)               # a price the player cannot pay
 
 ## Titles, banners and card names. Everything else uses the project font, Kurale.
 const TITLE_FONT: Font = preload("res://assets/fonts/pirata_one/PirataOne-Regular.ttf")
@@ -308,8 +310,17 @@ static func edged(edge: Color, bg: Color = RAISED, radius: int = RADIUS, pad_x: 
 
 ## Motes: the arcane blue with a soft outer glow, for a Motes number or price.
 static func motes_label(label: Label) -> void:
-	label.add_theme_color_override("font_color", MOTES)
-	label.add_theme_color_override("font_shadow_color", Color(MOTES, 0.45))
+	_glow_label(label, MOTES)
+
+
+## Mana: lavender with the same soft glow, for a Mana number or price.
+static func mana_label(label: Label) -> void:
+	_glow_label(label, MANA)
+
+
+static func _glow_label(label: Label, color: Color) -> void:
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_shadow_color", Color(color, 0.45))
 	label.add_theme_constant_override("shadow_offset_x", 0)
 	label.add_theme_constant_override("shadow_offset_y", 0)
 	label.add_theme_constant_override("shadow_outline_size", 10)

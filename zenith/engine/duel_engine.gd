@@ -2482,16 +2482,12 @@ func _advance_battle() -> void:
 			# damage allows, because the card answers the hit and not its consequences.
 			if _prompt_after_damage(defender, a):
 				return
-			# Critical damage: 5+ life cards let the attacker capture a Seal, discard an Ally, or lower Fervor.
+			# Critical damage: 5+ life cards let the attacker capture a Seal or lower Fervor. It
+			# never takes an Ally (house rule 2026-09-29).
 			if int(a["life_dealt"]) >= CRITICAL_THRESHOLD:
 				var opts: Array[Command] = []
 				for t in _capturable_seals(defender):
 					opts.append(Command.new(attacker.index, &"capture", t.uid))
-				# "Your Allies cannot be discarded" is absolute, and card text beats the rulebook,
-				# so a constant that guards them stops this too.
-				for al in defender.allies():
-					if not _ally_protected(defender, al) and not allies_undiscardable(defender):
-						opts.append(Command.new(attacker.index, &"discard_ally", al.uid))
 				if defender.fervor > 0 and not fervor_shielded(defender) and not fervor_locked(defender):
 					opts.append(Command.new(attacker.index, &"lower_fervor"))
 				if not opts.is_empty():
@@ -3819,10 +3815,6 @@ func _handle_critical(cmd: Command) -> void:
 		&"capture":
 			state.attack["critical"] = "capture"
 			_capture_seal(cmd.player, card(cmd.card))
-		&"discard_ally":
-			state.attack["critical"] = "ally"
-			_emit(&"critical_ally", {"player": cmd.player, "card": cmd.card})
-			_discard_or_remove_in_play(card(cmd.card), false)
 		&"lower_fervor":
 			state.attack["critical"] = "fervor"
 			_emit(&"critical_fervor", {"player": cmd.player})

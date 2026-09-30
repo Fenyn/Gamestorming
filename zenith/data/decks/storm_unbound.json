@@ -46,14 +46,6 @@
       "count": 1
     },
     {
-      "id": "freestyle_noncombat_04",
-      "count": 1
-    },
-    {
-      "id": "signature_art_01",
-      "count": 1
-    },
-    {
       "id": "signature_noncombat_01",
       "count": 3
     },
@@ -98,14 +90,6 @@
       "count": 3
     },
     {
-      "id": "freestyle_combat_05",
-      "count": 1
-    },
-    {
-      "id": "freestyle_noncombat_01",
-      "count": 1
-    },
-    {
       "id": "signature_art_03",
       "count": 3
     },
@@ -138,7 +122,7 @@
       "count": 3
     },
     {
-      "id": "storm_art_09",
+      "id": "storm_art_12",
       "count": 3
     },
     {
@@ -158,8 +142,12 @@
       "count": 3
     },
     {
-      "id": "seal_19",
-      "count": 1
+      "id": "storm_art_16",
+      "count": 3
+    },
+    {
+      "id": "storm_art_21",
+      "count": 2
     },
     {
       "id": "freestyle_combat_03",

@@ -11,9 +11,12 @@ var starter_id: String = ""
 var run_id: String = ""
 var cards: Array[String] = []      # expanded, one entry per copy, like DeckList.cards
 ## The deck the run began from, as it was at `begin`: after a loadout swap that is the swapped
-## list, not the printed starter. `added_cards()` is everything in `cards` beyond it, which is
-## what the run-end settlement charges for.
+## list, not the printed starter. `added_cards()` is everything the run owns beyond it and
+## `starter_reserve`, which is what the run-end settlement charges for.
 var starter_cards: Array[String] = []
+## The Reserve the run began with: the starter's own, or one granted by the character's deck
+## abilities.
+var starter_reserve: Array[String] = []
 var starter_duelist: Array[String] = []
 ## The Duelist's Aspect stack as it stands, one card id per tier. Each Aspect is its own card, so
 ## a run grows by gaining the next tier card, not by raising a number.
@@ -21,10 +24,19 @@ var duelist_ids: Array[String] = []
 ## The Duelist's personality cards the player owns above the starting stack. An Aspect grant only
 ## ever offers one of these (design doc 8.6).
 var owned_aspects: Array[String] = []
-## A starting Relic and Reserve, from the character's deck abilities. "" and [] leave the starter's
-## own.
+## The Relic the run holds and its Reserve: the starter's own at `begin_with`, one from the
+## character's deck abilities, or one taken at the Relic node. "" and [] for none.
 var relic_id: String = ""
 var reserve: Array[String] = []
+## Cards the run owns outside the Life Deck and the Reserve (design 4.7). A card set aside from the
+## Reserve lands here; nothing in it is ever destroyed.
+var library: Array[String] = []
+## The offers on the Relic node the run stands on, {relic, bundle, cards}, rolled once when the node
+## opens and kept until the choice is made.
+var relic_offers: Array[Dictionary] = []
+## Reserve cards that arrived with the Relic just taken, marked new on the Reserve screen until the
+## player leaves it.
+var reserve_new: Array[String] = []
 var stage: int = 0
 var run_seed: int = 0
 ## The map node the run stands on, "" before the first step.
@@ -35,8 +47,18 @@ var path: Array[String] = []
 var pending_offer: Array[String] = []
 ## The Aspect card ids on offer while `status` is "aspect".
 var pending_aspects: Array[String] = []
-## map: choosing the next node. stage: standing on a fight, the duel still to play.
-var status: String = "map"         # map | stage | aspect | reward | settle | won | lost
+## map: choosing the next node. stage: standing on a fight, the duel still to play. forge: standing
+## on a Forge whose one action is still open (AdventureForge). shop: standing in a Shop
+## (AdventureShop). relic: standing on the Relic node with its offers open (AdventureRelic). reserve:
+## a Relic was just taken and the Reserve holds more than it allows, so cards must be set aside
+## (AdventureReserve).
+var status: String = "map"         # map | stage | forge | shop | relic | reserve | aspect | reward | settle | won | lost
+## The run's own currency (design 7.6): earned by winning fights, spent only at Shops. It belongs to
+## the run, so it is gone when the run ends and is never turned into Motes.
+var mana: int = 0
+## node id -> {"stock": Array[String], "sold": Array[int]} for every Shop the run has opened. Kept
+## for the whole run, so a Shop is rolled once and remembers what it sold.
+var shops: Dictionary = {}
 ## Which way the run ended, kept while `status` is "settle" so the run-end screen knows whether it
 ## is showing a win or a loss. "" until the run ends.
 var outcome: String = ""
@@ -44,8 +66,9 @@ var outcome: String = ""
 var settled: bool = false
 ## id -> copies already bought at the run-end settlement, so a card cannot be kept twice.
 var kept: Dictionary = {}
-## {stage, kind, id} for every kind, plus "cards" on a bundle pick.
-## kind: bundle | aspect | aspect_skipped | skip | cut | joined (a storyline boss's card)
+## {stage, kind, id} for every kind, plus "cards" on a bundle or relic pick.
+## kind: bundle | aspect | aspect_skipped | skip | cut | copy (a Forge copy) | buy (a Shop card) |
+## joined (a storyline boss's card) | relic (a Relic node offer, its Reserve set as "cards")
 var picks: Array[Dictionary] = []
 ## The duel in progress as `Referee.history`, saved after every command so a closed game comes
 ## back to the same position. Empty between duels.
@@ -72,6 +95,12 @@ static func begin_with(starter_id_value: String, run_seed_value: int,
 	run.starter_duelist = duelist_value.duplicate()
 	run.run_seed = run_seed_value
 	run.run_id = AdventureRun.id_for(starter_id_value, run_seed_value)
+	run.mana = AdventureEconomy.mana_start()
+	var starter: DeckList = DeckList.resolve(starter_id_value)
+	if starter != null and starter.relic_id != "":
+		run.relic_id = starter.relic_id
+		run.reserve = starter.reserve.duplicate()
+		run.starter_reserve = starter.reserve.duplicate()
 	return run
 
 
@@ -81,14 +110,22 @@ static func id_for(starter: String, run_seed_value: int) -> String:
 	return "%s-%d" % [starter, run_seed_value]
 
 
-## The cards the run added to the Life Deck, one entry per copy: everything in `cards` beyond the
-## list it started from. This is what the run-end settlement charges for.
+## Every card the run owns, one entry per copy: the Life Deck, the Reserve and the library.
+func owned_cards() -> Array[String]:
+	var out: Array[String] = cards.duplicate()
+	out.append_array(reserve)
+	out.append_array(library)
+	return out
+
+
+## The cards the run gained, one entry per copy: everything it owns across the Life Deck, the Reserve
+## and the library beyond what it started with. This is what the run-end settlement charges for.
 func added_cards() -> Array[String]:
 	var left: Dictionary = {}
-	for id in starter_cards:
+	for id in starter_cards + starter_reserve:
 		left[id] = int(left.get(id, 0)) + 1
 	var out: Array[String] = []
-	for id in cards:
+	for id in owned_cards():
 		if int(left.get(id, 0)) > 0:
 			left[id] = int(left[id]) - 1
 			continue
@@ -114,41 +151,51 @@ func choices(map: AdventureMap) -> Array[String]:
 	return map.start_ids() if node_id == "" else map.next_of(node_id)
 
 
-## Steps onto a node. A fight leaves the run waiting on its duel; any other node is passed
-## through for now, since none of them does anything yet (build plan phases 2, 4 and 5).
-## False, and nothing moves, when `id` is not one of the choices.
+## Steps onto a node. A fight leaves the run waiting on its duel, and a Forge, a Shop or the Relic
+## node waits on its visit; any other node is passed through, since none of them does anything yet
+## (build plan phase 5). False, and nothing moves, when `id` is not one of the choices.
 func enter(map: AdventureMap, id: String) -> bool:
 	if not choices(map).has(id):
 		return false
 	node_id = id
 	path.append(id)
-	if AdventureMap.is_fight(str(map.node(id).get("type", ""))):
+	var type: String = str(map.node(id).get("type", ""))
+	if AdventureMap.is_fight(type):
 		status = "stage"
+	elif type == "forge" or type == "shop" or type == "relic":
+		status = type
 	return true
 
 
-## Takes the first choice at every step until the run stands on a fight. For tests, tools and
-## dev screens; the player picks their own way. False when there is no fight left to reach.
-func walk_to_next_duel(map: AdventureMap) -> bool:
+## Takes the first choice at every step until the run stands on a fight, leaving every Forge and
+## Shop on the way without acting and passing the Relic node the way `AdventureRelic.pass_through`
+## does. For tests, tools and dev screens; the player picks their own way. `library` defaults to the
+## shipped cards. False when there is no fight left to reach.
+func walk_to_next_duel(map: AdventureMap, library: CardLibrary = null) -> bool:
 	var guard: int = 0
-	while status == "map" and guard < 64:
+	while status in ["map", "forge", "shop", "relic", "reserve"] and guard < 64:
 		guard += 1
+		AdventureForge.leave(self)
+		AdventureShop.leave(self)
+		AdventureRelic.pass_through(self, library)
+		if status != "map":
+			return false
 		var next: Array[String] = choices(map)
 		if next.is_empty() or not enter(map, next[0]):
 			return false
 	return status == "stage"
 
 
-## The starter reloaded with this run's Life Deck and Aspect stack in place of the printed ones.
+## The starter reloaded with this run's Life Deck, Aspect stack, Relic and Reserve in place of the
+## printed ones.
 func deck() -> DeckList:
 	var d: DeckList = DeckList.resolve(starter_id)
 	if d == null:
 		return null
 	d.cards = cards.duplicate()
 	d.set_duelist(duelist_ids)
-	if relic_id != "":
-		d.relic_id = relic_id
-		d.reserve = reserve.duplicate()
+	d.relic_id = relic_id
+	d.reserve = reserve.duplicate()
 	return d
 
 
@@ -219,6 +266,29 @@ func offer_seed(n: int) -> int:
 	return _mix(run_seed, n * 2 + 2)
 
 
+## Seed for the stock of the Shop on node `id`. Mixed with a negative number, so it never meets a
+## stage or offer seed.
+func shop_seed(id: String) -> int:
+	return _mix(run_seed, -1 - (id.hash() & 0x3FFFFFFF))
+
+
+## Seed for the offers of the Relic node on node `id`, below every Shop seed.
+func relic_seed(id: String) -> int:
+	return _mix(run_seed, -0x40000001 - (id.hash() & 0x3FFFFFFF))
+
+
+func earn_mana(amount: int) -> void:
+	mana += maxi(0, amount)
+
+
+## Takes `amount` Mana. False, and nothing moves, when the run holds less.
+func spend_mana(amount: int) -> bool:
+	if amount < 0 or amount > mana:
+		return false
+	mana -= amount
+	return true
+
+
 ## Deterministic integer mix. Always positive and never zero, so a seed is never "unseeded".
 static func _mix(a: int, b: int) -> int:
 	var h: int = a * 0x9E3779B1 + b * 0x85EBCA77 + 0x27D4EB2F
@@ -230,7 +300,7 @@ static func _mix(a: int, b: int) -> int:
 
 ## An older save is not migrated: `from_dict` refuses it and the run is dropped, since a run in
 ## flight is not worth carrying across (user, 2026-09-23).
-const SAVE_VERSION: int = 7
+const SAVE_VERSION: int = 9
 
 
 func to_dict() -> Dictionary:
@@ -243,7 +313,11 @@ func to_dict() -> Dictionary:
 		"owned_aspects": owned_aspects.duplicate(),
 		"relic": relic_id,
 		"reserve": reserve.duplicate(),
+		"library": library.duplicate(),
+		"relic_offers": relic_offers.duplicate(true),
+		"reserve_new": reserve_new.duplicate(),
 		"starter_cards": starter_cards.duplicate(),
+		"starter_reserve": starter_reserve.duplicate(),
 		"starter_duelist": starter_duelist.duplicate(),
 		"stage": stage,
 		"run_seed": run_seed,
@@ -257,6 +331,8 @@ func to_dict() -> Dictionary:
 		"kept": kept.duplicate(),
 		"picks": picks.duplicate(true),
 		"duel_history": duel_history.duplicate(true),
+		"mana": mana,
+		"shops": shops.duplicate(true),
 	}
 
 
@@ -276,6 +352,18 @@ static func from_dict(d: Dictionary) -> AdventureRun:
 	run.relic_id = str(d.get("relic", ""))
 	for id in d.get("reserve", []):
 		run.reserve.append(str(id))
+	for id in d.get("library", []):
+		run.library.append(str(id))
+	for id in d.get("reserve_new", []):
+		run.reserve_new.append(str(id))
+	for entry in d.get("relic_offers", []):
+		if entry is Dictionary:
+			var row: Dictionary = entry
+			var offer_cards: Array[String] = []
+			for id in row.get("cards", []):
+				offer_cards.append(str(id))
+			run.relic_offers.append({"relic": str(row.get("relic", "")), "bundle": str(row.get("bundle", "")),
+				"cards": offer_cards})
 	run.stage = int(d.get("stage", 0))
 	run.run_seed = int(d.get("run_seed", 0))
 	run.node_id = str(d.get("node_id", ""))
@@ -310,12 +398,27 @@ static func from_dict(d: Dictionary) -> AdventureRun:
 		run.run_id = AdventureRun.id_for(run.starter_id, run.run_seed)
 	for id in d.get("starter_cards", []):
 		run.starter_cards.append(str(id))
+	for id in d.get("starter_reserve", []):
+		run.starter_reserve.append(str(id))
 	for id in d.get("starter_duelist", []):
 		run.starter_duelist.append(str(id))
 	for entry in d.get("duel_history", []):
 		if entry is Dictionary:
 			var command: Dictionary = _whole_numbers(entry)
 			run.duel_history.append(command)
+	run.mana = int(d.get("mana", AdventureEconomy.mana_start()))
+	var shop_rows: Dictionary = d.get("shops", {})
+	for id in shop_rows.keys():
+		if not (shop_rows[id] is Dictionary):
+			continue
+		var row: Dictionary = shop_rows[id]
+		var stock: Array[String] = []
+		for card in row.get("stock", []):
+			stock.append(str(card))
+		var sold: Array[int] = []
+		for slot in row.get("sold", []):
+			sold.append(int(slot))
+		run.shops[str(id)] = {"stock": stock, "sold": sold}
 	return run
 
 

@@ -19,3 +19,4 @@ ExploredLight = 0.5
 UnexploredLight = 0.15
 ShowExplored = false
 ShowUnexplored = true
+ArrivalTrail = ExtResource("passage")

@@ -170,7 +170,7 @@ static func type_blurb(type: String) -> String:
 		"relic":
 			return "Choose a Relic and a starting Reserve."
 		"shop":
-			return "Spend Mana on cards and services."
+			return "Spend Mana on single cards for your deck."
 		"shrine":
 			return "Choose a Resonance to carry through the run."
 		"forge":

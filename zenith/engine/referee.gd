@@ -22,7 +22,7 @@ const ANIMATED: Dictionary = {
 	&"endurance_used": ["card", "prevented"], &"endurance_declined": ["card", "endurance", "remaining"],
 	&"seal_bypassed": ["card"], &"seal_captured": ["card"],
 	&"attack_end": ["stopped", "stages_dealt", "life_dealt"],
-	&"critical_ally": ["card"], &"critical_fervor": [],
+	&"critical_fervor": [],
 	&"hand_discarded": ["card"], &"in_play_discarded": ["card", "removed"], &"card_moved": ["card", "to"],
 	&"card_used": ["card", "id"], &"card_placed": ["card"], &"final_strike": ["discarded"],
 	&"remain": ["card", "uses"],

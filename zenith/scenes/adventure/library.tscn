@@ -1,0 +1,388 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/library.gd" id="1_library"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="2_faces"]
+[ext_resource type="Texture2D" path="res://assets/courtyard/textures/brick.png" id="3_brick"]
+
+[sub_resource type="StyleBoxFlat" id="preview_shadow"]
+bg_color = Color(0, 0, 0, 0.35)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 18
+shadow_offset = Vector2(6, 10)
+anti_aliasing = true
+
+[node name="Library" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_library")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.03, 0.025, 0.025, 1)
+
+[node name="CardFaceCache" parent="." instance=ExtResource("2_faces")]
+
+[node name="Brick" type="TextureRect" parent="."]
+texture_filter = 1
+self_modulate = Color(0.3, 0.28, 0.27, 1)
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.3333
+anchor_bottom = 1.3333
+scale = Vector2(0.75, 0.75)
+mouse_filter = 2
+texture = ExtResource("3_brick")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="Strip" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+
+[node name="Row" type="HBoxContainer" parent="Strip"]
+layout_mode = 2
+theme_override_constants/separation = 36
+
+[node name="RunName" type="Label" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"GroupLabel"
+text = ""
+
+[node name="Standing" type="Label" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"BodyLabel"
+text = ""
+
+[node name="Spacer" type="Control" parent="Strip/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ManaBox" type="HBoxContainer" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="ManaIcon" type="TextureRect" parent="Strip/Row/ManaBox"]
+texture_filter = 1
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Mana, spent at Shops during this run"
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ManaValue" type="Label" parent="Strip/Row/ManaBox"]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Mana, spent at Shops during this run"
+mouse_filter = 1
+theme_type_variation = &"HeaderLabel"
+text = "0"
+
+[node name="MotesBox" type="HBoxContainer" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="MoteIcon" type="TextureRect" parent="Strip/Row/MotesBox"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Motes"
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MotesValue" type="Label" parent="Strip/Row/MotesBox"]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Motes"
+mouse_filter = 1
+theme_type_variation = &"HeaderLabel"
+text = "0"
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_top = -448.0
+offset_bottom = -448.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"TitleLabel"
+text = "Set your Reserve"
+horizontal_alignment = 1
+
+[node name="Body" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -924.0
+offset_top = -362.0
+offset_right = 924.0
+offset_bottom = 392.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 18
+
+[node name="LifePanel" type="PanelContainer" parent="Body"]
+custom_minimum_size = Vector2(444, 0)
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="Body/LifePanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Body/LifePanel/Column"]
+layout_mode = 2
+
+[node name="Heading" type="Label" parent="Body/LifePanel/Column/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"GroupLabel"
+text = "Life Deck"
+
+[node name="Count" type="Label" parent="Body/LifePanel/Column/Header"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"HeaderLabel"
+text = ""
+
+[node name="Scroll" type="ScrollContainer" parent="Body/LifePanel/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="Body/LifePanel/Column/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ReservePanel" type="PanelContainer" parent="Body"]
+custom_minimum_size = Vector2(856, 0)
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="Body/ReservePanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Body/ReservePanel/Column"]
+custom_minimum_size = Vector2(0, 154)
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="RelicFace" type="TextureRect" parent="Body/ReservePanel/Column/Header"]
+custom_minimum_size = Vector2(110, 154)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Titles" type="VBoxContainer" parent="Body/ReservePanel/Column/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Heading" type="Label" parent="Body/ReservePanel/Column/Header/Titles"]
+layout_mode = 2
+theme_type_variation = &"GroupLabel"
+text = "Reserve"
+
+[node name="Holds" type="Label" parent="Body/ReservePanel/Column/Header/Titles"]
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = ""
+autowrap_mode = 3
+
+[node name="Tally" type="VBoxContainer" parent="Body/ReservePanel/Column/Header"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Count" type="Label" parent="Body/ReservePanel/Column/Header/Tally"]
+layout_mode = 2
+theme_type_variation = &"StatLabel"
+theme_override_font_sizes/font_size = 48
+text = ""
+horizontal_alignment = 2
+
+[node name="Of" type="Label" parent="Body/ReservePanel/Column/Header/Tally"]
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = ""
+horizontal_alignment = 2
+
+[node name="Rule" type="HSeparator" parent="Body/ReservePanel/Column"]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Body/ReservePanel/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Grid" type="GridContainer" parent="Body/ReservePanel/Column/Scroll"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 16
+columns = 5
+
+[node name="LibraryPanel" type="PanelContainer" parent="Body"]
+custom_minimum_size = Vector2(512, 0)
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="Body/LibraryPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Body/LibraryPanel/Column"]
+custom_minimum_size = Vector2(0, 154)
+layout_mode = 2
+
+[node name="Titles" type="VBoxContainer" parent="Body/LibraryPanel/Column/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Heading" type="Label" parent="Body/LibraryPanel/Column/Header/Titles"]
+layout_mode = 2
+theme_type_variation = &"GroupLabel"
+text = "Library"
+
+[node name="Note" type="Label" parent="Body/LibraryPanel/Column/Header/Titles"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = "Cards your run owns but is not using."
+autowrap_mode = 3
+
+[node name="Count" type="Label" parent="Body/LibraryPanel/Column/Header"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_type_variation = &"StatLabel"
+theme_override_font_sizes/font_size = 48
+text = ""
+horizontal_alignment = 2
+
+[node name="Rule" type="HSeparator" parent="Body/LibraryPanel/Column"]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Body/LibraryPanel/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Grid" type="GridContainer" parent="Body/LibraryPanel/Column/Scroll"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 16
+columns = 3
+
+[node name="Help" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -924.0
+offset_top = 398.0
+offset_right = 924.0
+offset_bottom = 430.0
+grow_horizontal = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 22
+text = "Click a Reserve card to set it aside and a Library card to bring it back. To swap two cards, click a Life Deck card first, or drag one card onto another."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Back" type="Button" parent="."]
+custom_minimum_size = Vector2(240, 60)
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 36.0
+offset_top = -82.0
+offset_right = 276.0
+offset_bottom = -22.0
+grow_vertical = 0
+text = "Back to the map"
+
+[node name="Warn" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1300.0
+offset_top = -82.0
+offset_right = -300.0
+offset_bottom = -22.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_type_variation = &"BodyLabel"
+text = ""
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Done" type="Button" parent="."]
+custom_minimum_size = Vector2(240, 60)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -276.0
+offset_top = -82.0
+offset_right = -36.0
+offset_bottom = -22.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_type_variation = &"AccentButton"
+text = "Done"
+
+[node name="Preview" type="Panel" parent="."]
+visible = false
+top_level = true
+custom_minimum_size = Vector2(330, 462)
+layout_mode = 0
+offset_right = 330.0
+offset_bottom = 462.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("preview_shadow")
+
+[node name="Face" type="TextureRect" parent="Preview"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

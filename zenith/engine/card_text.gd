@@ -2418,8 +2418,6 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 			return "Take the wounds"
 		&"capture":
 			return "Capture %s" % name
-		&"discard_ally":
-			return "Discard %s" % name
 		&"lower_fervor":
 			return "Disrupt 1"
 		&"no_critical":
@@ -2750,8 +2748,6 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1, reveal
 			return "A Seal surfaces and returns to the deck."
 		&"seal_captured":
 			return "%s captures %s!" % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
-		&"critical_ally":
-			return "Critical damage: %s sends %s off the field." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"critical_fervor":
 			return "Critical damage: %s shames the rival." % pname
 		&"fervor_changed":

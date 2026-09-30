@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Delve.Combat;
 using Delve.Data;
 using PF2e.Data;
@@ -56,6 +57,8 @@ public static class EncounterFactory
         var layout = MapGenerator.GenerateValidated(
             biome, RunRng.StableSeed(state.StratumSeed, node.Id, "battle"), sized);
         if (layout == null) return null;
+        if (theme.Crawl == CrawlSetting.Wilds)
+            GrowUndergrowth(layout, RunRng.StableSeed(state.StratumSeed, node.Id, "undergrowth"));
 
         var setup = new CombatSetup
         {
@@ -74,6 +77,21 @@ public static class EncounterFactory
 
         EncounterSpawner.Spawn(encounter, layout, setup, applied.MaxEnemies);
         return setup.Enemies.Count > 0 ? setup : null;
+    }
+
+    /// <summary>Tiles around a deployment zone kept clear of undergrowth, so a side never deploys
+    /// into a thicket.</summary>
+    private const int ZoneClear = 1;
+
+    /// <summary>The same woodland edge, brush and clumps the crawl's glades grow, on a generated
+    /// wilds board. Open ground stays connected and the deployment zones stay clear.</summary>
+    internal static void GrowUndergrowth(PF2e.MapGen.MapLayout layout, int seed)
+    {
+        var zones = layout.DeploymentZones ?? Array.Empty<PF2e.MapGen.DeploymentZoneData>();
+        bool KeepOpen(PF2e.Vector2Int p) => zones.Any(z =>
+            p.x >= Math.Min(z.CornerA.x, z.CornerB.x) - ZoneClear && p.x <= Math.Max(z.CornerA.x, z.CornerB.x) + ZoneClear
+            && p.y >= Math.Min(z.CornerA.y, z.CornerB.y) - ZoneClear && p.y <= Math.Max(z.CornerA.y, z.CornerB.y) + ZoneClear);
+        Undergrowth.Grow(layout, ring: 0, KeepOpen, clumps: true, new Random(seed), keepConnected: true);
     }
 
     /// <summary>The authored boss fight for a floor, ward ignored.</summary>

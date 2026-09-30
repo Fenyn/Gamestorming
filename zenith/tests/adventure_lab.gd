@@ -135,8 +135,11 @@ func _play_run(index: int, starter: String, run_seed: int, opponent_policy: Stri
 	var cleared: int = 0
 	var error: String = ""
 	var taken: Array[String] = []   # bundle ids taken so far, for the "did it help" credit
+	var mana_earned: int = 0
+	var mana_spent: int = 0
+	var shops: int = 0
 	var guard: int = 0
-	while run.status in ["map", "stage", "aspect", "reward"] and guard < MAX_STEPS_PER_RUN:
+	while run.status in ["map", "stage", "forge", "shop", "relic", "reserve", "aspect", "reward"] and guard < MAX_STEPS_PER_RUN:
 		guard += 1
 		match run.status:
 			"map":
@@ -145,6 +148,13 @@ func _play_run(index: int, starter: String, run_seed: int, opponent_policy: Stri
 					error = "no way on from %s" % run.node_id
 					break
 				run.enter(map, next[rng.randi_range(0, next.size() - 1)])
+			"forge":
+				_visit_forge(run, rng)
+			"shop":
+				shops += 1
+				mana_spent += _visit_shop(run)
+			"relic", "reserve":
+				_visit_relic(run, rng)
 			"stage":
 				var row: Dictionary = map.duel_for(run.node_id)
 				var record: Dictionary = _play_stage(index, run, map, row, opponent_policy, taken.duplicate())
@@ -156,7 +166,9 @@ func _play_run(index: int, starter: String, run_seed: int, opponent_policy: Stri
 					return {"run": index, "status": "broken", "cleared": cleared, "motes": motes,
 						"error": error, "deck": run.cards.size(), "picks": run.picks.duplicate(true)}
 				var won: bool = bool(record["won"])
+				var mana_before: int = run.mana
 				var payout: int = AdventureRewards.finish_stage(run, map, library, won)
+				mana_earned += run.mana - mana_before
 				motes += payout
 				record["motes"] = payout
 				if won:
@@ -189,8 +201,71 @@ func _play_run(index: int, starter: String, run_seed: int, opponent_policy: Stri
 		"run": index, "status": run.status if error.is_empty() else "broken", "cleared": cleared,
 		"motes": motes, "error": error, "reached": map.place_of(run.node_id),
 		"deck": run.cards.size(), "aspects": run.aspects(), "picks": run.picks.duplicate(true),
-		"seed": run_seed,
+		"seed": run_seed, "mana_earned": mana_earned, "mana_spent": mana_spent, "mana_left": run.mana,
+		"shops": shops,
 	}
+
+
+## A Shop visit: buy the cheapest card the run can afford and legally add, again until none is left,
+## then leave. Returns the Mana spent.
+func _visit_shop(run: AdventureRun) -> int:
+	AdventureShop.open(run, library)
+	var before: int = run.mana
+	var stock: Array[String] = AdventureShop.stock(run)
+	var guard: int = 0
+	while guard < stock.size():
+		guard += 1
+		var best: int = -1
+		for slot in range(stock.size()):
+			if AdventureShop.slot_block(run, library, slot) != "":
+				continue
+			if best < 0 or AdventureShop.price(library, stock[slot]) < AdventureShop.price(library, stock[best]):
+				best = slot
+		if best < 0 or not AdventureShop.buy(run, library, best):
+			break
+	AdventureShop.leave(run)
+	return before - run.mana
+
+
+## The Relic node: a random offer, or the held Relic kept as often as any one offer is taken, then
+## the last Reserve cards set aside until the Reserve fits.
+func _visit_relic(run: AdventureRun, rng: RandomNumberGenerator) -> void:
+	if run.status == "relic":
+		AdventureRelic.open(run, library)
+		var choices: int = run.relic_offers.size() + (1 if run.relic_id != "" else 0)
+		var pick: int = rng.randi_range(0, maxi(0, choices - 1))
+		if pick >= run.relic_offers.size() or not AdventureRelic.take(run, library, pick):
+			AdventureRelic.pass_through(run, library)
+	if run.status == "reserve":
+		AdventureRelic.pass_through(run, library)
+
+
+## A Forge visit: half the time a copy of a random eligible card, otherwise a cut of the cheapest
+## card by settlement price, the nearest thing to "the weakest" the run has. Falls back to the other
+## action, then to leaving, when one is closed.
+func _visit_forge(run: AdventureRun, rng: RandomNumberGenerator) -> void:
+	var options: Array[String] = AdventureForge.copy_options(run, library)
+	var copy_first: bool = rng.randf() < 0.5
+	if copy_first and not options.is_empty():
+		AdventureForge.copy(run, library, options[rng.randi_range(0, options.size() - 1)])
+		return
+	if AdventureRewards.can_cut(run) and AdventureForge.cut(run, library, _cheapest(run)):
+		return
+	if not options.is_empty():
+		AdventureForge.copy(run, library, options[rng.randi_range(0, options.size() - 1)])
+		return
+	AdventureForge.leave(run)
+
+
+func _cheapest(run: AdventureRun) -> String:
+	var best: String = ""
+	var best_price: int = 0
+	for id in run.cards:
+		var price: int = AdventureEconomy.price(library.defs[id])
+		if best == "" or price < best_price or (price == best_price and id < best):
+			best = id
+			best_price = price
+	return best
 
 
 ## Attaches the bundle (or the skip) to the stage row that was just played, so a TSV reader sees
@@ -344,10 +419,18 @@ func _run_summary() -> void:
 	var first_error: String = ""
 	var cleared_total: int = 0
 	var motes_total: int = 0
+	var mana_earned: int = 0
+	var mana_spent: int = 0
+	var mana_left: int = 0
+	var shops: int = 0
 	var deaths: Array[int] = []
 	for row in run_rows:
 		cleared_total += int(row["cleared"])
 		motes_total += int(row["motes"])
+		mana_earned += int(row.get("mana_earned", 0))
+		mana_spent += int(row.get("mana_spent", 0))
+		mana_left += int(row.get("mana_left", 0))
+		shops += int(row.get("shops", 0))
 		match str(row["status"]):
 			"won":
 				won += 1
@@ -372,6 +455,10 @@ func _run_summary() -> void:
 	print("  median stage of death: %s" % (
 		"%d" % int(deaths[deaths.size() / 2]) if not deaths.is_empty() else "-"))
 	print("  mean Motes          : %.0f" % [float(motes_total) / float(maxi(1, runs))])
+	var per_run: float = float(maxi(1, runs))
+	print("  mean Mana           : %d at the start, %.0f earned, %.0f spent over %.1f Shops, %.0f left at the end" % [
+		AdventureEconomy.mana_start(), float(mana_earned) / per_run, float(mana_spent) / per_run,
+		float(shops) / per_run, float(mana_left) / per_run])
 	if broken > 0:
 		print("  first error         : %s" % first_error)
 
@@ -381,13 +468,22 @@ func _reward_summary() -> void:
 	var after: Dictionary = {}      # bundle id -> [wins, played] of stages played while held
 	var aspects: int = 0
 	var skips: int = 0
+	var cuts: int = 0
+	var copies: int = 0
+	var bought: int = 0
 	for row in run_rows:
 		for entry in row.get("picks", []):
 			var kind: String = str((entry as Dictionary).get("kind", ""))
-			if kind == "aspect":
+			if kind == AdventureShop.KIND_BUY:
+				bought += 1
+			elif kind == "aspect":
 				aspects += 1
 			elif kind == "skip":
 				skips += 1
+			elif kind == AdventureForge.ACTION_CUT:
+				cuts += 1
+			elif kind == AdventureForge.ACTION_COPY:
+				copies += 1
 	for row in stage_rows:
 		if not str(row["error"]).is_empty():
 			continue
@@ -400,6 +496,8 @@ func _reward_summary() -> void:
 		if str(row["took"]) != "" and str(row["took"]) != "(skip)":
 			picked[str(row["took"])] = int(picked.get(str(row["took"]), 0)) + 1
 	print("")
+	print("Forge: %d cuts, %d copies." % [cuts, copies])
+	print("Shop: %d cards bought, the cheapest affordable each time." % bought)
 	print("Rewards: %d Aspect picks, %d skipped offers. The win rate is the stages played after" % [aspects, skips])
 	print("taking the bundle, over every run that took it, which is rough: a bundle taken late is")
 	print("credited with fewer and harder stages than one taken early.")

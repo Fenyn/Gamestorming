@@ -629,6 +629,247 @@ func _check_theme() -> void:
 	hud.free()
 
 
+## After every buy the Shop's strip shows the run's Mana, and a price is painted short and its card
+## dimmed exactly when the run cannot pay it. The run save goes to a scratch file.
+func _check_shop_mana() -> void:
+	var session: Node = root.get_node("Session")
+	var saved_path: String = AdventureSave.path_override
+	var scratch: String = OS.get_cache_dir().path_join("ui_cleanup_shop_run.json")
+	AdventureSave.path_override = scratch
+	var library: CardLibrary = session.library
+	var run: AdventureRun = null
+	var map: AdventureMap = null
+	for seed_value in range(40, 60):
+		run = AdventureRun.begin("pyre_beatdown_start", seed_value)
+		map = AdventureMap.generate("pyre_beatdown_start", seed_value)
+		if _walk_to_shop(run, map, library):
+			break
+	_check(run.status == "shop", "A test run reaches a Shop")
+	session.run = run
+	session.map = map
+	AdventureShop.open(run, library)
+	run.mana = 140
+	var shop: Control = load("res://scenes/adventure/shop.tscn").instantiate()
+	var cache: CardFaceCache = shop.get_node("CardFaceCache")
+	var texture: ImageTexture = ImageTexture.create_from_image(Image.create(2, 2, false, Image.FORMAT_RGBA8))
+	for id in AdventureShop.stock(run):
+		cache._cache[cache.key_of(library.defs[id])] = texture
+	root.add_child(shop)
+	var slots: Node = shop.get_node("Slots")
+	var deadline: int = Time.get_ticks_msec() + 5000
+	while (slots.get_child_count() == 0 or bool(shop.get("_busy"))) and Time.get_ticks_msec() < deadline:
+		await process_frame
+	_check(run.status == "shop" and slots.get_child_count() == AdventureShop.stock(run).size(), "The Shop screen lays out its stock")
+	var mana_label: Label = shop.get_node("Strip/Row/ManaBox/ManaValue")
+	for buy in range(2):
+		var slot: int = -1
+		for i in range(slots.get_child_count()):
+			if slot < 0 and AdventureShop.slot_block(run, library, i) == "":
+				slot = i
+		if slot < 0:
+			break
+		var before: int = run.mana
+		await shop.call("_on_buy", slot)
+		_check(run.mana < before, "Buy %d spends Mana" % buy)
+		_check(mana_label.text == str(run.mana), "After buy %d the strip shows %s Mana, the run holds %d" % [buy, mana_label.text, run.mana])
+		for i in range(slots.get_child_count()):
+			if AdventureShop.is_sold(run, i):
+				continue
+			var tile: ShopSlot = slots.get_child(i) as ShopSlot
+			var short: bool = run.mana < AdventureShop.price(library, AdventureShop.stock(run)[i])
+			_check((tile.price_label.get_theme_color("font_color") == ZenithTheme.SHORT) == short,
+				"After buy %d slot %d is painted short only when the run cannot pay" % [buy, i])
+			_check((tile.face.self_modulate != Color.WHITE) == (AdventureShop.slot_block(run, library, i) != ""),
+				"After buy %d slot %d is dimmed only when it cannot be bought" % [buy, i])
+	shop.free()
+	MapArt.tint_for_school("")
+	session.run = null
+	session.map = null
+	AdventureSave.path_override = saved_path
+	DirAccess.remove_absolute(scratch)
+
+
+## The Relic node and the Reserve screen, driven through their own handlers on an in-memory run: the
+## offers lay out and take, the held-Relic panel reads right, and the Reserve screen holds Done until
+## the Reserve fits, sets cards aside on a click and swaps a picked Life Deck card one for one.
+func _check_relic_screens() -> void:
+	var session: Node = root.get_node("Session")
+	var library: CardLibrary = session.library
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 40)
+	var map: AdventureMap = AdventureMap.generate("pyre_beatdown_start", 40)
+	_check(_walk_to_stop(run, map, library, "relic"), "A test run reaches the Relic node")
+	AdventureRelic.open(run, library)
+	session.run = run
+	session.map = map
+	var screen: Control = load("res://scenes/adventure/relic.tscn").instantiate()
+	# In memory: the screens change the run directly instead of saving it and changing scene.
+	screen.set("_dev", true)
+	_fill_face_cache(screen.get_node("CardFaceCache"), library)
+	root.add_child(screen)
+	await _settle(screen)
+	var held: Control = screen.get_node("Row/Held")
+	_check(not (held.get_node("Column/Keep") as Button).visible, "A run with no Relic is not offered Keep")
+	_check((held.get_node("Column/Note") as Label).text.begins_with("You have no Relic yet."), "and the panel says it has none")
+	var subtitle: String = (screen.get_node("Subtitle") as Label).text
+	_check(subtitle == "Take one Relic and the Reserve cards that come with it.", "The subtitle drops the keep clause: %s" % subtitle)
+	for i in range(3):
+		var offer: RelicOffer = screen.get_node("Row/Offer%d" % i)
+		var cards: Array = run.relic_offers[i]["cards"]
+		_check(offer.visible and offer.set_label.text.begins_with("Reserve: "), "Offer %d names its set" % i)
+		var shown: int = 0
+		for child in offer.card_row.get_children():
+			shown += 1 if (child as Control).visible else 0
+		_check(shown == cards.size(), "Offer %d shows its %d set cards" % [i, cards.size()])
+		_check(offer.consequence.text.begins_with("Holds "), "Offer %d says what taking it does: %s" % [i, offer.consequence.text])
+	screen.call("_on_hover", 1, true)
+	_check((screen.get_node("Row/Offer1") as RelicOffer).glow.visible, "Hovering an offer lights its glow")
+	await screen.call("_on_card_hover", 1, 0, true)
+	_check((screen.get_node("Preview") as Control).visible, "Hovering a small face shows it large")
+	var taken: String = str(run.relic_offers[2]["relic"])
+	screen.call("_on_take", 2)
+	_check(run.relic_id == taken and run.status == "map", "Clicking an offer takes it and ends the visit")
+	screen.free()
+
+	var extra: Array[Dictionary] = AdventureRelic.draw_sets(run, library, 99, 1)
+	run.reserve.append_array(extra[0]["cards"] as Array[String])
+	run.relic_id = "relic_04"
+	run.status = "reserve"
+	run.reserve_new.assign(extra[0]["cards"])
+	var over: int = AdventureReserve.excess(run, library)
+	_check(over > 0, "The test Reserve is over the Severing Clasp's size")
+	var life_size: int = run.cards.size()
+	var trim: Control = load("res://scenes/adventure/library.tscn").instantiate()
+	trim.set("_dev", true)
+	_fill_face_cache(trim.get_node("CardFaceCache"), library)
+	root.add_child(trim)
+	await _settle(trim)
+	var done: Button = trim.get_node("Done")
+	var warn: Label = trim.get_node("Warn")
+	var count: Label = trim.get_node("Body/ReservePanel/Column/Header/Tally/Count")
+	_check(not (trim.get_node("Back") as Button).visible and done.visible, "Trim mode shows Done and no Back")
+	_check(done.disabled, "Done is locked while the Reserve is over")
+	_check(warn.text == "Set aside %d more Reserve %s to leave." % [over, "card" if over == 1 else "cards"], "and says why: %s" % warn.text)
+	_check(warn.get_theme_color("font_color") == ZenithTheme.SHORT, "in the short colour")
+	_check(count.get_theme_color("font_color") == ZenithTheme.SHORT, "The over count is painted short")
+	var grid: GridContainer = trim.get_node("Body/ReservePanel/Column/Scroll/Grid")
+	var new_chips: int = 0
+	for card in grid.get_children():
+		new_chips += 1 if (card as ReserveCard).new_chip.visible else 0
+	_check(new_chips > 0, "Cards that just arrived wear the NEW chip")
+	for i in range(over):
+		var first: ReserveCard = grid.get_child(0) as ReserveCard
+		await trim.call("_on_card", "reserve", first.card_id)
+	_check(AdventureReserve.excess(run, library) == 0 and run.library.size() == over, "Clicking Reserve cards sets them aside")
+	_check(not done.disabled and warn.text == "", "Done unlocks once the Reserve fits")
+	var strip_id: String = ""
+	var library_id: String = ""
+	var strips: Dictionary = trim.get("_strips")
+	for aside in run.library:
+		for id in strips.keys():
+			if strip_id == "" and str(id) != aside and AdventureReserve.swap_block(run, library, "life", str(id), "library", aside) == "":
+				strip_id = str(id)
+				library_id = aside
+	_check(strip_id != "", "A Life Deck card can trade with a card set aside")
+	trim.call("_on_strip", strip_id)
+	_check(str(trim.get("_selected")) == strip_id, "Clicking a Life Deck strip picks it")
+	await trim.call("_on_card", "library", library_id)
+	_check(run.cards.has(library_id) and run.library.has(strip_id) and run.cards.size() == life_size,
+		"Then clicking a library card swaps the two one for one")
+	var dragged: String = run.reserve[0]
+	var aside_before: int = run.library.count(dragged)
+	_check(bool(trim.call("_can_drop", Vector2.ZERO, {"pile": "reserve", "id": dragged}, "library", "")),
+		"A Reserve card may be dropped on the library")
+	_check(not bool(trim.call("_can_drop", Vector2.ZERO, {"pile": "life", "id": run.cards[0]}, "library", "")),
+		"A Life Deck card may not be dropped on an empty part of a pile")
+	await trim.call("_drop", Vector2.ZERO, {"pile": "reserve", "id": dragged}, "library", "")
+	_check(run.library.count(dragged) == aside_before + 1, "Dropping it there sets it aside")
+	trim.call("_on_leave")
+	_check(run.status == "map" and run.reserve_new.is_empty(), "Done returns the run to the map")
+	trim.free()
+	MapArt.tint_for_school("")
+	session.run = null
+	session.map = null
+
+
+func _fill_face_cache(cache: CardFaceCache, library: CardLibrary) -> void:
+	var texture: ImageTexture = ImageTexture.create_from_image(Image.create(2, 2, false, Image.FORMAT_RGBA8))
+	for value: Variant in library.defs.values():
+		cache._cache[cache.key_of(value as CardDef)] = texture
+
+
+func _settle(screen: Control) -> void:
+	var deadline: int = Time.get_ticks_msec() + 5000
+	await process_frame
+	while bool(screen.get("_busy")) and Time.get_ticks_msec() < deadline:
+		await process_frame
+
+
+## Takes a stop of `type` whenever one is a choice, wins every duel and skips every offer.
+func _walk_to_stop(run: AdventureRun, map: AdventureMap, library: CardLibrary, type: String) -> bool:
+	var guard: int = 0
+	while run.status != type and guard < 200:
+		guard += 1
+		match run.status:
+			"map":
+				var next: Array[String] = run.choices(map)
+				if next.is_empty():
+					return false
+				var step: String = next[0]
+				for id in next:
+					if str(map.node(id).get("type", "")) == type:
+						step = id
+				run.enter(map, step)
+			"forge":
+				AdventureForge.leave(run)
+			"shop":
+				AdventureShop.leave(run)
+			"relic", "reserve":
+				AdventureRelic.pass_through(run, library)
+			"stage":
+				AdventureRewards.finish_stage(run, map, library, true)
+			"aspect":
+				AdventureRewards.apply_aspect(run, library, run.pending_aspects[0])
+				AdventureRewards.finish_aspect(run, map, library)
+			"reward":
+				AdventureRewards.apply_skip(run)
+				AdventureRewards.finish_reward(run, map)
+			_:
+				return false
+	return run.status == type
+
+
+## Takes a Shop whenever one is a choice, wins every duel and skips every offer.
+func _walk_to_shop(run: AdventureRun, map: AdventureMap, library: CardLibrary) -> bool:
+	var guard: int = 0
+	while run.status != "shop" and guard < 200:
+		guard += 1
+		match run.status:
+			"map":
+				var next: Array[String] = run.choices(map)
+				if next.is_empty():
+					return false
+				var step: String = next[0]
+				for id in next:
+					if str(map.node(id).get("type", "")) == "shop":
+						step = id
+				run.enter(map, step)
+			"forge":
+				AdventureForge.leave(run)
+			"relic", "reserve":
+				AdventureRelic.pass_through(run, library)
+			"stage":
+				AdventureRewards.finish_stage(run, map, library, true)
+			"aspect":
+				AdventureRewards.apply_aspect(run, library, run.pending_aspects[0])
+				AdventureRewards.finish_aspect(run, map, library)
+			"reward":
+				AdventureRewards.apply_skip(run)
+				AdventureRewards.finish_reward(run, map)
+			_:
+				return false
+	return run.status == "shop"
+
+
 func _run() -> void:
 	hud_script = load("res://scripts/duel/duel_hud.gd")
 	readout_script = load("res://scripts/duel/duelist_readout.gd")
@@ -705,6 +946,8 @@ func _run() -> void:
 	_check_replay()
 	await _check_theme()
 	await _check_scene_catch_up()
+	await _check_shop_mana()
+	await _check_relic_screens()
 	var hud: Node = load("res://scenes/duel/hud.tscn").instantiate()
 	_check(not hud.has_node("Root/TopPanel") and not hud.has_node("Root/BottomPanel"), "HUD must not instantiate hidden legacy player panels")
 	hud.free()

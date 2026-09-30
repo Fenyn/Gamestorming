@@ -59,6 +59,14 @@ public sealed class DungeonFloor
     public int EntranceId => 0;
     public int GuardianId => 11;
 
+    /// <summary>The entrance's outer side the party arrives through, from off the floor.</summary>
+    public DoorSide ArrivalSide { get; init; }
+
+    /// <summary>Outer sides in the order the arrival takes them. Under the default camera West is the
+    /// top-left edge, the one no HUD panel covers; North is top-right, under the ward readout; South
+    /// and East are near edges behind the party cards and the floor plan.</summary>
+    private static readonly DoorSide[] ArrivalPreference = { DoorSide.West, DoorSide.North, DoorSide.South, DoorSide.East };
+
     public static DungeonFloor Generate(int seed)
     {
         var rng = new Random(RunRng.StableSeed(seed, 0, "dungeon-topology"));
@@ -157,9 +165,18 @@ public sealed class DungeonFloor
         var nodes = rooms.Select(r => new MapNode { Id = r.Id, Floor = depth[r.Id], Lane = r.X, Kind = Kind(r.Family) }).ToArray();
         foreach (var r in rooms)
             nodes[r.Id].Next.AddRange(r.Doors.Select(d => d.Other(r.Id)).OrderBy(id => id));
+        int maxX = rooms.Max(r => r.X), maxY = rooms.Max(r => r.Y);
+        var entrance = rooms[0];
         return new DungeonFloor
         {
             History = StationPlan.History(seed),
+            ArrivalSide = ArrivalPreference.First(side => side switch
+            {
+                DoorSide.North => entrance.Y == 0,
+                DoorSide.West => entrance.X == 0,
+                DoorSide.East => entrance.X == maxX,
+                _ => entrance.Y == maxY
+            }),
             Rooms = rooms,
             Map = new RunMap(depth.Max() + 1, 4, nodes, new[] { 0 }, 11)
         };

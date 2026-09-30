@@ -9,9 +9,9 @@ using PF2e.MapGen.Biomes;
 
 namespace Delve.Dungeon;
 
-/// <summary>How one glade is shaped: its generator recipe, whether it hosts a fight, and how far
-/// apart the two deployment boxes stand.</summary>
-public sealed record GladeShape(GladeRecipe Recipe, bool Combat, int ZoneHalf = RoomGeneration.ZoneHalf);
+/// <summary>How one glade is shaped: its generator recipe, whether it hosts a fight, how far apart the
+/// two deployment boxes stand, and the outer mouth the party arrives by, on the entrance.</summary>
+public sealed record GladeShape(GladeRecipe Recipe, bool Combat, int ZoneHalf = RoomGeneration.ZoneHalf, DoorSide? Arrival = null);
 
 /// <summary>A forest room: a generated forest board framed by a ring of trees, with a trail mouth
 /// on every door side. Obeys the station room contract, so travel, zones and hosted fights read it
@@ -79,10 +79,12 @@ public static partial class GladeGeneration
         RaiseRing(layout, doors);
         OpenMouths(layout, doors);
         ClearZones(layout, doors, shape.ZoneHalf);
+        if (shape.Arrival is { } arrival) LayRoad(layout, doors, arrival);
         var dress = new Random(RunRng.StableSeed(seed, attempt, "glade-dress"));
         props.Clear();
         props.AddRange(Landmarks(layout, doors, shape, dress));
         if (shape.Combat) props.AddRange(Dress(layout, doors, shape.ZoneHalf, dress));
+        Undergrowth(layout, doors, shape.ZoneHalf, shape.Combat, dress);
         NaturalRelief.Refine(layout);
         return layout;
     }

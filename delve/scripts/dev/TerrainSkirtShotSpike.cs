@@ -50,6 +50,8 @@ public partial class TerrainSkirtShotSpike : SpikeBase
                     Check($"{biome} seed {seed}: GenerateValidated produced a map", false);
                     continue;
                 }
+                // Capture boards as the run builds them, woodland edge included.
+                if (biome == Delve.Dungeon.GladeGeneration.Biome) Delve.Run.EncounterFactory.GrowUndergrowth(board, seed);
 
                 var host = BuildStage(board, biome, out var stage, out var camera);
                 int margin = stage.Skirt?.Margin ?? 0;

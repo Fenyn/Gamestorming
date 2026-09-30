@@ -1,0 +1,178 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/shop_slot.gd" id="1_slot"]
+
+[sub_resource type="StyleBoxFlat" id="glow"]
+bg_color = Color(0.94, 0.91, 0.84, 0.3)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.94, 0.91, 0.84, 0.45)
+shadow_size = 18
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="shadow"]
+bg_color = Color(0, 0, 0, 0.35)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 12
+shadow_offset = Vector2(6, 10)
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="sold"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.59, 0.47, 0.67, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="tag"]
+content_margin_left = 12.0
+content_margin_right = 16.0
+bg_color = Color(0.11, 0.08, 0.1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.59, 0.47, 0.67, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 4
+shadow_offset = Vector2(2, 3)
+anti_aliasing = true
+
+[sub_resource type="StyleBoxEmpty" id="none"]
+
+[node name="ShopSlot" type="Control"]
+custom_minimum_size = Vector2(236, 414)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 236.0
+offset_bottom = 414.0
+mouse_filter = 2
+script = ExtResource("1_slot")
+
+[node name="Body" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 236.0
+offset_bottom = 402.0
+mouse_filter = 2
+
+[node name="Cord" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 116.0
+offset_top = 300.0
+offset_right = 119.0
+offset_bottom = 356.0
+mouse_filter = 2
+color = Color(0.47, 0.38, 0.27, 1)
+
+[node name="Tag" type="PanelContainer" parent="Body"]
+custom_minimum_size = Vector2(144, 48)
+layout_mode = 0
+offset_left = 46.0
+offset_top = 354.0
+offset_right = 190.0
+offset_bottom = 402.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("tag")
+
+[node name="Row" type="HBoxContainer" parent="Body/Tag"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Gem" type="TextureRect" parent="Body/Tag/Row"]
+texture_filter = 1
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Price" type="Label" parent="Body/Tag/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"BodyLabel"
+text = "0"
+horizontal_alignment = 1
+
+[node name="Card" type="Control" parent="Body"]
+anchors_preset = 0
+offset_right = 236.0
+offset_bottom = 330.0
+mouse_filter = 2
+
+[node name="Glow" type="Panel" parent="Body/Card"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("glow")
+
+[node name="Shadow" type="Panel" parent="Body/Card"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("shadow")
+
+[node name="Face" type="TextureButton" parent="Body/Card"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_default_cursor_shape = 2
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Sold" type="PanelContainer" parent="Body/Card"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("sold")
+
+[node name="Label" type="Label" parent="Body/Card/Sold"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TitleLabel"
+theme_override_colors/font_color = Color(0.67, 0.59, 0.75, 1)
+theme_override_styles/normal = SubResource("none")
+text = "Sold"
+horizontal_alignment = 1
+vertical_alignment = 1

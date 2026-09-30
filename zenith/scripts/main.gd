@@ -575,7 +575,7 @@ func _dev_adventure(args: PackedStringArray) -> void:
 		Session.start_run(starter_id)
 		if stage > 0 and Session.map != null:
 			AdventureDev.walk(stage)
-		if duel and Session.map != null and Session.run.walk_to_next_duel(Session.map):
+		if duel and Session.map != null and Session.run.walk_to_next_duel(Session.map, Session.library):
 			Session.begin_stage()
 			return
 	Session.go_to_adventure()

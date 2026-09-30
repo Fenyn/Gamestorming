@@ -32,7 +32,7 @@ events = [SubResource("key_stairs")]
 
 ; Exploration HUD, FFT/MYZ/OAG layout (2026-09-28): room banner top centre, Wardstone and objective
 ; top right, party face cards along the bottom, the floor plan in a round frame bottom right, and
-; the parchment party menu floating beside the party (DungeonHud.AnchorPartyMenu). Development
+; the parchment party menu docked at the left edge, vertically centred. Development
 ; controls sit top left and only show in the standalone test scene.
 
 [node name="DungeonHud" type="Control"]
@@ -169,11 +169,13 @@ layout_mode = 2
 
 [node name="PartyMenu" type="PanelContainer" parent="."]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 1100.0
-offset_top = 400.0
-offset_right = 1420.0
-offset_bottom = 400.0
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 16.0
+offset_right = 16.0
+grow_vertical = 2
 mouse_filter = 2
 theme_type_variation = &"CommandMenu"
 

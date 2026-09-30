@@ -182,6 +182,7 @@ public partial class DungeonDirector : Node3D
         _doorPress = null;
         _travelTween?.Kill();
         _travelTween = null;
+        FinishWalkIn();
         _combat?.EndHostedEncounter();
         _event.Visible = false;
         _rest.Visible = false;
@@ -211,6 +212,7 @@ public partial class DungeonDirector : Node3D
             prefab.PurposeOverride = ComparisonMode && room.Id == 0 ? RoomPurpose.Checkpoint : room.Purpose;
             prefab.History = Floor.History;
             prefab.Combat = DungeonFloor.Kind(room.Family) is NodeKind.Combat or NodeKind.Elite or NodeKind.Boss;
+            prefab.Arrival = ArrivalFor(room, prefab);
             prefab.Generate(room.Seed, room.Doors.Select(d => d.Side(room.Id)).ToArray(), ComparisonMode && room.Id == 0 ? ComparisonSize : 0, ComparisonMode && room.Id == 0 && ComparisonOpen);
             prefab.Visible = false;
             _rooms[room.Id] = prefab;
@@ -247,7 +249,10 @@ public partial class DungeonDirector : Node3D
             StartCombat(setup);
         }
         else
-            Enter(DoorSide.South);
+        {
+            Enter(Floor.ArrivalSide);
+            _ = WalkIn();
+        }
         GD.Print($"[Dungeon] seed={Seed}, rooms={Floor.Rooms.Count}, crossing={CrossingBurn}, comparison={ComparisonMode}/{ComparisonSize}");
     }
 
@@ -266,6 +271,7 @@ public partial class DungeonDirector : Node3D
     public void UseStairs()
     {
         if (_details.Visible || Phase != DungeonPhase.Doors || Current.Family != RoomFamily.Guardian || !Current.Completed) return;
+        FinishWalkIn();
         _fx.Descended();
         if (Instant) { LeaveFloor(); return; }
         Phase = DungeonPhase.Transition;

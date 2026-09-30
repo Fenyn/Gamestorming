@@ -72,6 +72,9 @@ public sealed record BackdropThemeDefinition
     /// stones, flowers as HD-2D billboards), or null for bare tiles.</summary>
     public DecorSet? Decor { get; init; }
 
+    /// <summary>Open-ground decor chance as a multiple of <see cref="TileDecor"/>'s base scatter.</summary>
+    public float DecorDensity { get; init; } = 1f;
+
     /// <summary>True when this biome's Wall tiles are TREES: the renderer flattens them to their
     /// ground elevation and stands a billboard tree prop on each (<see cref="TreeWalls"/>), instead
     /// of drawing the raised terrain block a stone pillar or vault wall wants. Gameplay never sees
@@ -91,8 +94,10 @@ public sealed record BackdropThemeDefinition
 /// </summary>
 public static class BackdropThemes
 {
-    /// <summary>Woodland tile dressing: sparse tufts, stones and flowers on open ground; dense tall
-    /// grass and bushes on difficult terrain.</summary>
+    /// <summary>Woodland tile dressing, shared by combat boards, crawl glades and trails: tufts,
+    /// stones, flowers and mushrooms on open ground; tall grass and low bushes on difficult
+    /// terrain. Open ground never grows a bush, so a bush always means the tile costs extra
+    /// movement. forest/bush_small.png is a post, not a bush; it is left out.</summary>
     private static readonly DecorSet ForestDecor = new()
     {
         Ground = new DecorDef[]
@@ -108,7 +113,7 @@ public static class BackdropThemes
             new("forest/stone_tall.png", 0.8f, 0.32f),
             new("forest/fireweed_a.png", 1.2f, 0.50f),
             new("forest/fireweed_b.png", 1.2f, 0.50f),
-            new("forest/mushroom.png", 0.6f, 0.26f),
+            new("forest/mushroom.png", 1.6f, 0.25f),
             new("forest/flowers_mixed.png", 2f, 0.66f, Flat: true),
             new("forest/flowers_red.png", 1.2f, 0.66f, Flat: true),
             new("forest/flowers_orange.png", 1.2f, 0.66f, Flat: true),
@@ -121,6 +126,7 @@ public static class BackdropThemes
             new("forest/grass_mid_b.png", 2f, 0.45f),
             new("forest/fireweed_a.png", 1.5f, 0.52f),
             new("forest/fireweed_b.png", 1.5f, 0.52f),
+            new("trees/tree_bush.png", 5f, 0.55f),
         },
     };
 
@@ -161,6 +167,7 @@ public static class BackdropThemes
         OutskirtsMistOpacity = 0f,
         OutskirtsMistColor = new(0.48f, 0.57f, 0.53f),
         Decor = ForestDecor,
+        DecorDensity = 1.8f,
         WallsAreTrees = true,
         // Surfaces mirror the forest biome's own defaults (Grass / Dirt / Dirt), so a synthesized
         // patch outside the board is made of the same material as one inside it.

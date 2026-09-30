@@ -39,6 +39,9 @@ public sealed record CrawlWords
     public required string RevealProp { get; init; }
     public required string ExitProp { get; init; }
 
+    /// <summary>Prop at the entrance's outer mouth that shows where the party came from.</summary>
+    public required string ArrivalProp { get; init; }
+
     public string Name(RoomPurpose purpose) => Names.TryGetValue(purpose, out var name) ? name : purpose.ToString();
     public string Account(StationHistory history) => Accounts[history];
 }

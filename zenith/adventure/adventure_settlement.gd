@@ -72,11 +72,11 @@ static func offers(run: AdventureRun, library: CardLibrary, won_value: bool,
 
 
 ## What a run puts on the table. A loss offers what the run added and nothing else; a win opens
-## the whole deck it finished with, the starter's own cards included.
+## everything it finished with, Reserve and library included, the starter's own cards too.
 static func _pool(run: AdventureRun, won_value: bool) -> Array[String]:
 	var out: Array[String] = []
 	if won_value:
-		out.append_array(run.cards)
+		out.append_array(run.owned_cards())
 		out.append_array(run.duelist_ids)
 	else:
 		out.append_array(run.added_cards())

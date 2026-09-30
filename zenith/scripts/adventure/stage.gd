@@ -1,11 +1,16 @@
 extends Control
 ## The hub between duels: the run's node map on the left, and on the right a side panel with the
-## run's standing (deck, act, duels won, Motes) over a preview of the node being scouted. Opened by
+## run's standing (deck, act, duels won, Mana, Motes) over a preview of the node being scouted. Opened by
 ## Session.go_to_adventure() whenever a run is live.
+
+## Non-fighting node types that do something when entered.
+const BUILT_STOPS: Array[String] = ["forge", "shop", "relic"]
 
 @onready var faces: CardFaceCache = $CardFaceCache
 @onready var deck_name_label: Label = $Margin/Column/Body/Right/RunInfo/Row/Titles/DeckName
 @onready var stage_status_label: Label = $Margin/Column/Body/Right/RunInfo/Row/Titles/StageStatus
+@onready var mana_icon: TextureRect = $Margin/Column/Body/Right/RunInfo/Row/ManaBox/ManaIcon
+@onready var mana_label: Label = $Margin/Column/Body/Right/RunInfo/Row/ManaBox/ManaValue
 @onready var mote_icon: TextureRect = $Margin/Column/Body/Right/RunInfo/Row/MotesBox/MoteIcon
 @onready var motes_label: Label = $Margin/Column/Body/Right/RunInfo/Row/MotesBox/MotesValue
 @onready var run_info: PanelContainer = $Margin/Column/Body/Right/RunInfo
@@ -86,6 +91,8 @@ func _ready() -> void:
 	_frame(next_sheet, 26)
 	mote_icon.texture = MapArt.ui("mote")
 	ZenithTheme.motes_label(motes_label)
+	mana_icon.texture = MapArt.ui("mana")
+	ZenithTheme.mana_label(mana_label)
 	_node_icon = TextureRect.new()
 	_node_icon.custom_minimum_size = Vector2(112, 112)
 	_node_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -113,7 +120,10 @@ func _ready() -> void:
 	_refresh()
 	_enter()
 	if AdventureDev.args().has("--dev-deck"):
-		_on_view_deck()
+		deck_panel.open(Session.run.deck(), DeckInfo.might_max_of(Session.decks), faces)
+	if AdventureDev.has_flag("--dev-library"):
+		Session.go_to_library.call_deferred()
+		return
 	AdventureDev.screenshot(self)
 	SanctumUI.wire_buttons(self)
 
@@ -149,6 +159,9 @@ func _refresh() -> void:
 	motes_label.text = str(Session.wallet.motes)
 	motes_label.tooltip_text = "Motes"
 	mote_icon.tooltip_text = "Motes"
+	mana_label.text = str(run.mana)
+	mana_label.tooltip_text = "Mana, spent at Shops during this run"
+	mana_icon.tooltip_text = mana_label.tooltip_text
 	match run.status:
 		"won":
 			stage_status_label.text = "Run complete"
@@ -240,7 +253,7 @@ func _show_node(id: String) -> void:
 		run_over_heading.text = AdventureMap.type_name(type) if type != "" else "The road ahead"
 		run_over_reached.text = AdventureMap.type_blurb(type)
 		_dev_note.text = "Not built yet: passing through does nothing."
-		_dev_note.visible = type != ""
+		_dev_note.visible = type != "" and not BUILT_STOPS.has(type)
 	else:
 		_show_next_opponent(duel)
 		var tag: String = "NEXT CHALLENGER" if standing else ("%s  /  CHOOSE" if choice else "%s  /  SCOUTING") % AdventureMap.type_name(type).to_upper()
@@ -310,8 +323,13 @@ func _on_new_run() -> void:
 	Session.go_to_adventure()
 
 
+## The Reserve screen, which shows the Life Deck, the Reserve and the run library together. A run
+## that is over can no longer change its deck, so it gets the read-only deck panel instead.
 func _on_view_deck() -> void:
-	deck_panel.open(Session.run.deck(), DeckInfo.might_max_of(Session.decks), faces)
+	if AdventureReserve.is_editable(Session.run):
+		Session.go_to_library()
+	else:
+		deck_panel.open(Session.run.deck(), DeckInfo.might_max_of(Session.decks), faces)
 
 
 ## "2 lives" for a boss, "1 life" for anyone else; the player always has two.

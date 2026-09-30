@@ -13,6 +13,7 @@ SizeVariants = PackedInt32Array(16, 18)
 [node name="Shell" parent="." index="0"]
 FloorId = "deepforest"
 ZoneHalf = 5
+ArrivalBank = 3
 BoardTreeScenes = [ExtResource("conifer"), ExtResource("dead")]
 BigTreeScenes = [ExtResource("canopy"), ExtResource("lean")]
 BigTreeWeights = PackedFloat32Array(1, 1)

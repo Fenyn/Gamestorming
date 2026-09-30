@@ -48,10 +48,17 @@ public static class GladeRecipes
         ["stream_bridge"] = 3, ["small_river"] = 2,
     };
 
+    /// <summary>The entrance: level ground the road crosses, with at most one small outcrop.</summary>
+    private static readonly Dictionary<string, float> Trailhead = new()
+    {
+        ["open_field"] = 3, ["rolling_hills"] = 1,
+    };
+
     private static readonly GladeRecipe Default = new() { Shapes = Open };
 
     private static readonly Dictionary<RoomPurpose, GladeRecipe> ByPurpose = new()
     {
+        [RoomPurpose.Receiving] = new() { Shapes = Trailhead, Setpieces = new[] { "rocky_outcrop" }, MaxFeatures = 1 },
         [RoomPurpose.Checkpoint] = new() { Shapes = Perch, Forced = new[] { "rocky_escarpment" } },
         [RoomPurpose.Cistern] = new() { Shapes = Water },
         [RoomPurpose.Workshop] = new() { Shapes = Open, Setpieces = new[] { "ruined_foundation", "rocky_outcrop" } },

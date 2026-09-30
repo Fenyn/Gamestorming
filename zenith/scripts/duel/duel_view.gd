@@ -1201,7 +1201,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 				await _read_beat(LETHAL_HOLD)
 		&"life_card_lost":
 			await _fly_life_loss(int(data.get("card", -1)), player, targets, "-1 Life", str(data.get("id", "")))
-		&"final_strike", &"hand_discarded", &"in_play_discarded", &"card_moved", &"critical_ally":
+		&"final_strike", &"hand_discarded", &"in_play_discarded", &"card_moved":
 			var uid: int = int(data.get("card", data.get("discarded", -1)))
 			await _fly(uid, targets)
 		&"card_used", &"card_placed":

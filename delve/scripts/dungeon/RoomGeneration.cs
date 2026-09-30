@@ -10,6 +10,9 @@ namespace Delve.Dungeon;
 /// <summary>A dressing piece in room tiles. <paramref name="Raised"/> seats it on the ground under its
 /// centre tile, for rooms whose floor is not level.</summary>
 public sealed record RoomProp(string Kind, float X, float Y, float Width, float Depth, float Height, float Angle = 0, bool Raised = false);
+/// <summary>The entrance's outer mouth: the side the party arrives through from off the floor, the prop
+/// that shows where from, and how far out (tiles) that prop reaches.</summary>
+public sealed record RoomArrival(DoorSide Side, string Prop, float Reach);
 public sealed record GeneratedRoom(MapLayout Layout, IReadOnlyList<RoomProp> Props, IReadOnlyList<DoorSide> Doors, int ZoneHalf = RoomGeneration.ZoneHalf);
 public sealed record RoomVariation(int MinPillarInset = 3, int MaxPillarInset = 4, int MinCover = 2, int MaxCover = 4, int DebrisCount = 8, int FeatureCount = 4, int LayoutVariant = -1, bool StationRooms = true);
 /// <summary>Pure generation used by the prefab owning this profile. Cosmetic RNG cannot alter geometry.</summary>
@@ -133,9 +136,12 @@ public static partial class RoomGeneration
         l.SetElevation(x, y, height / TileCornerHeights.UnitsPerElevation);
     }
 
+    /// <summary>Tiles across every doorway and trail mouth.</summary>
+    public const int DoorWidth = 3;
+
     public static IEnumerable<Vector2Int> Threshold(int n, DoorSide side)
     {
-        for (int i = n / 2 - 1; i <= n / 2 + 1; i++)
+        for (int i = n / 2 - DoorWidth / 2; i <= n / 2 + DoorWidth / 2; i++)
             yield return side switch
             {
                 DoorSide.North => new(i, 0),

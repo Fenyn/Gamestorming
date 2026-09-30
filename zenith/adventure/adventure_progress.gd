@@ -289,6 +289,7 @@ static func prepare_run(run: AdventureRun, library: CardLibrary, collection: Adv
 	if not DeckValidator.validate(run.deck(), library).is_empty():
 		run.relic_id = ""
 		run.reserve.clear()
+	run.starter_reserve = run.reserve.duplicate()
 
 
 # --- One won duel -------------------------------------------------------------

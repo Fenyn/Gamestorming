@@ -43,12 +43,12 @@ The spine. Everything else hangs off it.
 |---|---|---|---|
 | 2.1 | Duel node on the map | todo | Existing duel flow |
 | 2.2 | Elite node: a stronger band and a better reward | todo | What "better reward" means needs a number; propose one when building |
-| 2.3 | Forge node: cut cards, add copies of cards already in the deck | todo | Cut exists (`AdventureRewards.apply_cut`) |
-| 2.4 | Mana: run wallet, income per duel, spend API | todo | Income numbers pending the user |
-| 2.5 | Shop node: stock roll, buy with Mana | blocked | What it sells and the prices are pending the user. Can reuse the vendor's shelf logic |
+| 2.3 | Forge node: cut cards, add copies of cards already in the deck | done | 2026-09-29. One free action per visit, or leave (`AdventureForge`, `scenes/adventure/forge.tscn`); a copy is a run gain through `added_cards()`. The 2.6 size cap goes in `AdventureForge.max_size` |
+| 2.4 | Mana: run wallet, income per duel, spend API | done | 2026-09-29. `AdventureRun.mana` (saved), 50 at the start, paid in `AdventureRewards.finish_stage` by node type and act, spent with `spend_mana`; numbers in the `mana` block of `economy.json` |
+| 2.5 | Shop node: stock roll, buy with Mana | done | 2026-09-29. Five single cards from `AdventureRewards.eligible_cards`, rolled once per Shop and saved, 45/70/110 Mana by band, no reroll (`AdventureShop`, `scenes/adventure/shop.tscn`); a buy is a run gain recorded as a `buy` pick |
 | 2.6 | Run deck size cap: starter size plus bought slots, plus per-run boosts up to a limit | todo | User, 2026-09-23. Where boosts come from, how big they are and the limit are not set yet; propose numbers when building |
-| 2.7 | Run library: won cards outside the deck, saved with the run; a won card past the cap lands there | todo | Design doc 4.7. Settlement counts library cards as run gains |
-| 2.8 | Library screen on the map: swap between Life Deck, library and Reserve, validated | todo | Replaces 4.6 as the place Reserve swaps happen |
+| 2.7 | Run library: won cards outside the deck, saved with the run; a won card past the cap lands there | todo | Design doc 4.7. The library itself and the settlement half are done 2026-09-29: `AdventureRun.added_cards` and a won run's pool count the Life Deck, Reserve and library against `starter_cards` plus `starter_reserve`. The won-card-past-the-cap half waits on 2.6 |
+| 2.8 | Library screen on the map: swap between Life Deck, library and Reserve, validated | done | 2026-09-29. `scenes/adventure/library.tscn`, rules in `AdventureReserve`, the map's View Deck button. Reserve and library trade single cards; the Life Deck only swaps one for one; any move that adds a DeckValidator problem is refused. `AdventureRun.library` is saved. Replaces 4.6 as the place Reserve swaps happen. The won-card-past-the-cap half of 2.7 still waits on 2.6 |
 
 ## Phase 3: duel setup options
 
@@ -69,12 +69,12 @@ One per-duel options block passed from `Session` to the engine at setup, each wi
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 4.1 | Run holds a Relic and a Reserve; save, loadout and `Session.build_referee` carry them | todo | Starters have none, except `tide_companions` |
-| 4.2 | Reserve bundle group in `bundles.json`: counter tech sorted by the archetype it answers | todo | Data work; source from `docs/archetypes.md`. Lockouts stay out |
-| 4.3 | Relic node offers: Relic plus about five school-themed Reserve cards, one of three, once per run | todo | |
-| 4.4 | Relic node screen | todo | |
-| 4.5 | Reserve bundles offered on reward screens as an option pack | todo | |
-| 4.6 | Reserve side of the library screen (2.8), usable once the next opponent is shown | todo | |
+| 4.1 | Run holds a Relic and a Reserve; save, loadout and `Session.build_referee` carry them | done | 2026-09-29. `AdventureRun.relic_id` and `reserve` always go into `deck()`; a starter's own Relic (`tide_companions`) is copied onto the run at `begin_with`. Save version 8 adds `library`, `relic_offers` and `reserve_new` |
+| 4.2 | Reserve bundle group: counter tech sorted by the archetype it answers | done | 2026-09-29. Its own file, `data/adventure/reserve_bundles.json` (`AdventureReserveBundles`), so theme offers never see it: 32 sets (the 31 reviewed plus Locking Jaws in Steel), each key cards plus seeded fill to 5. No lockouts, no signature cards. A key card that does not fit drops the set; fill is drawn only from legal candidates |
+| 4.3 | Relic node offers: Relic plus about five school-themed Reserve cards, one of three, once per run | done | 2026-09-29, `AdventureRelic`. Pool in the `relic` block of `economy.json`: Blank Mask, Severing Clasp, Champion's Laurel, Debtor's Ring (only with an Ally); never the Lodestone Heart. Three distinct Relics and sets, rolled once per node and saved. Take adds the set to the Reserve and sends an over-full Reserve to the Reserve screen; Keep only with a Relic held |
+| 4.4 | Relic node screen | done | 2026-09-29, `scenes/adventure/relic.tscn` and `relic_offer.tscn`. Dev flags in `README.md`. 70250 checks, 0 failures; `ui_cleanup_tests.gd` 222 checks drive both new screens |
+| 4.5 | Reserve bundles offered on reward screens as an option pack | todo | The sets exist (4.2); the reward-screen offer does not |
+| 4.6 | Reserve side of the library screen (2.8), usable once the next opponent is shown | done | 2026-09-29. The Reserve screen opens from the map while the run stands on a fight whose duel is not dealt, so the next opponent is already on the map's side panel |
 | 4.7 | More Relics, each paralleling a printed card | todo | Only 4 exist. Source check and names need user approval |
 
 ## Phase 5: Resonances

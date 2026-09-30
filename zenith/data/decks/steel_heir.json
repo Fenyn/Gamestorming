@@ -23,18 +23,6 @@
   "blurb": "Emrys Rooke was taught the blade by the Vales and everything else by the Grove, and none of it is what wins here. Steel is the magic turned inward, so the list is him putting metal on and then hitting with it, harder at every Aspect. He draws deep, spends life cards to make a blow land bigger, and by the last rung he swings twice a Combat. Nothing in it defends for long.",
   "cards": [
     {
-      "id": "freestyle_art_06",
-      "count": 3
-    },
-    {
-      "id": "signature_art_09",
-      "count": 1
-    },
-    {
-      "id": "signature_strike_06",
-      "count": 3
-    },
-    {
       "id": "freestyle_noncombat_04",
       "count": 1
     },
@@ -47,15 +35,7 @@
       "count": 1
     },
     {
-      "id": "signature_drill_04",
-      "count": 1
-    },
-    {
       "id": "seal_11",
-      "count": 1
-    },
-    {
-      "id": "signature_noncombat_05",
       "count": 1
     },
     {
@@ -68,14 +48,6 @@
     },
     {
       "id": "personality_53",
-      "count": 1
-    },
-    {
-      "id": "freestyle_noncombat_01",
-      "count": 1
-    },
-    {
-      "id": "freestyle_noncombat_12",
       "count": 1
     },
     {
@@ -117,10 +89,6 @@
     {
       "id": "steel_strike_20",
       "count": 3
-    },
-    {
-      "id": "steel_combat_01",
-      "count": 1
     },
     {
       "id": "steel_strike_22",
@@ -169,6 +137,22 @@
     {
       "id": "seal_13",
       "count": 1
+    },
+    {
+      "id": "steel_drill_01",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_03",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_14",
+      "count": 3
+    },
+    {
+      "id": "steel_strike_13",
+      "count": 3
     }
   ]
 }

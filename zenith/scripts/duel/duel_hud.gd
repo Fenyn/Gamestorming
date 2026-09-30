@@ -99,7 +99,7 @@ const TRAY_KINDS: Array[StringName] = [&"reserve", &"keep", &"discard_choice", &
 ## Tray captions by option type; anything else shows the option's own label.
 const TRAY_VERBS: Dictionary = {
 	&"reserve_in": "Bring in", &"keep": "Keep", &"discard_choice": "Discard", &"recover": "Recover",
-	&"pick_option": "Choose", &"pick_in_play": "Choose", &"name_card": "Name", &"capture": "Capture", &"discard_ally": "Discard",
+	&"pick_option": "Choose", &"pick_in_play": "Choose", &"name_card": "Name", &"capture": "Capture",
 	&"final_strike": "Discard",
 }
 ## The tray only ever opens for the seat at the table, so its header needs no name.

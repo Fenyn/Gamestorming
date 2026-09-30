@@ -34,4 +34,15 @@ public partial class CrawlScenery : Resource
 
     /// <summary>Seconds a room takes to brighten or dim when the party moves.</summary>
     [Export] public double LightSeconds { get; set; } = 0.5;
+
+    /// <summary>Passage scene that carries the arrival trail off the floor from the entrance's outer
+    /// mouth, <see cref="ArrivalTrailLength"/> tiles past the room's margin. Unset, nothing is drawn
+    /// past the arrival prop.</summary>
+    [Export] public PackedScene? ArrivalTrail { get; set; }
+    [Export] public int ArrivalTrailLength { get; set; } = 6;
+
+    /// <summary>Where the party starts its walk in: metres out from the entrance's outer mouth, and
+    /// metres above the floor there (the top of a stair).</summary>
+    [Export] public float ArrivalReach { get; set; } = 5f;
+    [Export] public float ArrivalRise { get; set; }
 }

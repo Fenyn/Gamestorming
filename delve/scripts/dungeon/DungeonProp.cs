@@ -30,7 +30,7 @@ public partial class DungeonProp : Node3D
         var stone = Tint("stone");
         var wood = Tint("wood");
         var iron = Tint("iron");
-        if (BuildStation(p) || BuildFeature(p) || BuildForest(p)) return;
+        if (BuildStation(p) || BuildFeature(p) || BuildForest(p) || BuildArrival(p)) return;
         switch (p.Kind)
         {
             case "stairs":

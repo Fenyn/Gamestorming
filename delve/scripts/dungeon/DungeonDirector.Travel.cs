@@ -42,10 +42,12 @@ public partial class DungeonDirector
                 ((IPassage)view).Build(av, a, b);
                 _corridors.Add((view, door.A, door.B));
             }
+        BuildArrivalTrail();
     }
 
     private void SpawnTravelParty(bool useCombatPositions = false)
     {
+        FinishWalkIn();
         SetHoveredPartyMember(null);
         Clear(_partyLayer);
         _tokens.Clear();
@@ -72,6 +74,7 @@ public partial class DungeonDirector
         var door = from.Doors.FirstOrDefault(d => d.Side(from.Id) == side);
         if (door == null)
             return;
+        FinishWalkIn();
         int epoch = _epoch;
         var target = Floor.Rooms[door.Other(from.Id)];
         if (Delve.Run.CharacterPromotion.HasPending(State.Party) && DoorTips.NeedsPromotionsFirst(target))
@@ -131,22 +134,8 @@ public partial class DungeonDirector
             double duration = 0;
             for (int i = 0; i < _tokens.Count; i++)
             {
-                var token = _tokens[i];
-                token.SetMoving(true);
-                double delay = i * 0.08;
-                var last = token.Position;
-                foreach (var position in paths[i])
-                {
-                    var heading = new Vector2(position.X - last.X, position.Z - last.Z);
-                    if (heading.LengthSquared() > 0.01f)
-                        _travelTween.TweenCallback(Callable.From(() => token.Facing = heading.Normalized())).SetDelay(delay);
-                    double time = Math.Max(0.015, last.DistanceTo(position) * TravelSecondsPerTile);
-                    _travelTween.TweenProperty(token, "position", position, time).SetDelay(delay);
-                    delay += time;
-                    last = position;
-                }
-
-                duration = Math.Max(duration, delay);
+                _tokens[i].SetMoving(true);
+                duration = Math.Max(duration, QueueWalk(_travelTween, _tokens[i], _tokens[i].Position, paths[i], i * 0.08, TravelSecondsPerTile));
             }
 
             LastCrossingSeconds = duration;
@@ -184,6 +173,24 @@ public partial class DungeonDirector
         }
     }
 
+    /// <summary>Queues a token's walk from <paramref name="from"/> along a path on a parallel tween,
+    /// turning it to face each leg. Returns the delay at which it arrives.</summary>
+    private double QueueWalk(Tween tween, UnitVisual3D token, Vector3 from, IEnumerable<Vector3> path, double delay, double secondsPerTile)
+    {
+        var last = from;
+        foreach (var position in path)
+        {
+            var heading = new Vector2(position.X - last.X, position.Z - last.Z);
+            if (heading.LengthSquared() > 0.01f)
+                tween.TweenCallback(Callable.From(() => token.Facing = heading.Normalized())).SetDelay(delay);
+            double time = Math.Max(0.015, last.DistanceTo(position) * secondsPerTile);
+            tween.TweenProperty(token, "position", position, time).SetDelay(delay);
+            delay += time;
+            last = position;
+        }
+        return delay;
+    }
+
     public override void _Process(double delta)
     {
         if (State == null)
@@ -198,7 +205,7 @@ public partial class DungeonDirector
         foreach (var (view, _, _) in _corridors)
             if (view.Visible && view is IPassage passage)
                 passage.Cutaway(camera);
-        AnchorPartyMenu();
+        _hud.SetOverlayOpen(_details.Visible || _event.Visible);
     }
 
     private Vector2? _doorPress;

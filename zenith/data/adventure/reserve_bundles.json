@@ -1,0 +1,165 @@
+{
+	"_note": "Reserve sets for the Relic node (design doc 4.2 and 7.5). Counter tech only: no lockouts, no signature cards. Each set is 5 cards: its `key` cards, then `fill.count` more drawn at random from `fill.from`, where one id may be drawn again up to its copy limit. A key card (or one copy of it) the run cannot legally hold is skipped and fill makes up the difference. A set that resolves to no legal card is not offered. Theme bundles live in bundles.json and never see these.",
+	"sets": [
+		{
+			"id": "reserve_pyre_art_answers", "group": "pyre", "name": "Art answers", "answers": "Art decks",
+			"key": [{"id": "pyre_strike_23", "count": 2}, {"id": "pyre_drill_05", "count": 1}],
+			"fill": {"count": 2, "from": ["pyre_drill_05", "pyre_strike_20"]}
+		},
+		{
+			"id": "reserve_pyre_strike_answers", "group": "pyre", "name": "Strike answers", "answers": "Strike decks",
+			"key": [{"id": "pyre_strike_28", "count": 2}],
+			"fill": {"count": 3, "from": ["pyre_strike_28", "pyre_drill_03"]}
+		},
+		{
+			"id": "reserve_pyre_recursion_denial", "group": "pyre", "name": "Recursion denial", "answers": "Recursion decks",
+			"key": [{"id": "pyre_strike_26", "count": 2}, {"id": "pyre_drill_08", "count": 1}],
+			"fill": {"count": 2, "from": ["pyre_strike_26", "pyre_drill_08"]}
+		},
+		{
+			"id": "reserve_steel_strike_answers", "group": "steel", "name": "Strike answers", "answers": "Strike decks",
+			"key": [{"id": "steel_drill_04", "count": 2}],
+			"fill": {"count": 3, "from": ["steel_drill_04", "steel_strike_02", "steel_strike_19"]}
+		},
+		{
+			"id": "reserve_steel_drill_breakers", "group": "steel", "name": "Drill breakers", "answers": "Drill decks",
+			"key": [{"id": "steel_art_11", "count": 2}],
+			"fill": {"count": 3, "from": ["steel_art_11", "steel_strike_23"]}
+		},
+		{
+			"id": "reserve_steel_ally_breakers", "group": "steel", "name": "Ally breakers", "answers": "Ally decks",
+			"key": [{"id": "steel_strike_28", "count": 2}],
+			"fill": {"count": 3, "from": ["steel_strike_28", "steel_art_12"]}
+		},
+		{
+			"id": "reserve_steel_endurance_breakers", "group": "steel", "name": "Endurance breakers", "answers": "Endurance decks",
+			"key": [{"id": "steel_strike_01", "count": 1}],
+			"fill": {"count": 4, "from": ["steel_art_08", "steel_strike_23", "steel_strike_19", "steel_strike_02"]}
+		},
+		{
+			"id": "reserve_tide_art_answers", "group": "tide", "name": "Art answers", "answers": "Art decks",
+			"key": [{"id": "tide_strike_11", "count": 2}, {"id": "tide_strike_19", "count": 1}],
+			"fill": {"count": 2, "from": ["tide_strike_19", "tide_art_13"]}
+		},
+		{
+			"id": "reserve_tide_strike_answers", "group": "tide", "name": "Strike answers", "answers": "Strike decks",
+			"key": [{"id": "tide_strike_17", "count": 2}, {"id": "tide_drill_05", "count": 1}],
+			"fill": {"count": 2, "from": ["tide_drill_05", "tide_strike_13"]}
+		},
+		{
+			"id": "reserve_tide_drill_breakers", "group": "tide", "name": "Drill breakers", "answers": "Drill decks",
+			"key": [{"id": "tide_noncombat_04", "count": 2}],
+			"fill": {"count": 3, "from": ["tide_noncombat_04", "tide_combat_02"]}
+		},
+		{
+			"id": "reserve_tide_non_combat_breakers", "group": "tide", "name": "Non-Combat breakers", "answers": "Non-Combat decks",
+			"key": [{"id": "tide_strike_03", "count": 2}],
+			"fill": {"count": 3, "from": ["tide_strike_04", "tide_drill_06"]}
+		},
+		{
+			"id": "reserve_tide_ascension_denial", "group": "tide", "name": "Ascension denial", "answers": "Ascension climbers",
+			"key": [{"id": "tide_strike_15", "count": 2}, {"id": "tide_noncombat_03", "count": 1}],
+			"fill": {"count": 2, "from": ["tide_strike_16", "tide_art_11"]}
+		},
+		{
+			"id": "reserve_storm_strike_answers", "group": "storm", "name": "Strike answers", "answers": "Strike decks",
+			"key": [{"id": "storm_strike_05", "count": 2}],
+			"fill": {"count": 3, "from": ["storm_art_11", "storm_noncombat_01", "storm_drill_10"]}
+		},
+		{
+			"id": "reserve_storm_art_answers", "group": "storm", "name": "Art answers", "answers": "Art decks",
+			"key": [{"id": "storm_art_26", "count": 2}, {"id": "storm_art_01", "count": 1}],
+			"fill": {"count": 2, "from": ["storm_art_01", "storm_art_09"]}
+		},
+		{
+			"id": "reserve_storm_focused_answers", "group": "storm", "name": "Focused answers", "answers": "Focused attackers",
+			"key": [{"id": "storm_drill_08", "count": 2}],
+			"fill": {"count": 3, "from": ["storm_drill_01", "storm_drill_02", "storm_art_09"]}
+		},
+		{
+			"id": "reserve_storm_drill_breakers", "group": "storm", "name": "Drill breakers", "answers": "Drill decks",
+			"key": [{"id": "storm_art_05", "count": 2}],
+			"fill": {"count": 3, "from": ["storm_strike_01", "storm_drill_09"]}
+		},
+		{
+			"id": "reserve_storm_ally_breakers", "group": "storm", "name": "Ally breakers", "answers": "Ally decks",
+			"key": [{"id": "storm_strike_11", "count": 2}],
+			"fill": {"count": 3, "from": ["storm_strike_10", "storm_art_04"]}
+		},
+		{
+			"id": "reserve_shade_art_answers", "group": "shade", "name": "Art answers", "answers": "Art decks",
+			"key": [{"id": "shade_art_08", "count": 2}],
+			"fill": {"count": 3, "from": ["shade_strike_19", "shade_drill_05"]}
+		},
+		{
+			"id": "reserve_shade_strike_answers", "group": "shade", "name": "Strike answers", "answers": "Strike decks",
+			"key": [{"id": "shade_strike_22", "count": 2}],
+			"fill": {"count": 3, "from": ["shade_strike_22", "shade_strike_18"]}
+		},
+		{
+			"id": "reserve_shade_non_combat_breakers", "group": "shade", "name": "Non-Combat breakers", "answers": "Non-Combat decks",
+			"key": [{"id": "shade_strike_16", "count": 2}],
+			"fill": {"count": 3, "from": ["shade_strike_16", "shade_drill_06", "shade_strike_01"]}
+		},
+		{
+			"id": "reserve_shade_ally_breakers", "group": "shade", "name": "Ally breakers", "answers": "Ally decks",
+			"key": [{"id": "shade_art_12", "count": 2}],
+			"fill": {"count": 3, "from": ["shade_art_12", "shade_strike_01"]}
+		},
+		{
+			"id": "reserve_shade_drill_breakers", "group": "shade", "name": "Drill breakers", "answers": "Drill decks",
+			"key": [{"id": "shade_strike_13", "count": 2}],
+			"fill": {"count": 3, "from": ["shade_strike_13", "freestyle_noncombat_01", "freestyle_art_11"]}
+		},
+		{
+			"id": "reserve_root_art_answers", "group": "root", "name": "Art answers", "answers": "Art decks",
+			"key": [{"id": "root_art_01", "count": 2}],
+			"fill": {"count": 3, "from": ["root_drill_03", "root_drill_06"]}
+		},
+		{
+			"id": "reserve_root_strike_answers", "group": "root", "name": "Strike answers", "answers": "Strike decks",
+			"key": [{"id": "root_strike_16", "count": 2}],
+			"fill": {"count": 3, "from": ["root_strike_19", "root_drill_02"]}
+		},
+		{
+			"id": "reserve_root_non_combat_breakers", "group": "root", "name": "Non-Combat breakers", "answers": "Non-Combat decks",
+			"key": [{"id": "root_strike_11", "count": 2}],
+			"fill": {"count": 3, "from": ["root_art_07", "root_strike_12"]}
+		},
+		{
+			"id": "reserve_root_ally_breakers", "group": "root", "name": "Ally breakers", "answers": "Ally decks",
+			"key": [{"id": "root_art_10", "count": 2}],
+			"fill": {"count": 3, "from": ["root_art_10", "root_strike_18"]}
+		},
+		{
+			"id": "reserve_root_drill_breakers", "group": "root", "name": "Drill breakers", "answers": "Drill decks",
+			"key": [{"id": "root_noncombat_05", "count": 2}],
+			"fill": {"count": 3, "from": ["root_noncombat_05", "root_strike_18"]}
+		},
+		{
+			"id": "reserve_root_seal_breakers", "group": "root", "name": "Seal breakers", "answers": "Seal decks",
+			"key": [{"id": "root_combat_07", "count": 2}],
+			"fill": {"count": 3, "from": ["root_combat_07", "root_strike_03"]}
+		},
+		{
+			"id": "reserve_free_ally_sweep", "group": "freestyle", "name": "Ally sweep", "answers": "Ally decks",
+			"key": [{"id": "freestyle_noncombat_11", "count": 2}],
+			"fill": {"count": 3, "from": ["freestyle_noncombat_11", "freestyle_combat_17", "freestyle_strike_03"]}
+		},
+		{
+			"id": "reserve_free_seal_breakers", "group": "freestyle", "name": "Seal breakers", "answers": "Seal decks",
+			"key": [{"id": "freestyle_combat_19", "count": 2}],
+			"fill": {"count": 3, "from": ["freestyle_combat_19", "freestyle_noncombat_10", "freestyle_noncombat_18", "freestyle_combat_08"]}
+		},
+		{
+			"id": "reserve_free_non_combat_breakers", "group": "freestyle", "name": "Non-Combat breakers", "answers": "Non-Combat decks",
+			"key": [{"id": "freestyle_strike_02", "count": 2}],
+			"fill": {"count": 3, "from": ["freestyle_strike_02", "freestyle_noncombat_12", "freestyle_combat_20"]}
+		},
+		{
+			"id": "reserve_free_ascension_denial", "group": "freestyle", "name": "Ascension denial", "answers": "Ascension climbers",
+			"key": [{"id": "freestyle_strike_04", "count": 2}],
+			"fill": {"count": 3, "from": ["freestyle_strike_04", "freestyle_art_07", "freestyle_noncombat_20"]}
+		}
+	]
+}

@@ -7,7 +7,7 @@
   ],
   "style": "tide",
   "alignment": "vigil",
-  "mastery": "tide_mastery_01",
+  "mastery": "tide_mastery_02",
   "relic": "relic_02",
   "reserve": [
     "freestyle_noncombat_09",
@@ -41,14 +41,6 @@
     {
       "id": "freestyle_combat_11",
       "count": 3
-    },
-    {
-      "id": "signature_combat_03",
-      "count": 3
-    },
-    {
-      "id": "signature_combat_06",
-      "count": 2
     },
     {
       "id": "signature_art_01",
@@ -163,10 +155,6 @@
       "count": 3
     },
     {
-      "id": "grounds_01",
-      "count": 3
-    },
-    {
       "id": "freestyle_art_02",
       "count": 3
     },
@@ -179,8 +167,24 @@
       "count": 1
     },
     {
-      "id": "freestyle_combat_06",
+      "id": "tide_drill_02",
+      "count": 1
+    },
+    {
+      "id": "tide_drill_04",
+      "count": 2
+    },
+    {
+      "id": "tide_drill_05",
       "count": 3
+    },
+    {
+      "id": "tide_art_12",
+      "count": 3
+    },
+    {
+      "id": "tide_art_14",
+      "count": 2
     }
   ]
 }

@@ -66,7 +66,7 @@ public static class TileDecor
     /// back on the board's own origin and drives the outward density taper. A null layout (the flat
     /// dev board) treats every tile as ordinary ground at a reduced density.
     /// </summary>
-    public static Node3D? Build(
+    public static DecorScatter? Build(
         BackdropThemeDefinition theme,
         MapLayout? layout,
         int gridWidth,
@@ -77,10 +77,11 @@ public static class TileDecor
     {
         if (theme.Decor is not { } set)
             return null;
+        float density = theme.DecorDensity;
 
         // The whole scatter is placed in layout tile space and then shifted like the terrain mesh,
         // so a halo tile's sprite lands over the halo tile that carries its height.
-        var root = new Node3D { Name = "TileDecor", Position = new Vector3(-margin, 0f, -margin) };
+        var root = new DecorScatter { Name = "TileDecor", Position = new Vector3(-margin, 0f, -margin) };
         int seed = layout?.Seed ?? 0;
         var textures = new Dictionary<string, Texture2D>();
 
@@ -96,14 +97,14 @@ public static class TileDecor
             {
                 case TileRole.Ground:
                     defs = set.Ground;
-                    float chance = layout == null ? GroundChance * 0.6f : GroundChance;
+                    float chance = (layout == null ? GroundChance * 0.6f : GroundChance) * density;
                     // Broad patches leave breathing room around the main landforms.
                     float phase = (uint)seed % 997 * 0.017f;
                     float patch = 0.5f + 0.5f * Mathf.Sin(x * 0.41f + y * 0.23f + phase)
                         * Mathf.Sin(y * 0.33f - x * 0.19f - phase);
                     chance *= 0.35f + patch * 1.3f;
                     float roll = MapHash.Hash01(x, y, seed + SaltPlace);
-                    count = roll < chance ? (MapHash.Hash01(x, y, seed + SaltPlace + 1) < GroundSecondChance ? 2 : 1) : 0;
+                    count = roll < chance ? (MapHash.Hash01(x, y, seed + SaltPlace + 1) < GroundSecondChance * density ? 2 : 1) : 0;
                     break;
                 case TileRole.DifficultTerrain:
                     defs = set.Difficult;
@@ -150,7 +151,7 @@ public static class TileDecor
     }
 
     private static void PlaceOne(
-        Node3D root,
+        DecorScatter root,
         DecorDef[] defs,
         Dictionary<string, Texture2D> textures,
         MapLayout? layout,
@@ -219,6 +220,7 @@ public static class TileDecor
         }
 
         root.AddChild(sprite);
+        root.Sprites.Add(sprite);
     }
 
     private static DecorDef PickWeighted(DecorDef[] defs, float roll)

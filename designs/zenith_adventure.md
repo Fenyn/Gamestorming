@@ -175,16 +175,35 @@ theme, shown with their cards visible. Or they skip and cut a card instead (sect
 
 ### 4.2 Reserve bundles
 
-Decided 2026-09-23, not built.
+Decided 2026-09-23. The Relic node's sets built 2026-09-29 (`data/adventure/reserve_bundles.json`,
+`adventure/adventure_reserve_bundles.gd`, `adventure/adventure_relic.gd`). Reserve bundles on
+reward screens are not built yet.
 
 - Reward screens can offer **Reserve bundles** as an option pack beside the ordinary bundles. A
   Reserve bundle's cards go into the Reserve, not the Life Deck. A Reserve exists only once the
   run has a Relic (section 7.5).
 - **Reserve bundles hold counter tech:** specific removal and answers to deck types, which the
   player swaps in once the next opponent is known. Lockouts are not counter tech. They are usually
-  main-deck staples and stay in the ordinary bundles.
-- A Relic can appear in many Reserve bundles, so the Sensei pick brings a different starting
-  Reserve from run to run.
+  main-deck staples and stay in the ordinary bundles. No signature cards either.
+- 32 sets: Pyre 3, Steel 4, Tide 5, Storm 5, Shade 5, Root 6, Freestyle 4. Each has a `group`
+  (a school or `freestyle`), a name, the opponent type it answers, and is **modular**: fixed
+  **key** cards that define the answer (usually 2 or 3), plus **fill** slots drawn at random from a
+  curated candidate list, 5 cards in all. A candidate may be drawn again up to its copy limit.
+  Steel's fourth set holds Locking Jaws (`steel_strike_01`, Reserve only) as its one key card.
+- **Legality.** "Fits" means DeckValidator on the run deck with the set added to the current
+  Reserve, counting every problem except the Reserve's size (copy limits across Life Deck and
+  Reserve, style, Reserve-only), plus each card's own gates (`alignment_only`, `only`, including
+  `duelist_character`). No card is ever offered past its copy limit.
+  - If any key card, or any copy of one, does not fit, the **whole set is not offered**. A run
+    that already holds Locking Jaws never sees the Locking Jaws set.
+  - Fill is drawn one card at a time from the candidates that still fit after the key cards and
+    the fill already drawn, so a fill card that would break a rule is never drawn and a legal one
+    takes its place.
+  - A set whose fill candidates run dry is offered short of 5, as long as all its key cards are
+    there.
+- The draw is seeded from the Relic node's seed and the set id, and the resolved card list is
+  saved with the offer, so a reload shows the same cards.
+- Theme reward offers never see these sets; they live in their own file.
 
 ### 4.3 Cuts
 
@@ -230,13 +249,30 @@ Tide and Shade, is in `zenith/docs/expansion_batch2_review.md`.
 
 ### 4.7 The run library
 
-Decided 2026-09-23, not built.
+Decided 2026-09-23. Library and Reserve screen built 2026-09-29 (`AdventureRun.library`,
+`adventure/adventure_reserve.gd`, `scenes/adventure/library.tscn`).
 
 - Every run keeps a **run library**: the cards it has won that are not in the Life Deck or the
-  Reserve.
-- Between nodes the player can swap cards between the Life Deck, the library and the Reserve, if
-  the run has one. Every swap is checked by `DeckValidator`.
-- A won card that does not fit under the deck's size cap goes to the library.
+  Reserve. It is saved with the run. Cards set aside from the Reserve go there; nothing is
+  destroyed.
+- Between nodes the player can move cards between the Life Deck, the library and the Reserve, if
+  the run has one. Every move is checked by `DeckValidator`, and any move that would add a new
+  problem is refused.
+  - Reserve to library, and library to Reserve, are free single moves. Library to Reserve only
+    while the Reserve is under its Relic's size, and never without a Relic.
+  - The Life Deck only **swaps one for one** with the Reserve or the library, since the deck's size
+    changes only at nodes. A swap that puts a Reserve-only card in the Life Deck, or a card past
+    its copy limit, is refused.
+  - While the player is setting cards aside after a Relic (7.5), the over-full Reserve is the one
+    problem allowed to stand, and the screen can be left only once DeckValidator passes whole.
+- The Reserve screen is the map's **View Deck** button, and opens by itself after a Relic leaves
+  the Reserve over its size. Life Deck strips on the left, the Reserve under its Relic in the
+  middle, the library on the right. A Reserve card clicked goes to the library, a library card to
+  the Reserve when there is room; a Life Deck strip clicked is picked, and the next Reserve or
+  library card clicked trades places with it. Dragging onto a card in another pile swaps; onto an
+  empty part of the Reserve or library moves.
+- A won card that does not fit under the deck's size cap goes to the library. Not built: it waits
+  on the size cap (build plan 2.6).
 
 ---
 
@@ -404,7 +440,7 @@ and 8.3.
   An Elite draws from one band stronger than a duel; every boss draws from the stronger band.
 - **Aspect grants:** after the act 1 and act 2 bosses, and only from Aspect cards the player owns
   (section 8.6).
-- The Sensei fills the whole of tier 3 of act 1, so every path meets it.
+- The Relic node fills the whole of tier 3 of act 1, so every path meets it.
 - The **final boss of every run is Halden Quarr** with `steel_beatdown`, at tier 8 of act 3. He
   wears the Lodestone Heart, the stone every storyline is after (`zenith/docs/cast.md`), and the
   Heart's Relic flags are his printed exemption. Gate bosses carry one stated
@@ -426,7 +462,7 @@ and 8.3.
 | Boss | Tier 8 of each act. Quarr at the end of act 3 |
 | Twist | A duel under a stated special rule (7.3) |
 | Encounter | A duel with an allied character fighting beside you (7.4) |
-| Sensei | The Relic pick (7.5). Forced, once per run |
+| Relic node | The Relic pick (7.5). Forced, once per run. Built 2026-09-29 |
 | Shop | Spends Mana, the per-run currency (7.6) |
 | Shrine | A choice of Resonance (7.7) |
 | Forge | Cut cards from the deck, or add copies of cards already in it |
@@ -456,24 +492,58 @@ any Aspect 1 to 3 card of a character can join this way, and no Ally-only card i
 Combat together, either one attacks, and either one blocks for the other. The engine assumes two
 seats throughout, so it is a large engine pass and waits until the rest of the run stands.
 
-### 7.5 Sensei
+### 7.5 The Relic node
 
-The Relic is the side-deck holder, the parallel to a Sensei card: one slot, an activated power,
-and a `reserve_size` that sets how many cards the Reserve holds.
+The Relic is the side-deck holder: one slot, an activated power, and a `reserve_size` that sets how
+many cards the Reserve holds.
 
 - A forced node a few rows into act 1, where every path meets, in the manner of a Slay the Spire
   boss relic.
-- **One Sensei per run.** The player chooses one of three offers.
-- An offer is a Relic plus a starting Reserve set of about five cards themed to the run's school.
-  Later Reserve bundles (section 4.2) fill the rest.
+- **One Relic node per run.** The player chooses one of three offers.
+- An offer is a Relic plus a Reserve set of about five cards (section 4.2). Later Reserve bundles
+  fill the rest.
 
-Four Relics exist today: `blank_mask` (Reserve 13), `lodestone_heart` (10), `severing_clasp` (7)
-and `debtors_ring` (5).
+Five Relics exist today: `relic_01` The Blank Mask (Reserve 13), `relic_03` The Lodestone Heart
+(10), `relic_04` The Severing Clasp (7), `relic_05` The Champion's Laurel (9) and `relic_02` The
+Debtor's Ring (5).
+
+**Built 2026-09-29** (`adventure/adventure_relic.gd`, `scenes/adventure/relic.tscn`), pool in the
+`relic` block of `data/adventure/economy.json`:
+
+- The pool is the Blank Mask, the Severing Clasp, the Champion's Laurel and the Debtor's Ring. The
+  Lodestone Heart is the final boss's and is never offered. The Debtor's Ring is offered only when
+  the run's Life Deck or Reserve holds a personality card (an Ally).
+- Three offers, each a distinct Relic with a Reserve set. The held Relic may be one of them. The
+  three sets are different. A school run draws from its school's sets and the Freestyle sets, with
+  at least one school set when one is legal and no more than two of one group; a run whose Mastery
+  is Freestyle draws Freestyle sets only, as many as it likes.
+- The offers are rolled once when the node opens, from the run seed and the node, and saved with
+  the run. A run saved on the node, or while setting cards aside, loads back onto that screen.
+- **Taking** an offer replaces the held Relic (the old one is gone) and adds the set's cards to the
+  current Reserve; a run with no Relic starts from an empty one. The pick is recorded as
+  `{kind: "relic", id, cards}`. If the Reserve is now over the new Relic's size, the run goes to
+  the Reserve screen (section 4.7) to set cards aside into the run library, with the new cards
+  marked NEW, and cannot leave until the Reserve fits.
+- **Keep** is offered only to a run that already holds a Relic, and changes nothing. A run with no
+  Relic has to take one.
+- A starter that ships a Relic (`tide_companions`) holds it from the first node.
 
 ### 7.6 Mana
 
 **Mana** is the per-run currency. It is spent at Shop nodes and is gone when the run ends. Motes
 stay the only currency outside a run (section 8.2).
+
+Built 2026-09-29, numbers in the `mana` block of `data/adventure/economy.json`:
+
+- A run starts with **50 Mana**.
+- A won fight pays **Duel 20, Elite 35, Boss 75**, plus 5 for every act after the first (act 2:
+  25/40/80, act 3: 30/45/85). Key character, Twist and Encounter nodes pay as a Duel.
+- A **Shop** sells 5 single cards drawn from what a reward could give the run: its own school,
+  Freestyle, and its Duelist's own Signature cards, each legal to add. No personalities, Masteries,
+  Relics, Seals or Grounds. Prices follow the Motes band: **45 / 70 / 110** for base, limited and
+  restricted. The stock is rolled once per Shop from the run seed and the node, saved with the run,
+  and never rerolled. A bought card joins the run deck at once and counts as a run gain.
+- Mana never turns into Motes.
 
 In the fiction it is the same charge constructs run on (`zenith/docs/cast.md`, Origins), so a
 duelist carrying a lot of it is prey to them. This is flavour only: construct opponents do not
@@ -520,9 +590,12 @@ Built 2026-09-23: a run plays the node map. The 8-stage pipeline and `AdventureL
   way into the node while the band has another. Quarr's family stays out of every other draw.
 - `AdventureRun` holds `node_id` and `path`; `stage` counts the duels won. Non-fighting nodes do
   nothing yet and are passed through. The save is at version 5, and older saves are dropped.
+- Forge built 2026-09-29: one free action per visit, cut a card or copy one already in the deck, or leave (`AdventureForge`).
+- Mana and the Shop built 2026-09-29: five single cards for Mana, bought one click at a time until the player leaves (`AdventureShop`, section 7.6).
+- The Relic node, Reserve sets, run library and Reserve screen built 2026-09-29 (`AdventureRelic`, `AdventureReserve`, sections 4.2, 4.7 and 7.5). The save is at version 8.
 - The map takes most of the stage screen as a scrolling board (`scripts/adventure/map_route.gd`)
   on plain parchment, with the run's Duelist portrait as the player's token. A full-height side
-  panel shows the deck, act, duels won and Motes over the picked node's preview: the opponent sheet
+  panel shows the deck, act, duels won, Mana and Motes over the picked node's preview: the opponent sheet
   for a fight, a note for anything else. The act's hex terrain is the dimmed screen backdrop only (green
   lowlands, marsh, winter highlands). The board has a location marker per node type,
   dashed roads, and Ornate frames. All of it is library art brought in by
@@ -585,8 +658,10 @@ Motes are the one currency outside a run. Built 2026-09-21: `adventure_economy.g
 `adventure_upgrades.gd`, numbers in `data/adventure/economy.json`.
 
 - **Keeping cards costs Motes.** Nothing banks for free. The run's status goes to `"settle"`
-  after a win or a loss. A loss offers the cards the run added, at full price. A win offers the
-  whole run deck, the starter's own cards included, at a 25% discount on that screen only.
+  after a win or a loss. A loss offers the cards the run added, at full price. A win offers
+  everything the run owns, the starter's own cards included, at a 25% discount on that screen
+  only. Both count the Life Deck, the Reserve and the library together (user, 2026-09-29), so a
+  card gained into the Reserve or set aside in the library is a run gain like any other.
   Closing it ends the run and rolls the vendor's shelf over.
 - **Prices** are flat by a printed tell, in three bands, until section 5's tiers exist: `base`
   80 (anything a deck may run three of), `limited` 160 (printed at two, every personality, every
@@ -776,7 +851,7 @@ Until then those runs use random act bosses.
   of every act and Halden Quarr as every run's final boss. Key character nodes replace a fixed
   Rival and Nemesis.
 - Ally encounters put the allied character in play as an Ally. True 2v2 is shelved.
-- One Sensei per run: a forced early node offering a Relic with a school-themed starting Reserve.
+- One Relic node per run: a forced early node offering a Relic with a school-themed starting Reserve.
 - Mana is the per-run currency. Motes are the only meta currency.
 - Keeping cards costs Motes. The collection is a shared library with copy caps.
 - Three meta routes: Motes (vendor, deck slots, dusting), XP (school and personality), and

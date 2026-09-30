@@ -16,5 +16,19 @@
 	"_slots_note": "Deck slots are bought per starter and kept for good. The Nth slot costs slot_cost_base * slot_cost_growth^(N-1), rounded to slot_cost_round. A starter may buy slots until its deck reaches DeckValidator's maximum, so a 53-card starter has 32 to buy and the whole track costs 20110, about 37 full wins at roughly 545 each.",
 	"slot_cost_base": 100,
 	"slot_cost_growth": 1.1,
-	"slot_cost_round": 10
+	"slot_cost_round": 10,
+	"_mana_note": "Mana: the per-run currency (design 7.6). A run starts with `start`, each won fight pays `income` by node type plus `income_per_act` for every act after the first, and it is spent only at Shops. It is gone when the run ends and never turns into Motes. A Shop holds `shop_stock` single cards priced by the same printed-tell band as Motes prices.",
+	"mana": {
+		"start": 50,
+		"income": { "duel": 20, "elite": 35, "boss": 75, "key": 20, "twist": 20, "encounter": 20 },
+		"income_per_act": 5,
+		"shop_stock": 5,
+		"prices": { "base": 45, "limited": 70, "restricted": 110 }
+	},
+	"_relic_note": "The Relic node (design 7.5): three offers, each a distinct Relic from `pool` with a Reserve set from reserve_bundles.json. A Relic in `needs_ally` is offered only to a run whose Life Deck or Reserve holds a personality card. relic_03, the Lodestone Heart, is the final boss's and never offered.",
+	"relic": {
+		"pool": ["relic_01", "relic_04", "relic_05", "relic_02"],
+		"needs_ally": ["relic_02"],
+		"offers": 3
+	}
 }

@@ -35,40 +35,12 @@
       "count": 1
     },
     {
-      "id": "signature_combat_04",
-      "count": 2
-    },
-    {
-      "id": "freestyle_noncombat_04",
-      "count": 1
-    },
-    {
-      "id": "signature_art_01",
-      "count": 1
-    },
-    {
-      "id": "freestyle_combat_07",
-      "count": 1
-    },
-    {
-      "id": "signature_drill_04",
-      "count": 1
-    },
-    {
-      "id": "freestyle_noncombat_06",
-      "count": 1
-    },
-    {
       "id": "signature_combat_09",
-      "count": 2
+      "count": 3
     },
     {
       "id": "signature_noncombat_01",
       "count": 3
-    },
-    {
-      "id": "signature_noncombat_05",
-      "count": 1
     },
     {
       "id": "signature_art_07",
@@ -76,7 +48,7 @@
     },
     {
       "id": "signature_drill_03",
-      "count": 1
+      "count": 3
     },
     {
       "id": "signature_strike_03",
@@ -95,35 +67,11 @@
       "count": 2
     },
     {
-      "id": "freestyle_noncombat_01",
-      "count": 1
-    },
-    {
-      "id": "seal_04",
-      "count": 1
-    },
-    {
-      "id": "signature_combat_07",
-      "count": 1
-    },
-    {
       "id": "freestyle_strike_06",
       "count": 3
     },
     {
-      "id": "freestyle_combat_04",
-      "count": 1
-    },
-    {
-      "id": "shade_drill_02",
-      "count": 1
-    },
-    {
       "id": "shade_art_04",
-      "count": 3
-    },
-    {
-      "id": "shade_strike_07",
       "count": 3
     },
     {
@@ -145,10 +93,6 @@
     {
       "id": "shade_strike_06",
       "count": 3
-    },
-    {
-      "id": "freestyle_noncombat_12",
-      "count": 1
     },
     {
       "id": "freestyle_combat_01",
@@ -180,19 +124,7 @@
     },
     {
       "id": "shade_art_06",
-      "count": 2
-    },
-    {
-      "id": "seal_01",
-      "count": 1
-    },
-    {
-      "id": "seal_03",
-      "count": 1
-    },
-    {
-      "id": "seal_06",
-      "count": 1
+      "count": 3
     },
     {
       "id": "personality_07",
@@ -203,7 +135,35 @@
       "count": 1
     },
     {
-      "id": "shade_strike_15",
+      "id": "shade_combat_01",
+      "count": 3
+    },
+    {
+      "id": "shade_noncombat_02",
+      "count": 3
+    },
+    {
+      "id": "freestyle_drill_01",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_21",
+      "count": 1
+    },
+    {
+      "id": "shade_strike_03",
+      "count": 3
+    },
+    {
+      "id": "shade_strike_08",
+      "count": 2
+    },
+    {
+      "id": "shade_strike_04",
+      "count": 3
+    },
+    {
+      "id": "shade_strike_10",
       "count": 2
     }
   ]

@@ -72,14 +72,18 @@ static func _group_ok(bundle: Dictionary, deck: DeckList, duelist: CardDef, libr
 ## "Vigil only" Strike is filtered here instead of being offered to a Pact run.
 static func _cards_ok(bundle: Dictionary, deck: DeckList, duelist: CardDef, library: CardLibrary) -> bool:
 	for id in AdventureBundles.cards_of(bundle):
-		var def: CardDef = library.defs.get(id)
-		if def == null:
-			return false
-		if def.alignment_only != "" and def.alignment_only != deck.alignment:
-			return false
-		if not _only_ok(def.only, deck, duelist, library):
+		if not card_gates_ok(library.defs.get(id), deck, duelist, library):
 			return false
 	return true
+
+
+## One card's own gates: the alignment it prints and its `only` clause, read against the deck.
+static func card_gates_ok(def: CardDef, deck: DeckList, duelist: CardDef, library: CardLibrary) -> bool:
+	if def == null:
+		return false
+	if def.alignment_only != "" and def.alignment_only != deck.alignment:
+		return false
+	return _only_ok(def.only, deck, duelist, library)
 
 
 ## The hard gate: every card of the bundle added together to a copy of the run deck has to leave
@@ -140,6 +144,42 @@ static func _only_ok(gate: Dictionary, deck: DeckList, duelist: CardDef, library
 			_:
 				return false
 	return true
+
+
+## Every card this run could gain on its own, sorted: a card of the deck's own school, a Freestyle
+## card, or a Signature card of the run's Duelist, passing the same gates a bundle's cards pass
+## (`_cards_ok` and `_fits`), one card at a time. By `card_group()` that leaves out personalities,
+## Masteries, Relics, Seals and Grounds.
+static func eligible_cards(run: AdventureRun, library: CardLibrary) -> Array[String]:
+	var out: Array[String] = []
+	var deck: DeckList = run.deck()
+	if deck == null:
+		return out
+	var duelist: CardDef = library.defs.get(deck.duelist_face_id())
+	if duelist == null:
+		return out
+	for id in library.all_ids():
+		if card_eligible(run, library, id, deck, duelist):
+			out.append(id)
+	out.sort()
+	return out
+
+
+## One card of `eligible_cards`. `deck` and `duelist` are the run's, passed in so a caller walking
+## the whole library builds them once.
+static func card_eligible(run: AdventureRun, library: CardLibrary, id: String, deck: DeckList,
+		duelist: CardDef) -> bool:
+	var def: CardDef = library.defs.get(id)
+	if def == null or def.type == CardDef.Type.MASTERY:
+		return false
+	var group: String = def.card_group()
+	var own: bool = group == deck.style or group == CardDef.GROUP_FREESTYLE \
+		or (group == CardDef.GROUP_SIGNATURE and def.character == duelist.character)
+	if not own or not card_gates_ok(def, deck, duelist, library):
+		return false
+	var trial: DeckList = run.deck()
+	trial.cards.append(id)
+	return DeckValidator.validate(trial, library).is_empty()
 
 
 static func _deck_has_character(deck: DeckList, library: CardLibrary, character: String) -> bool:
@@ -246,15 +286,15 @@ static func apply_cut(run: AdventureRun, library: CardLibrary, id: String) -> bo
 	if not DeckValidator.validate(trial, library).is_empty():
 		return false
 	run.cards.erase(id)
-	_record(run, "cut", id)
+	record(run, "cut", id)
 	return true
 
 
 static func apply_skip(run: AdventureRun) -> void:
-	_record(run, "skip", "")
+	record(run, "skip", "")
 
 
-static func _record(run: AdventureRun, kind: String, id: String) -> void:
+static func record(run: AdventureRun, kind: String, id: String) -> void:
 	run.picks.append({"stage": run.stage, "kind": kind, "id": id})
 	run.pending_offer.clear()
 
@@ -289,8 +329,9 @@ static func apply_aspect(run: AdventureRun, library: CardLibrary, card_id: Strin
 ## Applies the stage result. A win that grants an Aspect stops at the Aspect choice first, so the
 ## bundle offer is drawn from the deck the player will actually run.
 ##
-## Returns the Motes the win is worth. Nothing here touches the wallet or a file: the caller
-## credits it and decides when to save, which is what keeps adventure/ free of IO decisions.
+## A win's Mana goes onto the run here. Returns the Motes the win is worth. Nothing here touches
+## the wallet or a file: the caller credits it and decides when to save, which is what keeps
+## adventure/ free of IO decisions.
 static func finish_stage(run: AdventureRun, map: AdventureMap, library: CardLibrary, won: bool) -> int:
 	if not won:
 		run.pending_offer.clear()
@@ -299,6 +340,7 @@ static func finish_stage(run: AdventureRun, map: AdventureMap, library: CardLibr
 		return 0
 	var here: Dictionary = map.node(run.node_id)
 	var payout: int = AdventureEconomy.duel_payout(int(here.get("act", 1)), str(here.get("type", "")) == "boss")
+	run.earn_mana(AdventureEconomy.mana_income(int(here.get("act", 1)), str(here.get("type", ""))))
 	var row: Dictionary = map.duel_for(run.node_id)
 	if str(row.get("grant", "")) == "aspect":
 		var options: Array[String] = aspect_options(run, library)

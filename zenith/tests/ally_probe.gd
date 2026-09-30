@@ -158,7 +158,7 @@ func _init() -> void:
 						if who == seat and kind == &"attack_action":
 							bump(n, "chance_offered")
 					# Allies that were on the table and are not any more: the fusion eats two, anything
-					# else is a loss. Critical damage discards Allies whatever a constant says.
+					# else is a loss.
 					var now_out: Dictionary = {}
 					for al in st.players[seat].allies():
 						now_out[al.uid] = true
@@ -166,9 +166,7 @@ func _init() -> void:
 						if now_out.has(uid) or bonded:
 							continue
 						bump(n, "ally_lost")
-						if str(st.attack.get("critical", "")) == "ally":
-							bump(n, "ally_lost_critical")
-						elif st.attack.is_empty():
+						if st.attack.is_empty():
 							bump(n, "ally_lost_outside_attack")
 						else:
 							bump(n, "ally_lost_in_attack")
@@ -225,8 +223,8 @@ func _init() -> void:
 			"personality_46", "personality_47", "personality_48", "personality_44"]:
 		if n.has("ally_%s" % id):
 			print("    %-18s reached play in %3.0f%% of games" % [id, 100.0 * per(n, "ally_%s" % id, games)])
-	print("  Allies lost off the table            %5.2f per game (critical %.2f, in an attack %.2f, elsewhere %.2f)" % [
-		per(n, "ally_lost", games), per(n, "ally_lost_critical", games),
+	print("  Allies lost off the table            %5.2f per game (in an attack %.2f, elsewhere %.2f)" % [
+		per(n, "ally_lost", games),
 		per(n, "ally_lost_in_attack", games), per(n, "ally_lost_outside_attack", games)])
 	for k in n.keys():
 		if str(k).begins_with("lost_"):

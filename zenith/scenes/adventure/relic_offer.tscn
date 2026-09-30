@@ -1,0 +1,122 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/relic_offer.gd" id="1_offer"]
+
+[sub_resource type="StyleBoxFlat" id="glow"]
+bg_color = Color(0.94, 0.91, 0.84, 0.1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0.94, 0.91, 0.84, 0.3)
+shadow_size = 22
+anti_aliasing = true
+
+[node name="RelicOffer" type="Control"]
+custom_minimum_size = Vector2(472, 704)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 472.0
+offset_bottom = 704.0
+size_flags_vertical = 0
+mouse_filter = 2
+script = ExtResource("1_offer")
+
+[node name="Body" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Glow" type="Panel" parent="Body"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("glow")
+
+[node name="Frame" type="PanelContainer" parent="Body"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_default_cursor_shape = 2
+
+[node name="Column" type="VBoxContainer" parent="Body/Frame"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="Face" type="TextureRect" parent="Body/Frame/Column"]
+custom_minimum_size = Vector2(248, 346)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SetName" type="Label" parent="Body/Frame/Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HeaderLabel"
+text = ""
+horizontal_alignment = 1
+text_overrun_behavior = 3
+
+[node name="Cards" type="HBoxContainer" parent="Body/Frame/Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Card0" type="TextureRect" parent="Body/Frame/Column/Cards"]
+custom_minimum_size = Vector2(80, 112)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Card1" type="TextureRect" parent="Body/Frame/Column/Cards"]
+custom_minimum_size = Vector2(80, 112)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Card2" type="TextureRect" parent="Body/Frame/Column/Cards"]
+custom_minimum_size = Vector2(80, 112)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Card3" type="TextureRect" parent="Body/Frame/Column/Cards"]
+custom_minimum_size = Vector2(80, 112)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Card4" type="TextureRect" parent="Body/Frame/Column/Cards"]
+custom_minimum_size = Vector2(80, 112)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Consequence" type="Label" parent="Body/Frame/Column"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"BodyLabel"
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3

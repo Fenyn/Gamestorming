@@ -309,6 +309,24 @@ func _init() -> void:
 		test_an_adventure_bundle_is_refused_when_it_was_not_offered,
 		test_an_ally_bundle_brings_its_named_cards_and_opens_the_follow_ups,
 		test_an_adventure_cut_is_refused_at_the_card_floor,
+		test_the_forge_copies_one_card_and_the_run_counts_it,
+		test_the_forge_refuses_a_copy_it_cannot_make,
+		test_the_forge_cuts_down_to_the_floor_and_can_be_left_alone,
+		test_a_forge_visit_survives_save_and_load,
+		test_a_run_starts_with_mana_and_won_fights_pay_it,
+		test_mana_stays_with_the_run,
+		test_the_shop_stocks_cards_the_run_could_gain,
+		test_a_shop_buy_spends_mana_and_adds_the_card,
+		test_the_shop_refuses_what_the_run_cannot_buy,
+		test_a_shop_keeps_its_stock_across_save_and_reopen,
+		test_every_reserve_set_is_counter_tech_of_five_real_cards,
+		test_relic_node_offers_three_distinct_relics_with_legal_sets,
+		test_relic_node_sets_drop_on_a_key_clash_and_redraw_a_fill_clash,
+		test_taking_or_keeping_a_relic,
+		test_relic_offers_are_seeded_and_saved,
+		test_reserve_moves_keep_the_life_deck_size_and_the_rules,
+		test_the_library_survives_save_and_load,
+		test_walking_past_the_relic_node_takes_or_keeps_a_relic,
 		test_adventure_starters_and_opponents_are_legal,
 		test_a_card_can_wait_for_a_five_wound_hit,
 		test_seals_can_be_put_under_their_owners_life_deck,
@@ -410,7 +428,7 @@ func _init() -> void:
 		test_shade_masteries_discard_to_hurt_their_hand,
 		test_root_vine_and_thorns_shuffle_discards_back,
 		test_root_seed_burst_sifts_four_and_removes_two,
-		test_storm_sensei_relic_moves_one_wound_each_way,
+		test_storm_mentor_relic_moves_one_wound_each_way,
 		test_surging_drill_adds_the_performers_surge,
 		test_fivefold_spark_empowers_into_three_unfocused_uses,
 		test_unpaid_bolt_waives_art_costs_for_the_combat,
@@ -421,7 +439,7 @@ func _init() -> void:
 		test_razing_drill_fires_at_the_start_of_every_turn,
 		test_braced_beam_puts_grounds_into_play,
 		test_vigilant_effort_hardens_against_a_pact_duelist,
-		test_storm_sensei_cards_read_as_printed,
+		test_storm_mentor_cards_read_as_printed,
 		test_root_new_shoots_takes_the_top_or_bottom_three,
 		test_root_swallowing_earth_puts_a_seal_under_its_deck,
 		test_root_guards_stop_their_kind,
@@ -1724,9 +1742,9 @@ func test_capture_and_pending_win() -> void:
 	eq(e.state.win_reason, "seal", "seal reason")
 
 
-## Critical damage (5+ wounds in one attack) offers a Seal, an Ally, or the rival's Fervor. Card
-## text beats the rulebook, so a printed "cannot be discarded" or a Fervor shield takes that option
-## off the list here exactly as it would anywhere else, and a rival guarded on both gets no prompt.
+## Critical damage (5+ wounds in one attack) offers a Seal or the rival's Fervor, never an Ally
+## (house rule 2026-09-29). A Fervor shield takes that option off the list, and a rival with no
+## Seal in play and nothing takeable gets no prompt.
 func test_critical_damage_choices() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact", "", "", 3, "tf_shepherd", "t_relic_shield"))
 	var squire: CardInstance = inject(e, 1, "t_ally_squire")
@@ -1741,7 +1759,7 @@ func test_critical_damage_choices() -> void:
 	eq(e.player(1).allies().size(), 1, "the ally is still there")
 	eq(e.player(1).fervor, 2, "and the Fervor is untouched")
 
-	# An unguarded rival still loses the Ally, or the Fervor, at the attacker's choice.
+	# An unguarded Ally is still never on offer; the Fervor is.
 	var open_field: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact"))
 	var exposed: CardInstance = inject(open_field, 1, "t_ally_squire")
 	check(not open_field._ally_protected(open_field.player(1), exposed), "nothing guards this one")
@@ -1754,16 +1772,19 @@ func test_critical_damage_choices() -> void:
 	var kinds: Array[StringName] = []
 	for o in open_field.prompt.options:
 		kinds.append(o.type)
-	check(kinds.has(&"discard_ally") and kinds.has(&"lower_fervor") and kinds.has(&"no_critical"), "ally, fervor and decline offered")
+	check(kinds.has(&"lower_fervor") and kinds.has(&"no_critical"), "fervor and decline offered")
+	check(not kinds.has(&"discard_ally"), "an Ally is never taken by critical damage")
 	check(not kinds.has(&"capture"), "no Seal to capture")
-	answer(open_field, &"discard_ally", exposed.uid)
-	eq(open_field.player(1).allies().size(), 0, "the unguarded ally is discarded")
-	check(has_event(open_field, &"critical_ally"), "critical_ally event")
-	answer(open_field, &"pass")
-	answer(open_field, &"attack", uid_in_hand(open_field, 0, "t_strike_wound"))
-	eq(prompt_kind(open_field), &"critical", "second critical hit")
 	answer(open_field, &"lower_fervor")
 	eq(open_field.player(1).fervor, 1, "rival fervor lowered by 1")
+	eq(open_field.player(1).allies().size(), 1, "the ally is still there")
+	# With the Fervor gone and no Seal in play, a second critical hit has nothing to offer.
+	open_field.player(1).fervor = 0
+	answer(open_field, &"pass")
+	answer(open_field, &"attack", uid_in_hand(open_field, 0, "t_strike_wound"))
+	if prompt_kind(open_field) == &"redirect":
+		answer(open_field, &"target", open_field.player(1).duelist.uid)
+	check(prompt_kind(open_field) != &"critical", "an Ally alone does not open the prompt")
 	var wounded: DuelEngine = engine(deck(filler(["t_strike_wound", "t_strike_wound", "t_strike_wound"])), deck(filler([], 20), "pact"))
 	to_combat(wounded)
 	answer(wounded, &"attack", uid_in_hand(wounded, 0, "t_strike_wound"))
@@ -5509,8 +5530,8 @@ func test_scorer_reads_attacks_the_way_they_land() -> void:
 	check(AiScorer._attack_score(e, profile, me, foe, final_cmd, card, same) < AiScorer._attack_score(e, profile, me, foe, plain, card, same), "throwing the card away is worth less than swinging with it")
 
 
-## Critical damage and capture choices are priced by what they change: a lethal hit beats a Seal, the
-## strongest Ally goes first, and the rival's Fervor matters more near their Ascension.
+## Critical damage and capture choices are priced by what they change: a lethal hit beats a Seal and
+## the rival's Fervor matters more near their Ascension.
 func test_scorer_prices_critical_and_capture_choices() -> void:
 	var profile: AiProfile = AiProfile.default_profile()
 	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
@@ -5518,11 +5539,6 @@ func test_scorer_prices_critical_and_capture_choices() -> void:
 	var foe: PlayerState = e.player(1)
 	var seal: CardInstance = real_inject(e, 1, "seal_08")
 	check(AiScorer._capture_score(e, profile, me, foe, seal) > 0.0, "taking a Seal is worth something")
-	var weak: CardInstance = real_inject(e, 1, _an_ally_id())
-	var strong: CardInstance = real_inject(e, 1, _an_ally_id())
-	weak.energy = 0
-	strong.energy = 8
-	check(AiScorer._ally_worth(e, profile, foe, strong) > AiScorer._ally_worth(e, profile, foe, weak), "the Ally with more Energy is the one to take")
 	foe.fervor = 0
 	eq(AiScorer._lower_fervor_score(e, profile, foe), 0.0, "no Fervor, nothing to take")
 	foe.fervor = 3
@@ -6876,6 +6892,806 @@ func test_an_adventure_cut_is_refused_at_the_card_floor() -> void:
 	check(not AdventureRewards.apply_cut(run, shipped, "not_a_card_id"), "a card not in the deck cannot be cut")
 
 
+## A run standing on its first Forge, reached by winning every duel and skipping every offer, with
+## its map. Tries seeds from `first` until one path meets a Forge; {} when none does.
+func forge_visit(shipped: CardLibrary, first: int = 40) -> Dictionary:
+	for seed_value in range(first, first + 20):
+		var map: AdventureMap = AdventureMap.generate("pyre_beatdown_start", seed_value)
+		var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", seed_value)
+		if map != null and run != null and walk_to_forge(shipped, map, run):
+			return {"run": run, "map": map}
+	return {}
+
+
+func walk_to_forge(shipped: CardLibrary, map: AdventureMap, run: AdventureRun) -> bool:
+	return walk_to_stop(shipped, map, run, "forge")
+
+
+## Walks a run until it stands on a stop of `type`, stepping onto one whenever it is a choice,
+## winning every duel, skipping every offer and leaving every other stop untouched.
+func walk_to_stop(shipped: CardLibrary, map: AdventureMap, run: AdventureRun, type: String) -> bool:
+	var guard: int = 0
+	while run.status != type and guard < 200:
+		guard += 1
+		match run.status:
+			"map":
+				var next: Array[String] = run.choices(map)
+				if next.is_empty():
+					return false
+				var step: String = next[0]
+				for id in next:
+					if str(map.node(id).get("type", "")) == type:
+						step = id
+				run.enter(map, step)
+			"forge":
+				AdventureForge.leave(run)
+			"shop":
+				AdventureShop.leave(run)
+			"relic", "reserve":
+				AdventureRelic.pass_through(run, shipped)
+			"stage":
+				AdventureRewards.finish_stage(run, map, shipped, true)
+			"aspect":
+				AdventureRewards.apply_aspect(run, shipped, run.pending_aspects[0])
+				AdventureRewards.finish_aspect(run, map, shipped)
+			"reward":
+				AdventureRewards.apply_skip(run)
+				AdventureRewards.finish_reward(run, map)
+			_:
+				return false
+	return run.status == type
+
+
+func test_the_forge_copies_one_card_and_the_run_counts_it() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var visit: Dictionary = forge_visit(shipped)
+	check(not visit.is_empty(), "a run reaches a Forge")
+	if visit.is_empty():
+		return
+	var run: AdventureRun = visit["run"]
+	var map: AdventureMap = visit["map"]
+	eq(run.status, "forge", "entering a Forge waits on the visit")
+	check(run.choices(map).is_empty(), "and the map offers no next node until it ends")
+	var here: String = run.node_id
+	var options: Array[String] = AdventureForge.copy_options(run, shipped)
+	check(not options.is_empty(), "the starter has a card to copy")
+	var id: String = options[0]
+	var copies: int = run.cards.count(id)
+	var size: int = run.cards.size()
+	var picks: int = run.picks.size()
+	check(AdventureForge.copy(run, shipped, id), "an eligible card is copied")
+	eq(run.cards.count(id), copies + 1, "the deck holds exactly one more copy")
+	eq(run.cards.size(), size + 1, "and no other card moved")
+	eq(run.picks.size(), picks + 1, "one pick is recorded")
+	eq(str(run.picks[run.picks.size() - 1].get("kind", "")), "copy", "as a copy")
+	eq(str(run.picks[run.picks.size() - 1].get("id", "")), id, "of that card")
+	eq(DeckValidator.validate(run.deck(), shipped).size(), 0, "the deck is still legal")
+	eq(run.status, "map", "the action ends the visit")
+	eq(run.node_id, here, "with the run still on the Forge")
+	eq(run.choices(map), map.next_of(here), "and it moves on from there like from any other stop")
+	check(not AdventureForge.copy(run, shipped, id), "a second action on the same visit is refused")
+	eq(run.cards.count(id), copies + 1, "and changes nothing")
+	check(run.added_cards().has(id), "the copy counts as a card the run added")
+	run.status = "lost"
+	AdventureSettlement.open(run)
+	var offered: bool = false
+	for row in AdventureSettlement.offers(run, shipped, false):
+		offered = offered or str(row["id"]) == id
+	check(offered, "so a lost run's settlement offers it")
+
+
+func test_the_forge_refuses_a_copy_it_cannot_make() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var visit: Dictionary = forge_visit(shipped)
+	if visit.is_empty():
+		check(false, "a run reaches a Forge")
+		return
+	var run: AdventureRun = visit["run"]
+	var id: String = AdventureForge.copy_options(run, shipped)[0]
+	var guard: int = 0
+	while AdventureForge.card_copy_block(run, shipped, id) == "" and guard < 10:
+		guard += 1
+		run.cards.append(id)
+	eq(AdventureForge.card_copy_block(run, shipped, id), AdventureForge.BLOCK_LIMIT, "a card at its copy limit is blocked")
+	var size: int = run.cards.size()
+	check(not AdventureForge.copy(run, shipped, id), "and its copy is refused")
+	eq(run.cards.size(), size, "with the deck untouched")
+	eq(run.status, "forge", "and the visit still open")
+	check(not AdventureForge.copy_options(run, shipped).has(id), "it is not among the options")
+	var duelist: CardDef = shipped.defs[run.duelist_ids[0]]
+	var ally: String = ""
+	var seal: String = ""
+	for def_id in shipped.defs.keys():
+		var def: CardDef = shipped.defs[def_id]
+		if ally == "" and def.type == CardDef.Type.PERSONALITY and def.character != duelist.character:
+			ally = def.id
+		if seal == "" and def.type == CardDef.Type.SEAL:
+			seal = def.id
+	for pair: Array in [[ally, AdventureForge.BLOCK_PERSONALITY], [seal, AdventureForge.BLOCK_SEAL]]:
+		var other: String = str(pair[0])
+		run.cards.append(other)
+		eq(AdventureForge.card_copy_block(run, shipped, other), str(pair[1]), "%s is never copied" % other)
+		check(not AdventureForge.copy(run, shipped, other), "and the copy is refused")
+		eq(run.cards.count(other), 1, "leaving one copy")
+		run.cards.erase(other)
+	var mastery: String = run.deck().mastery_id
+	eq(AdventureForge.card_copy_block(run, shipped, mastery), AdventureForge.BLOCK_MASTERY, "the Mastery is never copied")
+	check(not AdventureForge.copy(run, shipped, mastery), "and the copy is refused")
+	check(not run.cards.has(mastery), "so it never reaches the Life Deck")
+	var fresh: String = ""
+	for option in AdventureForge.copy_options(run, shipped):
+		fresh = option
+	check(fresh != "", "another card can still take a copy")
+	while AdventureForge.deck_size(run) < AdventureForge.max_size(run):
+		run.cards.append(id)
+	eq(AdventureForge.card_copy_block(run, shipped, fresh), AdventureForge.BLOCK_FULL, "a full deck blocks every copy")
+	check(not AdventureForge.copy(run, shipped, fresh), "and refuses it")
+	eq(AdventureForge.deck_size(run), AdventureForge.max_size(run), "leaving the deck at its maximum")
+	check(AdventureForge.copy_block(run, shipped).contains(str(AdventureForge.max_size(run))),
+		"the Copy action says the deck is at its maximum")
+
+
+func test_the_forge_cuts_down_to_the_floor_and_can_be_left_alone() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var visit: Dictionary = forge_visit(shipped)
+	if visit.is_empty():
+		check(false, "a run reaches a Forge")
+		return
+	var run: AdventureRun = visit["run"]
+	var map: AdventureMap = visit["map"]
+	var here: String = run.node_id
+	var cards: Array[String] = run.cards.duplicate()
+	var picks: int = run.picks.size()
+	AdventureForge.leave(run)
+	eq(run.cards, cards, "leaving without acting keeps the deck")
+	eq(run.picks.size(), picks, "and records nothing")
+	eq(run.status, "map", "the visit is over")
+	eq(run.choices(map), map.next_of(here), "and the run moves on from the Forge")
+	check(not AdventureForge.cut(run, shipped, run.cards[0]), "a Forge left behind takes no action")
+	eq(run.cards, cards, "so the deck stays as it was")
+
+	var cutting: AdventureRun = (forge_visit(shipped)["run"] as AdventureRun)
+	var victim: String = cutting.cards[0]
+	var copies: int = cutting.cards.count(victim)
+	check(AdventureForge.cut(cutting, shipped, victim), "a cut above the floor goes through")
+	eq(cutting.cards.count(victim), copies - 1, "one copy leaves")
+	eq(str(cutting.picks[cutting.picks.size() - 1].get("kind", "")), "cut", "and it is recorded as a cut")
+	eq(cutting.status, "map", "which ends the visit")
+
+	var floored: AdventureRun = (forge_visit(shipped)["run"] as AdventureRun)
+	while AdventureRewards.can_cut(floored):
+		if not AdventureRewards.apply_cut(floored, shipped, floored.cards[0]):
+			break
+	eq(AdventureForge.deck_size(floored), AdventureForge.floor_size(floored), "the deck sits on its floor")
+	check(AdventureForge.cut_block(floored) != "", "the Cut action says why it is closed")
+	var size: int = floored.cards.size()
+	check(not AdventureForge.cut(floored, shipped, floored.cards[0]), "a cut at the floor is refused")
+	eq(floored.cards.size(), size, "with the deck untouched")
+	eq(floored.status, "forge", "and the visit still open")
+
+
+func test_a_forge_visit_survives_save_and_load() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var visit: Dictionary = forge_visit(shipped)
+	if visit.is_empty():
+		check(false, "a run reaches a Forge")
+		return
+	var run: AdventureRun = visit["run"]
+	var standing: AdventureRun = AdventureRun.from_dict(JSON.parse_string(JSON.stringify(run.to_dict())))
+	eq(standing.status, "forge", "a run saved on a Forge loads back on it")
+	eq(standing.node_id, run.node_id, "on the same node")
+	var id: String = AdventureForge.copy_options(standing, shipped)[0]
+	check(AdventureForge.copy(standing, shipped, id), "and can still take its action")
+	var loaded: AdventureRun = AdventureRun.from_dict(JSON.parse_string(JSON.stringify(standing.to_dict())))
+	eq(loaded.cards, standing.cards, "the copy survives the save")
+	eq(str(loaded.picks[loaded.picks.size() - 1].get("kind", "")), "copy", "and so does its pick")
+	eq(loaded.status, "map", "and the visit stays over")
+	eq(loaded.added_cards(), standing.added_cards(), "the run's gains read the same")
+
+
+## A run standing in its first Shop with the stock rolled, reached by winning every duel and
+## skipping every offer, with its map. {} when no seed from `first` reaches a Shop.
+func shop_visit(shipped: CardLibrary, first: int = 40) -> Dictionary:
+	for seed_value in range(first, first + 20):
+		var map: AdventureMap = AdventureMap.generate("pyre_beatdown_start", seed_value)
+		var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", seed_value)
+		if map != null and run != null and walk_to_stop(shipped, map, run, "shop"):
+			AdventureShop.open(run, shipped)
+			return {"run": run, "map": map}
+	return {}
+
+
+func test_a_run_starts_with_mana_and_won_fights_pay_it() -> void:
+	var block: Dictionary = AdventureEconomy.data().get("mana", {})
+	var income: Dictionary = block.get("income", {})
+	var step: int = int(block.get("income_per_act", 0))
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
+	eq(run.mana, int(block.get("start", -1)), "a run starts with the Mana economy.json names")
+	eq(run.mana, 50, "which is 50")
+	for type in ["duel", "elite", "boss", "key", "twist", "encounter"]:
+		check(income.has(type), "economy.json prices a %s win" % type)
+		for act in [1, 2, 3]:
+			eq(AdventureEconomy.mana_income(act, type), int(income.get(type, 0)) + step * (act - 1),
+				"a %s won in act %d pays its row plus the act step" % [type, act])
+	eq([AdventureEconomy.mana_income(1, "duel"), AdventureEconomy.mana_income(1, "elite"),
+		AdventureEconomy.mana_income(1, "boss")], [20, 35, 75], "act 1 pays 20, 35 and 75")
+	eq([AdventureEconomy.mana_income(2, "duel"), AdventureEconomy.mana_income(2, "elite"),
+		AdventureEconomy.mana_income(2, "boss")], [25, 40, 80], "act 2 pays 25, 40 and 80")
+	eq([AdventureEconomy.mana_income(3, "duel"), AdventureEconomy.mana_income(3, "elite"),
+		AdventureEconomy.mana_income(3, "boss")], [30, 45, 85], "act 3 pays 30, 45 and 85")
+	eq(AdventureEconomy.mana_income(2, "key"), AdventureEconomy.mana_income(2, "duel"), "a Key character pays as a Duel")
+	eq(AdventureEconomy.mana_income(1, "shop"), 0, "a stop that is not a fight pays nothing")
+
+	var map: AdventureMap = AdventureMap.generate("pyre_beatdown_start", 7)
+	check(run.walk_to_next_duel(map), "the run steps onto its first duel")
+	var here: Dictionary = map.node(run.node_id)
+	var before: int = run.mana
+	AdventureRewards.finish_stage(run, map, shipped_library(), true)
+	eq(run.mana, before + AdventureEconomy.mana_income(int(here["act"]), str(here["type"])),
+		"a won fight pays its Mana onto the run")
+	var losing: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
+	losing.walk_to_next_duel(map)
+	AdventureRewards.finish_stage(losing, map, shipped_library(), false)
+	eq(losing.mana, AdventureEconomy.mana_start(), "a lost fight pays nothing")
+
+
+func test_mana_stays_with_the_run() -> void:
+	var map: AdventureMap = AdventureMap.generate("pyre_beatdown_start", 7)
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
+	check(run.walk_to_next_duel(map), "the run steps onto its first duel")
+	var here: Dictionary = map.node(run.node_id)
+	var wallet: AdventureWallet = AdventureWallet.new()
+	AdventureRewards.record_duel(run, map, shipped_library(), true, null, AdventureStoryLog.new(),
+		AdventureCollection.new(), AdventureUnlocks.new(), AdventureProgress.new(), wallet)
+	eq(wallet.motes, AdventureEconomy.duel_payout(int(here["act"]), str(here["type"]) == "boss"),
+		"a win pays its Motes and nothing for the Mana")
+	check(run.mana > AdventureEconomy.mana_start(), "while the Mana goes onto the run")
+	check(wallet.get("mana") == null, "the wallet holds no Mana")
+	run.mana = 500
+	var motes: int = wallet.motes
+	run.status = "lost"
+	AdventureSettlement.open(run)
+	AdventureSettlement.close(run)
+	eq(wallet.motes, motes, "ending the run turns no Mana into Motes")
+	var next: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 8)
+	eq(next.mana, AdventureEconomy.mana_start(), "and the next run starts from the opening amount")
+	var loaded: AdventureRun = AdventureRun.from_dict(JSON.parse_string(JSON.stringify(run.to_dict())))
+	eq(loaded.mana, 500, "Mana is saved with the run")
+
+
+func test_the_shop_stocks_cards_the_run_could_gain() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var visit: Dictionary = shop_visit(shipped)
+	check(not visit.is_empty(), "a run reaches a Shop")
+	if visit.is_empty():
+		return
+	var run: AdventureRun = visit["run"]
+	var map: AdventureMap = visit["map"]
+	eq(run.status, "shop", "entering a Shop waits on the visit")
+	check(run.choices(map).is_empty(), "and the map offers no next node until it ends")
+	var stock: Array[String] = AdventureShop.stock(run)
+	eq(stock.size(), AdventureEconomy.shop_stock_size(), "the Shop holds a full stock")
+	eq(stock.size(), 5, "of 5 cards")
+	var deck: DeckList = run.deck()
+	var duelist: CardDef = shipped.defs[deck.duelist_face_id()]
+	var seen: Dictionary = {}
+	for id in stock:
+		check(not seen.has(id), "%s is stocked once" % id)
+		seen[id] = true
+		var def: CardDef = shipped.defs[id]
+		check(not (def.type in [CardDef.Type.PERSONALITY, CardDef.Type.MASTERY, CardDef.Type.RELIC,
+			CardDef.Type.SEAL]), "%s is a single card of a type the Shop sells" % id)
+		var group: String = def.card_group()
+		check(group == deck.style or group == CardDef.GROUP_FREESTYLE
+			or (group == CardDef.GROUP_SIGNATURE and def.character == duelist.character),
+			"%s is the run's school, Freestyle or its Duelist's Signature" % id)
+		check(AdventureRewards.card_eligible(run, shipped, id, deck, duelist), "%s passes the reward gates" % id)
+	var pool: Array[String] = AdventureRewards.eligible_cards(run, shipped)
+	check(pool.size() > stock.size(), "the pool is wider than one stock")
+	for id in pool:
+		var trial: DeckList = run.deck()
+		trial.cards.append(id)
+		if not DeckValidator.validate(trial, shipped).is_empty():
+			check(false, "%s in the pool leaves the deck legal" % id)
+			break
+	var twin: AdventureRun = AdventureRun.from_dict(run.to_dict())
+	twin.shops.clear()
+	eq(AdventureShop.roll(twin, shipped, run.node_id), stock, "the stock follows the run seed and the node")
+
+
+func test_a_shop_buy_spends_mana_and_adds_the_card() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var visit: Dictionary = shop_visit(shipped)
+	if visit.is_empty():
+		check(false, "a run reaches a Shop")
+		return
+	var run: AdventureRun = visit["run"]
+	run.mana = 1000
+	var stock: Array[String] = AdventureShop.stock(run)
+	var slot: int = -1
+	for i in range(stock.size()):
+		if slot < 0 and AdventureShop.slot_block(run, shipped, i) == "":
+			slot = i
+	check(slot >= 0, "a stocked card can be bought")
+	if slot < 0:
+		return
+	var id: String = stock[slot]
+	var def: CardDef = shipped.defs[id]
+	var prices: Dictionary = (AdventureEconomy.data().get("mana", {}) as Dictionary).get("prices", {})
+	var price: int = AdventureShop.price(shipped, id)
+	eq(price, int(prices.get(AdventureEconomy.band(def), -1)), "the price is the card's band row in economy.json")
+	eq([AdventureEconomy.mana_price(_band_card("base")), AdventureEconomy.mana_price(_band_card("limited")),
+		AdventureEconomy.mana_price(_band_card("restricted"))], [45, 70, 110], "the bands cost 45, 70 and 110 Mana")
+	var copies: int = run.cards.count(id)
+	var size: int = run.cards.size()
+	check(AdventureShop.buy(run, shipped, slot), "a buyable card is bought")
+	eq(run.mana, 1000 - price, "Mana drops by its price")
+	eq(run.cards.count(id), copies + 1, "the card joins the deck at once")
+	eq(run.cards.size(), size + 1, "and no other card moves")
+	eq(str(run.picks[run.picks.size() - 1].get("kind", "")), "buy", "the buy is recorded")
+	eq(str(run.picks[run.picks.size() - 1].get("id", "")), id, "with the card")
+	check(run.added_cards().has(id), "as a card the run added")
+	check(AdventureShop.is_sold(run, slot), "the slot is sold")
+	eq(AdventureShop.slot_block(run, shipped, slot), AdventureShop.BLOCK_SOLD, "and blocked as sold")
+	check(not AdventureShop.buy(run, shipped, slot), "a sold slot is not sold again")
+	eq(run.mana, 1000 - price, "and takes no more Mana")
+	eq(run.status, "shop", "the Shop stays open after a buy")
+	eq(DeckValidator.validate(run.deck(), shipped).size(), 0, "the deck is still legal")
+	run.status = "lost"
+	AdventureSettlement.open(run)
+	var offered: bool = false
+	for row in AdventureSettlement.offers(run, shipped, false):
+		offered = offered or str(row["id"]) == id
+	check(offered, "a lost run's settlement offers the bought card")
+
+
+## A stand-in card for a price band: a Strike printed at `band`'s copy limit.
+func _band_card(band: String) -> CardDef:
+	var limit: int = {"base": 3, "limited": 2, "restricted": 1}[band]
+	return CardDef.from_dict({"id": "t_band_%s" % band, "title": "Test Band", "type": "strike", "limit_per_deck": limit})
+
+
+func test_the_shop_refuses_what_the_run_cannot_buy() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var visit: Dictionary = shop_visit(shipped)
+	if visit.is_empty():
+		check(false, "a run reaches a Shop")
+		return
+	var run: AdventureRun = visit["run"]
+	var map: AdventureMap = visit["map"]
+	var id: String = AdventureShop.stock(run)[0]
+	var price: int = AdventureShop.price(shipped, id)
+	run.mana = price - 1
+	eq(AdventureShop.slot_block(run, shipped, 0), AdventureShop.BLOCK_MANA, "a card the run cannot afford is blocked")
+	var size: int = run.cards.size()
+	check(not AdventureShop.buy(run, shipped, 0), "and its buy is refused")
+	eq(run.mana, price - 1, "with the Mana untouched")
+	eq(run.cards.size(), size, "and the deck too")
+	check(not AdventureShop.is_sold(run, 0), "and the slot still on sale")
+	run.mana = 1000
+	eq(AdventureShop.slot_block(run, shipped, 0), "", "with enough Mana it can be bought")
+	var limit: int = (shipped.defs[id] as CardDef).limit_per_deck
+	while run.cards.count(id) < limit:
+		run.cards.append(id)
+	eq(AdventureShop.slot_block(run, shipped, 0), AdventureShop.BLOCK_LIMIT,
+		"a card the deck already holds to its limit is blocked")
+	check(not AdventureShop.buy(run, shipped, 0), "and its buy is refused")
+	eq(run.cards.count(id), limit, "leaving the copies at the limit")
+	eq(run.mana, 1000, "and the Mana untouched")
+	var other: String = AdventureShop.stock(run)[1]
+	var filler: String = run.cards[run.cards.size() - 1]
+	var guard: int = 0
+	while AdventureForge.deck_size(run) < AdventureForge.max_size(run) and guard < 200:
+		guard += 1
+		run.cards.append(filler)
+	eq(AdventureShop.slot_block(run, shipped, 1), AdventureShop.BLOCK_FULL, "a full deck blocks every buy")
+	check(not AdventureShop.buy(run, shipped, 1), "and refuses %s" % other)
+	var here: String = run.node_id
+	AdventureShop.leave(run)
+	eq(run.status, "map", "leaving ends the visit")
+	eq(run.choices(map), map.next_of(here), "and the run moves on from the Shop")
+	eq(AdventureShop.slot_block(run, shipped, 2), AdventureShop.BLOCK_CLOSED, "a Shop left behind sells nothing")
+	check(not AdventureShop.buy(run, shipped, 2), "so a buy there is refused")
+
+
+func test_a_shop_keeps_its_stock_across_save_and_reopen() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var visit: Dictionary = shop_visit(shipped)
+	if visit.is_empty():
+		check(false, "a run reaches a Shop")
+		return
+	var run: AdventureRun = visit["run"]
+	run.mana = 1000
+	var stock: Array[String] = AdventureShop.stock(run)
+	var slot: int = -1
+	for i in range(stock.size()):
+		if slot < 0 and AdventureShop.slot_block(run, shipped, i) == "":
+			slot = i
+	check(slot >= 0 and AdventureShop.buy(run, shipped, slot), "a card is bought")
+	var loaded: AdventureRun = AdventureRun.from_dict(JSON.parse_string(JSON.stringify(run.to_dict())))
+	eq(loaded.status, "shop", "a run saved in a Shop loads back in it")
+	eq(AdventureShop.stock(loaded), stock, "with the same stock")
+	check(AdventureShop.is_sold(loaded, slot), "and the sold slot still sold")
+	eq(loaded.mana, run.mana, "and the Mana it had left")
+	eq(loaded.cards, run.cards, "and the bought card in the deck")
+	for i in range(stock.size()):
+		if i != slot:
+			check(not AdventureShop.is_sold(loaded, i), "slot %d is still on sale" % i)
+	loaded.cards.append_array(AdventureShop.stock(loaded))
+	AdventureShop.open(loaded, shipped)
+	eq(AdventureShop.stock(loaded), stock, "reopening never rolls again, even once the deck has changed")
+	check(AdventureShop.is_sold(loaded, slot), "and keeps what was sold")
+	var mana: int = loaded.mana
+	var picks: int = loaded.picks.size()
+	check(not AdventureShop.buy(loaded, shipped, slot), "the sold slot cannot be bought after the reload")
+	eq(loaded.mana, mana, "and costs nothing")
+	eq(loaded.picks.size(), picks, "and records nothing")
+
+
+## A run of `starter` standing on its Relic node with the offers rolled, reached by winning every
+## duel and skipping every offer, with its map. {} when the walk never meets the node.
+func relic_visit(shipped: CardLibrary, starter: String, seed_value: int = 40) -> Dictionary:
+	var map: AdventureMap = AdventureMap.generate(starter, seed_value)
+	var run: AdventureRun = AdventureRun.begin(starter, seed_value)
+	if map == null or run == null or not walk_to_stop(shipped, map, run, "relic"):
+		return {}
+	AdventureRelic.open(run, shipped)
+	return {"run": run, "map": map}
+
+
+## The run deck with `extra` added to its Reserve, checked the way the Relic node checks a set:
+## every DeckValidator problem but the Reserve's size, plus each card's own gates.
+func reserve_set_problems(run: AdventureRun, shipped: CardLibrary, extra: Array[String], relic: String) -> Array[String]:
+	var trial: DeckList = run.deck()
+	trial.relic_id = relic
+	trial.reserve.append_array(extra)
+	var out: Array[String] = AdventureReserve.problems(trial, shipped)
+	var duelist: CardDef = shipped.defs[trial.duelist_face_id()]
+	for id in extra:
+		if not AdventureRewards.card_gates_ok(shipped.defs.get(id), trial, duelist, shipped):
+			out.append("%s fails its own gate" % id)
+	return out
+
+
+func test_every_reserve_set_is_counter_tech_of_five_real_cards() -> void:
+	var shipped: CardLibrary = shipped()
+	var sets: Array[Dictionary] = AdventureReserveBundles.all()
+	eq(sets.size(), 32, "the 31 proposed sets and the Locking Jaws set")
+	var groups: Array[String] = ["pyre", "steel", "tide", "storm", "shade", "root", "freestyle"]
+	var seen: Dictionary = {}
+	var jaws: bool = false
+	for bundle in sets:
+		var id: String = str(bundle["id"])
+		check(not seen.has(id), "%s is listed once" % id)
+		seen[id] = true
+		check(AdventureBundles.by_id(id).is_empty(), "%s is not a theme bundle" % id)
+		check(groups.has(str(bundle["group"])), "%s has a school or Freestyle group" % id)
+		check(str(bundle["name"]) != "" and str(bundle["answers"]) != "", "%s has a name and says what it answers" % id)
+		eq(AdventureReserveBundles.target_size(bundle), 5, "%s is five cards" % id)
+		check(not AdventureReserveBundles.key_cards(bundle).is_empty(), "%s has key cards" % id)
+		var ids: Array[String] = AdventureReserveBundles.key_cards(bundle)
+		ids.append_array(AdventureReserveBundles.fill_pool(bundle))
+		for card in ids:
+			var def: CardDef = shipped.defs.get(card)
+			check(def != null, "%s names a real card, %s" % [id, card])
+			if def == null:
+				continue
+			check(def.card_group() != CardDef.GROUP_SIGNATURE, "%s holds no signature card (%s)" % [id, card])
+			check(not AdventureEconomy.is_lockout(def), "%s holds no lockout (%s)" % [id, card])
+			check(def.school == "" or def.school == str(bundle["group"]), "%s holds its own school or Freestyle (%s)" % [id, card])
+		jaws = jaws or AdventureReserveBundles.key_cards(bundle).has("steel_strike_01")
+	check(jaws, "Locking Jaws is a key card of a Steel set")
+	for starter in ["pyre_beatdown_start", "freestyle_swords_start"]:
+		var run: AdventureRun = AdventureRun.begin(starter, 3)
+		for bundle_id in AdventureRewards.eligible(run, shipped, 1.0):
+			check(not seen.has(bundle_id), "a theme offer never holds a Reserve set (%s)" % bundle_id)
+
+
+func test_relic_node_offers_three_distinct_relics_with_legal_sets() -> void:
+	var shipped: CardLibrary = shipped()
+	var starters: Array[String] = AdventureDecks.playable_starters()
+	check(starters.size() >= 14, "every starter is walked")
+	var ring_seen: bool = false
+	var ringless_seen: bool = false
+	for starter in starters:
+		var visit: Dictionary = relic_visit(shipped, starter)
+		check(not visit.is_empty(), "%s reaches its Relic node" % starter)
+		if visit.is_empty():
+			continue
+		var run: AdventureRun = visit["run"]
+		eq(run.status, "relic", "%s waits on the Relic node" % starter)
+		check(run.choices(visit["map"] as AdventureMap).is_empty(), "%s cannot move on before choosing" % starter)
+		eq(run.relic_offers.size(), 3, "%s is offered three" % starter)
+		var allies: bool = AdventureRelic.holds_ally(run, shipped)
+		var relics: Dictionary = {}
+		var sets: Dictionary = {}
+		var groups: Dictionary = {}
+		var style: String = run.deck().style
+		for offer in run.relic_offers:
+			var relic: String = str(offer["relic"])
+			check(not relics.has(relic), "%s: %s is offered once" % [starter, relic])
+			relics[relic] = true
+			check(relic != "relic_03", "%s: the Lodestone Heart is never offered" % starter)
+			check(AdventureEconomy.relic_pool().has(relic), "%s: %s is from the pool" % [starter, relic])
+			if relic == "relic_02":
+				check(allies, "%s: the Debtor's Ring comes only to a run holding an Ally" % starter)
+			var bundle_id: String = str(offer["bundle"])
+			check(bundle_id != "", "%s: every offer carries a set" % starter)
+			check(not sets.has(bundle_id), "%s: %s is offered once" % [starter, bundle_id])
+			sets[bundle_id] = true
+			var bundle: Dictionary = AdventureReserveBundles.by_id(bundle_id)
+			var group: String = str(bundle.get("group", ""))
+			groups[group] = int(groups.get(group, 0)) + 1
+			check(group == style or group == "freestyle", "%s: %s is its school or Freestyle" % [starter, bundle_id])
+			var cards: Array[String] = []
+			cards.assign(offer["cards"])
+			check(cards.size() >= AdventureReserveBundles.key_cards(bundle).size() and cards.size() <= 5,
+				"%s: %s holds its key cards and at most five" % [starter, bundle_id])
+			for key in AdventureReserveBundles.key_cards(bundle):
+				check(cards.count(key) >= AdventureReserveBundles.key_cards(bundle).count(key),
+					"%s: %s keeps every key card (%s)" % [starter, bundle_id, key])
+			var problems: Array[String] = reserve_set_problems(run, shipped, cards, relic)
+			eq(problems.size(), 0, "%s: %s is legal for the run: %s" % [starter, bundle_id, ", ".join(problems)])
+			var trial: DeckList = run.deck()
+			for card in cards:
+				var copies: int = trial.cards.count(card) + trial.reserve.count(card) + cards.count(card)
+				check(copies <= 3, "%s: %s never brings a fourth copy of %s" % [starter, bundle_id, card])
+		if style == "freestyle":
+			eq(groups.get("freestyle", 0), 3, "%s: a Freestyle run takes three Freestyle sets" % starter)
+		else:
+			for group in groups.keys():
+				check(int(groups[group]) <= AdventureRelic.MAX_PER_GROUP, "%s: no more than two %s sets" % [starter, group])
+			var school_sets: bool = false
+			for bundle in AdventureReserveBundles.all():
+				if str(bundle["group"]) == style and not AdventureRelic.resolve(run, shipped, bundle, 1).is_empty():
+					school_sets = true
+			if school_sets:
+				check(int(groups.get(style, 0)) >= 1, "%s: at least one %s set" % [starter, style])
+		var eligible: Array[String] = AdventureRelic.eligible_relics(run, shipped)
+		eq(eligible.has("relic_02"), allies, "%s: the Ring is in the pool exactly when the run holds an Ally" % starter)
+		ring_seen = ring_seen or allies
+		ringless_seen = ringless_seen or not allies
+	check(ring_seen and ringless_seen, "runs with and without Allies were both walked")
+
+
+func test_relic_node_sets_drop_on_a_key_clash_and_redraw_a_fill_clash() -> void:
+	var shipped: CardLibrary = shipped()
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 5)
+	var bundle: Dictionary = AdventureReserveBundles.by_id("reserve_pyre_art_answers")
+	var fresh: Array[String] = AdventureRelic.resolve(run, shipped, bundle, 77)
+	eq(fresh.size(), 5, "the set resolves to five cards on the starter")
+	eq(AdventureRelic.resolve(run, shipped, bundle, 77), fresh, "the same seed gives the same cards")
+	var different: bool = false
+	for seed_value in range(1, 40):
+		different = different or AdventureRelic.resolve(run, shipped, bundle, seed_value) != fresh
+	check(different, "another seed can draw different fill")
+	var fill_clash: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 5)
+	for i in range(3 - fill_clash.cards.count("pyre_strike_20")):
+		fill_clash.cards.append("pyre_strike_20")
+	for seed_value in range(1, 20):
+		var cards: Array[String] = AdventureRelic.resolve(fill_clash, shipped, bundle, seed_value)
+		check(not cards.has("pyre_strike_20"), "a fill card at its limit in the Life Deck is never drawn (seed %d)" % seed_value)
+		eq(cards.size(), 5, "and a legal fill card takes its place (seed %d)" % seed_value)
+		eq(cards.count("pyre_drill_05"), 3, "which here can only be the Drill (seed %d)" % seed_value)
+		eq(reserve_set_problems(fill_clash, shipped, cards, "relic_01").size(), 0, "the set stays legal (seed %d)" % seed_value)
+	var dry: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 5)
+	dry.cards.append_array(["pyre_strike_20", "pyre_strike_20", "pyre_strike_20", "pyre_drill_05"])
+	var short: Array[String] = AdventureRelic.resolve(dry, shipped, bundle, 3)
+	eq(short.size(), 4, "a fill pool that runs dry leaves the set short")
+	eq(short.count("pyre_strike_23"), 2, "with its key cards all there")
+	eq(reserve_set_problems(dry, shipped, short, "relic_01").size(), 0, "and legal")
+	var key_clash: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 5)
+	key_clash.cards.append_array(["pyre_strike_23", "pyre_strike_23"])
+	eq(AdventureRelic.resolve(key_clash, shipped, bundle, 77).size(), 0, "a key card past its limit drops the whole set")
+	var steel: AdventureRun = AdventureRun.begin("steel_beatdown_start", 5)
+	var jaws: Dictionary = AdventureReserveBundles.by_id("reserve_steel_endurance_breakers")
+	check(not AdventureRelic.resolve(steel, shipped, jaws, 5).is_empty(), "the Locking Jaws set reaches a Steel run")
+	steel.relic_id = "relic_01"
+	steel.reserve.append("steel_strike_01")
+	eq(AdventureRelic.resolve(steel, shipped, jaws, 5).size(), 0, "a run already holding Locking Jaws never sees its set")
+	for seed_value in range(1, 30):
+		var drawn: Array[Dictionary] = AdventureRelic.draw_sets(steel, shipped, seed_value, 3)
+		for entry in drawn:
+			check(str(entry["id"]) != "reserve_steel_endurance_breakers", "and it is never drawn (seed %d)" % seed_value)
+
+
+func test_taking_or_keeping_a_relic() -> void:
+	var shipped: CardLibrary = shipped()
+	var visit: Dictionary = relic_visit(shipped, "pyre_beatdown_start")
+	if visit.is_empty():
+		check(false, "a run reaches the Relic node")
+		return
+	var run: AdventureRun = visit["run"]
+	var map: AdventureMap = visit["map"]
+	eq(run.relic_id, "", "the starter holds no Relic")
+	check(not AdventureRelic.keep(run), "a run without a Relic cannot keep one")
+	eq(run.status, "relic", "and still has to choose")
+	var offer: Dictionary = run.relic_offers[1]
+	var cards: Array[String] = []
+	cards.assign(offer["cards"])
+	var size: int = run.cards.size()
+	check(AdventureRelic.take(run, shipped, 1), "an offer is taken")
+	eq(run.relic_id, str(offer["relic"]), "its Relic is held")
+	eq(run.reserve, cards, "its set is the Reserve")
+	check(run.reserve_new.is_empty(), "nothing is left marked new once the visit ends on the map")
+	eq(run.cards.size(), size, "the Life Deck is untouched")
+	var pick: Dictionary = run.picks[run.picks.size() - 1]
+	eq([str(pick["kind"]), str(pick["id"])], ["relic", str(offer["relic"])], "the pick is recorded")
+	eq(pick.get("cards", []), cards, "with the set")
+	check(run.relic_offers.is_empty(), "the offers are gone")
+	eq(run.status, "reserve" if cards.size() > AdventureReserve.capacity(run, shipped) else "map", "a Reserve that fits ends the visit")
+	check(not AdventureRelic.take(run, shipped, 0), "a second take is refused")
+	run.status = "map"
+	eq(run.choices(map), map.next_of(run.node_id), "the run moves on from the Relic node")
+
+	var held: Dictionary = relic_visit(shipped, "tide_companions_start")
+	var holder: AdventureRun = held["run"]
+	eq(holder.relic_id, "relic_02", "a starter's own Relic is held from the start")
+	var reserve: Array[String] = holder.reserve.duplicate()
+	check(AdventureRelic.keep(holder), "a held Relic may be kept")
+	eq([holder.relic_id, holder.reserve, holder.status], ["relic_02", reserve, "map"], "and nothing changes")
+
+	var swapping: Dictionary = relic_visit(shipped, "tide_companions_start")
+	var swapper: AdventureRun = swapping["run"]
+	var index: int = -1
+	for i in range(swapper.relic_offers.size()):
+		if str(swapper.relic_offers[i]["relic"]) != "relic_01" and str(swapper.relic_offers[i]["relic"]) != "relic_02":
+			index = i
+	check(index >= 0, "an offer holds a Relic smaller than five plus its set")
+	var arriving: Array[String] = []
+	arriving.assign(swapper.relic_offers[index]["cards"])
+	var before: Array[String] = swapper.reserve.duplicate()
+	var joined: Array[String] = before.duplicate()
+	joined.append_array(arriving)
+	check(AdventureRelic.take(swapper, shipped, index), "a different Relic is taken")
+	eq(swapper.reserve, joined, "its set joins the Reserve already held")
+	eq(swapper.status, "reserve", "an over-full Reserve waits on setting cards aside")
+	check(AdventureReserve.done_block(swapper, shipped).contains("Set aside %d more" % AdventureReserve.excess(swapper, shipped)),
+		"and says how many must go")
+	check(not AdventureReserve.finish(swapper, shipped), "it cannot leave yet")
+	var loaded: AdventureRun = AdventureRun.from_dict(JSON.parse_string(JSON.stringify(swapper.to_dict())))
+	eq(loaded.status, "reserve", "a run saved while setting cards aside loads back there")
+	eq(loaded.reserve_new, arriving, "with the new cards still marked")
+	while AdventureReserve.excess(swapper, shipped) > 0:
+		check(AdventureReserve.move(swapper, shipped, "reserve", swapper.reserve[0], "library"), "a Reserve card is set aside")
+	eq(swapper.library.size(), before.size() + arriving.size() - AdventureReserve.capacity(swapper, shipped), "into the run library")
+	eq(AdventureReserve.done_block(swapper, shipped), "", "a Reserve that fits may leave")
+	check(AdventureReserve.finish(swapper, shipped), "and does")
+	eq(swapper.status, "map", "back on the map")
+	check(swapper.reserve_new.is_empty(), "with nothing marked new any more")
+
+
+func test_relic_offers_are_seeded_and_saved() -> void:
+	var shipped: CardLibrary = shipped()
+	var visit: Dictionary = relic_visit(shipped, "storm_volley_start")
+	if visit.is_empty():
+		check(false, "a run reaches the Relic node")
+		return
+	var run: AdventureRun = visit["run"]
+	var offers: Array[Dictionary] = run.relic_offers.duplicate(true)
+	eq(AdventureRelic.roll(run, shipped, run.node_id), offers, "the offers follow the run seed and the node")
+	var loaded: AdventureRun = AdventureRun.from_dict(JSON.parse_string(JSON.stringify(run.to_dict())))
+	eq(loaded.status, "relic", "a run saved on the Relic node loads back on it")
+	eq(loaded.relic_offers, offers, "with the same offers and the same cards")
+	loaded.cards.append_array(["storm_art_26", "storm_art_26"])
+	AdventureRelic.open(loaded, shipped)
+	eq(loaded.relic_offers, offers, "reopening never rolls again")
+	var other: AdventureRun = AdventureRun.begin("storm_volley_start", 41)
+	other.node_id = run.node_id
+	other.status = "relic"
+	check(AdventureRelic.roll(other, shipped, run.node_id) != offers, "another run seed rolls other offers")
+	eq(AdventureRun.SAVE_VERSION, 9, "the save version moved for the Relic, library, offer and starting Reserve fields")
+
+
+func test_reserve_moves_keep_the_life_deck_size_and_the_rules() -> void:
+	var shipped: CardLibrary = shipped()
+	var run: AdventureRun = AdventureRun.begin("shade_mind_siege_start", 9)
+	var bare: String = run.cards[0]
+	eq(AdventureReserve.move_block(run, shipped, "library", bare, "reserve"), AdventureReserve.BLOCK_ABSENT, "only a card in the pile moves")
+	run.library.append("shade_strike_22")
+	eq(AdventureReserve.move_block(run, shipped, "library", "shade_strike_22", "reserve"), AdventureReserve.BLOCK_NO_RELIC,
+		"without a Relic nothing enters the Reserve")
+	check(not AdventureReserve.move(run, shipped, "library", "shade_strike_22", "reserve"), "and the move is refused")
+	run.relic_id = "relic_02"
+	run.reserve.assign(["shade_strike_01", "shade_art_08", "shade_art_08", "shade_strike_18", "shade_strike_18"])
+	eq(DeckValidator.validate(run.deck(), shipped).size(), 0, "the test Reserve is legal")
+	var total: int = run.deck().total_cards()
+	eq(AdventureReserve.move_block(run, shipped, "library", "shade_strike_22", "reserve"), AdventureReserve.BLOCK_FULL,
+		"a full Reserve takes nothing more")
+	check(AdventureReserve.move(run, shipped, "reserve", "shade_art_08", "library"), "a Reserve card goes to the library")
+	eq([run.reserve.count("shade_art_08"), run.library.count("shade_art_08")], [1, 1], "one copy moved")
+	check(AdventureReserve.move(run, shipped, "library", "shade_strike_22", "reserve"), "a library card fills the gap")
+	eq(run.reserve.size(), 5, "the Reserve is full again")
+	for pile in ["reserve", "library"]:
+		eq(AdventureReserve.move_block(run, shipped, "life", bare, pile), AdventureReserve.BLOCK_LIFE_SIZE,
+			"a Life Deck card never leaves on its own (to the %s)" % pile)
+		eq(AdventureReserve.move_block(run, shipped, pile, run.reserve[0] if pile == "reserve" else run.library[0], "life"),
+			AdventureReserve.BLOCK_LIFE_SIZE, "and nothing joins it on its own (from the %s)" % pile)
+	var life: Array[String] = run.cards.duplicate()
+	eq(AdventureReserve.swap_block(run, shipped, "life", bare, "reserve", "shade_strike_01"), AdventureReserve.BLOCK_RESERVE_ONLY,
+		"a Reserve-only card never swaps into the Life Deck")
+	check(not AdventureReserve.swap(run, shipped, "life", bare, "reserve", "shade_strike_01"), "and the swap is refused")
+	eq(run.cards, life, "leaving the Life Deck as it was")
+	var partner: String = ""
+	for id in run.cards:
+		if partner == "" and run.cards.count(id) < 3 and id != "shade_strike_18" and not id.begins_with("personality"):
+			partner = id
+	check(AdventureReserve.swap(run, shipped, "life", partner, "reserve", "shade_strike_18"), "a Life Deck card trades with a Reserve card")
+	eq(run.cards.size(), life.size(), "one for one, so the Life Deck keeps its size")
+	check(run.cards.has("shade_strike_18") and run.reserve.has(partner), "the two cards changed places")
+	eq(run.deck().total_cards(), total, "and the deck size is unchanged")
+	var three: String = ""
+	for id in run.cards:
+		if three == "" and run.cards.count(id) == 3 and not run.reserve.has(id):
+			three = id
+	check(three != "", "the deck runs a card at three copies")
+	run.library.append(three)
+	var other: String = ""
+	for id in run.cards:
+		if other == "" and id != three:
+			other = id
+	eq(AdventureReserve.swap_block(run, shipped, "life", other, "library", three),
+		AdventureReserve.BLOCK_RULE, "a fourth copy never swaps into the Life Deck")
+	eq(AdventureReserve.move_block(run, shipped, "library", three, "reserve"), AdventureReserve.BLOCK_FULL, "the full Reserve refuses it first")
+	check(AdventureReserve.move(run, shipped, "reserve", run.reserve[0], "library"), "with room made")
+	eq(AdventureReserve.move_block(run, shipped, "library", three, "reserve"), AdventureReserve.BLOCK_RULE,
+		"a fourth copy is refused by the Reserve too")
+	check(AdventureReserve.swap(run, shipped, "life", other, "library", "shade_art_08"), "a Life Deck card trades with a library card")
+	check(run.cards.has("shade_art_08") and run.library.has(other), "the two cards changed places")
+	eq(run.deck().total_cards(), total, "one for one")
+	eq(DeckValidator.validate(run.deck(), shipped).size(), 0, "every move left the deck legal")
+	run.duel_history.append({"seat": 0})
+	eq(AdventureReserve.move_block(run, shipped, "reserve", run.reserve[0], "library"), AdventureReserve.BLOCK_CLOSED,
+		"nothing moves once the duel is dealt")
+	run.duel_history.clear()
+	run.status = "reward"
+	check(not AdventureReserve.is_editable(run), "nor away from the map")
+
+
+func test_the_library_survives_save_and_load() -> void:
+	var run: AdventureRun = AdventureRun.begin("shade_mind_siege_start", 9)
+	run.relic_id = "relic_04"
+	run.reserve.assign(["shade_art_08"])
+	run.library.assign(["shade_strike_22", "shade_strike_22"])
+	var loaded: AdventureRun = AdventureRun.from_dict(JSON.parse_string(JSON.stringify(run.to_dict())))
+	eq(loaded.library, run.library, "the run library is saved")
+	eq([loaded.relic_id, loaded.reserve], ["relic_04", run.reserve], "with the Relic and its Reserve")
+	eq(AdventureRun.from_dict({"version": 7}), null, "a save from before the library is dropped")
+
+
+func test_walking_past_the_relic_node_takes_or_keeps_a_relic() -> void:
+	var shipped: CardLibrary = shipped()
+	for starter in ["pyre_beatdown_start", "tide_companions_start", "freestyle_swords_start"]:
+		var map: AdventureMap = AdventureMap.generate(starter, 21)
+		var run: AdventureRun = AdventureRun.begin(starter, 21)
+		var held: String = run.relic_id
+		var met: bool = false
+		while run.status != "won" and run.stage < 4:
+			check(run.walk_to_next_duel(map, shipped), "%s walks to its next duel" % starter)
+			for id in run.path:
+				met = met or str(map.node(id).get("type", "")) == "relic"
+			if met:
+				break
+			AdventureRewards.finish_stage(run, map, shipped, true)
+			if run.status == "aspect":
+				AdventureRewards.apply_aspect(run, shipped, run.pending_aspects[0])
+				AdventureRewards.finish_aspect(run, map, shipped)
+			AdventureRewards.apply_skip(run)
+			AdventureRewards.finish_reward(run, map)
+		check(met, "%s passed its Relic node" % starter)
+		eq(run.status, "stage", "%s stands on a duel after it" % starter)
+		check(run.relic_id != "", "%s holds a Relic" % starter)
+		if held != "":
+			eq(run.relic_id, held, "%s kept the Relic it held" % starter)
+		else:
+			var pick: bool = false
+			for entry in run.picks:
+				pick = pick or str(entry.get("kind", "")) == "relic"
+			check(pick, "%s took the first offer" % starter)
+		check(run.reserve.size() <= AdventureReserve.capacity(run, shipped), "%s set aside what its Reserve cannot hold" % starter)
+		eq(DeckValidator.validate(run.deck(), shipped).size(), 0, "%s leaves with a legal deck" % starter)
+
+
 ## The check tools/validate_starters.gd runs, so adventure data is covered by the suite.
 func test_adventure_starters_and_opponents_are_legal() -> void:
 	var shipped: CardLibrary = shipped_library()
@@ -7610,7 +8426,7 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 			check(CardText.rules_text(def) != "" or def.type == CardDef.Type.DRILL, "%s prints something" % id)
 	# 397 before the personality split; the 27 stack cards became 62 one-Aspect cards. The Pyre
 	# expansion added 27, Steel 23, Tide 24, Shade 23, the second Root batch 15, Storm 9, and three
-	# banned cards came in as adventure bombs. The Storm Sensei sheet added 11 cards and 7
+	# banned cards came in as adventure bombs. The Storm Mentor sheet added 11 cards and 7
 	# personality cards (a four-Aspect duelist and three Allies).
 	eq(shipped().defs.size(), 580, "and the set is 511 other cards plus 69 personality cards")
 
@@ -8791,7 +9607,7 @@ func test_an_option_carries_the_owner_only_for_a_card_on_the_table() -> void:
 	eq(OptionView.public_owner(e, theirs.uid), 1, "and speaks once it is placed")
 	eq(OptionView.public_owner(e, e.player(0).life_deck[0].uid), -1, "a Life Deck card names no owner")
 	eq(OptionView.public_owner(e, -1), -1, "and an option with no card names none either")
-	var built: OptionView = OptionView.of(Command.new(0, &"discard_ally", mine.uid), e)
+	var built: OptionView = OptionView.of(Command.new(0, &"capture",mine.uid), e)
 	eq(built.owner, 0, "OptionView.of fills it in")
 	eq(OptionView.from_dict(built.to_dict()).owner, 0, "and it survives the round trip online")
 
@@ -8807,8 +9623,8 @@ func test_a_side_marker_appears_only_when_two_options_read_alike() -> void:
 	e._place(e.player(1), theirs)
 	var p: PromptView = PromptView.new()
 	p.player = 0
-	p.options.append(OptionView.of(Command.new(0, &"discard_ally", mine.uid), e))
-	p.options.append(OptionView.of(Command.new(0, &"discard_ally", theirs.uid), e))
+	p.options.append(OptionView.of(Command.new(0, &"capture",mine.uid), e))
+	p.options.append(OptionView.of(Command.new(0, &"capture",theirs.uid), e))
 	eq(p.options[0].label, p.options[1].label, "the two options read the same without a marker")
 	var marks: Dictionary = CardText.option_side_marks(p, 0)
 	eq(str(marks.get(mine.uid, "")), " · yours", "mine is marked as mine")
@@ -8816,20 +9632,20 @@ func test_a_side_marker_appears_only_when_two_options_read_alike() -> void:
 	eq(str(CardText.option_side_marks(p, 1).get(mine.uid, "")), " · theirs", "seat 1 reads it the other way")
 	# One option of a title, or a second option that already reads differently, needs no marker.
 	var alone: PromptView = PromptView.new()
-	alone.options.append(OptionView.of(Command.new(0, &"discard_ally", mine.uid), e))
+	alone.options.append(OptionView.of(Command.new(0, &"capture",mine.uid), e))
 	eq(CardText.option_side_marks(alone, 0).size(), 0, "one option of a title is unambiguous")
 	var other: CardInstance = to_hand(e, 1, "t_ally_kin")
 	e._place(e.player(1), other)
 	var distinct: PromptView = PromptView.new()
-	distinct.options.append(OptionView.of(Command.new(0, &"discard_ally", mine.uid), e))
-	distinct.options.append(OptionView.of(Command.new(0, &"discard_ally", other.uid), e))
+	distinct.options.append(OptionView.of(Command.new(0, &"capture",mine.uid), e))
+	distinct.options.append(OptionView.of(Command.new(0, &"capture",other.uid), e))
 	check(distinct.options[0].label != distinct.options[1].label, "two titles read apart already")
 	eq(CardText.option_side_marks(distinct, 0).size(), 0, "so neither is marked")
 	# A hidden card can never be marked, because the view gave it no owner to mark it by.
 	var in_hand: CardInstance = to_hand(e, 0, "t_ally_squire_alt")
 	var hidden: PromptView = PromptView.new()
 	hidden.options.append(OptionView.of(Command.new(0, &"place", in_hand.uid), e))
-	hidden.options.append(OptionView.of(Command.new(0, &"discard_ally", mine.uid), e))
+	hidden.options.append(OptionView.of(Command.new(0, &"capture",mine.uid), e))
 	eq(hidden.options[0].owner, -1, "the hand card carries no owner")
 	eq(CardText.option_side_marks(hidden, 0).has(in_hand.uid), false, "and so is never marked")
 
@@ -9051,10 +9867,14 @@ func test_a_won_run_pays_out_and_settles_its_cards_at_a_discount() -> void:
 	eq(run.status, "won", "the all-wins run beats the final boss")
 	eq(wallet.motes, motes_expected(played["map"], run.path, run.stage, true),
 		"it is paid for every duel at its act's rate and the completion bonus")
-	# What the run added is what the bundles brought plus the Aspect cards it climbed to.
+	# What the run added is what the bundles and the Relic node's Reserve set brought, plus the
+	# Aspect cards it climbed to.
 	var expected: Array[String] = (played["taken"] as Array[String]).duplicate()
+	for pick in run.picks:
+		if str(pick.get("kind", "")) == "relic":
+			expected.append_array(pick.get("cards", []) as Array[String])
 	expected.sort()
-	eq(run.added_cards(), expected, "added_cards is the bundle cards, and only those")
+	eq(run.added_cards(), expected, "added_cards is the bundle and Reserve set cards, and only those")
 	eq(run.added_duelist_cards(), played["aspects"], "and the Aspect cards sit apart from them")
 	check(not expected.is_empty(), "the run did add something")
 	# The run-end screen. A win opens the whole deck, the starter's own cards included.
@@ -9278,6 +10098,30 @@ func test_a_run_settles_for_what_it_added_across_a_save() -> void:
 	eq(int(settled.kept.get("freestyle_strike_06", 0)), 1, "and what was already bought")
 	eq(AdventureSettlement.offers(settled, shipped, false).size(), 2,
 		"so the offer no longer lists the copy that was kept")
+
+
+func test_a_run_settles_for_reserve_and_library_gains_too() -> void:
+	var printed: DeckList = DeckList.resolve("tide_companions_start")
+	var run: AdventureRun = AdventureRun.begin("tide_companions_start", 8282)
+	eq(run.starter_reserve, printed.reserve, "the starter's own Reserve is where the run began")
+	eq(run.added_cards(), [] as Array[String], "a fresh run has gained nothing")
+	var swapped: String = run.reserve[0]
+	run.reserve[0] = run.cards[0]
+	run.cards[0] = swapped
+	eq(run.added_cards(), [] as Array[String], "moving its own cards between piles gains nothing")
+	run.library.append(run.reserve.pop_back())
+	eq(run.added_cards(), [] as Array[String], "nor does setting one aside in the library")
+	run.reserve.append("freestyle_strike_06")
+	run.library.append("freestyle_combat_02")
+	eq(run.added_cards(), ["freestyle_combat_02", "freestyle_strike_06"] as Array[String],
+		"a card gained into the Reserve or the library is a run gain")
+	var again: AdventureRun = AdventureRun.from_dict(run.to_dict())
+	eq(again.starter_reserve, run.starter_reserve, "the starting Reserve survives a save")
+	eq(again.added_cards(), run.added_cards(), "so the gains read the same after a reload")
+	var pool: Array[String] = AdventureSettlement._pool(run, true)
+	check(pool.has("freestyle_strike_06") and pool.has("freestyle_combat_02") and pool.has(swapped),
+		"a won run opens its Reserve and library as well as its Life Deck")
+	eq(AdventureSettlement._pool(run, false).size(), 2, "a lost run opens only the two gains")
 
 
 # --- Copy caps, loadout copies, deck slots and Aspect tiers (2026-09-21) ----
@@ -10534,7 +11378,7 @@ func test_steel_shipped_cards_match_their_printed_text() -> void:
 	eq(f._modifiers_for(f.player(0), "own", "strike", null, {}).size(), 1, "the Drill adds to Strikes")
 	f._float(0, "forbid", "combat", {"what": "drills"})
 	eq(f._modifiers_for(f.player(0), "own", "strike", null, {}).size(), 0, "and adds nothing while Drills are forbidden")
-	# "...cannot use Mastery and Sensei cards": the Relic stands in for the Sensei card.
+	# The printed text shuts off Masteries and the side-deck holder, which the Relic stands in for.
 	var d: DeckList = real_deck([], "pact")
 	d.relic_id = "relic_03"
 	var g: DuelEngine = real_engine(d, real_deck([], "vigil"))
@@ -10983,7 +11827,7 @@ func test_tide_masteries_stop_with_a_discard_and_grant_arts_a_line() -> void:
 ## "Discard one of your opponent's Non-Combat cards or Allies in play. Unless your opponent discards
 ## a card from his hand when you perform this attack, remove an additional one from the game."
 func test_shade_prying_whisper_removes_unless_they_discard() -> void:
-	check(bool(shipped().get_def("shade_strike_01").raw.get("reserve_only", false)), "it is Sensei Deck only, so Reserve only")
+	check(bool(shipped().get_def("shade_strike_01").raw.get("reserve_only", false)), "it is side-deck only, so Reserve only")
 	for answer_value in ["no", "yes"]:
 		var e: DuelEngine = real_engine(real_deck(["shade_strike_01"], "pact", "shade"), real_deck([], "vigil"))
 		var first: CardInstance = real_inject(e, 1, "storm_drill_03")
@@ -11289,9 +12133,9 @@ func decline_responses(e: DuelEngine) -> void:
 		e.submit(quiet)
 
 
-## The Storm Sensei's Relic: "All of your attacks do +1 life cards of damage. All of your
+## The Storm Mentor's Relic: "All of your attacks do +1 life cards of damage. All of your
 ## opponent's attacks do -1 life cards of damage." A standing line, read like a Mastery's.
-func test_storm_sensei_relic_moves_one_wound_each_way() -> void:
+func test_storm_mentor_relic_moves_one_wound_each_way() -> void:
 	var e: DuelEngine = real_engine(real_deck(["storm_art_16"]), real_deck([], "pact"))
 	e.player(0).relic = e._instance(shipped().get_def("relic_05"), 0, &"side")
 	to_attack(e, 0)
@@ -11499,9 +12343,9 @@ func test_vigilant_effort_hardens_against_a_pact_duelist() -> void:
 	check(not f._has_floating(1, "no_ally_takeover"), "with nothing else")
 
 
-## The rest of the Storm Sensei sheet's new cards use mechanics already covered; this pins their
+## The rest of the Storm Mentor sheet's new cards use mechanics already covered; this pins their
 ## data to the printed text.
-func test_storm_sensei_cards_read_as_printed() -> void:
+func test_storm_mentor_cards_read_as_printed() -> void:
 	var lib: CardLibrary = shipped()
 	var duelist: Array[CardDef] = []
 	for i in range(63, 67):
@@ -12359,7 +13203,7 @@ func test_freestyle_cards_match_their_printed_text() -> void:
 	check(bool(shipped().get_def("freestyle_noncombat_04").effects[0].get("show", false)), "Foresight shows its card")
 	check(bool(shipped().get_def("freestyle_noncombat_07").effects[1].get("must", false)), "Provocation takes exactly 2")
 	check(bool(shipped().get_def("freestyle_noncombat_13").effects[1].get("must", false)), "The Gate's Boon takes exactly 3")
-	check(bool(shipped().get_def("freestyle_noncombat_10").raw.get("reserve_only", false)), "Defacement is Sensei Deck only")
+	check(bool(shipped().get_def("freestyle_noncombat_10").raw.get("reserve_only", false)), "Defacement is side-deck only")
 	eq(str(shipped().get_def("freestyle_noncombat_10").effects[0].get("who", "")), "any", "and takes either side's Seal")
 	eq(str(shipped().get_def("freestyle_strike_02").effects[0].get("who", "")), "any", "Clean Sweep reaches either side")
 	eq(str(shipped().get_def("freestyle_strike_03").effects[2].get("who", "")), "any", "Headlong Plunge's Ally is either side's")

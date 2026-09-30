@@ -49,6 +49,13 @@ public partial class GladeShell : RoomShell
     /// <summary>Rim tiles either side of a trail kept clear of trees.</summary>
     [Export] public int TrailShoulder { get; set; } = 2;
 
+    /// <summary>Elevation the rim climbs to either side of the arrival trail, a step per tile out from
+    /// the ring, so the way in runs in a sunken lane. 0 leaves the rim flat.</summary>
+    [Export] public int ArrivalBank { get; set; }
+
+    /// <summary>Tiles of raised bank beyond each trail shoulder.</summary>
+    [Export] public int ArrivalBankWidth { get; set; } = 2;
+
     /// <summary>Bramble that closes a mouth during a fight, <see cref="GateBrambles"/> across it.</summary>
     [Export] public PackedScene? GateScene { get; set; }
     [Export] public int GateBrambles { get; set; } = 4;
@@ -73,7 +80,7 @@ public partial class GladeShell : RoomShell
         var recipe = GladeRecipes.For(FloorId, room.PurposeOverride ?? room.Purpose);
         // A big guardian glade opens the start gap too, so its landmarks sit between the sides.
         int half = recipe.Size >= WideGlade ? Math.Max(ZoneHalf, WideZoneHalf) : ZoneHalf;
-        return GladeGeneration.Generate(seed, recipe.Size > 0 ? recipe.Size : size, doors, new GladeShape(recipe, room.Combat, half));
+        return GladeGeneration.Generate(seed, recipe.Size > 0 ? recipe.Size : size, doors, new GladeShape(recipe, room.Combat, half, room.Arrival?.Side));
     }
 
     public override void Build(DungeonRoomPrefab room, IReadOnlyList<DoorSide> doors)
@@ -105,6 +112,7 @@ public partial class GladeShell : RoomShell
                     GladeGeneration.SetFlat(render, x, y, TileRole.Ground, SurfaceType.Dirt, 0);
                     trail.Add((x, y));
                 }
+        if (room.Arrival is { } arrival && ArrivalBank > 0) RaiseBanks(render, n, arrival.Side);
 
         var rimTrees = RimSpots(render, n, trail);
         var landmarks = GladeGeneration.LandmarkTiles(room.Generated.Props).Select(t => (t.X + r, t.Y + r)).ToHashSet();
@@ -126,6 +134,34 @@ public partial class GladeShell : RoomShell
         if (trees != null) AddChild(trees);
         PlantBigTrees(room);
         foreach (var tree in _fader.Trees) tree.Tint *= TreeTint;
+        // The combat boards' ground cover: tufts, stones and flowers on open ground, scrub on brush.
+        _decor = TileDecor.Build(BackdropThemes.Forest, render, m, m, heights, r);
+        if (_decor == null) return;
+        AddChild(_decor);
+        _decor.Shade(1f, TreeTint);
+    }
+
+    private DecorScatter? _decor;
+
+    /// <summary>Rim ground beside the arrival trail climbs a step per tile from the ring, up to
+    /// <see cref="ArrivalBank"/>; the trail itself stays at ground level.</summary>
+    private void RaiseBanks(MapLayout render, int n, DoorSide side)
+    {
+        int r = RimDepth, mid = n / 2 + r, lane = RoomGeneration.DoorWidth / 2;
+        int reach = lane + TrailShoulder + ArrivalBankWidth;
+        for (int step = 1; step <= r; step++)
+            for (int across = -reach; across <= reach; across++)
+            {
+                if (Math.Abs(across) <= lane) continue;
+                var (x, y) = side switch
+                {
+                    DoorSide.North => (mid + across, r - step),
+                    DoorSide.South => (mid + across, r + n - 1 + step),
+                    DoorSide.West => (r - step, mid + across),
+                    _ => (r + n - 1 + step, mid + across)
+                };
+                GladeGeneration.SetFlat(render, x, y, TileRole.Ground, SurfaceType.Grass, Math.Min(ArrivalBank, step));
+            }
     }
 
     /// <summary>One broad tree centred on each 2x2 block the glade reserved for it.</summary>
@@ -199,6 +235,7 @@ public partial class GladeShell : RoomShell
         _map?.SetLight(light);
         foreach (var tree in _fader.Trees) tree.SetLight(light);
         foreach (var bramble in _gates) bramble.SetLight(light);
+        _decor?.Shade(light, TreeTint);
     }
 
     public override void Focus(Aabb box) => _fader.Retarget(box);

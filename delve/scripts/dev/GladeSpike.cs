@@ -47,6 +47,7 @@ public partial class GladeSpike : SpikeBase
     protected override async Task RunSpikeAsync(DataManager data)
     {
         CheckGeneration();
+        CheckBoards();
         await CheckCrawl(ForestCrawl, "fringe");
         await CheckCrawl(DeepCrawl, "deepwood");
         if (DisplayServer.GetName() != "headless") await RenderRow();
@@ -59,6 +60,7 @@ public partial class GladeSpike : SpikeBase
         int[] sizes = { 12, 14, 16, 18 };
         string[] floors = { "grassland", "deepforest" };
         int invalid = 0, rebuilt = 0, raised = 0, wet = 0, bare = 0, fights = 0, withBroad = 0, openBroad = 0;
+        int hedged = 0, quiet = 0, bareQuiet = 0;
         var clock = Stopwatch.StartNew();
         for (int seed = 1; seed <= Seeds; seed++)
         {
@@ -76,11 +78,19 @@ public partial class GladeSpike : SpikeBase
             var tiles = Interior(room.Layout).ToArray();
             if (tiles.Any(p => room.Layout.GetElevation(p.x, p.y) > 0)) raised++;
             if (tiles.Any(p => room.Layout.GetTile(p.x, p.y) == TileRole.Water)) wet++;
-            if (!shape.Combat) continue;
+            var landmarks = GladeGeneration.LandmarkTiles(room.Props).ToHashSet();
+            int n = room.Layout.Width;
+            var trees = tiles.Where(p => room.Layout.GetTile(p.x, p.y) == TileRole.Wall && !landmarks.Contains((p.x, p.y))).ToArray();
+            if (!trees.Any(p => Math.Min(Math.Min(p.x, p.y), Math.Min(n - 1 - p.x, n - 1 - p.y)) <= 2)) hedged++;
+            if (!shape.Combat)
+            {
+                quiet++;
+                if (trees.Length < 2) bareQuiet++;
+                continue;
+            }
             fights++;
             int cover = tiles.Count(p => room.Layout.GetTile(p.x, p.y) == TileRole.Cover);
-            var landmarks = GladeGeneration.LandmarkTiles(room.Props).ToHashSet();
-            int trunks = tiles.Count(p => room.Layout.GetTile(p.x, p.y) == TileRole.Wall && !landmarks.Contains((p.x, p.y)));
+            int trunks = trees.Length;
             var broad = room.Props.Where(p => p.Kind == GladeGeneration.BigTree).ToArray();
             if (cover < 3 || trunks + broad.Length < 2) bare++;
             if (broad.Length > 0) withBroad++;
@@ -93,6 +103,8 @@ public partial class GladeSpike : SpikeBase
         Check($"glades build fast enough for a 12-room floor ({ms:F0} ms each, limit {MaxMillisecondsPerGlade})", ms <= MaxMillisecondsPerGlade);
         Check($"every fight glade has 3+ cover rocks and 2+ trees inside: {bare} of {fights} bare", bare == 0);
         Check($"broad trees fill a whole 2x2 block, like a Large creature: {openBroad} open tiles, {withBroad} of {fights} fight glades have one", openBroad == 0 && withBroad > fights / 2);
+        Check($"trees step in from the ring in every glade: {hedged} of {Seeds} keep a clean hedge", hedged == 0);
+        Check($"glades without a fight still hold 2+ trees inside: {bareQuiet} of {quiet} bare", bareQuiet == 0);
         GD.Print($"[GladeSpike] raised ground in {raised} of {Seeds}, water in {wet} of {Seeds}");
     }
 

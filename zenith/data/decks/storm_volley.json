@@ -48,10 +48,6 @@
       "count": 3
     },
     {
-      "id": "signature_combat_03",
-      "count": 3
-    },
-    {
       "id": "signature_art_05",
       "count": 3
     },
@@ -72,14 +68,6 @@
       "count": 3
     },
     {
-      "id": "freestyle_combat_14",
-      "count": 3
-    },
-    {
-      "id": "signature_strike_01",
-      "count": 3
-    },
-    {
       "id": "freestyle_combat_10",
       "count": 1
     },
@@ -96,24 +84,12 @@
       "count": 3
     },
     {
-      "id": "signature_strike_02",
-      "count": 3
-    },
-    {
-      "id": "freestyle_combat_05",
-      "count": 1
-    },
-    {
       "id": "signature_art_03",
       "count": 3
     },
     {
       "id": "signature_art_02",
       "count": 3
-    },
-    {
-      "id": "signature_combat_07",
-      "count": 1
     },
     {
       "id": "freestyle_strike_06",
@@ -137,15 +113,11 @@
     },
     {
       "id": "storm_art_03",
-      "count": 2
+      "count": 3
     },
     {
       "id": "storm_art_01",
       "count": 3
-    },
-    {
-      "id": "storm_strike_01",
-      "count": 1
     },
     {
       "id": "storm_strike_02",
@@ -161,31 +133,43 @@
     },
     {
       "id": "storm_art_02",
-      "count": 1
+      "count": 3
     },
     {
       "id": "storm_art_05",
       "count": 1
     },
     {
-      "id": "seal_15",
-      "count": 1
-    },
-    {
-      "id": "seal_17",
-      "count": 1
-    },
-    {
-      "id": "seal_19",
-      "count": 1
-    },
-    {
-      "id": "grounds_01",
-      "count": 3
-    },
-    {
       "id": "freestyle_art_02",
       "count": 3
+    },
+    {
+      "id": "grounds_05",
+      "count": 2
+    },
+    {
+      "id": "storm_art_12",
+      "count": 3
+    },
+    {
+      "id": "storm_art_14",
+      "count": 3
+    },
+    {
+      "id": "storm_art_08",
+      "count": 3
+    },
+    {
+      "id": "storm_art_21",
+      "count": 3
+    },
+    {
+      "id": "storm_strike_05",
+      "count": 2
+    },
+    {
+      "id": "storm_art_09",
+      "count": 2
     }
   ]
 }

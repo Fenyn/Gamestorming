@@ -23,6 +23,9 @@ public partial class TrailPassage : Node3D, IPassage
 
     [Export(PropertyHint.Range, "0,1,0.05")] public float TreeChance { get; set; } = 0.7f;
 
+    /// <summary>Elevation of the ground either side of the trail, for a sunken lane. 0 is level.</summary>
+    [Export] public int BankHeight { get; set; }
+
     private const int TreeSalt = 0x7A11;
 
     public void Build(DungeonRoomPrefab from, Vector3 a, Vector3 b)
@@ -42,7 +45,7 @@ public partial class TrailPassage : Node3D, IPassage
             {
                 int x = horizontal ? along : across, y = horizontal ? across : along;
                 int offset = Math.Abs(across - side);
-                GladeGeneration.SetFlat(layout, x, y, TileRole.Ground, offset <= 1 ? SurfaceType.Dirt : SurfaceType.Grass, 0);
+                GladeGeneration.SetFlat(layout, x, y, TileRole.Ground, offset <= 1 ? SurfaceType.Dirt : SurfaceType.Grass, offset <= 1 ? 0 : BankHeight);
                 if (offset > 1 + Shoulder && MapHash.Hash01(x, y, layout.Seed + TreeSalt) < TreeChance) trees.Add((x, y));
             }
         var origin = horizontal ? new Vector2(start, centre - side) : new Vector2(centre - side, start);
@@ -55,8 +58,16 @@ public partial class TrailPassage : Node3D, IPassage
         var scatter = TreeScatter.Build(new SkirtResult(layout, 0, trees), heights, MapThemes.Forest.HeightScale, fader,
             new TreeMix(TreeScenes, TreeWeights, Array.Empty<float>()), new TreeMix(Array.Empty<PackedScene>(), Array.Empty<float>(), Array.Empty<float>()),
             new List<(int X, int Y)>());
+        _tint = from.Shell?.WoodTint;
+        _decor = TileDecor.Build(BackdropThemes.Forest, layout, layout.Width, layout.Height, heights);
+        if (_decor != null)
+        {
+            _decor.Position = new Vector3(origin.X, 0, origin.Y);
+            AddChild(_decor);
+            _decor.Shade(1f, _tint);
+        }
         if (scatter == null) return;
-        if (from.Shell?.WoodTint is { } tint)
+        if (_tint is { } tint)
             foreach (var tree in fader.Trees) tree.Tint *= tint;
         scatter.Position = new Vector3(origin.X, 0, origin.Y);
         AddChild(scatter);
@@ -64,10 +75,13 @@ public partial class TrailPassage : Node3D, IPassage
 
     private MapView3D? _map;
     private TreeFader? _fader;
+    private DecorScatter? _decor;
+    private Color? _tint;
 
     public void SetLight(float light)
     {
         _map?.SetLight(light);
+        _decor?.Shade(light, _tint);
         if (_fader == null) return;
         foreach (var tree in _fader.Trees) tree.SetLight(light);
     }

@@ -70,6 +70,10 @@ public partial class DungeonRoomPrefab : Node3D
     /// <summary>Set before <see cref="Generate"/>: the room hosts a fight, so its layout gets cover.</summary>
     public bool Combat { get; set; }
 
+    /// <summary>Set before <see cref="Generate"/> on the entrance: a mouth on an outer side with no
+    /// door, marker or gate, dressed with the arrival prop.</summary>
+    public RoomArrival? Arrival { get; set; }
+
     /// <summary>Tiles the door marker sits inside the doorway.</summary>
     [Export] public float DoorMarkerInset { get; set; }
     private readonly List<DungeonProp> _focals = new();
@@ -83,9 +87,11 @@ public partial class DungeonRoomPrefab : Node3D
         OpenLayout = openLayout;
         Size = sizeOverride > 0 ? sizeOverride : SizeVariants.Length > 0 ? SizeVariants[new Random(Delve.Run.RunRng.StableSeed(seed, 0, "size")).Next(SizeVariants.Length)] : InteriorSize;
         if (Shell == null) AddChild(Shell = new MasonryShell { Name = "Shell" });
-        Generated = Shell.Generate(this, seed, Size, doors, openLayout);
+        // The arrival mouth goes last: the first door still sets the deployment axis.
+        var mouths = Arrival == null ? doors : doors.Append(Arrival.Side).ToArray();
+        Generated = Shell.Generate(this, seed, Size, mouths, openLayout);
         Heights = new TerrainHeightMap(Generated.Layout, Shell.HeightScale);
-        Shell.Build(this, doors);
+        Shell.Build(this, mouths);
         foreach (var side in doors)
         {
             var door = new Node3D
@@ -115,18 +121,41 @@ public partial class DungeonRoomPrefab : Node3D
 
         foreach (var p in Generated.Props)
         {
-            var prop = PropScene.Instantiate<DungeonProp>();
-            AddChild(prop);
-            prop.Palette = Palette;
-            prop.Build(p);
+            var prop = AddProp(p);
             if (p.Raised) prop.Position += Vector3.Up * GridSpace.GridToWorld(new PF2e.Vector2Int((int)p.X, (int)p.Y), Heights).Y;
-            _lamps.AddRange(prop.Lamps);
-            _props.Add(prop);
             if (p.Kind is "shrine" or "cache" or "collapse" or "camp" or "entrance")
                 _focals.Add(prop);
         }
+        if (Arrival != null)
+        {
+            var mouth = DoorPosition(Arrival.Side);
+            AddProp(new RoomProp(Arrival.Prop, mouth.X, mouth.Z, RoomGeneration.DoorWidth, Arrival.Reach, 0, OutwardAngle(Arrival.Side)));
+        }
         if (Shell.LightPool) AddLightPool();
     }
+
+    private DungeonProp AddProp(RoomProp p)
+    {
+        var prop = PropScene.Instantiate<DungeonProp>();
+        AddChild(prop);
+        prop.Palette = Palette;
+        prop.Build(p);
+        _lamps.AddRange(prop.Lamps);
+        _props.Add(prop);
+        return prop;
+    }
+
+    /// <summary>Yaw that turns a prop's local -Z out through a side's mouth.</summary>
+    private static float OutwardAngle(DoorSide side) => side switch
+    {
+        DoorSide.North => 0,
+        DoorSide.West => 90,
+        DoorSide.South => 180,
+        _ => -90
+    };
+
+    /// <summary>Unit step out of the room through a side's mouth.</summary>
+    public static Vector3 Outward(DoorSide side) => -Inward(side);
 
     /// <summary>Black overlay the fog tiers fade props with (assets/shaders/room_fog_overlay).
     /// Unset, props stay at full brightness in every tier.</summary>

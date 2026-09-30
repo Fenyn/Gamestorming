@@ -49,11 +49,13 @@ void fragment() {
 	float rim_line = 1.0 - smoothstep(0.5 * aa, 1.5 * aa, abs(d + aa));
 	col = over(col, rim.rgb, rim.a * rim_line);
 
-	float dz = abs(p.y - edge_z);
-	float az = max(fwidth(p.y), 0.0005);
-	float run = 1.0 - smoothstep(half_size.x - radius - 0.2, half_size.x - 0.03, abs(p.x));
-	float core = (1.0 - smoothstep(edge_width, edge_width + az, dz)) * run * edge_alpha;
-	float glow = exp(-dz / edge_glow) * 0.5 * run * edge_alpha;
+	// The lit edge follows the band's own outline on the owner's side, round the corners, fading
+	// out halfway down each end. `edge_z` sweeping from one side to the other crossfades the halves.
+	float side = clamp(edge_z / half_size.y, -1.0, 1.0);
+	float along = smoothstep(0.0, 0.7, p.y / half_size.y * sign(side)) * abs(side);
+	float dr = abs(d + edge_width);
+	float core = (1.0 - smoothstep(edge_width, edge_width + aa, dr)) * along * edge_alpha;
+	float glow = exp(-dr / edge_glow) * 0.5 * along * edge_alpha;
 	col = over(col, edge_color, glow);
 	col = over(col, mix(edge_color, vec3(1.0), 0.35) * edge_energy, core);
 

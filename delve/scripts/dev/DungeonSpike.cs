@@ -159,6 +159,10 @@ public partial class DungeonSpike : SpikeBase
         await WaitSeconds(0.2f);
         Check("the receiving hall opens straight to its doors with full ward", host.Phase == DungeonPhase.Doors
             && host.Current.Completed && host.State.Wardstone.Ward == 100);
+        var arrival = host.Floor.ArrivalSide;
+        Check($"the party comes down the root stair through the hall's outer {arrival} wall, which has no door",
+            host.CurrentView.Arrival is { Prop: "stair_rise" } way && way.Side == arrival
+            && host.Current.Doors.All(d => d.Side(host.Current.Id) != arrival));
         var entranceHud = host.GetNode<DungeonHud>("Screens/DungeonHud");
         Check($"the hall's banner names the room in title case under the floor kicker, and the history is the floor plan's hover ('{entranceHud.RoomCardKicker}' / '{entranceHud.RoomCardText}')",
             entranceHud.RoomCardText == "Receiving Hall" && entranceHud.RoomCardKicker.Contains("floor 1 of")
@@ -173,16 +177,14 @@ public partial class DungeonSpike : SpikeBase
         var menuRows = new[] { "%Camp", "%Potion", "%Rest", "%Stairs" }.Select(n => hud.GetNode<Button>(n)).ToArray();
         Check("the party menu lists every command, greying the closed ones",
             hud.PartyMenu.Visible && menuRows.All(b => b.Visible) && hud.GetNode<Button>("%Stairs").Disabled);
-        if (DisplayServer.GetName() != "headless")
         {
             await WaitSeconds(0.1f);
-            var party = Vector3.Zero;
-            var tokens = host.GetNode<Node3D>("%TravelParty").GetChildren().OfType<Node3D>().ToArray();
-            foreach (var token in tokens) party += token.GlobalPosition;
-            var partyScreen = host.GetViewport().GetCamera3D().UnprojectPosition(party / tokens.Length);
             var menu = hud.PartyMenu.GetGlobalRect();
-            float gap = Mathf.Min(Mathf.Abs(menu.Position.X - partyScreen.X), Mathf.Abs(partyScreen.X - menu.End.X));
-            Check($"the party menu floats beside the party ({gap:F0} px, menu {menu})", gap < 300f && !menu.HasPoint(partyScreen));
+            var hudRect = hud.GetGlobalRect();
+            var others = new[] { "%PartyStrip", "%Top", "%Plan" }.Select(n => hud.GetNode<Control>(n).GetGlobalRect());
+            Check($"the party menu docks at the left edge, clear of the other panels (menu {menu})",
+                menu.Position.X <= 32 && hudRect.Encloses(menu) && Mathf.Abs(menu.GetCenter().Y - hudRect.GetCenter().Y) < 2
+                && others.All(o => !o.Intersects(menu)));
         }
         if (Capture)
         {
@@ -193,6 +195,8 @@ public partial class DungeonSpike : SpikeBase
             await Shot("dungeon_entrance_clean.png");
             screens.Visible = true;
         }
+        for (float waited = 0; host.WalkingIn && waited < 8; waited += 0.1f) await WaitSeconds(0.1f);
+        Check("the party finishes walking in", !host.WalkingIn);
         host.ResolveEvent(0, null);
         var completions = new List<int>();
         var entries = new List<(int Room, bool First)>();

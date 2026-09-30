@@ -243,7 +243,7 @@ Player types (active, opposing) never change during Combat. Roles (attacker, def
 11. In-control Ally may choose Seal capture instead of life-card damage, if that Ally has the capture trait.
 12. Energy damage is dealt.
 13. Life card damage is dealt one card at a time. Endurance may be used as each card flips.
-14. **Critical damage.** If the attack dealt 5 or more life cards, attacker may choose one: capture a Seal the defender controls, discard an Ally the defender controls, or lower the defender's Fervor by 1. Card text beats the rulebook, so a card that says an Ally cannot be discarded, or that Fervor cannot be lowered, stops that option here as it does anywhere else; the attacker picks from whatever is left. (Corrected 2026-09-18: this used to be treated as a game rule that overrode printed immunity, which contradicted the Golden Rule and was costing the Rooke Coven 2.2 Allies a game.)
+14. **Critical damage.** If the attack dealt 5 or more life cards, attacker may choose one: capture a Seal the defender controls, or lower the defender's Fervor by 1. Card text beats the rulebook, so a card that says Fervor cannot be lowered stops that option here as it does anywhere else. House rule 2026-09-29: critical damage never discards an Ally. The relaunch rule offered that too, and it cost the Ally decks their plan; the original rule was a Seal capture only.
 15. "If successful" effects resolve, attacker picks the order.
 
 "Use when needed" cards fit between steps, never inside one. Outside Combat they can be used at any time.

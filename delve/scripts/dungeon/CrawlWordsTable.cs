@@ -38,6 +38,7 @@ public static class CrawlWordsTable
         ArrivalCaption = "The root stair leads down into the ward station.\nFind the ward chamber.",
         RevealProp = "ward_engine",
         ExitProp = "stairs",
+        ArrivalProp = "stair_rise",
     };
 
     private static readonly CrawlWords Fringe = new()
@@ -55,7 +56,7 @@ public static class CrawlWordsTable
             [StationHistory.Evacuated] = "The camps emptied in one night when the fog came. Raiders have opened the caches.",
             [StationHistory.WardFailure] = "The waystones went dark one by one. Wolves den where the light was.",
         },
-        Body = (purpose, _) => FringePrompts.TryGetValue(purpose, out var prompt) ? prompt : "The glade is quiet.",
+        Body = (purpose, _) => Prompt(deep: false, purpose),
         Scenes = GladeScenes.For,
         NewRoomKicker = "New glade",
         UnexploredTitle = "Unexplored glade",
@@ -71,6 +72,7 @@ public static class CrawlWordsTable
         ArrivalCaption = "You take the old road into the Fringe.\nFind the wolf den.",
         RevealProp = "beacon",
         ExitProp = "holloway",
+        ArrivalProp = "old_road",
     };
 
     private static readonly CrawlWords DeepWood = Fringe with
@@ -88,7 +90,7 @@ public static class CrawlWordsTable
             [StationHistory.Evacuated] = "The order's foresters fled and left their dead under the stones. Without light, the dead do not rest.",
             [StationHistory.WardFailure] = "The waystone ring has failed. The Regent's roots have split the old road.",
         },
-        Body = (purpose, _) => DeepPrompts.TryGetValue(purpose, out var prompt) ? prompt : "The glade is quiet.",
+        Body = (purpose, _) => Prompt(deep: true, purpose),
         GoalFind = "Goal: find the Regent's grove",
         GoalDefeat = "Goal: defeat the Arboreal Regent",
         GoalLeave = "Goal: take the root stair down",
@@ -98,7 +100,12 @@ public static class CrawlWordsTable
         FloorComplete = "The Regent has fallen, and the root stair leads down.",
         ArrivalCaption = "You follow the holloway down into the Deep Wood.\nFind the Regent's grove.",
         ExitProp = "root_stair",
+        ArrivalProp = "holloway_rise",
     };
+
+    // A method, so the rows above can name prompt tables declared below them.
+    private static string Prompt(bool deep, RoomPurpose purpose) =>
+        (deep ? DeepPrompts : FringePrompts).TryGetValue(purpose, out var prompt) ? prompt : "The glade is quiet.";
 
     private static readonly Dictionary<RoomPurpose, string> FringePrompts = new()
     {

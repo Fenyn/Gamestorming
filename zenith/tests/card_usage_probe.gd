@@ -23,10 +23,13 @@ func _init() -> void:
 	var my_path: String = "res://data/decks/%s.json" % me
 	if str(args["deck-dir"]) != "" and FileAccess.file_exists(str(args["deck-dir"]).path_join(me + ".json")):
 		my_path = str(args["deck-dir"]).path_join(me + ".json")
+	# `--skip=a,b` leaves those decks out of the field, such as the list a trial copy replaces.
+	var skip: PackedStringArray = str(args.get("skip", "")).split(",", false)
 	var foes: Array[String] = []
 	for file in DirAccess.get_files_at("res://data/decks"):
-		if file.ends_with(".json") and file.trim_suffix(".json") != me and file.trim_suffix(".json") != str(args.get("skip", "")):
-			foes.append(file.trim_suffix(".json"))
+		var foe: String = file.trim_suffix(".json")
+		if file.ends_with(".json") and foe != me and not skip.has(foe):
+			foes.append(foe)
 	foes.sort()
 
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -81,11 +84,31 @@ func _init() -> void:
 					wins += 1
 				for uid in held:
 					_bump(stats, held[uid], "stuck")
+				var drawn_ids: Dictionary = {}
+				for uid in drawn:
+					var dc: CardInstance = eng.card(uid)
+					if dc != null:
+						drawn_ids[dc.def.id] = true
+				for id in drawn_ids:
+					_bump(stats, id, "drawn_games")
+					if won:
+						_bump(stats, id, "drawn_wins")
 				for id in played_ids:
 					_bump(stats, id, "played_games")
 					if won:
 						_bump(stats, id, "played_wins")
 
+	# `--tsv=` writes the raw counts, so runs on different seeds can be added together.
+	if str(args.get("tsv", "")) != "":
+		var f: FileAccess = FileAccess.open(str(args["tsv"]), FileAccess.WRITE)
+		f.store_line("#games\t%d\t%d" % [games, wins])
+		for id in stats:
+			var s: Dictionary = stats[id]
+			var row: PackedStringArray = [id]
+			for key in ["drawn", "played", "lost", "stuck", "played_games", "played_wins", "drawn_games", "drawn_wins"]:
+				row.append(str(int(s.get(key, 0))))
+			f.store_line("\t".join(row))
+		f.close()
 	var base: float = 100.0 * float(wins) / float(maxi(1, games))
 	print("%s: %d games, %d wins (%.1f%%)" % [me, games, wins, base])
 	print("%-26s %-34s %6s %6s %6s %6s %8s" % ["id", "title", "drawn", "played", "lost", "stuck", "win%|pl"])

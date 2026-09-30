@@ -115,8 +115,6 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 			return _capture_score(engine, profile, me, foe, c)
 		&"deal_damage":
 			return _landing_value(engine, profile, foe)
-		&"discard_ally":
-			return _ally_worth(engine, profile, foe, c)
 		&"lower_fervor":
 			return _lower_fervor_score(engine, profile, foe)
 		&"recover":
@@ -249,8 +247,8 @@ static func _attack_gate(when: Dictionary, source: CardDef, kind: String, profil
 ## Damage lands whole on one personality, and stage damage past that personality's 0 turns into life
 ## cards one for one. So the one to pick is whoever can soak the most, not simply an Ally: an
 ## eight-stage hit put on an Ally standing at three is five stages that become five wounds, and five
-## wounds is exactly where critical damage starts taking Allies off the table. Once the damage is
-## soaked either way, it goes on whichever personality the profile values least.
+## wounds is critical damage. Once the damage is soaked either way, it goes on whichever personality
+## the profile values least.
 static func _redirect_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, c: CardInstance) -> float:
 	if c == null:
 		return 0.0
@@ -338,13 +336,6 @@ static func _seal_part(p: PlayerState, seal_set: String, delta: int) -> float:
 		best = maxi(best, int(counted[k]))
 	var part: float = float(best) / float(DuelEngine.SEALS_PER_SET)
 	return 0.5 * part + 0.5 * part * part
-
-
-## What an Ally is worth to the side that holds it: its place, its Energy and what its power can do.
-static func _ally_worth(engine: DuelEngine, profile: AiProfile, owner: PlayerState, c: CardInstance) -> float:
-	if c == null:
-		return profile.w("foe", "ally")
-	return profile.w("foe", "ally") + c.energy * profile.w("foe", "ally_energy") + usable_power_value(engine, owner, c, profile) * 0.35
 
 
 ## Taking a Fervor from the rival: the Fervor itself, plus how far it sets back their Ascension clock.

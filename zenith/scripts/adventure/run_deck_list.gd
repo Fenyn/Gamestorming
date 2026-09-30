@@ -21,6 +21,9 @@ const PREVIEW_HINT: String = "Hover or select a card"
 var _library: CardLibrary = null
 var _faces: CardFaceCache = null
 var _counts: Dictionary = {}          # card id -> copies in the run
+## The run's Relic and Reserve, shown as their own section after the Life Deck, preview only.
+var _relic_id: String = ""
+var _reserve_counts: Dictionary = {}
 var _selected_id: String = ""
 var _row_group: ButtonGroup = ButtonGroup.new()
 
@@ -36,10 +39,22 @@ func show_cards(ids: Array[String], library: CardLibrary, faces: CardFaceCache) 
 	_faces = faces
 	_selected_id = ""
 	_counts = {}
+	_relic_id = ""
+	_reserve_counts = {}
 	for id in ids:
 		_counts[id] = int(_counts.get(id, 0)) + 1
 	_build()
 	_clear_preview()
+
+
+## Adds the run's Relic and Reserve as a last section. Their rows preview but are never selected,
+## since nothing that picks from this list acts on them.
+func show_reserve(relic_id: String, reserve: Array[String]) -> void:
+	_relic_id = relic_id
+	_reserve_counts = {}
+	for id in reserve:
+		_reserve_counts[id] = int(_reserve_counts.get(id, 0)) + 1
+	_build()
 
 
 ## The muted line above the list. Empty text hides it.
@@ -82,18 +97,42 @@ func _build() -> void:
 			rows_a += group_rows
 		else:
 			rows_b += group_rows
+	_build_reserve(column_a if rows_a <= rows_b else column_b)
 
 
-## One clickable row: a type icon and title tinted by card group, and the copy count.
-func _build_row(def: CardDef, count: int) -> Button:
+func _build_reserve(target: VBoxContainer) -> void:
+	var relic: CardDef = _library.defs.get(_relic_id) if _relic_id != "" else null
+	if relic == null and _reserve_counts.is_empty():
+		return
+	var header: Label = Label.new()
+	header.text = "RELIC AND RESERVE"
+	header.theme_type_variation = &"MutedLabel"
+	target.add_child(header)
+	if relic != null:
+		target.add_child(_build_row(relic, 1, false))
+	var ids: Array[String] = []
+	for id in _reserve_counts.keys():
+		if _library.defs.has(id):
+			ids.append(id)
+	ids.sort_custom(func(a: String, b: String) -> bool: return _library.defs[a].title < _library.defs[b].title)
+	for id in ids:
+		target.add_child(_build_row(_library.defs[id], int(_reserve_counts[id]), false))
+
+
+## One row: a type icon and title tinted by card group, and the copy count. A selectable row is
+## clickable; the rest only preview.
+func _build_row(def: CardDef, count: int, selectable: bool = true) -> Button:
 	var row: Button = Button.new()
 	row.theme_type_variation = &"TileButton"
-	row.toggle_mode = true
-	row.button_group = _row_group
+	row.toggle_mode = selectable
+	if selectable:
+		row.button_group = _row_group
+		row.pressed.connect(func() -> void: _select(def))
+	else:
+		row.focus_mode = Control.FOCUS_NONE
 	row.custom_minimum_size = Vector2(0, 42)
 	row.mouse_entered.connect(func() -> void: _preview(def))
 	row.mouse_exited.connect(_revert_preview)
-	row.pressed.connect(func() -> void: _select(def))
 
 	var h: HBoxContainer = HBoxContainer.new()
 	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -132,7 +171,10 @@ func _preview(def: CardDef) -> void:
 	if _faces == null:
 		return
 	preview_caption.text = def.title
-	preview_count.text = "In deck: %d" % int(_counts.get(def.id, 0))
+	if _counts.has(def.id) or not _reserve_counts.has(def.id):
+		preview_count.text = "In deck: %d" % int(_counts.get(def.id, 0))
+	else:
+		preview_count.text = "In Reserve: %d" % int(_reserve_counts[def.id])
 	var tex: Texture2D = await _faces.render_face(def)
 	if preview_caption.text == def.title:
 		preview_face.texture = tex

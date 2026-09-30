@@ -47,6 +47,8 @@ approved with the mockups the same day.
 | `game.life` | the seat's Mastery colour, muted | Life Deck plates and the stat tracker's rule keep their per-seat colour shift (user, 2026-09-24) |
 | `game.xp` | (0.62, 0.55, 0.90) | XP bars and level chips |
 | **`game.motes`** | **arcane blue (0.48, 0.72, 1.00) with a soft glow** | Motes and prices only (the second blue) |
+| `game.mana` | lavender (0.77, 0.63, 0.94) with a soft glow (`MANA`) | Mana, the per-run currency, and Shop prices |
+| `state.short` | (0.92, 0.47, 0.39) (`SHORT`) | A price the player cannot pay |
 | `identity.school` | `Palette` school colours | Card frames, school chips, one edge or title per adventure screen |
 | `identity.type` | `Palette` type colours | Card type chips and icons |
 | `identity.seat` | seat colours | Online presence and seat markers |

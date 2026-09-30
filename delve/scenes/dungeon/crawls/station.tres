@@ -26,3 +26,5 @@ PurposePrefabs = Array[PackedScene]([ExtResource("p0"), ExtResource("p1"), ExtRe
 Look = ExtResource("look")
 Passage = ExtResource("passage")
 VoidMaterial = SubResource("void")
+ArrivalReach = 3.0
+ArrivalRise = 1.4

@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/dungeon/passage_trail.tscn" id="1"]
+
+; The Deep Wood's way in: the trail runs between raised banks, meeting the entrance glade's
+; banks (GladeShell.ArrivalBank) at the same height.
+
+[node name="HollowayPassage" instance=ExtResource("1")]
+BankHeight = 3

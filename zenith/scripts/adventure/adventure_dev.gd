@@ -7,6 +7,10 @@ extends RefCounted
 const DEV_SEED: int = 12345
 const SHOT_DELAY: float = 0.5
 
+## True once `begin_run` has put an unsaved run in Session, so a screen the dev run moves on to
+## changes it in memory instead of saving it over the player's run.
+static var in_memory: bool = false
+
 
 static func args() -> PackedStringArray:
 	return DevArgs.user_args()
@@ -39,6 +43,7 @@ static func begin_run(starter_id: String) -> bool:
 	AdventureProgress.prepare_run(run, Session.library, Session.collection, Session.unlocks)
 	Session.run = run
 	Session.map = map
+	in_memory = true
 	return true
 
 
@@ -48,13 +53,70 @@ static func begin_run(starter_id: String) -> bool:
 static func walk(duels: int) -> void:
 	var run: AdventureRun = Session.run
 	for i in range(duels):
-		if not run.walk_to_next_duel(Session.map):
+		if not run.walk_to_next_duel(Session.map, Session.library):
 			return
 		AdventureRewards.finish_stage(run, Session.map, Session.library, true)
 		_take_firsts(run)
 		AdventureRewards.finish_reward(run, Session.map)
 		if run.status != "map":
 			return
+
+
+## Walks the Session run along the map to the next stop of `type` and leaves it waiting there, so a
+## dev screen opens on a run whose act, duels won and deck agree. At a fork it takes that stop when
+## offered, else a road that still reaches one; fights on the way are won with the first Aspect and
+## bundle, and other stops are left untouched. With no such stop ahead it waits on the node it
+## stands on.
+static func stand_on_next(type: String) -> void:
+	var run: AdventureRun = Session.run
+	var map: AdventureMap = Session.map
+	var guard: int = 0
+	while run.status != type and guard < 200:
+		guard += 1
+		match run.status:
+			"map":
+				var next: Array[String] = run.choices(map)
+				if next.is_empty():
+					break
+				run.enter(map, _step_towards(map, next, type))
+			"forge":
+				AdventureForge.leave(run)
+			"shop":
+				AdventureShop.leave(run)
+			AdventureRelic.STATUS_OFFERS, AdventureRelic.STATUS_TRIM:
+				AdventureRelic.pass_through(run, Session.library)
+			"stage":
+				AdventureRewards.finish_stage(run, map, Session.library, true)
+				_take_firsts(run)
+				AdventureRewards.finish_reward(run, map)
+			_:
+				break
+	if run.status == "map":
+		run.status = type
+
+
+static func _step_towards(map: AdventureMap, next: Array[String], type: String) -> String:
+	for id in next:
+		if str(map.node(id).get("type", "")) == type:
+			return id
+	for id in next:
+		if _reaches(map, id, type):
+			return id
+	return next[0]
+
+
+static func _reaches(map: AdventureMap, from: String, type: String) -> bool:
+	var seen: Dictionary = {}
+	var queue: Array[String] = [from]
+	while not queue.is_empty():
+		var id: String = queue.pop_front()
+		if seen.has(id):
+			continue
+		seen[id] = true
+		if str(map.node(id).get("type", "")) == type:
+			return true
+		queue.append_array(map.next_of(id))
+	return false
 
 
 static func _take_firsts(run: AdventureRun) -> void:
@@ -174,7 +236,7 @@ static func simulate_run(starter_id: String, lose_at: int = -1) -> bool:
 		return false
 	var run: AdventureRun = Session.run
 	while run.status != "won" and run.status != "lost":
-		if not run.walk_to_next_duel(Session.map):
+		if not run.walk_to_next_duel(Session.map, Session.library):
 			return false
 		var won: bool = lose_at < 0 or run.stage < lose_at
 		var payout: int = AdventureRewards.finish_stage(run, Session.map, Session.library, won)

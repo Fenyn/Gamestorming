@@ -15,6 +15,9 @@ const SIGNATURE_LIMIT: int = 4
 const DEFAULT_LIMIT: int = 3
 ## The highest Aspect a personality card may be to sit in the Life Deck as an Ally.
 const MAX_ALLY_ASPECT: int = 3
+## Starts the one problem an over-full Reserve raises, so a caller can let it stand while the
+## player is still setting cards aside.
+const RESERVE_SIZE_PREFIX: String = "Reserve holds "
 
 
 ## Where an Ally may sit. A personality card of Aspect 1, 2 or 3 may be in the Life Deck of any
@@ -160,7 +163,7 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 		if relic == null or relic.type != CardDef.Type.RELIC:
 			problems.append("Relic '%s' not found" % deck.relic_id)
 		elif deck.reserve.size() > relic.reserve_size:
-			problems.append("Reserve holds %d cards, Relic allows %d" % [deck.reserve.size(), relic.reserve_size])
+			problems.append(RESERVE_SIZE_PREFIX + "%d cards, Relic allows %d" % [deck.reserve.size(), relic.reserve_size])
 	elif not deck.reserve.is_empty():
 		problems.append("A Reserve needs a Relic")
 	# Reserve cards obey the same copy limits, counted together with the Life Deck.

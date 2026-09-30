@@ -156,6 +156,8 @@ public partial class CombatTestScene : Node
             GD.PushError($"[CombatTest] Could not generate a '{Biome}' map for seed {MapSeed} — aborting.");
             return null;
         }
+        // The same woodland edge the run's wilds boards and the crawl's glades grow.
+        if (Biome == Delve.Dungeon.GladeGeneration.Biome) Delve.Run.EncounterFactory.GrowUndergrowth(layout, MapSeed);
 
         var survivors = new List<ICharacter>(partySlots.Length);
         foreach (var member in partySlots)

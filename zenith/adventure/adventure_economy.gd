@@ -1,6 +1,6 @@
 class_name AdventureEconomy
 extends RefCounted
-## What a card costs in Motes and what a run pays out. Every number lives in
+## What a card costs in Motes and what a run pays out, in Motes and in Mana. Every number lives in
 ## data/adventure/economy.json, so a rarity system later changes that file and `band()` and
 ## nothing else. Data and arithmetic only: no file writing, no wallet, no run.
 
@@ -117,6 +117,61 @@ static func duel_payout(act: int, boss: bool) -> int:
 ## Paid once for beating the final boss, on top of that duel's payout.
 static func completion_bonus() -> int:
 	return int(data().get("completion_bonus", 0))
+
+
+static func mana_start() -> int:
+	return int(_mana().get("start", 0))
+
+
+## Mana paid for winning a fight of `node_type` in `act` (1-based): the type's base from
+## economy.json plus a step for every act after the first. A type with no row pays nothing.
+static func mana_income(act: int, node_type: String) -> int:
+	var income: Dictionary = _mana().get("income", {})
+	if not income.has(node_type) or act < 1:
+		return 0
+	return int(income[node_type]) + int(_mana().get("income_per_act", 0)) * (act - 1)
+
+
+## What one copy costs at a Shop, in Mana: the card's Motes band, priced from the Mana rows.
+static func mana_price(def: CardDef) -> int:
+	var prices: Dictionary = _mana().get("prices", {})
+	return int(prices.get(band(def), 0))
+
+
+static func shop_stock_size() -> int:
+	return int(_mana().get("shop_stock", 0))
+
+
+static func _mana() -> Dictionary:
+	var block: Variant = data().get("mana", {})
+	return block if block is Dictionary else {}
+
+
+## The Relics a Relic node may offer, in file order.
+static func relic_pool() -> Array[String]:
+	return _strings(_relic().get("pool", []))
+
+
+## Relics offered only to a run that holds an Ally.
+static func relic_needs_ally() -> Array[String]:
+	return _strings(_relic().get("needs_ally", []))
+
+
+static func relic_offer_count() -> int:
+	return int(_relic().get("offers", 0))
+
+
+static func _relic() -> Dictionary:
+	var block: Variant = data().get("relic", {})
+	return block if block is Dictionary else {}
+
+
+static func _strings(values: Variant) -> Array[String]:
+	var out: Array[String] = []
+	if values is Array:
+		for value in values:
+			out.append(str(value))
+	return out
 
 
 static func vendor_stock_size() -> int:

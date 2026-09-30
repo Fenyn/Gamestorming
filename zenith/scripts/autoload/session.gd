@@ -13,6 +13,10 @@ const TITLE_SCENE: String = "res://scenes/main.tscn"
 const ADVENTURE_START_SCENE: String = "res://scenes/adventure/adventure_start.tscn"
 const ADVENTURE_STAGE_SCENE: String = "res://scenes/adventure/stage.tscn"
 const ADVENTURE_REWARD_SCENE: String = "res://scenes/adventure/reward.tscn"
+const ADVENTURE_FORGE_SCENE: String = "res://scenes/adventure/forge.tscn"
+const ADVENTURE_SHOP_SCENE: String = "res://scenes/adventure/shop.tscn"
+const ADVENTURE_RELIC_SCENE: String = "res://scenes/adventure/relic.tscn"
+const ADVENTURE_LIBRARY_SCENE: String = "res://scenes/adventure/library.tscn"
 const ADVENTURE_SETTLE_SCENE: String = "res://scenes/adventure/settle.tscn"
 const ADVENTURE_VENDOR_SCENE: String = "res://scenes/adventure/vendor.tscn"
 const ADVENTURE_LOADOUT_SCENE: String = "res://scenes/adventure/loadout.tscn"
@@ -378,15 +382,114 @@ func leave_adventure() -> void:
 	_record_host = null
 
 
-## Steps the run onto a map node and saves. A fight goes straight into its duel; any other node is
-## passed through for now and the map screen reopens. A node that is not a choice does nothing.
+## Steps the run onto a map node and saves. A fight goes straight into its duel, and a Forge, a Shop
+## or the Relic node opens its screen, a Shop with its stock rolled and the Relic node with its
+## offers; any other node is passed through for now and the map screen reopens. A node that is not a
+## choice does nothing.
 func enter_node(id: String) -> void:
 	if run == null or not run.enter(map, id):
 		return
+	AdventureShop.open(run, library)
+	AdventureRelic.open(run, library)
 	AdventureSave.store(run)
 	if run.status == "stage":
 		begin_stage()
 		return
+	get_tree().change_scene_to_file(_reward_or_stage_scene())
+
+
+## The Forge's one action, then back to the map, saved. False, and nothing moves, when the action is
+## refused.
+func forge_cut(id: String) -> bool:
+	if run == null or not AdventureForge.cut(run, library, id):
+		return false
+	_back_to_map()
+	return true
+
+
+func forge_copy(id: String) -> bool:
+	if run == null or not AdventureForge.copy(run, library, id):
+		return false
+	_back_to_map()
+	return true
+
+
+## Leaves the Forge with the deck as it was.
+func leave_forge() -> void:
+	if run == null or not AdventureForge.is_open(run):
+		return
+	AdventureForge.leave(run)
+	_back_to_map()
+
+
+## Buys the card in a Shop slot and saves. The Shop stays open. False, and nothing moves, when the
+## slot is blocked.
+func shop_buy(slot: int) -> bool:
+	if run == null or not AdventureShop.buy(run, library, slot):
+		return false
+	AdventureSave.store(run)
+	return true
+
+
+func leave_shop() -> void:
+	if run == null or not AdventureShop.is_open(run):
+		return
+	AdventureShop.leave(run)
+	_back_to_map()
+
+
+## Takes a Relic node offer and saves. A Reserve left over its new size opens the Reserve screen to
+## set cards aside; otherwise the map. False, and nothing moves, when the offer is refused.
+func relic_take(index: int) -> bool:
+	if run == null or not AdventureRelic.take(run, library, index):
+		return false
+	AdventureSave.store(run)
+	get_tree().change_scene_to_file(_reward_or_stage_scene())
+	return true
+
+
+## Keeps the held Relic and returns to the map. False when the run holds none.
+func relic_keep() -> bool:
+	if run == null or not AdventureRelic.keep(run):
+		return false
+	_back_to_map()
+	return true
+
+
+## Moves one card between the Reserve and the library and saves. False when it is refused.
+func reserve_move(from: String, id: String, to: String) -> bool:
+	if run == null or not AdventureReserve.move(run, library, from, id, to):
+		return false
+	AdventureSave.store(run)
+	return true
+
+
+## Trades two cards between piles and saves. False when it is refused.
+func reserve_swap(a: String, id_a: String, b: String, id_b: String) -> bool:
+	if run == null or not AdventureReserve.swap(run, library, a, id_a, b, id_b):
+		return false
+	AdventureSave.store(run)
+	return true
+
+
+## Opens the Reserve screen from the map.
+func go_to_library() -> void:
+	if run == null or not AdventureReserve.is_editable(run):
+		return
+	get_tree().change_scene_to_file(ADVENTURE_LIBRARY_SCENE)
+
+
+## Leaves the Reserve screen for the map. False, and the screen stays, while the Reserve is still
+## over its Relic's size or the deck breaks a rule.
+func reserve_done() -> bool:
+	if run == null or not AdventureReserve.finish(run, library):
+		return false
+	_back_to_map()
+	return true
+
+
+func _back_to_map() -> void:
+	AdventureSave.store(run)
 	get_tree().change_scene_to_file(ADVENTURE_STAGE_SCENE)
 
 
@@ -479,10 +582,20 @@ func concede_duel() -> void:
 
 
 ## The reward scene handles both halves of a win: the Aspect choice, then the bundle offer. A
-## finished run goes to the settle screen instead of the stage screen's run-over panel.
+## finished run goes to the settle screen instead of the stage screen's run-over panel, and a run
+## standing on a Forge, in a Shop or on the Relic node goes back to it, or to the Reserve screen
+## while it is setting Reserve cards aside.
 func _reward_or_stage_scene() -> String:
 	if run.status == "aspect" or run.status == "reward":
 		return ADVENTURE_REWARD_SCENE
+	if run.status == "forge":
+		return ADVENTURE_FORGE_SCENE
+	if run.status == "shop":
+		return ADVENTURE_SHOP_SCENE
+	if run.status == AdventureRelic.STATUS_OFFERS:
+		return ADVENTURE_RELIC_SCENE
+	if run.status == AdventureRelic.STATUS_TRIM:
+		return ADVENTURE_LIBRARY_SCENE
 	if run.status == "settle":
 		return _scene_or_start(ADVENTURE_SETTLE_SCENE)
 	return ADVENTURE_STAGE_SCENE

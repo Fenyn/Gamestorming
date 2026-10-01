@@ -84,6 +84,17 @@ jobs:
             cp -r "$dir"* "_site/$game/"
           done
 
+      # Games whose art cannot live in the public repo are exported locally into web-prebuilt/<game>/.
+      - name: Copy prebuilt web games
+        run: |
+          if [ -d web-prebuilt ]; then
+            for dir in web-prebuilt/*/; do
+              game=$(basename "$dir")
+              mkdir -p "_site/$game"
+              cp -r "$dir"* "_site/$game/"
+            done
+          fi
+
       - name: Copy landing page
         run: |
           if [ ! -f _site/index.html ]; then

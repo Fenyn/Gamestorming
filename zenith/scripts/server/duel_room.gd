@@ -92,9 +92,20 @@ static func valid_code(text: String) -> bool:
 	return true
 
 
+## A lobby entry's "deck" for a player-built deck, which carries its whole list in "list" because
+## no catalog index names it.
+const CUSTOM_PICK: int = -2
+
+
 ## The lobby entry of a seat nobody has picked for.
 static func empty_pick(seat: int) -> Dictionary:
-	return {"name": "Player %d" % (seat + 1), "deck": -1, "deck_name": "", "ready": false}
+	return {"name": "Player %d" % (seat + 1), "deck": -1, "deck_name": "", "ready": false, "list": {}}
+
+
+## Whether an entry names a deck, from the catalog or built by its player.
+static func has_deck(entry: Dictionary) -> bool:
+	var deck: int = int(entry.get("deck", -1))
+	return deck >= 0 or deck == CUSTOM_PICK
 
 
 func _init() -> void:
@@ -124,7 +135,7 @@ func both_locked() -> bool:
 
 
 func seat_locked(seat: int) -> bool:
-	return int(lobby[seat]["deck"]) >= 0 and bool(lobby[seat]["ready"])
+	return has_deck(lobby[seat]) and bool(lobby[seat]["ready"])
 
 
 ## The name the other player, the rules and the record get for a seat: what its player typed in a

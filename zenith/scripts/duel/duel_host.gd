@@ -274,7 +274,7 @@ func catch_up(seat: int, now_msec: int) -> void:
 
 ## After each flush: a seat whose decision was answered stops its clock, a seat whose own turn
 ## began banks more time, and a seat that owes a new decision arms its clock. A decision still
-## open, the other seat's half of a Reserve swap or Discard step, keeps running.
+## open, the other seat's half of a Reserve swap, keeps running.
 func _sync_clock(updates: Array[SeatUpdate], now_msec: int) -> void:
 	if clock == null:
 		return
@@ -282,7 +282,10 @@ func _sync_clock(updates: Array[SeatUpdate], now_msec: int) -> void:
 	for seat in range(2):
 		var p: Prompt = null if referee.is_over() else referee.engine.prompt_of(seat)
 		changed[seat] = p != _clock_prompt[seat]
-		if changed[seat]:
+		if changed[seat] and _order_moved(_clock_prompt[seat], p):
+			_clock_prompt[seat] = p
+			changed[seat] = false
+		elif changed[seat]:
 			clock.stop(seat, now_msec)
 			_clock_prompt[seat] = p
 	if not updates.is_empty():
@@ -294,6 +297,12 @@ func _sync_clock(updates: Array[SeatUpdate], now_msec: int) -> void:
 		if changed[seat] and p != null:
 			clock.arm(seat, p.kind, _clock_context(p), now_msec)
 	_publish_clock(now_msec)
+
+
+## An order prompt asked again after one of its moves is the same decision, so its clock runs on.
+static func _order_moved(before: Prompt, after: Prompt) -> bool:
+	return before != null and after != null and before.kind == &"order" and after.kind == &"order" \
+		and before.player == after.player and int(after.context.get("moves", 0)) > int(before.context.get("moves", 0))
 
 
 ## What `DuelClock.decision_ms` reads off a prompt.

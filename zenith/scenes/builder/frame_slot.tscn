@@ -1,0 +1,46 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/builder/frame_slot.gd" id="1_slot"]
+
+[node name="FrameSlot" type="Button"]
+custom_minimum_size = Vector2(96, 134)
+focus_mode = 0
+mouse_default_cursor_shape = 2
+script = ExtResource("1_slot")
+
+[node name="Empty" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="Plus" type="Label" parent="Empty"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "+"
+horizontal_alignment = 1
+
+[node name="Caption" type="Label" parent="Empty"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Face" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

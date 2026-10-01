@@ -8,7 +8,7 @@
     "personality_74"
   ],
   "style": "freestyle",
-  "alignment": "either",
+  "alignment": "pact",
   "mastery": "freestyle_mastery_01",
   "relic": "relic_01",
   "reserve": [
@@ -47,11 +47,9 @@
     {"id": "signature_drill_03", "count": 1},
     {"id": "signature_art_04", "count": 2},
     {"id": "signature_strike_01", "count": 2},
-    {"id": "freestyle_art_03", "count": 1},
     {"id": "signature_art_03", "count": 1},
     {"id": "signature_combat_04", "count": 3},
     {"id": "freestyle_combat_14", "count": 1},
-    {"id": "freestyle_combat_05", "count": 1},
     {"id": "signature_strike_23", "count": 3},
     {"id": "freestyle_combat_22", "count": 1},
     {"id": "freestyle_combat_01", "count": 1},
@@ -65,12 +63,14 @@
     {"id": "freestyle_noncombat_22", "count": 1},
     {"id": "freestyle_noncombat_06", "count": 1},
     {"id": "freestyle_noncombat_04", "count": 1},
-    {"id": "freestyle_noncombat_12", "count": 1},
     {"id": "freestyle_drill_01", "count": 1},
     {"id": "signature_drill_02", "count": 1},
-    {"id": "signature_drill_08", "count": 1},
-    {"id": "freestyle_drill_08", "count": 1},
-    {"id": "signature_drill_07", "count": 1},
-    {"id": "grounds_02", "count": 2}
+    {"id": "signature_drill_09", "count": 2},
+    {"id": "signature_combat_12", "count": 2},
+    {"id": "signature_combat_13", "count": 3},
+    {"id": "signature_art_20", "count": 2},
+    {"id": "signature_art_21", "count": 3},
+    {"id": "signature_art_22", "count": 2},
+    {"id": "signature_strike_34", "count": 2}
   ]
 }

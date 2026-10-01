@@ -38,10 +38,10 @@ const GROUP_PERSONALITY: String = "personality"
 const GROUP_RELIC: String = "relic"
 const GROUP_SEAL: String = "seal"
 const GROUP_GROUNDS: String = "grounds"
-## The sides a deck or player may take. "either" is a mercenary sworn to no one: it counts as Vigil
-## and as Pact at once, for every gate and condition that names a side.
-const ALIGNMENTS: Array[String] = ["vigil", "pact", "either"]
-const EITHER: String = "either"
+## The sides a deck or player may take. Anchor CRD p15: a Rogue (Hedge) personality "can be played
+## as either Heroes or Villains, but cannot be both at the same time", and "Your alignment must be
+## decided as you are building your deck", so a Hedge deck stores one of the two.
+const ALIGNMENTS: Array[String] = ["vigil", "pact"]
 
 var id: String = ""
 var title: String = ""
@@ -102,7 +102,7 @@ var raw: Dictionary = {}
 ## Whether a player on `side` meets a gate or condition naming `wanted`. An empty `wanted` is no
 ## gate at all.
 static func side_allows(side: String, wanted: String) -> bool:
-	return wanted == "" or side == wanted or side == EITHER
+	return wanted == "" or side == wanted
 
 
 static func from_dict(d: Dictionary) -> CardDef:

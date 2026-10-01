@@ -120,6 +120,10 @@ static func begin(referee: Referee, decks: Array[DeckList], p_mode: String, p_or
 		"second_life": s.second_life_returns_used, "guest": guests, "boss_power": powers}
 	for i in range(2):
 		r.seats.append({"identity": "", "name": s.players[i].name, "deck": decks[i].id, "ai": ""})
+		# A player-built deck is no catalog file, so a replay needs the list itself.
+		if decks[i].custom:
+			r.seats[i]["deck"] = ""
+			r.seats[i]["list"] = deck_dict(decks[i])
 	return r
 
 

@@ -223,7 +223,7 @@ func _refresh_item(item: Dictionary, card: SeatCard, def: CardDef, cache: CardFa
 		if prompt != null:
 			for option in prompt.options_for_card(card.uid):
 				if option.type == &"defend" or option.type == &"power_defend":
-					summary.text = "Defend"
+					summary.text = "Effects only" if option.value != null and str(option.value) == DuelEngine.TRY_STOP else "Defend"
 					break
 				elif option.type == &"counter":
 					summary.text = "Counter"

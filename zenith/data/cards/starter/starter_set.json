@@ -7,6 +7,7 @@
    "type": "personality",
    "school": "",
    "character": "Bram Ashmark",
+   "alignment_only": "pact",
    "aspect": 1,
    "aspect_title": "Starved",
    "surge": 2,
@@ -30,10 +31,6 @@
 	},
 	"effects": [
 	 {
-	  "op": "energy",
-	  "amount": 5
-	 },
-	 {
 	  "trigger": "if_stopped",
 	  "op": "draw",
 	  "amount": 1
@@ -50,6 +47,7 @@
    "type": "personality",
    "school": "",
    "character": "Bram Ashmark",
+   "alignment_only": "pact",
    "aspect": 2,
    "aspect_title": "Leeching",
    "surge": 6,
@@ -92,6 +90,7 @@
    "type": "personality",
    "school": "",
    "character": "Bram Ashmark",
+   "alignment_only": "pact",
    "aspect": 3,
    "aspect_title": "Unstoppable",
    "surge": 8,
@@ -122,6 +121,7 @@
    "type": "personality",
    "school": "",
    "character": "Dame Alder Rooke",
+   "alignment_only": "vigil",
    "aspect": 1,
    "aspect_title": "Matriarch",
    "surge": 1,
@@ -156,6 +156,7 @@
    "type": "personality",
    "school": "",
    "character": "Dame Alder Rooke",
+   "alignment_only": "vigil",
    "aspect": 2,
    "aspect_title": "Rising Water",
    "surge": 2,
@@ -192,6 +193,7 @@
    "type": "personality",
    "school": "",
    "character": "Dame Alder Rooke",
+   "alignment_only": "vigil",
    "aspect": 3,
    "aspect_title": "the Flood",
    "surge": 1,
@@ -227,6 +229,7 @@
    "type": "personality",
    "school": "",
    "character": "Siphon",
+   "alignment_only": "pact",
    "aspect": 1,
    "aspect_title": "Dormant",
    "surge": 2,
@@ -264,6 +267,7 @@
    "type": "personality",
    "school": "",
    "character": "Siphon",
+   "alignment_only": "pact",
    "aspect": 2,
    "aspect_title": "Charged",
    "surge": 1,
@@ -300,6 +304,7 @@
    "type": "personality",
    "school": "",
    "character": "Siphon",
+   "alignment_only": "pact",
    "aspect": 3,
    "aspect_title": "Unbound",
    "surge": 2,
@@ -341,6 +346,7 @@
    "type": "personality",
    "school": "",
    "character": "Sable Draik",
+   "alignment_only": "pact",
    "aspect": 1,
    "aspect_title": "Captain",
    "surge": 2,
@@ -381,6 +387,7 @@
    "type": "personality",
    "school": "",
    "character": "Sable Draik",
+   "alignment_only": "pact",
    "aspect": 2,
    "aspect_title": "Shrouded",
    "surge": 3,
@@ -420,6 +427,7 @@
    "type": "personality",
    "school": "",
    "character": "Sable Draik",
+   "alignment_only": "pact",
    "aspect": 3,
    "aspect_title": "Lightless",
    "surge": 5,
@@ -450,6 +458,7 @@
    "type": "personality",
    "school": "",
    "character": "Halden Quarr",
+   "alignment_only": "pact",
    "aspect": 1,
    "aspect_title": "the Grinder",
    "surge": 1,
@@ -488,6 +497,7 @@
    "type": "personality",
    "school": "",
    "character": "Halden Quarr",
+   "alignment_only": "pact",
    "aspect": 2,
    "aspect_title": "Tempered",
    "surge": 2,
@@ -540,6 +550,7 @@
    "type": "personality",
    "school": "",
    "character": "Halden Quarr",
+   "alignment_only": "pact",
    "aspect": 3,
    "aspect_title": "Ironheart",
    "surge": 4,
@@ -595,6 +606,7 @@
    "type": "personality",
    "school": "",
    "character": "Caedan Vale",
+   "alignment_only": "vigil",
    "aspect": 1,
    "aspect_title": "Last Heir",
    "surge": 2,
@@ -637,6 +649,7 @@
    "type": "personality",
    "school": "",
    "character": "Caedan Vale",
+   "alignment_only": "vigil",
    "aspect": 2,
    "aspect_title": "Unparried",
    "surge": 2,
@@ -668,6 +681,7 @@
    "type": "personality",
    "school": "",
    "character": "Caedan Vale",
+   "alignment_only": "vigil",
    "aspect": 3,
    "aspect_title": "Spellcutter",
    "surge": 3,
@@ -707,6 +721,7 @@
    "type": "personality",
    "school": "",
    "character": "Caedan Vale",
+   "alignment_only": "vigil",
    "aspect": 4,
    "aspect_title": "the Quiet Blade",
    "surge": 4,
@@ -736,6 +751,7 @@
    "type": "personality",
    "school": "",
    "character": "Caedan Vale",
+   "alignment_only": "vigil",
    "aspect": 5,
    "aspect_title": "Peerless",
    "surge": 5,
@@ -1103,6 +1119,7 @@
    "type": "personality",
    "school": "",
    "character": "Sir Edric Rooke",
+   "alignment_only": "vigil",
    "aspect": 1,
    "aspect_title": "the Hero",
    "surge": 1,
@@ -1148,6 +1165,7 @@
    "type": "personality",
    "school": "",
    "character": "Sir Edric Rooke",
+   "alignment_only": "vigil",
    "aspect": 2,
    "aspect_title": "the Stranger",
    "surge": 2,
@@ -1186,6 +1204,7 @@
    "type": "personality",
    "school": "",
    "character": "Sir Edric Rooke",
+   "alignment_only": "vigil",
    "aspect": 3,
    "aspect_title": "the Realm's Hero",
    "surge": 3,
@@ -1227,6 +1246,7 @@
    "type": "personality",
    "school": "",
    "character": "Sir Edric Rooke",
+   "alignment_only": "vigil",
    "aspect": 4,
    "aspect_title": "Kindled Through",
    "surge": 4,
@@ -1258,6 +1278,7 @@
    "type": "personality",
    "school": "",
    "character": "Sir Edric Rooke",
+   "alignment_only": "vigil",
    "aspect": 5,
    "aspect_title": "the All Powerful",
    "surge": 5,
@@ -1289,6 +1310,7 @@
    "type": "personality",
    "school": "",
    "character": "Emrys Rooke",
+   "alignment_only": "vigil",
    "aspect": 1,
    "aspect_title": "the Eldest",
    "surge": 1,
@@ -1324,6 +1346,7 @@
    "type": "personality",
    "school": "",
    "character": "Emrys Rooke",
+   "alignment_only": "vigil",
    "aspect": 2,
    "aspect_title": "First Plate",
    "surge": 2,
@@ -1359,6 +1382,7 @@
    "type": "personality",
    "school": "",
    "character": "Emrys Rooke",
+   "alignment_only": "vigil",
    "aspect": 3,
    "aspect_title": "Edged",
    "surge": 3,
@@ -1400,6 +1424,7 @@
    "type": "personality",
    "school": "",
    "character": "Emrys Rooke",
+   "alignment_only": "vigil",
    "aspect": 4,
    "aspect_title": "Shaped",
    "surge": 4,
@@ -1432,6 +1457,7 @@
    "type": "personality",
    "school": "",
    "character": "Emrys Rooke",
+   "alignment_only": "vigil",
    "aspect": 5,
    "aspect_title": "Scaleclad",
    "surge": 5,
@@ -1701,15 +1727,10 @@
    "power": {
 	"attack": {
 	 "kind": "strike",
-	 "life": 2
+	 "life": 2,
+	 "cost_hand": 1
 	},
-	"effects": [
-	 {
-	  "op": "discard_hand",
-	  "amount": 1,
-	  "random": false
-	 }
-	],
+	"uses": 99,
 	"no_control_needed": true
    },
    "tags": [
@@ -1755,7 +1776,6 @@
    "type": "personality",
    "school": "",
    "character": "Orvath Kell",
-   "alignment_only": "pact",
    "limit_per_deck": 1,
    "aspect": 1,
    "surge": 2,
@@ -1787,7 +1807,6 @@
    "school": "",
    "character": "Gideon Mourne",
    "variant": "Mercenary",
-   "alignment_only": "pact",
    "limit_per_deck": 1,
    "bloodline": "draconic",
    "aspect": 1,
@@ -3072,7 +3091,7 @@
    ],
    "remain_when": {
 	"when": {
-	 "duelist_character": "Sir Edric Rooke"
+	 "character": "Sir Edric Rooke"
 	},
 	"remain": 1
    },
@@ -3105,7 +3124,9 @@
    "school": "",
    "attack": {
 	"kind": "strike",
-	"multiply": 3
+	"table_multiply": {
+	 "by": 3
+	}
    },
    "character": "Torvan Hask"
   },
@@ -3470,7 +3491,9 @@
 	 "op": "end_combat"
 	},
 	{
-	 "op": "end_turn"
+	 "op": "float",
+	 "what": "keep_hand",
+	 "duration": "next_turn_end"
 	}
    ],
    "remove_after_use": true
@@ -3482,6 +3505,9 @@
    "school": "",
    "effects": [
 	{
+	 "op": "no_ascension_win"
+	},
+	{
 	 "op": "fervor",
 	 "amount": 6
 	},
@@ -3489,9 +3515,6 @@
 	 "op": "fervor",
 	 "who": "opponent",
 	 "amount": 6
-	},
-	{
-	 "op": "no_ascension_win"
 	}
    ]
   },
@@ -4243,7 +4266,8 @@
 	 "op": "pass_next_phase",
 	 "who": "opponent",
 	 "when": {
-	  "character": "Caedan Vale"
+	  "character": "Caedan Vale",
+	  "stopped_last_phase": true
 	 }
 	}
    ]
@@ -7057,10 +7081,11 @@
 	},
 	{
 	 "trigger": "on_wound",
-	 "at": "fight_back",
+	 "at": "turn_end",
 	 "may": true,
 	 "op": "search",
 	 "card_type": "ally",
+	 "aspect": 1,
 	 "to": "play"
 	}
    ]
@@ -7339,7 +7364,7 @@
    ],
    "remove_after_use": true,
    "only": {
-	"character": "Osric Thornwald"
+	"bloodline": "verdant"
    }
   },
   {
@@ -7539,6 +7564,7 @@
    "type": "personality",
    "school": "",
    "character": "Bram Ashmark",
+   "alignment_only": "pact",
    "aspect": 3,
    "aspect_title": "Gorging",
    "surge": 4,
@@ -12290,7 +12316,7 @@
    "type": "non_combat",
    "school": "root",
    "only": {
-	"character": "Osric Thornwald"
+	"bloodline": "verdant"
    },
    "limit_per_deck": 8,
    "remove_after_use": true,
@@ -12365,8 +12391,11 @@
 	{
 	 "trigger": "use",
 	 "op": "float",
-	 "what": "ally_control_any_stage",
-	 "duration": "combat"
+	 "what": "ally_powers_any_stage",
+	 "duration": "combat",
+	 "params": {
+	  "allies_in_play": true
+	 }
 	},
 	{
 	 "trigger": "use",
@@ -12748,6 +12777,7 @@
    "type": "personality",
    "school": "",
    "character": "Idris Sparrow",
+   "alignment_only": "vigil",
    "aspect": 1,
    "aspect_title": "Scrapper",
    "surge": 2,
@@ -12794,6 +12824,7 @@
    "type": "personality",
    "school": "",
    "character": "Idris Sparrow",
+   "alignment_only": "vigil",
    "aspect": 2,
    "aspect_title": "Cut Loose",
    "surge": 3,
@@ -12834,6 +12865,7 @@
    "type": "personality",
    "school": "",
    "character": "Idris Sparrow",
+   "alignment_only": "vigil",
    "aspect": 3,
    "aspect_title": "Stillwind",
    "surge": 3,
@@ -12870,6 +12902,7 @@
    "type": "personality",
    "school": "",
    "character": "Idris Sparrow",
+   "alignment_only": "vigil",
    "aspect": 4,
    "aspect_title": "Stormedge",
    "surge": 3,
@@ -13002,6 +13035,7 @@
    "type": "personality",
    "school": "",
    "character": "Sandmaw",
+   "alignment_only": "vigil",
    "aspect": 1,
    "surge": 1,
    "might": [
@@ -13687,7 +13721,137 @@
    "type": "non_combat",
    "school": "",
    "character": "Aldo Voss",
-   "borrows_drill_powers": true
+   "free_action": true,
+   "use_when_needed": true,
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "copy_drill"
+	}
+   ]
+  },
+  {
+   "id": "signature_drill_09",
+   "title": "Mourne's Highborn Drill",
+   "type": "drill",
+   "school": "",
+   "character": "Gideon Mourne",
+   "surge_bonus": 1,
+   "surge_bonus_bloodline": "draconic",
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 2,
+	 "duelist_named": true
+	}
+   ]
+  },
+  {
+   "id": "signature_combat_12",
+   "title": "Mourne Rekindles His Blade",
+   "type": "combat",
+   "school": "",
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": "max"
+	},
+	{
+	 "op": "fervor",
+	 "amount": 1
+	}
+   ],
+   "character": "Gideon Mourne",
+   "only": {
+	"character": "Gideon Mourne"
+   },
+   "remove_after_use": true
+  },
+  {
+   "id": "signature_combat_13",
+   "title": "Mourne's Hired Shield",
+   "type": "combat",
+   "school": "",
+   "defense": {
+	"stops": "any"
+   },
+   "character": "Gideon Mourne"
+  },
+  {
+   "id": "signature_art_20",
+   "title": "Mourne's Null Ward",
+   "type": "art",
+   "school": "",
+   "defense": {
+	"stops": "none",
+	"when": {
+	 "attack_kind": "art"
+	}
+   },
+   "character": "Gideon Mourne",
+   "effects": [
+	{
+	 "op": "cap_attack",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "signature_art_21",
+   "title": "Mourne's Offhand Bolt",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art",
+	"cost_stages": 1
+   },
+   "character": "Gideon Mourne",
+   "remove_after_use": true
+  },
+  {
+   "id": "signature_art_22",
+   "title": "Mourne's Disdain",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art"
+   },
+   "character": "Gideon Mourne",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	}
+   ]
+  },
+  {
+   "id": "signature_strike_34",
+   "title": "Mourne's Arcane Hammer",
+   "type": "strike",
+   "school": "",
+   "attack": {
+	"kind": "strike",
+	"stages": 5
+   },
+   "character": "Gideon Mourne",
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "remove_discard",
+	 "who": "opponent",
+	 "all": true
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "fervor",
+	 "amount": 2
+	}
+   ]
   }
  ]
 }

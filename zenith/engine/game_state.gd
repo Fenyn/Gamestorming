@@ -32,6 +32,9 @@ var pending_play: Dictionary = {}      # a Combat card waiting on the opponent's
 var skip_discard: bool = false         # a card ended the turn early: no Discard step
 var pending_ascension: int = -1        # an Ascension win the opponent answered; re-checked once their card resolves
 var declare_window_done: bool = false  # the opponent already had their Declare-step response this turn
+var uwn_asked: Dictionary = {}         # "<point>:<seat>" -> true: use-when-needed windows closed this turn outside the battle sequence
+var drawn_drills: Array[int] = []      # Drills just drawn that their owner cannot place; see DuelEngine._offer_drawn_drills
+var fervor_raised_by: Array[Dictionary] = [{}, {}]   # per player, card uids that raised their Fervor this turn under a capping Grounds
 var winner: int = -1
 var win_reason: String = ""
 ## Over with no winner: a scripted duel's session was ended (`DuelEngine.script_op` end_session).
@@ -76,6 +79,9 @@ func copy(cards: Dictionary) -> GameState:
 	s.skip_discard = skip_discard
 	s.pending_ascension = pending_ascension
 	s.declare_window_done = declare_window_done
+	s.uwn_asked = uwn_asked.duplicate()
+	s.drawn_drills = drawn_drills.duplicate()
+	s.fervor_raised_by = [fervor_raised_by[0].duplicate(), fervor_raised_by[1].duplicate()]
 	s.winner = winner
 	s.win_reason = win_reason
 	s.ended = ended

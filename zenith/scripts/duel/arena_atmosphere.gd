@@ -16,6 +16,7 @@ extends Node3D
 ## Caps on the school colour's saturation and value for the board wash.
 const WASH_SATURATION: float = 0.6
 const WASH_VALUE: float = 0.6
+const COMPAT_KEY_NORMAL_BIAS: float = 3.0
 
 var reduced_motion: bool = false
 var _courtyard: CourtyardSet
@@ -41,6 +42,11 @@ func _ready() -> void:
 	var sun: DirectionalLight3D = duel.get_node_or_null("Sun")
 	if env != null and env.environment != null:
 		_courtyard.apply_environment(env.environment, sun)
+	# The Compatibility renderer (the web build) draws the key light's default bias as stripes of
+	# shadow acne across the whole board.
+	var key: SpotLight3D = duel.get_node_or_null("TableKey") as SpotLight3D
+	if key != null and RenderingServer.get_current_rendering_method() == "gl_compatibility":
+		key.shadow_normal_bias = COMPAT_KEY_NORMAL_BIAS
 
 
 ## Each seat's half of the board takes its Mastery school's colour as a wash over the stone.

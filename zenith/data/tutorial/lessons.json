@@ -187,7 +187,7 @@
          "reasons": {"pick_option": "Take the Twin Claws.", "pick_none": "Take the Twin Claws."}, "library": "Take the Twin Claws."},
         {"b": 5, "player": "attack_action", "take": {"type": "attack", "id": "steel_strike_20"}, "callout": "Attack with the Clawed Heel.", "ring": "hand:steel_strike_20",
          "reasons": {"attack": "Start with the Clawed Heel.", "final_strike": "Use your cards first.", "pass": "Both at once, I said."}},
-        {"b": 5, "player": "pay", "take": {"type": "pay_life", "value": 1}, "callout": "Discard a life card for 3 more wounds.", "ring": "prompt:pay_life",
+        {"b": 5, "player": "pay", "take": {"type": "pay_life", "value": 1}, "callout": "Take a wound for +3 wounds.", "ring": "prompt:pay_life",
          "reasons": {"pay_life": "Pay it."}},
         {"b": 4, "rival": "attack_action", "take": {"type": "attack", "id": "signature_strike_14"}},
         {"b": 3, "player": "attack_action", "take": {"type": "attack", "id": "signature_strike_10"}, "callout": "Attack with the Sword Flourish.", "ring": "hand:signature_strike_10",

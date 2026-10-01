@@ -53,8 +53,26 @@ func _ready() -> void:
 	_online = Net.active()
 	if not _online and DevArgs.user_args().has("--dev-ai"):
 		Session.ai_seat = 1   # the select screen opened directly, as against the AI
-	Session.locked = [false, false]
+	# Back from the builder, only the seat that left is reopened; the other keeps its pick and lock.
+	var back_for: int = Session.builder_seat
+	Session.builder_seat = -1
+	if back_for < 0:
+		Session.locked = [false, false]
+	else:
+		Session.locked[back_for] = false
 	back_button.pressed.connect(_on_back)
+	# Offline only: online the seat is held in a room, and leaving for the builder would give it up.
+	var builder_button: Button = $Margin/Column/TitleRow/Builder
+	builder_button.visible = not _online
+	builder_button.disabled = not ReleaseGate.deck_builder()
+	builder_button.tooltip_text = "" if ReleaseGate.deck_builder() else ReleaseGate.BUILDER_LATER
+	builder_button.pressed.connect(func() -> void:
+		# With one of the player's own decks picked, the builder opens straight on it.
+		var picked: DeckList = Session.chosen[_seat]
+		Session.builder_deck_id = picked.id if picked != null and picked.custom else ""
+		Session.builder_from_select = true
+		Session.builder_seat = _seat
+		Session.go_to_builder())
 	for i in range(Session.decks.size()):
 		var tile: RosterTile = ROSTER_TILE.instantiate()
 		roster.add_child(tile)
@@ -80,7 +98,13 @@ func _ready() -> void:
 	elif Session.ai_seat >= 0:
 		_order = [1 - Session.ai_seat, Session.ai_seat]
 		Session.player_names[Session.ai_seat] = "The AI"
-	_show_seat(_order[0])
+	_show_seat(back_for if _order.has(back_for) else _order[0])
+	# The builder's deck is picked for the seat shown: the one that left, or the first after Play.
+	if Session.preselect_deck_id != "":
+		for i in range(Session.decks.size()):
+			if Session.decks[i].custom and Session.decks[i].id == Session.preselect_deck_id:
+				_pick(i)
+		Session.preselect_deck_id = ""
 	_dev_args()
 	SanctumUI.wire_buttons(self)
 
@@ -93,7 +117,7 @@ func _setup_online() -> void:
 	Net.connection_failed.connect(_on_connection_failed)
 	# Re-announce this seat, unlocked, so a client arriving after the host picked still sees it
 	# and a return from the matchup screen or a duel starts both seats fresh.
-	var deck_index: int = int(Net.lobby[me]["deck"])
+	var deck_index: int = Net.local_deck_index()
 	if deck_index >= 0:
 		Session.chosen[me] = Session.decks[deck_index]
 	Net.set_local_pick(deck_index, Session.player_names[me], false)
@@ -188,8 +212,7 @@ func _on_lobby_changed() -> void:
 	var other: int = Net.remote_player()
 	var entry: Dictionary = Net.lobby[other]
 	Session.player_names[other] = str(entry["name"])
-	var deck_index: int = int(entry["deck"])
-	Session.chosen[other] = Session.decks[deck_index] if deck_index >= 0 and deck_index < Session.decks.size() else null
+	Session.chosen[other] = Net.lobby_deck(entry)
 	Session.locked[other] = bool(entry["ready"])
 	_refresh()
 	if Net.both_locked():
@@ -237,6 +260,7 @@ static func lock_text(left_ms: int) -> String:
 ## Tile badges for the choosing seat, the status line, and what Back does.
 func _refresh() -> void:
 	var d: DeckList = Session.chosen[_seat]
+	($Margin/Column/TitleRow/Builder as Button).text = "Edit this deck" if d != null and d.custom else "Deck builder"
 	$Background.set_school(Palette.school_ui(d.style) if d != null else ZenithTheme.FRAME)
 	for tile in _tiles:
 		var state: int = 0
@@ -281,10 +305,10 @@ func _refresh_players() -> void:
 		else:
 			state = "choosing"
 		var who: String = str(Net.lobby[seat]["name"]) if present else "empty seat"
-		var picked: bool = present and int(Net.lobby[seat]["deck"]) >= 0
+		var picked: bool = present and DuelRoom.has_deck(Net.lobby[seat])
 		# The other seat's deck arrives only once both have locked.
 		if Net.queue_room() and seat != me and picked:
-			var duelist: String = Session.duelist_name(Session.decks[int(Net.lobby[seat]["deck"])])
+			var duelist: String = Session.duelist_name(Net.lobby_deck(Net.lobby[seat]))
 			who = duelist if duelist != "" else who
 		if seat == me:
 			who += " (you)"
@@ -317,6 +341,10 @@ func _on_back() -> void:
 	if _online:
 		Net.leave()
 		Session.player_names = ["Player 1", "Player 2"]
+	# Opened by the deck builder's Play: Back returns to the deck being built.
+	elif Session.builder_deck_id != "":
+		Session.go_to_builder()
+		return
 	Session.go_to_title()
 
 
@@ -328,11 +356,18 @@ func _filter_decks() -> void:
 	for tile: RosterTile in _tiles:
 		var d: DeckList = Session.decks[tile.index]
 		var def: CardDef = Session.library.defs.get(d.duelist_face_id())
-		var haystack: String = "%s %s %s %s %s" % [d.name, def.title if def != null else d.duelist_face_id(), Archetype.label(d.archetype), d.tagline, d.difficulty]
-		tile.visible = (school == "" or d.style == school) and (query == "" or haystack.to_lower().contains(query))
+		var haystack: String = "%s %s %s %s %s %s" % [d.name, def.title if def != null else d.duelist_face_id(), Archetype.label(d.archetype), d.tagline, d.difficulty, "custom" if d.custom else ""]
+		# Ranked plays the shipped decks only.
+		var allowed: bool = not (d.custom and Net.ranked_room())
+		tile.visible = allowed and (school == "" or d.style == school) and (query == "" or haystack.to_lower().contains(query))
 		if tile.visible:
 			_visible_indices.append(tile.index)
-	count_label.text = "STARTER DECKS   /   %d OF %d" % [_visible_indices.size(), _tiles.size()]
+	var yours: int = 0
+	for index in _visible_indices:
+		if Session.decks[index].custom:
+			yours += 1
+	count_label.text = "DECKS   /   %d OF %d%s" % [_visible_indices.size(), _tiles.size(),
+		"   ·   %d OF YOURS" % yours if yours > 0 else ""]
 	empty_label.visible = _visible_indices.is_empty()
 	reset_button.visible = query != "" or school != ""
 	roster_scroll.scroll_vertical = 0

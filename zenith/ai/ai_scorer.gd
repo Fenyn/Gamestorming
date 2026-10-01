@@ -6,7 +6,7 @@ extends RefCounted
 ## and decks are scored without new code. Only call it on an engine the seat may hold.
 
 ## Options that mean "do nothing here". AiSearch always keeps one in its shortlist.
-const QUIET: Array[StringName] = [&"pass", &"no_defense", &"done", &"skip", &"decline", &"no_endure", &"no_critical", &"no_recover", &"pick_none", &"reserve_done", &"discard_all", &"deal_damage"]
+const QUIET: Array[StringName] = [&"pass", &"no_defense", &"done", &"skip", &"decline", &"no_endure", &"no_critical", &"no_recover", &"pick_none", &"reserve_done", &"discard_all", &"deal_damage", &"order_confirm"]
 
 ## How many links of a tutor chain to follow. Three covers "fetch the card that fetches the card
 ## that does the thing", which is as long as the shipped decks get.
@@ -79,8 +79,9 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 		&"defend", &"power_defend":
 			return _defense_score(engine, profile, me, o, c)
 		&"declare":
-			# Declaring makes the rival draw three; with fewer than that left, they deck out.
-			if foe.life_deck.size() < DuelEngine.DRAW_COUNT:
+			# Declaring makes the rival draw three, and a Life Deck that empties loses at once, so
+			# three or fewer left decks them out.
+			if foe.life_deck.size() <= DuelEngine.DRAW_COUNT:
 				return AiEvaluator.WIN
 			return _declare_score(engine, profile, me)
 		&"skip":
@@ -144,7 +145,12 @@ static func _score(engine: DuelEngine, profile: AiProfile, prompt: Prompt, o: Co
 		&"pick_option":
 			if str(prompt.context.get("purpose", "")) == "look_place":
 				return _look_place_score(engine, me, profile, prompt, o)
+			if str(prompt.context.get("purpose", "")) == "wild_might":
+				return _wild_might_score(engine, profile, me, prompt, o)
 			return _pick_option_score(engine, me, profile, o, c)
+		&"order_confirm":
+			# The usual order is printed order; reordering is left to a player who has a reason.
+			return 0.1
 	# Every "do nothing" option, and anything this file has not met yet.
 	return 0.0
 
@@ -191,6 +197,18 @@ static func _attack_score(engine: DuelEngine, profile: AiProfile, me: PlayerStat
 	return v + 0.1
 
 
+## Wild Might makes a Might comparison the user's pick. The answer that runs the line is worth what
+## the line does for this side; the other is worth nothing. An attack's own question carries no line,
+## and its conditional lines are bonuses, so "higher" wins it.
+static func _wild_might_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, prompt: Prompt, o: Command) -> float:
+	var runs: bool = str(o.value) == str(prompt.context.get("runs_on", "higher"))
+	var line: Dictionary = prompt.context.get("line", {})
+	if line.is_empty():
+		return 1.0 if runs else 0.0
+	var value: float = effects_value([line], profile, [], AiEvaluator.handover_progress(engine, me), engine, me.index)
+	return value if runs else 0.0
+
+
 ## The chance a rival holding this many hidden cards has at least one that blocks.
 static func block_chance(foe: PlayerState) -> float:
 	return 1.0 - pow(1.0 - BLOCK_SHARE, float(foe.hand.size()))
@@ -206,7 +224,13 @@ static func _copied_forecast(engine: DuelEngine, me: PlayerState) -> Dictionary:
 			var stages: int = int(base["stages"]) + int(spec.get("stages", 0))
 			if str(spec.get("kind", "strike")) == "strike" and not spec.has("printed_stages") and not spec.has("printed_life"):
 				stages += EVEN_TABLE_STAGES
-			return {"stages": stages, "life": int(base["life"]) + int(spec.get("life", 0))}
+			var life: int = int(base["life"]) + int(spec.get("life", 0))
+			# The copy keeps the modifiers the copied attack had.
+			for add in spec.get("copied_adds", []):
+				stages += int((add as Dictionary).get("stages", 0))
+				life += int((add as Dictionary).get("life", 0))
+			var times: int = maxi(1, int(spec.get("copied_multiply", 1)))
+			return {"stages": stages * times, "life": life * times}
 	return {}
 
 
@@ -273,8 +297,12 @@ static func _defense_score(engine: DuelEngine, profile: AiProfile, me: PlayerSta
 	var threat: float = _threat(engine, profile, me)
 	# The attacker's hit lines, valued as the attacker's gain, which is this side's loss.
 	threat += effects_value(a.get("effects", []), profile, ["if_successful"], 0.0, engine, 1 - me.index)
+	# A card played only to try to stop an attack it cannot stop saves nothing; it is worth its
+	# own lines alone.
+	if o.value != null and str(o.value) == DuelEngine.TRY_STOP:
+		threat = 0.0
 	# A Shield in play that will stop it anyway leaves a hand block nothing to save.
-	if not engine._available_shields(me, str(a.get("kind", "strike")), bool(a.get("focused", false))).is_empty() and int(a.get("stops_needed", 1)) - int(a.get("stop_count", 0)) <= 1:
+	elif not engine._available_shields(me, str(a.get("kind", "strike")), bool(a.get("focused", false))).is_empty() and int(a.get("stops_needed", 1)) - int(a.get("stop_count", 0)) <= 1:
 		threat = 0.0
 	# An attack that needs two stops is stopped by this block only if another follows it.
 	elif int(a.get("stops_needed", 1)) - int(a.get("stop_count", 0)) > 1:
@@ -654,7 +682,7 @@ static func _available_searches(engine: DuelEngine, me: PlayerState, source: Car
 		var readiness: float = 1.0 if source == me.duelist or me.allies().has(source) else 0.6
 		if readiness == 1.0 and (not engine._power_available(me, source) or engine._forbidden(me, "powers")):
 			readiness = 0.0
-		if readiness == 1.0 and source != me.in_control() and not bool(power.get("no_control_needed", false)) and not engine.may_ally_control(me):
+		if readiness == 1.0 and source != me.in_control() and not engine.ally_power_without_control(me, source) and not engine.may_ally_control(me):
 			readiness = 0.25
 		if power.has("attack") and not engine._can_pay(source, me, power["attack"]):
 			readiness *= 0.25
@@ -947,7 +975,7 @@ static func usable_power_value(engine: DuelEngine, me: PlayerState, c: CardInsta
 	var power: Dictionary = c.power()
 	if not engine._cond(power.get("when", {}), me.index, {}):
 		return 0.0
-	var controls: bool = c == me.in_control() or bool(power.get("no_control_needed", false))
+	var controls: bool = c == me.in_control() or (c != me.duelist and engine.ally_power_without_control(me, c))
 	if not controls and c != me.duelist and not engine.may_ally_control(me):
 		return 0.0
 	var effects: Array[Dictionary] = []
@@ -1082,6 +1110,10 @@ static func _pick_option_score(engine: DuelEngine, me: PlayerState, profile: AiP
 				return -hold_value(c, profile)
 		"play_or_hand":
 			return 1.0 + hold_value(c, profile) if str(o.value) == "play" else hold_value(c, profile)
+		"drawn_drills":
+			# Shuffling a Drill that cannot be placed back draws nothing in its place, the same
+			# trade the Non-Combat step's `shuffle_back` prices.
+			return -0.5
 	if c != null:
 		# A search, a look at the top cards, a Seal to capture: take the best card on offer, which
 		# for a deck that runs tutor chains means the card that carries the chain furthest.
@@ -1491,6 +1523,16 @@ static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0
 		"skip_next_attack_phase", "pass_next_phase":
 			# An attack phase lost is an attack not made: an Art's base hit, the reference swing.
 			return -side * DuelEngine.ART_BASE_LIFE * profile.w("play", "damage_life")
+		"copy_drill":
+			# A copy of a Drill in play works for this side until Combat ends: a Drill's worth, and
+			# nothing when there is no Drill to copy.
+			if not known:
+				return profile.w("own", "drill")
+			for q in [me, board.player(1 - seat)]:
+				for d in (q as PlayerState).drills():
+					if not d.def.has_trigger("entering_combat"):
+						return profile.w("own", "drill")
+			return 0.0
 	return profile.w("effect", "other")
 
 

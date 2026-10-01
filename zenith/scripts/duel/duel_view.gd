@@ -1227,6 +1227,8 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 				caption = "Shield"
 			elif type == &"defense_power":
 				caption = "Power"
+			if bool(data.get("tried", false)):
+				caption = "Effects only"
 			# A defense holds until the attack is settled; a Shield leaves at the end of its own beat.
 			await _hold(defense_uid, player, &"beat" if type == &"shield" else &"defense", str(data.get("id", "")))
 			await _answer_card_beat(defense_uid, player, targets, caption, stopped, str(data.get("id", "")))

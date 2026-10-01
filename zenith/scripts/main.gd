@@ -8,8 +8,12 @@ extends Control
 ## two queue buttons, the search with Cancel, or a running duel to rejoin or concede), and one
 ## fixed status line, so the column is the same height in every state. `state` is derived from Net
 ## and the rejoin file (`_derive`), and `apply_state` sets every node from it.
+##
+## The web build cannot play online (`OnlineGate`): the title stays UNAVAILABLE, every online control
+## is greyed with the reason as its tooltip, the reason shows once under the ONLINE header, and Quit,
+## which would only freeze a browser tab, is hidden.
 
-enum TitleState {IDLE, CONNECTING, SEARCHING, REJOIN_OFFERED, COOLDOWN}
+enum TitleState {IDLE, CONNECTING, SEARCHING, REJOIN_OFFERED, COOLDOWN, UNAVAILABLE}
 
 ## How long a casual search waits before it says nobody else is looking; ranked uses the server's
 ## own QUEUE_NOTICE_MS, since its window takes that long to open to everyone.
@@ -32,8 +36,10 @@ static var ranked_search: bool = false
 @onready var adventure_button: Button = $Center/Column/Adventure
 @onready var hotseat_button: Button = $Center/Column/Hotseat
 @onready var vs_ai_button: Button = $Center/Column/VsAi
-@onready var tutorial_button: Button = $Center/Column/Tutorial
+@onready var tutorial_button: Button = $Center/Column/OfflineRow/Tutorial
+@onready var builder_button: Button = $Center/Column/OfflineRow/Builder
 @onready var rating_label: Label = $Center/Column/OnlineHeader/Rating
+@onready var web_note: Label = $Center/Column/WebNote
 @onready var idle_box: VBoxContainer = $Center/Column/OnlineSlot/Idle
 @onready var find_button: Button = $Center/Column/OnlineSlot/Idle/FindDuel
 @onready var ranked_button: Button = $Center/Column/OnlineSlot/Idle/Ranked
@@ -56,6 +62,7 @@ static var ranked_search: bool = false
 @onready var join_button: Button = $Center/Column/JoinRow/Join
 @onready var status_label: Label = $Center/Column/Status
 @onready var quit_button: Button = $Center/Column/Quit
+@onready var alpha_note: Label = $AlphaNote
 
 var state: TitleState = TitleState.IDLE
 ## The duel server refused this build as a different version. Every way online stays disabled on
@@ -84,21 +91,31 @@ func _ready() -> void:
 		get_tree().change_scene_to_file.call_deferred("res://scenes/server.tscn")
 		return
 	theme = SanctumUI.theme()
+	# At the title a trip out of the select screen into the builder is over; the deck it was on
+	# (`builder_deck_id`) is kept, so the builder reopens it.
+	Session.builder_from_select = false
+	Session.builder_seat = -1
 	# Back at the title no run is live, so no screen shows a school edge.
 	MapArt.tint_for_school("")
 	background.color = ZenithTheme.BG_SCREEN
 	title_label.add_theme_font_size_override("font_size", ZenithTheme.SIZE_DISPLAY)
 	status_label.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
+	alpha_note.text = ReleaseGate.alpha_text()
 	crest.self_modulate = MapArt.tint
 	swirl.self_modulate = MapArt.tint
 	# A player sent back into the queue lands here still connected and waiting.
 	if Net.queue_state != "queued":
 		Net.leave()
-	adventure_button.pressed.connect(func() -> void: Session.go_to_adventure())
+	adventure_button.pressed.connect(func() -> void:
+		_forget_builder_deck()
+		Session.go_to_adventure())
 	hotseat_button.pressed.connect(func() -> void: _offline(-1))
 	vs_ai_button.pressed.connect(func() -> void: _offline(1))
 	tutorial_button.pressed.connect(_on_tutorial)
 	tutorial_button.text = tutorial_text(Session.progress)
+	builder_button.pressed.connect(func() -> void:
+		Session.leave_adventure()
+		Session.go_to_builder())
 	find_button.pressed.connect(_on_find)
 	ranked_button.pressed.connect(_on_find.bind(true))
 	host_button.pressed.connect(_on_host)
@@ -138,6 +155,8 @@ func _exit_tree() -> void:
 
 ## What the facts say the title is doing now.
 func _derive() -> TitleState:
+	if not OnlineGate.available():
+		return TitleState.UNAVAILABLE
 	if Net.queue_state == "queued":
 		return TitleState.SEARCHING
 	if _attempt != "":
@@ -172,8 +191,19 @@ func apply_state() -> void:
 	adventure_button.disabled = busy
 	vs_ai_button.disabled = busy
 	hotseat_button.disabled = busy
-	tutorial_button.disabled = busy
-	idle_box.visible = idle or state == TitleState.COOLDOWN
+	tutorial_button.disabled = busy or not ReleaseGate.tutorial()
+	builder_button.disabled = busy or not ReleaseGate.deck_builder()
+	tutorial_button.tooltip_text = "" if ReleaseGate.tutorial() else ReleaseGate.TUTORIAL_LATER
+	builder_button.tooltip_text = "" if ReleaseGate.deck_builder() else ReleaseGate.BUILDER_LATER
+	var unavailable: bool = state == TitleState.UNAVAILABLE
+	idle_box.visible = idle or state == TitleState.COOLDOWN or unavailable
+	web_note.visible = unavailable
+	quit_button.visible = not OnlineGate.is_web()
+	if unavailable:
+		rating_label.visible = false
+	var why: String = OnlineGate.UNAVAILABLE_TEXT if unavailable else ""
+	for control: Control in [find_button, ranked_button, host_button, address_edit, join_button, rejoin_button, concede_button, cancel_button]:
+		control.tooltip_text = why
 	search_box.visible = busy
 	rejoin_box.visible = state == TitleState.REJOIN_OFFERED
 	find_button.disabled = not idle or out_of_date
@@ -184,7 +214,8 @@ func apply_state() -> void:
 	search_label.text = _search_text()
 	elapsed_label.text = _elapsed_text()
 	search_note.text = NOBODY_TEXT if _nobody_looking() else ""
-	rejoin_button.disabled = out_of_date
+	rejoin_button.disabled = out_of_date or unavailable
+	concede_button.disabled = unavailable
 	rejoin_row.visible = not _confirming
 	confirm_row.visible = _confirming
 	var ticket: Dictionary = _rejoin_ticket()
@@ -271,6 +302,7 @@ func _nobody_looking() -> bool:
 
 ## The training session, from the lesson it was left at.
 func _on_tutorial() -> void:
+	_forget_builder_deck()
 	Session.leave_adventure()
 	Session.start_tutorial()
 
@@ -283,13 +315,22 @@ static func tutorial_text(progress: AdventureProgress) -> String:
 
 ## Hotseat when `ai_seat` is -1, otherwise that seat is played by the AI.
 func _offline(ai_seat: int) -> void:
+	_forget_builder_deck()
 	Session.leave_adventure()
 	Session.ai_seat = ai_seat
 	Session.go_to_select()
 
 
+## Any mode other than the builder starts fresh, so the builder no longer reopens the deck it was on.
+func _forget_builder_deck() -> void:
+	Session.builder_deck_id = ""
+	Session.builder_from_select = false
+	Session.builder_seat = -1
+
+
 ## Starts an online attempt of `kind`, returning its id for the coroutine to check on return.
 func _begin(kind: String) -> int:
+	_forget_builder_deck()
 	Session.leave_adventure()
 	Session.ai_seat = -1
 	_attempt = kind
@@ -491,6 +532,7 @@ func _dev_args() -> void:
 	var online: bool = false
 	var adventure: bool = false
 	var tutorial: bool = false
+	var builder: bool = false
 	var requeued: bool = Net.queue_state == "queued"
 	var ranked: bool = args.has("--dev-ranked")
 	var rejoinable: bool = state == TitleState.REJOIN_OFFERED
@@ -516,6 +558,9 @@ func _dev_args() -> void:
 		elif arg == "--dev-tutorial" or arg.begins_with("--dev-tutorial="):
 			tutorial = true
 			_dev_tutorial.call_deferred(arg)
+		elif arg == "--dev-builder":
+			builder = true
+			Session.go_to_builder.call_deferred()
 	if adventure:
 		# Deferred: a scene change fired straight from _ready() lands while the initial scene's
 		# own node tree is still being built, the same reason the --server branch above defers.
@@ -537,7 +582,7 @@ func _dev_args() -> void:
 			if shot != "":
 				await get_tree().create_timer(Net.CONNECT_TIMEOUT_SECONDS + 1.0).timeout
 				_save_shot(shot)
-	if not online and not adventure and not tutorial and shot != "":
+	if not online and not adventure and not tutorial and not builder and shot != "":
 		await get_tree().create_timer(0.3).timeout
 		_save_shot(shot)
 

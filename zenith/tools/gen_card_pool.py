@@ -73,7 +73,7 @@ def is_type(c, *names):
 
 
 def stops(c):
-    return has(c, r"Stops (a|an|all|any) ")
+    return has(c, r"Stops? (a|an|all|any) ")
 
 
 DROWNING = {"Tide Salt Burn Drill", "Tide Dead Calm", "Tide Pounding Surf", "Tide Leeching Brine",
@@ -85,10 +85,10 @@ RULES = {
     "pyre": [
         ("Fervor as a number", lambda c: has(c, r"X = your .*Fervor", r"equal to your Fervor")),
         ("Drills", lambda c: is_type(c, "Drill") or has(c, r"Pyre Drill")),
-        ("Ash", lambda c: has(c, r"opponent's discard pile.*from the game", r"cards of your opponent's discard pile from the game")),
+        ("Ash", lambda c: has(c, r"opponent's (whole )?discard pile.*from the game", r"cards (of|in) your opponent's discard pile from the game")),
         ("Burning the board", lambda c: has(c, r"(Drill|Ally|Allies|Non-Combat).* in play", r"in play of your choice")),
         ("Pyre Arts", lambda c: is_type(c, "Art") and has(c, r"\d wounds")),
-        ("Art answers", lambda c: has(c, r"Stops an Art", r"Stops all Arts", r"any attack")),
+        ("Art answers", lambda c: has(c, r"Stops an Art", r"Stops? all Arts", r"any attack")),
         ("Climbing blocks", lambda c: has(c, r"Stops a Strike", r"Stops any attack") and has(c, r"Fervor", r"Attune \d", r"Disrupt \d")),
         ("Fervor attacks", lambda c: True),
     ],
@@ -102,13 +102,13 @@ RULES = {
     "tide": [
         ("Drowning", lambda c: c["title"] in DROWNING),
         ("Allies", lambda c: has(c, r"Ally", r"Allies")),
-        ("Guard", lambda c: stops(c) or has(c, r"Defense Shield", r"Stops a Strike", r"stops an Art", r"is stopped")),
+        ("Guard", lambda c: stops(c) or has(c, r"Defense Shield", r"Stops a Strike", r"stops an Art", r"is stopped", r"Stop the next")),
         ("Digging", lambda c: has(c, r"Search your Life Deck", r"Look at the top", r"[Ll]ook at your top", r"your discard pile", r"your top \d", r"your deck")),
-        ("Board strip", lambda c: has(c, r"[Oo]pponent (removes|discards).* in play", r"their Drills", r"Drill in play leaves", r"only 1 Non-Combat")),
+        ("Board strip", lambda c: has(c, r"[Oo]pponent (removes|discards).* in play", r"of your opponent's [^.]*in play", r"their Drills", r"Drill in play leaves", r"only 1 Non-Combat")),
         ("Tide attacks", lambda c: True),
     ],
     "storm": [
-        ("Art cost engine", lambda c: has(c, r"[Cc]osts? \d", r"cost \d", r"Costs 0", r"Arts cost", r"cost 1 less", r"Storm cards")),
+        ("Art cost engine", lambda c: has(c, r"[Cc]osts? \d", r"cost \d", r"Costs (0|no Energy)", r"Arts cost", r"cost 1 less", r"Storm cards")),
         ("Art boosts", lambda c: has(c, r"your (other )?Arts do", r"Arts do \+")),
         ("Table defense", lambda c: has(c, r"Defense Shield")),
         ("Drills", lambda c: is_type(c, "Drill")),
@@ -132,7 +132,7 @@ RULES = {
         ("Seals", lambda c: has(c, r"Seal") and not has(c, r"not a Seal")),
         ("Table defense", lambda c: is_type(c, "Drill") or has(c, r"Endurance [4-9]|Endurance 10")),
         ("Fervor denial", lambda c: has(c, r"Disrupt \d", r"Lower your opponent's Fervor")),
-        ("Board strip", lambda c: has(c, r"[Oo]pponent (removes|discards).* in play")),
+        ("Board strip", lambda c: has(c, r"[Oo]pponent (removes|discards).* in play", r"of your opponent's [^.]*in play")),
         ("Costly Arts", lambda c: has(c, r"Costs \d")),
         ("Root attacks", lambda c: True),
     ],

@@ -785,6 +785,13 @@ ART = {
     "freestyle_combat_22": "A fighter twisting aside as a blow passes a finger's width from their face.",
     "freestyle_noncombat_22": "A ransacked armory, racks overturned, a fighter taking everything that is still whole.",
     "signature_noncombat_12": "A mage laying a hand on someone else's standing ward and borrowing its light.",
+    "signature_drill_09": "Running sword forms alone at dawn in an old family yard, a faded house banner above him.",
+    "signature_combat_12": "Drawing a notched blade along his palm, fire running up the steel behind his hand.",
+    "signature_combat_13": "Catching a blow on a battered hired shield, a coin purse swinging at his belt.",
+    "signature_art_20": "A pale dome of dead air around him, a rival's spell guttering to a spark against it.",
+    "signature_art_21": "Throwing a quick bolt from his off hand while his sword arm stays on guard.",
+    "signature_art_22": "Turning his back on a rival mid-duel, a cold flash of force knocking their fire down.",
+    "signature_strike_34": "Bringing a spell-wrapped fist down like a hammer, a rival's scattered scrolls burning away.",
 }
 
 # Seals: one brief per set, the number added by the generator.
@@ -1159,6 +1166,13 @@ NEW_SOURCES = {
     "freestyle_combat_22": "Narrow Escape (Fusion Saga)",
     "freestyle_noncombat_22": "Releasing the Sword (Irwin promo)",
     "signature_noncombat_12": "Krillin's Power Tap (Frieza Saga)",
+    "signature_drill_09": "Vegeta's Pride Drill (Buu Saga Preview 5)",
+    "signature_combat_12": "Vegeta At Full Power! (Cell Games Saga Promo P6)",
+    "signature_combat_13": "Vegeta's Surprise Defense (Saiyan Saga 100)",
+    "signature_art_20": "Vegeta's Stance (Saiyan Saga 220)",
+    "signature_art_21": "Vegeta's Powering Up (Frieza Saga 61)",
+    "signature_art_22": "Vegeta's Gallic Gun (Frieza Saga 60)",
+    "signature_strike_34": "Vegeta's Percussion Concussion (League Promo L6-1)",
 }
 
 

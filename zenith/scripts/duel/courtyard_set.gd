@@ -169,7 +169,12 @@ func _scatter_nature() -> void:
 
 
 func _build_air() -> void:
-	for spot: Vector3 in [Vector3(-6, 5, -6), Vector3(6, 5, -3)]:
+	# The leaves' particle shaders take about 18 s to compile in a browser on Windows (ANGLE over
+	# Direct3D) on a first visit, so the web build leaves them out.
+	var leaf_spots: Array[Vector3] = [Vector3(-6, 5, -6), Vector3(6, 5, -3)]
+	if OnlineGate.is_web():
+		leaf_spots.clear()
+	for spot: Vector3 in leaf_spots:
 		var leaves: GPUParticles3D = EffectBlocks.make("other/falling_leaves") as GPUParticles3D
 		leaves.name = "EffectBlocksCourtyardLeaves"
 		leaves.position = spot

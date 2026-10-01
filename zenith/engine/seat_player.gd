@@ -184,7 +184,11 @@ static func of(p: PlayerState, engine: DuelEngine) -> SeatPlayer:
 	v.discard = _uids(p.discard)
 	v.removed = _uids(p.removed)
 	v.allies = _uids(p.allies())
-	v.drills = _uids(p.drills())
+	# A Drill copy works as a Drill of this side for the rest of Combat, so it sits with the Drills
+	# where a player can see and click it; its card carries zone `copy`.
+	var drills: Array[CardInstance] = p.drills()
+	drills.append_array(engine.live_drill_copies(p))
+	v.drills = _uids(drills)
 	v.non_combats = _uids(p.non_combats())
 	var seals: Array[CardInstance] = p.seals()
 	seals.sort_custom(func(a: CardInstance, b: CardInstance) -> bool: return a.def.seal_number < b.def.seal_number)

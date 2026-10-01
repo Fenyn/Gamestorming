@@ -33,6 +33,7 @@ func _run() -> void:
 	await _test_strip_and_queue(hud, defender)
 	await _test_read_holds(hud, defender)
 	await _test_beat_banner(hud)
+	await _test_order_stack(hud)
 	_test_hit_tiers()
 	await _test_card_motion()
 	hud.free()
@@ -63,6 +64,118 @@ func _defense_position(pending: bool = false) -> DuelEngine:
 	engine.submit(engine.prompt.find(&"declare"))
 	engine.submit(engine.prompt.find(&"use" if pending else &"attack", engine.player(0).hand[0].uid))
 	return engine
+
+
+## Seat 0 declares Combat with three entering-Combat lines in play, so it owes an order decision.
+func _order_position() -> DuelEngine:
+	var decks: Array[DeckList] = []
+	for seat in range(2):
+		var deck: DeckList = DeckList.new()
+		deck.set_duelist(["tf_vigil_1", "tf_vigil_2", "tf_vigil_3"])
+		deck.alignment = "vigil" if seat == 0 else "pact"
+		for index in range(25):
+			deck.cards.append("t_strike")
+		decks.append(deck)
+	var engine: DuelEngine = DuelEngine.new()
+	engine.shuffle_decks = false
+	engine.setup(decks, library, StrikeTable.load_from("res://tests/fixtures/strike_table.json"), 5)
+	engine.set_first_player(0)
+	engine.start()
+	for id in ["t_nc_enter_draw", "t_drill_enter_energy", "t_start_drill"]:
+		engine.player(0).in_play.append(engine._instance(library.get_def(id), 0, &"in_play"))
+	if engine.prompt.kind == &"non_combat":
+		engine.submit(engine.prompt.find(&"done"))
+	engine.submit(engine.prompt.find(&"declare"))
+	return engine
+
+
+## The order decision as a row in resolution order: ranked from the left, rearranged on the client
+## by a drop or an arrow with nothing sent, and on the confirm sent as the moves that bring the
+## engine's sequence to the one shown, then the confirm, so the effects resolve in the order shown.
+func _test_order_stack(hud: Node) -> void:
+	root.size = Vector2i(1920, 1080)
+	await process_frame
+	var shown: Array[int] = _ints([1, 2, 3])
+	_check(hud.order_step(shown, _ints([1, 2, 3])) == 0, "A matching sequence leaves only the confirm")
+	_check(hud.order_step(shown, _ints([3, 1, 2])) == 2, "The first misplaced effect moves up from where it stands")
+	_check(hud.order_step(shown, _ints([1, 2])) == -1 and hud.order_step(shown, _ints([1, 2, 4])) == -1, "A goal that is not an order of the effects stops the sending")
+	_check(hud.ordinal(1) == "1st" and hud.ordinal(2) == "2nd" and hud.ordinal(3) == "3rd" and hud.ordinal(11) == "11th", "Ranks read as ordinals")
+	var engine: DuelEngine = _order_position()
+	if engine.prompt == null or engine.prompt.kind != &"order":
+		_check(false, "Fixture reaches a three-effect order decision")
+		return
+	var sent: Array[OptionView] = []
+	var listen: Callable = func(option: OptionView) -> void: sent.append(option)
+	hud.option_chosen.connect(listen)
+	var ids: Array[int] = []
+	for v in engine.prompt.context.get("ids", []):
+		ids.append(int(v))
+	var titles: Array = engine.prompt.context.get("order", [])
+	await hud.show_prompt(PromptView.of(engine.prompt, engine), SeatView.of(engine, 0))
+	await process_frame
+	_check(hud.tray.visible and hud.tray_cards.get_child_count() == 3, "Three effects show as three entries in the tray")
+	_check(_order_ranks(hud) == ["1st", "2nd", "3rd"], "The entries are ranked from the left")
+	var confirm: Button = _order_confirm(hud)
+	_check(confirm != null and confirm.text == "Resolve in this order", "One confirm button says what it does")
+	var viewport: Rect2 = root.get_visible_rect()
+	_check(viewport.encloses(hud.tray_panel.get_global_rect()), "The order tray fits the screen")
+	hud._order_drop(ids[0], {"order_id": ids[2]})
+	var dropped: Array[int] = [ids[2], ids[0], ids[1]]
+	_check(hud._order_ids == dropped, "A drop on the first place puts the dragged effect first")
+	hud._order_move(ids[0], 1)
+	var goal: Array[int] = [ids[2], ids[1], ids[0]]
+	_check(hud._order_ids == goal, "An arrow moves an effect one place")
+	_check(sent.is_empty(), "Rearranging sends nothing before the confirm")
+	_check(_order_ranks(hud) == ["1st", "2nd", "3rd"], "The ranks follow the new arrangement")
+	var lead: Dictionary = hud._order_entries[ids[2]]
+	_check(hud.tray_cards.get_child(0) == lead["entry"] and (lead["earlier"] as Button).disabled, "The effect moved to the front is drawn first and cannot move earlier")
+	var from: int = engine.events.size()
+	confirm.pressed.emit()
+	var guard: int = 0
+	while not sent.is_empty() and guard < 10:
+		guard += 1
+		var opt: OptionView = sent.pop_front()
+		engine.submit(opt.to_command(0))
+		if engine.prompt == null or engine.prompt.kind != &"order":
+			break
+		_check(hud.order_step(_ints(engine.prompt.context.get("ids", [])), goal) >= 0, "Each move keeps the goal within reach")
+		await hud.show_prompt(PromptView.of(engine.prompt, engine), SeatView.of(engine, 0))
+		_check(hud._order_ids == goal, "A prompt answered mid-way shows the arrangement being sent")
+		await process_frame
+	_check(engine.prompt == null or engine.prompt.kind != &"order", "The moves and the confirm close the order question")
+	var by_title: Dictionary = {"Test Entering Lesson": &"draw", "Test Entering Drill": &"energy_changed", "Test Opening Drill": &"fervor_changed"}
+	var expected: Array[StringName] = []
+	for k in [2, 1, 0]:
+		expected.append(by_title.get(str(titles[k]), &""))
+	var happened: Array[StringName] = []
+	for i in range(from, engine.events.size()):
+		var t: StringName = engine.events[i].type
+		if expected.has(t) and not happened.has(t):
+			happened.append(t)
+	_check(happened == expected, "The effects resolve in the order shown: %s" % str(happened))
+	hud.option_chosen.disconnect(listen)
+	hud.clear_prompt()
+
+
+func _order_ranks(hud: Node) -> Array[String]:
+	var out: Array[String] = []
+	for child in hud.tray_cards.get_children():
+		out.append(((child as Control).get_child(0) as Label).text)
+	return out
+
+
+func _order_confirm(hud: Node) -> Button:
+	for child in hud.tray_buttons.get_children():
+		if child is Button and (child as Button).text == "Resolve in this order":
+			return child
+	return null
+
+
+static func _ints(v: Variant) -> Array[int]:
+	var out: Array[int] = []
+	for x in v:
+		out.append(int(x))
+	return out
 
 
 func _test_rail(hud: Node, defender: SeatView, attacker: SeatView, prompt: PromptView, engine: DuelEngine) -> void:

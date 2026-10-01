@@ -99,13 +99,18 @@ const ACTION_HEIGHT: float = 48.0
 const SINGLE_ACTION_HEIGHT: float = 56.0
 const DECISION_RESULT_HEIGHT: float = 30.0   # one line at the body size
 ## Prompt kinds whose card options are browsed in the tray even when the cards are in the hand.
-const TRAY_KINDS: Array[StringName] = [&"reserve", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card", &"pick_discard"]
+const TRAY_KINDS: Array[StringName] = [&"reserve", &"keep", &"discard_choice", &"recover", &"pick_option", &"name_card", &"pick_discard", &"order"]
 ## Tray captions by option type; anything else shows the option's own label.
 const TRAY_VERBS: Dictionary = {
 	&"reserve_in": "Bring in", &"keep": "Keep", &"discard_choice": "Discard", &"recover": "Recover",
 	&"pick_option": "Choose", &"pick_in_play": "Choose", &"name_card": "Name", &"capture": "Capture",
 	&"final_strike": "Discard",
 }
+## An order entry's height beyond its face: the rank chip, the description and the arrow buttons.
+const ORDER_EXTRA: float = 180.0
+const ORDER_MIN_WIDTH: float = 880.0   # the order tray's width at least, so its hint keeps to one line
+const ORDER_LINES: int = 4             # description lines shown under an order entry's face
+const ORDER_GHOST: float = 0.55        # the dragged face's scale under the pointer
 ## The tray only ever opens for the seat at the table, so its header needs no name.
 const TRAY_WHO: String = "YOUR DECISION"
 ## The over-bright flash a face takes for a beat that happened on it, bone rather than warm.
@@ -131,6 +136,7 @@ const ACTION_LABELS: Dictionary = {
 }
 const ACTION_LABELS_BY_KIND: Dictionary = {
 	&"combat_end": {&"done": "End Combat"}, &"declare": {&"skip": "No Combat"},
+	&"follow_up": {&"decline": "Use nothing"},
 }
 ## Prompt kinds answered by panel buttons even though their options name a card.
 const BUTTON_KINDS: Array[StringName] = [&"endurance"]
@@ -351,6 +357,9 @@ var inspect_uid: int = -1              # the card the inspect overlay shows, -1 
 var _reserve_outcome: bool = false     # the open decision has option previews, so their row is kept
 var _who_color: Color = ZenithTheme.TEXT   # the deciding seat's accent, for the tray header
 var _tray_face: Vector2 = TRAY_CARD_SIZE   # the face size of the tray being filled
+var _order_ids: Array[int] = []        # the order tray's arrangement by effect id, first to resolve first
+var _order_entries: Dictionary = {}    # effect id -> {entry, frame, rank, earlier, later}
+var _order_goal: Array[int] = []       # an arrangement the player confirmed, sent one move per prompt
 ## Server room, per seat: the server's last clock state (`Net.clock_changed`) and when it arrived.
 var _clocks: Array[Dictionary] = [{}, {}]
 ## A recorded duel played back: nothing here answers a decision, and the menu offers the replay's
@@ -1395,6 +1404,11 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	var primaries: Array[OptionView] = routed["primary"]
 	var finals: Array[OptionView] = routed["finals"]
 	var library: Array = p.context.get("library", [])
+	if p.kind == &"order":
+		_fill_buttons([], primary_box, true)
+		await _show_order(p)
+		return
+	_order_goal.clear()
 	if not library.is_empty():
 		# A search of the Life Deck: the matches to pick from, then the rest of the deck to read.
 		_fill_buttons([], primary_box, true)
@@ -1700,15 +1714,23 @@ func _hint_for(p: PromptView) -> String:
 			return "Everything else goes to the discard pile."
 		&"endurance":
 			return "Spending it removes it from the game."
+		&"defense":
+			if bool(p.context.get("try", false)):
+				return "Some of these cards cannot stop this attack. Played anyway, they resolve their other effects and the attack still lands."
+			return ""
+		&"order":
+			if str(p.context.get("purpose", "")) == "shields":
+				return "The Shield on the left stops the attack first and is spent. Drag a card to a new place, or use its arrows."
+			return "The card on the left resolves first. Drag a card to a new place, or use its arrows."
+		&"follow_up":
+			if bool(p.context.get(DuelEngine.USE_WHEN_NEEDED, false)):
+				return "A use-when-needed card may be used here, between the steps of the attack or outside Combat."
+			return ""
 		&"recover":
 			return "One discard card may go back under the deck."
 		&"respond":
 			if str(p.context.get("mode", "")) == "declare":
 				return "Use a card before they decide on Combat."
-			if bool(p.context.get("ally_window", false)):
-				if not bool(p.context.get("can_counter", true)):
-					return "One Ally may take control before any of it happens."
-				return "Counter it, or put one Ally in control first."
 			return "Counter it now, or let it resolve."
 		&"pay":
 			if bool(p.context.get("life_cost", false)):
@@ -1724,6 +1746,12 @@ func _hint_for(p: PromptView) -> String:
 		&"name_card":
 			return "It cannot be played while the Drill stays out."
 		&"pick_option":
+			if str(p.context.get("purpose", "")) == "wild_might":
+				var line: String = str(p.context.get("text", ""))
+				var counted: String = "higher" if str(p.context.get("runs_on", "higher")) == "higher" else "not higher"
+				if line == "":
+					return "Wild Might has no number, so you decide. Counted as higher, the card's Might bonuses apply."
+				return "Wild Might has no number, so you decide. Counted as %s, the card does this: %s" % [counted, line]
 			if bool(p.context.get("may", false)):
 				var text: String = str(p.context.get("text", ""))
 				return "%s\nSkip it and the rest of the card still resolves." % text if text != "" else "Skip it and the rest of the card still resolves."
@@ -1739,6 +1767,7 @@ func show_waiting(player_name: String, kind: StringName, view: SeatView) -> void
 	_view = view
 	_current_prompt = null
 	_reserve_outcome = false
+	_order_goal.clear()
 	prompt_who.text = "%s  ·  DECIDING" % player_name.to_upper()
 	prompt_who.add_theme_color_override("font_color", ZenithTheme.MUTED)
 	prompt_title.text = "Waiting for %s" % player_name
@@ -1778,6 +1807,8 @@ func _waiting_hint(kind: StringName) -> String:
 			return "They are answering your attack."
 		&"respond":
 			return "They may respond before your card resolves."
+		&"order":
+			return "They are choosing the order of their effects."
 		&"keep", &"discard_choice":
 			return "They are choosing what to keep."
 		&"recover":
@@ -2242,6 +2273,7 @@ func _hide_tray() -> void:
 	_confirm = null
 	_selected.clear()
 	_entries.clear()
+	_order_entries.clear()
 
 
 ## A choice with no card behind it, as a card-sized tile with its wording in the middle.
@@ -2355,6 +2387,295 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 		if batch:
 			_entries[uid] = {"frame": frame, "caption": caption, "verb": verb}
 	return column
+
+
+# --- Order stack ----------------------------------------------------------
+
+## The order prompt as a row of the effects in the order they will resolve, first on the left. The
+## player rearranges it here by dragging a card or with its arrows, and nothing is sent until the
+## confirm button; then one move goes per prompt (`order_step`) until the engine's sequence matches,
+## and the confirm last. A prompt that comes back mid-way shows the arrangement being sent.
+func _show_order(p: PromptView) -> void:
+	var ids: Array[int] = _ints(p.context.get("ids", []))
+	if not _order_goal.is_empty() and order_step(ids, _order_goal) < 0:
+		_order_goal.clear()
+	var sending: bool = not _order_goal.is_empty()
+	_order_ids = _order_goal.duplicate() if sending else ids.duplicate()
+	_order_entries.clear()
+	await _show_tray(TRAY_WHO, prompt_title.text, prompt_hint.text, [], [], false)
+	var cards: Array = p.context.get("cards", [])
+	var titles: Array = p.context.get("order", [])
+	var lines: Array = p.context.get("lines", [])
+	var layout: Dictionary = order_layout(ids.size(), root.size)
+	var face: Vector2 = layout["face"]
+	for i in range(ids.size()):
+		var uid: int = int(cards[i]) if i < cards.size() else -1
+		var title: String = str(titles[i]) if i < titles.size() else ""
+		var line: String = str(lines[i]) if i < lines.size() else ""
+		var parts: Dictionary = await _order_entry(ids[i], uid, title, line, face)
+		if p != _current_prompt:
+			return
+		_order_entries[ids[i]] = parts
+		tray_cards.add_child(parts["entry"] as Control)
+	_arrange_order()
+	var cell: Vector2 = face + Vector2(TRAY_FRAME.x, ORDER_EXTRA)
+	var columns: int = int(layout["columns"])
+	tray_scroll.custom_minimum_size = Vector2(maxf(ORDER_MIN_WIDTH, columns * (cell.x + TRAY_GAP) + TRAY_GAP),
+		minf(int(layout["rows"]) * (cell.y + TRAY_GAP), root.size.y * TRAY_HEIGHT_SHARE))
+	var confirm: Button = Button.new()
+	confirm.text = "Resolve in this order"
+	confirm.theme_type_variation = &"AccentButton"
+	confirm.custom_minimum_size = Vector2(320, 60)
+	confirm.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
+	var shown: OptionView = p.find(&"order_confirm")
+	if shown != null:
+		confirm.set_meta("option", shown)
+		confirm.tooltip_text = "Resolve %s." % ", then ".join(PackedStringArray(_order_titles(p)))
+		if not option_open(shown):
+			confirm.disabled = true
+			_explain_on_hover(confirm, option_reason(shown))
+	confirm.pressed.connect(func() -> void:
+		_order_goal = _order_ids.duplicate()
+		_send_order_step(p))
+	tray_buttons.add_child(confirm)
+	if sending:
+		_send_order_step.call_deferred(p)
+
+
+## The titles in the tray's arrangement.
+func _order_titles(p: PromptView) -> Array[String]:
+	var ids: Array[int] = _ints(p.context.get("ids", []))
+	var titles: Array = p.context.get("order", [])
+	var out: Array[String] = []
+	for id in _order_ids:
+		var i: int = ids.find(id)
+		out.append(str(titles[i]) if i >= 0 and i < titles.size() else "")
+	return out
+
+
+## The face size, columns and rows of an order row of `count` effects: the tray's layout, with each
+## face short enough that its rank, description and arrows fit under the rows shown.
+static func order_layout(count: int, screen: Vector2) -> Dictionary:
+	var grid: Dictionary = tray_layout(count, screen)
+	var rows: int = int(grid["rows"])
+	var down: float = (screen.y * TRAY_HEIGHT_SHARE / rows - TRAY_GAP - ORDER_EXTRA) / CARD_ASPECT
+	var width: float = clampf(minf((grid["face"] as Vector2).x, down), TRAY_CARD_SIZE.x, TRAY_CARD_MAX_WIDTH)
+	return {"face": Vector2(width, width * CARD_ASPECT), "columns": int(grid["columns"]), "rows": rows}
+
+
+## The next answer toward the arrangement `goal` from the engine's sequence `ids`: the position (from
+## 1) of the `order_up` that brings the first misplaced effect one place nearer, 0 when the sequence
+## already matches and only the confirm is left, or -1 when `goal` is not an order of `ids`.
+static func order_step(ids: Array[int], goal: Array[int]) -> int:
+	if ids.size() != goal.size():
+		return -1
+	for k in range(goal.size()):
+		if ids[k] == goal[k]:
+			continue
+		var at: int = ids.find(goal[k])
+		return at if at > k else -1
+	return 0
+
+
+func _send_order_step(p: PromptView) -> void:
+	if p == null or p != _current_prompt or _order_goal.is_empty():
+		return
+	var step: int = order_step(_ints(p.context.get("ids", [])), _order_goal)
+	var opt: OptionView = null
+	if step == 0:
+		opt = p.find(&"order_confirm")
+		_order_goal.clear()
+	elif step > 0:
+		opt = p.find(&"order_up", -1, step)
+	if opt == null or not option_open(opt):
+		_order_goal.clear()
+		return
+	option_chosen.emit(opt)
+
+
+## One effect in the order row: its rank, its face (or its name, for a standing effect with no
+## card), what it will do, and the arrows that move it a place.
+func _order_entry(id: int, uid: int, title: String, line: String, face_size: Vector2) -> Dictionary:
+	var column: VBoxContainer = VBoxContainer.new()
+	column.add_theme_constant_override("separation", ZenithTheme.GAP_XS)
+	column.custom_minimum_size = Vector2(face_size.x + TRAY_FRAME.x, 0.0)
+	column.mouse_filter = Control.MOUSE_FILTER_PASS
+	var rank: Label = Label.new()
+	rank.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	rank.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
+	column.add_child(rank)
+	var frame: PanelContainer = PanelContainer.new()
+	frame.add_theme_stylebox_override("panel", _order_frame(false))
+	frame.pivot_offset = face_size * 0.5 + Vector2(3.0, 3.0)
+	frame.mouse_filter = Control.MOUSE_FILTER_PASS
+	var c: SeatCard = _view.card(uid) if _view != null and uid >= 0 else null
+	var def: CardDef = _def(c.def_id) if c != null and not c.hidden() else null
+	var face: Control = null
+	if def != null and _faces != null:
+		var tex: TextureRect = TextureRect.new()
+		tex.texture = await _faces.render_face(def, c.aspect, _uid_backdrop(uid), _uid_owner(uid))
+		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex.stretch_mode = TextureRect.STRETCH_SCALE
+		var aspect: int = c.aspect
+		tex.mouse_entered.connect(func() -> void:
+			show_peek(def, aspect, uid)
+			card_hovered.emit(uid, true))
+		tex.mouse_exited.connect(func() -> void:
+			hide_peek()
+			card_hovered.emit(uid, false))
+		tex.gui_input.connect(func(event: InputEvent) -> void:
+			if _is_inspect_click(event):
+				show_inspect(def, aspect, uid))
+		face = tex
+	else:
+		var tile: Label = Label.new()
+		tile.text = title
+		tile.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		tile.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tile.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		tile.add_theme_font_size_override("font_size", ZenithTheme.SIZE_ROW)
+		tile.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, 12, 12))
+		face = tile
+	face.custom_minimum_size = face_size
+	face.mouse_filter = Control.MOUSE_FILTER_STOP
+	face.mouse_default_cursor_shape = Control.CURSOR_DRAG
+	face.tooltip_text = "Drag %s to a new place in the order." % (title if title != "" else "this card")
+	var dropped: Callable = func(_at: Vector2, data: Variant) -> void: _order_drop(id, data)
+	var droppable: Callable = func(_at: Vector2, data: Variant) -> bool: return _order_can_drop(id, data)
+	face.set_drag_forwarding(func(_at: Vector2) -> Variant: return _order_drag(id, face), droppable, dropped)
+	column.set_drag_forwarding(func(_at: Vector2) -> Variant: return null, droppable, dropped)
+	frame.add_child(face)
+	column.add_child(frame)
+	var text: Label = Label.new()
+	text.text = line
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text.max_lines_visible = ORDER_LINES
+	text.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	text.custom_minimum_size = Vector2(face_size.x, 0.0)
+	text.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
+	text.add_theme_color_override("font_color", ZenithTheme.TEXT_SOFT)
+	text.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	if line != "":
+		text.tooltip_text = line
+		text.mouse_filter = Control.MOUSE_FILTER_PASS
+	column.add_child(text)
+	var arrows: HBoxContainer = HBoxContainer.new()
+	arrows.add_theme_constant_override("separation", ZenithTheme.GAP_XS)
+	var earlier: Button = _order_arrow("‹ Earlier", "Resolve %s one place earlier." % title, func() -> void: _order_move(id, -1))
+	var later: Button = _order_arrow("Later ›", "Resolve %s one place later." % title, func() -> void: _order_move(id, 1))
+	arrows.add_child(earlier)
+	arrows.add_child(later)
+	column.add_child(arrows)
+	return {"entry": column, "frame": frame, "rank": rank, "earlier": earlier, "later": later}
+
+
+func _order_arrow(text: String, tip: String, pressed: Callable) -> Button:
+	var b: Button = Button.new()
+	b.text = text
+	b.tooltip_text = tip
+	b.theme_type_variation = &"CompactButton"
+	b.custom_minimum_size = Vector2(0.0, 40.0)
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.pressed.connect(pressed)
+	return b
+
+
+func _order_frame(lit: bool) -> StyleBoxFlat:
+	return ZenithTheme.box(Color(0, 0, 0, 0), ZenithTheme.ACCENT if lit else Color(0, 0, 0, 0), ZenithTheme.RADIUS, 3, 3, 3)
+
+
+func _order_drag(id: int, source: Control) -> Variant:
+	if not _order_entries.has(id) or not _order_goal.is_empty():
+		return null
+	hide_peek()
+	var holder: Control = Control.new()
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ghost: Control = source.duplicate(0)
+	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ghost.size = source.size
+	ghost.scale = Vector2.ONE * ORDER_GHOST
+	ghost.position = -source.size * ORDER_GHOST * 0.5
+	ghost.modulate = Color(1, 1, 1, 0.85)
+	holder.add_child(ghost)
+	source.set_drag_preview(holder)
+	return {"order_id": id}
+
+
+func _order_can_drop(id: int, data: Variant) -> bool:
+	if not (data is Dictionary) or not (data as Dictionary).has("order_id") or not _order_entries.has(id):
+		return false
+	var ok: bool = int((data as Dictionary)["order_id"]) != id
+	for key in _order_entries.keys():
+		((_order_entries[key] as Dictionary)["frame"] as PanelContainer).add_theme_stylebox_override("panel", _order_frame(ok and int(key) == id))
+	return ok
+
+
+func _order_drop(id: int, data: Variant) -> void:
+	if not _order_can_drop(id, data):
+		return
+	var from: int = _order_ids.find(int((data as Dictionary)["order_id"]))
+	var to: int = _order_ids.find(id)
+	if from < 0 or to < 0:
+		return
+	var moved: int = _order_ids[from]
+	_order_ids.remove_at(from)
+	_order_ids.insert(to, moved)
+	_arrange_order()
+
+
+func _order_move(id: int, step: int) -> void:
+	var at: int = _order_ids.find(id)
+	var to: int = at + step
+	if at < 0 or to < 0 or to >= _order_ids.size() or not _order_goal.is_empty():
+		return
+	_order_ids[at] = _order_ids[to]
+	_order_ids[to] = id
+	_arrange_order()
+	var parts: Dictionary = _order_entries[id]
+	var arrow: Button = parts["earlier"] if step < 0 else parts["later"]
+	if arrow.disabled:
+		arrow = parts["later"] if step < 0 else parts["earlier"]
+	arrow.grab_focus()
+
+
+## Puts the entries in the tray's arrangement and renumbers them; the first is marked in full.
+func _arrange_order() -> void:
+	var last: int = _order_ids.size() - 1
+	for k in range(_order_ids.size()):
+		var id: int = _order_ids[k]
+		if not _order_entries.has(id):
+			continue
+		var parts: Dictionary = _order_entries[id]
+		tray_cards.move_child(parts["entry"] as Control, k)
+		var rank: Label = parts["rank"]
+		rank.text = ordinal(k + 1)
+		ZenithTheme.chip(rank, ZenithTheme.ACCENT, k == 0)
+		(parts["frame"] as PanelContainer).add_theme_stylebox_override("panel", _order_frame(false))
+		(parts["earlier"] as Button).disabled = k == 0
+		(parts["later"] as Button).disabled = k == last
+
+
+static func ordinal(n: int) -> String:
+	var tens: int = n % 100
+	if tens >= 11 and tens <= 13:
+		return "%dth" % n
+	match n % 10:
+		1:
+			return "%dst" % n
+		2:
+			return "%dnd" % n
+		3:
+			return "%drd" % n
+	return "%dth" % n
+
+
+static func _ints(v: Variant) -> Array[int]:
+	var out: Array[int] = []
+	if v is Array:
+		for x in v:
+			out.append(int(x))
+	return out
 
 
 func _def_by_title(title: String) -> CardDef:

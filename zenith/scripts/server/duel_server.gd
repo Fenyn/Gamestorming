@@ -171,11 +171,13 @@ func _open_duel(code: String) -> DuelHost:
 	var room: DuelRoom = Net.rooms.get(code)
 	if room == null:
 		return null
+	var decks: Array[DeckList] = []
 	for pick in room.lobby:
-		if not Net.valid_deck_pick(int(pick.get("deck", -1)), str(pick.get("deck_name", ""))):
+		var deck: DeckList = Net.pick_deck(pick)
+		if deck == null:
 			return null
+		decks.append(deck)
 	var referee: Referee = Referee.new()
-	var decks: Array[DeckList] = [Session.decks[int(room.lobby[0]["deck"])], Session.decks[int(room.lobby[1]["deck"])]]
 	var names: Array[String] = seat_names([room.shown_name(0), room.shown_name(1)], decks)
 	referee.setup(decks, Session.library, Session.strike_table, room.seed_value, names)
 	# The loser of a ranked match's last game opens the next, whatever the rules would pick.

@@ -540,8 +540,10 @@ func _clock_room(net: Node, session: Node, peer_a: int, peer_b: int) -> DuelRoom
 	net._on_room_request(peer_a, "")
 	var room: DuelRoom = net._room_of(peer_a)
 	net._on_room_request(peer_b, room.code)
+	# Both decks run a Reserve, so the duel opens on two Reserve swaps.
+	var other: int = _reserve_deck(session)
 	net._on_lobby_pick(peer_a, 0, session.decks[0].name, "Ada", true)
-	net._on_lobby_pick(peer_b, 2, session.decks[2].name, "Bryn", true)
+	net._on_lobby_pick(peer_b, other, session.decks[other].name, "Bryn", true)
 	room.phase = DuelRoom.Phase.DUEL
 	room.seed_value = 777
 	return room
@@ -580,7 +582,7 @@ func _isolation_tests(net: Node, session: Node) -> void:
 	var problems: Array[String] = []
 	var games: Array = []
 
-	var a: DuelRoom = _dealt_room(net, session, 81, 82, [0, 2], ["Ada", "Bryn"])
+	var a: DuelRoom = _dealt_room(net, session, 81, 82, [0, _reserve_deck(session)], ["Ada", "Bryn"])
 	var b: DuelRoom = _dealt_room(net, session, 83, 84, [3, 5], ["Cato", "Dara"])
 	var who: Dictionary = {81: [a, 0], 82: [a, 1], 83: [b, 0], 84: [b, 1]}
 	games.append([a.seed_value, "Ada", "Bryn"])
@@ -780,7 +782,7 @@ func _rejoin_tests(net: Node, session: Node) -> void:
 	var who: Dictionary = {}
 	var reserve_done: Dictionary = {"player": 0, "type": "reserve_done", "card": -1, "value": null}
 
-	var room: DuelRoom = _dealt_room(net, session, 91, 92, [0, 2], ["Ada", "Bryn"])
+	var room: DuelRoom = _dealt_room(net, session, 91, 92, [0, _reserve_deck(session)], ["Ada", "Bryn"])
 	who[91] = [room, 0]
 	who[92] = [room, 1]
 	var host: DuelHost = server.hosts[room.code]
@@ -808,7 +810,7 @@ func _rejoin_tests(net: Node, session: Node) -> void:
 		and _methods(got, 91) == ["_rpc_duel_ended", "_rpc_seat_left"],
 		"The duel over, the away seat is given up and the other player hears that after the result: %s" % str(_methods(got, 91)))
 
-	var second: DuelRoom = _dealt_room(net, session, 101, 102, [0, 2], ["Cato", "Dara"])
+	var second: DuelRoom = _dealt_room(net, session, 101, 102, [0, _reserve_deck(session)], ["Cato", "Dara"])
 	who[101] = [second, 0]
 	who[102] = [second, 1]
 	_read_inboxes(server, inbox, who, tokens, problems)
@@ -820,7 +822,7 @@ func _rejoin_tests(net: Node, session: Node) -> void:
 	_check(_last(ended) == [second.code, 0, "left"] and record != null and str(record.result["reason"]) == "left",
 		"At 90 s away it loses with reason left, time still on its clock")
 
-	var third: DuelRoom = _dealt_room(net, session, 111, 112, [0, 2], ["Eda", "Fenn"])
+	var third: DuelRoom = _dealt_room(net, session, 111, 112, [0, _reserve_deck(session)], ["Eda", "Fenn"])
 	who[111] = [third, 0]
 	who[112] = [third, 1]
 	var third_host: DuelHost = server.hosts[third.code]
@@ -845,7 +847,7 @@ func _rejoin_tests(net: Node, session: Node) -> void:
 	_check(record != null and str(record.result["reason"]) == "abandoned" and int(record.result["winner"]) == -1 and record.disconnects == [1, 1],
 		"The record says abandoned")
 
-	var fourth: DuelRoom = _dealt_room(net, session, 121, 122, [0, 2], ["Gale", "Hale"])
+	var fourth: DuelRoom = _dealt_room(net, session, 121, 122, [0, _reserve_deck(session)], ["Gale", "Hale"])
 	who[121] = [fourth, 0]
 	who[122] = [fourth, 1]
 	var fourth_host: DuelHost = server.hosts[fourth.code]
@@ -1073,7 +1075,7 @@ func _give_up_tests(net: Node, session: Node) -> void:
 	var on_ended: Callable = func(code: String, winner: int, reason: String) -> void: ended.append([code, winner, reason, _line_count(day)])
 	net.room_ended.connect(on_ended)
 
-	var room: DuelRoom = _dealt_room(net, session, 161, 162, [0, 2], ["Ada", "Bryn"])
+	var room: DuelRoom = _dealt_room(net, session, 161, 162, [0, _reserve_deck(session)], ["Ada", "Bryn"])
 	var host: DuelHost = server.hosts[room.code]
 	var tokens: Array[String] = room.tokens.duplicate()
 	inbox.clear()
@@ -1101,7 +1103,7 @@ func _give_up_tests(net: Node, session: Node) -> void:
 	answer = net._on_give_up(176, {"code": room.code, "token": tokens[1]})
 	_check(answer == {"refused": net.REJOIN_OVER}, "A give-up for a finished duel is refused: %s" % str(answer))
 
-	var both: DuelRoom = _dealt_room(net, session, 181, 182, [0, 2], ["Cato", "Dara"])
+	var both: DuelRoom = _dealt_room(net, session, 181, 182, [0, _reserve_deck(session)], ["Cato", "Dara"])
 	var both_tokens: Array[String] = both.tokens.duplicate()
 	var closing: String = both.code
 	net._on_peer_disconnected(181)
@@ -1246,7 +1248,7 @@ func _queue_tests(net: Node, session: Node) -> void:
 	_check(room.phase == DuelRoom.Phase.DUEL and server.hosts.has(room.code) and _count(inbox, 201, "_rpc_start") == 1
 		and _count(inbox, 202, "_rpc_start") == 1, "At the beat the server deals, once")
 	var start: Array = _first_args(inbox, 201, "_rpc_start")
-	_check(start.size() == 8 and start[4] == "Player 1" and start[5] == "Player 2", "The deal names the seats by their stock names: %s" % str(start.slice(0, 7)))
+	_check(start.size() == 10 and start[4] == "Player 1" and start[5] == "Player 2", "The deal names the seats by their stock names: %s" % str(start.slice(0, 7)))
 	net._on_concede(202)
 	var record: MatchRecord = _last_record(day)
 	_check(record != null and record.mode == "casual" and str(record.result["reason"]) == "concede", "A queue duel's record says casual")
@@ -1421,7 +1423,7 @@ func _identity_tests(net: Node, session: Node) -> void:
 		"This client's own hello and proof pass the server's greeting")
 	_check(_admit(net, 313, bryn, hello), "A second player is let in")
 
-	var room: DuelRoom = _dealt_room(net, session, 311, 313, [0, 2], ["Ada", "Bryn"])
+	var room: DuelRoom = _dealt_room(net, session, 311, 313, [0, _reserve_deck(session)], ["Ada", "Bryn"])
 	var host: DuelHost = server.hosts.get(room.code)
 	_check(room.seat_identity == [ada.id(), bryn.id()], "Each seat carries the identity of the peer that took it")
 	_check(host != null and str(host.record.seats[0]["identity"]) == ada.id() and str(host.record.seats[1]["identity"]) == bryn.id(),
@@ -1508,6 +1510,14 @@ static func _state_args(got: Dictionary, peer: int, state: String, reason: Strin
 
 ## A code room dealt through the lobby handlers, `_start_room` and the server's `room_started`
 ## handler, as two clients would deal it.
+## A precon besides deck 0 that runs a Reserve, by id, so a new precon file cannot move it.
+func _reserve_deck(session: Node) -> int:
+	for i in range(session.decks.size()):
+		if session.decks[i].id == "pyre_attrition":
+			return i
+	return -1
+
+
 func _dealt_room(net: Node, session: Node, peer_a: int, peer_b: int, decks: Array, names: Array) -> DuelRoom:
 	net._on_room_request(peer_a, "")
 	var room: DuelRoom = net._room_of(peer_a)
@@ -1584,10 +1594,10 @@ func _foreign(method: String, args: Array, room: DuelRoom, seat: int, host: Duel
 		"_rpc_lobby":
 			return "" if args.size() == 3 and (args[0] as Array).size() == 2 else "a malformed lobby"
 		"_rpc_start":
-			return "" if args.size() == 8 and str(args[7]) == room.tokens[seat] and str(args[4]) == str(room.lobby[0]["name"]) \
+			return "" if args.size() == 10 and str(args[7]) == room.tokens[seat] and str(args[4]) == str(room.lobby[0]["name"]) \
 				and str(args[5]) == str(room.lobby[1]["name"]) else "a deal that is not its own"
 		"_rpc_resume":
-			return "" if args.size() == 9 and int(args[0]) == seat and str(args[1]) == room.code else "a resume elsewhere"
+			return "" if args.size() == 11 and int(args[0]) == seat and str(args[1]) == room.code else "a resume elsewhere"
 		"_rpc_update":
 			var update: Dictionary = _unpack(args)
 			return "" if not update.is_empty() and int((update["view"] as Dictionary).get("seat", -1)) == seat else "another seat's update"

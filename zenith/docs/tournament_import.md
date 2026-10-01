@@ -207,17 +207,19 @@ ship is reused only when its behaviour matches the print exactly, otherwise it i
 **Reused, checked against the print and the rulings document:** 37 of the 49 real faces. Tokui-Waza
 conditions stay unconditional (standing deviation, every deck has a Mastery). Our "Limit 1 per deck"
 on Energy Lob, Vegeta's Physical Stance, both Nappa cards, Super Saiyan Effect, Expectant Trunks and
-Orange Uppercut is the rulings document's Restricted list, not an invented limit, and Fatherly
-Advice's errata reads "Combat, Physical Combat, or Energy Combat card", which is what ours does. The
-sheet runs Vegeta's Physical Stance with Nappa's Physical Resistance, which the rulings document's
-11/24/04 one-per-group rule forbids; the user kept it as printed, and `DeckValidator` does not enforce
-those groups.
+Orange Uppercut is the anchor CRD's Restricted list (p22), not an invented limit. Fatherly Advice's
+"Combat, Physical Combat, or Energy Combat card" came from the later-version rulings document (CRD
+v11.24.04), which is not ours; the anchor CRD has no entry for it, and going back to the print is an
+open question (rules sweep 2026-09-30, section 2). The sheet runs Vegeta's Physical Stance with
+Nappa's Physical Resistance. The "11/24/04 one-per-group rule" against that came from the same
+later document; the anchor CRD gives only text errata for both cards, so `DeckValidator` enforcing no
+groups matches it.
 
 **Twelve real cards are new:** the four Yamcha levels (`personality_63` to `_66`, Vigil, no
 bloodline), Master Roshi Sensei (`relic_05`), Kid Trunks Buu Saga 166 as Tavin Vale's second print
 (`personality_67`, "Fostered Son"; our `personality_51` is the Kid Buu Saga print and a different
-card), Krillin, the Father (`personality_68`), Maraikoh, the Vicious (`personality_69`, a Celestial
-Fighter, so either side), Orange 5-Finger Focus (`storm_art_25`), Orange Energy Catch (`storm_art_26`),
+card), Krillin, the Father (`personality_68`), Maraikoh, the Vicious (`personality_69`, Vigil: the anchor
+CRD lists him as a Hero on p16), Orange 5-Finger Focus (`storm_art_25`), Orange Energy Catch (`storm_art_26`),
 Orange Destruction Drill (`storm_drill_09`), Orange Haulting Drill (`storm_drill_10`), Gohan's Braced
 Energy Beam (`signature_art_15`, Emrys), Vegeta's Energy Focus (`signature_art_16`, Mourne) and Uub's
 Energy Drill (`signature_drill_07`). Might ladders are designed on the compact scale like every other
@@ -305,7 +307,7 @@ draw entering Combat), Vegeta, the Revitalized L5 (Cell Saga: Strike +9). `perso
 | 2 | Pikkon's Leg Catch | `freestyle_strike_06` Second Wind |
 | 1 | Tien's Block | `signature_strike_26` Corin's Practiced Guard |
 | 2 | Energy Ricochet | new, Freestyle |
-| 3 | Krillin's Concentration | `freestyle_noncombat_03` Voss' Clear Mind. The rulings document restricts it (2/11/04); the user lifted that 2026-09-30 so the list runs 3, as the Retro report did |
+| 3 | Krillin's Concentration | `freestyle_noncombat_03` Voss' Clear Mind. The later-version rulings document (CRD v11.24.04) restricted it (2/11/04); the anchor CRD's Restricted list does not, so the list runs 3 (the user lifted the limit 2026-09-30) |
 | 2 | Krillin's Power Tap | new, Voss-named |
 | 1 | Fatherly Advice | `freestyle_noncombat_02` Recalled Lesson |
 | 1 | Releasing the Sword | new, Freestyle |
@@ -347,6 +349,17 @@ That is 12; the 13th slot is open.
   becomes a story quest (lore held for later).
 - **Open starter:** replaces `shade_mind_siege_start` in `storylines.json` and inherits its
   storyline (Shade Salvage act 1 boss with Orvath Kell joining, Henchmen act 2).
+
+**Thickened to 80 (2026-10-01).** The printed 65 won about 17% against the full field, so the
+precon now runs 73 life cards (80 by our count). Seven more of his own named Score prints were
+added: Pride Drill x2 (`signature_drill_09` Mourne's Highborn Drill; the Surge clause reads any
+Draconic duelist), Vegeta At Full Power! x2 (`signature_combat_12` Mourne Rekindles His Blade),
+Surprise Defense x3 (`signature_combat_13` Mourne's Hired Shield), Vegeta's Stance x2
+(`signature_art_20` Mourne's Null Ward), Powering Up x3 (`signature_art_21` Mourne's Offhand Bolt),
+Gallic Gun x2 (`signature_art_22` Mourne's Disdain) and Percussion Concussion x2
+(`signature_strike_34` Mourne's Arcane Hammer; its "Tuff Enuff only" format gate is not carried).
+Out: Battle Pausing, Don't You Just Hate That, Evil Drill, Energy Lob, Gawking Drill, Uub's Energy
+Drill, Tree of Might x2. Measured 20.6% against the full field (80-card variant, seed 4242).
 
 ## Per deck, the order of work
 

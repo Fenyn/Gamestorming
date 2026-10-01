@@ -14,7 +14,7 @@ extends RefCounted
 const ANIMATED: Dictionary = {
 	&"combat_begin": ["attacker"], &"combat_end": [],
 	&"attack_declared": ["kind", "source", "id", "is_power", "is_final", "focused", "empowered"],
-	&"defense_played": ["card", "id", "stopped"], &"defense_power": ["card"], &"shield": ["card"],
+	&"defense_played": ["card", "id", "stopped", "tried"], &"defense_power": ["card", "tried"], &"shield": ["card"],
 	&"attack_stopped": [], &"attack_successful": [],
 	&"base_damage": ["stages", "life"], &"modified_damage": ["stages", "life"],
 	&"damage_stages": ["target", "stages", "overflow", "energy"],

@@ -59,7 +59,7 @@ func setup(pos: int, d: DeckList) -> void:
 	$Row/Column/Difficulty.text = "%s  ·  %d cards" % [d.difficulty.capitalize(), d.cards.size()]
 	deck_label.text = d.name
 	duelist_label.text = duelist.title if duelist != null else d.duelist_face_id()
-	school_label.text = "%s  /  %s" % [CardText.school_name(d.style).to_upper(), Archetype.label(d.archetype)]
+	school_label.text = "%s  /  %s" % [CardText.school_name(d.style).to_upper(), "CUSTOM" if d.custom else Archetype.label(d.archetype)]
 	ZenithTheme.chip(school_label, Palette.school_ui(d.style))
 	badge.visible = false
 	# Adventure starters carry a five-pip pick rating along the bottom edge: stages cleared plus

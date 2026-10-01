@@ -8,7 +8,9 @@ Named Eidolarch on 2026-09-17 (formerly Zenith). The folder, project and code na
 **Genre:** Collectible card duel, Arena-style client
 **Players:** 2 (hotseat first, online later), plus AI opponents for an adventure mode
 **Presentation target:** a full digital client in the style of MTG Arena: a 3D table, animated card movement, response prompts, combat log
-**Rules baseline:** the reference game's final pre-reboot rulebook (2003) and its rulings document, plus four rules from the 2014 relaunch: a mandatory Mastery with nothing declared at setup, the Ascension win at max Fervor on the top aspect, critical damage, and Duelist Powers that do not refresh on an aspect change. Two house rules on top of those: the Most Powerful Personality win (see Winning) and, **decided 2026-09-21, that every Ally rule is per player** and nothing in play reads the other side of the table (see Personalities). That second one is a house rule and not an adopted one: the relaunch rulebook sets no in-play Ally uniqueness rule at all, only a one-copy-per-deck limit, and the older rulings document's cross-table restriction is what we dropped. Ally legality by aspect is not a house rule; it follows the rulings document's Aspect 1-to-3 rule (see Deck construction, corrected 2026-09-21). Nothing else from the relaunch is adopted: deck sizes stay variable, Duelists keep 3 to 5 aspects (mostly 3), and Surge Rates and Might ladders stay varied per duelist. Card text beats rulebook (the Golden Rule). Reboot-era changes (16 stages, no Fervor leveling) are out of scope.
+**Rules baseline:** the reference game's final pre-reboot rulebook (2003) and the anchor CRD below, plus four rules from the 2014 relaunch: a mandatory Mastery with nothing declared at setup, the Ascension win at max Fervor on the top aspect, critical damage, and Duelist Powers that do not refresh on an aspect change. House rules on top of those: the Most Powerful Personality win (see Winning), **decided 2026-09-21, that every Ally rule is per player** and nothing in play reads the other side of the table (see Personalities), and Ally legality by aspect (any personality card of Aspect 1 to 3, see Deck construction). The second one is a house rule and not an adopted one: the relaunch rulebook sets no in-play Ally uniqueness rule at all, only a one-copy-per-deck limit, and the older rulings document's cross-table restriction is what we dropped. The third is a house rule too: it came from a later-version rulings document (CRD v11.24.04), and the anchor CRD (p2) asks for an Ally at least 2 levels below the Duelist's highest. Nothing else from the relaunch is adopted: deck sizes stay variable, Duelists keep 3 to 5 aspects (mostly 3), and Surge Rates and Might ladders stay varied per duelist. Card text beats rulebook (the Golden Rule). Reboot-era changes (16 stages, no Fervor leveling) are out of scope.
+
+**Anchor CRD (user ruling 2026-09-30):** the rulings document updated 2014-08-19, kept at `zenith/docs/reference/crd_2014-08-19.pdf`, with a searchable text copy beside it (`crd_2014-08-19.txt`, extracted by machine, so some lines break oddly). It is the rules authority: check rulings against it first, and never against the later-version "CRD v11.24.04", which belongs to another version of the game. The 2026-10-01 sweep brought the engine and card data in line with it everywhere a ruling was clear; the open questions it raised are listed in the sweep's summary and are not decided here.
 
 **IP rule:** all names, characters, art, styles, and lore are original. No source-material terms appear in code, data, assets, or this doc. Mechanics are emulated; flavor is not.
 
@@ -40,7 +42,7 @@ The rename pass ran on 2026-09-17: this doc, the code, the data and the card tex
 | Grounds | Which place of power this duel is over |
 | Relic, Reserve | A relic of great power that the duelist wears, usable by any school or by none. Its Reserve is the spare spells and techniques it lets the wearer hold beyond their own mind. Relic powers channel the artifact itself |
 | Mastery, Style | The school a duelist follows. Every deck follows one Style and carries that school's Mastery |
-| Alignment | Vigil, Pact, or Hedge (declares at setup). See The Vigil and the Pact below |
+| Alignment | Vigil, Pact, or Hedge (a Hedge deck takes Vigil or Pact when it is built). See The Vigil and the Pact below |
 | Ascension win | Full attunement, by either road. The duelist reaches their last Aspect and the fervor peaks once more; **or** they stand on an Aspect above everything the rival can reach, and the site answers to them |
 | Unsealing win | All seven seals of one set are carved, the gate opens, and the Eidolon comes through answering to the one who carved them |
 | Survival win | The rival's mind gives out and they have nothing left to cast |
@@ -53,7 +55,7 @@ Tone: earnest, a little grim, no jokes on the cards. Nothing with a voice gets w
 
 Approved 2026-09-17 as the replacement for Knights and Knaves.
 
-Two sides, open to mages and mundane duelists alike. Both want their own duelist made Eidolarch, for opposite reasons: the Vigil so that whatever comes through answers to someone who will hold it in check, the Pact so that it answers to them. **The Vigil** stands watch over the places where a gate can be cut. It would rather no gate opened at all, and when a Vigil duelist carves the seals it is because the gate will open either way and the Eidolon must not answer to the Pact. A watch needs swords as much as spells. **The Pact** has struck bargains with the Eidolons across the wall, passage in return for power, and fights to deliver on them. Anyone can sign. The Vigil goes first because it already stands at the site and the Pact comes to it. "Vigil only" cards are rites handed down with the watch; "Pact only" cards are workings the Vigil's vow forbids. A following shares its leader's vow or bargain, which is why Allies match alignment. **Hedge** duelists are hedge mages and hedge knights sworn to neither; they take a side for the duel at setup.
+Two sides, open to mages and mundane duelists alike. Both want their own duelist made Eidolarch, for opposite reasons: the Vigil so that whatever comes through answers to someone who will hold it in check, the Pact so that it answers to them. **The Vigil** stands watch over the places where a gate can be cut. It would rather no gate opened at all, and when a Vigil duelist carves the seals it is because the gate will open either way and the Eidolon must not answer to the Pact. A watch needs swords as much as spells. **The Pact** has struck bargains with the Eidolons across the wall, passage in return for power, and fights to deliver on them. Anyone can sign. The Vigil goes first because it already stands at the site and the Pact comes to it. "Vigil only" cards are rites handed down with the watch; "Pact only" cards are workings the Vigil's vow forbids. A following shares its leader's vow or bargain, which is why Allies match alignment. **Hedge** duelists are hedge mages and hedge knights sworn to neither; each deck built around one takes a side, and only that side (anchor CRD p15: "cannot be both at the same time ... Your alignment must be decided as you are building your deck"). A Hedge duelist's personality cards carry no side; every other personality card carries the side of the printed card it parallels.
 
 The duelists, their followings, sides and schools, and who each of them is, are in `zenith/docs/cast.md` (names approved 2026-09-15; the table that used to sit here moved there 2026-09-22).
 
@@ -127,12 +129,12 @@ Relics: the three Masters become three worn relics, none of them a weapon, so an
 ## Setup
 
 1. Aspects stacked face up, the first Aspect on top. Announce your highest aspect. That aspect is your Ascension win target, and both announcements together fix the Most Powerful Personality target for the duel.
-2. Hedge duelists declare Vigil or Pact.
+2. A Hedge duelist plays the side its deck took when it was built. There is no side that counts as both.
 3. Place Relic and Mastery. The Mastery's school is the deck's Style. Nothing is declared.
 4. Duelist starts at Energy 5 above 0. Fervor starts at 0.
 5. **Double Power Rule** (printed starter rulebook, adopted 2026-09-22 in place of the bracket rule). Compare the two duelists' Might at the starting stage. If one is double the other or more, it starts at Energy 2, the weaker starts at full Energy (10) and goes first. Wild Might never triggers it. Otherwise chance decides who goes first, whatever the alignments, unless the opening seat is named in advance (a series hands it to the loser of the last game), which overrides both.
 6. Shuffle the Life Deck. Opponent may cut.
-7. Reserve swap: bring any number of Reserve cards into the Life Deck; each pushes a random Life Deck card into the Reserve. Shuffle.
+7. Reserve swap: bring any number of Reserve cards into the Life Deck, shown to both players; each pushes a random Life Deck card into the Reserve, unseen. Shuffle.
 8. No opening hand. First draw happens in the Draw Step.
 
 ---
@@ -155,8 +157,9 @@ Decided 2026-09-21. It replaces the older model where one card held a whole ladd
   consecutive-from-1 is a Duelist rule only, and a deck may run a lone tier 2 card. One copy of
   each personality card, none sharing the Duelist's character, matching alignment. Two different
   cards of one character at one tier are not copies of each other, so a deck may run both.
-  Checked against the later rulings revision 2026-09-21, which replaced an older "at least 2
-  tiers below the Duelist's highest" rule and, with it, the 2026-09-20 house exemption for tier 1.
+  House rule, 2026-09-21. It was taken from a later-version rulings document (CRD v11.24.04); the
+  anchor CRD (p2) asks for "at least 2 levels lower than your Main Personalities highest
+  Personality level". It replaced that rule and, with it, the 2026-09-20 house exemption for tier 1.
 - **An Ally enters play** in the Non-Combat step at Energy 3, at any tier up to the Duelist's
   **current** tier, with no need for its lower tiers to have been played. It climbs by playing
   exactly its next tier on top, set to that card's highest stage; the tiers underneath are no
@@ -181,9 +184,9 @@ Decided 2026-09-21. It replaces the older model where one card held a whole ladd
 
 ## Duelist and Ascension
 
-- **The personality used as Duelist** has 3 to 5 Aspects. Each aspect lists a Surge Rate, stages 0 to 10 each with a Might rating, a Power (once per turn, Combat only; an aspect change mid-Combat does not refresh it), and optionally a Constant Power (mandatory while that personality is in control of Combat).
+- **The personality used as Duelist** has 3 to 5 Aspects. Each aspect lists a Surge Rate, stages 0 to 10 each with a Might rating, a Power (once per turn, Combat only; an aspect change mid-Combat does not refresh it), and optionally a Constant Power (mandatory while that personality is in control of Combat, and off while an Ally holds Combat unless it says its Allies may use it; anchor CRD p9).
 - **Energy stage** is the current position on the stage table. **Might** is the number in that stage. Might feeds the Strike Table.
-- **Wild Might.** A stage showing Wild instead of a number always yields base damage 2 on the Strike Table, attacking or defending. Double Power Rule ignores Wild.
+- **Wild Might.** A stage showing Wild instead of a number always yields base damage 2 on the Strike Table, attacking or defending, and a card that multiplies the table result multiplies that 2. When a card compares Might and either side is Wild, the player using the card picks which way the comparison goes (anchor CRD p17): an attack card asks as it is performed, an effect line as it resolves. Double Power Rule ignores Wild.
 - **Fervor** runs 0 to 5, tracked once per player. At 5 or more: put the current aspect at the bottom of the stack, reveal the next aspect, set Energy to highest, discard all your Drills, Fervor to 0. Excess does not carry over.
 - **At top aspect** with Fervor 5 or more (or the current requirement): Ascension win. If a card effect has forbidden your Ascension win, instead set Energy to highest, Fervor to 0, keep Drills, no extra Power use.
 - **Most Powerful Personality.** House rule, 2026-09-19. Entering an Aspect above every Aspect the rival can reach is itself an Ascension win, with no second Fervor peak. It is only available to a duelist whose announced ladder is taller than the rival's: with five Aspects against three, Aspect 4 wins. Level ladders leave no such Aspect and the Fervor road is the only one. It reads off what each side announced at setup, not where they stand, so the target does not move during the duel. It is the same win, so the same things gate it: a duelist forbidden the Ascension win cannot take this road, and a card that answers an Ascension win answers this one.
@@ -202,7 +205,7 @@ Decided 2026-09-21. It replaces the older model where one card held a whole ladd
 | 3 Power Up | Active | Duelist gains Energy equal to Surge Rate +1. Each Ally gains exactly 1. Never above highest stage |
 | 4 Declare | Active | Choose Combat or skip. Playing Grounds this turn forces a skip |
 | 5 Combat | Both | See below |
-| 6 Discard | Both | Active player discards down to 1 card, then the opponent does the same. **Deliberate exception to "the later revision wins":** the 2003 rulebook says keep 1, Score's CRD v11.24.04 says keep 2, and we keep 1 as canonical for the period we are modelling (user's call, 2026-09-18). Measured at 756 matches, keep 2 narrows the top of the field and costs the Ally deck about 4 points. `DuelEngine.HAND_KEEP` |
+| 6 Discard | Both | Active player discards down to 1 card, then the opponent does the same. The 2003 rulebook and the anchor CRD (2014-08-19) both keep 1. The "CRD v11.24.04" that says keep 2 belongs to a later version of the game, not ours (user, 2026-09-30); keep 1 was already the user's call on 2026-09-18. Measured at 756 matches, keep 2 narrows the top of the field and costs the Ally deck about 4 points. `DuelEngine.HAND_KEEP` |
 | 7 Recover | Active | If Combat was not declared, may move the top discard card to the bottom of the Life Deck. The step always occurs; effects can hook it |
 
 ---
@@ -211,8 +214,8 @@ Decided 2026-09-21. It replaces the older model where one card held a whole ladd
 
 | Phase | What happens |
 |---|---|
-| a Active Prepares | Active player resolves all "when entering Combat" effects in any order |
-| b Opposing Prepares | Opposing player does the same |
+| a Active Prepares | Active player resolves all "when entering Combat" effects in any order, from cards in play and from hand |
+| b Opposing Prepares | Opposing player does the same, from cards in play only (anchor CRD p5) |
 | c Opposing Draws | Opposing player draws 3 |
 | d Attacker Attacks | Attack, use a card in place of an attack, or pass. Pass or non-attack goes straight to phase f |
 | e Defender Defends | Only if an attack was performed. Play one thing that stops or prevents, or do nothing |
@@ -224,9 +227,11 @@ Player types (active, opposing) never change during Combat. Roles (attacker, def
 
 **In place of an attack.** Non-attack Combat cards, non-attack Duelist or Ally Powers, Grounds effects, face-up Non-Combat cards in play (discarded after use), Relic power (each Relic says whether its power is a Non-Combat step action, a Combat action, or either).
 
-**Ally control.** When the Duelist is at Energy 0 or 1, the player may put an Ally in control at the start of their own attack phase, and must say who is in control when defending (battle sequence step 4). Once the Duelist is back above that, it resumes control. After a Final Strike the player neither attacks nor defends for the rest of Combat. A skipped attack phase never happened, so passes around it are not consecutive.
+**Ally control.** When the Duelist is at Energy 0 or 1, the player may put an Ally in control at the start of their own attack phase, and must say who is in control when defending (battle sequence step 4). Once the Duelist is back above that, it resumes control. An Ally in control that leaves play hands Combat straight back to the Duelist (anchor CRD p10), and an attack it was making goes on as the Duelist's. There is no other takeover, except that a card letting Allies use their Powers out of control (Root Grove Kin) hands Combat to the Ally for its Power and back to the Duelist after it (anchor CRD p33). After a Final Strike the player neither attacks nor defends for the rest of Combat. A skipped attack phase never happened, so passes around it are not consecutive.
 
-**Defenses.** A Strike, Art, or Combat card from hand, a Duelist or in-control Ally Power, or a face-up Non-Combat in play, and only if it stops the attack or prevents damage. Then Defense Shields auto-activate on any still-unstopped attack, defender chooses order. Cards that end Combat can only be played as an attack action.
+**Defenses.** A Strike, Art, or Combat card from hand, a Duelist or in-control Ally Power, or a face-up Non-Combat in play, and only if it stops the attack or prevents damage. Then Defense Shields auto-activate on any still-unstopped attack; when more would fire than the attack needs stops, the defender picks which is spent. Cards that end Combat can only be played as an attack action.
+
+**Trying to stop.** A card or Power that stops this kind of attack, but not this attack, may still be played for its secondary effects, and the attack stays unstopped and successful (anchor CRD p14 for an attack that cannot be stopped, p20 for an any-type stop against a Focused attack, p33-34 for an Art against an attack Arts may not stop). It is offered only when one of its secondary effects would apply.
 
 ### Battle sequence (one attack)
 
@@ -240,13 +245,13 @@ Player types (active, opposing) never change during Combat. Roles (attacker, def
 8. If still not stopped, the attack is successful, even at 0 damage.
 9. Base damage: Strike Table for a Strike, 4 life cards for an Art, or the printed number.
 10. Modifiers: adds, reductions, one multiplier at most, then caps at deal time.
-11. In-control Ally may choose Seal capture instead of life-card damage, if that Ally has the capture trait.
+11. In-control Ally may choose Seal capture instead of life-card damage, if that Ally has the capture trait and the hit would deal at least one life card (anchor CRD p12). A Duelist never does.
 12. Energy damage is dealt.
 13. Life card damage is dealt one card at a time. Endurance may be used as each card flips.
 14. **Critical damage.** If the attack dealt 5 or more life cards, attacker may choose one: capture a Seal the defender controls, or lower the defender's Fervor by 1. Card text beats the rulebook, so a card that says Fervor cannot be lowered stops that option here as it does anywhere else. House rule 2026-09-29: critical damage never discards an Ally. The relaunch rule offered that too, and it cost the Ally decks their plan; the original rule was a Seal capture only.
 15. "If successful" effects resolve, attacker picks the order.
 
-"Use when needed" cards fit between steps, never inside one. Outside Combat they can be used at any time.
+"Use when needed" cards fit between steps, never inside one. Outside Combat they can be used at any time. The engine opens the window after step 3, after step 6, before step 9 and before step 15, and outside the battle sequence before the Declare step and before Combat is prepared, each only for a seat holding a card that would do something then, attacker or active player first.
 
 ---
 
@@ -258,7 +263,7 @@ Player types (active, opposing) never change during Combat. Roles (attacker, def
 - **Life card damage** flips the top Life Deck card to discard. A Seal flipped this way does not count and goes to the bottom of the Life Deck (or is removed from the game if that Seal is in play). Life cards lost to non-damage effects do count Seals.
 - **"+X" modifiers** add their type even if the attack does not deal that type.
 - **Reduce** modifies damage. **Prevent** blocks it. Attacks can forbid either separately. Unstoppable attacks can still be "stopped" for the defense card's secondary effects.
-- **Losing** happens when you must flip or draw a life card and cannot, or when only Seals remain and damage is dealt.
+- **Losing** happens the instant your Life Deck is empty (anchor CRD p3), however the last card left it, or when only Seals remain and damage is dealt. Both decks emptied by the same effect end the duel with no winner, and a deck emptied on the way to another win loses first; the anchor has no tie-break for either.
 
 ### Strike Table
 
@@ -275,16 +280,16 @@ There is one **Personality** type, not a Duelist type and an Ally type (merged 2
 | Type | Zone | Rules |
 |---|---|---|
 | Personality as Duelist | Aspect stack | Not in the Life Deck. Counts toward deck size |
-| Personality as Ally | In play | Placed in Non-Combat at Energy 3, at any aspect up to the Duelist's current aspect, whether or not its lower aspects were ever played. Climbs by overlaying exactly its next aspect, set to highest stage, and may pass the Duelist's aspect that way; the aspects underneath leave play and follow it wherever it goes, so a card that discards the Ally discards all of them. Powers up 1 per turn. Absorbs all damage of one attack when chosen at step 4 or after damage calculation; any personality may be the one that takes it, so an Ally holding Combat can push the hit back onto the Duelist. Takes over Combat when the Duelist is at Energy 0 or 1, at the start of an attack phase, at battle step 4, and once per card whenever the opponent plays or uses a card outside their Defender Defends phase. Then uses its own Might. Power once per Combat. Fervor never applies to Allies, so it never moves an Ally's aspect. **Every Ally rule is per player:** one Ally per character per player, and the table across from you never restricts what you place. Both players may field the same character at once, at the same aspect, even the same card, and your Ally may share a name with the rival's Duelist. Not sharing your **own** Duelist's character is a deck rule, checked at construction and never again in play (house rule 2026-09-21, see the baseline note) |
+| Personality as Ally | In play | Placed in Non-Combat at Energy 3, at any aspect up to the Duelist's current aspect, whether or not its lower aspects were ever played. Climbs by overlaying exactly its next aspect, set to highest stage, and may pass the Duelist's aspect that way; the aspects underneath leave play and follow it wherever it goes, so a card that discards the Ally discards all of them. Powers up 1 per turn. Absorbs all damage of one attack when chosen at step 4 or after damage calculation; any personality may be the one that takes it, so an Ally holding Combat can push the hit back onto the Duelist. Takes over Combat when the Duelist is at Energy 0 or 1, at the start of an attack phase and at battle step 4, and at no other moment (anchor CRD p6 and p10). Then uses its own Might. Power once per Combat. Fervor never applies to Allies, so it never moves an Ally's aspect. **Every Ally rule is per player:** one Ally per character per player, and the table across from you never restricts what you place. Both players may field the same character at once, at the same aspect, even the same card, and your Ally may share a name with the rival's Duelist. Not sharing your **own** Duelist's character is a deck rule, checked at construction and never again in play (house rule 2026-09-21, see the baseline note) |
 | Strike | Hand | Performs or stops a Strike, or a utility. Endurance often printed |
 | Art | Hand | Performs or stops an Art. Non-attack uses cost no Energy |
 | Combat | Hand | Utility. All effects are secondary. Used in place of an attack or as a defense if it stops or prevents |
 | Non-Combat | In play | Placed in Non-Combat, used once in Combat in place of an attack, then discarded. Cannot be used during the Non-Combat step. Cards drawn in Combat wait for the next Non-Combat step |
-| Drill | In play | Non-Combat that stays. One school of Drills per player at a time. No duplicate school Drill. Freestyle and Signature Drills unrestricted. Restricted Drills (cannot be used with other X Drills). Always-active Drills are mandatory. All Drills discard when the Duelist changes aspect. An unplayable drawn Drill may be shown and shuffled back |
+| Drill | In play | Non-Combat that stays. One school of Drills per player at a time. No duplicate school Drill. Freestyle and Signature Drills unrestricted. Restricted Drills (cannot be used with other X Drills). Always-active Drills are mandatory. All Drills discard when the Duelist changes aspect. A Drill drawn that cannot be placed may be shown and shuffled back the moment it is drawn, with no card drawn in its place (anchor CRD p11) |
 | Seal | In play | Three sets of seven. One set per deck, one copy each. Power resolves on play, must be used. Unique in play. Immune to card effects unless named, random effects excepted. Capturable |
 | Grounds | In play, shared | Placed in Non-Combat, forces Combat skip that turn. New Grounds removes the old one from the game. No duplicate Grounds in play |
 | Mastery | Side card | Exactly one per deck. Its school is the deck's Style. Never discarded or removed. Effects come from the Mastery, not the cards it modifies |
-| Relic | Side card | One per deck. Holds Reserve up to its printed size, outside deck size. Only "Reserve" cards live there. Owner may look through it any time |
+| Relic | Side card | One per deck. Holds Reserve up to its printed size, outside deck size. Any card the Life Deck may hold may sit there (anchor CRD p2), and "Reserve only" cards may sit nowhere else. Owner may look through it any time |
 
 ---
 
@@ -318,9 +323,9 @@ Card naming: each title marries the mechanic to the school's doctrine (Pyre burn
 - 50 to 85 cards including Duelist aspects, Mastery, Relic. A Root Mastery allows 90.
 - Exactly one Mastery. Its school is the deck's Style.
 - At least 3 consecutive Duelist aspects from Aspect 1, up to 5.
-- 3 copies max. 4 for Signature cards matching your Duelist. "Limit N per deck" and the restricted list override.
-- Allies: every personality card of Aspect 1, 2 or 3 is legal in any deck, whatever height the Duelist runs. 1 copy of each personality card, none sharing the Duelist's character, matching alignment. The Aspects an Ally runs need not be consecutive and need not include Aspect 1. **Corrected 2026-09-21** against the later rulings revision, which is the basis: this replaces an older "at least 2 aspects below the Duelist's highest" rule and the 2026-09-20 house exemption for Aspect-1 Allies, which the flat rule now covers on its own.
-- Seals: one set, no duplicates.
+- 3 copies max. 4 for Signature cards matching your Duelist. "Limit N per deck" and the restricted list override. The restricted list lives in the data: each restricted card carries its `limit_per_deck`.
+- Allies: every personality card of Aspect 1, 2 or 3 is legal in any deck, whatever height the Duelist runs. 1 copy of each personality card, none sharing the Duelist's character, matching alignment. The Aspects an Ally runs need not be consecutive and need not include Aspect 1. **House rule, 2026-09-21.** It came from a later-version rulings document (CRD v11.24.04); the anchor CRD (p2) asks for at least 2 aspects below the Duelist's highest. It replaced that rule and the 2026-09-20 house exemption for Aspect-1 Allies, which the flat rule now covers on its own.
+- Seals: one set, no duplicates, the Reserve's Seals included (anchor CRD p1).
 - Reserve must obey the same Style and construction rules.
 
 ---
@@ -329,7 +334,7 @@ Card naming: each title marries the mechanic to the school's doctrine (Pyre burn
 
 | Win | Condition |
 |---|---|
-| Survival | Opponent cannot flip or draw a life card |
+| Survival | The opponent's Life Deck is empty. The win is instant, whatever took the last card (anchor CRD p3) |
 | Ascension | Your Duelist is at your highest aspect and reaches Fervor 5 (or the current requirement). A 3-aspect stack needs 15 Fervor in all, a 5-aspect stack 25 |
 | Seal | You control all 7 Seals of one set. If you placed the 7th yourself, instant. If you captured it, you win at the start of your next turn if you still hold all 7 |
 
@@ -342,12 +347,14 @@ Seal capture: critical damage (battle sequence step 14), an in-control capture-t
 | Keyword | Meaning |
 |---|---|
 | Endurance N | When this card flips as attack damage, may prevent N of the remaining damage and remove this card from the game. Not against unpreventable damage, not for non-damage discards. Endurance X reads a game value |
-| Focused (attack) | Cannot be stopped by Defense Shields, Masteries, or cards that stop both attack types. Triggers all matching Shields |
-| Empower N | On attack, may add N life cards and drop all text after the Empower |
+| Focused (attack) | Cannot be stopped by Defense Shields, Masteries, or cards that stop both attack types, and cannot be prevented by effects that prevent damage from both types (anchor CRD p20): prevent-all, a first-attack shield, a Mastery's wound buy-off, a stop-next for either kind. Triggers all matching Shields. A card that stops both types may still be played against it for its secondary effects |
+| Empower N | On attack, may add N wounds and drop all text after the Empower |
+| Wound | One life card off the top of the Life Deck. Card text, prompt buttons and the log say "take N wounds" for every such loss, damage or cost: "You may take a wound to have it do +3 wounds", "Take 2 wounds to stop an Art", "All Energy and wound costs are doubled" (2026-10-01). Only a card that looks at the card it loses still says "discard the top card of your Life Deck" |
+| "X to Y" | A cost paid for a result reads "You may discard a card from your hand to make it Focused", not "...If you do, ...". A card you pick from the other side reads "Discard one of your opponent's Drills in play"; "Your opponent discards" means they choose (2026-10-01) |
 | Defense Shield | Auto-stops the first unstopped attack of its type. Types: Strike, Art, both |
-| Constant Power | Continuous, only while that personality is in control, mandatory |
+| Constant Power | Continuous, only while that personality is in control, mandatory. A Duelist's that says its Allies may use it also works under an Ally (anchor CRD p9) |
 | Floating effect | "For the remainder of Combat / turn / game". Card discards when its last effect resolves; the effect persists |
-| Use when needed | Between battle sequence steps, or any time outside Combat. Can be answered by another Use when needed |
+| Use when needed | Between battle sequence steps, or any time outside Combat (anchor CRD p14). Can be answered by another Use when needed. Data flag `use_when_needed` |
 | Remain N | Stays in play to be used N more times this Combat |
 | Attune N / Disrupt N | Raise your Fervor N / lower your opponent's Fervor N. Card text, prompt buttons, the log and the floating number all use the pair (2026-09-25); raising the rival's or lowering your own keeps the long form |
 | Secondary effect | Anything not the attack, its cost, Endurance, "if successful", a stop, or parenthetical text. Resolves before the opponent acts |
@@ -358,11 +365,11 @@ Seal capture: critical damage (battle sequence step 14), an in-control capture-t
 | Remove from the game after use, Limit N per deck | Self explanatory |
 | Desperation moves | Freestyle cards with heavy costs, tagged so cards can reference them |
 | Cards under cards | Face-down stacks under an in-play card, discarded when the host leaves play |
-| Copied attacks | A virtual card with the copied text, vanishes after use |
+| Copied attacks | Card text says only "In your next attack phase, you may repeat the attack it stopped, with its modifiers"; the two limits below are in its hover tip. A virtual card with the copied text and the modifiers the copied attack had, its Empower and paid extras included, used in the copier's next attack phase or lost, once more this Combat only if the copied card stays on the table to be used again; vanishes after use (anchor CRD p29 and p40) |
 | Cherry picking | Deck searches reveal the chosen cards and reshuffle |
 | Bond | Two named Allies fight back to back as one. A Bonding card folds them under their Bond card, which enters at full Energy with its own power. At the start of each of the owner's turns a life card goes under it; at 5 the Bond ends, the Allies return at 3 Energy, and the Bond card goes back to the Reserve. A Bond that leaves play takes both Allies with it. Implemented 2026-09-15 for the Rooke Coven (Ansel and Tavin) |
 
-**Timing rules.** No simultaneous effects: the active player resolves all of theirs first in any order, then the opponent. "Entering Combat" effects resolve before the opposing player draws. Card effects resolve in printed order. Cards discard immediately after their last effect. Skipped phases never happened for "beginning of phase" effects. Only one damage multiplier applies.
+**Timing rules.** No simultaneous effects: the attacker (the active player outside Combat) resolves all of theirs first, then the opponent, and each player picks the order of their own (anchor CRD p14 Timing Conflicts; p6 step 15 for "if successful" effects). "Entering Combat" effects resolve before the opposing player draws. Card effects resolve in printed order. Cards discard immediately after their last effect. Skipped phases never happened for "beginning of phase" effects. Only one damage multiplier applies.
 
 ---
 
@@ -374,7 +381,7 @@ The rules engine exposes these as trigger windows, prompts, or state flags. Ever
 turn_start, draw, noncombat_place, powerup_begin, powerup_end, declare, entering_combat (active, then opposing), opposing_draw (replaceable), attack_phase_begin, attack_declared, costs_paid, secondary_resolved, control_choice, defense_window, shields, attack_resolved (successful or stopped), base_damage, modify_damage, energy_damage, life_card_flip (per card), capture_window, if_successful, attack_end, fight_back, combat_end, discard_step, recover_step, turn_end, fervor_changed, aspect_up, aspect_down, seal_placed, seal_captured, card_placed, card_leaves_play, search, reveal, use_when_needed (between steps).
 
 **Prompts**
-choose action (attack / in place / pass / Final Strike), choose defense or nothing, choose in-control personality, redirect damage to an Ally, Endurance yes/no per flipped card, capture Seal yes/no and which, order If-successful effects, order Shields, order simultaneous own effects, Empower yes/no, choose targets, choose "or" branches, look-at and rearrange top N, random discard, Recover yes/no, Discard down to 1.
+choose action (attack / in place / pass / Final Strike), choose defense, a try for a card's secondary effects, or nothing, choose in-control personality, use-when-needed window, Wild Might comparison, redirect damage to an Ally, Endurance yes/no per flipped card, capture Seal yes/no and which, order If-successful effects, order Shields, order simultaneous own effects (shown as a row in resolution order that the player rearranges by drag or arrows, then confirms), Empower yes/no, choose targets, choose "or" branches, look-at and rearrange top N, random discard, Recover yes/no, Discard down to 1.
 
 **State flags and counters**
 must_pass_rest_of_combat, skip_next_attack_phase, cannot_declare_combat, cannot_play (card type / attack type / end-Combat cards), power_used_this_turn per aspect, ally_power_used_this_combat, final_strike_used per player, once_per_combat and once_per_turn per card, floating effects with duration and owner, attachments to personalities, cards_under host, seal_victory_pending (captured 7th), hand and Life Deck as hidden information with reveal permissions.
@@ -435,4 +442,3 @@ Open, in rough order:
 - Deck size default for v1 (50 minimum is legal).
 - Ascension pacing with unequal stacks: a 3-aspect Duelist wins Ascension at 15 Fervor, a 5-aspect one at 25. Accepted for now; taller stacks trade a slower Ascension win for stronger top aspects.
 - Might ladders sit on the compact scale (2026-09-16), with per-duelist variety in Surge and Might kept; tune further from play.
-- Restricted list policy: none in v1.

@@ -10,6 +10,7 @@ const DUEL_SCENE: String = "res://scenes/duel/duel.tscn"
 const SELECT_SCENE: String = "res://scenes/select/duelist_select.tscn"
 const VERSUS_SCENE: String = "res://scenes/select/versus.tscn"
 const TITLE_SCENE: String = "res://scenes/main.tscn"
+const BUILDER_SCENE: String = "res://scenes/builder/deck_builder.tscn"
 const ADVENTURE_START_SCENE: String = "res://scenes/adventure/adventure_start.tscn"
 const ADVENTURE_STAGE_SCENE: String = "res://scenes/adventure/stage.tscn"
 const ADVENTURE_REWARD_SCENE: String = "res://scenes/adventure/reward.tscn"
@@ -35,6 +36,10 @@ var last_seed: int = 0
 ## sides of an online duel agree, but it does not hand a client the shuffle order.
 var color_seed: int = 0
 var ai_seat: int = -1               # the seat an AiPlayer drives, -1 for none. Offline only.
+var preselect_deck_id: String = ""  # a custom deck the select screen picks for its first seat on opening
+var builder_deck_id: String = ""    # the custom deck the builder reopens next time it opens: after its Play, or from select's Edit this deck
+var builder_from_select: bool = false   # the builder was opened from the select screen, so its way out leads back there
+var builder_seat: int = -1              # the select seat that trip left from, shown again on the way back; -1 for no trip
 var ai_profile: String = "default"  # level file under AiProfile.DIR, without .json
 var run: AdventureRun = null        # the live adventure run, null outside adventure mode
 var map: AdventureMap = null        # the run's node map, rolled again from its seed on load
@@ -89,6 +94,9 @@ var _pool_library: CardLibrary = null
 func _ready() -> void:
 	library.load_dir(CARDS_DIR)
 	strike_table = StrikeTable.load_from(TABLE_PATH)
+	# A dev run with `--dev-scratch=<dir>` keeps its built decks off the player's own.
+	if AdventureDev.flag("--dev-scratch=") != "":
+		CustomDecks.dir_override = AdventureDev.flag("--dev-scratch=").path_join("decks")
 	_load_decks()
 	wallet = AdventureWallet.load_wallet()
 	collection = AdventureCollection.load_collection()
@@ -128,6 +136,29 @@ func _load_decks() -> void:
 	names.sort()
 	for n in names:
 		decks.append(DeckList.load_from(DECKS_DIR.path_join(n)))
+	# Player-built decks follow the precons, so a precon's index means the same on every machine.
+	# Only a legal one is offered for play; the builder shows the rest.
+	for deck: DeckList in CustomDecks.load_all():
+		if deck_problems(deck).is_empty():
+			decks.append(deck)
+
+
+## After the builder saves or deletes a deck. A pick moves to the reloaded copy of its deck, and
+## is cleared when that deck is gone or can no longer be played.
+func reload_decks() -> void:
+	_load_decks()
+	for i in range(chosen.size()):
+		var was: DeckList = chosen[i]
+		chosen[i] = null
+		if was == null:
+			continue
+		for deck: DeckList in decks:
+			if deck.custom == was.custom and deck.id == was.id:
+				chosen[i] = deck
+
+
+func go_to_builder() -> void:
+	get_tree().change_scene_to_file(BUILDER_SCENE)
 
 
 func can_start() -> bool:
@@ -297,8 +328,7 @@ func match_styles() -> Array[String]:
 	for i in range(2):
 		var d: DeckList = chosen[i]
 		if Net.mode != "" and Net.lobby.size() > i:
-			var index: int = int(Net.lobby[i]["deck"])
-			d = decks[index] if index >= 0 and index < decks.size() else null
+			d = Net.lobby_deck(Net.lobby[i])
 		if d != null:
 			out[i] = d.style
 	return out

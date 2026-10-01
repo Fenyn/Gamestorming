@@ -97,7 +97,7 @@ signal rating_known(shown: int, provisional: bool)
 
 ## Bump this whenever an RPC is added, removed or renamed, an RPC's arguments or their meaning
 ## change, or the room flow changes. Builds on different numbers refuse each other at the greeting.
-const PROTOCOL: int = 9
+const PROTOCOL: int = 10
 const HOST_ID: int = 1      # the ENet server's multiplayer id, and always the authority
 ## The duel server's greeting challenge, spent on the first proof that comes back for it.
 const NONCE_BYTES: int = 32
@@ -120,6 +120,9 @@ const UPDATE_MAX_BYTES: int = 4 * 1024 * 1024
 ## A match record on the wire, as UTF-8 JSON. Real ones are under 30 KB; the server does not send
 ## a larger one and a client refuses it.
 const RECORD_MAX_BYTES: int = 1024 * 1024
+## A player-built deck's list on the wire, as JSON text. A full 90-card list is about 4 KB.
+const DECK_LIST_MAX_BYTES: int = 16 * 1024
+const CUSTOM_IN_RANKED: String = "Ranked matches use the shipped decks only. Pick one of those."
 const SERVER_UNREACHABLE: String = "Could not reach the duel server. It may be offline, or this computer may not be connected."
 const CODE_FORMAT: String = "Share codes are five letters or digits, like K7QMR."
 ## Server: how long a seat whose connection dropped is kept, and how long a duel with both seats
@@ -241,6 +244,9 @@ var _queue_request: bool = false  # client: this connection asks for the queue, 
 var _queue_ranked: bool = false   # client: the queue asked for is the ranked one
 var _room_kind: String = ""       # client: the `DuelRoom.kind` of this seat's room, "" outside one
 var _ranked: bool = false         # client: this seat's room plays a ranked match
+var _local_index: int = -1        # this seat's pick as an index into Session.decks; a custom deck's
+                                  # lobby entry says only CUSTOM_PICK
+var _wire_decks: Dictionary = {}  # JSON text of a custom list -> its checked DeckList, or null
 var _match_over: bool = false     # client, ranked: the server said the match is decided
 var _via_server: bool = false     # client: talking to the duel server, not a hosting client
 var _other_present: bool = false  # client: the other seat has a player behind it
@@ -373,6 +379,7 @@ func seats_filled() -> bool:
 
 func reset_lobby() -> void:
 	lobby = [DuelRoom.empty_pick(0), DuelRoom.empty_pick(1)]
+	_local_index = -1
 
 
 ## `--dev-net-log` prints connection stages to stdout.
@@ -460,6 +467,8 @@ static func code_problem(code: String) -> String:
 ## share code arrives with `connected` and is in `join_code()`. `"lan"` hosts on a plain ENet
 ## port with the rules in this process, for dev runs. A coroutine; returns "" or a message.
 func host(kind: String = "server") -> String:
+	if not OnlineGate.available():
+		return OnlineGate.UNAVAILABLE_TEXT
 	leave()
 	if kind == "lan":
 		transport = LanTransport.new()
@@ -482,6 +491,8 @@ func host(kind: String = "server") -> String:
 ## connects straight to a hosting client, for dev runs. A coroutine returning "" or a message.
 ## The outcome then comes through `connected` or `connection_failed`.
 func join(code: String) -> String:
+	if not OnlineGate.available():
+		return OnlineGate.UNAVAILABLE_TEXT
 	var refused: String = code_problem(code)
 	if refused != "":
 		return refused
@@ -517,6 +528,8 @@ func find_ranked() -> String:
 
 
 func _find(ranked: bool) -> String:
+	if not OnlineGate.available():
+		return OnlineGate.UNAVAILABLE_TEXT
 	_forget_results()
 	if server_room() and multiplayer.get_peers().has(HOST_ID):
 		_forget_room()
@@ -628,6 +641,8 @@ func _drop_cert_probe() -> void:
 ## server that runs it. The duel scene loads on `_rpc_resume`; anything else comes back through
 ## `connection_failed`, and a refusal deletes the file first. A coroutine returning "" or a message.
 func rejoin() -> String:
+	if not OnlineGate.available():
+		return OnlineGate.UNAVAILABLE_TEXT
 	var ticket: Dictionary = RejoinFile.read()
 	if not RejoinFile.live(ticket, int(Time.get_unix_time_from_system())):
 		RejoinFile.clear()
@@ -675,6 +690,8 @@ func give_up() -> bool:
 ## greeting of a short connection of its own and ends the duel as a concession. With the server out
 ## of reach, or no answer within GIVE_UP_WINDOW_MS, the duel ends once the seat's time runs out.
 func _send_give_up(ticket: Dictionary) -> void:
+	if not OnlineGate.available():
+		return
 	_drop_courier()
 	_courier_ticket = ticket
 	_courier_until = Time.get_ticks_msec() + GIVE_UP_WINDOW_MS
@@ -799,6 +816,8 @@ func _fail(reason: String) -> void:
 ## The duel server itself: no seat of its own, many rooms, DTLS under `tls` (null for plain ENet).
 ## Returns "" or a message.
 func serve(port: int, tls: TLSOptions = null) -> String:
+	if not OnlineGate.available():
+		return OnlineGate.UNAVAILABLE_TEXT
 	leave()
 	var lan: LanTransport = LanTransport.new()
 	lan.port = port
@@ -1173,7 +1192,7 @@ func _rpc_assign_seat(seat: int, code: String) -> void:
 	room_code = code
 	_room_kind = "code"
 	note("seated as player %d%s" % [seat + 1, "" if code == "" else " in room " + code])
-	_rpc_lobby_pick.rpc_id(HOST_ID, -1, "", clean_name(Session.player_names[seat], seat), false)
+	_rpc_lobby_pick.rpc_id(HOST_ID, -1, "", clean_name(Session.player_names[seat], seat), false, {})
 	connected.emit()
 
 
@@ -1393,6 +1412,7 @@ func _on_rejoin(sender: int, code: Variant, token: Variant) -> void:
 	_server_log("room %s: seat %d is back (peer %d)" % [room.code, seat + 1, sender])
 	var args: Array = [seat, room.code]
 	args.append_array(_deal_args(room))
+	args.append_array(_deal_lists(room))
 	if room.ranked:
 		_tell(sender, &"_rpc_series", [room.best_of, room.game, [room.wins[0], room.wins[1]]])
 	_tell(sender, &"_rpc_resume", args)
@@ -1913,7 +1933,7 @@ func _start_room(room: DuelRoom) -> void:
 	if room.phase != DuelRoom.Phase.LOBBY or not room.both_locked():
 		return
 	for pick in room.lobby:
-		if not valid_deck_pick(int(pick.get("deck", -1)), str(pick.get("deck_name", ""))):
+		if not valid_pick(pick):
 			return
 	room.away_since = [0, 0]
 	room.both_away_since = 0
@@ -1942,6 +1962,7 @@ func _deal(room: DuelRoom) -> void:
 	for seat in range(2):
 		var args: Array = _deal_args(room)
 		args.append(room.tokens[seat])
+		args.append_array(_deal_lists(room))
 		if room.ranked:
 			_tell(room.seat_peer[seat], &"_rpc_series", [room.best_of, room.game, [room.wins[0], room.wins[1]]])
 		_tell(room.seat_peer[seat], &"_rpc_start", args)
@@ -1953,6 +1974,16 @@ func _deal(room: DuelRoom) -> void:
 static func _deal_args(room: DuelRoom) -> Array:
 	return [int(room.lobby[0]["deck"]), int(room.lobby[1]["deck"]), str(room.lobby[0]["deck_name"]),
 		str(room.lobby[1]["deck_name"]), room.shown_name(0), room.shown_name(1), room.color_seed]
+
+
+## The two custom lists of a deal, empty for a catalog deck; they follow the other deal arguments.
+static func _deal_lists(room: DuelRoom) -> Array:
+	return [_pick_list(room.lobby[0]), _pick_list(room.lobby[1])]
+
+
+static func _pick_list(entry: Dictionary) -> Dictionary:
+	var list: Variant = entry.get("list", {})
+	return list if int(entry.get("deck", -1)) == DuelRoom.CUSTOM_PICK and list is Dictionary else {}
 
 
 ## Server: a seed nobody can work out from what else the server sends, since every seed reaches
@@ -2122,6 +2153,7 @@ static func lobby_for(full: Array[Dictionary], seat: int, reveal: bool, hide_nam
 		if i != seat and not reveal:
 			entry["deck"] = -1
 			entry["deck_name"] = ""
+			entry["list"] = {}
 		if i != seat and hide_names:
 			entry["name"] = DuelRoom.empty_pick(i)["name"]
 		out.append(entry)
@@ -2189,38 +2221,99 @@ func reject_room_command(seat: int, reason: String, code: String) -> void:
 
 # --- Lobby ----------------------------------------------------------------
 
-## The local seat picked a deck (index into Session.decks), changed its name, or locked in.
+## The local seat picked a deck (index into Session.decks), changed its name, or locked in. A
+## player-built deck goes out as its whole list under DuelRoom.CUSTOM_PICK.
 func set_local_pick(deck_index: int, player_name: String, ready: bool = false) -> void:
 	if local_player < 0:
 		return
 	var deck_name: String = ""
+	var wire_index: int = deck_index
+	var list: Dictionary = {}
 	if deck_index >= 0 and deck_index < Session.decks.size():
-		deck_name = Session.decks[deck_index].name
+		var deck: DeckList = Session.decks[deck_index]
+		deck_name = deck.name
+		if deck.custom:
+			wire_index = DuelRoom.CUSTOM_PICK
+			list = deck.to_dict()
+	_local_index = deck_index
 	var clean: String = clean_name(player_name, local_player)
-	_apply_pick(local_player, deck_index, deck_name, clean, ready and deck_index >= 0)
+	_apply_pick(local_player, wire_index, deck_name, clean, ready and deck_index >= 0, list)
 	if is_host():
 		_send_joiner_lobby()
 	elif mode == "client":
-		_rpc_lobby_pick.rpc_id(HOST_ID, deck_index, deck_name, clean, ready)
+		_rpc_lobby_pick.rpc_id(HOST_ID, wire_index, deck_name, clean, ready, list)
 
 
-func _apply_pick(seat: int, deck_index: int, deck_name: String, player_name: String, ready: bool) -> void:
-	if seat < 0 or seat >= lobby.size() or not _valid_lobby_pick(deck_index, deck_name, ready):
+## This seat's pick as an index into Session.decks, -1 for none.
+func local_deck_index() -> int:
+	if local_player < 0 or local_player >= lobby.size():
+		return -1
+	var index: int = int(lobby[local_player]["deck"])
+	if index == DuelRoom.CUSTOM_PICK:
+		return _local_index if _local_index >= 0 and _local_index < Session.decks.size() else -1
+	return index
+
+
+func _apply_pick(seat: int, deck_index: int, deck_name: String, player_name: String, ready: bool, list: Dictionary = {}) -> void:
+	if seat < 0 or seat >= lobby.size() or not _valid_lobby_pick(deck_index, deck_name, ready, list):
 		return
-	lobby[seat] = {"name": player_name, "deck": deck_index, "deck_name": deck_name, "ready": ready}
+	lobby[seat] = {"name": player_name, "deck": deck_index, "deck_name": deck_name, "ready": ready, "list": list}
 	lobby_changed.emit()
 
 
-## Authorities validate the shared catalog before accepting readiness or indexing a deck.
+## Authorities validate the shared catalog before accepting readiness or indexing a deck. A custom
+## deck held in Session.decks has an index only on this machine, so it never passes as one.
 func valid_deck_pick(deck_index: int, deck_name: String) -> bool:
 	# A tournament-legal deck only: this is where an adventure-only (banned) card is kept out of online play.
 	return deck_index >= 0 and deck_index < Session.decks.size() \
 		and Session.decks[deck_index].name == deck_name \
+		and not Session.decks[deck_index].custom \
 		and Session.decks[deck_index].mode != "adventure" \
 		and Session.deck_problems(Session.decks[deck_index]).is_empty()
 
 
-func _valid_lobby_pick(deck_index: int, deck_name: String, ready: bool) -> bool:
+## The deck a lobby entry names, checked: a catalog precon, or a custom list that is tournament
+## legal here. Null for none or for one this build refuses.
+func pick_deck(entry: Dictionary) -> DeckList:
+	var index: int = int(entry.get("deck", -1))
+	var deck_name: String = str(entry.get("deck_name", ""))
+	if index == DuelRoom.CUSTOM_PICK:
+		return wire_deck(entry.get("list", {}), deck_name)
+	return Session.decks[index] if valid_deck_pick(index, deck_name) else null
+
+
+func valid_pick(entry: Dictionary) -> bool:
+	return pick_deck(entry) != null
+
+
+## The deck a lobby entry names, for display: a catalog index is only range-checked, which is cheap
+## enough for every redraw. A custom list is checked once and cached either way.
+func lobby_deck(entry: Dictionary) -> DeckList:
+	var index: int = int(entry.get("deck", -1))
+	if index == DuelRoom.CUSTOM_PICK:
+		return wire_deck(entry.get("list", {}), str(entry.get("deck_name", "")))
+	if index >= 0 and index < Session.decks.size() and not Session.decks[index].custom:
+		return Session.decks[index]
+	return null
+
+
+## A custom deck from the wire, rebuilt and checked once per distinct list. Its name must be the
+## one the entry shows.
+func wire_deck(list: Variant, deck_name: String) -> DeckList:
+	if not (list is Dictionary):
+		return null
+	var text: String = JSON.stringify(list, "", true)
+	if text.to_utf8_buffer().size() > DECK_LIST_MAX_BYTES:
+		return null
+	if not _wire_decks.has(text):
+		_wire_decks[text] = CustomDecks.from_wire(list, Session.library)
+	var deck: DeckList = _wire_decks[text]
+	return deck if deck != null and deck.name == deck_name else null
+
+
+func _valid_lobby_pick(deck_index: int, deck_name: String, ready: bool, list: Dictionary = {}) -> bool:
+	if deck_index == DuelRoom.CUSTOM_PICK:
+		return wire_deck(list, deck_name) != null
 	return valid_deck_pick(deck_index, deck_name) or (deck_index == -1 and deck_name == "" and not ready)
 
 
@@ -2231,14 +2324,14 @@ func _send_joiner_lobby() -> void:
 
 
 @rpc("any_peer", "call_remote", "reliable")
-func _rpc_lobby_pick(deck_index: Variant, deck_name: Variant, player_name: Variant, ready: Variant) -> void:
-	_on_lobby_pick(multiplayer.get_remote_sender_id(), deck_index, deck_name, player_name, ready)
+func _rpc_lobby_pick(deck_index: Variant, deck_name: Variant, player_name: Variant, ready: Variant, list: Variant) -> void:
+	_on_lobby_pick(multiplayer.get_remote_sender_id(), deck_index, deck_name, player_name, ready, list)
 
 
 ## A seat's pick, from the client that plays it; the seat is the sender's, never one it names. The
 ## server files it in the sender's room and sends each seat the lobby it may see; a hosting client
 ## takes it from its joiner.
-func _on_lobby_pick(sender: int, deck_index: Variant, deck_name: Variant, player_name: Variant, ready: Variant) -> void:
+func _on_lobby_pick(sender: int, deck_index: Variant, deck_name: Variant, player_name: Variant, ready: Variant, list: Variant = {}) -> void:
 	if not is_authority():
 		return
 	var room: DuelRoom = _room_of(sender) if is_server() else null
@@ -2249,7 +2342,7 @@ func _on_lobby_pick(sender: int, deck_index: Variant, deck_name: Variant, player
 	if room != null and room.series_locked:
 		_refuse(room, sender, "a pick in a locked ranked match")
 		return
-	if not (deck_index is int and deck_name is String and player_name is String and ready is bool):
+	if not (deck_index is int and deck_name is String and player_name is String and ready is bool and list is Dictionary):
 		_refuse(room, sender, "a malformed pick")
 		return
 	if (room != null and room.phase != DuelRoom.Phase.LOBBY) or (room == null and _in_duel):
@@ -2257,12 +2350,21 @@ func _on_lobby_pick(sender: int, deck_index: Variant, deck_name: Variant, player
 		return
 	var index: int = deck_index
 	var deck: String = deck_name
-	var locked: bool = bool(ready) and index >= 0
-	if not _valid_lobby_pick(index, deck, locked):
+	var cards: Dictionary = list if index == DuelRoom.CUSTOM_PICK else {}
+	if room != null and room.ranked and index == DuelRoom.CUSTOM_PICK:
+		_refuse(room, sender, "a custom deck in a ranked match")
+		_tell(sender, &"_rpc_room_failed", [CUSTOM_IN_RANKED])
+		return
+	var locked: bool = bool(ready) and DuelRoom.has_deck({"deck": index})
+	if not _valid_lobby_pick(index, deck, locked, cards):
+		if index == DuelRoom.CUSTOM_PICK:
+			_refuse(room, sender, "a custom deck that is not legal here")
+			_tell(sender, &"_rpc_room_failed", ["%s did not accept your deck. Check it in the deck builder: it must be legal with the cards both sides have." % ("The duel server" if is_server() else "The host")])
+			return
 		_refuse(room, sender, "a deck that is not in the catalog")
 		_tell(sender, &"_rpc_room_failed", ["Your deck list differs from the one on %s. Both need the same build of the game." % ("the duel server" if is_server() else "the host")])
 		return
-	var entry: Dictionary = {"name": clean_name(str(player_name), seat), "deck": index, "deck_name": deck, "ready": locked}
+	var entry: Dictionary = {"name": clean_name(str(player_name), seat), "deck": index, "deck_name": deck, "ready": locked, "list": cards}
 	# Both decks are shown once both seats lock, so from then on neither may change its pick.
 	if room != null and room.both_locked():
 		if entry != room.lobby[seat]:
@@ -2324,15 +2426,19 @@ func _checked_pick(raw: Variant, seat: int) -> Dictionary:
 		return out
 	out["name"] = clean_name(str(player_name), seat)
 	out["ready"] = ready
-	if valid_deck_pick(deck, deck_name):
+	var list: Variant = entry.get("list", {})
+	if deck == DuelRoom.CUSTOM_PICK and wire_deck(list, deck_name) != null:
+		out["deck"] = deck
+		out["deck_name"] = deck_name
+		out["list"] = list
+	elif valid_deck_pick(deck, deck_name):
 		out["deck"] = deck
 		out["deck_name"] = deck_name
 	return out
 
 
 func lobby_ready() -> bool:
-	return seats_filled() and valid_deck_pick(int(lobby[0]["deck"]), str(lobby[0]["deck_name"])) \
-		and valid_deck_pick(int(lobby[1]["deck"]), str(lobby[1]["deck_name"]))
+	return seats_filled() and valid_pick(lobby[0]) and valid_pick(lobby[1])
 
 
 ## Both seats locked their picks, so both clients move to the versus screen.
@@ -2351,7 +2457,7 @@ func start_duel() -> void:
 		Session.seed_value = randi_range(1, 2147483646)
 	_rpc_start.rpc(int(lobby[0]["deck"]), int(lobby[1]["deck"]),
 		str(lobby[0]["deck_name"]), str(lobby[1]["deck_name"]), str(lobby[0]["name"]), str(lobby[1]["name"]),
-		Session.color_seed, "")
+		Session.color_seed, "", _pick_list(lobby[0]), _pick_list(lobby[1]))
 
 
 ## Server room: this client has had the matchup up long enough. The server deals once both
@@ -2762,9 +2868,9 @@ func _rpc_rematch_requested(seat: int) -> void:
 ## The deal. From the duel server `token` is this seat's rejoin secret, kept in the `RejoinFile`
 ## for as long as the duel runs; a hosting client sends none.
 @rpc("authority", "call_local", "reliable")
-func _rpc_start(deck0: int, deck1: int, name0: String, name1: String, player0: String, player1: String, color_seed: int = 0, token: String = "") -> void:
+func _rpc_start(deck0: int, deck1: int, name0: String, name1: String, player0: String, player1: String, color_seed: int = 0, token: String = "", list0: Dictionary = {}, list1: Dictionary = {}) -> void:
 	resumed = false
-	if not _take_deal(deck0, deck1, name0, name1, player0, player1, color_seed):
+	if not _take_deal(deck0, deck1, name0, name1, player0, player1, color_seed, [list0, list1]):
 		return
 	if _via_server and room_code != "" and token.length() == RejoinFile.TOKEN_HEX and token.is_valid_hex_number():
 		_keep_rejoin(token)
@@ -2774,7 +2880,7 @@ func _rpc_start(deck0: int, deck1: int, name0: String, name1: String, player0: S
 ## Client of the server: the seat this client asked back for with `rejoin()`. The duel scene loads
 ## as for a deal, and the server's next update catches it up.
 @rpc("authority", "call_remote", "reliable")
-func _rpc_resume(seat: int, code: String, deck0: int, deck1: int, name0: String, name1: String, player0: String, player1: String, color_seed: int) -> void:
+func _rpc_resume(seat: int, code: String, deck0: int, deck1: int, name0: String, name1: String, player0: String, player1: String, color_seed: int, list0: Dictionary = {}, list1: Dictionary = {}) -> void:
 	if multiplayer.get_remote_sender_id() != HOST_ID or mode != "client" or _rejoin.is_empty() or seat < 0 or seat > 1:
 		return
 	_connect_deadline = 0
@@ -2788,7 +2894,7 @@ func _rpc_resume(seat: int, code: String, deck0: int, deck1: int, name0: String,
 	room_code = code
 	_other_present = true
 	note("back in room %s as player %d" % [code, seat + 1])
-	if not _take_deal(deck0, deck1, name0, name1, player0, player1, color_seed):
+	if not _take_deal(deck0, deck1, name0, name1, player0, player1, color_seed, [list0, list1]):
 		return
 	resumed = true
 	RejoinFile.renew(int(Time.get_unix_time_from_system()))
@@ -2808,18 +2914,19 @@ func _on_rejoin_failed(reason: String) -> void:
 	_fail(reason)
 
 
-## Both decks by index checked against this build, the names and the seat colours of a deal, and
-## updates held for the duel scene. The last game's result facts go, since this game has none yet.
-## False, after `_fail`, when a deck does not match.
-func _take_deal(deck0: int, deck1: int, name0: String, name1: String, player0: String, player1: String, color_seed: int) -> bool:
+## Both decks checked against this build (by index, or a custom deck by its list), the names and
+## the seat colours of a deal, and updates held for the duel scene. The last game's result facts
+## go, since this game has none yet. False, after `_fail`, when a deck does not match.
+func _take_deal(deck0: int, deck1: int, name0: String, name1: String, player0: String, player1: String, color_seed: int, lists: Array = [{}, {}]) -> bool:
 	_forget_results()
 	var picks: Array[int] = [deck0, deck1]
 	var names: Array[String] = [name0, name1]
 	for i in range(2):
-		if picks[i] < 0 or picks[i] >= Session.decks.size() or Session.decks[picks[i]].name != names[i]:
+		var deck: DeckList = pick_deck({"deck": picks[i], "deck_name": names[i], "list": lists[i] if i < lists.size() else {}})
+		if deck == null:
 			_fail("Your deck list differs from the other side's. Both need the same build of the game.")
 			return false
-		Session.chosen[i] = Session.decks[picks[i]]
+		Session.chosen[i] = deck
 	Session.player_names = [clean_name(player0, 0), clean_name(player1, 1)]
 	# The hosting client rolls its own in build_referee; a joiner has no seed, so it takes this.
 	Session.color_seed = color_seed

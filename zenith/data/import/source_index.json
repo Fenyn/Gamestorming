@@ -1,0 +1,3453 @@
+{
+ "names": {
+  "0056109e1dfd6e893b1d349fd8f8f378889a79a26d9590ecf2259cd6b9c68305": [
+   {
+    "id": "root_art_03",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "0098a1b592415ffdba98f80a088fa6e71c61fae6ab70b40ade220b82b6202434": [
+   {
+    "id": "freestyle_art_12",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "016aec37ef71018650eeef349b45914e78262bd6585b772ef5c274949c0e9ecd": [
+   {
+    "id": "pyre_drill_08",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "016c422889ea001dc2b0b541fa2026e8448d1161507167f5e5eae0e0a3c48b3c": [
+   {
+    "id": "signature_strike_16",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "01cb685d0bba4a03d5734346f169c81fa05fb78bc8af8280b33ae0b2a739e944": [
+   {
+    "id": "root_strike_04",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "0267fa0ac3187541dfd974fed5a41e7dffdb4e9e70275ee87644bbe00d30c3bf": [
+   {
+    "id": "root_strike_01",
+    "set": "6b516962f1222f51912a8acb12ec26800fd85cc95c5a88f44fb21f1610c8d686"
+   }
+  ],
+  "030a9cf969e6314914ac0adbdf650aa17221de70f5506bc209554e456b7dca92": [
+   {
+    "id": "root_strike_13",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "0427ea4f91c0bd0bbcc7df37c5f6f8b3e965311631c214f83b438969d31d5290": [
+   {
+    "id": "shade_noncombat_01",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "04feb90957d141c4d87d5e41aa3577afc0023687df4267383a2f3db286e8c674": [
+   {
+    "id": "tide_strike_07",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "052bebda8ee16aefac99d5ab4c29e2a54940024c1634a303019ba9a9329cc91f": [
+   {
+    "id": "seal_09",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   },
+   {
+    "id": "seal_23",
+    "set": "8ea6ef882501bd6769194f67cf847d98671f64f41de29bc9e1dd2b4f95f08cb5"
+   }
+  ],
+  "059a654755e19125dc9b79f55e7178a1c1535e9b6ce11ad7c55bd313f169db30": [
+   {
+    "id": "tide_noncombat_04",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "05a0b0e1a6058dde498e131daa81c49e207a2e9d6a640886dceeeae4407b23da": [
+   {
+    "id": "root_combat_02",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "05ee0ccae05918b043c97404bdb7b606525fb1dabc8bed8cff523b93a1728cb9": [
+   {
+    "id": "personality_30",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "06015d4378c0836fb1e62d60a25f9f10334079fa73d3050a469c161820d9de0d": [
+   {
+    "id": "shade_art_03",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "069764e92139bd44de092017fcaa5314925fb6e72602660091fd8fda35c463f0": [
+   {
+    "id": "freestyle_combat_01",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "070304026c8fa80be3b64df8e621a8cc1140f99e1069415551e57e0ba3d1cc87": [
+   {
+    "id": "pyre_strike_21",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "0735c92ec0eac7865b5b5097d76ad3b555e5343c0fbdd34c75e4c4531c733c2e": [
+   {
+    "id": "personality_70",
+    "set": "67f5637deccf0cbafd971e40f36e6fbaec532df37a4ba0e699c773365938cb84"
+   }
+  ],
+  "07e1d05a11422f323a5a944898eb9ab50c515ecc184fb0122d1e259737e7dac5": [
+   {
+    "id": "root_combat_08",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "081979d5ff108dde43263187411ed4ea4d4c1ba18513dfaaa494108083ecb335": [
+   {
+    "id": "tide_art_09",
+    "set": "901232b60d952171202053b2db6aa61674ee940b9c64bec96ee07dca2eb11309"
+   }
+  ],
+  "08507e6563e412c234e16b56d3d6115e847cc1e1c6335f1104744b5cd6c56d18": [
+   {
+    "id": "root_strike_11",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "0865bce4116bdcd2c7c69148b98164f1008261db88bb5ffbb40a4f9a3544e4b2": [
+   {
+    "id": "seal_15"
+   }
+  ],
+  "087c34775bdac807943f7ffd4adb882b1f0bc84c91b4cf3356fc0f9df2c593bf": [
+   {
+    "id": "signature_noncombat_03",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "092866bb1db55e042c68447db7da64c551db00437508e8062cac00a088687591": [
+   {
+    "id": "freestyle_combat_03",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "09bd4f12553d42fb683b7416edffac498a6ba582a78641b4f675c26a4d78c9e5": [
+   {
+    "id": "steel_strike_16",
+    "set": "062b2346d14aaeffba5fc8783c366702e9f1bd74d3575d34f655aabaf406c158"
+   }
+  ],
+  "09f22002f1182adb9717e23895f33f68ccab318e0b54bc71904f49000fb38b57": [
+   {
+    "id": "signature_art_12",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "0a017e96d71c7098180030cfd81c67c6a0a42db174e3848654da81cb0d2479bd": [
+   {
+    "id": "pyre_drill_07",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "0a08dc796bae085acce98c4bd3899f05e178c987a08c8bc4938d9091f81b6d32": [
+   {
+    "id": "seal_17"
+   }
+  ],
+  "0b09f5f2890ca2f6e6cce37ec62dae7d517fda8e8a6cc6c9e4bb5b60153e37fd": [
+   {
+    "id": "storm_strike_14",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "0b661d1a06123504d5f0fc7335bd3dd1b7b4486749fce747cadd1e143b67c7a9": [
+   {
+    "id": "personality_10",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "0b9ae58482e8cfa258982c7063ea75a7bc1660a2f680e6aa8c7291d4e063ffdd": [
+   {
+    "id": "root_combat_04",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "0be5658f5abcb52771a2c5dbfb5d70ed16f0b5819c7f46ffa22315a57a7e935f": [
+   {
+    "id": "signature_art_18",
+    "set": "1b03209928b1beba00e68a4a0062ee671d44b6258f3c52884160abd4f6007fe2"
+   }
+  ],
+  "0c551b2e1a614ae3b6ca73171723961ef8cd4012ad980e2d1be92fb5c38ba3cc": [
+   {
+    "id": "signature_strike_20",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "0d2e7ccfdfe1fd6644290396070c52432dac8cad1e5ad6c91ba1ae612adcaf18": [
+   {
+    "id": "seal_10",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "0d3bc2d9869cb266186cf0988097ffb5f1323f5a42319a40fe3d52587a230339": [
+   {
+    "id": "personality_06",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "0d8c62a2510ee9cb035ec855e37078dd4807c109e3a027db67eb2e619e98e3f4": [
+   {
+    "id": "personality_18",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "0d9b17b8325b35f9f6c0db2240de2e2ba3b7cd9c1bfa0e42e1239df752ff7685": [
+   {
+    "id": "steel_strike_20",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "0e2dc515bb82e95aba75b63d1869d56e7d945f8cecb0cce6a8cad2b9b8f85a38": [
+   {
+    "id": "freestyle_noncombat_04",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "0e2e4eedf592bfc5fbe00925b1139478438f46ca6e9bcd953ffa3aaffaaa5f6d": [
+   {
+    "id": "shade_strike_15",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "0e781e3ade13cf243c25998f1f7e28e4c5569d9dda4861dcdec5c03411f712ed": [
+   {
+    "id": "relic_03",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "0f756812500b1e32ddd1ee385cbb9a2ff34148dcdf57b7b723f5b90bb6b7ade6": [
+   {
+    "id": "seal_14",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   },
+   {
+    "id": "seal_28",
+    "set": "8ea6ef882501bd6769194f67cf847d98671f64f41de29bc9e1dd2b4f95f08cb5"
+   }
+  ],
+  "10e082fcf29ab7b77dbf4d8af8cf5de671468e584aaf935f5d187925cdf1ed11": [
+   {
+    "id": "root_art_12",
+    "set": "f52bdadaa23bcca3324a9b7c1da09359d228819bfd8ad54eefd8a5e751ee7d1f"
+   }
+  ],
+  "1185f37d33b0f89e331f101a51bb8e51165c7efda15950b86a3ebcbb363f898e": [
+   {
+    "id": "freestyle_strike_02",
+    "set": "91219f7482fd07cc9cce6a37b49389cf0553b46ba3f34213810571122cd4a45b"
+   }
+  ],
+  "11ab927d3f64b529f2311e8aed5e382b4d8a0ef7d531da7cf1bf00c2d6e10624": [
+   {
+    "id": "freestyle_combat_22",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "11fa57e0121a4d8fa9c6450b8aaf674df79b2304b13e27b27b58d20dae743f96": [
+   {
+    "id": "personality_63",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "1230781ec4b468798af0a0c8cee6294bf74a300f8696cc9f21712e595191dc20": [
+   {
+    "id": "root_strike_02",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "1328ce9f8c872684c1097f646640689654e5683ebc37ee27810b2cc1fd0516b2": [
+   {
+    "id": "signature_strike_12",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "1338ddb1c9507d0c80a54dd182d67094cefb673af9dc30a04ae09faec24ef2c2": [
+   {
+    "id": "signature_strike_06",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "1391970b4bbd01887ec9316359c40c14e442d6aaf1daf1b5bc14eb34e1f8a1e5": [
+   {
+    "id": "root_art_04",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "13a4d88344033721e8a3f580a2a13968e896e8205c5dfc78dfbb3a42a5004ad4": [
+   {
+    "id": "root_noncombat_01",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "14413d8d3c5cb53e9f8933bab835e71f72c72f0d1e15683c8a558f7039c1c430": [
+   {
+    "id": "signature_strike_22",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "145f2eb1c9b508bee39f0a04bc17914e877b7d8200b64c58cfdfb156559f9153": [
+   {
+    "id": "shade_strike_10",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "14a9a67ebecc82502b29b34696397fba6cb1a63d78a3a333a072f7bb07117864": [
+   {
+    "id": "signature_strike_29",
+    "set": "67f5637deccf0cbafd971e40f36e6fbaec532df37a4ba0e699c773365938cb84"
+   }
+  ],
+  "15064b27b820fb86ea9c749b02e42c39ca3d97c114dfab5bf9e4cd1673b4ad46": [
+   {
+    "id": "steel_art_06",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "159e6e7bf9efa033b248f6fdf7df6de049c6259a6db8b32924448c65760585f5": [
+   {
+    "id": "storm_strike_02",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "15d6f34b195193de9872f861374b424230c5a1fb3bd62b473c6bf069567d163d": [
+   {
+    "id": "signature_strike_08",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "16613ce055687bbb4efae82d71515a03f35537cfd69dc7ee7dfe2deb4719b1e9": [
+   {
+    "id": "pyre_mastery_01",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   },
+   {
+    "id": "pyre_mastery_02",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   },
+   {
+    "id": "pyre_mastery_03",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   },
+   {
+    "id": "pyre_mastery_04",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "17b68bb41f25b7e7d0d999e327390e8e0f6c4849e6335a5ef8f5e49caf22246e": [
+   {
+    "id": "storm_art_02",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "17ecd58589344f983a336fec0cc7d75f7c7f61b61dd4c59f274c3b237214bac1": [
+   {
+    "id": "storm_art_26",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "180fb0ff3ca61e7445a98475479a7d30faa11653e44c84230de139cd17d09ea7": [
+   {
+    "id": "freestyle_combat_16",
+    "set": "2ff4e0470f39ca4c2c4eb20b8cbb1e07b632eb2cc8ba356a9d9b5020d7ae9cb0"
+   }
+  ],
+  "181020e15788364f7cf50fa937fb49d5608b8b57406f26b48a7ed07948fc01fb": [
+   {
+    "id": "steel_strike_08",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "181fc019f18a6f847df9fab5f91dc7a9a3e5ff25c4eae766325f2ee72d616cac": [
+   {
+    "id": "shade_strike_13",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "18d26ef43e9310873d5b404058b38b72d585d8e733ecf9ff948e05aeb749d83d": [
+   {
+    "id": "tide_art_01",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "19877bc6433f92fd2d213ae082279eda75953f135f388c3e1e681516c7975365": [
+   {
+    "id": "pyre_strike_26",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "1a2e52dc4b8b36c3de83ca6bfb34e9b7f46fe05d0864df72aa5a93917acb503a": [
+   {
+    "id": "storm_art_15",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "1a5ce0fa5c79eb8ac539a9f2d8776f737caa5dfb50de8f74bb0a1e9ab70a678e": [
+   {
+    "id": "shade_art_11",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "1aed8a1f2d5a2491b4fdb52e2f37397d7b68ef89915b2bd2489c05edf0d551b7": [
+   {
+    "id": "freestyle_combat_12",
+    "set": "1b415737719b1c2912a9ee00fc004697e753f1b0f3e4a02e481b9b12fcb1efb8"
+   }
+  ],
+  "1d0843158820d9716ac90993ecb925a4e6a4f394620ef4334d1fd6f66d41e4a2": [
+   {
+    "id": "tide_art_14",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "1dfcaf0692ac4fd7e5220186e22cb9cb4b63b1dc76006a20cee873de78819d7d": [
+   {
+    "id": "steel_strike_01",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "1e327d3e6cb9a4f3fa63b5e058b80d23f69e5be9f69aa7cc44567d56b879b1cb": [
+   {
+    "id": "personality_05",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   },
+   {
+    "id": "personality_53",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "1eb65f03026c5691e7ccc49dd574a2da9a4a7c15671f51aabe820baefaf63068": [
+   {
+    "id": "steel_strike_19",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "1ed4acd3ddd0292a038285264feb7fa302e32100c789226987ac5875982ad667": [
+   {
+    "id": "personality_46",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "1f03e76a86285b8318d69233be4c91acd6a79c58817c383809b633e849e158cf": [
+   {
+    "id": "shade_strike_21",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "2003c161446b2983c563fb9877a9a463585451b95154833e51355ec5c51c4926": [
+   {
+    "id": "personality_34",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "205f16dc47a7381131beaa19d6f15fcdde8d4c3a8b2c03363697898e6a332e0e": [
+   {
+    "id": "personality_68",
+    "set": "f52bdadaa23bcca3324a9b7c1da09359d228819bfd8ad54eefd8a5e751ee7d1f"
+   }
+  ],
+  "20b310f71f274da0b6bcc138518c5da8dca6c182970989d5d974398e44c9ced4": [
+   {
+    "id": "steel_art_14",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "20c19552715db8e4e555f8626450ae5c7ca233aba4bd11ee0dc88434ff0d90b9": [
+   {
+    "id": "seal_03",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "20d329d103dc60f04e5eda76b79a06491ce6b6c517e55bc3a733a489d6d04506": [
+   {
+    "id": "storm_art_09",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "2145502a2c7d5eb67acf9c96e35404d2e0705e3edf77aa388f2a572cb8beacca": [
+   {
+    "id": "steel_strike_17",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "214bc2864ac8ddd1bd64748fea0cdd1e60ab98471460b8e022d868461426b67c": [
+   {
+    "id": "pyre_strike_23",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "2167d5a2193dbcc701fd1d89e035aa4fb556f32840e52d88606366448d905fad": [
+   {
+    "id": "freestyle_combat_06",
+    "set": "c7dbb08985fa15ccc1933ef1f4a57dbbc3e1b1d12004a25240d501297a667590"
+   }
+  ],
+  "21d26c465992aa6055d985ff0e2f2a3eda2b68951c2ba89a66c1dc3181e44783": [
+   {
+    "id": "personality_16",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "21dfb2434a031dc0f53901cea9d2f19dd99c7609eade37d3522499194c427524": [
+   {
+    "id": "freestyle_drill_05",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "21f8ed57fb849fde93e111f6c2d424aad0c5642644d4f5d51e0e8e12816e6b37": [
+   {
+    "id": "signature_art_07",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "22088e3cd018c8f79bf46054b13fd75b477fbacf8584ea69cd8aff4ffe143774": [
+   {
+    "id": "signature_drill_01",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "222f4cde3c97000d448bc2ccec53d72dba832d1d201072ff2527cae8aa5e31e7": [
+   {
+    "id": "signature_noncombat_11",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "225f1d36adc925e64a3a5473f7ff15cfa26485d927b07c59b4a8a13c5ef80095": [
+   {
+    "id": "pyre_strike_17",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "22ddbdf97daf432c4a847cc8b6c3cdce0b2d2a46f499c23f8935635292fe0e42": [
+   {
+    "id": "personality_54",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "23162791bbf79e01563d2a564e33664ca5110f9f9be088ccb886c98faa06286b": [
+   {
+    "id": "personality_33",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "23b06b786c1e73fa8225fefd251800e04f718c81e0f808c00b52fc01d5ec2920": [
+   {
+    "id": "tide_drill_01",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "243d671c6af663e6c5fc5367e697a7ddecea6712436d760f549f8ab12ee875d3": [
+   {
+    "id": "tide_strike_03",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "24672a6d8c600261f80456798147996050336f5c2a66368887c03d9bcc2690ca": [
+   {
+    "id": "signature_combat_04",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "2488c8c90b61cf5a0542a4d6bd7bafd33e76d4b832dd9f0904a2be486ae5d289": [
+   {
+    "id": "personality_42",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "248fe5e8261e990613c0729ea9eb3798ceb62ad7d9044367b32e295bbb014cc9": [
+   {
+    "id": "tide_strike_17",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "271865bb32bf7e390f50e8f62e49ee7df7e6b40697dde3f5f127b8a30f5bc372": [
+   {
+    "id": "grounds_03",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "27a8cf825494ab6aaab5d88ebef378c47a4f2e1d09b2ef76aa43c7a91c663b27": [
+   {
+    "id": "personality_35",
+    "set": "0e415c3aee641cf278e8d08510f20aece5a6e3928a5cb92af24f4ab257587a96"
+   }
+  ],
+  "27d85a26f46b3ffde1fac87a25da9e9afe701c3e63a5fed05c75f14e328a4431": [
+   {
+    "id": "storm_art_19",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "28ba0dc95905cdb18e6ee798e4ff51feadf429163c9da671df1fa4e6d56f291a": [
+   {
+    "id": "signature_drill_07",
+    "set": "c445e05048c90a59aab262ff187a585c64b19deeb77cf2fbd13d703a3eeee2a9"
+   }
+  ],
+  "29360a0ba0e145b66a28d8e68baeaff7e6d98b67912a41360964d3ce3707fd04": [
+   {
+    "id": "tide_drill_07",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "293ad320d8e9f5495d63b016d7bd0558ef69bea68b626352d6c00e9204d79255": [
+   {
+    "id": "tide_art_11",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "2996e9647c5ae9ae96912b6f7d729641e842dd637ccd7b008706966c9dd053e0": [
+   {
+    "id": "root_art_08",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "2ad31e25d32f8f70bc5d1355c7b3e77b6a99db76b529d62e2bccac52b4dbe823": [
+   {
+    "id": "steel_strike_14",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "2b02dbfe69af11989ebe343fed4e3b3a3a5a67559cc476e25a0a482b97768f12": [
+   {
+    "id": "pyre_drill_02",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "2ba2c09dc9ecfe18d34cf7ed9692a7604c2b473ba908d25629d36e0cc71ef5d8": [
+   {
+    "id": "signature_drill_04",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "2d0f07bba889fc289ee60a3c7fefed8b71a15fa4d56fcd172010ba67774429fb": [
+   {
+    "id": "shade_strike_09",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "2d5ccc87c699bee1a110d467e023aa7106740a778cefd0e3e05b6e8e0514ed19": [
+   {
+    "id": "steel_art_02",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "2dab8deed2b3ba8d91e58f9d6f44d5e871c40b17611cc12e5a52d624ae127cc0": [
+   {
+    "id": "root_strike_14",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "2e00ef3747daef160af984edd73455d5abb8ea7e5fa0a9a031ec82ee500ccb62": [
+   {
+    "id": "signature_art_04",
+    "set": "87e98e3fbf56b5cf65c6ca24bf397936a354ef4a8e9ecc0e69435447c26a903f"
+   }
+  ],
+  "2e5fb8e3a319660eacdcbb0961c5b86726467073348bfe28d14c9b71fb390f6a": [
+   {
+    "id": "freestyle_combat_21",
+    "set": "814e60b4a3264a518e3eee91fcb8ac14f214823aa0e8a301901353f48204ca34"
+   }
+  ],
+  "2e8e0b8fca893b9745889cd7a6fa26d5753b5f789ee6dd42c0da708c991ca4b7": [
+   {
+    "id": "freestyle_combat_17",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "2f460414d8c942e2940686f373f6b14711e662b311ada5b7064e07e93d17ced8": [
+   {
+    "id": "steel_art_12",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "2f90b728ce2279328241f72c887a6152385119e5afa145e276258c2f53065546": [
+   {
+    "id": "storm_strike_07",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "2f91ed4e2dde19f19862e74e3899b031d4d5a293113f7da80a657fd87464cedc": [
+   {
+    "id": "shade_strike_05",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "2fd2a70892bef2751b08e28cc5cd5c085fb29605ba1d2257b9fae86dbdc18456": [
+   {
+    "id": "signature_drill_03",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "306e46967be492a94cbe46332d1726913c9faaa30ef7ac0e01f0dfa0e2cad0b8": [
+   {
+    "id": "root_drill_06",
+    "set": "e795765584d6bfde39c99e279216ed47583831f4c6d3270be27dd5105b6182b3"
+   }
+  ],
+  "3078eb94708dcf6f9e4ea6d112e6ab73c9b2abd746add500e6ed1cf2bae716bc": [
+   {
+    "id": "shade_art_10",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "3133926d10f7fa19e5005d6bbb44f097adaad15a6a1ff16974cd243bcf00a6f6": [
+   {
+    "id": "steel_strike_12",
+    "set": "e196d43174f59efc826753a520c25080c7dfc2a416dd2a859ef377cae757fbeb"
+   }
+  ],
+  "3144b96c8a31a27053d7c3467efc1a9f3ba879b092b99018ef4dbf0c68170fc2": [
+   {
+    "id": "personality_43",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "3250b3deff70bd9c162932cbb31a1a33c56258316af7522b15ba9679e90a8f36": [
+   {
+    "id": "signature_noncombat_05",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "3272a154080276293bb6826b44ba3279a899b1be594f9fdc79b6f08738d246de": [
+   {
+    "id": "signature_noncombat_07",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "33025bb764b8559d1fae13986d8b6a5869b299f0cdffa76b7690a7dffad65295": [
+   {
+    "id": "tide_strike_13",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "332d4ef44d625ff850837d65e622f9dd9599b50fb90273100c7bf88ac1143efd": [
+   {
+    "id": "pyre_strike_15",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "3341b237d5e506b25cc0fd3897a612f4baeb0ceffdb52cd9125f2faad1a13110": [
+   {
+    "id": "personality_69",
+    "set": "f52bdadaa23bcca3324a9b7c1da09359d228819bfd8ad54eefd8a5e751ee7d1f"
+   }
+  ],
+  "337574d07e96360635425770efb5a5ba5550acb61640b47551e6aa008fb3b3f0": [
+   {
+    "id": "storm_art_23",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "33e806002c862c49a72c95d9e650f9ed2398a7124bc77c8e642fd5a8fbf055e3": [
+   {
+    "id": "signature_strike_04",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "33ed3a8a4489ddb6928ceb86e4cbeb2a9194f5dd2d2f4f08f708535bdf38fd18": [
+   {
+    "id": "freestyle_noncombat_16",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "342a3f8daef3b02902642fc462d0ab5f6ef9d1968b795718bd2b1da409eca909": [
+   {
+    "id": "tide_combat_02",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "351f0d24c408a667e2608580adf437a38ea3e88c5368b4ac409aa1d4d61abc17": [
+   {
+    "id": "signature_art_22",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "35926607bc79f983b5642ed2d52f97019db17d7a1d71353bcae57697289be2f1": [
+   {
+    "id": "signature_art_21",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "35a8d3bc1f62b513e0eba56771a7a1cef05583c7e93f1d07ecf71cbce09c3740": [
+   {
+    "id": "seal_04",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "3605369ad4b3edfc37de647fd1a450ccb5c01d43884052c818a95e0c8f48e9b8": [
+   {
+    "id": "signature_noncombat_02",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "368ee0f5dfb1f739242a6635bb0bdd8afeca2429ef635bc8b6a12d132e0c7e84": [
+   {
+    "id": "steel_art_04",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "36a4bb0168fcf09a9bb0e68169882f57b38c9de9fdb111d7363dc58d5a4c1e77": [
+   {
+    "id": "signature_strike_13",
+    "set": "9c32429c292637fdf6cb659cd0ba247b03ac4980727fca1df0636eca84751ea2"
+   }
+  ],
+  "36ef832f377b98684bc4817a8190f6ac5e3bfbd17fb200a5bef634713ec046cf": [
+   {
+    "id": "signature_drill_08",
+    "set": "f08c404f51d43c7ae6101ad5c20b8767b6bedd6fe5aad02a73f0ef7c2cddaeb2"
+   }
+  ],
+  "37812692c16c1041be7bb8c9b64d4ed5b5af496e4c30a7f8ab4f8067e5b1e796": [
+   {
+    "id": "pyre_strike_09",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "37a4db6751566a31e5396b9d8ad2e8cfae56427cf566da665d046941df840850": [
+   {
+    "id": "shade_strike_23",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "38ff5c846f5008ae82c589be5602b24a3e502ed00fb4ce0a90bf784f604cf944": [
+   {
+    "id": "personality_47",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "39e704b4d45c987caf2163068bf573fbc7f1212256f13f39643c23ced09a2039": [
+   {
+    "id": "shade_strike_11",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "39eb3f9ee910a1102b59b2d2f93017cef7024e120656bc8981169d574f6ab2e2": [
+   {
+    "id": "root_art_11",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "3ad6149d74f3af3b743aecc32eb0160bb508802be1a2e40382cb0d9845f2d766": [
+   {
+    "id": "root_strike_03",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "3b048c1cd5a30a9617db61a4e1259b7ca0759ad6ba1486abb44bc59cd0796070": [
+   {
+    "id": "freestyle_noncombat_17",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "3b2c9446a590c0917d3dc62b2a83e1da2dd4a84e7d85fb46c141ba8e55aba3e5": [
+   {
+    "id": "signature_strike_10",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "3b3f612de4498266163452ba692a09a01d93d71f82e33d0491f6a86cfa88a935": [
+   {
+    "id": "pyre_strike_02",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "3b42db04c37190e5226fe72a1659da4fd1f90cc2d2f5aa57c5cd0668c0a9bb44": [
+   {
+    "id": "tide_strike_06",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "3b5f517ba3e0f7a703dff8997218eee66f2f82c0e74d926772dadebaa73b318f": [
+   {
+    "id": "storm_drill_06",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "3bd85984ad5b00ee6134df8ddb268743ee9d55a41e760d9faf1f65d3c13c51fd": [
+   {
+    "id": "signature_combat_03",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "3c28eb3a290a25a504664f2944defdb3ef780c17afce21a8b78f9197c11b5661": [
+   {
+    "id": "signature_art_10",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "3c31e2abd2dc31a8c46db6fb6250188fb42ddf106cc23c208eca22afb35eab6a": [
+   {
+    "id": "signature_combat_11",
+    "set": "bf4c72195fa9ac7721598d2787bd3336293a065f5f9ad65c77e9e10750a6c082"
+   }
+  ],
+  "3c9a4b4e6517b628db37e0b1188ccfa05f48c999ed71b6601096de0fe0bcc9da": [
+   {
+    "id": "freestyle_noncombat_08",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "3d104b38026245c4702ebfea400283b35d0410f271f2e2141c523f559b261783": [
+   {
+    "id": "steel_strike_22",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "3d1611496c7a434ef330dbe69bb2f16ae589722cc5e4ae83b1ca4b93fffc035f": [
+   {
+    "id": "grounds_04",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "3d24989e8875ede3e5dedbda7282a13f0ba10f85a32174f429fc42fa0f087f63": [
+   {
+    "id": "grounds_05",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "3d73c34480c92608550f357e9dc8bd2326040df322cd5ddde16d23ca8dbc44ff": [
+   {
+    "id": "storm_strike_08",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "3ec4fff5a2a87639cc188aa18aeac07b46a9f8c895f366e39124f8ad88e51ade": [
+   {
+    "id": "storm_art_25",
+    "set": "49421e7678e893c8d8acbab2ffd05e8233fcb9774b790eea8f10f1bbc0604b1f"
+   }
+  ],
+  "3fd1f24d211a069c43f627d88cd14c06cac064ff53e794f2c9df02dd784aa168": [
+   {
+    "id": "personality_65",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "4107fb07c47af47b9d9bf5d0e7ea922dbc66a1953cdcb1f2e906baa299161b88": [
+   {
+    "id": "personality_64",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "431eb423b82bb10723664c5bb03b8b69db1c9e56c0cd381bb724319856344450": [
+   {
+    "id": "pyre_strike_07",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "432d0ca12cace911cfc2c812bfdfe1092143e58cb17be6e4033839f7bf27e578": [
+   {
+    "id": "pyre_combat_02",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "43c250aad35288273c5c8c97625b23d9075b7121d6ffce31a750218fa386a8a8": [
+   {
+    "id": "signature_drill_05",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "43fa96b37cfd6eb1e03f5bc5c4f556ec84906ebe817aba48ab4667e689228af0": [
+   {
+    "id": "root_strike_12",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "45a7246118a7b9cb10aebdc9c9c2d773670bc816ac5fe74cb643559dfcd1a06f": [
+   {
+    "id": "shade_strike_16",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "461c9cb30252dd53c8e43e8031f725c017ee54a76e6010db081d47e0451c629b": [
+   {
+    "id": "root_art_01",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "4689850b420c9af8451573f3ed651e76cccd76507b7cfb0a85131a19162a553e": [
+   {
+    "id": "steel_drill_04",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "46d822931b5654096a14f8235fd25b65a5ff0957e66de5979c14b3d73b1d0736": [
+   {
+    "id": "shade_noncombat_02",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "477c42f1acfbec884ac41679ed56af9fd38f6ad2d6c25d35e8fb85f6acaf0469": [
+   {
+    "id": "signature_strike_23",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "48d89bfc787d2c6fa198d743e1688b6bc6d144d3f2c3460defb012ddc6a72c5f": [
+   {
+    "id": "signature_strike_18",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "493be7caafe1842ccf4bcdd1e13c1f54ef339c89d3f1f26a99ee7376fb80219b": [
+   {
+    "id": "steel_strike_24",
+    "set": "a8a1d45040cb6bfba22177f68b26fe21eae1959f4864bcc77ddce543bb120629"
+   }
+  ],
+  "4941dfc7332d1197ab0be3d31a2de71867e6e29897f3614bdabf32d9b4c7de41": [
+   {
+    "id": "pyre_strike_25",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "49f768eae5d7b89aa9ebff14facadf4608480e8e2b2c2ce898d2e4827fdcd232": [
+   {
+    "id": "personality_36",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "4a126f5f30b40c1e5da3424e18c22c61512736ea6fcf6639af2bc690b0f5ef3d": [
+   {
+    "id": "pyre_drill_03",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "4a185657eeacf24ee1dfecb064b4e7855f7b953835580c607339599d7486a077": [
+   {
+    "id": "freestyle_art_07",
+    "set": "67949169dd1b223238ce503b7225486f1bb5c184d3b6a4dcf39738335bdeae33"
+   }
+  ],
+  "4a2a4e3f6b90b2556ec0292d829ede48002ed6e0512459242107f0cc7b134d49": [
+   {
+    "id": "tide_strike_21",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "4aa1ebf15fdf89a0bc6a07dd25a227f4b431ed615594a29536683fb1c70c2665": [
+   {
+    "id": "steel_combat_02",
+    "set": "866b94fc4b01b0d21e7239ef1b1cbd1dd4f66f5836100ab92b4852fd6a815ec1"
+   }
+  ],
+  "4b2c4d547b035fb9ab9900c085c3dac06718df7a9cb6ee77f002acbc9afee71b": [
+   {
+    "id": "signature_art_15",
+    "set": "e795765584d6bfde39c99e279216ed47583831f4c6d3270be27dd5105b6182b3"
+   }
+  ],
+  "4b7e172afd07683e8e12fd8bea360920535010006a497822d67568dbd26bc043": [
+   {
+    "id": "freestyle_combat_15",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "4c85d9f52a434280fdc9f64f9a2c103eead1f5ece917c1a2768a9188547f788d": [
+   {
+    "id": "seal_20"
+   }
+  ],
+  "4c8c8134164598f276396adab23e6e79e63134271c78991791af8986bbd19494": [
+   {
+    "id": "shade_strike_08",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "4cb94c27407c9a12c98267671828fdc18fa9d6fb87f9da7eb6b3b3ae1e520aad": [
+   {
+    "id": "freestyle_noncombat_02",
+    "set": "9c32429c292637fdf6cb659cd0ba247b03ac4980727fca1df0636eca84751ea2"
+   }
+  ],
+  "4cc293118ac5507121d8695101afd47ae10789a289f36346e65dac9f36bea019": [
+   {
+    "id": "root_combat_03",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "4cce3290066e78904db9f75e06cd386e50398df50e7b16d5e6dfd8ea0991fcc4": [
+   {
+    "id": "freestyle_noncombat_12",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "4cdb0b779b9dd9915676353c04ba46f9d66f54777e17ca29ce6b35d9350df7ab": [
+   {
+    "id": "steel_strike_11",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "4d7a76c3b1f65101014688f1c70b8cb3d91cba246fc998fa0d4a2c6ca47b20f4": [
+   {
+    "id": "freestyle_art_01",
+    "set": "d57bf13b93ddf550cd4e3e719e7159a1d8bdeddf05e02efe38b9ef835e71faa2"
+   }
+  ],
+  "4d82d85838dec8b62510ae713cfec3abbff04f0113a2ea3a015665464f773378": [
+   {
+    "id": "signature_strike_28",
+    "set": "e196d43174f59efc826753a520c25080c7dfc2a416dd2a859ef377cae757fbeb"
+   }
+  ],
+  "4e191187cfd4301414c08ab307cd13fa0978095155b97909c8e7f73cbb822f26": [
+   {
+    "id": "freestyle_noncombat_07",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "4e21f6ab1a69c2d9f347a6330c789a5b53c28a810813959b4d3b84b8f3ef4e06": [
+   {
+    "id": "pyre_art_02",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "4e391002e5371e0fd44066e400848fdf7589442274a2516efad0d399410153a8": [
+   {
+    "id": "shade_strike_18",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "4f484d9690199e91f1d454b4a7fff01f4ed774ab23f023bdc6732e6f3f660597": [
+   {
+    "id": "personality_09",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "4fbc48a9db5f5e87514e1127a2111cf35d7714eee8be59357863defe45df05c0": [
+   {
+    "id": "personality_31",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "4fdecab684599bf17c4ed5014db96a8d3a4be9a5abd8467977a8953482cfe568": [
+   {
+    "id": "shade_strike_14",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "5028c46f65dc18de477ee2ce6d3dbbef75a739b959fa2194c4f9eea3c39ebb01": [
+   {
+    "id": "steel_strike_21",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "506d4e70bd46e3ff02f1b8ec692596f70416446bb0d23fa26cde60c7f4f7af8e": [
+   {
+    "id": "tide_drill_03",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "50c59ca865b4fb7d74656e7ca8740747f9b4214e73fbce05e5756d365b7ec48a": [
+   {
+    "id": "signature_combat_09",
+    "set": "61725629f6aa71776b72248aaafa7a14d48b7a011f580120a1e5c6650b56d00b"
+   }
+  ],
+  "510124e2007bcd7f9b2c5792f5617874a3dfd55431d5e10fc81d8d05a0af96be": [
+   {
+    "id": "signature_strike_09",
+    "set": "9c32429c292637fdf6cb659cd0ba247b03ac4980727fca1df0636eca84751ea2"
+   }
+  ],
+  "524e8d929d0298f84be395f09c2d31195949181e5f1ca28eabae150ad6ecf6e8": [
+   {
+    "id": "freestyle_combat_05",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "52517123382baf5995ac9f417ce33e32f663592a605c23523aaf6ca49b5f5c5d": [
+   {
+    "id": "signature_drill_09",
+    "set": "49421e7678e893c8d8acbab2ffd05e8233fcb9774b790eea8f10f1bbc0604b1f"
+   }
+  ],
+  "52568c505865ee999b7e568acbe6e186d3fe17db08252041c38727e00ca6defa": [
+   {
+    "id": "tide_combat_03",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "52d2ef316ae397b70fa87e69da4ff84e5c3156dda6fe50d06bd9a995644ea13d": [
+   {
+    "id": "pyre_drill_01",
+    "set": "723da093ea89596378d793cf4eca81c9fd5a5e0e1df68dbe29564c7e463150d9"
+   }
+  ],
+  "53c51323c55aee2c5d7e38048bfaaac268dc7d18b5bc8b439f80dafa2cb7d1dc": [
+   {
+    "id": "storm_art_11",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "53e229e653f7433420ef66528abfd950bc0def564cb7343cdec5c623115863a2": [
+   {
+    "id": "freestyle_noncombat_03",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "54689654bea0dbf7f85b09a91fe8d8d3cc2b877e1747970873b8dcfbdf201edc": [
+   {
+    "id": "root_drill_02",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "54de2f7bc673a48428e5ce1961d80a28d2a34000672c503800f74330614b3f08": [
+   {
+    "id": "storm_art_12",
+    "set": "2b5c4e5f49f3914850f4df5415d32d8cd6bb96b79f69e67360ee1adc1eda7468"
+   }
+  ],
+  "5552d13f4e79cbde3f378fd3090d6ec46674c7f69785cbf44c5a531854580ae7": [
+   {
+    "id": "tide_art_10",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "55b2441f5780347efc92be38ef0fc011d9f5ed673501b50410d75c9e358832a4": [
+   {
+    "id": "personality_37",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "56511bf6488c515bdf6815ababf9c3f3e35bd674c2c97e74f31916c2aea4bf52": [
+   {
+    "id": "root_strike_09",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "566b950626ca3bd872cec5b2438c3e3c0fa7e0fee0ef480744d6130768697720": [
+   {
+    "id": "personality_13",
+    "set": "e196d43174f59efc826753a520c25080c7dfc2a416dd2a859ef377cae757fbeb"
+   }
+  ],
+  "573a7b3d18f32610424a3fd98d2f8fbf86f1425eb5b960ae38226e4229365094": [
+   {
+    "id": "pyre_strike_10",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "5756a27e88122aee82fad103013ab03ae9d7aad41bd17482ae4b6713bd92b43a": [
+   {
+    "id": "freestyle_drill_02",
+    "set": "6ad33491f1cff45b2578f94c34c2fcae27edfd57e901c29b10a6c184e43b04d7"
+   }
+  ],
+  "58ada110bd46131d1dbf76c9bdf9c9c1cfc761dc0b77dd14cdae3bfa7e6ee9b4": [
+   {
+    "id": "pyre_art_04",
+    "set": "19ebb5d5bac79aac23dde0a5a5c81e8497483b99e2caa05117e6be8c042bef59"
+   }
+  ],
+  "59e50ad6c8a41c61894b88f0a2369dc7c290d599bc7b8b37263b95f32dc3a991": [
+   {
+    "id": "seal_01",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "5a357a786f00e8240cacd7b36db2945f5f5179995dda82304b801062217fa9ba": [
+   {
+    "id": "steel_combat_01",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "5a7271b9512f961d13314b28725f55eeba73dcfe7b10583ea034e7ff5fa9c471": [
+   {
+    "id": "signature_strike_17",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "5b7d359800be1489c0a731ac93a47f38215543aba5a38e1211bfc189b2fc1420": [
+   {
+    "id": "storm_drill_08",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "5c3262ed8a4520f2b771f7044ed2d48da42cff62821463c7af7b7842da671b6e": [
+   {
+    "id": "root_strike_18",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "5cd7f58bc0d45eb85a497cdad1f1b39e0c9aff04276dd32325bcba77dbe271b1": [
+   {
+    "id": "seal_02",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "5cdc06cd89c7b722c236cab1b8d2affaf12cab34ea928d1b3c7bc9cac07a493f": [
+   {
+    "id": "storm_noncombat_02",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "5d41e340c53f7601729d7fafcf810a148b613b3f39ebef9731b415135e9d6a03": [
+   {
+    "id": "seal_19"
+   }
+  ],
+  "5e25e6e95fe94588189f220ca0185e53a1dab7055070aabb39d6a305d5c0186f": [
+   {
+    "id": "signature_strike_26",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "5f3ec9910be005810566f0528c165cb42e79d0313592ecbd59601eca302bf320": [
+   {
+    "id": "personality_24",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "60700a9b42edc54e40dd3321c14fdb7cb2d018e87cd7f03421b1036e0d22d25c": [
+   {
+    "id": "signature_noncombat_01",
+    "set": "2ff4e0470f39ca4c2c4eb20b8cbb1e07b632eb2cc8ba356a9d9b5020d7ae9cb0"
+   }
+  ],
+  "607b61c23ce4685e082ef1ba026d84b967b4cbd02781de9b1eed669bbd79e01e": [
+   {
+    "id": "steel_strike_18",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "607bc6e1454cd6a2a4e0d26fbbeb0bc71ad88e1ac166dff0b05e30cc59c7e7d2": [
+   {
+    "id": "personality_48",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "60d7e3281ea83c43d233ada9f4250ede3f33d48086f8a77c186313fb17a913e9": [
+   {
+    "id": "pyre_strike_12",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "6197e925e91aa2365d4036cb09bd3860130b907777350d6871d0a63e321b9463": [
+   {
+    "id": "steel_strike_03",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "61b36fc2f680264a5721fb27a7eb9e716be5026439488fe34fccee282178cc01": [
+   {
+    "id": "storm_drill_02",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "6294a63b17b9339573d861d4eabc34bde1050e3bc2ebace7d98ca41446f3fdef": [
+   {
+    "id": "signature_combat_02",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "62b1b29cf50f2ad802052be7530e7e8f866c6b143300e35489285058ceab156c": [
+   {
+    "id": "pyre_art_01",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "62c8499935f1073bce6bb3e788b9c2eb7179cb9b4d7afae33a2620ab05609211": [
+   {
+    "id": "shade_strike_22",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "63e4620923e6424a8146f288ff825e316d35f3621f21fcc3ef9ea3f5e696897f": [
+   {
+    "id": "tide_strike_10",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "6437b995c88ddee38a27acd530f0cf09769ec29d1bba395d36fad977f378bc1c": [
+   {
+    "id": "root_noncombat_05",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "6457dc9b0bc28d34e456c04cfbcbd9a035f73560837d11fd2b32ff3b48081c89": [
+   {
+    "id": "tide_strike_11",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "65bc538510187c5fc635970441c84910bfc775008a8feb6dfc00942750417ae4": [
+   {
+    "id": "shade_strike_02",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "6616a9c03d33f4e3a0985d99bd6535accca7f6a8c5b22cd42cda043f6c51a537": [
+   {
+    "id": "root_strike_19",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "66908b5efb290fb81b23496bce1e5f6d6af1c9e6fcc5816f8640fb4320c765e2": [
+   {
+    "id": "freestyle_noncombat_05",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "66b2d2d6c6bcb1f2342de7a452526fb5e5a299db3f751cbcbada3f0de5645ccb": [
+   {
+    "id": "signature_strike_34",
+    "set": "b3641839f44934275a45237377e6d4b291b5436fbbda3421e96efa9ec207d064"
+   }
+  ],
+  "673c2df9710816b311d90cf8a85f4f34c2707c48638472b3bf5926639eff2518": [
+   {
+    "id": "personality_25",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "67d01245c546d02ddcc7774c9e983e1fe77644183d2df7edeb1ea4374ea60c50": [
+   {
+    "id": "seal_21"
+   }
+  ],
+  "68913bad5f1589dcac38421b7476ed3276131abdd5bb3a2d0e5b7ca7c48779b4": [
+   {
+    "id": "tide_art_04",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "69912e1d9ef93f880f0ff46d5fd1a13208e2dc9c9c5730787d8d1dbb0b44133e": [
+   {
+    "id": "freestyle_combat_14",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "69a7be18312829ba5b4eb7267fec489bfe671f6ad49e73a0153b1f58164c3dfc": [
+   {
+    "id": "root_combat_07",
+    "set": "f52bdadaa23bcca3324a9b7c1da09359d228819bfd8ad54eefd8a5e751ee7d1f"
+   }
+  ],
+  "6a30d5789e3d4eb95fd7458f9951e16b21abe8c562f4d62341cfa36510acdb6f": [
+   {
+    "id": "root_art_06",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "6ac5f890e476f4fd6d068982b5b01b8ae689f32f7f614fbc421e64f88e6ea256": [
+   {
+    "id": "tide_drill_04",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "6b5097d3c57a1acb176d109522b1c9339bc85a33931ef81a45f87260b06ece0f": [
+   {
+    "id": "storm_strike_03",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "6bbdbcbc438c7d42607cccd6f4df5c4722a036869c436668335ae611d5a629f7": [
+   {
+    "id": "freestyle_combat_08",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "6be0dc2fbdbfa9efda2d2a5eb41fef0198c642642190a032db02e378e690da49": [
+   {
+    "id": "pyre_strike_28",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "6c0454cabd75e00ab5429170f31696c5b71166479484ccd2443639f6b3977622": [
+   {
+    "id": "steel_art_05",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "6cc25177cdb76b3b106e8e53f50500bb6687e8adb51239cf911c3fe26bf77307": [
+   {
+    "id": "freestyle_drill_08",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "6d1935d6b2e207742ec7dc429c299476bb9f61d2cfc108f4fe67d1f02a10c902": [
+   {
+    "id": "shade_strike_06",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "6e5aaf00f225c8c1f22e508947e529397eeb4c2f5c694418a567d15a1b44acbc": [
+   {
+    "id": "signature_art_06",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "6f97ff509ed2ff88ba184f37830c27a7d65c971c0eb95632479bb9c9d0571df4": [
+   {
+    "id": "root_art_02",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "70949a8e2b28a9901307f3afe6b1323c6717235f3262ca72fc0f7262a55934ac": [
+   {
+    "id": "tide_noncombat_02",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "70b8f0dbeaf9acb1214985ab63bbafaf677030fbe01e01a99c059e385a7a9640": [
+   {
+    "id": "steel_mastery_01",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   },
+   {
+    "id": "steel_mastery_02",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   },
+   {
+    "id": "steel_mastery_03",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   },
+   {
+    "id": "steel_mastery_04",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "711583160f6a3c3a0e1c9ebbb0f6e65072f521ded33967a7f944e141eff5dd1a": [
+   {
+    "id": "relic_02",
+    "set": "f52bdadaa23bcca3324a9b7c1da09359d228819bfd8ad54eefd8a5e751ee7d1f"
+   }
+  ],
+  "71ca3aecdd434f6db6c9f7f793d7c4c17662e294dd43137f2404151322588341": [
+   {
+    "id": "steel_strike_13",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "72349017a13cea7cc0dee8e78e7dc9bb3e24d286c123c7fca43b7852dfdf6174": [
+   {
+    "id": "shade_strike_07",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "72933de8b5de2a12f31b09331610adac1cd1d71266f5535134fea1e7a0da2d4e": [
+   {
+    "id": "steel_art_11",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "7367d0e6be762bc80e2ef230caf8bcfc97a594823c6e4765b656d3dd473d00f0": [
+   {
+    "id": "freestyle_noncombat_11",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "73705e31aa8660c346cee736fee142b388436ba1dba5834f67a9debcd43aa7d1": [
+   {
+    "id": "personality_28",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "73bea7fb4a2d46e716b89b0e04bb3ab50908824d7dbf7465c0368ac70b5e4f8b": [
+   {
+    "id": "personality_50",
+    "set": "e8f8af62a8f1ea74c03511718780ad629f29b6e520a006f36f82c21bab21847d"
+   }
+  ],
+  "7568cac5ac38a6ec7004757b5eaed81d773a2bf827aba7c718183b528329e294": [
+   {
+    "id": "freestyle_noncombat_19",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "75a90d32306669d6c7ae9cdf39c3ebb905655cd5a05644b32cf05c7ad7428b8f": [
+   {
+    "id": "seal_13",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   },
+   {
+    "id": "seal_27",
+    "set": "8ea6ef882501bd6769194f67cf847d98671f64f41de29bc9e1dd2b4f95f08cb5"
+   }
+  ],
+  "760fdfe2ef57c5c9fba7910b96ccd31407d5ae4c84e213343c46731c48a4cc73": [
+   {
+    "id": "steel_strike_23",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "765c580dea55c51cc0761b864dba8c844ad3145b3f96a5c1e7e70ad23227de92": [
+   {
+    "id": "pyre_drill_05",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "76c3307a9bd90f293bfb8bbf2df9b96d475b9330287cd2fb3d922f2a80301ab0": [
+   {
+    "id": "signature_art_13",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "77100194428c878ab5eaa667d7f184e92ad11971b605146d727ce222cb069647": [
+   {
+    "id": "pyre_strike_27",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "7809ede8ad953debdc876ea8b5068976a10bfb3493c6e23fb969e608deefa6c1": [
+   {
+    "id": "shade_combat_03",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "78b85777de01c5b6aab9185fd6b06103f65ab66feceda599a9a1cfd6b89f8dc3": [
+   {
+    "id": "shade_art_07",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "78c36f2d68931edffac648b7fe78cc161d85da966ced6abf82be628d324d4635": [
+   {
+    "id": "personality_73",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "7a834b098e0a301c6e467987c945da6a403086afe85da6fa89c315099848fde7": [
+   {
+    "id": "signature_combat_01",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "7aeab9763f1755f456a6feb67802f5593f67ed4dd80fb7871e2371cb4cfb9b86": [
+   {
+    "id": "signature_art_05",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "7b0911c40049aff03b2b7a4b81dcdd65aa89365504b3adca1f6a27bbef0584ee": [
+   {
+    "id": "storm_art_04",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "7b93aab915af80d0b15f21d7c92cf05b6bb1ce225775a570f8a5dd37e9676c08": [
+   {
+    "id": "steel_art_03",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "7bfa875b2c9c33639ae405942952ca8d172f0c9c605428a0f6d4d28764feec48": [
+   {
+    "id": "pyre_art_10",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "7c06efd0118f720b325ab996904dd82282c5ce4a86f9a0740dbd23e8095f4ffd": [
+   {
+    "id": "signature_strike_14",
+    "set": "9c32429c292637fdf6cb659cd0ba247b03ac4980727fca1df0636eca84751ea2"
+   }
+  ],
+  "7c62e77749bedf59ec818a75e82d79da4356f8983fa2509c90aa01ba890f963a": [
+   {
+    "id": "seal_22",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "7cb91e27a6361b53ed4360c7ab6a624d799789cbcfd16a100ccbda239fa1b0bf": [
+   {
+    "id": "shade_drill_04",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "7cf4b1142693aa37efd6f63623d0844f66ea787b96998f67bc675a7b68a5d38d": [
+   {
+    "id": "pyre_strike_19",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "7db80c9d0cf2422b68d62be9f1ae40a43fb13bb2e908ff24456c26e5b70f5ef0": [
+   {
+    "id": "pyre_strike_04",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "7e1a22d2a7e15dce4338a451e084f090e71db16061d92a71bff4a07abecc59be": [
+   {
+    "id": "seal_11",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   },
+   {
+    "id": "seal_25",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "7e6f5fb7b8516b80b287cc495df110d420c8e4f2d83c7546125c8b2e33cc66f9": [
+   {
+    "id": "personality_02",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   },
+   {
+    "id": "personality_03",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "7fe3ea12bad979142c75886f1c254212b62b1579df2b3e1294892daa3a54df99": [
+   {
+    "id": "steel_art_08",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "808824f6f8f26885eb729f331cee4aa994ab03e5908ee29367be90c17399c0f4": [
+   {
+    "id": "shade_strike_19",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "813eb2a5b90e5614ba8b60f1ec105c94161da4d011562366ad8714c08f42c99a": [
+   {
+    "id": "tide_strike_14",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "818c9348e6d47350672131a49e86cb47fc603a9bf5b61ad3c3497a7df636cf3c": [
+   {
+    "id": "freestyle_strike_06",
+    "set": "278a61d912172f40be5db2a78888eae265097c16932d9e38507aa9018a5265f8"
+   }
+  ],
+  "81befde5081997e00a7bf17ed87e62059cbbe0f910eb7f7a3212e0f45972c1b4": [
+   {
+    "id": "pyre_strike_05",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "8405f76b96c54880485baccd72781fd650728bf558944ba5dbd58e112b1e3300": [
+   {
+    "id": "pyre_strike_13",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "840815978703489366f15e446761f61708085f511dc08dc90ec19815a1e644ac": [
+   {
+    "id": "personality_11",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "85193af0bd63c48a46729258007f5c9452dc16a0d8e948c9a1e4c580102434f0": [
+   {
+    "id": "freestyle_noncombat_09",
+    "set": "4d71c5724b5053db6119b3bce2ad2dcc55fb405bc72dba5c8cca8c994151aea3"
+   }
+  ],
+  "85b7ccfd1a4becdb2d708deb77e734ae9d62c1559b75c837849d5f8619575dd3": [
+   {
+    "id": "steel_strike_10",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "85e8bbca135428fb17e33324aa53df871ff5316eab420454f0ee2067cbda4834": [
+   {
+    "id": "storm_art_03",
+    "set": "1b415737719b1c2912a9ee00fc004697e753f1b0f3e4a02e481b9b12fcb1efb8"
+   }
+  ],
+  "86d5d2ca8f00355803fa38ad5873e73ad275ca10fe75ed8f7e564c9d73fae5c8": [
+   {
+    "id": "root_noncombat_04",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "8734ddf61f7668149ffba6a4a2e856ba790f3113f4d88493d0f291d17855885e": [
+   {
+    "id": "tide_art_07",
+    "set": "f52bdadaa23bcca3324a9b7c1da09359d228819bfd8ad54eefd8a5e751ee7d1f"
+   }
+  ],
+  "8778b0d67faba1d8d67728fb65b5ea0ea8f876e38f8e3f6ccf14a89cf88ddd11": [
+   {
+    "id": "signature_strike_05",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "8a3af8e9721e1f782a5d177dd3740d06c1176400911deca8e789fa86658b93b7": [
+   {
+    "id": "freestyle_art_03",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "8a65f8f679c001e364238eac70fce2055caff15d07a7480540e547cf77d51558": [
+   {
+    "id": "signature_combat_08",
+    "set": "aedd8464b4444928fe4b89367e06805eae32ce8a306803f11ea1f4f1af2dc1e7"
+   }
+  ],
+  "8a73326393bc2c18678ce3db7b37ce96c73adec17857b9817f8b53ce553ebc86": [
+   {
+    "id": "storm_drill_04",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "8a7bc5cbb69311df305c803edb242d0d69ce6fd5909e7bf62364f7718364a3d0": [
+   {
+    "id": "signature_drill_02",
+    "set": "32e8b41f1bf4a4dd59a59a8f27a5bd63aec42c447c2836b8f5ca78ee61aa1fc0"
+   }
+  ],
+  "8aede72aed62bb78243e31a01e7fcff4b322d108e373a981a5598db4e3dc087e": [
+   {
+    "id": "personality_74",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "8b0caf5d1304582ea580f3876f4f075365ea2612ca71f78c3ba4b682467e5924": [
+   {
+    "id": "steel_strike_26",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "8b298a443e97849b97f712451dad138899bf671a471eac9eca6e1f5c4dc2754f": [
+   {
+    "id": "storm_combat_02",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "8bde100ad8fc88a285ec97f03dda736842ae782154d56c23ef8aeff0f506be71": [
+   {
+    "id": "seal_16"
+   }
+  ],
+  "8d1c68626be21981e7ab0d60a738c77e9e66791b6342e192a67e2560f49d32aa": [
+   {
+    "id": "pyre_strike_16",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "8d2bfc5d9ee86735155fdcccdc1f73cf25db51344b1d8206f738ed18a8ff2093": [
+   {
+    "id": "storm_art_06",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "8d44f291679d4654ba8fe7a699408373e1a96dfc681c5b064d689a273fbe109f": [
+   {
+    "id": "steel_strike_06",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "8d6c9f1a361e1b0449ae0d620edd464250f1bd7868c4ea2af2f8eb29b267d414": [
+   {
+    "id": "signature_art_19",
+    "set": "5fdcff2bf87939e8bd54b8babdb9a2365abfe08863ce6ea4d51698a65d9b2879"
+   }
+  ],
+  "8e0ecce9b0ce1edc9ff26b443982f5d0f117951eb56553b65bc51c5ee2dfa062": [
+   {
+    "id": "personality_20",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "8fce8db12da28ce1a562d0126f8af3b4ae4837740d07a28e46ee4f5f9c541a74": [
+   {
+    "id": "seal_18"
+   }
+  ],
+  "905a04f6bec338cff40322ab4f82c630dc317b5b0cc2a49bc1fcd0ff319038d2": [
+   {
+    "id": "signature_strike_27",
+    "set": "e196d43174f59efc826753a520c25080c7dfc2a416dd2a859ef377cae757fbeb"
+   }
+  ],
+  "905bbd405a45dec71cdf0f301bef6cc13c5e832416116acb9539e01e61517bd7": [
+   {
+    "id": "shade_drill_03",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "905c6bd8db8e2cca2eb46d2e3418c2a639090c477592d50c6fb2f418599d0fcc": [
+   {
+    "id": "freestyle_combat_13",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "90759066fc8d119ab4a5dbf7fc7198bc4138eb2f48472ec5b325523330384fd8": [
+   {
+    "id": "tide_strike_12",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "90cdff35d421b256be44c8d335a3d87b08921c1691461aba5f20bfe98430cc25": [
+   {
+    "id": "signature_noncombat_06",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "9101f8cd8f36a29f78b9134adb918e2548a2e597411b6e49a091e5607e4912eb": [
+   {
+    "id": "freestyle_combat_18",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "910ca9bac9d3392abea41ab40ef4d9d50e6b9712da97753635ee03d4e9d22d7b": [
+   {
+    "id": "freestyle_combat_02",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "91b5cb782abff54a679dd37842d07b88186fa6afb13fe008d12a21fb3ad7fea1": [
+   {
+    "id": "steel_art_01",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "91e008c5eefb5469444cc175d6880409e339874170933bd90eb8b2c9dc5bb3c6": [
+   {
+    "id": "personality_01",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "92a97c8f4d2bbf7561a2403b66a4aafe12f62689ccceb655cff006add182fb6e": [
+   {
+    "id": "storm_drill_01",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "9317e2a358e821e3d2aa52e6d6182eed86e205485440b63a8779c430fe192169": [
+   {
+    "id": "freestyle_drill_07",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "9334f4280f02af973ea1944bc9511912087d611cc91885b3c72dce9874ed9e0c": [
+   {
+    "id": "tide_art_02",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "936ae3ae38175d9489e452fb355c1461379756b472aacb9b43a58030bf757987": [
+   {
+    "id": "signature_noncombat_08",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "949de74ac9867ba0bee3006f4d5e3d2f777df9b320df437d90e44040a1ffeaf2": [
+   {
+    "id": "signature_combat_07",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "94a6c9b0906a538ff813bdeba06632f67e66f5d470935647585669b6843b3093": [
+   {
+    "id": "steel_strike_09",
+    "set": "b6e614147bfb958b9fb9e1bdf69ba73452e377ef3be2b360882df5b14f123eec"
+   }
+  ],
+  "94bc1633f1b2560b16f66744c8ebaecd42101562102bc330a5f781882557d37e": [
+   {
+    "id": "steel_strike_04",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "94c0013c0b1bcd7d62e44f82776d6b33c5d09ca1b51f432f7144305358581167": [
+   {
+    "id": "signature_strike_19",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "94fe589b0bad50b913948f3ac38f7dfe109137deb1bc9ef96b662a4b419c00fb": [
+   {
+    "id": "shade_drill_02",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "9508594a14b701d3dac50580fb57e0aa793cbb44f84db7b76785d946bb8b4cdc": [
+   {
+    "id": "storm_noncombat_01",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "9550aed0ff4c0afb828a2170a17830fb9d612691f4852210f80460e2808ef582": [
+   {
+    "id": "shade_combat_01",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "95528d2713f382c677206149d60fa19364a17f6fabca239b866bc84e1c34a6a0": [
+   {
+    "id": "storm_art_18",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "9561d7ea7b3b5e3749bfcd822289228463dbb866b4811aa694aba66ff4a8110f": [
+   {
+    "id": "storm_art_05",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "95a74a275ea2ffc8742a1c55c15b793fec1b65257c8b2c2d62568eda6ba1558f": [
+   {
+    "id": "personality_26",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   },
+   {
+    "id": "personality_29",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "95fb42adeb24238a2efe0a76c1ea5da537cecb2bee0c606ad050e04fef99e0f5": [
+   {
+    "id": "freestyle_strike_03",
+    "set": "632caa23cf238d642593a5eee0992e2b4f3ee77efa7c6876092a6e4b6aca15c3"
+   }
+  ],
+  "961540eb2480e8c193502341ed6c1b2993968ede99cee79a3abae1ef025ff318": [
+   {
+    "id": "storm_drill_05",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "96440674faab3e9c0626fcc96566c80e6ef35b4e390363b2e2c473c05409b589": [
+   {
+    "id": "shade_art_05",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "968bbd27cc5e292ce7bd3f010e468cd537a1564f798f1d919eacb75b66a59ce2": [
+   {
+    "id": "tide_art_08",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "973632e7e4fd3ff1fa78c5703e8ea56a8e159427edc3864c0e8cbdaf9c827552": [
+   {
+    "id": "tide_drill_06",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "98317d5136ef895c95270bca672ea69ee0141dbfb333eabff27f15c1b1216506": [
+   {
+    "id": "root_drill_04",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "984b6db0247654eae9b02ab5b3d93506ef194d96a3f3fd732e5b8233f48218ef": [
+   {
+    "id": "personality_49",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "987ac9932575b936238560ad25320d1d447daaa46a2f1c78934edd2abcb1d19f": [
+   {
+    "id": "signature_art_01",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "98b1f1033b1d6a82a6677744ab7bab3b26b0950d17069daca667b8de10b3405b": [
+   {
+    "id": "freestyle_combat_07",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "98b72f939aabbe787acb6259a48f548fff7b9517b5241b080083315920cd9e87": [
+   {
+    "id": "tide_strike_19",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "98c72dd94bf3436e0aafafe7c3688c04c42a4d2b46661bc916814ed4e1e7bbcf": [
+   {
+    "id": "signature_noncombat_09",
+    "set": "91c82899ca07bbb0165ee48784ed78380625b1d6151545b20448a94d6a91f67a"
+   }
+  ],
+  "999c51088602ffefb538bc4522a76916655c253bff8b32c3f64b5bc8cb6dabc5": [
+   {
+    "id": "personality_07",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "99a0260b4355e059d61c2e154a570378504cf8d3837988c417cc8535c40d46f1": [
+   {
+    "id": "signature_strike_24",
+    "set": "0a2bc99f44f7f4172d9dff009a62cddbf54832693e63fa2350d8bb65ea05a0d8"
+   }
+  ],
+  "99a601b5d62190cc5936e9a7c39f53c9339c04c6cf200ee68bccb47861e01085": [
+   {
+    "id": "storm_strike_09",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "99ca0877320f8d0afff94dbfd3c6e3cbe6cac6ae9adc97426076199fc600f0af": [
+   {
+    "id": "seal_12",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   },
+   {
+    "id": "seal_26",
+    "set": "8ea6ef882501bd6769194f67cf847d98671f64f41de29bc9e1dd2b4f95f08cb5"
+   }
+  ],
+  "99d4525f67f6faef2c6485bf6f20cb157287f893a72e39ce4b7c02cd91fa7247": [
+   {
+    "id": "tide_strike_20",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "99d85c20c827657d9532a40dd2a1357ae26c52f84e38cc704502292ca62ed687": [
+   {
+    "id": "tide_art_03",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "99ee1511167553f40494417a9906c4220c9456f93fc893c6754bd80b6d097b22": [
+   {
+    "id": "root_drill_01",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "99f69420c0fca3db1a4989fea5bf637423c0becc1fca931094488e8abd0c2170": [
+   {
+    "id": "shade_art_02",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "99fd920140c2227d71c414910165e98bb702ff642964c67d58fac35e2d60b953": [
+   {
+    "id": "shade_art_13",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "9a1ad4c4d1d60771dfd1b53dec3ea3ccade893e42d734f232647543d1c129513": [
+   {
+    "id": "tide_mastery_01",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   },
+   {
+    "id": "tide_mastery_02",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   },
+   {
+    "id": "tide_mastery_03",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   },
+   {
+    "id": "tide_mastery_04",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "9a8bbff6f6e36d6976d5db3df9c187e4cb8c197012e60edb2a2edda67e12a14b": [
+   {
+    "id": "storm_strike_05",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "9ab00ec28016f1712d2e75874c815d7efd3831c528de569be94ce5ae2c777a00": [
+   {
+    "id": "freestyle_combat_11",
+    "set": "e196d43174f59efc826753a520c25080c7dfc2a416dd2a859ef377cae757fbeb"
+   }
+  ],
+  "9b52bf6818474abfb0c54b4a009513edcca1c8b42e76f45135d93017213586a1": [
+   {
+    "id": "personality_08",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "9bb5156507b3b8a48883f7593195ce9f91e928cf85f363f75f1a4b36fae937dc": [
+   {
+    "id": "personality_15",
+    "set": "e196d43174f59efc826753a520c25080c7dfc2a416dd2a859ef377cae757fbeb"
+   }
+  ],
+  "9c4b9447469e96f458f70cb70e8c4299701fd87193fe388541539ef3b6b11faa": [
+   {
+    "id": "tide_art_06",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "9cd0c79fb0cc44616544e346bd7c402472c4883d20dd5d2c6e9c79b461ff24fa": [
+   {
+    "id": "tide_noncombat_03",
+    "set": "61cb4512dfb4f4cf112f967762decd2e1acd715b0a68090c4c8db2879f1373d4"
+   }
+  ],
+  "9d23b0c71a4cce02805154e603d7821d79c94193ed1aae92bc013e936054425a": [
+   {
+    "id": "tide_strike_05",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "9d8940ee1e4806cbc257469f6f408753a808bcf07eb5f6627036a1dc6d3b2228": [
+   {
+    "id": "freestyle_noncombat_20",
+    "set": "03ba95276abbacb9357bb4cb9b15ae17655be592e3acc38309fa6be024d04e7d"
+   }
+  ],
+  "9da103a20593762d608e9968b91d965366798ee89d2f30c83f3888dfe2ff992e": [
+   {
+    "id": "personality_45",
+    "set": "0a2bc99f44f7f4172d9dff009a62cddbf54832693e63fa2350d8bb65ea05a0d8"
+   }
+  ],
+  "9dd42c0f5df11625ca31877aa8d3df53bf376f0f0767d3cabc6ebc851e7cb4ed": [
+   {
+    "id": "tide_strike_01",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "9dfd8e5e92a70f05901330664509a816c1a87897921c9e8093af81cf667de200": [
+   {
+    "id": "steel_strike_15",
+    "set": "e196d43174f59efc826753a520c25080c7dfc2a416dd2a859ef377cae757fbeb"
+   }
+  ],
+  "9e8948882eaa08d3d554f47af7e9d35d50e9cf21eb193558e4103003432ab366": [
+   {
+    "id": "tide_art_05",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "9f2cec57a26bce2170addc89c474912624e9198e386bf71b9cec3b13bb81d262": [
+   {
+    "id": "pyre_combat_01",
+    "set": "f52bdadaa23bcca3324a9b7c1da09359d228819bfd8ad54eefd8a5e751ee7d1f"
+   }
+  ],
+  "9f41d3d12f5b0bc1d0b5b668f3f6be4ed9523c9edfe7e0a29856975bd121f244": [
+   {
+    "id": "freestyle_strike_04",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "a0081e0932dccdcb2f84ec0f18e84adc799b59a61102baf70156e90a338ab711": [
+   {
+    "id": "storm_art_01",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "a024d08d6d264f9db9a8ca0294eaffe0b4b6acea657d1b18e906be8d8ae255f7": [
+   {
+    "id": "personality_40",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "a06b2980d52f93b2f80c3c40b6633ae41ffd23dd67c0f606b03cb7216ffecca9": [
+   {
+    "id": "root_strike_07",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "a07e066a482e25f2a6f8ba804be228f7e12fb5d53ec5e2ff587f316fbe5dde38": [
+   {
+    "id": "seal_07",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "a13571ecd24c96aa7e52a289c975f819bb0da5c4aef89b2ece7d1789d6eb7957": [
+   {
+    "id": "pyre_art_09",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "a18b7528217e11e06348935805b2aa90fdb5b47cec9a10215361ba6299e7a5c2": [
+   {
+    "id": "pyre_strike_08",
+    "set": "9c32429c292637fdf6cb659cd0ba247b03ac4980727fca1df0636eca84751ea2"
+   }
+  ],
+  "a19f8712cfbffa955140b0570c935c481847f3437530e24a0c34784d447f1093": [
+   {
+    "id": "root_art_10",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "a1abef611f2399049e141a55a46cc844641ba3c76c1dae917cb7bc1d0549c688": [
+   {
+    "id": "personality_21",
+    "set": "bbca20b034cbbf2b748fe36c0377901f7b53ea3e28b9264d99613b4f26e91bf5"
+   },
+   {
+    "id": "personality_22",
+    "set": "7a8c0ea3b14fbff8d1bfceab68981417dfba96a0a483e730ee25b5a47c8fa3cf"
+   }
+  ],
+  "a1d468c5565aa121e9dbacdc58d41ee2e68ede498783ab1a04bc10b27bd443f4": [
+   {
+    "id": "signature_combat_12",
+    "set": "115e2c74b974d006de1e10e644a63816fa4bcdad9af85ed2ff072e4ae49acde7"
+   }
+  ],
+  "a1dd4a3a1eccd8e6fc4bf4602b356a7f29f201cc6db90e23fe75ec46efb04043": [
+   {
+    "id": "freestyle_combat_09",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "a1f6b5dc1646f6f3d1d9727ebdc55db74c8ea7cac55f5856ac4683eb5e55b1a2": [
+   {
+    "id": "storm_strike_10",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "a33cd9848c0a462598cf6e7a848b06bacce084605c15494a451a10aadaa58bf1": [
+   {
+    "id": "root_drill_03",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "a3e915db8647fa6e09b8a0cb3a1efc2eb9f3c3d681bced0367fb3c773dbec299": [
+   {
+    "id": "pyre_art_05",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "a3f31119a30b430673dfd44dbead731e2219afd99cbb741edd4a0c9bbb7c5336": [
+   {
+    "id": "shade_art_08",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "a42d44a28514752449c80a14227965e3ba5d737b5b7499fb51f57e36cf11ae91": [
+   {
+    "id": "storm_art_20",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "a4b104b38aa7d568cd7df8c2ad0c4f40298ee1d1673ae02b7f8fa0d14009eb5f": [
+   {
+    "id": "freestyle_noncombat_22",
+    "set": "8569203816847496f87ce06d3c01563cc4865a70cdb6ca5f0d8ba277ae35b55b"
+   }
+  ],
+  "a5485d94abad1c172787cef6608035bd1a03ba4a91d236086dbb5cf1abb53230": [
+   {
+    "id": "personality_04",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "a5985f5d57f5834047ee6035e46182aeaef944b199a216e6355f1565e503f550": [
+   {
+    "id": "steel_drill_03",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "a5e074378ab95ffd70928fa51cf82949cf67e99733ebdf272ce3e9a840714ba5": [
+   {
+    "id": "tide_strike_18",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "a5e9cb1d94a41b4d97cfd8d68e3a8fa9673cda2bf5769a914a3ec1945ac08d93": [
+   {
+    "id": "storm_combat_01",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "a6b15c91682877f17db2b26853bbfd0e07c612c21b64375fb79c5de269fa44aa": [
+   {
+    "id": "tide_strike_15",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "a6e09775eca64ed5528fac42b8829cde52e0c27ca3b229a12433f74f90562e08": [
+   {
+    "id": "steel_strike_28",
+    "set": "a8a1d45040cb6bfba22177f68b26fe21eae1959f4864bcc77ddce543bb120629"
+   }
+  ],
+  "a7333331df2739863d9b41eb6ce0bc8c779fe97179e1a19e0918d32581da5373": [
+   {
+    "id": "tide_drill_05",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "a8518425c796cf9452cbd25c96e9908a2dfb96c4b32f9b38396207fa45d36fee": [
+   {
+    "id": "freestyle_drill_03",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "a85f2a0be746e66091abf73167fb076d1dcbe4a923e28c6d491e829f41d4731e": [
+   {
+    "id": "shade_strike_04",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "a9855812f6dead4faee6db8c64da799b299216dcf85258039b52b9ad1b870d65": [
+   {
+    "id": "signature_strike_11",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "a9a0f92f73c4d9442a8c6d23f528fa854d1e8172061b214900607a40c15bb3b6": [
+   {
+    "id": "grounds_01",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "a9ea67bec621529e260b9539dec7e71ee59a9a46245c675b021f93d7647be976": [
+   {
+    "id": "relic_05",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "aa3827c4b6faf778fc706259877bdcf51b587bbfc70292f32e34b63c32cfbf12": [
+   {
+    "id": "signature_art_16",
+    "set": "d993db6f532dea8611a1761d66af20c2b0f589cbc415ebdb2f80aa83a1f900fe"
+   }
+  ],
+  "aa56c826dc0dffdd4d262b69911658d2159a37b02678a5eedd70ce1649a56da9": [
+   {
+    "id": "personality_14",
+    "set": "e4ab3706bec7a05e902756a02ff565da501a7d09e36a92ffab7b3cdcddd6e0d7"
+   }
+  ],
+  "aa7058eaf65c448f23c9a61fd53cfc0e9b16cbfcff280554a5c767eedcb37849": [
+   {
+    "id": "freestyle_noncombat_15",
+    "set": "91c82899ca07bbb0165ee48784ed78380625b1d6151545b20448a94d6a91f67a"
+   }
+  ],
+  "aad741919561c1d52fd300e0b46b22dcd1a22fca545bcb3daa4cfae6c8c59b10": [
+   {
+    "id": "signature_strike_07",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "ad00965850d1bca56e0bfa84ac1186daf841dcc2ca9487fd4cc5dda707200635": [
+   {
+    "id": "freestyle_mastery_01",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "ae7fa12b42df4d00287fbe0af3e5a99c0337b288513d51487374925cef16975e": [
+   {
+    "id": "freestyle_combat_19",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "ae9676817cc35d5359150336aa735e1d8c79784818f5fa2b9b894cd36f57c1bc": [
+   {
+    "id": "signature_noncombat_12",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "aede992a78c3f5b1d456a14c9b693eb70b60d92f7864433b761810ee7dc2cd1a": [
+   {
+    "id": "freestyle_strike_05",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "af5e283bda2097c7c3703466ef7ed0c10ae8fc1c6dc2af1029b7e8fb71613ed8": [
+   {
+    "id": "tide_strike_02",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "af944af70dd5e88716d4f8564e2459d86be2a44e8923e03a2c07c500c6455947": [
+   {
+    "id": "storm_art_08",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "afd1a8fffb87f7a091c924e0b851f41be19d55450cf7946a5f03cc02221b6481": [
+   {
+    "id": "signature_combat_06",
+    "set": "9c32429c292637fdf6cb659cd0ba247b03ac4980727fca1df0636eca84751ea2"
+   }
+  ],
+  "aff1fa1c3caafffcba178d5f63fcfe1f667b944c8391d1fdeef5f90e201d50fc": [
+   {
+    "id": "personality_23",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "b004aecd9e15e4a82a117f0833fafbd69a186e74e135e16444838f17032a3b65": [
+   {
+    "id": "pyre_drill_04",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "b065eee8f0d4719216d0ada238914bfa041224b553ca1620b06361782ba74bd1": [
+   {
+    "id": "personality_52",
+    "set": "f52bdadaa23bcca3324a9b7c1da09359d228819bfd8ad54eefd8a5e751ee7d1f"
+   }
+  ],
+  "b0b12c69dcaf4cc8c95588fa1b86c29240f6f0f0b064d68a1f0bc6f0a27e2287": [
+   {
+    "id": "root_strike_10",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "b0f940bd1ae7d72200cf912dc36a2aa783ceae8fa0d4456a8abec20fc3dba4b8": [
+   {
+    "id": "storm_strike_01",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "b1278dca145fa45b7b5f589833f5d034cacc96642c355b8638ec6bb715d4ae50": [
+   {
+    "id": "shade_art_09",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "b1602571385a6b208acf4985bcfd7428319caa9134e97a3e3e1fe6b1ee75c57f": [
+   {
+    "id": "signature_combat_10",
+    "set": "7f412bf55639feddeaa15e93c692314983d8bfa8a83390b3d85e9e92ede28a59"
+   }
+  ],
+  "b2a916a038d2d28e21986252d38a5b776bae30bacc6660695811f12fde50cb0e": [
+   {
+    "id": "freestyle_art_13",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "b3d0ad9f8cff3df8bee73049f867cdda10671a9867e087065e5b6299c3493d9f": [
+   {
+    "id": "shade_drill_06",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "b3fff2814d7220409c3aabe7810112e2fca26e0564d0af86d5d34d88067854ab": [
+   {
+    "id": "storm_strike_13",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "b4413b8ac0ff2554c45b70b92d253eafd58da6148db3bed918b424bf3a65975a": [
+   {
+    "id": "root_art_07",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "b500b8a15d964836a7307de895ab88d7d5e44770a56f2374028e0d0d39e60a68": [
+   {
+    "id": "shade_strike_20",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "b508a7f2cb766dbe81c57dc1ddf2dbbc39883939f16206691f56db4c99c9d504": [
+   {
+    "id": "pyre_strike_01",
+    "set": "d57bf13b93ddf550cd4e3e719e7159a1d8bdeddf05e02efe38b9ef835e71faa2"
+   }
+  ],
+  "b536cc6a8cc2cd1e5ecead58e175e9d7a1d08bed025ef05d87083b4bcfaf6fbd": [
+   {
+    "id": "steel_art_07",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "b55bb85289f3f379117826d145c634830d99cc227cc7a04405c3bf769ca23460": [
+   {
+    "id": "grounds_02",
+    "set": "0cdcfae6d8bb2f3d34202b1bc47b9efd69b11821ab62dca74d489adeac9efa63"
+   }
+  ],
+  "b56eaa815866d5f63dc7abec70afc4c782753da2ff35b612ca6d166d2ee063ed": [
+   {
+    "id": "signature_art_09",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "b5fbed0f1555a37bfde918d74bba696181d8c3fff001ae9ae08f9c41400f71a1": [
+   {
+    "id": "steel_art_10",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "b61dfdad9383685523860558e2f11838670ae2e6d2557baa85f4f405f08c0250": [
+   {
+    "id": "root_strike_05",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "b7125c19601ce857edcbf8b8e22c85a42799e15c08f6b7a6165118c9c832257c": [
+   {
+    "id": "root_drill_05",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "b793c253a12197b902481e5e72e80b41b9a013d74ad558c9139289ace80c6659": [
+   {
+    "id": "root_mastery_01",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   },
+   {
+    "id": "root_mastery_02",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   },
+   {
+    "id": "root_mastery_03",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   },
+   {
+    "id": "root_mastery_04",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "b7beee0530e18d986f054db4aba1e6b681c4c5b9e75f367c28574f6658919bea": [
+   {
+    "id": "storm_strike_11",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "b7d3589abee45d93eecb3be610af413ecd31a46d855e6508df4ec05f140aa065": [
+   {
+    "id": "tide_art_12",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "b7d5e522b0a8ccbb998536072b0f2f528fae7f02cc4d500f89f406388d548237": [
+   {
+    "id": "personality_72",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "b80d1641df4af61fc66736af1eb80cd5d0c9db5c5fb92d03a3d9a729687d3a53": [
+   {
+    "id": "root_combat_06",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "b8816852271257200c1a4be7fa249aca8ed8c14703aa637d916afa453d201b95": [
+   {
+    "id": "freestyle_drill_04",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "b8a5c4b8aef17ec8153303e557818346e4709860b86c8c27233cb5717204b6b0": [
+   {
+    "id": "tide_combat_04",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "b8ac56d9556e4265f385cbd1810193a7e02ac7aaec93b98a791c2f880532be67": [
+   {
+    "id": "pyre_drill_06",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "b8ffd5c7a274f9913e164c01cf01afa091a4d4e44c0a4b05159227c00673794b": [
+   {
+    "id": "storm_drill_09",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "b956d0da437237d1829adf9af67fee9b69446f6e4cf95b20e94bcf6d635e42eb": [
+   {
+    "id": "pyre_art_07",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "b9c5d367dd0f792aa81019b7f0636339a3736ae085d6ad792c5e47c4e5af0233": [
+   {
+    "id": "signature_strike_01",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "ba8ce250b3ec6ab66702070b4c8d6f3276ff3004b8f635ad3d1390671b8ef4c9": [
+   {
+    "id": "steel_strike_27",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "bacdab6acbe4c0ec22e56723ae5b2ba6dc5f7b3e246a994017f39f62b1caf819": [
+   {
+    "id": "shade_drill_07",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "bba11a95a02f2c3e1296ccb6eb285b54e145d7d23fa6d59274dc7999a2cc748f": [
+   {
+    "id": "steel_strike_05",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "bcb5c27c6c129e4bbf807be55d38cb8a562d0d1b9f8d24af3475a1faf94a9bb5": [
+   {
+    "id": "freestyle_noncombat_21",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "bd0cf1090f2ae0b3c17d5b1a4c35d7f1116cda896aef40bc853af1d222eb8805": [
+   {
+    "id": "tide_strike_08",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "bd303bf7e1841432fa86a8c37a680df665270387b5a5f6554272acfe9ce0f6de": [
+   {
+    "id": "tide_art_13",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "bdf313dd64eebfa3111990be3562a3200d4902746e53133fa9f3317877a1515e": [
+   {
+    "id": "freestyle_combat_10",
+    "set": "632caa23cf238d642593a5eee0992e2b4f3ee77efa7c6876092a6e4b6aca15c3"
+   }
+  ],
+  "be577d66c7eef74a59d2bb551d8ef37eeafa8930add83b0e57749bbf48dd39f1": [
+   {
+    "id": "steel_strike_25",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "bf8a4cc5d1a764f85d7e73ccb1a66dfd80d6ab819974ad5724004c3b9e4566b9": [
+   {
+    "id": "root_strike_08",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "c11ddd573672a217260d1f871236009f8bbddcb842140972d9fb3ecaae158d99": [
+   {
+    "id": "storm_art_14",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "c1855a7b1f12b6912228fd058ccc7c977125ff14d6d2bed6be20f23cbd9cb682": [
+   {
+    "id": "pyre_art_03",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "c1ad305a8d533258003c2fc50a9a9690d1a6f8ebaba5eade63c4860df1a71ae6": [
+   {
+    "id": "freestyle_strike_01",
+    "set": "d55d5fab4ab06830b44196872f1524a579d4c169eebe562cedc04d4c4ddb7590"
+   }
+  ],
+  "c23a753211ad691bd865f55e968858bed85c9edafa547e6972fdd27ee125ee0c": [
+   {
+    "id": "shade_mastery_01",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   },
+   {
+    "id": "shade_mastery_02",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   },
+   {
+    "id": "shade_mastery_03",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   },
+   {
+    "id": "shade_mastery_04",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "c24efc86299c69a1da007c8040c2badd96fdbbff6babde434437ecb28e8be5d8": [
+   {
+    "id": "signature_strike_21",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "c386ad7d3a07b08ab4cb3ca73b42cdaa6cf4f566ea20459507800341109c0fe3": [
+   {
+    "id": "freestyle_combat_04",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "c39e7bc6b1e6fa4289b221202a468d409c76842f1ffd946fe91c869bfa7cea9b": [
+   {
+    "id": "storm_drill_10",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "c3dd93021060f6622166180095099ad22d9dffcc14c6e470a33031e112baf3cd": [
+   {
+    "id": "shade_strike_12",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "c45dc45da838c7b54530a37bc0ecde9becedc715294fab1f38028c3514e7c990": [
+   {
+    "id": "shade_strike_03",
+    "set": "1b415737719b1c2912a9ee00fc004697e753f1b0f3e4a02e481b9b12fcb1efb8"
+   }
+  ],
+  "c5a91971601621b199a8d8bbf95899bc0dc9c55c3916bbec4f21402d392f13c6": [
+   {
+    "id": "steel_noncombat_02",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "c6b7a886d96d2b21df6037c257f84443ce65cc209e86789b9d69dc53a26e1bf4": [
+   {
+    "id": "freestyle_art_02",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "c85bd8fed00f4bf4495f732f78604412d50f8e6c147751ca2f5aa88f90afc61c": [
+   {
+    "id": "steel_drill_02",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "c95c98ef4ffad0c44f9c43f64d7e6c9fb6552888d7201ed302fb0f857c863e79": [
+   {
+    "id": "steel_art_09",
+    "set": "a8a1d45040cb6bfba22177f68b26fe21eae1959f4864bcc77ddce543bb120629"
+   }
+  ],
+  "c9e6222689a7595ce1a00a0409bc86c9eeb0a16691187a7957527e92ea7a2d51": [
+   {
+    "id": "pyre_art_06",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "cae6f9824c9cac9715c7aa602971bfb322f19d4df71eb6917f3a610a9e1bb19b": [
+   {
+    "id": "pyre_strike_11",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "caef26c6d97d3b7ba6b23e6579f36fd1bffe9de3fa745f6834bdc64ec8f6c0dc": [
+   {
+    "id": "pyre_strike_14",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "cb5461b60469aac4fb029b9c283968941266996de020d69471a04b8246fe377f": [
+   {
+    "id": "storm_mastery_01",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   },
+   {
+    "id": "storm_mastery_02",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   },
+   {
+    "id": "storm_mastery_03",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   },
+   {
+    "id": "storm_mastery_04",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "cb5c9d5991601fc2fe66de7f1b8e06a4c47c232ef00f567f11213199e13cb2bb": [
+   {
+    "id": "signature_art_02",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "cca5f7e0f2fcc0bb3c4049eaae7ed66b08f518845b8336e52a57df3dabc9bb59": [
+   {
+    "id": "freestyle_noncombat_01",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "ccd6c2d290e48e0a9b7d99aa27e38f677835b2a96a803cfa95c5a5e87d005732": [
+   {
+    "id": "seal_08",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "cd1939089705780ca5fef386cb85511f20a77b93cb3e41f06b23a20570350c95": [
+   {
+    "id": "pyre_strike_06",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "cd24d5bd3123999752b8057882ce2c7c9335a447454c32d1855c9538dddbcfcf": [
+   {
+    "id": "pyre_strike_24",
+    "set": "49421e7678e893c8d8acbab2ffd05e8233fcb9774b790eea8f10f1bbc0604b1f"
+   }
+  ],
+  "cf42f328f9454d8eb537c7cbc145d9f0cd902814ec7f36c97f6cc260235b9b11": [
+   {
+    "id": "seal_06",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "d1e1d00e50f12fad3754f8fef78c66e0b436ccbc96f7a1c2cddc9b12cda90ede": [
+   {
+    "id": "storm_art_17",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "d229cfe7314fe948d677eac08a9e0ff29256f387ba089dfe1258b4a68a51446d": [
+   {
+    "id": "storm_strike_12",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "d234f756e33516fd6769e6bc7900c732e5230a0c9d4ef196d514204ef80b01a3": [
+   {
+    "id": "root_noncombat_02",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "d25f2cc866a9f5ab4f5669ce58f50b5508eb904dda3cf42b74a1987cb594bea6": [
+   {
+    "id": "tide_art_15",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "d2767addb21ab8976620ef3ab8561ad097fdaf9db95f71e7399c060c21da233a": [
+   {
+    "id": "personality_71",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "d296e8b71a6938cf815241da73d2362c2886376fdf455215bdebbc8818861ee4": [
+   {
+    "id": "storm_art_24",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "d2c68a9fde92bdbae1ee4946bb4806b4cc66dbf2848d02de662be4d89f56cf22": [
+   {
+    "id": "signature_art_20",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "d2e74825b5c3d3481c4d82b95ab03bb0c620e2de8cc73f336dc4ec6bc6be4e23": [
+   {
+    "id": "seal_24",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "d440ecaeacbf66a99d705f615c9d48a901b57f7d2fa59a3db5bf8f44cbe7c8bd": [
+   {
+    "id": "pyre_art_11",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "d4a99a03ab53a5636bdfa93757fb0a3629a3c2fca1738cc5b5910a8e5f3d8425": [
+   {
+    "id": "storm_art_07",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "d4f7e7a53e90b24587954b39c9a585afa412cb3af17d12f1537b6c9425059aa9": [
+   {
+    "id": "storm_drill_07",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "d55c9e78e6fcc6600421cbe55f76683d82fc8d2c43bb2671126dc810f49cbc7f": [
+   {
+    "id": "root_art_09",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "d5c625dcae8994f05ea429eb4f331975a5c681bf140d1165ea77f829e8127582": [
+   {
+    "id": "freestyle_drill_06",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "d5fdb3885187b360c1c66b7b0e2045dbb0ad928314045482694eef560a3ea8e7": [
+   {
+    "id": "shade_strike_17",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "d68971095c78ad22888ab196b00e21711858bf82c1ab1ee7bd44ae82b1331d5b": [
+   {
+    "id": "shade_combat_05",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "d6abef4c29b43b243c519f90dc37e4abe2541fd0fc516203449032771f261d50": [
+   {
+    "id": "personality_39",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "d77aafe2c908fbe439b7d24bdca4861f8bc4711736d79aecc5a407b676337de0": [
+   {
+    "id": "shade_art_12",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "d795b8a8c2433e3099713f10f3fd5e05f9f0c4fc6c7d847bca01d4d760472e41": [
+   {
+    "id": "storm_art_22",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "d79ed39d6a81dd7654ae71c34d93268e2782378637ef0fadb3577ebb21a48e85": [
+   {
+    "id": "personality_17",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "d7d5d3b29422c3af127a25499980cfb191d68524fda60279375a332b8ef6f088": [
+   {
+    "id": "storm_drill_03",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "d7d9bfa6c62bbf3c2b7ae90f9657af04747fc35293ef129118af2e65b890708d": [
+   {
+    "id": "storm_art_13",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "d7e83e28a04b537e64424546b14caf9b67bad2f28dabce68116e0d372319fa00": [
+   {
+    "id": "signature_noncombat_04",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "da27803fb24ebe70d293e93176c58789da04c1ac0b150eb816467f6ff424d2c3": [
+   {
+    "id": "relic_01",
+    "set": "f52bdadaa23bcca3324a9b7c1da09359d228819bfd8ad54eefd8a5e751ee7d1f"
+   }
+  ],
+  "dbac9e947b74eb14e3bdd438df7dc957711bc625990e573f815e5c678a393779": [
+   {
+    "id": "storm_strike_06",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "dc335bbce448493c00c5d46f6b2fa70d365d7fd3c428f35453344a88512c1414": [
+   {
+    "id": "signature_strike_25",
+    "set": "e196d43174f59efc826753a520c25080c7dfc2a416dd2a859ef377cae757fbeb"
+   }
+  ],
+  "dd0f3b10a91b8c6f1c882d765b5d5aff39ad35934c64afeab0762a2cc122da9f": [
+   {
+    "id": "root_strike_06",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "de08347d9137efa5d85e80c05ac9d9cdb251e5f2f3c50c9d74ec4c913855d911": [
+   {
+    "id": "signature_combat_05",
+    "set": "9c32429c292637fdf6cb659cd0ba247b03ac4980727fca1df0636eca84751ea2"
+   }
+  ],
+  "de1d7e9a66b76d8b9a78e64e559213c2a7487e41013b5fc151f4b58f1f71dc27": [
+   {
+    "id": "personality_41",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "de866efab9a70837e4cf08fc04301d40540bc17a9ec771ca37f40ce68b3ab4f7": [
+   {
+    "id": "pyre_strike_22",
+    "set": "a456213221967d21f5b282df25f81ec7795993de16e5719b3194878bbaae880a"
+   }
+  ],
+  "de88430e4a68e96fe907bdca0c18f00f4e041c8f3e11296135989c939dc5246e": [
+   {
+    "id": "personality_44",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "df45296d04c48bff8794551ce3c5830644943037645a5fb0f916268a3be9dcc5": [
+   {
+    "id": "shade_combat_02",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "e074d9c0117d5666fb534c8fe1bf94275ce4244135355275c559ea4a8a8f00d4": [
+   {
+    "id": "signature_art_03",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "e0e9ac95fc1eeee976e45c0516e226186ac2f8b745ddaf6f29b33b2c20285853": [
+   {
+    "id": "root_noncombat_03",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "e1fff32695a5bc6e61a950ff3324c97f9a1e0dfdde37bcc5920a4a20d4aa3b45": [
+   {
+    "id": "personality_12",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "e298ea6e3d341685f89868a7b492442ed17c4c5cd134465cd5624204bb75e76a": [
+   {
+    "id": "freestyle_art_04",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "e3a0f27408767010603f8896ad89622e4b69ffeab0a9aa91d683782af3091606": [
+   {
+    "id": "tide_strike_09",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "e48510d1ff85568d5e2c6e496cf448ad0ea9c8f25332cdbfc8528346cd9bd785": [
+   {
+    "id": "freestyle_noncombat_10",
+    "set": "05f24378ee64c47fea631c3f5d2a4f003205b8abeef81147c132fba0a4041a39"
+   }
+  ],
+  "e4e445770dae9510f75d657173d35e182e3e78a3ef15c5667e970c082e1da481": [
+   {
+    "id": "root_strike_17",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "e5523499d05992edfb71ddae4eb733a36f9fe6c161acccb8d1b46c56c54e3509": [
+   {
+    "id": "pyre_strike_18",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "e61c1a027b6844c43f14c41cfa495b2bca0ea53d5fe50bcaf03e2cf97fc0106c": [
+   {
+    "id": "personality_27",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "e62821bb7d3d3199b66847352328b447ef53a6eab2db94607e27eb387f83fd08": [
+   {
+    "id": "personality_66",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "e642b0d2174fc510bc71181c01c958639b34af171fbffacf5f86b8bd97c5a167": [
+   {
+    "id": "pyre_combat_03",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "e6942836661daa0b14f5ffe5103f014a3933573edbf709a1eda33846e648c208": [
+   {
+    "id": "freestyle_noncombat_14",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "e73b43404163b540add12a00b6bd57418bbce267609eb90fd0c1b316d8b0b28e": [
+   {
+    "id": "tide_combat_01",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "e87fdaee253f26f29dfffd723dfd2fd9076f14349ea46e666e2b976a3bef5379": [
+   {
+    "id": "personality_38",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "e8a5d48be98c601db8ca8532ad73b1f2a7609780ddefbd3565bb3025314435a5": [
+   {
+    "id": "freestyle_drill_01",
+    "set": "6ad33491f1cff45b2578f94c34c2fcae27edfd57e901c29b10a6c184e43b04d7"
+   }
+  ],
+  "e986e82d9b911266732a6f6c1d3da1eacbe92be49819f8ce4cc9146582c5777d": [
+   {
+    "id": "freestyle_noncombat_06",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "e98a837db25aa6cd6de2fadf1de6d40fdda794e7ea7fbbca36fb4459e63626ff": [
+   {
+    "id": "signature_art_17",
+    "set": "4e585bd78c46261ed019ec7b65f5f58798ee063b1f0e6962f12b3af8bdb20a7b"
+   }
+  ],
+  "e9a39cb43d0109538ba75e5fc644d5045e4a0d02ef80765c3e702c03347af27f": [
+   {
+    "id": "signature_strike_15",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "e9a8b7bb0df1bcafdfdbc0b7fe685b2343e0867291918e957ab960f4df95be9a": [
+   {
+    "id": "personality_67",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "e9c12615c80dd0e146d26bd7c225f040018b7abbd2e776444ad8c5bb1cd95b26": [
+   {
+    "id": "pyre_strike_20",
+    "set": "688aac898961377bcaf3687854771e9ce57cae1c93f8d7d829a2942461c5aa7d"
+   }
+  ],
+  "eab17bb187352445a2eadf423d28696df41a8b93d4aad55b3982fb0cd9f4b55d": [
+   {
+    "id": "personality_19",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "eabe55daad146d0ae21f9d3d34604116b6fc6cc6ccb3a85095f491a9c29a461c": [
+   {
+    "id": "personality_32",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "eb79ad184779dee220592182cfbf4210b0c2e690d87805b4fd219e696eeac539": [
+   {
+    "id": "root_strike_16",
+    "set": "2b5c4e5f49f3914850f4df5415d32d8cd6bb96b79f69e67360ee1adc1eda7468"
+   }
+  ],
+  "eb9dd9db993a844676dd37e9da393e21d0dbe93633f94b1615113d5b66cde6c1": [
+   {
+    "id": "pyre_art_08",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "ec056d10a446cf78c70a2b9fd3339661ec28a9607de70cd864bf90b474b372cd": [
+   {
+    "id": "root_combat_01",
+    "set": "9c32429c292637fdf6cb659cd0ba247b03ac4980727fca1df0636eca84751ea2"
+   }
+  ],
+  "ec68f58dfc4b0ce2334c714ff4fdac36315f492dad322ce76c18f96ef85dc1a2": [
+   {
+    "id": "root_art_05",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "ee0e4d76514885009bda61035b399a418b450ffc93535e691e69fcabbc9ec2e6": [
+   {
+    "id": "shade_combat_04",
+    "set": "fbffaabf94b9e6fbe41101bcc2eec37317fc991568584fc1bc90dd7b38b6ea4f"
+   }
+  ],
+  "ee281fec9f4790f88604087865ef96cbe1e2c5876edda1bf42e220b6c64ede05": [
+   {
+    "id": "signature_combat_13",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "ef6b1d0095138fff30ae5259a01723b4312e9b69843ec1a74e4e0bc40872a2fa": [
+   {
+    "id": "signature_drill_06",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "efd1e2de6e16478dac965c2d267f86e1acb0c8f31a796663e6f51d939171b80a": [
+   {
+    "id": "steel_strike_02",
+    "set": "3808a2666f6aa526705f25a65b25328fe48cfe25d017a051e20048ac81d0cb29"
+   }
+  ],
+  "f0fefee74f3de26662b9969d9819f18d596afdc43681bee3885e1db01f103442": [
+   {
+    "id": "grounds_06",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "f142f1e22a4fb8ee922100e6cbda5fffd38c67638dad0afd5fda39aad9c156c1": [
+   {
+    "id": "shade_drill_01",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "f19b27c6b13fff23d621f25414b588d8d368571b0159b49858bd6b6dfc96ca22": [
+   {
+    "id": "signature_art_08",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "f246792bf40102ff2297ad7ced8da6d62b734d0aeb44a2afc77f63e29547e8f9": [
+   {
+    "id": "storm_art_16",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "f273d062df1909413d9b07d6b17be628da9affeca274d765bf2f3d337e11e5f2": [
+   {
+    "id": "shade_strike_01",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ],
+  "f27672a69b694f390ab6784b5f1efe18354b71f140c88c02738da9caffc5952c": [
+   {
+    "id": "storm_art_10",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "f32a2ba8382e17824f7129bd39793b5cd181361f9f7500b102e1b93b5ca8a138": [
+   {
+    "id": "freestyle_art_06",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "f37df89a7e4aef6924a413c52ed15b112ba2feeb7f757a8eff7d8d8446b6e8a8": [
+   {
+    "id": "steel_drill_01",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "f3b2130633052476e835551dac88c01e0979d0505915b6dd5a6d2232b8e629df": [
+   {
+    "id": "seal_05",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "f3cf44af9096e60c3bc7735cae4ac2207d45c0985b669b1d8c6fb4c6434aff27": [
+   {
+    "id": "tide_strike_16",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "f421fc29bc247a0d4452e7684aa5a64a4c0af9da8a59501f416928aeea0e400b": [
+   {
+    "id": "shade_art_04",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "f4af7b8996d882974fb5cd33e39c59d1089ff61f5c8574f0fc7cbebe9303e161": [
+   {
+    "id": "storm_strike_04",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "f5385a412899d818cba3831217a6613d3212b0b3bba9535f6c37807f6e116e2e": [
+   {
+    "id": "personality_51",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "f5adb32e86e577e4a8dd177f65e9e31b4da5e9fc74d05671c59c8215db82bb7d": [
+   {
+    "id": "steel_noncombat_01",
+    "set": "a8a1d45040cb6bfba22177f68b26fe21eae1959f4864bcc77ddce543bb120629"
+   }
+  ],
+  "f5d8c69048b2272371b49680d02d63f7dc563a97381634a77d70beaffcd0d805": [
+   {
+    "id": "freestyle_art_05",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "f612ca1ac12ad3fc1eadb5bf0f5d35dcbffb34105013eb02eb5e6fad623dcab5": [
+   {
+    "id": "freestyle_art_08",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "f6551313e4947e2c3fa1354f3926a3bf1a1d7112a52eef9f61fd24990222c8f6": [
+   {
+    "id": "root_strike_15",
+    "set": "36fb942da0f73c149642b3634fd68f8fffe3b1a06cdc8951e0271cb26dc81487"
+   }
+  ],
+  "f76773a48531ae10989bd0d47d001eb3c96b12293450ea108f395035d97af547": [
+   {
+    "id": "pyre_strike_03",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "f7b627a5af44e205978255868a60eb756d719de18392f222a96a462117819157": [
+   {
+    "id": "signature_strike_32",
+    "set": "b3641839f44934275a45237377e6d4b291b5436fbbda3421e96efa9ec207d064"
+   }
+  ],
+  "f82573c769cc49cff758df1481437a430d0756b50aa7f44b47cb0622bff99902": [
+   {
+    "id": "shade_art_06",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "f87d7c24463ec409b92f95f5c320cf994ab79004c78fb5f9faa8c9fd89c9df21": [
+   {
+    "id": "root_combat_05",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "f8b371eebb0e56ff2bd302a6de182bfb77661349798e969bb7ba5750d480e1ec": [
+   {
+    "id": "signature_strike_02",
+    "set": "2350f65c6cd7ee097cebdf6c9c6b6c313332585c76ef10cb9a5f71dfb24c247d"
+   }
+  ],
+  "f9a4fd6007068234aabdc4af804ee8a2415f623e97c59829a14695c17af464e7": [
+   {
+    "id": "shade_drill_05",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "fa18212337b78640ea4bd9abafac41043c70ee0d5bf6979097c2c5d166a42a23": [
+   {
+    "id": "signature_art_11",
+    "set": "0a2bc99f44f7f4172d9dff009a62cddbf54832693e63fa2350d8bb65ea05a0d8"
+   }
+  ],
+  "fa4910265abeefb30e32380e60c2afef38c859bbd3c348d69fba676a0ccf6bad": [
+   {
+    "id": "signature_strike_33",
+    "set": "4fa39a94ab56beeb8e4a5bbc6ea86776e85cd54a30bb8272ff5c587ee5decff1"
+   }
+  ],
+  "faf414fa8b14fdee7d4c77f6ab725435ec8b09b987cc7a67442d23ec5ef12fd9": [
+   {
+    "id": "steel_art_13",
+    "set": "35fbeeb51e874ce22f9bd51e349ff1e98c67a8122718b8d9d596638c534a8262"
+   }
+  ],
+  "fb1a60696a7f3606dbb0a4c56f311d6ab0ebd2a175c88d879e78e4951623c0b4": [
+   {
+    "id": "storm_art_21",
+    "set": "7f26b47f75f87a2fe5fb1995f96cc80a4458dd5ac30fcd4076b0708f2cf4fe86"
+   }
+  ],
+  "fbec494e71418f9e5d66c130ede8a869d36b1099ba182101aca1b0b394db2e67": [
+   {
+    "id": "tide_drill_02",
+    "set": "723da093ea89596378d793cf4eca81c9fd5a5e0e1df68dbe29564c7e463150d9"
+   }
+  ],
+  "fc9f370a35303ab85c24cdfacb1dce9e9b2331ca9c19066988936571a8148e8f": [
+   {
+    "id": "shade_art_01",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "fe24ae96a1c3bf375746172ec38e93d90a42632cfa451f590c783a599f14b9e3": [
+   {
+    "id": "signature_strike_03",
+    "set": "660274955edefe046759ead1df1240869d1a8abf5eb0aa3d6d5b0983d051f385"
+   }
+  ],
+  "fe63b33d79b22529fa605a3ff606aa42a58f4e571adbd4398b2859bb7a844655": [
+   {
+    "id": "freestyle_noncombat_13",
+    "set": "8413655ead3e32ef769d2747205922cd31dd280c9a4ce6cc636f8e3ff2a579e1"
+   }
+  ],
+  "fef4fc41197b46b5ded33930f55f518b5a54aa2eb240122e584b0d293939c4ab": [
+   {
+    "id": "steel_strike_07",
+    "set": "d8673e8bb3f58c44cb2c8f5b0229717a14e73890d2db1d85c4afb8b9eceb0fec"
+   }
+  ],
+  "ff2855b9e8a33b9ddbe44f661417dd4d45ff60c146a7030557b2505f23632311": [
+   {
+    "id": "tide_strike_04",
+    "set": "44cc40088b34ea1842295989aeba95f8a2d6fd95afec9e935797d1f017e61e44"
+   }
+  ]
+ }
+}

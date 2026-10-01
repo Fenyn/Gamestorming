@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://s70k52thgmh8"
+
+[deps]
+
+files=["res://tests/fixtures/source_roster.Source card.translation"]
+
+source_file="res://tests/fixtures/source_roster.csv"
+dest_files=["res://tests/fixtures/source_roster.Source card.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

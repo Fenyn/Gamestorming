@@ -28,7 +28,7 @@ const PLAYER: int = 0
 const RIVAL: int = 1
 ## The rival's answer when the script names none, quietest first.
 const QUIET: Array[StringName] = [&"pass", &"no_defense", &"no_endure", &"no_critical", &"skip", &"done",
-	&"no_recover", &"discard_all", &"decline", &"pick_none", &"reserve_done"]
+	&"no_recover", &"discard_all", &"decline", &"pick_none", &"reserve_done", &"order_confirm"]
 const MAX_STEPS: int = 20000
 
 var data: Dictionary = {}

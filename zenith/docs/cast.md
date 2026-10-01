@@ -215,7 +215,7 @@ the skin, then cracks, then the fire streaming inward through a hollow at his ch
 
 | Aspect | Deck | Look | Does |
 |---|---|---|---|
-| 1 Starved | both | Gaunt and low to the ground, blade loose, the fire down to a few coals, eyes fixed out of frame | Strike +3, gain 5 Energy, draw if stopped |
+| 1 Starved | both | Gaunt and low to the ground, blade loose, the fire down to a few coals, eyes fixed out of frame | Strike +3, draw if stopped |
 | 2 Gnawing | Last Standing | Hunched mid-step, small flames chewing the blade's edge, a brand dark on his forearm | Strike +3, Fervor +1, attacks +1 wound |
 | 2 Leeching | Wildfire Rush | Flame off the shoulders, cracks of orange light along the forearms, sword overhead | Free Focused Art, lowers rival Fervor 2 |
 | 3 Gorging | Last Standing | Fire pouring into him, the light drawn inward, mouth open | Doubles Energy gained, Fervor gains +1, attacks +3 wounds |
@@ -712,8 +712,8 @@ the toll gate and unmarked. It catches him after the fall: every holding lost, t
 working to build a mercenary group out of whoever will still follow him. Angry and disenfranchised,
 sworn to no one yet. He is the adventure's open Mourne starter, and the Marked Lord starter
 becomes a story unlock reached from here. His deeper lore (why he goes to the gate) is held for a
-later pass. Deck: Mercenary Lord. He plays either side (alignment `either`), and no brand shows in
-any of his art.
+later pass. Deck: Mercenary Lord. His cards carry no side, so a deck may take either one; the
+Mercenary Lord deck plays the Pact (alignment `pact`), and no brand shows in any of his art.
 
 | Aspect | Look | Does |
 |---|---|---|

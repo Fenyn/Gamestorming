@@ -1,0 +1,26 @@
+{
+	"_note": "Fixtures for trying to stop an attack that cannot be stopped (anchor CRD p14, p20, p33-34), use-when-needed windows (p14), order prompts (p6 step 15, p14) and Wild Might comparisons (p17).",
+	"cards": [
+		{"id": "t_ward_draw", "title": "Test Drawing Ward", "type": "art", "school": "tide", "defense": {"stops": "art"}, "effects": [{"op": "draw", "amount": 1}]},
+		{"id": "t_guard_draw", "title": "Test Drawing Guard", "type": "combat", "school": "tide", "defense": {"stops": "any"}, "effects": [{"op": "draw", "amount": 1}]},
+		{"id": "t_parry_draw", "title": "Test Drawing Parry", "type": "strike", "school": "tide", "defense": {"stops": "strike"}, "effects": [{"op": "draw", "amount": 1}]},
+		{"id": "t_art_no_art_stop", "title": "Test Unanswerable Art", "type": "art", "school": "storm", "attack": {"kind": "art", "no_stop_by": "art"}},
+		{"id": "t_strike_hit_draw", "title": "Test Drawing Strike", "type": "strike", "school": "pyre", "attack": {"kind": "strike"}, "effects": [{"trigger": "if_successful", "op": "draw", "amount": 1}]},
+		{"id": "t_mastery_hit_fervor", "title": "Test Rising Mastery", "type": "mastery", "school": "pyre", "effects": [{"trigger": "on_success", "op": "fervor", "amount": 1}]},
+		{"id": "t_mastery_hit_never", "title": "Test Idle Mastery", "type": "mastery", "school": "pyre", "effects": [{"trigger": "on_success", "op": "fervor", "amount": 1, "when": {"attack_kind": "art"}}]},
+		{"id": "t_drill_shield_free", "title": "Test Freestyle Shield Drill", "type": "drill", "school": "", "shield": "art"},
+		{"id": "t_uwn_rally", "title": "Test Ready Rally", "type": "non_combat", "school": "", "use_when_needed": true, "remove_after_use": true, "effects": [{"trigger": "use", "op": "energy", "target": "duelist", "amount": "max"}]},
+		{"id": "t_uwn_combat", "title": "Test Ready Trick", "type": "combat", "school": "", "use_when_needed": true, "effects": [{"op": "draw", "amount": 1}]},
+		{"id": "tw_wild_1", "title": "Test Wild", "type": "personality", "character": "Test Wild", "aspect": 1, "surge": 2, "wild": true, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000]},
+		{"id": "tw_wild_2", "title": "Test Wild", "type": "personality", "character": "Test Wild", "aspect": 2, "surge": 3, "wild": true, "might": [0, 1500000, 2500000, 3500000, 4200000, 5000000, 6000000, 7000000, 7500000, 8000000, 8500000]},
+		{"id": "tw_wild_3", "title": "Test Wild", "type": "personality", "character": "Test Wild", "aspect": 3, "surge": 4, "wild": true, "might": [0, 2500000, 3500000, 4500000, 5200000, 6000000, 7000000, 8000000, 8500000, 9000000, 9500000]},
+		{"id": "tt_ward_1", "title": "Test Warden", "type": "personality", "character": "Test Warden", "aspect": 1, "surge": 2, "might": [0, 900000, 1500000, 2500000, 3200000, 4000000, 5000000, 6000000, 6500000, 7000000, 7500000], "power": {"defense": {"stops": "art"}, "effects": [{"op": "draw", "amount": 1}]}},
+		{"id": "tt_ward_2", "title": "Test Warden", "type": "personality", "character": "Test Warden", "aspect": 2, "surge": 3, "might": [0, 1500000, 2500000, 3500000, 4200000, 5000000, 6000000, 7000000, 7500000, 8000000, 8500000], "power": {"defense": {"stops": "art"}, "effects": [{"op": "draw", "amount": 1}]}},
+		{"id": "tt_ward_3", "title": "Test Warden", "type": "personality", "character": "Test Warden", "aspect": 3, "surge": 4, "might": [0, 2500000, 3500000, 4500000, 5200000, 6000000, 7000000, 8000000, 8500000, 9000000, 9500000], "power": {"defense": {"stops": "art"}, "effects": [{"op": "draw", "amount": 1}]}},
+		{"id": "t_nc_enter_draw", "title": "Test Entering Lesson", "type": "non_combat", "school": "", "effects": [{"trigger": "entering_combat", "op": "draw", "amount": 1}]},
+		{"id": "t_drill_enter_energy", "title": "Test Entering Drill", "type": "drill", "school": "", "effects": [{"trigger": "entering_combat", "op": "energy", "target": "duelist", "amount": 1}]},
+		{"id": "t_strike_might_bonus", "title": "Test Weighing Strike", "type": "strike", "school": "steel", "attack": {"kind": "strike", "stages": 1, "variants": [{"when": {"higher_might": true}, "stages": 3}]}},
+		{"id": "t_strike_might_double", "title": "Test Doubling Strike", "type": "strike", "school": "steel", "attack": {"kind": "strike", "table_multiply": {"by": 2, "higher_might": true}}},
+		{"id": "t_combat_might_draw", "title": "Test Weighing Trick", "type": "combat", "school": "steel", "effects": [{"op": "draw", "amount": 2, "when": {"duelist_higher_might": true}}]}
+	]
+}

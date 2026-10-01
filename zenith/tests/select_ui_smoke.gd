@@ -82,12 +82,36 @@ func _run() -> void:
 	root.get_texture().get_image().save_png("res://screenshots/select-details720.png")
 	screen.queue_free()
 	await process_frame
+	await _check_builder_return(session)
 	var starter: Control = load("res://scenes/adventure/adventure_start.tscn").instantiate()
 	root.add_child(starter)
 	await create_timer(0.6).timeout
 	await _check_fixed_mastery(starter.get("seat_panel"))
 	print("Selection UI smoke: %d failures" % _failures)
 	quit(1 if _failures > 0 else 0)
+
+
+## Back from the builder's Edit on the second seat: that seat is shown and unlocked, the first keeps
+## its pick and lock, and a reload keeps picks on the reloaded copies of their decks.
+func _check_builder_return(session: Node) -> void:
+	var decks: Array = session.get("decks")
+	session.get("chosen")[0] = decks[0]
+	session.get("chosen")[1] = decks[1]
+	session.get("locked")[0] = true
+	session.get("locked")[1] = true
+	session.set("builder_seat", 1)
+	session.call("reload_decks")
+	_check(session.get("chosen")[0] != null and session.get("chosen")[0].id == decks[0].id, "A reload must keep the first pick")
+	var screen: Control = load("res://scenes/select/duelist_select.tscn").instantiate()
+	root.add_child(screen)
+	await create_timer(0.3).timeout
+	_check(screen.get("_seat") == 1, "Back from the builder must show the seat that left")
+	_check(session.get("locked")[0] and not session.get("locked")[1], "Only the seat that left must be unlocked")
+	_check(session.get("builder_seat") == -1, "The trip must end on arrival")
+	screen.queue_free()
+	await process_frame
+	session.set("chosen", [null, null] as Array[DeckList])
+	session.set("locked", [false, false] as Array[bool])
 
 
 func _check_fixed_mastery(seat: Variant) -> void:

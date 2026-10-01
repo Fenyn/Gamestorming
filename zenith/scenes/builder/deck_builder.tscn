@@ -1,0 +1,1267 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/builder/deck_builder.gd" id="1_builder"]
+[ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="2_faces"]
+[ext_resource type="PackedScene" path="res://scenes/builder/frame_slot.tscn" id="3_slot"]
+[ext_resource type="PackedScene" path="res://scenes/builder/confirm_modal.tscn" id="4_modal"]
+
+[sub_resource type="StyleBoxFlat" id="preview_shadow"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 10.0
+bg_color = Color(0.06, 0.055, 0.06, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.56, 0.57, 0.58, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 18
+shadow_offset = Vector2(6, 10)
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="toast"]
+bg_color = Color(0.085, 0.078, 0.08, 0.97)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.93, 0.55, 0.3, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+
+[node name="DeckBuilder" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_builder")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.055, 0.05, 0.055, 1)
+
+[node name="CardFaceCache" parent="." instance=ExtResource("2_faces")]
+
+[node name="Shelf" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 24
+
+[node name="Column" type="VBoxContainer" parent="Shelf"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Top" type="HBoxContainer" parent="Shelf/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Back" type="Button" parent="Shelf/Column/Top"]
+custom_minimum_size = Vector2(120, 54)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Back"
+
+[node name="Title" type="Label" parent="Shelf/Column/Top"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"TitleLabel"
+text = "Deck builder"
+
+[node name="Spacer" type="Control" parent="Shelf/Column/Top"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Import" type="Button" parent="Shelf/Column/Top"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Paste a deck code, a decklist form, a card list or an .o8d file"
+text = "Import a list"
+
+[node name="NewDeck" type="Button" parent="Shelf/Column/Top"]
+custom_minimum_size = Vector2(190, 0)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"AccentButton"
+text = "New deck"
+
+[node name="Restore" type="PanelContainer" parent="Shelf/Column"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Row" type="HBoxContainer" parent="Shelf/Column/Restore"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Text" type="Label" parent="Shelf/Column/Restore/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"BodyLabel"
+
+[node name="Resume" type="Button" parent="Shelf/Column/Restore/Row"]
+custom_minimum_size = Vector2(170, 40)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"AccentButton"
+text = "Keep editing it"
+
+[node name="Discard" type="Button" parent="Shelf/Column/Restore/Row"]
+custom_minimum_size = Vector2(130, 40)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Discard it"
+
+[node name="Scroll" type="ScrollContainer" parent="Shelf/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Content" type="VBoxContainer" parent="Shelf/Column/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="MineHeading" type="Label" parent="Shelf/Column/Scroll/Content"]
+layout_mode = 2
+theme_type_variation = &"GroupLabel"
+text = "Your decks"
+
+[node name="MineGrid" type="GridContainer" parent="Shelf/Column/Scroll/Content"]
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+columns = 4
+
+[node name="NewTile" type="Button" parent="Shelf/Column/Scroll/Content/MineGrid"]
+custom_minimum_size = Vector2(420, 176)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+tooltip_text = "Start a deck: choose a Duelist, then a Mastery"
+
+[node name="Column" type="VBoxContainer" parent="Shelf/Column/Scroll/Content/MineGrid/NewTile"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="Plus" type="Label" parent="Shelf/Column/Scroll/Content/MineGrid/NewTile/Column"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "+"
+horizontal_alignment = 1
+
+[node name="Text" type="Label" parent="Shelf/Column/Scroll/Content/MineGrid/NewTile/Column"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "New deck"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Shelf/Column/Scroll/Content/MineGrid/NewTile/Column"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Choose a Duelist, then a Mastery"
+horizontal_alignment = 1
+
+[node name="MineEmpty" type="Label" parent="Shelf/Column/Scroll/Content"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = "No decks saved yet. Start a new one, copy a shipped deck below, or import a list."
+autowrap_mode = 3
+
+[node name="ShippedHeading" type="Label" parent="Shelf/Column/Scroll/Content"]
+layout_mode = 2
+theme_type_variation = &"GroupLabel"
+text = "Start from a shipped deck"
+
+[node name="ShippedGrid" type="GridContainer" parent="Shelf/Column/Scroll/Content"]
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+columns = 4
+
+[node name="EndPad" type="Control" parent="Shelf/Column/Scroll/Content"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="Editor" type="MarginContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="Column" type="VBoxContainer" parent="Editor"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TopBar" type="HBoxContainer" parent="Editor/Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Back" type="Button" parent="Editor/Column/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+custom_minimum_size = Vector2(150, 48)
+tooltip_text = "Back to your decks (Esc)"
+text = "Your decks"
+
+[node name="NameEdit" type="LineEdit" parent="Editor/Column/TopBar"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "The deck's name"
+placeholder_text = "Deck name"
+max_length = 40
+
+[node name="Unsaved" type="Label" parent="Editor/Column/TopBar"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"CaptionLabel"
+text = "UNSAVED"
+
+[node name="Spacer" type="Control" parent="Editor/Column/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Undo" type="Button" parent="Editor/Column/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+custom_minimum_size = Vector2(0, 48)
+tooltip_text = "Undo (Ctrl+Z)"
+text = "Undo"
+
+[node name="Redo" type="Button" parent="Editor/Column/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+custom_minimum_size = Vector2(0, 48)
+tooltip_text = "Redo (Ctrl+Y)"
+text = "Redo"
+
+[node name="Gap" type="Control" parent="Editor/Column/TopBar"]
+custom_minimum_size = Vector2(14, 0)
+layout_mode = 2
+
+[node name="Import" type="Button" parent="Editor/Column/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+custom_minimum_size = Vector2(0, 48)
+tooltip_text = "Replace this deck with a pasted list or code"
+text = "Import"
+
+[node name="Share" type="Button" parent="Editor/Column/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+custom_minimum_size = Vector2(0, 48)
+tooltip_text = "Copy a one-line deck code to share this deck. Import reads it back."
+text = "Copy code"
+
+[node name="Gap2" type="Control" parent="Editor/Column/TopBar"]
+custom_minimum_size = Vector2(14, 0)
+layout_mode = 2
+
+[node name="Play" type="MenuButton" parent="Editor/Column/TopBar"]
+custom_minimum_size = Vector2(110, 48)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Save, then play this deck"
+text = "Play"
+flat = false
+
+[node name="SaveAs" type="Button" parent="Editor/Column/TopBar"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Save these cards as a new deck and leave the original as it was"
+text = "Save as new"
+
+[node name="Save" type="Button" parent="Editor/Column/TopBar"]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Save (Ctrl+S)"
+theme_type_variation = &"AccentButton"
+text = "Save"
+
+[node name="Body" type="HBoxContainer" parent="Editor/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="PoolPanel" type="PanelContainer" parent="Editor/Column/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Column" type="VBoxContainer" parent="Editor/Column/Body/PoolPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Tools" type="HBoxContainer" parent="Editor/Column/Body/PoolPanel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Search" type="LineEdit" parent="Editor/Column/Body/PoolPanel/Column/Tools"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Words match names and rules text. Narrow with type:art, school:storm, side:pact, kw:marked, blood:draconic or name:. Ctrl+F jumps here."
+placeholder_text = "Search names and rules (Ctrl+F)"
+clear_button_enabled = true
+
+[node name="Sort" type="OptionButton" parent="Editor/Column/Body/PoolPanel/Column/Tools"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="ShowAll" type="CheckBox" parent="Editor/Column/Body/PoolPanel/Column/Tools"]
+layout_mode = 2
+tooltip_text = "Also show cards this deck cannot run or nobody in it can use, dimmed, with the reason on each."
+text = "Show unusable"
+
+[node name="TypeChips" type="HFlowContainer" parent="Editor/Column/Body/PoolPanel/Column"]
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+
+[node name="Ally" type="Button" parent="Editor/Column/Body/PoolPanel/Column/TypeChips"]
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Allies"
+
+[node name="Strike" type="Button" parent="Editor/Column/Body/PoolPanel/Column/TypeChips"]
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Strikes"
+
+[node name="Art" type="Button" parent="Editor/Column/Body/PoolPanel/Column/TypeChips"]
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Arts"
+
+[node name="Combat" type="Button" parent="Editor/Column/Body/PoolPanel/Column/TypeChips"]
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Combat"
+
+[node name="NonCombat" type="Button" parent="Editor/Column/Body/PoolPanel/Column/TypeChips"]
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Non-Combat"
+
+[node name="Drill" type="Button" parent="Editor/Column/Body/PoolPanel/Column/TypeChips"]
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Drills"
+
+[node name="Seal" type="Button" parent="Editor/Column/Body/PoolPanel/Column/TypeChips"]
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Seals"
+
+[node name="Grounds" type="Button" parent="Editor/Column/Body/PoolPanel/Column/TypeChips"]
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Grounds"
+
+[node name="Relic" type="Button" parent="Editor/Column/Body/PoolPanel/Column/TypeChips"]
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Relics"
+
+[node name="GroupRow" type="HBoxContainer" parent="Editor/Column/Body/PoolPanel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="Editor/Column/Body/PoolPanel/Column/GroupRow"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "ONLY"
+
+[node name="School" type="Button" parent="Editor/Column/Body/PoolPanel/Column/GroupRow"]
+layout_mode = 2
+tooltip_text = "Only the deck's own school"
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "School cards"
+
+[node name="Freestyle" type="Button" parent="Editor/Column/Body/PoolPanel/Column/GroupRow"]
+layout_mode = 2
+tooltip_text = "Only cards any deck can run"
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Freestyle"
+
+[node name="Signature" type="Button" parent="Editor/Column/Body/PoolPanel/Column/GroupRow"]
+layout_mode = 2
+tooltip_text = "Only cards that name a personality"
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Signature"
+
+[node name="Spacer" type="Control" parent="Editor/Column/Body/PoolPanel/Column/GroupRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Clear" type="Button" parent="Editor/Column/Body/PoolPanel/Column/GroupRow"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+text = "Clear filters"
+
+[node name="Scroll" type="ScrollContainer" parent="Editor/Column/Body/PoolPanel/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Sections" type="VBoxContainer" parent="Editor/Column/Body/PoolPanel/Column/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Empty" type="VBoxContainer" parent="Editor/Column/Body/PoolPanel/Column/Scroll/Sections"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Text" type="Label" parent="Editor/Column/Body/PoolPanel/Column/Scroll/Sections/Empty"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Filters" type="Label" parent="Editor/Column/Body/PoolPanel/Column/Scroll/Sections/Empty"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Clear" type="Button" parent="Editor/Column/Body/PoolPanel/Column/Scroll/Sections/Empty"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Clear search and filters"
+
+[node name="Footer" type="Label" parent="Editor/Column/Body/PoolPanel/Column"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text_overrun_behavior = 3
+
+[node name="DeckPanel" type="PanelContainer" parent="Editor/Column/Body"]
+custom_minimum_size = Vector2(700, 0)
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Identity" type="HBoxContainer" parent="Editor/Column/Body/DeckPanel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DuelistBox" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/Identity"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Caption" type="Label" parent="Editor/Column/Body/DeckPanel/Column/Identity/DuelistBox"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "DUELIST"
+
+[node name="Duelist" parent="Editor/Column/Body/DeckPanel/Column/Identity/DuelistBox" instance=ExtResource("3_slot")]
+custom_minimum_size = Vector2(165, 231)
+layout_mode = 2
+tooltip_text = "Choose the Duelist"
+
+[node name="MasteryBox" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/Identity"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Caption" type="Label" parent="Editor/Column/Body/DeckPanel/Column/Identity/MasteryBox"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "MASTERY"
+
+[node name="Mastery" parent="Editor/Column/Body/DeckPanel/Column/Identity/MasteryBox" instance=ExtResource("3_slot")]
+custom_minimum_size = Vector2(165, 231)
+layout_mode = 2
+tooltip_text = "Choose the Mastery"
+
+[node name="Info" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/Identity"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Slots" type="HBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="AspectsBox" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Slots"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Caption" type="Label" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Slots/AspectsBox"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "ASPECTS"
+
+[node name="Aspects" type="HBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Slots/AspectsBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Aspect1" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Slots/AspectsBox/Aspects" instance=ExtResource("3_slot")]
+custom_minimum_size = Vector2(42, 59)
+layout_mode = 2
+
+[node name="Aspect2" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Slots/AspectsBox/Aspects" instance=ExtResource("3_slot")]
+custom_minimum_size = Vector2(42, 59)
+layout_mode = 2
+
+[node name="Aspect3" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Slots/AspectsBox/Aspects" instance=ExtResource("3_slot")]
+custom_minimum_size = Vector2(42, 59)
+layout_mode = 2
+
+[node name="Aspect4" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Slots/AspectsBox/Aspects" instance=ExtResource("3_slot")]
+custom_minimum_size = Vector2(42, 59)
+layout_mode = 2
+
+[node name="Aspect5" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Slots/AspectsBox/Aspects" instance=ExtResource("3_slot")]
+custom_minimum_size = Vector2(42, 59)
+layout_mode = 2
+
+[node name="RelicBox" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Slots"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Caption" type="Label" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Slots/RelicBox"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "RELIC"
+
+[node name="Relic" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Slots/RelicBox" instance=ExtResource("3_slot")]
+custom_minimum_size = Vector2(42, 59)
+layout_mode = 2
+
+[node name="Name" type="Label" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"GroupLabel"
+text = "No Duelist yet"
+text_overrun_behavior = 3
+
+[node name="Line" type="Label" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+autowrap_mode = 3
+
+[node name="Side" type="HBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Vigil" type="Button" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Side"]
+custom_minimum_size = Vector2(78, 36)
+layout_mode = 2
+tooltip_text = "Vigil side"
+toggle_mode = true
+text = "Vigil"
+
+[node name="Pact" type="Button" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Side"]
+custom_minimum_size = Vector2(78, 36)
+layout_mode = 2
+tooltip_text = "Pact side"
+toggle_mode = true
+text = "Pact"
+
+[node name="Badges" type="HBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Problems" type="Button" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Badges"]
+layout_mode = 2
+theme_type_variation = &"CompactButton"
+text = "Legal"
+
+[node name="Reserve" type="Button" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Badges"]
+layout_mode = 2
+tooltip_text = "Open the Reserve"
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Reserve"
+
+[node name="Notes" type="Button" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Badges"]
+visible = false
+layout_mode = 2
+tooltip_text = "Import notes"
+theme_type_variation = &"CompactButton"
+toggle_mode = true
+text = "Notes"
+
+
+[node name="Counters" type="HBoxContainer" parent="Editor/Column/Body/DeckPanel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Life" type="Label" parent="Editor/Column/Body/DeckPanel/Column/Counters"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "0 cards"
+
+[node name="Range" type="Label" parent="Editor/Column/Body/DeckPanel/Column/Counters"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"CaptionLabel"
+text_overrun_behavior = 3
+
+[node name="TypeBar" type="HBoxContainer" parent="Editor/Column/Body/DeckPanel/Column"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Legend" type="Label" parent="Editor/Column/Body/DeckPanel/Column"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+autowrap_mode = 3
+
+[node name="NotesDrawer" type="PanelContainer" parent="Editor/Column/Body/DeckPanel/Column"]
+visible = false
+custom_minimum_size = Vector2(0, 250)
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/NotesDrawer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/NotesDrawer/Column"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Editor/Column/Body/DeckPanel/Column/NotesDrawer/Column/Header"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "Import notes"
+
+[node name="Summary" type="Label" parent="Editor/Column/Body/DeckPanel/Column/NotesDrawer/Column/Header"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"CaptionLabel"
+autowrap_mode = 3
+
+[node name="CopyMissing" type="Button" parent="Editor/Column/Body/DeckPanel/Column/NotesDrawer/Column/Header"]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Copy the lines with no Eidolarch parallel, to work through them outside the game"
+theme_type_variation = &"CompactButton"
+text = "Copy missing"
+
+[node name="Close" type="Button" parent="Editor/Column/Body/DeckPanel/Column/NotesDrawer/Column/Header"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"CompactButton"
+text = "Hide"
+
+[node name="Scroll" type="ScrollContainer" parent="Editor/Column/Body/DeckPanel/Column/NotesDrawer/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/NotesDrawer/Column/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ListScroll" type="ScrollContainer" parent="Editor/Column/Body/DeckPanel/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/ListScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="ReserveDrawer" type="PanelContainer" parent="Editor/Column/Body/DeckPanel/Column"]
+visible = false
+custom_minimum_size = Vector2(0, 230)
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/ReserveDrawer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/ReserveDrawer/Column"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Editor/Column/Body/DeckPanel/Column/ReserveDrawer/Column/Header"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "Reserve"
+
+[node name="Info" type="Label" parent="Editor/Column/Body/DeckPanel/Column/ReserveDrawer/Column/Header"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"CaptionLabel"
+autowrap_mode = 3
+
+[node name="Close" type="Button" parent="Editor/Column/Body/DeckPanel/Column/ReserveDrawer/Column/Header"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"CompactButton"
+text = "Hide"
+
+[node name="Scroll" type="ScrollContainer" parent="Editor/Column/Body/DeckPanel/Column/ReserveDrawer/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/ReserveDrawer/Column/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="DuelistPicker" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="DuelistPicker"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.025, 0.03, 0.92)
+
+[node name="Center" type="CenterContainer" parent="DuelistPicker"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="DuelistPicker/Center"]
+custom_minimum_size = Vector2(1760, 980)
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="DuelistPicker/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Left" type="VBoxContainer" parent="DuelistPicker/Center/Panel/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Heading" type="Label" parent="DuelistPicker/Center/Panel/Row/Left"]
+layout_mode = 2
+theme_type_variation = &"GroupLabel"
+text = "Choose your Duelist"
+
+[node name="Help" type="Label" parent="DuelistPicker/Center/Panel/Row/Left"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = "The Duelist leads the deck. Their bloodline, side and keywords decide which cards the library offers."
+autowrap_mode = 3
+
+[node name="Scroll" type="ScrollContainer" parent="DuelistPicker/Center/Panel/Row/Left"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Grid" type="GridContainer" parent="DuelistPicker/Center/Panel/Row/Left/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 4
+
+[node name="Right" type="VBoxContainer" parent="DuelistPicker/Center/Panel/Row"]
+custom_minimum_size = Vector2(700, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Name" type="Label" parent="DuelistPicker/Center/Panel/Row/Right"]
+layout_mode = 2
+theme_type_variation = &"GroupLabel"
+text = "Pick a Duelist"
+
+[node name="Info" type="Label" parent="DuelistPicker/Center/Panel/Row/Right"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+autowrap_mode = 3
+
+[node name="Lines" type="HFlowContainer" parent="DuelistPicker/Center/Panel/Row/Right"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="Stack" type="HFlowContainer" parent="DuelistPicker/Center/Panel/Row/Right"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+
+[node name="Face1" type="TextureRect" parent="DuelistPicker/Center/Panel/Row/Right/Stack"]
+custom_minimum_size = Vector2(220, 308)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Face2" type="TextureRect" parent="DuelistPicker/Center/Panel/Row/Right/Stack"]
+custom_minimum_size = Vector2(220, 308)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Face3" type="TextureRect" parent="DuelistPicker/Center/Panel/Row/Right/Stack"]
+custom_minimum_size = Vector2(220, 308)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Face4" type="TextureRect" parent="DuelistPicker/Center/Panel/Row/Right/Stack"]
+custom_minimum_size = Vector2(220, 308)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Face5" type="TextureRect" parent="DuelistPicker/Center/Panel/Row/Right/Stack"]
+custom_minimum_size = Vector2(220, 308)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Note" type="Label" parent="DuelistPicker/Center/Panel/Row/Right"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Hover a card to read it. You can swap single Aspects for other printings after choosing."
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="DuelistPicker/Center/Panel/Row/Right"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Cancel" type="Button" parent="DuelistPicker/Center/Panel/Row/Right/Buttons"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cancel"
+
+[node name="Choose" type="Button" parent="DuelistPicker/Center/Panel/Row/Right/Buttons"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"AccentButton"
+text = "Choose"
+
+[node name="MasteryPicker" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="MasteryPicker"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.025, 0.03, 0.92)
+
+[node name="Center" type="CenterContainer" parent="MasteryPicker"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="MasteryPicker/Center"]
+custom_minimum_size = Vector2(1760, 980)
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="MasteryPicker/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Left" type="VBoxContainer" parent="MasteryPicker/Center/Panel/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Heading" type="Label" parent="MasteryPicker/Center/Panel/Row/Left"]
+layout_mode = 2
+theme_type_variation = &"GroupLabel"
+text = "Choose your Mastery"
+
+[node name="Help" type="Label" parent="MasteryPicker/Center/Panel/Row/Left"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = "The Mastery sets the deck's school: that school's cards and Freestyle cards stay in the library."
+autowrap_mode = 3
+
+[node name="Scroll" type="ScrollContainer" parent="MasteryPicker/Center/Panel/Row/Left"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="List" type="HFlowContainer" parent="MasteryPicker/Center/Panel/Row/Left/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 14
+
+[node name="Right" type="VBoxContainer" parent="MasteryPicker/Center/Panel/Row"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Name" type="Label" parent="MasteryPicker/Center/Panel/Row/Right"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text_overrun_behavior = 3
+
+[node name="Face" type="TextureRect" parent="MasteryPicker/Center/Panel/Row/Right"]
+custom_minimum_size = Vector2(380, 532)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Info" type="Label" parent="MasteryPicker/Center/Panel/Row/Right"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="MasteryPicker/Center/Panel/Row/Right"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Cancel" type="Button" parent="MasteryPicker/Center/Panel/Row/Right/Buttons"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Decide later"
+
+[node name="Choose" type="Button" parent="MasteryPicker/Center/Panel/Row/Right/Buttons"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"AccentButton"
+text = "Choose"
+
+[node name="AspectOverlay" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="AspectOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.025, 0.03, 0.85)
+
+[node name="Panel" type="PanelContainer" parent="AspectOverlay"]
+custom_minimum_size = Vector2(640, 0)
+layout_mode = 0
+offset_right = 640.0
+offset_bottom = 330.0
+
+[node name="Column" type="VBoxContainer" parent="AspectOverlay/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Heading" type="Label" parent="AspectOverlay/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="Hint" type="Label" parent="AspectOverlay/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Pick the printing this Aspect uses."
+
+[node name="Options" type="HBoxContainer" parent="AspectOverlay/Panel/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="AspectOverlay/Panel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Remove" type="Button" parent="AspectOverlay/Panel/Column/Buttons"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Take this Aspect out"
+
+[node name="Close" type="Button" parent="AspectOverlay/Panel/Column/Buttons"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = "Close"
+
+[node name="ProblemsOverlay" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="ProblemsOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.025, 0.03, 0.55)
+
+[node name="Panel" type="PanelContainer" parent="ProblemsOverlay"]
+custom_minimum_size = Vector2(640, 0)
+layout_mode = 0
+offset_right = 640.0
+offset_bottom = 200.0
+
+[node name="Column" type="VBoxContainer" parent="ProblemsOverlay/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Heading" type="Label" parent="ProblemsOverlay/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "What to fix"
+
+[node name="Text" type="Label" parent="ProblemsOverlay/Panel/Column"]
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="ProblemsOverlay/Panel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Fix" type="Button" parent="ProblemsOverlay/Panel/Column/Buttons"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Take out every card this deck cannot run"
+
+[node name="Close" type="Button" parent="ProblemsOverlay/Panel/Column/Buttons"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = "Close"
+
+[node name="ImportDialog" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="ImportDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.025, 0.03, 0.88)
+
+[node name="Center" type="CenterContainer" parent="ImportDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="ImportDialog/Center"]
+custom_minimum_size = Vector2(1100, 700)
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="ImportDialog/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Heading" type="Label" parent="ImportDialog/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "Import a deck"
+
+[node name="Help" type="Label" parent="ImportDialog/Center/Panel/Column"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = "Paste a deck code, a decklist form as CSV, a list of quantities and names, or an exported .o8d deck. Every card with an Eidolarch parallel comes in, and Import notes lists the rest so you can fill the gaps from the library."
+autowrap_mode = 3
+
+[node name="Paste" type="TextEdit" parent="ImportDialog/Center/Panel/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "EIDO1:...
+3x Card name
+Card name,2"
+
+[node name="Buttons" type="HBoxContainer" parent="ImportDialog/Center/Panel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="OpenFile" type="Button" parent="ImportDialog/Center/Panel/Column/Buttons"]
+layout_mode = 2
+text = "Open a file"
+
+[node name="Spacer" type="Control" parent="ImportDialog/Center/Panel/Column/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Cancel" type="Button" parent="ImportDialog/Center/Panel/Column/Buttons"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Cancel"
+
+[node name="Go" type="Button" parent="ImportDialog/Center/Panel/Column/Buttons"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Import"
+
+[node name="FileDialog" type="FileDialog" parent="."]
+title = "Open a deck list"
+size = Vector2i(900, 600)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.csv, *.tsv, *.txt ; Deck lists", "*.o8d ; OCTGN decks", "*.json ; Eidolarch decks")
+use_native_dialog = true
+
+[node name="Confirm" parent="." instance=ExtResource("4_modal")]
+visible = false
+layout_mode = 1
+
+[node name="Toast" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 200.0
+offset_bottom = 40.0
+mouse_filter = 2
+theme_type_variation = &"BodyLabel"
+theme_override_styles/normal = SubResource("toast")
+
+[node name="Preview" type="PanelContainer" parent="."]
+visible = false
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 0
+offset_right = 400.0
+offset_bottom = 640.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("preview_shadow")
+
+[node name="Column" type="VBoxContainer" parent="Preview"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Face" type="TextureRect" parent="Preview/Column"]
+custom_minimum_size = Vector2(430, 600)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Info" type="Label" parent="Preview/Column"]
+custom_minimum_size = Vector2(384, 0)
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Hint" type="Label" parent="Preview/Column"]
+custom_minimum_size = Vector2(384, 0)
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+horizontal_alignment = 1
+autowrap_mode = 3

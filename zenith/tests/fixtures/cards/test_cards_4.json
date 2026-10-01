@@ -32,6 +32,9 @@
       "no_control_needed": true
      }
     },
+    {"id": "t_ally_captor_light", "title": "Test Light Captor", "type": "personality", "character": "Test Light Captor", "alignment_only": "vigil", "limit_per_deck": 1, "capture_trait": true, "aspect": 1, "surge": 1,
+     "might": [0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000],
+     "power": {"attack": {"kind": "strike", "printed_stages": 1}, "no_control_needed": true}},
     {"id": "t_noncombat_parry", "title": "Test Standing Parry", "type": "non_combat", "defense": {"stops": "strike"}, "effects": [{"op": "fervor", "amount": 1}]},
     {
      "id": "tf_grinder_1",

@@ -24,6 +24,20 @@ grow_vertical = 2
 [node name="Tick" type="Timer" parent="."]
 autostart = true
 
+[node name="AlphaNote" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -64.0
+offset_right = 900.0
+offset_bottom = -24.0
+grow_vertical = 0
+theme_type_variation = &"MutedLabel"
+text = "Alpha build. Expect bugs and missing pieces."
+vertical_alignment = 2
+
 [node name="Center" type="CenterContainer" parent="." unique_id=806725009]
 layout_mode = 1
 anchors_preset = 15
@@ -90,10 +104,21 @@ custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 text = "Hotseat duel"
 
-[node name="Tutorial" type="Button" parent="Center/Column"]
+[node name="OfflineRow" type="HBoxContainer" parent="Center/Column"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Tutorial" type="Button" parent="Center/Column/OfflineRow"]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Tutorial"
+
+[node name="Builder" type="Button" parent="Center/Column/OfflineRow"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Deck builder"
 
 [node name="OnlineHeader" type="HBoxContainer" parent="Center/Column"]
 layout_mode = 2
@@ -111,6 +136,13 @@ layout_mode = 2
 theme_type_variation = &"CaptionLabel"
 text = "Rating 0"
 horizontal_alignment = 2
+
+[node name="WebNote" type="Label" parent="Center/Column"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = "Online play is only available in the desktop version."
+autowrap_mode = 3
 
 [node name="OnlineSlot" type="Control" parent="Center/Column"]
 custom_minimum_size = Vector2(540, 126)

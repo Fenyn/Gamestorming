@@ -70,6 +70,38 @@ strike(generic_id("signature_strike", {"title": "Mourne's Humbling Blow"}), "Mou
        effects=[WHEN(OPP("lose_aspect"), opponent_style="pyre"),
                 WHEN(FLOAT("no_fervor_gain", "opponent", duration="turn"), opponent_style="pyre")])
 
+# --- The thickened list (2026-10-01): more of his own named cards ---------
+# Vegeta's Pride Drill: "All attacks you perform with Named cards that match your Main Personality do
+# +2 power stages of damage. If your Main Personality is Vegeta, his PUR is increased by +1." The
+# user reads the second clause as any Draconic duelist.
+drill(generic_id("signature_drill", {"title": "Mourne's Highborn Drill"}), "Mourne's Highborn Drill",
+      character=MOURNE, surge_bonus=1, surge_bonus_bloodline="draconic",
+      modifiers=[{"scope": "own", "kind": "any", "stages": 2, "duelist_named": True}])
+# Vegeta At Full Power!: "Vegeta only. Raise Vegeta to his highest power stage. Raise your anger 1
+# level. Remove from the game after use."
+combat(generic_id("signature_combat", {"title": "Mourne Rekindles His Blade"}), "Mourne Rekindles His Blade",
+       [E("energy", amount="max"), ACC(1)], character=MOURNE, only={"character": MOURNE}, remove_after_use=True)
+# Vegeta's Surprise Defense: "Stop one physical or energy attack from doing damage."
+block(generic_id("signature_combat", {"title": "Mourne's Hired Shield"}), "Mourne's Hired Shield", "any", "combat",
+      character=MOURNE)
+# Vegeta's Stance: "Prevents all but 1 life card draw from a successful energy attack." It stops
+# nothing, so the attack still succeeds and its hit lines run.
+block(generic_id("signature_art", {"title": "Mourne's Null Ward"}), "Mourne's Null Ward", "none", "art",
+      defense={"when": {"attack_kind": "art"}}, character=MOURNE, effects=[E("cap_attack", amount=1)])
+# Vegeta's Powering Up: "Energy attack costing 1 power stage to use. Remove from the game after use."
+art(generic_id("signature_art", {"title": "Mourne's Offhand Bolt"}), "Mourne's Offhand Bolt",
+    atk={"cost_stages": 1}, character=MOURNE, remove_after_use=True)
+# Vegeta's Gallic Gun: "Energy attack. If successful, also lower all opponents' anger 1 level.
+# Remove from the game after use."
+art(generic_id("signature_art", {"title": "Mourne's Disdain"}), "Mourne's Disdain",
+    character=MOURNE, remove_after_use=True, effects=[IFS(OPP_ACC(-1))])
+# Vegeta's Percussion Concussion: "Physical attack doing +5 power stages of damage. If successful,
+# remove your opponent's discard pile from the game and raise your anger 2 levels." Its "Tuff Enuff
+# only" is a tournament-format gate and is not carried.
+strike(generic_id("signature_strike", {"title": "Mourne's Arcane Hammer"}), "Mourne's Arcane Hammer",
+       atk={"stages": 5}, character=MOURNE,
+       effects=[IFS(OPP("remove_discard", all=True)), IFS(ACC(2))])
+
 # --- Other named and Freestyle cards --------------------------------------
 # Broly's Evil Drill: "Villains only. When entering Combat as the active player, you may search your
 # Life Deck for a 'Villains only' card and place it into your hand. If Broly is your Main
@@ -107,9 +139,9 @@ noncombat(generic_id("freestyle_noncombat", {"title": "Raid the Armory"}), "Raid
           [ENTER({"may": True, **E("look_at", amount=7, pick={"card_type": "non_combat_any"}, to="play",
                                    all_matches=True, shuffle_after=True, **{"from": "top"}),
                   "then": [E("exile_source")]})], limit_per_deck=1)
-# Krillin's Power Tap: "Use when needed, You may use the power of any drill in play, during Combat.
-# If 'Black Shadow Drill' is in play, your opponent places all of his allies in play at the bottom of
-# his life deck." The second sentence names a card with no parallel in the set, so it can never
-# apply and is not carried.
+# Krillin's Power Tap, read by the anchor CRD's errata (p31): "Use when needed. Choose a Drill in
+# play. ... creates a floating effect that is a copy of that Drill ... lasts until the end of
+# Combat ... Remove from the game after use", not with "When Entering Combat" Drills. The sentence
+# about 'Black Shadow Drill' names a card with no parallel in the set, so it is not carried.
 noncombat(generic_id("signature_noncombat", {"title": "Voss' Borrowed Rite"}), "Voss' Borrowed Rite",
-          character="Aldo Voss", borrows_drill_powers=True)
+          [USE(E("copy_drill"))], character="Aldo Voss", free_action=True, remove_after_use=True)

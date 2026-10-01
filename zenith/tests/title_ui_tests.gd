@@ -189,6 +189,9 @@ func _run() -> void:
 	net.rating_known.emit(0, true)
 	_check(rating.text == "Rating 0 (provisional)", "and says provisional: %s" % rating.text)
 
+	await _check_web(title, net, states)
+	_check_release(title)
+
 	var first: float = float(heights["IDLE"])
 	for key: String in heights:
 		_check(is_equal_approx(float(heights[key]), first), "The column is %.0f high in %s and %.0f idle" % [float(heights[key]), key, first])
@@ -204,6 +207,64 @@ func _run() -> void:
 	await process_frame
 	print("Title UI tests: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)
+
+
+## The web build: every online control greyed with the reason as its tooltip, the reason once under
+## the ONLINE header, no Quit, the offline modes open, and Net refusing every way online.
+func _check_web(title: Node, net: Node, states: Dictionary) -> void:
+	var online_controls: Array[String] = ["find_button", "ranked_button", "host_button", "address_edit", "join_button"]
+	var note: Label = title.get("web_note")
+	var quit: Button = title.get("quit_button")
+	title.set("out_of_date", false)
+	OnlineGate.forced_web = 1
+	title.call("_refresh")
+	_check(title.get("state") == states["UNAVAILABLE"], "The web build's title is in the unavailable state")
+	_check(_shown(title) == "idle_box,rejoin_row,adventure_button,vs_ai_button,hotseat_button,quit_button",
+		"Only the offline modes take input on the web: %s" % _shown(title))
+	_check(note.visible and note.text == OnlineGate.UNAVAILABLE_TEXT, "The reason shows under the ONLINE header: %s" % note.text)
+	_check(note.get_parent() == title.get("column") and note.get_index() == (title.get("rating_label") as Label).get_parent().get_index() + 1,
+		"The note sits straight under the ONLINE header")
+	for key: String in online_controls:
+		_check((title.get(key) as Control).tooltip_text == OnlineGate.UNAVAILABLE_TEXT, "%s carries the reason as its tooltip" % key)
+	_check((title.get("rejoin_button") as Button).disabled and (title.get("concede_button") as Button).disabled,
+		"Rejoin and Concede are greyed on the web")
+	_check(not (title.get("rating_label") as Label).visible, "The rating is hidden on the web")
+	_check(not quit.visible, "Quit is hidden on the web, where it would only freeze the tab")
+	var refusals: Array[String] = [await net.host(), await net.host("lan"), await net.join("K7QMR"), await net.find_duel(),
+		await net.find_ranked(), await net.rejoin()]
+	for refusal in refusals:
+		_check(refusal == OnlineGate.UNAVAILABLE_TEXT, "Net refuses to go online on the web: %s" % refusal)
+	_check(not net.active() and net.queue_state == "", "and nothing was opened")
+	OnlineGate.forced_web = 0
+	title.call("_refresh")
+	_check(title.get("state") != states["UNAVAILABLE"] and not note.visible and quit.visible, "The desktop build is not gated")
+	for key: String in online_controls:
+		_check((title.get(key) as Control).tooltip_text == "", "%s has no tooltip on the desktop" % key)
+	OnlineGate.forced_web = -1
+	title.call("_refresh")
+
+
+## Tutorial and Deck builder follow their release switches, and the alpha note names the version.
+func _check_release(title: Node) -> void:
+	var tutorial: Button = title.get("tutorial_button")
+	var builder: Button = title.get("builder_button")
+	var shipped: Array = [ProjectSettings.get_setting("zenith/release/tutorial", false), ProjectSettings.get_setting("zenith/release/deck_builder", false)]
+	_check(shipped == [false, false], "This build ships with the tutorial and the deck builder switched off: %s" % str(shipped))
+	for on: bool in [false, true]:
+		ProjectSettings.set_setting("zenith/release/tutorial", on)
+		ProjectSettings.set_setting("zenith/release/deck_builder", on)
+		title.call("_refresh")
+		_check(tutorial.disabled != on and builder.disabled != on, "Tutorial and Deck builder are %s with the switches %s" % ["open" if on else "greyed", "on" if on else "off"])
+		_check(tutorial.tooltip_text == ("" if on else "The tutorial arrives in a later build.")
+			and builder.tooltip_text == ("" if on else "The deck builder arrives in a later build."),
+			"and say why when greyed: %s / %s" % [tutorial.tooltip_text, builder.tooltip_text])
+	ProjectSettings.set_setting("zenith/release/tutorial", shipped[0])
+	ProjectSettings.set_setting("zenith/release/deck_builder", shipped[1])
+	title.call("_refresh")
+	var note: Label = title.get("alpha_note")
+	var version: String = str(ProjectSettings.get_setting("application/config/version", ""))
+	_check(version != "" and note.visible and note.text == "Alpha build %s. Expect bugs and missing pieces." % version,
+		"The alpha note names the project version: %s" % note.text)
 
 
 ## The queue lobby's lock-in line beside Lock in, and the seat panel's online wording.

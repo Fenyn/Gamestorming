@@ -32,6 +32,9 @@ var mode: String = "tournament"
 ## An adventure run's Resonances (ResonanceData ids). Set only by `AdventureRun.deck()`: no deck file
 ## carries them, so an opponent never has any. They are not cards and count toward nothing here.
 var resonances: Array[String] = []
+## A player-built deck from user://decks rather than a shipped precon. Not written to the file: the
+## folder it loads from says so. Online it travels as a whole list, never as a catalog index.
+var custom: bool = false
 
 
 static func from_dict(d: Dictionary) -> DeckList:
@@ -70,6 +73,30 @@ static func from_dict(d: Dictionary) -> DeckList:
 			for i in range(count):
 				deck.cards.append(id)
 	return deck
+
+
+## The deck in the file format `from_dict` reads, Life Deck cards counted in first-seen order.
+## Adventure-only fields (cleared, resonances) are left out.
+func to_dict() -> Dictionary:
+	var counted: Array[Dictionary] = []
+	var at: Dictionary = {}
+	for card_id in cards:
+		if at.has(card_id):
+			counted[int(at[card_id])]["count"] = int(counted[int(at[card_id])]["count"]) + 1
+		else:
+			at[card_id] = counted.size()
+			counted.append({"id": card_id, "count": 1})
+	var out: Dictionary = {"name": name, "duelist": duelist_ids.duplicate(), "style": style,
+		"alignment": alignment, "mastery": mastery_id, "relic": relic_id, "reserve": reserve.duplicate(),
+		"cards": counted}
+	for key: String in ["archetype", "difficulty", "ai_profile", "tagline", "blurb"]:
+		if str(get(key)) != "":
+			out[key] = get(key)
+	if not subthemes.is_empty():
+		out["subthemes"] = subthemes.duplicate()
+	if mode != "tournament":
+		out["mode"] = mode
+	return out
 
 
 static func _strings(v: Variant) -> Array[String]:

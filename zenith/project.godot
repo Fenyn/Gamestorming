@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Eidolarch"
+config/version="0.1.0"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
@@ -39,3 +40,5 @@ theme/custom_font="res://assets/fonts/kurale/Kurale-Regular.ttf"
 
 net/duel_server="198.44.38.215:7777"
 net/duel_server_cert="res://data/net/duel_server.crt"
+release/tutorial=false
+release/deck_builder=false

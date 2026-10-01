@@ -20,7 +20,9 @@ func _ready() -> void:
 	_shader.shader = preload("res://assets/arcane_backdrop.gdshader")
 	_shader.set_shader_parameter("portrait", portrait)
 	material = _shader
-	if not portrait and DisplayServer.get_name() != "headless":
+	# A browser on Windows (ANGLE over Direct3D) takes most of a minute to compile the hall's lit
+	# stone and particles on a first visit, so the web build shows the backdrop alone.
+	if not portrait and DisplayServer.get_name() != "headless" and not OnlineGate.is_web():
 		_hall_viewport = SubViewport.new()
 		_hall_viewport.own_world_3d = true
 		_hall_viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE

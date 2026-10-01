@@ -135,8 +135,6 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			limit = SIGNATURE_LIMIT
 		if int(counts[id]) > limit:
 			problems.append("'%s' x%d exceeds limit %d" % [id, counts[id], limit])
-	if seal_sets.size() > 1:
-		problems.append("Only one Seal set per deck")
 	# Every deck follows one Style: its Mastery's school ("freestyle" for a schoolless Mastery).
 	if deck.style == "freestyle" and styled_seen:
 		problems.append("A Freestyle Style allows no school cards")
@@ -178,6 +176,10 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			problems.append("Reserve card '%s' is %s, deck Style is %s" % [id, def.school, deck.style])
 		if bool(def.raw.get("banned", false)) and not adventure:
 			problems.append("Reserve card '%s' is banned outside adventure mode" % id)
+		# Anchor CRD p1: every Seal in a deck belongs to one set, and "deck" there is the Life Deck
+		# and the Reserve together.
+		if def.type == CardDef.Type.SEAL:
+			seal_sets[def.seal_set] = true
 		# A Reserve swap puts these cards in the Life Deck before the first turn, so a personality
 		# in the Reserve is an Ally and obeys the Ally rules like any other.
 		if def.type == CardDef.Type.PERSONALITY:
@@ -193,4 +195,6 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			limit = SIGNATURE_LIMIT
 		if combined > limit:
 			problems.append("'%s' x%d across deck and Reserve exceeds limit %d" % [id, combined, limit])
+	if seal_sets.size() > 1:
+		problems.append("Only one Seal set per deck")
 	return problems

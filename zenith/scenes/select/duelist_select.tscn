@@ -103,6 +103,13 @@ theme_type_variation = &"MutedLabel"
 text = ""
 horizontal_alignment = 2
 
+[node name="Builder" type="Button" parent="Margin/Column/TitleRow"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Build or change a deck of your own"
+text = "Deck builder"
+
 [node name="CodeBanner" type="PanelContainer" parent="Margin/Column"]
 visible = false
 layout_mode = 2

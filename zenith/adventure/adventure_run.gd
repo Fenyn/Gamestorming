@@ -37,6 +37,12 @@ var relic_offers: Array[Dictionary] = []
 ## Reserve cards that arrived with the Relic just taken, marked new on the Reserve screen until the
 ## player leaves it.
 var reserve_new: Array[String] = []
+## The Resonances the run holds (ResonanceData ids), in the order taken. Every duel carries them
+## through `deck()`; they are not cards and count toward nothing.
+var resonances: Array[String] = []
+## The Resonance ids on offer at the Shrine the run stands on, or at the claim after a won Elite,
+## rolled once when it opens and kept until the visit ends.
+var shrine_offers: Array[String] = []
 var stage: int = 0
 var run_seed: int = 0
 ## The map node the run stands on, "" before the first step.
@@ -51,8 +57,9 @@ var pending_aspects: Array[String] = []
 ## on a Forge whose one action is still open (AdventureForge). shop: standing in a Shop
 ## (AdventureShop). relic: standing on the Relic node with its offers open (AdventureRelic). reserve:
 ## a Relic was just taken and the Reserve holds more than it allows, so cards must be set aside
-## (AdventureReserve).
-var status: String = "map"         # map | stage | forge | shop | relic | reserve | aspect | reward | settle | won | lost
+## (AdventureReserve). shrine: standing on a Shrine with its offers open (AdventureShrine). claim: a
+## won Elite's Resonance offer, after its reward steps (AdventureElite).
+var status: String = "map"         # map | stage | forge | shop | relic | reserve | shrine | aspect | reward | claim | settle | won | lost
 ## The run's own currency (design 7.6): earned by winning fights, spent only at Shops. It belongs to
 ## the run, so it is gone when the run ends and is never turned into Motes.
 var mana: int = 0
@@ -68,7 +75,8 @@ var settled: bool = false
 var kept: Dictionary = {}
 ## {stage, kind, id} for every kind, plus "cards" on a bundle or relic pick.
 ## kind: bundle | aspect | aspect_skipped | skip | cut | copy (a Forge copy) | buy (a Shop card) |
-## joined (a storyline boss's card) | relic (a Relic node offer, its Reserve set as "cards")
+## joined (a storyline boss's card) | relic (a Relic node offer, its Reserve set as "cards") |
+## resonance (a Shrine offer)
 var picks: Array[Dictionary] = []
 ## The duel in progress as `Referee.history`, saved after every command so a closed game comes
 ## back to the same position. Empty between duels.
@@ -151,9 +159,9 @@ func choices(map: AdventureMap) -> Array[String]:
 	return map.start_ids() if node_id == "" else map.next_of(node_id)
 
 
-## Steps onto a node. A fight leaves the run waiting on its duel, and a Forge, a Shop or the Relic
-## node waits on its visit; any other node is passed through, since none of them does anything yet
-## (build plan phase 5). False, and nothing moves, when `id` is not one of the choices.
+## Steps onto a node. A fight leaves the run waiting on its duel, and a Forge, a Shop, a Shrine or the
+## Relic node waits on its visit; any other node is passed through, since none of them does anything
+## yet. False, and nothing moves, when `id` is not one of the choices.
 func enter(map: AdventureMap, id: String) -> bool:
 	if not choices(map).has(id):
 		return false
@@ -162,21 +170,22 @@ func enter(map: AdventureMap, id: String) -> bool:
 	var type: String = str(map.node(id).get("type", ""))
 	if AdventureMap.is_fight(type):
 		status = "stage"
-	elif type == "forge" or type == "shop" or type == "relic":
+	elif type in ["forge", "shop", "relic", "shrine"]:
 		status = type
 	return true
 
 
-## Takes the first choice at every step until the run stands on a fight, leaving every Forge and
-## Shop on the way without acting and passing the Relic node the way `AdventureRelic.pass_through`
-## does. For tests, tools and dev screens; the player picks their own way. `library` defaults to the
-## shipped cards. False when there is no fight left to reach.
+## Takes the first choice at every step until the run stands on a fight, leaving every Forge, Shop,
+## Shrine and Elite claim on the way without acting and passing the Relic node the way
+## `AdventureRelic.pass_through` does. For tests, tools and dev screens; the player picks their own
+## way. `library` defaults to the shipped cards. False when there is no fight left to reach.
 func walk_to_next_duel(map: AdventureMap, library: CardLibrary = null) -> bool:
 	var guard: int = 0
-	while status in ["map", "forge", "shop", "relic", "reserve"] and guard < 64:
+	while status in ["map", "forge", "shop", "relic", "reserve", "shrine", "claim"] and guard < 64:
 		guard += 1
 		AdventureForge.leave(self)
 		AdventureShop.leave(self)
+		AdventureShrine.leave(self)
 		AdventureRelic.pass_through(self, library)
 		if status != "map":
 			return false
@@ -196,6 +205,7 @@ func deck() -> DeckList:
 	d.set_duelist(duelist_ids)
 	d.relic_id = relic_id
 	d.reserve = reserve.duplicate()
+	d.resonances = resonances.duplicate()
 	return d
 
 
@@ -277,6 +287,16 @@ func relic_seed(id: String) -> int:
 	return _mix(run_seed, -0x40000001 - (id.hash() & 0x3FFFFFFF))
 
 
+## Seed for the offers of the Shrine on node `id`, below every Relic seed.
+func shrine_seed(id: String) -> int:
+	return _mix(run_seed, -0x80000001 - (id.hash() & 0x3FFFFFFF))
+
+
+## Seed for the claim after a won Elite on node `id`, below every Shrine seed.
+func claim_seed(id: String) -> int:
+	return _mix(run_seed, -0xC0000001 - (id.hash() & 0x3FFFFFFF))
+
+
 func earn_mana(amount: int) -> void:
 	mana += maxi(0, amount)
 
@@ -300,7 +320,7 @@ static func _mix(a: int, b: int) -> int:
 
 ## An older save is not migrated: `from_dict` refuses it and the run is dropped, since a run in
 ## flight is not worth carrying across (user, 2026-09-23).
-const SAVE_VERSION: int = 9
+const SAVE_VERSION: int = 11
 
 
 func to_dict() -> Dictionary:
@@ -316,6 +336,8 @@ func to_dict() -> Dictionary:
 		"library": library.duplicate(),
 		"relic_offers": relic_offers.duplicate(true),
 		"reserve_new": reserve_new.duplicate(),
+		"resonances": resonances.duplicate(),
+		"shrine_offers": shrine_offers.duplicate(),
 		"starter_cards": starter_cards.duplicate(),
 		"starter_reserve": starter_reserve.duplicate(),
 		"starter_duelist": starter_duelist.duplicate(),
@@ -356,6 +378,10 @@ static func from_dict(d: Dictionary) -> AdventureRun:
 		run.library.append(str(id))
 	for id in d.get("reserve_new", []):
 		run.reserve_new.append(str(id))
+	for id in d.get("resonances", []):
+		run.resonances.append(str(id))
+	for id in d.get("shrine_offers", []):
+		run.shrine_offers.append(str(id))
 	for entry in d.get("relic_offers", []):
 		if entry is Dictionary:
 			var row: Dictionary = entry

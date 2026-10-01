@@ -247,6 +247,107 @@ Deck card (`life_for_art_costs`, with a choice when Energy could pay), a `max_ba
 on printed Base Damage, and `no_ally_takeover` for "cannot have Allies take control" without the
 damage lock `no_ally_control` also carries.
 
+## Freestyle Vegeta (Didier G, Gen Con 2012), planned as the pre-mark Gideon Mourne deck
+
+Not a proxy sheet: a Score-era Retro tournament report, "Freeing Vegeta With Style" on
+retrodbzccg.com (2012-08-24), top cut at Gen Con. Chosen 2026-09-30 for the earlier, unmarked
+Gideon Mourne (`cast.md`, "The earlier Gideon"). Every card is a Score print. Two are promos the
+Lackey file lacks and were read off seller scans: **Vegeta's Gutter Wallop** (Vegeta Season league
+promo L6-6, 2003: "Physical attack doing +4 power stages of damage. Look at your opponent's hand.
+If successful and used by Vegeta or Majin Vegeta, raise your anger 3 levels.") and **Vegeta's
+Energy Detonation** (Broly subset #36, printed "Vegeta's Energy Blast" and retitled by the rulings
+document: "Energy attack doing 6 life cards of damage. If used by Vegeta, then for the remainder
+of Combat the bottom 15 cards of your discard pile are Vegeta Named cards while in your discard
+pile."). "Android 19's Burst" in the Sensei block is read as a second and third Android 19's Energy
+Burst. The report does not name its Mastery; `freestyle_mastery_01` (Signature tutor) fits the
+named-card engine it describes.
+
+**How it plays, per the report.** Freestyle energy beatdown built on Vegeta-named cards. Rush
+Aspect 2 (Settled Down: the rival cannot play or use Combat cards, attacks +2 wounds) with Gutter
+Wallop's +3 anger; jump to Aspect 3 (Last Prince: look at their hand, discard one) against
+beatdown. Run slim and let attacks land, because Energy Detonation plus Energy Thrust shuffles the
+whole bottom of the discard pile back in ("at least 30 cards each"). Krillin's Concentration and
+Fatherly Advice fetch Vegeta is Lurking, which fetches three named cards, so double Lurking in one
+Combat is common. Aura Clash jumps to Settled Down against control. The Sensei (North Kai, 13) is
+drill and Dragon Ball tech plus Vegeta's Elbow Slam against Red anger decks.
+
+**Ladder, five Aspects (all new cards):** Super Saiyan Vegeta L1 (Redemption: search your discard
+pile for a Vegeta named card and shuffle it into your Life Deck), Vegeta, Settled Down L2 (Kid Buu
+Saga), Vegeta, the Last Prince L3 (Cell Saga), Vegeta, Ascendant L4 (Cell Saga: Defense Shield,
+draw entering Combat), Vegeta, the Revitalized L5 (Cell Saga: Strike +9). `personality_48`
+(Mercenary) stays an Ally print.
+
+**Main deck, 65, mapped to our pool:**
+
+| Copies | Print | Ours |
+|---|---|---|
+| 4 | Vegeta's Energy Thrust | new, Mourne-named |
+| 4 | Vegeta's Gutter Wallop | new, Mourne-named |
+| 4 | Vegeta's Energy Detonation | new, Mourne-named; needs a "bottom N of discard count as named" float |
+| 4 | Vegeta's Jolting Slash | `signature_art_07` Mourne's Jolting Arc |
+| 4 | Vegeta's Energy Focus | `signature_art_16` Mourne's Unpaid Bolt |
+| 1 | Vegeta is Lurking | new, Mourne-named, limit 1 |
+| 2 | Vegeta's Lunge | new, Mourne-named |
+| 1 | Vegeta's (Ill) Temper | new, Mourne-named |
+| 1 | Vegeta's Physical Stance | `signature_strike_03` Mourne's Stance |
+| 1 | Vegeta's Quickness Drill | `signature_drill_03` Mourne's Quickness Drill |
+| 2 | Goku's Power Strike | `signature_art_04` Edric's Committed Cut |
+| 2 | Gohan's Kick | `signature_strike_01` Emrys Gives No Quarter |
+| 1 | Energy Lob | `freestyle_art_03` Lobbed Bolt |
+| 1 | Android 19's Energy Burst | `signature_art_03` Siphon's Drain |
+| 3 | Android 18's Stare Down | `signature_combat_04` Marrow's Appraisal |
+| 1 | Aura Clash | `freestyle_combat_14` Raised Stakes |
+| 1 | Battle Pausing | `freestyle_combat_05` Respite |
+| 3 | Goku's Flight | `signature_strike_23` Edric Gives Ground |
+| 1 | Narrow Escape | new, Freestyle |
+| 1 | Time is a Warrior's Tool | `freestyle_combat_01` Stillness |
+| 1 | Cell's Defense | `freestyle_combat_03` Terms of the Pact |
+| 2 | Pikkon's Leg Catch | `freestyle_strike_06` Second Wind |
+| 1 | Tien's Block | `signature_strike_26` Corin's Practiced Guard |
+| 2 | Energy Ricochet | new, Freestyle |
+| 3 | Krillin's Concentration | `freestyle_noncombat_03` Voss' Clear Mind. The rulings document restricts it (2/11/04); the user lifted that 2026-09-30 so the list runs 3, as the Retro report did |
+| 2 | Krillin's Power Tap | new, Voss-named |
+| 1 | Fatherly Advice | `freestyle_noncombat_02` Recalled Lesson |
+| 1 | Releasing the Sword | new, Freestyle |
+| 1 | Hero's Lucky Break | `freestyle_noncombat_06` Lucky Find |
+| 1 | Expectant Trunks | `freestyle_noncombat_04` Foresight |
+| 1 | Don't You Just Hate That | `freestyle_noncombat_12` Spoiled Rite |
+| 1 | Victorious Drill | `freestyle_drill_01` Bravado Drill |
+| 1 | Android 20 Absorbing Drill | `signature_drill_02` Cull's Absorbing Drill |
+| 1 | Broly's Evil Drill | new, Quarr-named, Pact only |
+| 1 | Master Roshi's Gawking Drill | new; Roshi has no mirror (the Laurel is a Relic), so PLACEHOLDER-named |
+| 1 | Uub's Energy Drill | `signature_drill_07` PLACEHOLDER's Surging Drill |
+| 2 | Tree of Might | `grounds_02` Ancient Grove |
+
+**Sensei, North Kai (13) = `relic_01` The Blank Mask, Reserve 13:** Black Scout Maneuver
+(`shade_combat_02`), You're Invited (`freestyle_noncombat_09`), Android 19's Energy Burst x2
+(`signature_art_03`), Android 17 Smirks (`signature_combat_07`), Vegeta's Elbow Slam x2 (new,
+Mourne-named, Sensei only), HUH??? (`freestyle_noncombat_10`), Black Water Confusion Drill
+(`freestyle_drill_06`), Kami Fades x2 (`freestyle_noncombat_18` The Watch Goes Dark, whose roster
+row has no source recorded but whose text is Kami Fades'), Breakthrough Drill (`freestyle_drill_05`).
+That is 12; the 13th slot is open.
+
+**Proposed split (2026-09-30, awaiting names):**
+
+- **PvP precon:** the list above as printed, five Aspects, `freestyle_mastery_01`, The Blank Mask
+  with the Sensei block as Reserve. 65 + 5 + Mastery + Relic by our count.
+- **Adventure starter, 50 cards, Aspects 1 to 3.** Keeps the engine the report describes: Energy
+  Thrust x4 and Gutter Wallop x4 (the two `bombs`), Energy Focus x3, the Freestyle Strikes and Arts
+  (Power Strike, Kick, Energy Lob, Energy Burst), Stare Down x3 and Lunge x2 for the hand, the
+  non-lockout stops (Goku's Flight x3, Leg Catch x3, Energy Ricochet x2, Tien's Block, Android 20
+  Absorbing Drill, Trunks' Energy Sphere per the starter rule), the tutors (Concentration, Fatherly
+  Advice, Expectant Trunks, Hero's Lucky Break), the Drills (Quickness, Victorious, Uub's, Gawking)
+  and Vegeta's Temper. Out, per the starter brief: Tree of Might (Grounds) and every lockout
+  (Jolting Slash, Physical Stance, Time is a Warrior's Tool, Cell's Defense, Narrow Escape).
+  Aspect 2's "rival cannot play Combat cards" is itself a lockout; it stays because the user set
+  ranks 1 to 3 for the starter.
+- **Unlocks, on the Gideon Mourne personality track:** Vegeta is Lurking and Energy Detonation
+  (the combo bombs), then the Relic and Reserve ability, then Aspect 4, then Aura Clash and Jolting
+  Slash, then Aspect 5. The Marked line's items on that track move to the Marked Lord unlock, which
+  becomes a story quest (lore held for later).
+- **Open starter:** replaces `shade_mind_siege_start` in `storylines.json` and inherits its
+  storyline (Shade Salvage act 1 boss with Orvath Kell joining, Henchmen act 2).
+
 ## Per deck, the order of work
 
 1. Extract, count copies, read set codes, and split the list into Score prints and fan prints.

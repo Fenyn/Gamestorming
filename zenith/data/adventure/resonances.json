@@ -1,0 +1,145 @@
+{
+	"_note": "Resonances (designs/zenith_adventure.md 7.7). `tags` are the archetype and subtheme ids a Resonance serves; the Shrine offers two whose tags meet the run's starter. `style` ones carry a penalty. `rules` are the keys DuelEngine reads; `effect` and `penalty` are the sentences on screen.",
+	"resonances": [
+		{
+			"id": "iron_resolve",
+			"name": "Iron Resolve",
+			"tags": ["strikes", "might", "strike_beatdown"],
+			"style": false,
+			"icon": "res://assets/adventure_map/resonances/iron_resolve.png",
+			"effect": "Your Strikes read the Strike Table one band higher, up to the top band.",
+			"penalty": "",
+			"rules": {"strike_bands": 1}
+		},
+		{
+			"id": "ready_channel",
+			"name": "Ready Channel",
+			"tags": ["arts", "art_beatdown"],
+			"style": false,
+			"icon": "res://assets/adventure_map/resonances/ready_channel.png",
+			"effect": "The first Art you perform each Combat costs no Energy.",
+			"penalty": "",
+			"rules": {"art_cost_free": "first_each_combat"}
+		},
+		{
+			"id": "steady_flame",
+			"name": "Steady Flame",
+			"tags": ["fervor", "drills", "ascension"],
+			"style": false,
+			"icon": "res://assets/adventure_map/resonances/steady_flame.png",
+			"effect": "When you ascend, you keep your Drills in play.",
+			"penalty": "",
+			"rules": {"ascend_keeps_drills": true}
+		},
+		{
+			"id": "rising_ash",
+			"name": "Rising Ash",
+			"tags": ["fervor", "ascension"],
+			"style": false,
+			"icon": "res://assets/adventure_map/resonances/rising_ash.png",
+			"effect": "When you ascend, put the top 3 cards of your discard pile on the bottom of your Life Deck.",
+			"penalty": "",
+			"rules": {"ascend_recover": 3}
+		},
+		{
+			"id": "spoils_of_ruin",
+			"name": "Spoils of Ruin",
+			"tags": ["disruption", "control"],
+			"style": false,
+			"icon": "res://assets/adventure_map/resonances/spoils_of_ruin.png",
+			"effect": "Whenever you make your opponent discard a Drill, Ally or Non-Combat card in play, gain 2 Energy stages.",
+			"penalty": "",
+			"rules": {"spoils": {"types": ["drill", "personality", "non_combat"], "energy": 2}}
+		},
+		{
+			"id": "deep_well",
+			"name": "Deep Well",
+			"tags": ["energy", "art_beatdown"],
+			"style": false,
+			"icon": "res://assets/adventure_map/resonances/deep_well.png",
+			"effect": "Power Up gains 1 more Energy stage.",
+			"penalty": "",
+			"rules": {"power_up_bonus": 1}
+		},
+		{
+			"id": "open_hand",
+			"name": "Open Hand",
+			"tags": ["draw"],
+			"style": false,
+			"icon": "res://assets/adventure_map/resonances/open_hand.png",
+			"effect": "Draw 1 more card in every draw step.",
+			"penalty": "",
+			"rules": {"draw_step_bonus": 1}
+		},
+		{
+			"id": "first_stone",
+			"name": "First Stone",
+			"tags": ["drills"],
+			"style": false,
+			"icon": "res://assets/adventure_map/resonances/first_stone.png",
+			"effect": "At the start of each duel you may search your Life Deck for a Drill and put it into play. Your opponent cannot discard it.",
+			"penalty": "",
+			"rules": {"setup_search": {"op": "search", "card_type": "drill", "to": "play", "amount": 1, "opponent_cannot_discard": true}}
+		},
+		{
+			"id": "warband",
+			"name": "Warband",
+			"tags": ["allies", "bond"],
+			"style": false,
+			"icon": "res://assets/adventure_map/resonances/warband.png",
+			"effect": "Your Strikes do 1 more stage for each Ally you have in play.",
+			"penalty": "",
+			"rules": {"strike_stages_per_ally": 1}
+		},
+		{
+			"id": "sealwrights_patience",
+			"name": "Sealwright's Patience",
+			"tags": ["seals"],
+			"style": false,
+			"icon": "res://assets/adventure_map/resonances/sealwrights_patience.png",
+			"effect": "Your Seals cannot be captured the turn they are placed, and placing one draws you a card.",
+			"penalty": "",
+			"rules": {"seal_safe_on_placing_turn": true, "seal_place_draw": 1}
+		},
+		{
+			"id": "braced_stance",
+			"name": "Braced Stance",
+			"tags": ["defence", "control"],
+			"style": false,
+			"icon": "res://assets/adventure_map/resonances/braced_stance.png",
+			"effect": "The first attack against you each Combat does 1 fewer wound and 2 fewer stages.",
+			"penalty": "",
+			"rules": {"first_attack_against": {"life": 1, "stages": 2}}
+		},
+		{
+			"id": "blood_price",
+			"name": "Blood Price",
+			"tags": ["style"],
+			"style": true,
+			"icon": "res://assets/adventure_map/resonances/blood_price.png",
+			"effect": "Your Arts cost no Energy.",
+			"penalty": "Your Arts cost one wound.",
+			"rules": {"art_cost_free": "always", "art_cost_life": 1}
+		},
+		{
+			"id": "glass_cannon",
+			"name": "Glass Cannon",
+			"tags": ["style"],
+			"style": true,
+			"icon": "res://assets/adventure_map/resonances/glass_cannon.png",
+			"effect": "Your attacks do 1 more wound.",
+			"penalty": "Attacks against you do 1 more wound.",
+			"rules": {"attack_life": 1, "attack_life_against": 1}
+		},
+		{
+			"id": "patient_tide",
+			"name": "Patient Tide",
+			"tags": ["style"],
+			"style": true,
+			"icon": "res://assets/adventure_map/resonances/patient_tide.png",
+			"effect": "You open each duel at your highest Energy stage.",
+			"penalty": "You cannot declare Combat on your first turn.",
+			"rules": {"open_at_highest_energy": true, "no_combat_first_turn": true}
+		}
+	]
+}

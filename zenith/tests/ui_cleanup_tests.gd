@@ -791,6 +791,207 @@ func _check_relic_screens() -> void:
 	session.map = null
 
 
+## The Shrine, driven through its own handlers on an in-memory run: the held list, three offers with a
+## style one's penalty in the penalty colour, hover, take, leave and the empty held panel.
+func _check_shrine_screens() -> void:
+	var session: Node = root.get_node("Session")
+	var library: CardLibrary = session.library
+	var run: AdventureRun = null
+	var map: AdventureMap = null
+	for seed_value in range(40, 70):
+		run = AdventureRun.begin("pyre_beatdown_start", seed_value)
+		map = AdventureMap.generate("pyre_beatdown_start", seed_value)
+		if _walk_to_stop(run, map, library, "shrine"):
+			break
+	_check(run.status == "shrine", "A test run reaches a Shrine")
+	run.resonances.assign(["deep_well"])
+	session.run = run
+	session.map = map
+	var screen: Control = load("res://scenes/adventure/shrine.tscn").instantiate()
+	screen.set("_dev", true)
+	root.add_child(screen)
+	await _settle(screen)
+	_check(run.shrine_offers.size() == 3, "The Shrine rolls its three offers as it opens")
+	var list: VBoxContainer = screen.get_node("Row/Held/Column/Scroll/List")
+	var names: Array[String] = []
+	for row in list.get_children():
+		if row is HBoxContainer:
+			names.append((row.get_node("Name") as Label).text)
+			_check((row.get_node("Sigil") as ResonanceSigil).resonance == "deep_well", "The held row carries its sigil")
+	_check(names == ["Deep Well"], "The held list names the run's Resonances: %s" % str(names))
+	_check(not (list.get_node("Empty") as Label).visible, "and hides the empty note")
+	for i in range(3):
+		var offer: ShrineOffer = screen.get_node("Row/Offer%d" % i)
+		var id: String = run.shrine_offers[i]
+		_check(offer.visible and offer.name_label.text == ResonanceData.name_of(id) and offer.effect.text == ResonanceData.effect_of(id),
+			"Offer %d shows its Resonance's name and sentence" % i)
+		_check(offer.sigil.resonance == id, "Offer %d draws its sigil" % i)
+		_check(offer.penalty.visible == ResonanceData.is_style(id), "Offer %d shows a penalty only for a style Resonance" % i)
+	var style: ShrineOffer = screen.get_node("Row/Offer2")
+	_check(style.chip.text == "STYLE" and style.penalty.get_theme_color("font_color") == ZenithTheme.PENALTY,
+		"The style offer's chip reads STYLE and its penalty is in the penalty colour")
+	_check(not style.penalty.text.contains("cost:"), "The penalty is one plain sentence: %s" % style.penalty.text)
+	var themed: ShrineOffer = screen.get_node("Row/Offer0")
+	_check(themed.chip.text != "STYLE" and themed.chip.text != "", "A themed offer's chip names what it serves: %s" % themed.chip.text)
+	screen.call("_on_hover", 2, true)
+	_check(style.glow.visible and style.sigil.lit, "Hovering an offer lifts it with a glow and lights its ring")
+	screen.call("_on_hover", 2, false)
+	_check(not style.glow.visible, "and leaving it settles it back")
+	var taken: String = run.shrine_offers[0]
+	screen.call("_on_take", 0)
+	_check(run.resonances.has(taken) and run.status == "map", "Clicking an offer takes it and ends the visit")
+	screen.free()
+	run.status = "shrine"
+	var leaving: Control = load("res://scenes/adventure/shrine.tscn").instantiate()
+	leaving.set("_dev", true)
+	root.add_child(leaving)
+	await _settle(leaving)
+	var held: int = run.resonances.size()
+	(leaving.get_node("Row/Held/Column/Leave") as Button).pressed.emit()
+	_check(run.status == "map" and run.resonances.size() == held and run.shrine_offers.is_empty(), "Leave the Shrine ends the visit with nothing taken")
+	leaving.free()
+	run.resonances.clear()
+	run.status = "shrine"
+	var empty: Control = load("res://scenes/adventure/shrine.tscn").instantiate()
+	empty.set("_dev", true)
+	root.add_child(empty)
+	await _settle(empty)
+	_check((empty.get_node("Row/Held/Column/Scroll/List/Empty") as Label).visible, "A run holding none says so in a sentence")
+	empty.free()
+	# Reached through the scene rather than by class name: the list's script reads autoloads.
+	var listing: Control = load("res://scenes/adventure/run_deck_list.tscn").instantiate()
+	var faces: CardFaceCache = CardFaceCache.new()
+	root.add_child(faces)
+	root.add_child(listing)
+	listing.call("show_cards", run.cards, library, faces)
+	listing.call("show_resonances", ["blood_price", "deep_well"] as Array[String])
+	var rows: Array[Button] = []
+	var header: bool = false
+	for column: VBoxContainer in [listing.get("column_a"), listing.get("column_b")]:
+		for child in column.get_children():
+			header = header or (child is Label and (child as Label).text == "RESONANCES")
+			if child is Button and (child as Button).find_children("*", "TextureRect", true, false).size() > 0:
+				rows.append(child as Button)
+	_check(header and rows.size() == 2, "The View Deck list closes with the run's Resonances")
+	if rows.size() == 2:
+		rows[0].mouse_entered.emit()
+		_check((listing.get("preview_caption") as Label).text == "Blood Price" and (listing.get("preview_count") as Label).text.contains(ResonanceData.penalty_of("blood_price")),
+			"Hovering one previews its sentence and its penalty")
+	listing.free()
+	faces.free()
+	MapArt.tint_for_school("")
+	session.run = null
+	session.map = null
+
+
+## The Elite: the map's side panel lists the Resonances its opponent holds, sigil, name and hover
+## sentence, before the player commits, and hides the list for any other node; a won Elite's claim
+## opens on the Shrine screen as "Claim a Resonance" with "Take nothing", takes or leaves.
+func _check_elite_screens() -> void:
+	var session: Node = root.get_node("Session")
+	var library: CardLibrary = session.library
+	var run: AdventureRun = null
+	var map: AdventureMap = null
+	var elite: String = ""
+	for seed_value in range(60, 120):
+		run = AdventureRun.begin("pyre_beatdown_start", seed_value)
+		map = AdventureMap.generate("pyre_beatdown_start", seed_value)
+		elite = _walk_to_choice(run, map, library, "elite")
+		if elite != "":
+			break
+	_check(elite != "", "A test run reaches a fork with an Elite on it")
+	if elite == "":
+		return
+	var held: Array[String] = AdventureElite.resonances_of(map.duel_for(elite))
+	_check(not held.is_empty(), "The Elite's opponent holds Resonances")
+	session.run = run
+	session.map = map
+	var stage: Control = load("res://scenes/adventure/stage.tscn").instantiate()
+	root.add_child(stage)
+	await process_frame
+	# Reached untyped: the route's script reads autoloads.
+	var route: Control = stage.get("_route")
+	route.call("select", elite)
+	await process_frame
+	var panel: PanelContainer = stage.get_node("Margin/Column/Body/Right/EliteResonances")
+	var rows: Array[Node] = panel.get_node("Row/List").get_children()
+	_check(panel.visible and rows.size() == held.size(), "Picking the Elite lists its %d Resonances under its sheet" % held.size())
+	for i in range(mini(rows.size(), held.size())):
+		var row: Control = rows[i] as Control
+		_check((row.get_node("Sigil") as ResonanceSigil).resonance == held[i], "Row %d draws its sigil" % i)
+		_check((row.get_node("Name") as Label).text == ResonanceData.name_of(held[i]), "Row %d names it" % i)
+		_check(row.tooltip_text.begins_with(ResonanceData.effect_of(held[i])) and row.mouse_filter == Control.MOUSE_FILTER_STOP,
+			"Row %d gives its sentence on hover" % i)
+		_check(row.tooltip_text.contains(ResonanceData.penalty_of(held[i])), "and a style one's penalty with it")
+	var screen: Rect2 = Rect2(Vector2.ZERO, stage.get_viewport_rect().size)
+	_check(screen.encloses(panel.get_global_rect()), "The list stays on screen: %s" % str(panel.get_global_rect()))
+	var footer: Control = stage.get_node("Margin/Column/Footer")
+	_check(screen.encloses(footer.get_global_rect()), "and the footer with it")
+	var other: String = ""
+	for id in run.choices(map):
+		if id != elite:
+			other = id
+	if other != "":
+		route.call("select", other)
+		await process_frame
+		_check(not panel.visible, "Any other node hides the list")
+	stage.free()
+	run.enter(map, elite)
+	AdventureRewards.finish_stage(run, map, library, true)
+	if run.status == "aspect":
+		AdventureRewards.apply_aspect(run, library, run.pending_aspects[0])
+		AdventureRewards.finish_aspect(run, map, library)
+	AdventureRewards.apply_skip(run)
+	AdventureRewards.finish_reward(run, map)
+	_check(run.status == "claim", "A won Elite goes on to its claim")
+	var saved: Dictionary = run.to_dict()
+	var claim: Control = load("res://scenes/adventure/shrine.tscn").instantiate()
+	claim.set("_dev", true)
+	root.add_child(claim)
+	await _settle(claim)
+	_check((claim.get_node("Title") as Label).text == "Claim a Resonance", "The claim is titled Claim a Resonance")
+	_check((claim.get_node("Subtitle") as Label).text.ends_with("."), "under a full sentence")
+	var leave: Button = claim.get_node("Row/Held/Column/Leave")
+	_check(leave.text == "Take nothing", "and leaves through Take nothing")
+	for i in range(3):
+		var offer: ShrineOffer = claim.get_node("Row/Offer%d" % i)
+		_check(offer.visible and offer.sigil.resonance == run.shrine_offers[i], "Claim offer %d shows its Resonance" % i)
+	var taken: String = run.shrine_offers[1]
+	claim.call("_on_take", 1)
+	_check(run.resonances.has(taken) and run.status == "map", "Clicking a claim offer takes it and returns to the map")
+	claim.free()
+	var again: AdventureRun = AdventureRun.from_dict(saved)
+	session.run = again
+	var leaving: Control = load("res://scenes/adventure/shrine.tscn").instantiate()
+	leaving.set("_dev", true)
+	root.add_child(leaving)
+	await _settle(leaving)
+	(leaving.get_node("Row/Held/Column/Leave") as Button).pressed.emit()
+	_check(again.status == "map" and again.resonances.is_empty(), "Take nothing leaves the claim with nothing gained")
+	leaving.free()
+	MapArt.tint_for_school("")
+	session.run = null
+	session.map = null
+
+
+## Walks a run, winning every duel and skipping every offer, until a node of `type` is one of its
+## choices. Returns that node, "" when none comes up.
+func _walk_to_choice(run: AdventureRun, map: AdventureMap, library: CardLibrary, type: String) -> String:
+	for _step in range(200):
+		if run.status != "map":
+			if not _walk_to_stop(run, map, library, "map"):
+				return ""
+			continue
+		var next: Array[String] = run.choices(map)
+		for id in next:
+			if str(map.node(id).get("type", "")) == type:
+				return id
+		if next.is_empty():
+			return ""
+		run.enter(map, next[0])
+	return ""
+
+
 func _fill_face_cache(cache: CardFaceCache, library: CardLibrary) -> void:
 	var texture: ImageTexture = ImageTexture.create_from_image(Image.create(2, 2, false, Image.FORMAT_RGBA8))
 	for value: Variant in library.defs.values():
@@ -823,6 +1024,8 @@ func _walk_to_stop(run: AdventureRun, map: AdventureMap, library: CardLibrary, t
 				AdventureForge.leave(run)
 			"shop":
 				AdventureShop.leave(run)
+			"shrine", "claim":
+				AdventureShrine.leave(run)
 			"relic", "reserve":
 				AdventureRelic.pass_through(run, library)
 			"stage":
@@ -855,6 +1058,8 @@ func _walk_to_shop(run: AdventureRun, map: AdventureMap, library: CardLibrary) -
 				run.enter(map, step)
 			"forge":
 				AdventureForge.leave(run)
+			"shrine", "claim":
+				AdventureShrine.leave(run)
 			"relic", "reserve":
 				AdventureRelic.pass_through(run, library)
 			"stage":
@@ -948,6 +1153,8 @@ func _run() -> void:
 	await _check_scene_catch_up()
 	await _check_shop_mana()
 	await _check_relic_screens()
+	await _check_shrine_screens()
+	await _check_elite_screens()
 	var hud: Node = load("res://scenes/duel/hud.tscn").instantiate()
 	_check(not hud.has_node("Root/TopPanel") and not hud.has_node("Root/BottomPanel"), "HUD must not instantiate hidden legacy player panels")
 	hud.free()

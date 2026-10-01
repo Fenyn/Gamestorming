@@ -46,6 +46,14 @@ static func score(engine: DuelEngine, seat: int, c: CardInstance, profile: AiPro
 			tech += (_sign(signs, kind) - 0.5) * 2.0 * reach
 		else:
 			tech -= _sign(own, kind) * 2.0 * reach   # it hits my own cards of that kind too
+	# A line that only works against one declared style ("if your opponent declared a Red
+	# Tokui-Waza") is an answer to that style and dead weight against the rest. The style is public.
+	var foe_style: String = engine.player(1 - seat).style
+	for raw in def.effects:
+		var gate: Dictionary = (raw as Dictionary).get("when", {})
+		if gate.has("opponent_style"):
+			aimed = true
+			tech += 1.0 if str(gate["opponent_style"]) == foe_style else -0.5
 	for raw in def.forbid:
 		var what: String = str((raw as Dictionary).get("what", ""))
 		var kind: String = "seal" if what == "seals" else ("drill" if what == "drills" else ("non_combat" if what == "non_combats" else ""))
@@ -173,7 +181,7 @@ static func _pushes_aspects(def: CardDef) -> bool:
 
 
 static func _usable_by(def: CardDef, p: PlayerState) -> bool:
-	if def.alignment_only != "" and def.alignment_only != p.alignment:
+	if not CardDef.side_allows(p.alignment, def.alignment_only):
 		return false
 	if def.only.has("duelist_character") and p.duelist.def.character != str(def.only["duelist_character"]):
 		return false

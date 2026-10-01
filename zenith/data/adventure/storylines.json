@@ -1,7 +1,15 @@
 {
 	"_note": "Story runs, design doc section 8.5. `open` are the starters a new save can play; everything else is unlocked by personality XP (progression.json) or achievements (achievements.json). A starter without an entry here plays with random act bosses and no guests. `bosses` sets an act's boss family (its tier comes from map.json); `on_win.joins` adds that personality card to the run deck. `guests` are the personalities an Encounter node can bring in, drawn from the main's connections in zenith/docs/cast.md.",
-	"open": ["tide_deepwater_start", "shade_mind_siege_start", "pyre_beatdown_start"],
+	"_mourne_note": "Since 2026-09-30 the open Mourne starter is the earlier, unmarked Gideon (mercenary_lord_start), and the Marked Lord starter (shade_mind_siege_start) is locked until its story quest exists. Its storyline stays listed for when it opens.",
+	"open": ["tide_deepwater_start", "mercenary_lord_start", "pyre_beatdown_start"],
 	"starters": {
+		"mercenary_lord_start": {
+			"bosses": {
+				"1": { "family": "shade_salvage", "on_win": { "joins": "personality_47" } },
+				"2": { "family": "shade_henchmen" }
+			},
+			"guests": ["personality_47", "personality_44", "personality_46", "personality_10", "personality_26"]
+		},
 		"tide_deepwater_start": {
 			"bosses": {
 				"1": { "family": "steel_heir", "on_win": { "joins": "personality_35" } },

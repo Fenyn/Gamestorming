@@ -281,6 +281,52 @@ func world_card_transform(uid: int) -> Variant:
 	return null
 
 
+## The screen rectangle a hand card's face covers now, a Remain ghost included, or the `part` of it
+## given in face fractions (top left 0, 0). The enlarged face over the fan stands in for the card
+## it previews. Rect2() when the card is not in the fan or sits on another page.
+func screen_rect_of(uid: int, part: Rect2 = Rect2(0, 0, 1, 1)) -> Rect2:
+	if _preview.visible and hovered_uid() == uid:
+		return _sprite_screen_rect(_preview_face, part)
+	for item in _items:
+		if int(item["uid"]) == uid:
+			return _sprite_screen_rect(item["face"], part) if (item["node"] as Node3D).visible else Rect2()
+	return Rect2()
+
+
+## The card's own place in the fan, whether or not the preview is standing in for it.
+func fan_rect_of(uid: int) -> Rect2:
+	for item in _items:
+		if int(item["uid"]) == uid:
+			return _sprite_screen_rect(item["face"], Rect2(0, 0, 1, 1)) if (item["node"] as Node3D).visible else Rect2()
+	return Rect2()
+
+
+## Every face on the page shown, as one screen rectangle.
+func fan_screen_rect() -> Rect2:
+	var out: Rect2 = Rect2()
+	for item in _items:
+		if not (item["node"] as Node3D).visible:
+			continue
+		var r: Rect2 = _sprite_screen_rect(item["face"], Rect2(0, 0, 1, 1))
+		if r.size.x <= 0.0:
+			continue
+		out = r if out.size.x <= 0.0 else out.merge(r)
+	return out
+
+
+func _sprite_screen_rect(face: Sprite3D, part: Rect2) -> Rect2:
+	if _camera == null:
+		return Rect2()
+	var extent: Vector2 = FACE_SIZE * face.pixel_size
+	var corners: Array[Vector2] = [part.position, Vector2(part.end.x, part.position.y), part.end, Vector2(part.position.x, part.end.y)]
+	var bounds: Rect2 = Rect2()
+	for i in range(corners.size()):
+		var local: Vector3 = Vector3((corners[i].x - 0.5) * extent.x, (0.5 - corners[i].y) * extent.y, 0.0)
+		var point: Vector2 = _camera.unproject_position(face.global_transform * local)
+		bounds = Rect2(point, Vector2.ZERO) if i == 0 else bounds.expand(point)
+	return bounds.intersection(Rect2(Vector2.ZERO, get_viewport().get_visible_rect().size))
+
+
 ## Only a publicly visible draw for this viewer reaches this method. Existing cards retain
 ## their positions while the new face travels from its source into the hand.
 func receive_card(card: SeatCard, cache: CardFaceCache, view: SeatView, from: Vector3) -> void:

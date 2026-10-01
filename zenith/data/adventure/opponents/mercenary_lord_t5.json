@@ -1,0 +1,170 @@
+{
+  "name": "Mercenary Lord (T5)",
+  "source_deck": "mercenary_lord",
+  "tier": "t5",
+  "mode": "adventure",
+  "duelist": [
+    "personality_70",
+    "personality_71",
+    "personality_72"
+  ],
+  "style": "freestyle",
+  "alignment": "either",
+  "mastery": "freestyle_mastery_01",
+  "relic": "",
+  "reserve": [],
+  "archetype": "art_beatdown",
+  "subthemes": [
+    "arts",
+    "draw",
+    "disruption"
+  ],
+  "ai_profile": "mercenary_lord",
+  "tagline": "Fight under your own name: rush past the rival's tricks, read their hand, and keep your own cards coming back.",
+  "cards": [
+    {
+      "id": "freestyle_art_03",
+      "count": 1
+    },
+    {
+      "id": "freestyle_art_13",
+      "count": 2
+    },
+    {
+      "id": "signature_art_03",
+      "count": 1
+    },
+    {
+      "id": "signature_art_04",
+      "count": 2
+    },
+    {
+      "id": "signature_art_07",
+      "count": 4
+    },
+    {
+      "id": "signature_art_16",
+      "count": 4
+    },
+    {
+      "id": "signature_art_18",
+      "count": 4
+    },
+    {
+      "id": "signature_art_19",
+      "count": 4
+    },
+    {
+      "id": "freestyle_combat_01",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_03",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_05",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_14",
+      "count": 1
+    },
+    {
+      "id": "freestyle_combat_22",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_04",
+      "count": 3
+    },
+    {
+      "id": "signature_combat_10",
+      "count": 1
+    },
+    {
+      "id": "signature_combat_11",
+      "count": 2
+    },
+    {
+      "id": "freestyle_drill_01",
+      "count": 1
+    },
+    {
+      "id": "freestyle_drill_08",
+      "count": 1
+    },
+    {
+      "id": "signature_drill_02",
+      "count": 1
+    },
+    {
+      "id": "signature_drill_03",
+      "count": 1
+    },
+    {
+      "id": "signature_drill_07",
+      "count": 1
+    },
+    {
+      "id": "signature_drill_08",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_02",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_03",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_04",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_06",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_12",
+      "count": 1
+    },
+    {
+      "id": "freestyle_noncombat_22",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_11",
+      "count": 1
+    },
+    {
+      "id": "signature_noncombat_12",
+      "count": 2
+    },
+    {
+      "id": "freestyle_strike_06",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_01",
+      "count": 2
+    },
+    {
+      "id": "signature_strike_03",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_23",
+      "count": 3
+    },
+    {
+      "id": "signature_strike_26",
+      "count": 1
+    },
+    {
+      "id": "signature_strike_32",
+      "count": 4
+    }
+  ]
+}

@@ -21,6 +21,10 @@ var paid: Dictionary = {}
 var school_cursor: Dictionary = {}
 ## key -> XP the last `award` added, for the screen after a win. Not saved.
 var last_gains: Dictionary = {}
+## The tutorial: the lesson it resumes at (0 before it was ever begun), and whether the whole
+## session was once played to its end.
+var tutorial_lesson: int = 0
+var tutorial_done: bool = false
 
 
 static func path() -> String:
@@ -576,6 +580,24 @@ static func exclusive_ids() -> Array[String]:
 	return out
 
 
+# --- Tutorial -------------------------------------------------------------------
+
+## Lesson `n` has begun, so a later start resumes there. Only ever moves forward.
+func reach_lesson(n: int) -> void:
+	tutorial_lesson = maxi(tutorial_lesson, n)
+
+
+## The session was played to its end: the next one starts from the first lesson again.
+func finish_tutorial() -> void:
+	tutorial_done = true
+	tutorial_lesson = 0
+
+
+## The lesson a tutorial started with no lesson named begins at.
+func tutorial_resume_lesson() -> int:
+	return maxi(1, tutorial_lesson)
+
+
 # --- Save ---------------------------------------------------------------------
 
 func to_dict() -> Dictionary:
@@ -585,6 +607,8 @@ func to_dict() -> Dictionary:
 		"personality_xp": personality_xp.duplicate(),
 		"paid": paid.duplicate(),
 		"school_cursor": school_cursor.duplicate(),
+		"tutorial_lesson": tutorial_lesson,
+		"tutorial_done": tutorial_done,
 	}
 
 
@@ -595,6 +619,8 @@ static func from_dict(d: Dictionary) -> AdventureProgress:
 		var dst: Dictionary = p.get(field)
 		for k in src.keys():
 			dst[str(k)] = int(src[k])
+	p.tutorial_lesson = int(d.get("tutorial_lesson", 0))
+	p.tutorial_done = bool(d.get("tutorial_done", false))
 	return p
 
 

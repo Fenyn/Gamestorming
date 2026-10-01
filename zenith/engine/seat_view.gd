@@ -15,6 +15,7 @@ var active: int = 0
 var attacker: int = 0
 var winner: int = -1
 var win_reason: String = ""
+var ended: bool = false                # over with no winner (a scripted session that was ended)
 var points: Array = [0, 0]             # per seat, toward `points_to_win`
 var points_to_win: Array = [1, 1]      # per seat, the points that seat needs to win
 var deciding: int = -1                # who the pending prompt belongs to, -1 when none
@@ -42,7 +43,7 @@ var cards: Dictionary = {}             # uid -> SeatCard
 
 
 func is_over() -> bool:
-	return winner >= 0
+	return winner >= 0 or ended
 
 
 func player(i: int) -> SeatPlayer:
@@ -90,6 +91,16 @@ func strike_mights(seat: int, library: CardLibrary) -> Vector2i:
 	return Vector2i(players[seat].might, players[other].might)
 
 
+## How many bands `seat`'s Strikes read the Strike Table above its own Might, from its Resonances.
+func strike_bands(seat: int) -> int:
+	if seat < 0 or seat >= players.size():
+		return 0
+	var n: int = 0
+	for id in players[seat].resonances:
+		n += int(ResonanceData.rules(id).get("strike_bands", 0))
+	return n
+
+
 ## Every card the seat may see the face of.
 func visible_cards() -> Array[SeatCard]:
 	var out: Array[SeatCard] = []
@@ -114,7 +125,7 @@ func to_dict() -> Dictionary:
 	return {
 		"pending": pend, "consecutive_passes": consecutive_passes,
 		"seat": seat, "step": step, "phase": phase, "active": active, "attacker": attacker,
-		"winner": winner, "win_reason": win_reason, "points": points, "points_to_win": points_to_win, "deciding": deciding, "deciding_kind": String(deciding_kind),
+		"winner": winner, "win_reason": win_reason, "ended": ended, "points": points, "points_to_win": points_to_win, "deciding": deciding, "deciding_kind": String(deciding_kind),
 		"attack": attack, "last_attack": last_attack, "forecasts": forecasts,
 		"grounds": grounds, "standing": standing, "resolving": resolving, "pending_card": pending_card, "players": ps, "cards": cs,
 	}
@@ -134,6 +145,7 @@ static func from_dict(d: Dictionary) -> SeatView:
 	v.attacker = int(d.get("attacker", 0))
 	v.winner = int(d.get("winner", -1))
 	v.win_reason = str(d.get("win_reason", ""))
+	v.ended = bool(d.get("ended", false))
 	var wire_points: Array = d.get("points", [0, 0])
 	v.points = [int(wire_points[0]), int(wire_points[1])]
 	var wire_to_win: Array = d.get("points_to_win", [1, 1])
@@ -178,6 +190,7 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true, re
 	v.attacker = s.display_attacker()
 	v.winner = s.winner
 	v.win_reason = s.win_reason
+	v.ended = s.ended
 	v.points = [s.points[0], s.points[1]]
 	v.points_to_win = [s.points_to_win[0], s.points_to_win[1]]
 	# When both seats hold a decision (the Reserve swap), this seat's own comes first.

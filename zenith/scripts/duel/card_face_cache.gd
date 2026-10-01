@@ -14,9 +14,10 @@ var _back: Texture2D = null
 var _ladder: Rect2 = Rect2()
 var _rendering: bool = false
 var _strike_table: StrikeTable = null
-## Per owning seat, the Might its Strikes are performed at and the Might they land on; empty
-## outside a duel, where a table Strike keeps its "Table" wording.
-var _mights: Array[Vector2i] = []
+## Per owning seat, the Might its Strikes are performed at, the Might they land on, and the bands
+## its Resonances lift the read by; empty outside a duel, where a table Strike keeps its "Table"
+## wording.
+var _mights: Array[Vector3i] = []
 
 
 ## Sets the default portrait backdrop: the run deck's in an adventure, neutral elsewhere. Session
@@ -48,9 +49,10 @@ static func key_for(def: CardDef, aspect: int = 0, backdrop: Color = CardFace.NO
 ## Reads both seats' Strike matchups off a duel view. True when either changed, which is when the
 ## Strike faces on show need their numbers redrawn.
 func set_matchups(view: SeatView, library: CardLibrary, table: StrikeTable) -> bool:
-	var next: Array[Vector2i] = []
+	var next: Array[Vector3i] = []
 	for p in view.players:
-		next.append(view.strike_mights(p.index, library))
+		var m: Vector2i = view.strike_mights(p.index, library)
+		next.append(Vector3i(m.x, m.y, view.strike_bands(p.index)))
 	var changed: bool = next != _mights or table != _strike_table
 	_mights = next
 	_strike_table = table
@@ -61,8 +63,8 @@ func set_matchups(view: SeatView, library: CardLibrary, table: StrikeTable) -> b
 func table_base(def: CardDef, owner: int) -> int:
 	if def == null or owner < 0 or owner >= _mights.size():
 		return -1
-	var m: Vector2i = _mights[owner]
-	return CardText.strike_table_base(def, _strike_table, m.x, m.y)
+	var m: Vector3i = _mights[owner]
+	return CardText.strike_table_base(def, _strike_table, m.x, m.y, m.z)
 
 
 ## The key of the texture `face` returns: the matchup face once it is rendered, else the plain

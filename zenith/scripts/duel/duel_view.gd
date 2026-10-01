@@ -100,6 +100,7 @@ const TABLE_CENTRE: Vector3 = Vector3(0, 0.02, 0)
 @onready var presence: DuelPresence = $Presence
 @onready var phase_track: PhaseTrack = $PhaseTrack
 @onready var lead_in_overlay: LeadInOverlay = $LeadInOverlay
+@onready var tutorial_panel: TutorialPanel = $TutorialLayer/TutorialPanel
 
 var duel_host: DuelHost = null       # the rules, where they run here (hotseat, hosting)
 var view: SeatView = null            # what the viewer may see right now
@@ -223,6 +224,32 @@ const INTRO_LAND: float = 0.8        # what is left of that flight once the lead
 var _faces_ready: bool = false       # the opening decks' faces have rendered
 var _hands_hidden: bool = false      # a lead-in is up: both hands stay off the table
 var _dev_lead_in_shot: float = -1.0  # `--dev-lead-in-shot=<seconds>`: a shot that far into the lead-in
+var _dev_resonance_tip: int = -1      # `--dev-resonance-tip=N`: hover the viewer's Nth sigil before the shot
+var _dev_resonance_tip_far: bool = false  # `--dev-resonance-tip=far:N`: the rival's sigil instead
+## The tutorial: its director, null in every other duel, the action the table stands on, the
+## gate on the player's prompt, the ring targets up now and the lesson last announced.
+var _tutorial: TutorialDirector = null
+var _tutorial_action: Dictionary = {}
+var _gate: Dictionary = {}
+var _tutorial_ring: Array[String] = []
+var _tutorial_lesson: int = 0
+var _dummy_rocked: bool = false      # the practice dummy already rocked under the attack replaying
+var _dev_shot_delay: float = -1.0    # `--dev-shot-delay=<s>`: a tutorial shot this long after its step
+var _dev_shot_fan: bool = false      # `--dev-shot-fan`: a ring on a card's number opens the fan first
+var _dev_shot_greyed: bool = false   # `--dev-shot-greyed`: the shot shows a greyed option's reason
+const TUTORIAL_RIVAL_BEAT: float = 0.35   # the rival's pause before a scripted quiet answer
+const TUTORIAL_WINDUP: float = 0.5        # the rival gathers itself this long before a scripted move
+const TUTORIAL_END_HOLD: float = 2.0      # the "Session ended" banner's stay before the table closes
+const TUTORIAL_SHOT_DELAY: float = 2.4    # `--dev-screenshot` waits this long after the step is up
+const TUTORIAL_HOLD_WAIT: float = 2.0     # `--dev-autoplay` clicks on a held stop after this long
+const TUTORIAL_TRAY_ROOM: float = 150.0   # kept free over the tray for Vale's box
+const BARK_MARGIN: float = 0.1            # of a duelist card's height, kept clear above and below it
+const STRAW: Color = Color(0.86, 0.74, 0.42)
+const PLATE_GREY: Color = Color(0.72, 0.76, 0.82)
+const NUMBER_BADGE: Rect2 = Rect2(0.05, 0.48, 0.26, 0.15)   # a Strike or Art face's attack badge, in face fractions
+const TEXT_BOX: Rect2 = Rect2(0.03, 0.72, 0.94, 0.25)       # and its rules text box
+const ASPECT_BOX: Rect2 = Rect2(0.06, 0.03, 0.12, 0.065)    # a personality face's Aspect number box
+const FERVOR_TAB: Rect2 = Rect2(0.25, -0.025, 0.5, 0.058)   # the Fervor tab on its top edge, clear of the name
 
 
 func _ready() -> void:
@@ -241,6 +268,7 @@ func _ready() -> void:
 		fixture.clicked.connect(_on_card_clicked)
 		fixture.inspected.connect(_on_card_inspected)
 		fixture.hovered.connect(_on_card_hovered)
+		fixture.resonance_hovered.connect(hud.show_resonance_tip)
 	_set_reduced_motion(ArcaneBackdrop.motion_reduced())
 	fx.prewarm()
 	hud.option_chosen.connect(_on_option_chosen)
@@ -294,11 +322,28 @@ func _ready() -> void:
 			_rival_gone = _game_reason == "left" and _game_winner == viewer
 		if not ended.is_empty() or not _match_payload.is_empty():
 			_end_table()
+	elif Session.in_tutorial():
+		_tutorial = Session.tutorial
+		viewer = TutorialDirector.PLAYER
+		tutorial_panel.locate = _tutorial_locate
+		tutorial_panel.keepouts = _tutorial_keepouts
+		tutorial_panel.preview = _tutorial_preview
+		tutorial_panel.modal = func() -> Rect2: return hud.tray_panel.get_global_rect() if hud.tray.visible else Rect2()
+		tutorial_panel.holding = func() -> bool: return hud.inspect.visible
+		tutorial_panel.filament_shown = func() -> bool: return hud.filament.visible
+		tutorial_panel.reduced_motion = _reduced_motion
+		tutorial_panel.advanced.connect(_on_tutorial_advanced)
+		hud.gated_hover.connect(tutorial_panel.show_reason)
+		hud.gated_clicked.connect(tutorial_panel.refuse)
+		hud.reserve_top(TUTORIAL_TRAY_ROOM)
 	elif Session.ai_seat >= 0:
 		ai_seat = Session.ai_seat
 		viewer = 1 - ai_seat
 		rig.rotation.y = 0.0 if viewer == 0 else PI
-	if Session.in_adventure():
+	if _tutorial != null:
+		_mode = DuelHud.Mode.TUTORIAL
+		hud.set_mode(_mode, false)
+	elif Session.in_adventure():
 		_mode = DuelHud.Mode.ADVENTURE
 		hud.set_mode(_mode, false)
 	_sync_result()
@@ -309,7 +354,7 @@ func _ready() -> void:
 	if not Session.can_start():
 		push_warning("Duel opened without a selection; using the first two shipped decks")
 		Session.chosen = [Session.decks[0], Session.decks[1 if Session.decks.size() > 1 else 0]]
-	hud.set_dev_available(OS.is_debug_build() and authority)
+	hud.set_dev_available(OS.is_debug_build() and authority and _tutorial == null)
 	if authority:
 		await _ready_host()
 		_present_prompt()
@@ -364,6 +409,7 @@ func _set_reduced_motion(on: bool) -> void:
 	hand_3d.reduced_motion = on
 	near_duelist.reduced_motion = on
 	far_duelist.reduced_motion = on
+	tutorial_panel.reduced_motion = on
 	hud.reduced_motion_toggle.set_pressed_no_signal(on)
 	for card in views.values():
 		(card as Card3D).reduced_motion = on
@@ -384,6 +430,9 @@ func _process(_delta: float) -> void:
 	var board_interactive: bool = not overlay and not menu and not hand_blocks and not preview_blocks
 	near_duelist.interactive = board_interactive
 	far_duelist.interactive = board_interactive
+	if not board_interactive and _dev_resonance_tip < 0:
+		near_duelist.hover_sigil(-1, null)
+		far_duelist.hover_sigil(-1, null)
 	zones.set_pickable(board_interactive)
 	for value in views.values():
 		var board_card: Card3D = value
@@ -482,7 +531,7 @@ func _set_arena(level: float) -> void:
 ## Safety net: re-shows a decision panel that stayed hidden STALL_MS while the viewer owes a move.
 func _watch_for_stall(overlay: bool) -> void:
 	var owed: bool = view != null and not view.is_over() and prompt != null and viewer >= 0 		and view.deciding == viewer and prompt.player == viewer
-	if not owed or busy or _awaiting_answer or overlay or _dev_done or hud.prompt_panel.visible or _cursor != null:
+	if not owed or busy or _awaiting_answer or overlay or _dev_done or hud.prompt_panel.visible or _cursor != null or not _tutorial_asks():
 		_stall_since = 0
 		return
 	if _stall_since == 0:
@@ -606,6 +655,14 @@ func _on_hand_hovered(uid: int, on: bool) -> void:
 	if on:
 		hud.hide_peek()
 	hud.preview_hand_card(uid, on)
+	if _tutorial != null and not _gate.is_empty() and prompt != null:
+		var greyed: String = ""
+		for o in prompt.options_for_card(uid):
+			if _option_open(o):
+				greyed = ""
+				break
+			greyed = _option_reason(o)
+		tutorial_panel.show_reason(greyed if on else "")
 	var forecast: Dictionary = view.forecast(uid) if on and view != null else {}
 	var marks: StatusMarkers = _markers.get(near_duelist.duelist_uid)
 	if marks != null:
@@ -615,20 +672,29 @@ func _on_hand_hovered(uid: int, on: bool) -> void:
 ## Hotseat and hosting: the rules run here, behind a DuelHost that also serves the remote seat.
 func _ready_host() -> void:
 	duel_host = DuelHost.new()
-	duel_host.setup(Session.build_referee(), Net.remote_seats(), Session.build_ai() if not online else null, Session.ai_seat)
-	Session.keep_record(duel_host)
+	if _tutorial != null:
+		duel_host.setup(Session.tutorial_referee, [])
+	else:
+		duel_host.setup(Session.build_referee(), Net.remote_seats(), Session.build_ai() if not online else null, Session.ai_seat)
+		Session.keep_record(duel_host)
 	duel_host.send = Net.send_update
 	duel_host.reject = Net.reject_command
 	for d in Session.chosen:
 		await faces.render_deck(d, Session.library)
 	_faces_ready = true
 	hud.set_loading(false)
-	hud.log_line("Seed %d" % Session.last_seed)
+	if _tutorial == null:
+		hud.log_line("Seed %d" % Session.last_seed)
 	if online:
 		hud.log_line("Online duel. You are hosting as %s." % Session.player_names[viewer])
 		Net.command_received.connect(_on_net_command)
 	var updates: Array[SeatUpdate] = duel_host.start()
-	await _play_update(updates[maxi(viewer, 0)])
+	# A tutorial opened at a later lesson was played there headless: the table opens on where it
+	# stands, with this turn's log, and nothing that led there is animated again.
+	if _tutorial != null and Session.tutorial_resumed:
+		await _play_update(duel_host.referee.catch_up(viewer))
+	else:
+		await _play_update(updates[maxi(viewer, 0)])
 	await _end_lead_in()
 
 
@@ -728,12 +794,46 @@ func _parse_dev_args() -> void:
 			var picks: PackedStringArray = arg.get_slice("=", 1).split(",")
 			if picks.size() == 2:
 				Session.chosen = [Session.decks[int(picks[0])], Session.decks[int(picks[1])]]
+		elif arg.begins_with("--dev-shot-delay="):
+			_dev_shot_delay = float(arg.get_slice("=", 1))
+		elif arg == "--dev-shot-fan":
+			_dev_shot_fan = true
+		elif arg == "--dev-shot-greyed":
+			_dev_shot_greyed = true
+		elif arg.begins_with("--dev-resonance-tip="):
+			var tip_arg: String = arg.get_slice("=", 1)
+			_dev_resonance_tip_far = tip_arg.begins_with("far:")
+			_dev_resonance_tip = int(tip_arg.trim_prefix("far:"))
+	# `--dev-resonances=<ids>` gives player 1 those Resonances, as an adventure run would, and
+	# `--dev-resonances-far=<ids>` gives them to player 2, as an Elite holds them. Read after
+	# `--dev-pick`, whatever the order on the command line.
+	var resonance_args: Array[String] = ["", ""]
+	for arg in DevArgs.user_args():
+		if arg.begins_with("--dev-resonances="):
+			resonance_args[0] = arg.get_slice("=", 1)
+		elif arg.begins_with("--dev-resonances-far="):
+			resonance_args[1] = arg.get_slice("=", 1)
+	for seat in range(2):
+		if resonance_args[seat] == "" or online or Session.in_adventure() or Session.decks.is_empty():
+			continue
+		if not Session.can_start():
+			Session.chosen = [Session.decks[0], Session.decks[1 if Session.decks.size() > 1 else 0]]
+		var seat_deck: DeckList = Session.chosen[seat]
+		var dressed: DeckList = DeckList.resolve(seat_deck.id) if seat_deck.id != "" else seat_deck
+		dressed.resonances.clear()
+		for id in resonance_args[seat].split(",", false):
+			if ResonanceData.has(id):
+				dressed.resonances.append(id)
+		Session.chosen[seat] = dressed
 
 
 # --- Turn flow ------------------------------------------------------------
 
 func _present_prompt() -> void:
 	if _dev_done or view == null or _ended:
+		return
+	if _tutorial != null:
+		await _tutorial_next()
 		return
 	_replay_focus_def = null
 	if view.is_over():
@@ -858,6 +958,7 @@ func _show_prompt_for_viewer() -> void:
 	_refresh_roles()
 	var legal: Dictionary = _legal_uids()
 	_set_hand(legal)
+	hud.set_gate(_gate)
 	hud.show_prompt(prompt, view)
 	if online:
 		Net.prompt_shown(prompt.kind)
@@ -871,9 +972,24 @@ func _show_prompt_for_viewer() -> void:
 func _legal_uids() -> Dictionary:
 	var out: Dictionary = {}
 	for o in prompt.options:
-		if o.card >= 0 and o.type != &"final_strike":
+		if o.card >= 0 and o.type != &"final_strike" and _option_open(o):
 			out[o.card] = true
 	return out
+
+
+## False only for an option the tutorial greys out on the prompt now shown.
+func _option_open(o: OptionView) -> bool:
+	if _gate.is_empty() or prompt == null:
+		return true
+	var i: int = prompt.options.find(o)
+	var enabled: Array = _gate.get("enabled", [])
+	return i < 0 or i >= enabled.size() or bool(enabled[i])
+
+
+func _option_reason(o: OptionView) -> String:
+	var i: int = prompt.options.find(o) if prompt != null else -1
+	var reasons: Array = _gate.get("reasons", [])
+	return str(reasons[i]) if i >= 0 and i < reasons.size() else ""
 
 
 func _hand_cards() -> Array[SeatCard]:
@@ -885,13 +1001,25 @@ func _hand_cards() -> Array[SeatCard]:
 
 func _can_choose() -> bool:
 	return _cursor == null and not busy and not _awaiting_answer and not _ended and _reconnect_until == 0 and view != null and not view.is_over() \
-		and prompt != null and viewer >= 0 and view.deciding == viewer and prompt.player == viewer
+		and prompt != null and viewer >= 0 and view.deciding == viewer and prompt.player == viewer and _tutorial_asks()
+
+
+## Outside the tutorial always; in it, only while the script is on one of the player's decisions,
+## so nothing is chosen while Caedan is still talking.
+func _tutorial_asks() -> bool:
+	return _tutorial == null or str(_tutorial_action.get("do", "")) in ["player", "mismatch"]
 
 
 func _on_option_chosen(opt: OptionView) -> void:
 	if not _can_choose():
 		return
 	var wire: Dictionary = opt.to_command(viewer).to_dict()
+	if _tutorial != null:
+		if not _option_open(opt):
+			tutorial_panel.refuse(_option_reason(opt))
+			return
+		await _tutorial_apply(viewer, wire, _tutorial_action)
+		return
 	if not authority:
 		_awaiting_answer = true
 		hud.clear_prompt()
@@ -1171,7 +1299,11 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			fx.float_text(_float_pos(target), "-%d Energy" % stages, ZenithTheme.WARN, HIT_FLOAT[tier], _float_rise(target))
 			if overflow > 0:
 				_overflow_slide(target, overflow)
-			if v != null:
+			if v != null and _is_dummy(target):
+				_dummy_rocked = true
+				fx.burst(pos, STRAW, 12 + 6 * tier, 1.6)
+				await v.wobble(1.0 + tier)
+			elif v != null:
 				await v.shake(HIT_SHAKE[tier])
 			_refresh_markers()
 			await _beat(BEAT)
@@ -1188,6 +1320,11 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			var v: Card3D = views.get(uid)
 			if v != null:
 				v.flash(ZenithTheme.ATTACK)
+			var struck: int = view.player(player).duelist if player >= 0 else -1
+			if not _dummy_rocked and _is_dummy(struck) and views.has(struck):
+				_dummy_rocked = true
+				fx.burst(_card_pos(struck), STRAW, 18, 1.6)
+				(views[struck] as Card3D).wobble(1.0)
 			if lethal:
 				fx.impact(_card_pos(view.player(player).duelist), ZenithTheme.ATTACK, HIT_IMPACT[HEAVY])
 				if not _reduced_motion:
@@ -1267,6 +1404,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			await _beat(FOCUS_RELEASE)
 			_release_pin()
 			_wounds = 0
+			_dummy_rocked = false
 			_hit_tier = -1
 			_hit_said = ""
 			_attack_cue.clear()
@@ -1455,6 +1593,41 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 		&"relic_used":
 			await _quiet(_quiet_line(line, "Relic"), ZenithTheme.ACCENT, &"attack", 0.0)
 			await _spotlight(int(data.get("card", -1)))
+		&"script_dealt":
+			# New cards come onto the table from off its edge and slide onto the Life Deck.
+			var from: Vector3 = _offstage_point(player, &"life_deck")
+			for uid in data.get("cards", []):
+				var dealt: Card3D = views.get(int(uid))
+				if dealt != null and not dealt.visible:
+					dealt.global_position = from
+					dealt.visible = true
+			await _sync_layout(true)
+			await _beat(BEAT)
+		&"script_swap":
+			# The whole side is carried off the table's far edge, then the new one slides in.
+			var off: Vector3 = _offstage_point(player, &"duelist")
+			var carry: Tween = null
+			for uid in data.get("gone", []):
+				var old: Card3D = views.get(int(uid))
+				if old == null or not old.visible:
+					continue
+				if carry == null:
+					carry = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+				carry.tween_property(old, "global_position", off, SYNC_DURATION * 2.0)
+			if carry != null:
+				await carry.finished
+			for uid in data.get("gone", []):
+				var gone: Card3D = views.get(int(uid))
+				if gone != null:
+					gone.visible = false
+			for uid in data.get("arrived", []):
+				var fresh: Card3D = views.get(int(uid))
+				if fresh != null and not fresh.visible:
+					fresh.global_position = off
+					fresh.visible = true
+			_refresh_displays()
+			await _sync_layout(true)
+			await _handover("%s takes the other side" % view.player(player).name, ZenithTheme.ACCENT, &"draw")
 		&"countered":
 			var target: int = int(data.get("target", -1))
 			fx.ward(_card_pos(target), ZenithTheme.DEFEND, 0.8)
@@ -2763,6 +2936,9 @@ func _on_concede_match() -> void:
 
 ## The menu's Back to title. Online it concedes a running duel first.
 func _on_leave() -> void:
+	if _tutorial != null:
+		Session.abandon_tutorial()
+		return
 	if _replay_file != "":
 		Engine.time_scale = 1.0
 	if online:
@@ -2942,7 +3118,14 @@ func _on_card_clicked(uid: int) -> void:
 		return
 	if not _can_choose():
 		return
-	var all: Array[OptionView] = prompt.options_for_card(uid)
+	var offered: Array[OptionView] = prompt.options_for_card(uid)
+	var all: Array[OptionView] = []
+	for o in offered:
+		if _option_open(o):
+			all.append(o)
+	if all.is_empty() and not offered.is_empty():
+		tutorial_panel.refuse(_option_reason(offered[0]))
+		return
 	var opts: Array[OptionView] = []
 	for o in all:
 		if o.type != &"final_strike":
@@ -3367,7 +3550,12 @@ func _dev_step() -> void:
 
 
 ## Random by default. `--dev-policy=attack` declares, attacks and never defends; `showcase` also defends.
+## In the tutorial, the first option the lesson opens.
 func _dev_pick(opts: Array[OptionView]) -> OptionView:
+	if _tutorial != null:
+		for o in opts:
+			if _option_open(o):
+				return o
 	if _dev_policy == "attack" or _dev_policy == "showcase":
 		var choices: Array[StringName] = [&"attack", &"declare", &"no_defense", &"no_endure"]
 		if _dev_policy == "showcase":
@@ -3462,6 +3650,13 @@ func _dev_finish(settle: float = 0.6, after_replay: bool = false) -> void:
 				hand_3d._layout(true)
 				hand_3d.set_process(false)
 				hand_3d.set_process_unhandled_input(false)
+		# `--dev-resonance-tip=N` (or `far:N`): the viewer's (or the rival's) Nth Resonance sigil as if
+		# hovered, pointer frozen.
+		var tip_seat: DuelistDisplay = far_duelist if _dev_resonance_tip_far else near_duelist
+		if _dev_resonance_tip >= 0 and tip_seat.readout.sigil_rects.size() > _dev_resonance_tip:
+			near_duelist.set_process_unhandled_input(false)
+			far_duelist.set_process_unhandled_input(false)
+			tip_seat.hover_sigil(_dev_resonance_tip, camera)
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
 		var img: Image = get_viewport().get_texture().get_image()
@@ -3503,6 +3698,462 @@ func _dev_snap(path: String, settle: float) -> void:
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(path)
 	print("screenshot saved to %s" % path)
+
+
+# --- Tutorial ---------------------------------------------------------------
+
+## One action of the tutorial script, asked of its director with the two seats' views: a stop to
+## play, a line in passing, a board adjustment, a rival move, or the player's prompt with only the
+## taught move open.
+func _tutorial_next() -> void:
+	var referee: Referee = duel_host.referee
+	var action: Dictionary = _tutorial.next_for(referee)
+	_tutorial_action = action
+	_announce_lesson()
+	match str(action["do"]):
+		"say":
+			_tutorial_say(action["step"])
+		"bark":
+			_tutorial_bark(TutorialDirector.lines_of(action["step"]))
+			_tutorial.done(action)
+			_tutorial_action = {}
+			_present_prompt()
+		"op":
+			await _tutorial_op(action)
+		"rival":
+			await _tutorial_rival(action)
+		"player":
+			_tutorial_prompt(action)
+		"end":
+			await _tutorial_finish()
+		_:
+			push_warning("Tutorial: %s" % str(action.get("why", "the script stalled")))
+			if referee.prompt_for(viewer) != null:
+				_tutorial_prompt(action)
+			elif referee.prompt_for(TutorialDirector.RIVAL) != null:
+				var quiet: OptionView = TutorialDirector.quiet_option(referee.prompt_for(TutorialDirector.RIVAL))
+				await _tutorial_apply(TutorialDirector.RIVAL, quiet.to_command(TutorialDirector.RIVAL).to_dict(), {})
+
+
+## A new lesson: its title as a banner over the table, in the panel's corner, and in the save.
+func _announce_lesson() -> void:
+	var n: int = _tutorial.lesson()
+	if n == _tutorial_lesson or n <= 0:
+		return
+	# A table opened partway into a lesson (a dev flag) only names it in the corner.
+	var opening_midway: bool = _tutorial_lesson == 0 and _tutorial.index > _tutorial.lesson_start(n)
+	_tutorial_lesson = n
+	var heading: String = "Lesson %d · %s" % [n, _tutorial.lesson_title(n)]
+	tutorial_panel.set_lesson(heading)
+	if not opening_midway:
+		hud.show_banner(heading, ZenithTheme.ACCENT, DuelHud.Banner.HANDOVER)
+	Session.tutorial_reached(n)
+
+
+## A stop: the decision panel stays down while its lines play, and the table waits for them.
+func _tutorial_say(step: Dictionary) -> void:
+	_gate = {}
+	hud.set_gate({})
+	hud.clear_prompt()
+	_clear_highlights()
+	_refresh_state()
+	_refresh_roles()
+	_set_hand({})
+	var lines: Array[Dictionary] = []
+	_tutorial_ring = []
+	for l in TutorialDirector.lines_of(step):
+		var line: Dictionary = _tutorial_line(l)
+		lines.append(line)
+		if _tutorial_ring.is_empty():
+			_tutorial_ring = line["rings"]
+	if str(step.get("fx", "")) == "plate":
+		_plate_moment()
+	var hold: bool = bool(step.get("hold", false))
+	tutorial_panel.play_stop(lines, hold)
+	_tutorial_shot()
+	if _dev_autoplay and hold:
+		await get_tree().create_timer(TUTORIAL_HOLD_WAIT).timeout
+		tutorial_panel.advance()
+
+
+## The player's decision, with Vale's instruction beside the move. A keep with no words of its own
+## takes the box down.
+func _tutorial_prompt(action: Dictionary) -> void:
+	_gate = action.get("gate", {})
+	var step: Dictionary = action.get("step", {})
+	_tutorial_ring = _ring_list(step.get("ring", []))
+	tutorial_panel.instruct(str(step.get("callout", "")), _speaker_face(_tutorial.speaker("vale")), _tutorial_ring)
+	_show_prompt_for_viewer()
+	_tutorial_shot()
+
+
+## Lines said in passing while play goes on.
+func _tutorial_bark(lines: Array[Dictionary]) -> void:
+	for l in lines:
+		var line: Dictionary = _tutorial_line(l)
+		tutorial_panel.bark(str(line["at"]), str(line["text"]), line["face"], line["rings"])
+
+
+## A scripted line as the panel shows it: where (`at`), the words, Vale's face for the coach box,
+## and what it rings.
+func _tutorial_line(l: Dictionary) -> Dictionary:
+	var who: Dictionary = _tutorial.speaker(str(l.get("who", "")))
+	var at: String = str(who.get("at", "coach"))
+	return {"at": at, "text": str(l.get("text", "")), "face": _speaker_face(who) if at == "coach" else null,
+		"rings": _ring_list(l.get("ring", []))}
+
+
+func _speaker_face(who: Dictionary) -> Texture2D:
+	var card_id: String = str(who.get("card", ""))
+	return CardFace.art_texture(Session.library.get_def(card_id)) if card_id != "" and Session.library.has(card_id) else null
+
+
+static func _ring_list(ring: Variant) -> Array[String]:
+	var out: Array[String] = []
+	for r in (ring if ring is Array else [ring]):
+		if str(r) != "":
+			out.append(str(r))
+	return out
+
+
+## A rival move the script names comes after a wind-up: the rival's card rises and glows, and any
+## line it carries is said. A quiet answer only pauses.
+func _tutorial_rival(action: Dictionary) -> void:
+	var step: Dictionary = action.get("step", {})
+	var says: Dictionary = TutorialDirector.says_of(step)
+	if not says.is_empty():
+		var said: Array[Dictionary] = [says]
+		_tutorial_bark(said)
+	if not bool(action.get("advance", false)):
+		await get_tree().create_timer(0.05).timeout
+	else:
+		var move: StringName = StringName(str((action["wire"] as Dictionary).get("type", "")))
+		var rival: Card3D = views.get(view.player(TutorialDirector.RIVAL).duelist)
+		if rival != null and not TutorialDirector.QUIET.has(move):
+			await rival.gather(TUTORIAL_WINDUP)
+		else:
+			await get_tree().create_timer(TUTORIAL_RIVAL_BEAT).timeout
+	await _tutorial_apply(TutorialDirector.RIVAL, action["wire"], action)
+
+
+## The tutorial's practice dummy, which rocks and sheds straw when hit.
+func _is_dummy(uid: int) -> bool:
+	if _tutorial == null or uid < 0 or view == null:
+		return false
+	var c: SeatCard = view.card(uid)
+	return c != null and c.def_id == _tutorial.dummy()
+
+
+## Lesson 3's climb: grey light sweeps Emrys' card with the caption that names it.
+func _plate_moment() -> void:
+	var uid: int = view.player(viewer).duelist
+	var v: Card3D = views.get(uid)
+	if v == null:
+		return
+	v.sheen(PLATE_GREY.lightened(0.2))
+	var pos: Vector3 = _card_pos(uid)
+	fx.ring(pos, PLATE_GREY, 1.1)
+	fx.burst(pos, PLATE_GREY, 26, 1.4)
+
+
+func _on_tutorial_advanced() -> void:
+	if _tutorial == null or str(_tutorial_action.get("do", "")) != "say" or busy:
+		return
+	_tutorial.done(_tutorial_action)
+	_tutorial_action = {}
+	_tutorial_ring = []
+	_present_prompt()
+
+
+func _tutorial_op(action: Dictionary) -> void:
+	busy = true
+	hud.clear_prompt()
+	_clear_highlights()
+	_tutorial_ring = []
+	var result: Dictionary = duel_host.script(action["op"])
+	var problem: String = str(result["problem"])
+	if problem != "":
+		push_error("Tutorial board adjustment refused: %s" % problem)
+		busy = false
+		return
+	_tutorial.done(action)
+	var updates: Array[SeatUpdate] = result["updates"]
+	await _play_update(updates[maxi(viewer, 0)])
+	busy = false
+	_present_prompt()
+
+
+## One move through the host, for either seat. The director moves on only once it has applied.
+func _tutorial_apply(seat: int, wire: Dictionary, action: Dictionary) -> void:
+	busy = true
+	hud.clear_prompt()
+	hud.hide_inspect()
+	_clear_highlights()
+	_gate = {}
+	hud.set_gate({})
+	if seat == viewer:
+		_tutorial_ring = []
+		tutorial_panel.leave()
+		var says: Dictionary = TutorialDirector.says_of(action.get("step", {}))
+		if not says.is_empty():
+			var said: Array[Dictionary] = [says]
+			_tutorial_bark(said)
+	var result: Dictionary = duel_host.apply(seat, wire)
+	var problem: String = str(result["problem"])
+	if problem != "":
+		push_error("Tutorial move refused: %s" % problem)
+		busy = false
+		return
+	if not action.is_empty():
+		_tutorial.done(action)
+	var updates: Array[SeatUpdate] = result["updates"]
+	await _play_update(updates[maxi(viewer, 0)])
+	busy = false
+	_present_prompt()
+
+
+## The script is over: the session ends with no winner, and the table closes to where the tutorial
+## was started from.
+func _tutorial_finish() -> void:
+	_ended = true
+	_tutorial_ring = []
+	tutorial_panel.clear()
+	hud.clear_prompt()
+	hud.show_banner("Session ended", ZenithTheme.ACCENT, DuelHud.Banner.HANDOVER)
+	await get_tree().create_timer(TUTORIAL_END_HOLD).timeout
+	if _dev_autoplay:
+		print("tutorial finished at lesson %d" % _tutorial.lesson())
+		_dev_shutdown()
+		return
+	Session.finish_tutorial()
+
+
+## `--dev-screenshot` in a tutorial: the shot of the first step shown, once the table has settled
+## (`--dev-shot-delay` seconds, 2.4 by default). With `--dev-shot-fan` a ring on a card's number is
+## shown with the fan open on that card, and with `--dev-shot-greyed` the box shows the reason of
+## the first greyed option.
+func _tutorial_shot() -> void:
+	if _dev_screenshot == "" or _dev_done or _dev_autoplay:
+		return
+	_dev_done = true
+	if _dev_shot_greyed:
+		var reasons: Array = _gate.get("reasons", [])
+		for reason in reasons:
+			if str(reason) != "":
+				await get_tree().create_timer(0.6, true, false, true).timeout
+				tutorial_panel.show_reason(str(reason))
+				break
+	await get_tree().create_timer(_dev_shot_delay if _dev_shot_delay >= 0.0 else TUTORIAL_SHOT_DELAY, true, false, true).timeout
+	# Wherever the desktop pointer happens to rest, its quick view is not part of the shot.
+	hud.hide_peek()
+	# The hand is frozen so late window motion cannot close the fan before the shot.
+	for target in _tutorial_ring:
+		if _dev_shot_fan and target.begins_with("number:"):
+			var fan: Array[int] = _fan_uids(view.player(viewer))
+			var shown: int = fan.find(_viewer_card(target.get_slice(":", 1), fan))
+			if shown >= 0:
+				hand_3d.preview_index(shown)
+				hand_3d._layout(true)
+				hand_3d.set_process(false)
+				hand_3d.set_process_unhandled_input(false)
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(_dev_screenshot)
+	print("screenshot saved to %s" % _dev_screenshot)
+	_dev_shutdown()
+
+
+## Where a ring target or a bubble's anchor is on screen, for the panel: {"ring": what to ring,
+## "body": what to stand clear of}. A mark on a duelist card stands clear of the card and its piles,
+## a hand card of its place in the fan (the preview may stand in for it), a button of the panel.
+func _tutorial_locate(target: String) -> Dictionary:
+	var out: Dictionary = {"ring": Rect2(), "body": Rect2()}
+	if view == null or viewer < 0:
+		return out
+	var ring: Rect2 = _ring_rect(target)
+	var body: Rect2 = ring
+	var what: String = target.get_slice(":", 0)
+	var arg: String = target.get_slice(":", 1) if target.contains(":") else ""
+	var seat: int = 1 - viewer if arg == "rival" else viewer
+	match what:
+		"ladder", "power", "fervor", "aspect", "duelist":
+			body = _duelist_cluster(seat)
+		"hand", "number", "text":
+			if arg != "" and arg != "rival":
+				var fan_rect: Rect2 = hand_3d.fan_rect_of(_viewer_card(arg, _fan_uids(view.player(viewer))))
+				body = fan_rect if fan_rect.has_area() else ring
+		"prompt":
+			body = hud.prompt_panel.get_global_rect() if hud.prompt_panel.visible else ring
+		"bark":
+			# The Fervor tab and the Aspect caption stand just past the card's edges.
+			body = ring.grow_individual(0.0, ring.size.y * BARK_MARGIN, 0.0, ring.size.y * BARK_MARGIN) if ring.has_area() else ring
+	out["ring"] = ring
+	out["body"] = body if body.has_area() else ring
+	return out
+
+
+## A duelist card with its Life Deck, discard, out pile and Relic slot around it.
+func _duelist_cluster(seat: int) -> Rect2:
+	var out: Rect2 = _card_rect(view.player(seat).duelist)
+	if view.player(seat).mastery >= 0:
+		out = out.merge(_card_rect(view.player(seat).mastery))
+	for zone: StringName in [&"life_deck", &"discard", &"removed", &"relic"]:
+		var r: Rect2 = _zone_rect(seat, zone)
+		if r.has_area():
+			out = r if not out.has_area() else out.merge(r)
+	return out
+
+
+## A table zone's slot on screen, card or no card.
+func _zone_rect(seat: int, zone: StringName) -> Rect2:
+	if camera == null:
+		return Rect2()
+	var slot: Transform3D = zones.global_transform * zones.slot(seat, zone, 0, 1, viewer)
+	if camera.is_position_behind(slot.origin):
+		return Rect2()
+	var size: Vector2 = TableLayout.CARD_SIZE
+	var bounds: Rect2 = Rect2()
+	var corners: Array[Vector2] = [Vector2(-0.5, -0.5), Vector2(0.5, -0.5), Vector2(0.5, 0.5), Vector2(-0.5, 0.5)]
+	for i in range(corners.size()):
+		var point: Vector2 = camera.unproject_position(slot * Vector3(corners[i].x * size.x, 0.0, corners[i].y * size.y))
+		bounds = Rect2(point, Vector2.ZERO) if i == 0 else bounds.expand(point)
+	return bounds
+
+
+## What Vale's box and the bubbles keep off: the decision panel, the rail, both duelist cards and
+## their piles, the viewer's hand and the rival's, and the options button.
+func _tutorial_keepouts() -> Array[Rect2]:
+	var found: Array[Rect2] = []
+	var out: Array[Rect2] = []
+	if view == null or viewer < 0:
+		return out
+	for control: Control in [hud.prompt_panel, hud.focus, hud.options_button]:
+		if control.is_visible_in_tree():
+			found.append(control.get_global_rect())
+	for seat in range(2):
+		found.append(_card_rect(view.player(seat).duelist))
+		if view.player(seat).mastery >= 0:
+			found.append(_card_rect(view.player(seat).mastery))
+		for zone: StringName in [&"life_deck", &"discard", &"removed", &"relic"]:
+			found.append(_zone_rect(seat, zone))
+		for drill in view.player(seat).drills:
+			found.append(_card_rect(drill))
+	found.append(hand_3d.fan_screen_rect())
+	found.append(_ring_rect("hand:rival"))
+	# The phase track runs across the gap between the two duelist cards.
+	var near: Rect2 = _card_rect(view.player(viewer).duelist)
+	var far: Rect2 = _card_rect(view.player(1 - viewer).duelist)
+	if near.has_area() and far.has_area():
+		var gap_top: float = minf(near.position.y, far.position.y) + minf(near.size.y, far.size.y)
+		var gap_bottom: float = maxf(near.position.y, far.position.y)
+		found.append(Rect2(near.position.x - near.size.x * 0.85, gap_top, near.size.x * 2.7, gap_bottom - gap_top))
+	for r in found:
+		if r.has_area():
+			out.append(r)
+	return out
+
+
+## The hand's enlarged preview card while one is up.
+func _tutorial_preview() -> Rect2:
+	var hovered: int = hand_3d.hovered_uid()
+	return hand_3d.screen_rect_of(hovered) if hand_3d.revealed and hovered >= 0 else Rect2()
+
+
+## What a ring target names, on screen: `life_deck`, `discard`, `ladder`, `power`, `fervor`,
+## `aspect` and `duelist` (the card, as is `bark`) take `:you` or `:rival`; `hand` alone is the
+## viewer's fan, `hand:rival` the rival's, and `hand:<card id>`, `number:<card id>` and
+## `text:<card id>` one card in the viewer's fan; `drill:<card id>` a Drill in play; `prompt` the
+## decision panel and `prompt:<option type>` its open button of that type; `tray:<card id or value>`
+## the tray's face or tile for that option.
+func _ring_rect(target: String) -> Rect2:
+	var what: String = target.get_slice(":", 0)
+	var arg: String = target.get_slice(":", 1) if target.contains(":") else ""
+	var seat: int = 1 - viewer if arg == "rival" else viewer
+	var p: SeatPlayer = view.player(seat)
+	match what:
+		"life_deck":
+			return _card_rect(p.life_deck[0]) if not p.life_deck.is_empty() else Rect2()
+		"discard":
+			return _card_rect(p.discard.back()) if not p.discard.is_empty() else Rect2()
+		"ladder":
+			var ladder: Rect2 = faces.ladder_rect()
+			return _card_rect(p.duelist, Rect2(ladder.position / Hand3D.FACE_SIZE, ladder.size / Hand3D.FACE_SIZE))
+		"power":
+			return _card_rect(p.duelist, Rect2(0.03, 0.79, 0.94, 0.19))
+		"fervor":
+			return _card_rect(p.duelist, FERVOR_TAB)
+		"aspect":
+			return _card_rect(p.duelist, ASPECT_BOX)
+		"duelist", "bark":
+			return _card_rect(p.duelist)
+		"hand":
+			if arg == "rival":
+				return far_duelist.screen_rect_of(far_duelist.readout.hand_fan_rect(), camera)
+			if arg == "":
+				return hand_3d.fan_screen_rect()
+			return hand_3d.screen_rect_of(_viewer_card(arg, _fan_uids(p)))
+		"number", "text":
+			# The attack badge over the art, or the rules text box. While the fan is tucked neither
+			# is on screen, so the ring goes round the card until the pointer opens it.
+			var shown: int = _viewer_card(arg, _fan_uids(p))
+			var part: Rect2 = NUMBER_BADGE if what == "number" else TEXT_BOX
+			var inner: Rect2 = hand_3d.screen_rect_of(shown, part)
+			if inner.size.y > 4.0 and inner.end.y < get_viewport().get_visible_rect().size.y - 1.0:
+				return inner
+			return hand_3d.screen_rect_of(shown)
+		"drill":
+			return _card_rect(_viewer_card(arg, p.drills))
+		"prompt":
+			if arg == "":
+				return hud.prompt_panel.get_global_rect() if hud.prompt_panel.visible else Rect2()
+			return hud.option_rect(func(o: OptionView) -> bool: return String(o.type) == arg)
+		"tray":
+			var names: Callable = func(o: OptionView) -> bool:
+				var c: SeatCard = view.card(o.card) if o.card >= 0 else null
+				return (c != null and c.def_id == arg) or (o.value != null and str(o.value) == arg)
+			return hud.option_rect(names, true)
+	return Rect2()
+
+
+## What the fan draws: the hand, then the Remain cards as ghosts.
+static func _fan_uids(p: SeatPlayer) -> Array[int]:
+	var out: Array[int] = p.hand.duplicate()
+	out.append_array(p.remain)
+	return out
+
+
+## A point off the table's edge beyond `seat`'s `zone`, lifted a little, where cards come on from
+## and go off to when the tutorial adjusts the board.
+func _offstage_point(seat: int, zone: StringName) -> Vector3:
+	var vw: int = viewer if viewer >= 0 else view.active
+	var at: Vector3 = (zones.global_transform * zones.slot(seat, zone, 0, 1, vw)).origin
+	var outward: Vector3 = Vector3(at.x, 0.0, at.z)
+	outward = outward.normalized() if outward.length() > 0.01 else Vector3(0, 0, -1)
+	return at + outward * 4.0 + Vector3(0, 0.6, 0)
+
+
+## The first of `uids` showing card `id`, -1 for none.
+func _viewer_card(id: String, uids: Array[int]) -> int:
+	for uid in uids:
+		var c: SeatCard = view.card(uid)
+		if c != null and c.def_id == id:
+			return uid
+	return -1
+
+
+## A table card's screen rectangle, or the part of it given in face fractions (top left 0,0).
+func _card_rect(uid: int, part: Rect2 = Rect2(0, 0, 1, 1)) -> Rect2:
+	var v: Card3D = views.get(uid)
+	if v == null or not v.visible or camera == null or camera.is_position_behind(v.global_position):
+		return Rect2()
+	var size: Vector2 = TableLayout.CARD_SIZE
+	var corners: Array[Vector2] = [part.position, Vector2(part.end.x, part.position.y), part.end, Vector2(part.position.x, part.end.y)]
+	var bounds: Rect2 = Rect2()
+	for i in range(corners.size()):
+		var local: Vector3 = Vector3((corners[i].x - 0.5) * size.x, 0.0, (corners[i].y - 0.5) * size.y)
+		var point: Vector2 = camera.unproject_position(v.surface.global_transform * local)
+		bounds = Rect2(point, Vector2.ZERO) if i == 0 else bounds.expand(point)
+	return bounds
 
 
 ## Quits on the next process_frame, after queue_free has released the scene, so renderer nodes and

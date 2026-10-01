@@ -170,6 +170,8 @@ func _make_button(id: String) -> TextureButton:
 		label += "\n%s" % AdventureDecks.opponent_name(str(duel.get("opponent", "")), Session.library)
 		if str(duel.get("grant", "")) == "aspect":
 			label += "\nGrants an Aspect"
+		for resonance in AdventureElite.resonances_of(duel):
+			label += "\nHolds %s" % ResonanceData.name_of(resonance)
 	button.tooltip_text = label
 	button.modulate = _tint(id)
 	button.pressed.connect(func() -> void: select(id))

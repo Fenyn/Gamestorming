@@ -24,6 +24,8 @@ var _counts: Dictionary = {}          # card id -> copies in the run
 ## The run's Relic and Reserve, shown as their own section after the Life Deck, preview only.
 var _relic_id: String = ""
 var _reserve_counts: Dictionary = {}
+## The run's Resonances, shown as the last section, preview only.
+var _resonances: Array[String] = []
 var _selected_id: String = ""
 var _row_group: ButtonGroup = ButtonGroup.new()
 
@@ -41,10 +43,17 @@ func show_cards(ids: Array[String], library: CardLibrary, faces: CardFaceCache) 
 	_counts = {}
 	_relic_id = ""
 	_reserve_counts = {}
+	_resonances = []
 	for id in ids:
 		_counts[id] = int(_counts.get(id, 0)) + 1
 	_build()
 	_clear_preview()
+
+
+## Adds the run's Resonances as the last section. Their rows preview the sentence, never select.
+func show_resonances(ids: Array[String]) -> void:
+	_resonances = ids.duplicate()
+	_build()
 
 
 ## Adds the run's Relic and Reserve as a last section. Their rows preview but are never selected,
@@ -97,7 +106,81 @@ func _build() -> void:
 			rows_a += group_rows
 		else:
 			rows_b += group_rows
+	var reserve_rows: int = _reserve_rows()
 	_build_reserve(column_a if rows_a <= rows_b else column_b)
+	if rows_a <= rows_b:
+		rows_a += reserve_rows
+	else:
+		rows_b += reserve_rows
+	_build_resonances(column_a if rows_a <= rows_b else column_b)
+
+
+func _reserve_rows() -> int:
+	if _relic_id == "" and _reserve_counts.is_empty():
+		return 0
+	return 1 + (1 if _relic_id != "" else 0) + _reserve_counts.size()
+
+
+func _build_resonances(target: VBoxContainer) -> void:
+	if _resonances.is_empty():
+		return
+	var header: Label = Label.new()
+	header.text = "RESONANCES"
+	header.theme_type_variation = &"MutedLabel"
+	target.add_child(header)
+	for id in _resonances:
+		target.add_child(_build_resonance_row(id))
+
+
+## One Resonance row: its sigil and name. Hovering it previews the sigil and the sentence.
+func _build_resonance_row(id: String) -> Button:
+	var row: Button = Button.new()
+	row.theme_type_variation = &"TileButton"
+	row.focus_mode = Control.FOCUS_NONE
+	row.custom_minimum_size = Vector2(0, 42)
+	row.mouse_entered.connect(func() -> void: _preview_resonance(id))
+	row.mouse_exited.connect(_revert_preview)
+	var h: HBoxContainer = HBoxContainer.new()
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_theme_constant_override("separation", 12)
+	h.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	h.offset_left = 8
+	h.offset_right = -12
+	row.add_child(h)
+	var icon: TextureRect = TextureRect.new()
+	icon.custom_minimum_size = Vector2(30, 30)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.texture = ResonanceSigil.texture(id)
+	h.add_child(icon)
+	var title_l: Label = Label.new()
+	title_l.text = ResonanceData.name_of(id)
+	title_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	title_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(title_l)
+	if ResonanceData.is_style(id):
+		var style_l: Label = Label.new()
+		style_l.text = "STYLE"
+		style_l.theme_type_variation = &"MutedLabel"
+		style_l.add_theme_color_override("font_color", ZenithTheme.PENALTY)
+		style_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		h.add_child(style_l)
+	return row
+
+
+func _preview_resonance(id: String) -> void:
+	preview_caption.text = ResonanceData.name_of(id)
+	preview_face.texture = ResonanceSigil.texture(id)
+	preview_face.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var lines: PackedStringArray = PackedStringArray([ResonanceData.effect_of(id)])
+	if ResonanceData.penalty_of(id) != "":
+		lines.append(ResonanceData.penalty_of(id))
+	preview_count.text = "\n".join(lines)
+	preview_count.visible = true
 
 
 func _build_reserve(target: VBoxContainer) -> void:
@@ -170,6 +253,8 @@ func _build_row(def: CardDef, count: int, selectable: bool = true) -> Button:
 func _preview(def: CardDef) -> void:
 	if _faces == null:
 		return
+	preview_face.texture_filter = CanvasItem.TEXTURE_FILTER_PARENT_NODE
+	preview_count.visible = show_copies
 	preview_caption.text = def.title
 	if _counts.has(def.id) or not _reserve_counts.has(def.id):
 		preview_count.text = "In deck: %d" % int(_counts.get(def.id, 0))
@@ -190,6 +275,7 @@ func _revert_preview() -> void:
 
 func _clear_preview() -> void:
 	preview_face.texture = null
+	preview_count.visible = show_copies
 	preview_caption.text = PREVIEW_HINT
 	preview_count.text = ""
 

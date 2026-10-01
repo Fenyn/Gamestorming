@@ -139,6 +139,14 @@ func dev(seat: int, effect: Dictionary) -> Dictionary:
 	return {"problem": "", "updates": _flush()}
 
 
+## A scripted duel's board adjustment (`Referee.script`), then updates as for a command.
+func script(op: Dictionary) -> Dictionary:
+	var problem: String = referee.script(op)
+	if problem != "":
+		return {"problem": problem, "updates": []}
+	return {"problem": "", "updates": _flush()}
+
+
 ## Options to fall back on, quietest first: a seat answering by default should not attack or
 ## spend anything it did not choose to.
 const QUIET: Array[StringName] = [&"pass", &"no_defense", &"no_endure", &"no_critical", &"skip",

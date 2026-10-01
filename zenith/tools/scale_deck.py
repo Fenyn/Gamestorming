@@ -19,8 +19,9 @@ Method:
 The stop floor and the stop-any share are the construction standards the hand-built starters
 were rebuilt to on 2026-09-21 (`docs/adventure_starters.md`).
 
-Run it with no arguments to write every opponent tier:
+Run it with no arguments to write every opponent tier, or name the families to write:
     python tools/scale_deck.py
+    python tools/scale_deck.py --only=mercenary_lord
 Starters are hand-authored and are not written by this tool.
 """
 
@@ -53,6 +54,7 @@ STOP_FLOOR = {
     "pyre_beatdown": 8,
     "steel_beatdown": 10, "shade_mind_siege": 10, "steel_heir": 10,
     "pyre_attrition": 12, "freestyle_swords": 12, "tide_deepwater": 12, "shade_henchmen": 12,
+    "mercenary_lord": 12,
     "pyre_ascent": 14, "storm_volley": 14, "storm_unbound": 14, "shade_salvage": 14,
     "tide_companions": 14, "root_seals": 14,
 }
@@ -407,11 +409,13 @@ def write_starters(out_dir="data/adventure/generated_starters"):
         yield out_id, sum(counts.values()), len(counts), aspects
 
 
-def write_opponents(out_dir="data/adventure/opponents"):
+def write_opponents(out_dir="data/adventure/opponents", only=None):
     lib = load_library()
     os.makedirs(out_dir, exist_ok=True)
     for path in sorted(glob.glob("data/decks/*.json")):
         deck_id = os.path.basename(path)[:-5]
+        if only and deck_id not in only:
+            continue
         deck = json.load(open(path, encoding="utf-8"))
         aspects_by_tier = {t[0]: t[3] for t in OPPONENT_TIERS}
         lockouts_by_tier = {t[0]: t[2] for t in OPPONENT_TIERS}
@@ -457,7 +461,12 @@ if __name__ == "__main__":
     if "--starters" in sys.argv:
         for deck_id, total, unique, aspects in write_starters("data/adventure/generated_starters"):
             print(f"{deck_id:24} {total:3} cards, {unique:2} unique, {aspects} aspects")
+    # `--only=a,b` writes those families' tiers and leaves every other family's files alone.
+    only = None
+    for arg in sys.argv[1:]:
+        if arg.startswith("--only="):
+            only = set(arg.split("=", 1)[1].split(","))
     sizes = {}
-    for name, total in write_opponents():
+    for name, total in write_opponents(only=only):
         sizes.setdefault(name.rsplit("_", 1)[1], []).append(total)
     print("opponent tiers written:", {k: (min(v), max(v)) for k, v in sizes.items()})

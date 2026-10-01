@@ -32,6 +32,10 @@ signal find_requested
 ## (value: the entry to jump to), &"speed" (value: the time scale), &"view" (value: seat 0 or 1, or
 ## 2 for both hands).
 signal replay_command(action: StringName, value: int)
+## The pointer came onto a greyed option (its reason) or left it ("").
+signal gated_hover(reason: String)
+## A greyed option was clicked (its reason).
+signal gated_clicked(reason: String)
 
 const HAND_CARD_SIZE: Vector2 = Vector2(126, 176)
 const FAR_HAND_CARD: Vector2 = Vector2(100, 140)   # a replay's far hand, in the strip over the far crest
@@ -134,7 +138,7 @@ const BUTTON_KINDS: Array[StringName] = [&"endurance"]
 const MENU_VERBS: Dictionary = {&"concede": "Concede", &"concede_match": "Concede", &"rematch": "Rematch", &"leave": "Back to title"}
 ## How this duel was reached, which decides the result's buttons, the menu and whether clocks run.
 ## CODE is a share-code room on the server or a LAN duel; QUEUE a casual pairing; RANKED a match.
-enum Mode { LOCAL, ADVENTURE, CODE, QUEUE, RANKED, REPLAY }
+enum Mode { LOCAL, ADVENTURE, CODE, QUEUE, RANKED, REPLAY, TUTORIAL }
 ## What the result card shows. NONE while a game runs. GAME_PENDING: a ranked game is over and the
 ## server has not yet said what follows. BETWEEN: the match goes on to its next game. MATCH: the
 ## match is decided. RESULT: a duel is over. LOST: the connection is gone for good.
@@ -195,6 +199,10 @@ const CLOCK_WARN_MS: int = 10000
 @onready var history_thumbs: VBoxContainer = $Root/History/Column/Thumbs
 @onready var history_tip: PanelContainer = $Root/HistoryTip
 @onready var history_tip_text: Label = $Root/HistoryTip/Text
+@onready var resonance_tip: PanelContainer = $Root/ResonanceTip
+@onready var resonance_tip_name: Label = $Root/ResonanceTip/Column/Name
+@onready var resonance_tip_effect: Label = $Root/ResonanceTip/Column/Effect
+@onready var resonance_tip_penalty: Label = $Root/ResonanceTip/Column/Penalty
 @onready var inspect: ColorRect = $Root/Inspect
 @onready var inspect_face: CardFace = $Root/Inspect/Center/Column/Face
 @onready var inspect_status_scroll: ScrollContainer = $Root/Inspect/Center/Column/StatusScroll
@@ -348,6 +356,9 @@ var _clocks: Array[Dictionary] = [{}, {}]
 ## A recorded duel played back: nothing here answers a decision, and the menu offers the replay's
 ## own controls instead of Concede and Rematch.
 var _match_replay: bool = false
+## The tutorial's gate on the prompt shown: `enabled` and `reasons` per option index, `library`
+## for a searched deck's cards that are not choices. {} opens every option.
+var _gate: Dictionary = {}
 
 
 func _ready() -> void:
@@ -360,6 +371,12 @@ func _ready() -> void:
 	log_panel.add_theme_stylebox_override("panel", MapArt.panel_box(14, FRAME_TINT))
 	history.add_theme_stylebox_override("panel", ZenithTheme.box(Color(ZenithTheme.BG, 0.72), ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, 6, 6))
 	history_tip.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG, ZenithTheme.BORDER, ZenithTheme.RADIUS, 1, 12, 8))
+	resonance_tip.add_theme_stylebox_override("panel", MapArt.panel_box(18, FRAME_TINT))
+	resonance_tip.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	(resonance_tip.get_child(0) as CanvasItem).texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	resonance_tip_name.add_theme_color_override("font_color", ZenithTheme.TEXT)
+	resonance_tip_effect.add_theme_color_override("font_color", ZenithTheme.TEXT)
+	resonance_tip_penalty.add_theme_color_override("font_color", ZenithTheme.PENALTY)
 	history_open.pressed.connect(func() -> void: set_log_expanded(not _log_expanded))
 	var inspect_hint: Label = $Root/Inspect/Center/Column/Hint
 	inspect_hint.add_theme_stylebox_override("normal", ZenithTheme.panel(24))
@@ -1222,6 +1239,36 @@ func _history_face(face: TextureRect, entry: Dictionary) -> void:
 		face.texture = tex
 
 
+## A Resonance sigil on the board is under the pointer: its name, sentence and penalty in a framed
+## tip under `anchor` (the sigil's screen rect), its right edge on the sigil's so it leaves the Life
+## Deck beside the row alone, and above the sigil when there is no room below. The rival's is
+## point-mirrored: `far`, with `anchor` the whole row clear of their hand fan
+## (`DuelistDisplay.far_tip_anchor`), opens over the row from that left edge, and under it only when
+## there is no room above. "" hides it.
+func show_resonance_tip(id: String, anchor: Rect2, far: bool = false) -> void:
+	if id == "" or not ResonanceData.has(id):
+		resonance_tip.hide()
+		return
+	resonance_tip_name.text = ResonanceData.name_of(id)
+	resonance_tip_effect.text = ResonanceData.effect_of(id)
+	resonance_tip_penalty.text = ResonanceData.penalty_of(id)
+	resonance_tip_penalty.visible = resonance_tip_penalty.text != ""
+	resonance_tip.reset_size()
+	var tip: Vector2 = resonance_tip.get_combined_minimum_size()
+	var at: Vector2 = Vector2(anchor.end.x - tip.x, anchor.end.y + HISTORY_TIP_GAP)
+	if far:
+		at = Vector2(anchor.position.x + HISTORY_TIP_GAP, anchor.position.y - tip.y - HISTORY_TIP_GAP)
+		# Pulled back left it would lie over the hand fan, so a tip without room goes under the row.
+		if at.y < HISTORY_TIP_GAP or at.x + tip.x > root.size.x - HISTORY_TIP_GAP:
+			at.y = anchor.end.y + HISTORY_TIP_GAP
+	elif at.y + tip.y > root.size.y - HISTORY_TIP_GAP:
+		at.y = anchor.position.y - tip.y - HISTORY_TIP_GAP
+	at.x = clampf(at.x, HISTORY_TIP_GAP, maxf(HISTORY_TIP_GAP, root.size.x - tip.x - HISTORY_TIP_GAP))
+	at.y = clampf(at.y, HISTORY_TIP_GAP, maxf(HISTORY_TIP_GAP, root.size.y - tip.y - HISTORY_TIP_GAP))
+	resonance_tip.position = at
+	resonance_tip.show()
+
+
 ## The hovered face's line, beside the strip and level with that face.
 func _show_history_tip(thumb: Control, text: String) -> void:
 	history_tip_text.text = text
@@ -1255,6 +1302,69 @@ func routes(p: PromptView, view: SeatView) -> Dictionary:
 		else:
 			click.append(opt)
 	return {"primary": primary, "browse": browse, "finals": finals, "click": click}
+
+
+## Greys every option of the next prompt shown that `gate` does not open, each with its reason.
+## {} opens them all again.
+func set_gate(gate: Dictionary) -> void:
+	_gate = gate
+
+
+func option_open(opt: OptionView) -> bool:
+	if _gate.is_empty() or _current_prompt == null:
+		return true
+	var i: int = _current_prompt.options.find(opt)
+	var enabled: Array = _gate.get("enabled", [])
+	return i < 0 or i >= enabled.size() or bool(enabled[i])
+
+
+func option_reason(opt: OptionView) -> String:
+	if _current_prompt == null:
+		return ""
+	var i: int = _current_prompt.options.find(opt)
+	var reasons: Array = _gate.get("reasons", [])
+	return str(reasons[i]) if i >= 0 and i < reasons.size() else ""
+
+
+## A greyed control says why on hover, through `gated_hover`, and a click on it is reported.
+func _explain_on_hover(control: Control, reason: String) -> void:
+	control.tooltip_text = reason
+	control.mouse_entered.connect(func() -> void: gated_hover.emit(reason))
+	control.mouse_exited.connect(func() -> void: gated_hover.emit(""))
+	control.gui_input.connect(func(event: InputEvent) -> void:
+		var press: InputEventMouseButton = event as InputEventMouseButton
+		if press != null and press.pressed and press.button_index == MOUSE_BUTTON_LEFT:
+			gated_clicked.emit(reason))
+
+
+## The screen rectangle of the control that offers an option `match` accepts, an open one before
+## a greyed one: a decision button, or with `in_tray` a face or button of the tray. Rect2() when
+## none is shown.
+func option_rect(match: Callable, in_tray: bool = false) -> Rect2:
+	var found: Rect2 = Rect2()
+	var boxes: Array[Control] = []
+	if in_tray and tray.visible:
+		boxes.append_array([tray_cards, tray_buttons])
+	elif not in_tray and prompt_panel.visible and not tray.visible:
+		boxes.append(primary_box)
+	for box in boxes:
+		for child in box.get_children():
+			var c: Control = child as Control
+			if c == null or not c.visible or not c.has_meta("option"):
+				continue
+			var opt: OptionView = c.get_meta("option")
+			if not bool(match.call(opt)):
+				continue
+			if option_open(opt):
+				return c.get_global_rect()
+			if not found.has_area():
+				found = c.get_global_rect()
+	return found
+
+
+## Room kept free over the tray, so a note docked above it covers nothing. 0 gives it back.
+func reserve_top(pixels: float) -> void:
+	($Root/Tray/Center as Control).offset_top = pixels
 
 
 func show_prompt(p: PromptView, view: SeatView) -> void:
@@ -1298,9 +1408,16 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 		if not finals.is_empty():
 			var b: Button = Button.new()
 			b.text = "Final Strike…"
+			b.set_meta("option", finals[0])
 			b.custom_minimum_size = Vector2(0, ACTION_HEIGHT)
 			b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
 			b.pressed.connect(func() -> void: _show_final_strike(finals))
+			var open_final: bool = false
+			for f in finals:
+				open_final = open_final or option_open(f)
+			if not open_final:
+				b.disabled = true
+				_explain_on_hover(b, option_reason(finals[0]))
 			primary_box.add_child(b)
 			_fit_actions()
 	else:
@@ -1317,7 +1434,8 @@ func _make_single_action(p: PromptView, opt: OptionView, view: SeatView) -> void
 	b.theme_type_variation = &"AccentButton"
 	b.custom_minimum_size = Vector2(0, SINGLE_ACTION_HEIGHT)
 	b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_ROW)
-	b.tooltip_text = opt.label
+	if option_open(opt):
+		b.tooltip_text = opt.label
 	_single_action = b
 	_fit_actions()
 
@@ -1775,8 +1893,12 @@ func _fill_buttons(options: Array[OptionView], into: Container, vertical: bool, 
 		var text_width: float = root.get_theme_font("font", "Button").get_string_size(opt.label, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x + 48.0
 		b.custom_minimum_size = Vector2(0.0 if vertical else clampf(text_width, 300.0, minf(520.0, root.size.x - 180.0)), ACTION_HEIGHT if into == primary_box else 60.0)
 		b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
+		b.set_meta("option", opt)
 		b.pressed.connect(func() -> void: option_chosen.emit(opt))
-		if not opt.outcome.is_empty():
+		if not option_open(opt):
+			b.disabled = true
+			_explain_on_hover(b, option_reason(opt))
+		elif not opt.outcome.is_empty():
 			b.mouse_entered.connect(func() -> void: _preview_outcome(opt.outcome))
 			b.mouse_exited.connect(func() -> void: _preview_outcome({}))
 			b.focus_entered.connect(func() -> void: _preview_outcome(opt.outcome))
@@ -2043,6 +2165,9 @@ func _add_library(library: Array, matches: Array[OptionView]) -> void:
 		face.mouse_filter = Control.MOUSE_FILTER_STOP
 		face.mouse_entered.connect(func() -> void: show_peek(def, c.aspect, c.uid))
 		face.mouse_exited.connect(func() -> void: hide_peek())
+		var not_a_choice: String = str(_gate.get("library", ""))
+		if not not_a_choice.is_empty():
+			_explain_on_hover(face, not_a_choice)
 		column.add_child(face)
 		var caption: Label = Label.new()
 		caption.text = "In deck ×%d" % int(counts[def_id])
@@ -2123,6 +2248,7 @@ func _hide_tray() -> void:
 func _tray_choice_entry(opt: OptionView) -> Control:
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
+	column.set_meta("option", opt)
 	var frame: PanelContainer = PanelContainer.new()
 	frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, ZenithTheme.RADIUS, 3, 3, 3))
 	frame.pivot_offset = _tray_face * 0.5 + Vector2(3.0, 3.0)
@@ -2134,6 +2260,13 @@ func _tray_choice_entry(opt: OptionView) -> Control:
 	b.clip_text = false
 	b.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
 	b.add_theme_color_override("font_color", ZenithTheme.TEXT)
+	if not option_open(opt):
+		b.disabled = true
+		b.add_theme_color_override("font_disabled_color", ZenithTheme.TEXT_DISABLED)
+		_explain_on_hover(b, option_reason(opt))
+		frame.add_child(b)
+		column.add_child(frame)
+		return column
 	b.pressed.connect(func() -> void: option_chosen.emit(opt))
 	b.mouse_entered.connect(func() -> void:
 		frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.ACCENT, ZenithTheme.RADIUS, 3, 3, 3))
@@ -2168,6 +2301,7 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 		tex = _faces.back()
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
+	column.set_meta("option", opt)
 	var frame: PanelContainer = PanelContainer.new()
 	frame.add_theme_stylebox_override("panel", ZenithTheme.box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), ZenithTheme.RADIUS, 3, 3, 3))
 	frame.pivot_offset = _tray_face * 0.5 + Vector2(3.0, 3.0)
@@ -2177,7 +2311,11 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 	b.stretch_mode = TextureButton.STRETCH_SCALE
 	b.custom_minimum_size = _tray_face
 	var batch: bool = _batch != null
-	if batch:
+	var open: bool = option_open(opt)
+	if not open:
+		b.modulate = Color(1, 1, 1, 0.45)
+		_explain_on_hover(b, option_reason(opt))
+	elif batch:
 		b.pressed.connect(func() -> void: tray_toggle(uid))
 	elif not sub_choice:
 		b.pressed.connect(func() -> void: option_chosen.emit(opt))
@@ -2209,10 +2347,10 @@ func _tray_entry(opt: OptionView, sub_choice: bool) -> Control:
 	if not sub_choice:
 		var verb: String = str(TRAY_VERBS.get(opt.type, opt.label)) + mark
 		var caption: Label = Label.new()
-		caption.text = verb
+		caption.text = verb if open else ""
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.add_theme_font_size_override("font_size", ZenithTheme.SIZE_BODY)
-		caption.add_theme_color_override("font_color", ZenithTheme.MUTED if batch else ZenithTheme.ACCENT)
+		caption.add_theme_color_override("font_color", ZenithTheme.MUTED if batch or not open else ZenithTheme.ACCENT)
 		column.add_child(caption)
 		if batch:
 			_entries[uid] = {"frame": frame, "caption": caption, "verb": verb}
@@ -2999,17 +3137,12 @@ func _draw_filament() -> void:
 	var base: Vector2 = filament.global_position
 	var start: Vector2 = origin + direction * FILAMENT_TAIL
 	var end: Vector2 = target - direction * FILAMENT_HEAD
-	var middle: Vector2 = (start + end) * 0.5 + side * (travel.length() * FILAMENT_BOW)
 	var color: Color = ZenithTheme.ATTACK.lightened(0.25)
 	if _filament_state == &"stopped":
 		color = ZenithTheme.DEFEND
 	elif _filament_state == &"landed":
 		color = ZenithTheme.ACCENT
-	var points: PackedVector2Array = PackedVector2Array()
-	for i in range(FILAMENT_SAMPLES + 1):
-		var ratio: float = float(i) / float(FILAMENT_SAMPLES)
-		points.append(start.lerp(middle, ratio).lerp(middle.lerp(end, ratio), ratio) - base)
-	filament_thread.points = points
+	filament_thread.points = bezier(start - base, end - base, side * (travel.length() * FILAMENT_BOW))
 	filament_thread.default_color = Color(color, 0.38 if _filament_state == &"stopped" else 0.64)
 	var stopped: bool = _filament_state == &"stopped"
 	filament_cap.visible = stopped
@@ -3019,19 +3152,30 @@ func _draw_filament() -> void:
 		filament_cap.points = PackedVector2Array([end - side * FILAMENT_CAP - base, end + side * FILAMENT_CAP - base])
 		filament_cap.default_color = Color(color, 0.9)
 	else:
-		filament_head.points = _chevron(end, direction, side, base)
+		filament_head.points = chevron(end - base, direction)
 		filament_head.default_color = Color(color, 0.95)
 		if filament_head_trail.visible:
-			filament_head_trail.points = _chevron(end - direction * FILAMENT_CHEVRON.x * 0.82, direction, side, base)
+			filament_head_trail.points = chevron(end - direction * FILAMENT_CHEVRON.x * 0.82 - base, direction)
 			filament_head_trail.default_color = Color(color, 0.95)
 	filament.visible = true
 
 
-func _chevron(tip: Vector2, direction: Vector2, side: Vector2, base: Vector2) -> PackedVector2Array:
-	var back: Vector2 = tip - direction * FILAMENT_CHEVRON.x
-	return PackedVector2Array([
-		back + side * FILAMENT_CHEVRON.y - base, tip - base, back - side * FILAMENT_CHEVRON.y - base,
-	])
+## The filament's curve, shared with the tutorial's tether: a quadratic bezier from `start` to
+## `end` whose control point stands `bend` off their midpoint.
+static func bezier(start: Vector2, end: Vector2, bend: Vector2, samples: int = FILAMENT_SAMPLES) -> PackedVector2Array:
+	var middle: Vector2 = (start + end) * 0.5 + bend
+	var points: PackedVector2Array = PackedVector2Array()
+	for i in range(samples + 1):
+		var ratio: float = float(i) / float(samples)
+		points.append(start.lerp(middle, ratio).lerp(middle.lerp(end, ratio), ratio))
+	return points
+
+
+## An open arrowhead at `tip`, pointing along `direction` (a unit vector).
+static func chevron(tip: Vector2, direction: Vector2, extent: Vector2 = FILAMENT_CHEVRON) -> PackedVector2Array:
+	var side: Vector2 = Vector2(-direction.y, direction.x)
+	var back: Vector2 = tip - direction * extent.x
+	return PackedVector2Array([back + side * extent.y, tip, back - side * extent.y])
 
 
 ## The left edge of the card the line comes from: the pinned attack, or the response on top of the
@@ -3137,7 +3281,7 @@ func _refresh_menu() -> void:
 	var running: bool = _result == ResultState.NONE and not _match_replay
 	var between: bool = _result == ResultState.GAME_PENDING or _result == ResultState.BETWEEN
 	var online: bool = _mode == Mode.CODE or _mode == Mode.QUEUE or _mode == Mode.RANKED
-	menu_concede.visible = running
+	menu_concede.visible = running and _mode != Mode.TUTORIAL
 	menu_concede.text = "Concede game" if _mode == Mode.RANKED else "Concede"
 	menu_concede_match.visible = _mode == Mode.RANKED and (running or between)
 	menu_rematch.visible = running and _mode == Mode.LOCAL
@@ -3171,6 +3315,8 @@ func _menu_question(action: StringName) -> String:
 		&"rematch":
 			return "Abandon this duel and deal a new one?" if running else ""
 		&"leave":
+			if running and _mode == Mode.TUTORIAL:
+				return "Leave the training? You pick up again at the start of this lesson."
 			return "Abandon this duel and return to the title?" if running and _mode == Mode.LOCAL else ""
 	return ""
 

@@ -22,6 +22,9 @@ const DEFAULTS: Dictionary = {
 		"discard_hand": 1.0, "discard_life": 1.0, "recover": 0.8, "remove_discard": 0.15,
 		"forbid": 1.5, "float": 1.0, "stop_all": 2.5, "attach": 1.5, "capture_seal": 3.0,
 		"other": 0.5, "if_successful": 0.6, "if_stopped": 0.3, "conditional": 0.7,
+		# Off by default. Above zero, a Fervor gain that completes a climb is also worth the Aspect
+		# it reaches, times this. See AiScorer._climb_bonus.
+		"fervor_climb": 0.0,
 	},
 	"play": {
 		"damage_life": 1.0, "damage_stage": 0.5, "attack_cost": 0.5, "final_strike_penalty": 4.0,
@@ -35,6 +38,10 @@ const DEFAULTS: Dictionary = {
 		# Off by default. Above zero, an attack from hand is charged this share of the card's worth,
 		# times the chance the rival holds a block, so a lesser card leads while blocks remain.
 		"attack_hold": 0.0,
+		# Off by default. Above zero, a recursion combo (a card that shuffles every <Name> card back,
+		# and one that makes the bottom of the discard pile count as <Name>) is played in order and
+		# its halves are sought and kept. See AiScorer.combo_role.
+		"combo": 0.0,
 		# What a kept card that cannot block is worth, as a share of its worth, while it waits out
 		# the opponent's turn. See AiScorer._keep_score.
 		"kept_off_turn": 0.5,

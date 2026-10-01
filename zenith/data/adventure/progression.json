@@ -27,11 +27,12 @@
 			"7": { "cards": ["personality_34"] }
 		},
 		"Gideon Mourne": {
-			"2": { "cards": ["signature_strike_03", "signature_art_07"] },
+			"2": { "cards": ["signature_combat_10", "signature_art_19"] },
 			"3": { "abilities": ["start_relic", "start_reserve"] },
-			"4": { "cards": ["personality_62"] },
-			"5": { "cards": ["signature_noncombat_05", "signature_noncombat_08"] },
-			"6": { "cards": ["personality_48"] }
+			"4": { "cards": ["personality_73"] },
+			"5": { "cards": ["signature_art_07", "signature_strike_03"] },
+			"6": { "cards": ["personality_74"] },
+			"7": { "cards": ["personality_48", "signature_noncombat_05", "signature_noncombat_08"] }
 		},
 		"Bram Ashmark": {
 			"2": { "cards": ["signature_strike_02", "signature_combat_02"] },

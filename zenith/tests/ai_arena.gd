@@ -7,7 +7,9 @@ extends SceneTree
 ## search knob SimSeat names (--budget=MS, default 600, --samples=N, --turns=N, --steps=N, ...), --verbose for a
 ## line per game, --report=<path> for a JSON summary. A deck's own playstyle profile (`ai_profile` in
 ## its JSON) is used unless --styles=a, --styles=b or --styles=none says which policies get one;
-## that is how a playstyle is measured against the defaults.
+## that is how a playstyle is measured against the defaults. `--resonances-a=<ids>` and
+## `--resonances-b=<ids>` (comma-separated ResonanceData ids) give that policy's deck those
+## Resonances, as an adventure run or an Elite holds them.
 
 const MAX_STEPS: int = 6000
 
@@ -21,6 +23,8 @@ func _init() -> void:
 		"styles": {"type": "str", "default": "ab", "choices": ["ab", "a", "b", "none"]},
 		"verbose": {"type": "bool", "default": "off"},
 		"report": {"type": "str", "default": ""},
+		"resonances-a": {"type": "str", "default": ""},
+		"resonances-b": {"type": "str", "default": ""},
 	}
 	# Search knobs stay unset unless given, so a profile's own value holds. The budget is the
 	# exception: 600 ms is where search stops falling back to the scorer, at about a third of the
@@ -47,6 +51,16 @@ func _init() -> void:
 	var table: StrikeTable = StrikeTable.load_from("res://data/strike_table.json")
 	var sim: SimMatch = SimMatch.make(lib, table, MAX_STEPS)
 	var names: Array[String] = deck_names(args.str_of("decks"))
+	var resonances: Array[Array] = [[], []]
+	for i in range(2):
+		var held: Array[String] = []
+		for id in args.str_of("resonances-" + "ab"[i]).split(",", false):
+			if not ResonanceData.has(id):
+				push_error("--resonances-%s: no Resonance named '%s'" % ["ab"[i], id])
+				quit(1)
+				return
+			held.append(id)
+		resonances[i] = held
 	var policies: Array[String] = [sides[0].policy, sides[1].policy]
 	var wins: Array[int] = [0, 0]
 	var broken: int = 0
@@ -65,7 +79,11 @@ func _init() -> void:
 			for s in range(args.int_of("seeds")):
 				for a_seat in range(2):
 					var seeds: Array[int] = [100 + s, games * 2 + 1, games * 2 + 2, games + 1]
-					var result: Dictionary = sim.play(DeckList.resolve(deck_a), DeckList.resolve(deck_b), a_seat, sides[0], sides[1], seeds)
+					var a_deck: DeckList = DeckList.resolve(deck_a)
+					var b_deck: DeckList = DeckList.resolve(deck_b)
+					a_deck.resonances.assign(resonances[0])
+					b_deck.resonances.assign(resonances[1])
+					var result: Dictionary = sim.play(a_deck, b_deck, a_seat, sides[0], sides[1], seeds)
 					games += 1
 					for side in range(2):
 						var t: Dictionary = (result["timing"] as Array)[side]

@@ -4163,7 +4163,7 @@
   },
   {
    "id": "signature_strike_13",
-   "title": "Caedan's Sword Draw",
+   "title": "Vale's Sword Draw",
    "type": "strike",
    "school": "",
    "attack": {
@@ -4180,7 +4180,7 @@
 	 "trigger": "if_successful",
 	 "op": "search",
 	 "title_contains": "Sword",
-	 "exclude_title": "Caedan's Sword Draw",
+	 "exclude_title": "Vale's Sword Draw",
 	 "to": "hand"
 	}
    ]
@@ -4608,7 +4608,6 @@
   },
   {
    "id": "freestyle_noncombat_03",
-   "limit_per_deck": 1,
    "title": "Voss' Clear Mind",
    "character": "Aldo Voss",
    "type": "non_combat",
@@ -13219,6 +13218,476 @@
 	]
    },
    "alignment_only": "vigil"
+  },
+  {
+   "id": "personality_70",
+   "title": "Gideon Mourne",
+   "type": "personality",
+   "school": "",
+   "character": "Gideon Mourne",
+   "aspect": 1,
+   "aspect_title": "The Betrayer",
+   "surge": 1,
+   "might": [
+	0,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14
+   ],
+   "power": {
+	"effects": [
+	 {
+	  "op": "search",
+	  "source": "discard",
+	  "to": "deck_shuffle",
+	  "character": "Gideon Mourne"
+	 }
+	]
+   },
+   "variant": "Mercenary",
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_71",
+   "title": "Gideon Mourne",
+   "type": "personality",
+   "school": "",
+   "character": "Gideon Mourne",
+   "aspect": 2,
+   "aspect_title": "Sellsword",
+   "surge": 3,
+   "might": [
+	0,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20
+   ],
+   "constant": {
+	"forbid_opponent": [
+	 "combat_cards"
+	],
+	"modifiers": [
+	 {
+	  "scope": "own",
+	  "kind": "any",
+	  "life": 2
+	 }
+	]
+   },
+   "variant": "Mercenary",
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_72",
+   "title": "Gideon Mourne",
+   "type": "personality",
+   "school": "",
+   "character": "Gideon Mourne",
+   "aspect": 3,
+   "aspect_title": "Silver Tongue",
+   "surge": 3,
+   "might": [
+	0,
+	17,
+	18,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26
+   ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "op": "discard_hand",
+	  "who": "opponent",
+	  "amount": 1,
+	  "random": false,
+	  "chooser": "owner",
+	  "reveal": true,
+	  "filter": "non_seal"
+	 }
+	]
+   },
+   "variant": "Mercenary",
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_73",
+   "title": "Gideon Mourne",
+   "type": "personality",
+   "school": "",
+   "character": "Gideon Mourne",
+   "aspect": 4,
+   "aspect_title": "Free Captain",
+   "surge": 4,
+   "might": [
+	0,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28,
+	29,
+	30,
+	31,
+	32
+   ],
+   "power": {
+	"effects": [
+	 {
+	  "trigger": "entering_combat",
+	  "op": "draw",
+	  "amount": 1
+	 }
+	]
+   },
+   "shield": "any",
+   "variant": "Mercenary",
+   "bloodline": "draconic"
+  },
+  {
+   "id": "personality_74",
+   "title": "Gideon Mourne",
+   "type": "personality",
+   "school": "",
+   "character": "Gideon Mourne",
+   "aspect": 5,
+   "aspect_title": "Mercenary Lord",
+   "surge": 5,
+   "might": [
+	0,
+	29,
+	30,
+	31,
+	32,
+	33,
+	34,
+	35,
+	36,
+	37,
+	38
+   ],
+   "power": {
+	"attack": {
+	 "kind": "strike",
+	 "stages": 9
+	}
+   },
+   "variant": "Mercenary",
+   "bloodline": "draconic"
+  },
+  {
+   "id": "signature_art_18",
+   "title": "Mourne Calls In Debts",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art"
+   },
+   "character": "Gideon Mourne",
+   "remove_after_use": true,
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "shuffle_discard",
+	 "all": true,
+	 "character": "Gideon Mourne"
+	}
+   ]
+  },
+  {
+   "id": "signature_strike_32",
+   "title": "Mourne's Low Blow",
+   "type": "strike",
+   "school": "",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "character": "Gideon Mourne",
+   "effects": [
+	{
+	 "op": "reveal_hand",
+	 "who": "opponent",
+	 "look": true
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "fervor",
+	 "amount": 3,
+	 "when": {
+	  "character": "Gideon Mourne"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "signature_art_19",
+   "title": "Mourne's Ruinous Bolt",
+   "type": "art",
+   "school": "",
+   "attack": {
+	"kind": "art",
+	"printed_life": 6
+   },
+   "character": "Gideon Mourne",
+   "effects": [
+	{
+	 "op": "float",
+	 "what": "discard_named",
+	 "duration": "combat",
+	 "params": {
+	  "character": "Gideon Mourne",
+	  "count": 15
+	 },
+	 "when": {
+	  "character": "Gideon Mourne"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "signature_combat_10",
+   "title": "Mourne Bides His Time",
+   "type": "combat",
+   "school": "",
+   "effects": [
+	{
+	 "op": "search",
+	 "character": "Gideon Mourne",
+	 "amount": 3,
+	 "to": "hand"
+	}
+   ],
+   "character": "Gideon Mourne",
+   "only": {
+	"character": "Gideon Mourne"
+   },
+   "limit_per_deck": 1
+  },
+  {
+   "id": "signature_combat_11",
+   "title": "Mourne's Grasping Lunge",
+   "type": "combat",
+   "school": "",
+   "effects": [
+	{
+	 "op": "discard_hand",
+	 "who": "opponent",
+	 "amount": 1
+	}
+   ],
+   "character": "Gideon Mourne"
+  },
+  {
+   "id": "signature_noncombat_11",
+   "title": "Mourne's Grudge",
+   "type": "non_combat",
+   "school": "",
+   "character": "Gideon Mourne",
+   "only": {
+	"character": "Gideon Mourne"
+   },
+   "effects": [
+	{
+	 "trigger": "use",
+	 "op": "return_removed",
+	 "character": "Gideon Mourne",
+	 "choose": true,
+	 "max": 3
+	}
+   ]
+  },
+  {
+   "id": "signature_strike_33",
+   "title": "Mourne's Humbling Blow",
+   "type": "strike",
+   "school": "",
+   "attack": {
+	"kind": "strike"
+   },
+   "endurance": 3,
+   "reserve_only": true,
+   "character": "Gideon Mourne",
+   "effects": [
+	{
+	 "op": "lose_aspect",
+	 "who": "opponent",
+	 "when": {
+	  "opponent_style": "pyre"
+	 }
+	},
+	{
+	 "op": "float",
+	 "who": "opponent",
+	 "what": "no_fervor_gain",
+	 "duration": "turn",
+	 "when": {
+	  "opponent_style": "pyre"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "signature_drill_08",
+   "title": "Quarr's Grim Drill",
+   "type": "drill",
+   "school": "",
+   "character": "Halden Quarr",
+   "alignment_only": "pact",
+   "unique_in_play": true,
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "may": true,
+	 "op": "search",
+	 "alignment_only": "pact",
+	 "to": "hand",
+	 "role": "attacker"
+	},
+	{
+	 "trigger": "entering_combat",
+	 "may": true,
+	 "op": "search",
+	 "alignment_only": "pact",
+	 "to": "hand",
+	 "role": "defender",
+	 "when": {
+	  "duelist_character": "Halden Quarr"
+	 }
+	}
+   ]
+  },
+  {
+   "id": "freestyle_drill_08",
+   "title": "PLACEHOLDER's Leering Drill",
+   "type": "drill",
+   "school": "",
+   "modifiers": [
+	{
+	 "scope": "own",
+	 "kind": "any",
+	 "stages": 1
+	}
+   ],
+   "effects": [
+	{
+	 "trigger": "on_attack",
+	 "op": "remove_discard",
+	 "who": "opponent",
+	 "amount": 1
+	}
+   ]
+  },
+  {
+   "id": "freestyle_art_13",
+   "title": "Rebounding Ward",
+   "type": "art",
+   "school": "",
+   "defense": {
+	"stops": "art"
+   },
+   "endurance": 3,
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "fervor",
+	 "who": "opponent",
+	 "amount": -1
+	},
+	{
+	 "may": true,
+	 "op": "remove_reserve",
+	 "amount": 2,
+	 "when": {
+	  "reserve_min": 2
+	 },
+	 "then": [
+	  {
+	   "op": "shuffle_source"
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "freestyle_combat_22",
+   "title": "Near Miss",
+   "type": "combat",
+   "school": "",
+   "defense": {
+	"stops": "any"
+   },
+   "remove_after_use": true,
+   "limit_per_deck": 2,
+   "effects": [
+	{
+	 "op": "stop_all",
+	 "kind": "any",
+	 "when": {
+	  "aspect_min": 2,
+	  "own_mastery_school": ""
+	 }
+	}
+   ]
+  },
+  {
+   "id": "freestyle_noncombat_22",
+   "title": "Raid the Armory",
+   "type": "non_combat",
+   "school": "",
+   "limit_per_deck": 1,
+   "effects": [
+	{
+	 "trigger": "entering_combat",
+	 "may": true,
+	 "op": "look_at",
+	 "amount": 7,
+	 "pick": {
+	  "card_type": "non_combat_any"
+	 },
+	 "to": "play",
+	 "all_matches": true,
+	 "shuffle_after": true,
+	 "from": "top",
+	 "then": [
+	  {
+	   "op": "exile_source"
+	  }
+	 ]
+	}
+   ]
+  },
+  {
+   "id": "signature_noncombat_12",
+   "title": "Voss' Borrowed Rite",
+   "type": "non_combat",
+   "school": "",
+   "character": "Aldo Voss",
+   "borrows_drill_powers": true
   }
  ]
 }

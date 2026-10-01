@@ -115,6 +115,11 @@ func _init() -> void:
 		test_reserve_swap_simultaneous,
 		test_reserve_batch,
 		test_double_power_rule_decides_first_player,
+		test_a_scripted_duel_keeps_its_order_and_seat_0_opens,
+		test_script_ops_deal_set_swap_and_end_the_session,
+		test_a_script_op_ends_a_combat_only_between_attacks,
+		test_a_normal_duel_takes_no_script_operations,
+		test_a_scripted_session_replays_from_its_history,
 		test_search_and_in_play_discard,
 		test_if_stopped,
 		test_determinism,
@@ -287,6 +292,7 @@ func _init() -> void:
 		test_a_sim_match_with_lives_gives_each_seat_its_own_points_to_win,
 		test_an_adventure_run_round_trips_through_json_and_the_save,
 		test_adventure_bands_field_every_tier,
+		test_the_stronger_band_only_fields_bosses,
 		test_adventure_map_is_three_acts_of_connected_tiers,
 		test_adventure_map_paths_hold_two_to_five_fights,
 		test_adventure_map_fields_legal_opponents,
@@ -440,6 +446,27 @@ func _init() -> void:
 		test_braced_beam_puts_grounds_into_play,
 		test_vigilant_effort_hardens_against_a_pact_duelist,
 		test_storm_mentor_cards_read_as_printed,
+		test_an_either_side_mercenary_meets_both_gates,
+		test_ruinous_bolt_names_the_bottom_of_the_discard_pile,
+		test_grudge_returns_at_most_three_named_cards,
+		test_rebounding_ward_pays_the_reserve_to_come_back,
+		test_near_miss_stops_all_only_on_a_freestyle_mastery,
+		test_grim_drill_is_one_in_play_and_finds_pact_only_cards,
+		test_leering_drill_fires_when_its_owner_attacks,
+		test_borrowed_rite_lends_the_opponents_drills,
+		test_mercenary_betrayer_shuffles_a_mourne_card_back,
+		test_mercenary_sellsword_locks_combat_cards,
+		test_mercenary_silver_tongue_takes_a_card_of_his_choice,
+		test_mercenary_free_captain_shields_any_attack,
+		test_low_blow_reads_the_hand_and_climbs_on_a_hit,
+		test_ruinous_bolt_puts_its_float_out_for_mourne,
+		test_calls_in_debts_recovers_his_cards_on_a_hit,
+		test_bides_his_time_fetches_three_mourne_cards,
+		test_grasping_lunge_takes_a_random_card,
+		test_humbling_blow_drops_a_pyre_rival_an_aspect,
+		test_raid_the_armory_places_every_non_combat_it_turns_over,
+		test_scorer_prices_recursion_climbs_and_wasted_effects,
+		test_combo_planning_orders_and_assembles_the_recursion,
 		test_root_new_shoots_takes_the_top_or_bottom_three,
 		test_root_swallowing_earth_puts_a_seal_under_its_deck,
 		test_root_guards_stop_their_kind,
@@ -570,6 +597,32 @@ func _init() -> void:
 		test_a_version_2_record_carries_its_match_and_a_version_1_record_still_loads,
 		test_match_stats_count_ranked_matches_by_deck_and_by_score,
 		test_a_match_conceded_as_a_whole_loads_and_counts_like_a_concession,
+		test_resonance_data_lists_the_first_fourteen,
+		test_resonances_are_held_apart_from_every_card,
+		test_resonances_survive_ascending,
+		test_iron_resolve_reads_the_strike_table_one_band_higher,
+		test_ready_channel_frees_the_first_art_each_combat,
+		test_blood_price_trades_the_energy_for_a_wound,
+		test_steady_flame_keeps_the_drills_when_ascending,
+		test_rising_ash_returns_the_top_of_the_discard_pile_on_ascending,
+		test_spoils_of_ruin_pays_for_discarding_their_cards,
+		test_deep_well_adds_a_stage_to_power_up,
+		test_open_hand_draws_one_more_in_the_draw_step,
+		test_first_stone_searches_for_a_drill_the_rival_cannot_discard,
+		test_warband_adds_a_stage_per_ally_to_strikes,
+		test_sealwrights_patience_guards_a_new_seal_and_draws,
+		test_braced_stance_blunts_only_the_first_attack_each_combat,
+		test_glass_cannon_adds_a_wound_both_ways,
+		test_patient_tide_opens_full_and_holds_the_first_combat,
+		test_resonances_replay_the_same_duel,
+		test_the_shrine_offers_two_that_serve_the_run_and_one_style,
+		test_the_shrine_falls_back_and_can_be_left,
+		test_walking_to_the_next_duel_leaves_a_shrine_untouched,
+		test_an_elite_draws_from_the_duel_band_and_holds_resonances_by_act,
+		test_elite_resonances_serve_the_opponent_and_never_repeat,
+		test_an_elite_opponent_carries_its_resonances_into_the_engine,
+		test_a_won_elite_ends_with_a_resonance_claim,
+		test_only_an_elite_win_opens_the_claim,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -773,7 +826,7 @@ func test_deck_list_and_validator() -> void:
 
 
 func test_every_art_file_belongs_to_a_card_in_its_group_folder() -> void:
-	var shipped: CardLibrary = shipped_library()
+	var shipped: CardLibrary = TutorialDirector.library_from(shipped_library())
 	var root: String = CardFace.ART_DIR
 	var files: int = 0
 	for group in DirAccess.get_directories_at(root):
@@ -793,7 +846,7 @@ func test_title_searches_still_find_their_cards() -> void:
 	var titles: Array[String] = []
 	for def in shipped.defs.values():
 		titles.append((def as CardDef).title)
-	for word in ["Sword", "Swordplay", "Sweep", "Steel Kindred Standoff", "Caedan's Sword Draw"]:
+	for word in ["Sword", "Swordplay", "Sweep", "Steel Kindred Standoff", "Vale's Sword Draw"]:
 		var found: int = 0
 		for t in titles:
 			if t.contains(word):
@@ -2066,6 +2119,151 @@ func test_double_power_rule_decides_first_player() -> void:
 	eq(int(setup_event(even).get("first", -1)), even.state.active, "and the setup event names the seat it picked")
 	eq(even.player(1 - even.state.active).duelist.energy, 5, "the second player keeps the usual starting stage")
 	check(not has_event(even, &"double_power"), "no Double Power event")
+
+
+## A duel set up `scripted` (the tutorial's), started: `a` takes seat 0 and `b` seat 1.
+func scripted_engine(a: DeckList, b: DeckList, opening: Array = []) -> DuelEngine:
+	var e: DuelEngine = DuelEngine.new()
+	e.scripted = true
+	var pair: Array[DeckList] = [a, b]
+	e.setup(pair, lib, table, 7)
+	for seat in range(opening.size()):
+		e.set_opening(seat, opening[seat])
+	e.start()
+	return e
+
+
+func life_ids(e: DuelEngine, seat: int) -> Array[String]:
+	var out: Array[String] = []
+	for c in e.player(seat).life_deck:
+		out.append(c.def.id)
+	return out
+
+
+## The tutorial's duel: Life Decks keep their listed order, seat 0 opens even where the Double
+## Power Rule would seat the other duelist, and the opening numbers are the ones preset.
+func test_a_scripted_duel_keeps_its_order_and_seat_0_opens() -> void:
+	var e: DuelEngine = DuelEngine.new()
+	e.scripted = true
+	var pair: Array[DeckList] = [deck(filler(["t_art", "t_parry", "t_strike_plus2"]), "vigil", "", "", 3, "tf_giant"),
+		deck(filler(), "vigil", "", "", 3, "tf_pageboy")]
+	e.setup(pair, lib, table, 7)
+	eq(str(setup_event(e).get("reason", "")), "scripted", "the setup event says the duel is scripted")
+	check(not has_event(e, &"double_power"), "the Double Power Rule stays out of a scripted duel")
+	eq(e.player(0).duelist.energy, DuelEngine.STARTING_ENERGY, "so nobody's Energy moved")
+	e.set_opening(0, {"energy": 3, "fervor": 2, "aspect": 2})
+	e.set_opening(1, {"energy": 8})
+	e.start()
+	eq(e.state.active, 0, "seat 0 opens")
+	var hand: Array[String] = []
+	for c in e.player(0).hand:
+		hand.append(c.def.id)
+	eq(hand, ["t_art", "t_parry", "t_strike_plus2"] as Array[String], "the first draw takes the listed top three in order")
+	eq(e.player(0).duelist.aspect, 2, "the opening Aspect is the preset one")
+	eq(e.player(0).fervor, 2, "so is the opening Fervor")
+	eq(e.player(0).duelist.energy, 3 + e.recover_gain(e.player(0)), "the preset Energy powers up from where it was set")
+	eq(e.player(1).duelist.energy, 8, "the other seat's Energy is preset too")
+	check(not e.shuffle_decks, "a scripted duel never shuffles")
+
+
+## Every board adjustment a scripted duel takes, each told as an event, with the decision that was
+## open left as it was.
+func test_script_ops_deal_set_swap_and_end_the_session() -> void:
+	var e: DuelEngine = scripted_engine(deck(filler()), deck(filler(), "vigil", "", "", 3, "tf_pageboy"))
+	eq(prompt_kind(e), &"declare", "the first decision is seat 0's declare")
+	var open: Prompt = e.prompt
+	eq(e.script_op({"op": "deal", "seat": 0, "cards": ["t_ward", "t_guard"]}), "", "a deal to the top is taken")
+	eq(life_ids(e, 0).slice(0, 2), ["t_ward", "t_guard"] as Array[String], "the first card dealt is on top")
+	eq(e.script_op({"op": "deal", "seat": 0, "at": "bottom", "cards": ["t_art_big", "t_scout"]}), "", "a deal to the bottom is taken")
+	eq(life_ids(e, 0).slice(-2), ["t_scout", "t_art_big"] as Array[String], "the first card dealt to the bottom is the bottom one")
+	check(has_event(e, &"script_dealt"), "a deal is an event")
+	eq(e.script_op({"op": "deal", "seat": 0, "cards": ["no_such_card"]}), "There is no card no_such_card.", "an unknown card is refused")
+	eq(e.script_op({"op": "set_energy", "seat": 1, "energy": 9}), "", "set Energy is taken")
+	eq(e.player(1).duelist.energy, 9, "the rival stands at the Energy set")
+	eq(e.script_op({"op": "set_fervor", "seat": 1, "fervor": 9}), "", "set Fervor is taken")
+	eq(e.player(1).fervor, 4, "a Fervor set too high stops one short of the climb")
+	eq(e.player(1).duelist.aspect, 1, "so nobody climbed")
+	eq(e.prompt, open, "none of it touched the decision that was open")
+	var old_duelist: CardInstance = e.player(1).duelist
+	var titan: Dictionary = {"name": "Titan", "duelist": stack_ids("tf_titan", 2), "cards": ["t_strike", "t_art", "t_parry"],
+		"alignment": "vigil"}
+	eq(e.script_op({"op": "swap_duelist", "seat": 1, "deck": titan, "name": "The Titan", "energy": 8}), "", "the rival's side is swapped")
+	eq(old_duelist.zone, &"offstage", "the old Duelist is carried off")
+	eq(e.player(1).duelist.def.id, "tf_titan_1", "the new Duelist takes the seat")
+	eq(e.player(1).highest_aspect, 2, "with its own ladder")
+	eq(e.player(1).name, "The Titan", "and its own name")
+	eq(e.player(1).duelist.energy, 8, "at the Energy the op gives")
+	eq(e.player(1).fervor, 0, "and no Fervor")
+	eq(life_ids(e, 1), ["t_strike", "t_art", "t_parry"] as Array[String], "its Life Deck is in listed order")
+	check(has_event(e, &"script_swap"), "the swap is an event")
+	eq(e.integrity_problem(), "", "every card still sits in one place")
+	eq(e.prompt, open, "the swap left seat 0's decision open")
+	eq(e.script_op({"op": "swap_duelist", "seat": 0, "deck": titan}), "Not while that seat has a decision open.", "a seat that owes a decision keeps its side")
+	eq(e.script_op({"op": "end_session"}), "", "the session ends")
+	check(e.is_over(), "the duel is over")
+	eq(e.state.winner, -1, "with no winner")
+	eq(e.prompt, null, "and nothing left to decide")
+	eq(e.script_op({"op": "set_energy", "seat": 0, "energy": 1}), "The duel is over.", "an ended session takes no more ops")
+	var v: SeatView = SeatView.of(e, 0)
+	check(v.is_over() and v.ended and v.winner == -1, "a seat's view says the session is over and nobody won")
+	eq(CardText.event_line(e.events.back(), e, 0), "The session is over, with no winner.", "the log says so")
+
+
+func test_a_script_op_ends_a_combat_only_between_attacks() -> void:
+	var e: DuelEngine = scripted_engine(deck(filler()), deck(filler(["t_parry", "t_parry", "t_parry"]), "vigil", "", "", 3, "tf_pageboy"))
+	eq(e.script_op({"op": "end_combat"}), "No Combat to end between attacks.", "there is no Combat to end yet")
+	answer(e, &"declare")
+	eq(prompt_kind(e), &"attack_action", "the attacker is asked")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(prompt_kind(e), &"defense", "the defender holds a parry")
+	eq(e.script_op({"op": "end_combat"}), "No Combat to end between attacks.", "an attack in the air is never cut off")
+	answer(e, &"no_defense")
+	eq(prompt_kind(e), &"attack_action", "the fight back is asked")
+	eq(e.script_op({"op": "end_combat"}), "", "between attacks the Combat ends")
+	check(has_event(e, &"combat_end"), "the Combat ends as an event")
+	check(e.state.step != GameState.Step.COMBAT, "the turn has left Combat")
+	check(e.prompt != null or e.is_over(), "and moved on to its next decision")
+	eq(e.integrity_problem(), "", "the attack's card went where it belongs")
+
+
+func test_a_normal_duel_takes_no_script_operations() -> void:
+	var raw: DuelEngine = DuelEngine.new()
+	var pair: Array[DeckList] = [deck(filler()), deck(filler(), "pact")]
+	raw.setup(pair, lib, table, 3)
+	check(not raw.scripted, "a duel is not scripted unless asked")
+	check(raw.shuffle_decks, "a normal duel still shuffles")
+	check(str(setup_event(raw).get("reason", "")) in ["chance", "double_power"], "and the usual rules seat the first player")
+	raw.start()
+	eq(raw.script_op({"op": "set_energy", "seat": 0, "energy": 1}), "Only a scripted duel takes script operations.", "a normal duel refuses every op")
+	var r: Referee = Referee.new()
+	r.setup(pair, lib, table, 3)
+	r.start()
+	eq(r.script({"op": "end_session"}), "Only a scripted duel takes script operations.", "so does its referee")
+	eq(r.history.size(), 0, "a refused op leaves no history")
+	check(not r.is_over(), "and the duel goes on")
+	var v: SeatView = r.view_for(0)
+	check(not v.ended and not v.is_over(), "a normal view is never ended")
+
+
+## Same seed, same commands and the same script operations: the same session.
+func test_a_scripted_session_replays_from_its_history() -> void:
+	var pair: Array[DeckList] = [deck(filler(["t_art", "t_strike_plus2"])), deck(filler(), "vigil", "", "", 3, "tf_pageboy")]
+	var a: Referee = Referee.new()
+	a.engine.scripted = true
+	a.setup(pair, lib, table, 11)
+	a.start()
+	eq(a.script({"op": "deal", "seat": 0, "cards": ["t_art_big"]}), "", "a deal goes through the referee")
+	eq(a.script({"op": "set_energy", "seat": 1, "energy": 2}), "", "so does set Energy")
+	eq(a.submit(0, a.engine.prompt.find(&"declare").to_dict()), "", "the player declares")
+	check(a.history[0].has("script"), "an op is kept in the history")
+	eq(int(a.history[0].get("player", 0)), -1, "belonging to no seat")
+	var b: Referee = Referee.new()
+	b.engine.scripted = true
+	b.setup(pair, lib, table, 11)
+	eq(b.replay(a.history), "", "the history replays")
+	eq(life_ids(b.engine, 0), life_ids(a.engine, 0), "to the same Life Deck")
+	eq(b.engine.player(1).duelist.energy, a.engine.player(1).duelist.energy, "and the same Energy")
+	eq(String(b.engine.prompt.kind), String(a.engine.prompt.kind), "and the same decision")
 
 
 func test_search_and_in_play_discard() -> void:
@@ -5458,9 +5656,14 @@ func test_scorer_prices_may_lines_relic_uses_and_soaked_energy() -> void:
 	var mask: CardInstance = e._instance(shipped().get_def("relic_01"), 0, &"reserve")
 	var foe: PlayerState = e.player(1)
 	foe.mastery = null
-	eq(AiScorer.relic_score(e, profile, me, mask), 0.0, "forbidding a Mastery they do not have is worth nothing")
-	foe.mastery = e._instance(shipped().get_def("pyre_mastery_01"), 1, &"in_play")
-	check(AiScorer.relic_score(e, profile, me, mask) > 0.0, "and forbidding one they have is worth a use")
+	check(AiScorer.relic_score(e, profile, me, mask) < 0.0, "forbidding a Mastery they do not have wastes a use")
+	foe.mastery = e._instance(shipped().get_def("shade_mastery_01"), 1, &"in_play")
+	# Tactical since 2026-09-30: the lock is worth what their Mastery would do in a Combat, and
+	# before Combat only on a turn this side means to declare.
+	var step_was: int = e.state.step
+	e.state.step = GameState.Step.COMBAT
+	check(AiScorer.relic_score(e, profile, me, mask) > 0.0, "and forbidding one they have is worth a use in a Combat")
+	e.state.step = step_was
 	# A deck that fights through its Allies wants its Duelist's Energy spent once an Ally can take over.
 	var tide: AiProfile = AiProfile.for_deck(DeckList.load_from("res://data/decks/tide_companions.json"), "")
 	eq(AiScorer.duelist_energy_price(e, me, tide), tide.w("own", "energy"), "with no Ally out, Energy keeps its price")
@@ -5514,6 +5717,9 @@ func test_scorer_reads_attacks_the_way_they_land() -> void:
 	var hit: Dictionary = {-1: {"stages": 5, "life": 0, "overflow": 5, "wounds": 5, "cost_stages": 0}}
 	var soaked: Dictionary = {-1: {"stages": 5, "life": 0, "overflow": 0, "wounds": 0, "cost_stages": 0}}
 	check(AiScorer._attack_score(e, profile, me, foe, strike, null, hit) > AiScorer._attack_score(e, profile, me, foe, strike, null, soaked), "Energy past an empty gauge is priced as wounds")
+	var bleeding: Dictionary = {-1: {"stages": 5, "life": 0, "overflow": 0, "wounds": 0, "cost_stages": 0, "cost_life": 1}}
+	check(is_equal_approx(AiScorer._attack_score(e, profile, me, foe, strike, null, soaked) - AiScorer._attack_score(e, profile, me, foe, strike, null, bleeding),
+		AiScorer.life_card_price(me, profile)), "a Life Deck card paid to attack is priced as a wound to itself")
 	while foe.life_deck.size() > 4:
 		foe.life_deck.pop_back()
 	eq(AiScorer._attack_score(e, profile, me, foe, strike, null, hit), AiEvaluator.WIN, "five wounds into four life cards wins")
@@ -6133,7 +6339,7 @@ func test_an_adventure_run_round_trips_through_json_and_the_save() -> void:
 ## every one of those decks is legal.
 func test_adventure_bands_field_every_tier() -> void:
 	var shipped: CardLibrary = shipped_library()
-	eq(AdventureDecks.playable_starters().size(), 14, "every starter can begin a run")
+	eq(AdventureDecks.playable_starters().size(), 15, "every starter can begin a run")
 	for family in AdventureDecks.banded_families():
 		for tier in ["t1", "t2", "t3", "t4", "t5", "boss"]:
 			var deck: DeckList = DeckList.resolve("%s_%s" % [family, tier])
@@ -6141,6 +6347,28 @@ func test_adventure_bands_field_every_tier() -> void:
 			if deck != null:
 				var problems: Array[String] = DeckValidator.validate(deck, shipped)
 				eq(problems.size(), 0, "%s_%s is legal: %s" % [family, tier, ", ".join(problems)])
+
+
+## The stronger band is the boss pool: an ordinary duel, Elite or encounter never fields one of its
+## families, and every act boss that neither a storyline nor the final boss sets is drawn from it.
+func test_the_stronger_band_only_fields_bosses() -> void:
+	var stronger: Array = AdventureDecks.read_bands().get("stronger", [])
+	check(not stronger.is_empty(), "the stronger band has families")
+	var final_family: String = str((AdventureMap.read_data().get("final_boss", {}) as Dictionary).get("family", ""))
+	for starter_id in AdventureDecks.playable_starters():
+		for run_seed in ADVENTURE_MAP_SEEDS:
+			var map: AdventureMap = AdventureMap.generate(starter_id, run_seed)
+			if map == null:
+				continue
+			for id in map.nodes.keys():
+				var family: String = AdventureDecks.family_of(str(map.duel_for(str(id)).get("opponent", "")))
+				if family == "":
+					continue
+				var act: int = int(map.node(str(id))["act"])
+				if str(id) != AdventureMap.boss_id_of(act):
+					check(not stronger.has(family), "%s seed %d %s: %s is a boss deck, not a duel" % [starter_id, run_seed, id, family])
+				elif str(AdventureStory.boss_for(starter_id, act).get("family", "")) == "" and family != final_family:
+					check(stronger.has(family), "%s seed %d act %d: the drawn boss %s is from the boss pool" % [starter_id, run_seed, act, family])
 
 
 const ADVENTURE_MAP_SEEDS: Array[int] = [1, 2, 3, 77, 4242]
@@ -6204,11 +6432,12 @@ func test_adventure_map_is_three_acts_of_connected_tiers() -> void:
 
 
 ## Every path through tiers 1 to 7 of an act holds 2 to 5 fights. Across many runs a path with
-## only 2 is rare and most paths hold 3 or 4.
+## only 2 is rare and most paths hold 3 or 4. The share of 2-fight paths runs near 0.10, so the
+## sample is wide and the bound sits above that mean rather than on it.
 func test_adventure_map_paths_hold_two_to_five_fights() -> void:
 	var totals: Dictionary = {}
 	var paths: int = 0
-	for run_seed in range(1, 61):
+	for run_seed in range(1, 241):
 		var map: AdventureMap = AdventureMap.generate("tide_deepwater_start", run_seed)
 		if map == null:
 			check(false, "seed %d rolls a map" % run_seed)
@@ -6223,7 +6452,7 @@ func test_adventure_map_paths_hold_two_to_five_fights() -> void:
 	var two: float = float(totals.get(2, 0)) / float(maxi(paths, 1))
 	var middle: float = float(int(totals.get(3, 0)) + int(totals.get(4, 0))) / float(maxi(paths, 1))
 	print("  map paths by fight count: %s over %d paths" % [str(totals), paths])
-	check(two < 0.10, "paths with only 2 fights are rare: %.2f" % two)
+	check(two < 0.12, "paths with only 2 fights are rare: %.2f" % two)
 	check(middle > 0.5, "most paths hold 3 or 4 fights: %.2f" % middle)
 
 
@@ -6285,6 +6514,7 @@ func test_adventure_map_fields_legal_opponents() -> void:
 func test_adventure_storylines_set_act_bosses() -> void:
 	var expected: Dictionary = {
 		"tide_deepwater_start": ["steel_heir_t3", "freestyle_swords_t5"],
+		"mercenary_lord_start": ["shade_salvage_t3", "shade_henchmen_t5"],
 		"shade_mind_siege_start": ["shade_salvage_t3", "shade_henchmen_t5"],
 		"pyre_beatdown_start": ["storm_volley_t3", "pyre_ascent_t5"],
 	}
@@ -6473,8 +6703,8 @@ func test_adventure_boss_win_joins_the_run() -> void:
 	eq(AdventureStory.apply_boss_win(run, map, shipped), "", "he joins only once")
 	run.node_id = AdventureMap.boss_id_of(2)
 	eq(AdventureStory.apply_boss_win(run, map, shipped), "", "the act 2 boss adds nobody")
-	var mourne: AdventureRun = AdventureRun.begin("shade_mind_siege_start", 5)
-	var mourne_map: AdventureMap = AdventureMap.generate("shade_mind_siege_start", 5)
+	var mourne: AdventureRun = AdventureRun.begin("mercenary_lord_start", 5)
+	var mourne_map: AdventureMap = AdventureMap.generate("mercenary_lord_start", 5)
 	mourne.node_id = AdventureMap.boss_id_of(1)
 	eq(AdventureStory.apply_boss_win(mourne, mourne_map, shipped), "personality_47", "Kell joins Mourne after the act 1 boss")
 
@@ -6485,8 +6715,9 @@ func test_adventure_achievements_track_steps() -> void:
 	AdventureUnlocks.path_override = "user://adventure/test_unlocks.json"
 	AdventureUnlocks.clear()
 	var u: AdventureUnlocks = AdventureUnlocks.load_unlocks()
-	eq(u.available_starters(), ["tide_deepwater_start", "shade_mind_siege_start", "pyre_beatdown_start"] as Array[String],
+	eq(u.available_starters(), ["tide_deepwater_start", "mercenary_lord_start", "pyre_beatdown_start"] as Array[String],
 		"a new save opens the three storyline starters")
+	check(not u.is_open("shade_mind_siege_start"), "the Marked Lord starter waits for its story")
 	var edric_act2: Dictionary = {"event": "duel_won", "main": "Sir Edric Rooke", "starter": "tide_deepwater_start",
 		"node": "boss", "act": 2, "opponent": "Caedan Vale", "allies": [], "blocks": 3, "aspect": 3}
 	var done: Array[Dictionary] = AdventureAchievements.apply(u, [edric_act2] as Array[Dictionary])
@@ -6927,6 +7158,8 @@ func walk_to_stop(shipped: CardLibrary, map: AdventureMap, run: AdventureRun, ty
 				AdventureForge.leave(run)
 			"shop":
 				AdventureShop.leave(run)
+			"shrine", "claim":
+				AdventureShrine.leave(run)
 			"relic", "reserve":
 				AdventureRelic.pass_through(run, shipped)
 			"stage":
@@ -6940,6 +7173,636 @@ func walk_to_stop(shipped: CardLibrary, map: AdventureMap, run: AdventureRun, ty
 			_:
 				return false
 	return run.status == type
+
+
+# --- Resonances ---------------------------------------------------------------
+
+## A fixture duel where player 1 holds these Resonances, as an adventure run's deck carries them.
+func res_engine(ids: Array[String], a: DeckList, b: DeckList, seed_value: int = 1) -> DuelEngine:
+	a.resonances = ids.duplicate()
+	return engine(a, b, seed_value)
+
+
+func has_resonance_event(e: DuelEngine, id: String, what: String) -> bool:
+	for ev in e.events:
+		if ev.type == &"resonance" and str(ev.data.get("id", "")) == id and str(ev.data.get("what", "")) == what:
+			return true
+	return false
+
+
+func test_resonance_data_lists_the_first_fourteen() -> void:
+	var ids: Array[String] = ResonanceData.ids()
+	eq(ids.size(), 14, "fourteen Resonances in the first set")
+	var styles: int = 0
+	for id in ids:
+		check(ResonanceData.name_of(id) != id and ResonanceData.effect_of(id).ends_with("."), "%s has a name and a sentence" % id)
+		check(not ResonanceData.rules(id).is_empty(), "%s carries the rules the engine reads" % id)
+		check(ResourceLoader.exists(ResonanceData.icon_of(id)), "%s has its sigil" % id)
+		check(not ResonanceData.tags_of(id).is_empty(), "%s names what it serves" % id)
+		for key in ResonanceData.rules(id).keys():
+			check(not str(key).contains("fervor") and not str(key).contains("aspect"), "%s leaves Fervor and the Aspect alone, so never the Ascension win" % id)
+		if ResonanceData.is_style(id):
+			styles += 1
+			check(ResonanceData.penalty_of(id).ends_with("."), "%s, a style Resonance, states its penalty" % id)
+		else:
+			eq(ResonanceData.penalty_of(id), "", "%s has no penalty" % id)
+	eq(styles, 3, "three of them are style Resonances")
+	check(ResonanceData.tags_of("braced_stance").has("defence"), "Braced Stance serves any deck's defence")
+	var e: DuelEngine = res_engine(["spoils_of_ruin"], deck(filler()), deck(filler(), "pact"))
+	var line: String = CardText.event_line(GameEvent.new(&"resonance", {"player": 0, "id": "spoils_of_ruin", "what": "energy", "amount": 2}), e, 1)
+	check(line.begins_with("Spoils of Ruin:") and line.contains("2 Energy"), "a Resonance that fires says so in the log: %s" % line)
+
+
+func test_resonances_are_held_apart_from_every_card() -> void:
+	var a: DeckList = deck(filler(["t_drill_strike"]))
+	var plain: DeckList = deck(filler(["t_drill_strike"]))
+	a.resonances = ["deep_well", "not_a_resonance", "glass_cannon"]
+	eq(a.total_cards(), plain.total_cards(), "Resonances count toward no deck size")
+	eq(DeckValidator.validate(a, lib), DeckValidator.validate(plain, lib), "and the validator reads nothing of them")
+	var from_file: DeckList = DeckList.from_dict({"name": "Test", "resonances": ["deep_well"], "cards": []})
+	check(from_file.resonances.is_empty(), "no deck file can carry one, so no opponent ever has any")
+	var e: DuelEngine = engine(a, deck(filler(), "pact"))
+	var bare: DuelEngine = engine(plain, deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	eq(p.resonances, ["deep_well", "glass_cannon"] as Array[String], "the engine keeps the known ones, in the run's order")
+	check(e.player(1).resonances.is_empty(), "the opponent holds none")
+	eq(e.all_cards().size(), bare.all_cards().size(), "no card is made for them")
+	var v: SeatView = SeatView.of(e, 1)
+	eq(v.player(0).resonances, p.resonances, "the rival's view shows them, since they are public")
+	eq(SeatPlayer.from_dict(v.player(0).to_dict()).resonances, p.resonances, "and they survive the wire")
+	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
+	eq(p.drills().size(), 1, "the Drill count is the one real Drill")
+	eq(p.in_play.size(), 1, "and nothing else is in play")
+	e._apply_effect({"op": "discard_in_play", "who": "opponent", "card_type": "non_combat", "all": true}, 1, {}, null)
+	eq(p.drills().size(), 0, "a sweep of the table takes the Drill")
+	eq(p.resonances, ["deep_well", "glass_cannon"] as Array[String], "and cannot reach a Resonance")
+	var sim: DuelEngine = e.clone()
+	eq(sim.player(0).resonances, p.resonances, "a clone for the AI carries them")
+
+
+func test_resonances_survive_ascending() -> void:
+	var e: DuelEngine = res_engine(["deep_well"], deck(filler(["t_drill_strike", "t_taunt", "t_strike"])), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	var gain: int = e.recover_gain(p)
+	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
+	to_combat(e)
+	p.fervor = 4
+	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
+	eq(p.duelist.aspect, 2, "the duelist ascends")
+	eq(p.drills().size(), 0, "ascending discards the Drills")
+	eq(p.resonances, ["deep_well"] as Array[String], "and leaves the Resonance")
+	eq(e.recover_gain(p), gain + 1, "which still adds its stage on top of the new Aspect's Surge")
+
+
+func test_iron_resolve_reads_the_strike_table_one_band_higher() -> void:
+	var roomy: StrikeTable = StrikeTable.from_dict({"thresholds": [0, 1, 1000000000], "cap": 9})
+	var topped: StrikeTable = StrikeTable.from_dict({"thresholds": [0, 1], "cap": 9})
+	eq(roomy.base_damage(5, 5, 1), 2, "one band up is one more stage")
+	eq(topped.base_damage(5, 5, 1), 1, "and a band already at the top stays there")
+	for table: StrikeTable in [roomy, topped]:
+		var dealt: Array[int] = []
+		for ids: Array[String] in [[] as Array[String], ["iron_resolve"] as Array[String]]:
+			var e: DuelEngine = res_engine(ids, deck(filler()), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
+			e.strike_table = table
+			to_combat(e)
+			answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+			dealt.append(5 - e.player(1).duelist.energy)
+			if not ids.is_empty():
+				var art: Dictionary = e.damage_breakdown(e._build_attack(0, null, {"kind": "art"}, [], false, false, false, null, true))
+				eq(int(art["attacker_band"]), table.band(e.player(0).duelist.might()), "an Art reads no table and gets no band")
+				var v: SeatView = SeatView.of(e, 0)
+				eq(v.strike_bands(0), 1, "the view knows the seat's Strikes read a band up")
+				eq(v.strike_bands(1), 0, "and that the rival's do not")
+		if table == roomy:
+			eq(dealt, [1, 2] as Array[int], "below the top band the Strike deals one more stage")
+		else:
+			eq(dealt, [1, 1] as Array[int], "at the top band it deals the same")
+
+
+func test_ready_channel_frees_the_first_art_each_combat() -> void:
+	var e: DuelEngine = res_engine(["ready_channel"], deck(filler(["t_art", "t_art", "t_art"])), deck(filler(), "pact"))
+	to_combat(e)
+	var first: int = uid_in_hand(e, 0, "t_art")
+	eq(int((e.attack_forecasts(0).get(first, {}) as Dictionary).get("cost_stages", -1)), 0, "the forecast prices the first Art at nothing")
+	answer(e, &"attack", first)
+	eq(e.player(0).duelist.energy, 8, "the first Art costs no Energy")
+	check(has_resonance_event(e, "ready_channel", "art_free"), "and the log says why")
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
+	eq(e.player(0).duelist.energy, 6, "the second Art that Combat pays its 2")
+	e._end_combat()
+	eq(e.player(0).arts_combat, 0, "the count starts again with the next Combat")
+
+
+func test_blood_price_trades_the_energy_for_a_wound() -> void:
+	var e: DuelEngine = res_engine(["blood_price"], deck(filler(["t_art", "t_art", "t_art"])), deck(filler(), "pact"))
+	to_combat(e)
+	var life: int = e.player(0).life_deck.size()
+	var forecast: Dictionary = e.attack_forecasts(0).get(uid_in_hand(e, 0, "t_art"), {})
+	eq([int(forecast.get("cost_stages", -1)), int(forecast.get("cost_life", -1))], [0, 1],
+		"the forecast the AI reads prices the Art at no Energy and one wound")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_art"))
+	eq(e.player(0).duelist.energy, 8, "the Art costs no Energy")
+	eq(e.player(0).life_deck.size(), life - 1, "and one wound off the top of the Life Deck")
+	check(has_resonance_event(e, "blood_price", "art_free") and has_resonance_event(e, "blood_price", "art_wound"), "the log names both halves")
+	e.player(0).life_deck.resize(1)
+	answer(e, &"pass")
+	check(e.prompt.find(&"attack", uid_in_hand(e, 0, "t_art")) == null, "with one card left the wound cannot be paid, so no Art is offered")
+
+
+func test_steady_flame_keeps_the_drills_when_ascending() -> void:
+	var e: DuelEngine = res_engine(["steady_flame"], deck(filler(["t_drill_strike", "t_taunt", "t_strike"])), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	answer(e, &"place", uid_in_hand(e, 0, "t_drill_strike"))
+	to_combat(e)
+	p.fervor = 4
+	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
+	eq(p.duelist.aspect, 2, "the duelist ascends")
+	eq(p.drills().size(), 1, "and keeps the Drill")
+	check(has_resonance_event(e, "steady_flame", "drills_kept"), "the log says so")
+	e._lose_aspect(p, 1)
+	eq(p.drills().size(), 0, "losing an Aspect is not ascending: the Drills go")
+
+
+func test_rising_ash_returns_the_top_of_the_discard_pile_on_ascending() -> void:
+	var e: DuelEngine = res_engine(["rising_ash"], deck(filler(["t_taunt"])), deck(filler(), "pact"))
+	var p: PlayerState = e.player(0)
+	var piled: Array[CardInstance] = []
+	for i in range(5):
+		var c: CardInstance = e._instance(lib.get_def("t_strike"), 0, &"discard")
+		p.discard.append(c)
+		piled.append(c)
+	to_combat(e)
+	p.fervor = 4
+	answer(e, &"use", uid_in_hand(e, 0, "t_taunt"))
+	eq(p.duelist.aspect, 2, "the duelist ascends")
+	var n: int = p.life_deck.size()
+	check(n >= 3 and p.life_deck[n - 3] == piled[4] and p.life_deck[n - 2] == piled[3] and p.life_deck[n - 1] == piled[2],
+		"the top 3 of the discard pile go under the Life Deck, top card first")
+	check(p.discard.has(piled[0]) and p.discard.has(piled[1]), "the rest of the pile stays")
+	check(has_resonance_event(e, "rising_ash", "recovered"), "the log says so")
+
+
+func test_spoils_of_ruin_pays_for_discarding_their_cards() -> void:
+	var e: DuelEngine = res_engine(["spoils_of_ruin"], deck(filler(["t_glare"])), deck(filler(), "pact"))
+	var drill: CardInstance = inject(e, 1, "t_drill_strike")
+	to_combat(e)
+	e.player(0).duelist.energy = 5
+	answer(e, &"use", uid_in_hand(e, 0, "t_glare"))
+	eq(drill.zone, &"discard", "the rival's Drill is discarded")
+	eq(e.player(0).duelist.energy, 7, "and the duelist gains 2 Energy")
+	check(has_resonance_event(e, "spoils_of_ruin", "energy"), "the log says why")
+	var removed: CardInstance = inject(e, 1, "t_drill_guard")
+	e._apply_effect({"op": "discard_in_play", "who": "opponent", "card_type": "drill", "remove": true}, 0, {}, null)
+	eq(removed.zone, &"removed", "a removal takes the next Drill out of the game")
+	eq(e.player(0).duelist.energy, 7, "and pays nothing: it was not a discard")
+	var own: CardInstance = inject(e, 0, "t_drill_setup")
+	e._apply_effect({"op": "discard_in_play", "who": "self", "card_type": "drill"}, 0, {}, null)
+	eq(own.zone, &"discard", "discarding one's own Drill")
+	eq(e.player(0).duelist.energy, 7, "pays nothing either")
+
+
+func test_deep_well_adds_a_stage_to_power_up() -> void:
+	var e: DuelEngine = res_engine(["deep_well"], deck(filler()), deck(filler(), "pact"))
+	eq(e.player(0).duelist.energy, 9, "5, then Surge 2, the flat 1 and the Deep Well's 1")
+	eq(SeatView.of(e, 0).player(0).recover_gain, 4, "the view's Surge rail reads the same gain")
+
+
+func test_open_hand_draws_one_more_in_the_draw_step() -> void:
+	var b: DeckList = deck(filler(), "pact")
+	b.resonances = ["open_hand"]
+	var e: DuelEngine = res_engine(["open_hand"], deck(filler()), b)
+	eq(e.player(0).hand.size(), 4, "the Draw step draws 4")
+	to_combat(e)
+	eq(e.player(1).hand.size(), 3, "the Opposing Draws phase is not a draw step: still 3")
+
+
+func test_first_stone_searches_for_a_drill_the_rival_cannot_discard() -> void:
+	var stone: DeckList = deck(filler(["t_drill_strike"]))
+	stone.resonances = ["first_stone"]
+	var e: DuelEngine = engine(stone, deck(filler(), "pact"), 1, true)
+	var p: PlayerState = e.player(0)
+	eq(prompt_kind(e), &"pick_option", "setup stops on the search")
+	check(bool(e.prompt.context.get("search", false)) and str(e.prompt.context.get("resonance", "")) == "first_stone", "a Life Deck search, named for the Resonance")
+	eq((e.prompt.context.get("library", []) as Array).size(), p.life_deck.size(), "it shows the whole Life Deck")
+	check(e.prompt.find(&"pick_none") != null, "and allows taking nothing")
+	eq(e.state.turn, 0, "before the first turn")
+	var drill: int = -1
+	for c in p.life_deck:
+		if c.def.id == "t_drill_strike":
+			drill = c.uid
+	answer(e, &"pick_option", drill)
+	eq(e.card(drill).zone, &"in_play", "the Drill goes into play")
+	check(has_event(e, &"deck_shuffled"), "the deck is shuffled once the search ends")
+	eq(e.state.turn, 1, "and the first turn begins")
+	e._apply_effect({"op": "discard_in_play", "who": "opponent", "card_type": "drill"}, 1, {}, null)
+	eq(e.card(drill).zone, &"in_play", "the rival cannot discard it")
+	e._apply_effect({"op": "discard_in_play", "who": "opponent", "card_type": "drill", "remove": true}, 1, {}, null)
+	eq(e.card(drill).zone, &"removed", "removal still reaches it, as with the printed guards")
+	var none: DuelEngine = res_engine(["first_stone"], deck(filler(["t_drill_strike"])), deck(filler(), "pact"))
+	answer(none, &"pick_none")
+	check(none.player(0).in_play.is_empty(), "taking nothing places nothing")
+	eq(none.state.turn, 1, "and the duel starts")
+	var dry: DuelEngine = res_engine(["first_stone"], deck(filler()), deck(filler(), "pact"))
+	eq(prompt_kind(dry), &"pick_option", "a deck with no Drill is still shown, since the search always asks")
+	eq(dry.prompt.options.size(), 1, "with taking nothing the only answer")
+
+
+func test_warband_adds_a_stage_per_ally_to_strikes() -> void:
+	var dealt: Array[int] = []
+	for ids: Array[String] in [[] as Array[String], ["warband"] as Array[String]]:
+		var e: DuelEngine = res_engine(ids, deck(filler()), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
+		inject(e, 0, "t_ally_squire")
+		to_combat(e)
+		answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+		dealt.append(5 - e.player(1).duelist.energy)
+	eq(dealt[1], dealt[0] + 1, "one Ally in play, one more stage")
+
+
+func test_sealwrights_patience_guards_a_new_seal_and_draws() -> void:
+	var bare: DuelEngine = engine(deck(filler(["t_seal_1"])), deck(filler(), "pact"))
+	answer(bare, &"place", uid_in_hand(bare, 0, "t_seal_1"))
+	eq(bare._capturable_seals(bare.player(0)).size(), 1, "a Seal can be captured the turn it is placed")
+	var e: DuelEngine = res_engine(["sealwrights_patience"], deck(filler(["t_seal_1"])), deck(filler(), "pact"))
+	var hand: int = e.player(0).hand.size()
+	answer(e, &"place", uid_in_hand(e, 0, "t_seal_1"))
+	eq(e.player(0).hand.size(), hand, "placing the Seal draws a card in its place")
+	check(has_resonance_event(e, "sealwrights_patience", "seal_draw"), "the log says so")
+	check(e._capturable_seals(e.player(0)).is_empty(), "with the Resonance it cannot be captured that turn")
+	e.state.turn += 1
+	eq(e._capturable_seals(e.player(0)).size(), 1, "from the next turn it can")
+
+
+func test_braced_stance_blunts_only_the_first_attack_each_combat() -> void:
+	var b: DeckList = deck(filler(["t_art", "t_art", "t_art"]), "pact")
+	b.resonances = ["braced_stance"]
+	var e: DuelEngine = engine(deck(filler()), b)
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(e.player(1).duelist.energy, 5, "the first Strike loses its 2 stages")
+	answer(e, &"pass")
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(e.player(1).duelist.energy, 3, "the second Strike that Combat does its full 2")
+
+
+func test_glass_cannon_adds_a_wound_both_ways() -> void:
+	var e: DuelEngine = res_engine(["glass_cannon"], deck(filler()), deck(filler(["t_art", "t_art", "t_art"]), "pact"))
+	to_combat(e)
+	answer(e, &"attack", uid_in_hand(e, 0, "t_strike"))
+	eq(e.player(1).duelist.energy, 3, "the Strike still does its 2 stages")
+	eq(e.player(1).discard.size(), 1, "and one wound it would not have done")
+	var before: int = e.player(0).discard.size()
+	answer(e, &"attack", uid_in_hand(e, 1, "t_art"))
+	eq(e.player(0).discard.size(), before + 5, "the rival's Art does 4 wounds and the penalty's 1")
+
+
+func test_patient_tide_opens_full_and_holds_the_first_combat() -> void:
+	var e: DuelEngine = res_engine(["patient_tide"], deck(filler()), deck(filler(), "pact"))
+	eq(e.player(0).duelist.energy, 10, "the duelist opens at the highest stage")
+	check(has_resonance_event(e, "patient_tide", "open_energy"), "the log says so")
+	eq(prompt_kind(e), &"keep", "no Combat on the first turn: straight to the Discard step")
+	check(has_event(e, &"combat_skipped"), "the skipped Combat is announced")
+	skip_to_turn(e, 3)
+	eq(e.state.active, 0, "back to the Resonance's owner")
+	eq(prompt_kind(e), &"declare", "whose second turn may declare Combat")
+
+
+func test_resonances_replay_the_same_duel() -> void:
+	var ids: Array[String] = ["first_stone", "open_hand", "glass_cannon", "sealwrights_patience", "rising_ash", "ready_channel"]
+	var build: Callable = func() -> Referee:
+		var r: Referee = Referee.new()
+		var a: DeckList = deck(filler(["t_art", "t_taunt", "t_drill_strike", "t_seal_1", "t_glare", "t_art"], 34))
+		a.resonances = ids.duplicate()
+		var decks: Array[DeckList] = [a, deck(filler(["t_guard", "t_ward", "t_drill_guard"], 34), "pact")]
+		r.setup(decks, lib, table, 31)
+		return r
+	var first: Referee = build.call()
+	first.start()
+	var picker: RandomNumberGenerator = RandomNumberGenerator.new()
+	picker.seed = 3
+	var steps: int = 0
+	while not first.is_over() and first.engine.prompt != null and steps < 400:
+		var pending: Prompt = first.engine.prompt
+		var chosen: Command = pending.options[picker.randi_range(0, pending.options.size() - 1)]
+		eq(first.submit(pending.player, chosen.to_dict()), "", "the referee takes %s" % chosen.describe())
+		steps += 1
+	check(steps > 20, "the duel ran a while")
+	var second: Referee = build.call()
+	eq(second.replay(first.history), "", "the saved history replays")
+	eq(SeatView.of(second.engine, 0).to_dict(), SeatView.of(first.engine, 0).to_dict(), "to the very same table")
+	eq(first.sim_for(1, 9).player(0).resonances, ids, "the AI's sample carries them")
+
+
+func shrine_visit(shipped: CardLibrary, first: int = 40) -> Dictionary:
+	for seed_value in range(first, first + 30):
+		var map: AdventureMap = AdventureMap.generate("pyre_beatdown_start", seed_value)
+		var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", seed_value)
+		if map != null and run != null and walk_to_stop(shipped, map, run, "shrine"):
+			return {"run": run, "map": map}
+	return {}
+
+
+func test_the_shrine_offers_two_that_serve_the_run_and_one_style() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var visit: Dictionary = shrine_visit(shipped)
+	check(not visit.is_empty(), "a run reaches a Shrine")
+	if visit.is_empty():
+		return
+	var run: AdventureRun = visit["run"]
+	var map: AdventureMap = visit["map"]
+	eq(run.status, "shrine", "entering a Shrine waits on the visit")
+	check(run.choices(map).is_empty(), "and the map offers no next node until it ends")
+	AdventureShrine.open(run)
+	var offers: Array[String] = run.shrine_offers.duplicate()
+	eq(offers.size(), 3, "three offers")
+	var themes: Array[String] = AdventureShrine.run_themes(run)
+	check(themes.has("strike_beatdown") and themes.has("fervor"), "the run's themes are its starter's archetype and subthemes")
+	for i in range(2):
+		check(not ResonanceData.is_style(offers[i]) and AdventureShrine.serves(offers[i], themes), "offer %d serves the run" % i)
+		check(not Archetype.known(AdventureShrine.chip_tag(run, offers[i])), "offer %d's chip names a subtheme, never an archetype id" % i)
+	check(ResonanceData.is_style(offers[2]), "the third is a style Resonance")
+	eq(AdventureShrine.chip_tag(run, offers[2]), "style", "and its chip says STYLE")
+	eq(AdventureShrine.roll(run, run.node_id), offers, "the roll is seeded by the run and the node")
+	var loaded: AdventureRun = AdventureRun.from_dict(JSON.parse_string(JSON.stringify(run.to_dict())))
+	eq(loaded.status, "shrine", "a run saved on a Shrine loads back on it")
+	eq(loaded.shrine_offers, offers, "with the same offers")
+	AdventureShrine.open(loaded)
+	eq(loaded.shrine_offers, offers, "and opening it again rolls nothing new")
+	var picks: int = run.picks.size()
+	check(AdventureShrine.take(run, 1), "an offer is taken")
+	eq(run.resonances, [offers[1]] as Array[String], "the run holds it")
+	eq(run.status, "map", "which ends the visit")
+	eq(run.picks.size(), picks + 1, "one pick is recorded")
+	eq(str(run.picks.back().get("kind", "")), "resonance", "as a Resonance")
+	eq(str(run.picks.back().get("id", "")), offers[1], "naming it")
+	eq(run.deck().resonances, run.resonances, "every duel's deck carries it")
+	check(not AdventureShrine.take(run, 0), "a second take on the same visit is refused")
+	eq(AdventureRun.from_dict(JSON.parse_string(JSON.stringify(run.to_dict()))).resonances, run.resonances, "the save keeps it")
+	check(AdventureRun.SAVE_VERSION >= 10, "the save version moved for the Resonances")
+	for n in range(20):
+		check(not AdventureShrine.roll(run, "node_%d" % n).has(offers[1]), "a held Resonance is never offered again")
+
+
+func test_the_shrine_falls_back_and_can_be_left() -> void:
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 5)
+	run.status = "shrine"
+	run.node_id = "somewhere"
+	var themes: Array[String] = AdventureShrine.run_themes(run)
+	for id in ResonanceData.ids():
+		if not ResonanceData.is_style(id) and AdventureShrine.serves(id, themes):
+			run.resonances.append(id)
+	var offers: Array[String] = AdventureShrine.roll(run, run.node_id)
+	eq(offers.size(), 3, "with every themed one held, others fill in")
+	check(not ResonanceData.is_style(offers[0]) and not ResonanceData.is_style(offers[1]), "still two that are not style")
+	for id in ResonanceData.ids():
+		if not ResonanceData.is_style(id) and id != "braced_stance" and not run.resonances.has(id):
+			run.resonances.append(id)
+	offers = AdventureShrine.roll(run, run.node_id)
+	eq(offers, ["braced_stance", offers[1]] as Array[String], "the last one standing is Braced Stance, which fits any deck")
+	check(ResonanceData.is_style(offers[1]), "beside a style one")
+	var held: int = run.resonances.size()
+	AdventureShrine.open(run)
+	AdventureShrine.leave(run)
+	eq(run.status, "map", "leaving ends the visit")
+	eq(run.resonances.size(), held, "with nothing taken")
+	check(run.shrine_offers.is_empty(), "and the offers put away")
+	for starter in AdventureDecks.playable_starters():
+		var fresh: AdventureRun = AdventureRun.begin(starter, 11)
+		var rolled: Array[String] = AdventureShrine.roll(fresh, "n")
+		eq(rolled.size(), 3, "%s is offered three" % starter)
+		var style: int = 0
+		for id in rolled:
+			if ResonanceData.is_style(id):
+				style += 1
+		eq(style, 1, "%s: one of them style" % starter)
+
+
+func test_walking_to_the_next_duel_leaves_a_shrine_untouched() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var visit: Dictionary = shrine_visit(shipped)
+	if visit.is_empty():
+		check(false, "a run reaches a Shrine")
+		return
+	var run: AdventureRun = visit["run"]
+	check(run.walk_to_next_duel(visit["map"], shipped), "the walk goes on to a duel")
+	eq(run.status, "stage", "and stands on it")
+	check(run.resonances.is_empty(), "having taken nothing at the Shrine")
+
+
+# --- Elites --------------------------------------------------------------------
+
+func test_an_elite_draws_from_the_duel_band_and_holds_resonances_by_act() -> void:
+	var specs: Array = AdventureMap.read_data().get("acts", [])
+	eq([int(specs[0].get("elite_resonances", 0)), int(specs[1].get("elite_resonances", 0)), int(specs[2].get("elite_resonances", 0))],
+		[1, 1, 2], "an Elite holds one Resonance in acts 1 and 2 and two in act 3")
+	var elites: int = 0
+	var by_act: Dictionary = {}
+	for starter in AdventureDecks.playable_starters():
+		for seed_value in [3, 17, 12345]:
+			var map: AdventureMap = AdventureMap.generate(starter, seed_value)
+			var again: AdventureMap = AdventureMap.generate(starter, seed_value)
+			for id in map.nodes.keys():
+				var n: Dictionary = map.node(str(id))
+				var row: Dictionary = map.duel_for(str(id))
+				var held: Array[String] = AdventureElite.resonances_of(row)
+				if str(n.get("type", "")) != "elite":
+					check(held.is_empty(), "%s %s: only an Elite's opponent holds Resonances" % [starter, id])
+					continue
+				elites += 1
+				var act: int = int(n["act"])
+				by_act[act] = true
+				var spec: Dictionary = specs[act - 1]
+				eq(str(row.get("band", "")), str(spec.get("band", "")), "%s %s: an Elite draws from the band a duel of act %d does" % [starter, id, act])
+				check(AdventureDecks.read_bands().get(str(spec.get("band", "")), []).has(AdventureDecks.family_of(str(row.get("opponent", "")))),
+					"%s %s: and its family is in that band" % [starter, id])
+				eq(str(row.get("tier", "")), str((spec.get("tiers", []) as Array)[int(n["tier"]) - 1]), "%s %s: at the deck tier of its map tier" % [starter, id])
+				eq(held.size(), int(spec.get("elite_resonances", 0)), "%s %s: holds its act's count" % [starter, id])
+				eq(held, AdventureElite.resonances_for(str(row["opponent"]), held.size(), AdventureElite.seed_for(seed_value, str(id))),
+					"%s %s: drawn from the run seed and the node" % [starter, id])
+				eq(AdventureElite.resonances_of(again.duel_for(str(id))), held, "%s %s: the same on a regenerated map" % [starter, id])
+	check(elites > 20, "the maps hold Elites to check (%d)" % elites)
+	check(by_act.has(1) and by_act.has(2) and by_act.has(3), "in every act")
+	check(AdventureElite.seed_for(1, "a2t3l1") != AdventureElite.seed_for(2, "a2t3l1")
+		and AdventureElite.seed_for(1, "a2t3l1") != AdventureElite.seed_for(1, "a2t3l2"), "the seed moves with the run and the node")
+
+
+func test_elite_resonances_serve_the_opponent_and_never_repeat() -> void:
+	var themes: Array[String] = AdventureElite.themes_of("pyre_beatdown_t2")
+	check(themes.has("strike_beatdown") and themes.has("fervor"),
+		"an opponent's themes are its archetype and its family starter's subthemes: %s" % str(themes))
+	var control: Array[String] = AdventureElite.themes_of("tide_deepwater_t4")
+	check(control.has("control") and control.has("disruption"), "a control family reads the same way: %s" % str(control))
+	var styles_seen: Dictionary = {}
+	for opponent in ["pyre_beatdown_t2", "root_seals_t4", "shade_henchmen_t3", "storm_volley_t5", "tide_deepwater_t4", "freestyle_swords_t5"]:
+		var serving: Array[String] = AdventureElite.themes_of(opponent)
+		for seed_value in range(40):
+			var held: Array[String] = AdventureElite.resonances_for(opponent, 2, seed_value)
+			eq(held.size(), 2, "%s seed %d: two for act 3" % [opponent, seed_value])
+			check(held[0] != held[1], "%s seed %d: never two of the same" % [opponent, seed_value])
+			var style: int = 0
+			for id in held:
+				check(ResonanceData.has(id), "%s: %s is a Resonance" % [opponent, id])
+				check(ResonanceData.is_style(id) or AdventureShrine.serves(id, serving),
+					"%s seed %d: %s serves the deck or is a style one" % [opponent, seed_value, id])
+				if ResonanceData.is_style(id):
+					style += 1
+					styles_seen[id] = true
+			check(style <= AdventureElite.MAX_STYLE, "%s seed %d: at most one style Resonance" % [opponent, seed_value])
+			eq(AdventureElite.resonances_for(opponent, 2, seed_value), held, "%s seed %d: the draw is seeded" % [opponent, seed_value])
+	eq(styles_seen.size(), 3, "every style Resonance, penalty and all, can turn up on an Elite")
+	var every: Array[String] = AdventureElite.resonances_for("pyre_beatdown_t2", 20, 5)
+	var unique: Dictionary = {}
+	for id in every:
+		unique[id] = true
+	eq(unique.size(), every.size(), "asked for more than it can hold, still no repeats")
+	eq(every.size(), ResonanceData.ids().size() - 2, "every Resonance but the style ones past the first")
+
+
+func test_an_elite_opponent_carries_its_resonances_into_the_engine() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var ids: Array[String] = ["patient_tide", "blood_price"]
+	var row: Dictionary = {"opponent": "storm_volley_t5", "resonances": ids.duplicate(), "node": "elite"}
+	var elite: DeckList = AdventureElite.opponent_deck(row)
+	check(elite != null, "the Elite's deck resolves")
+	if elite == null:
+		return
+	eq(elite.resonances, ids, "the opponent's deck carries the row's Resonances")
+	eq(DeckList.resolve("storm_volley_t5").resonances, [] as Array[String], "the deck file itself still holds none")
+	eq(AdventureElite.opponent_deck({"opponent": "storm_volley_t5"}).resonances, [] as Array[String], "and a plain duel's opponent holds none")
+	var player: DeckList = AdventureRun.begin("pyre_beatdown_start", 4).deck()
+	var referee: Referee = Referee.new()
+	var decks: Array[DeckList] = [player, elite]
+	referee.setup(decks, shipped, table, 29)
+	referee.start()
+	var steps: int = 0
+	while not has_resonance_event(referee.engine, "patient_tide", "open_energy") and referee.engine.prompt != null and steps < 40:
+		var pending: Prompt = referee.engine.prompt
+		eq(referee.submit(pending.player, pending.options[0].to_dict()), "", "the setup takes its first option")
+		steps += 1
+	eq(referee.engine.player(1).resonances, ids, "the engine hands them to the opponent's seat")
+	check(referee.engine.player(0).resonances.is_empty(), "and none to the player")
+	check(has_resonance_event(referee.engine, "patient_tide", "open_energy"), "Patient Tide takes effect for the Elite")
+	eq(SeatView.of(referee.engine, 0).player(1).resonances, ids, "the player's seat view shows them: they are public")
+	eq(referee.sim_for(1, 9).player(1).resonances, ids, "the Elite's AI sees its own through sim_for")
+	eq(referee.sim_for(0, 9).player(1).resonances, ids, "and so does any sample taken from the player's seat")
+
+
+## Walks a run until it stands on an Elite with its duel to play, stepping onto one whenever it is a
+## choice, winning every duel and skipping every offer on the way.
+func elite_visit(shipped: CardLibrary, starter: String = "pyre_beatdown_start") -> Dictionary:
+	for seed_value in range(60, 120):
+		var map: AdventureMap = AdventureMap.generate(starter, seed_value)
+		var run: AdventureRun = AdventureRun.begin(starter, seed_value)
+		if map == null or run == null:
+			continue
+		var guard: int = 0
+		while guard < 200 and not (run.status == "stage" and str(map.node(run.node_id).get("type", "")) == "elite"):
+			guard += 1
+			if run.status == "map":
+				var next: Array[String] = run.choices(map)
+				if next.is_empty():
+					break
+				var step: String = next[0]
+				for id in next:
+					if str(map.node(id).get("type", "")) == "elite":
+						step = id
+				run.enter(map, step)
+			elif not walk_to_stop(shipped, map, run, "map"):
+				break
+		if run.status == "stage" and str(map.node(run.node_id).get("type", "")) == "elite":
+			return {"run": run, "map": map}
+	return {}
+
+
+## Wins the duel the run stands on and takes the first Aspect when one is offered, stopping on the
+## bundle offer.
+func win_to_reward(shipped: CardLibrary, map: AdventureMap, run: AdventureRun) -> void:
+	AdventureRewards.finish_stage(run, map, shipped, true)
+	if run.status == "aspect":
+		AdventureRewards.apply_aspect(run, shipped, run.pending_aspects[0])
+		AdventureRewards.finish_aspect(run, map, shipped)
+
+
+func test_a_won_elite_ends_with_a_resonance_claim() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var visit: Dictionary = elite_visit(shipped)
+	check(not visit.is_empty(), "a run reaches an Elite")
+	if visit.is_empty():
+		return
+	var run: AdventureRun = visit["run"]
+	var map: AdventureMap = visit["map"]
+	var here: String = run.node_id
+	run.resonances.append("iron_resolve")
+	win_to_reward(shipped, map, run)
+	eq(run.status, "reward", "a won Elite runs the bundle step first")
+	check(run.shrine_offers.is_empty(), "with no claim rolled yet")
+	AdventureRewards.apply_skip(run)
+	AdventureRewards.finish_reward(run, map)
+	eq(run.status, "claim", "then the Resonance claim opens")
+	check(AdventureShrine.is_open(run) and AdventureShrine.is_claim(run), "which the Shrine's rules run")
+	check(run.choices(map).is_empty(), "and the map waits until it is settled")
+	var offers: Array[String] = run.shrine_offers.duplicate()
+	eq(offers.size(), 3, "three offers")
+	var themes: Array[String] = AdventureShrine.run_themes(run)
+	for i in range(2):
+		check(not ResonanceData.is_style(offers[i]) and AdventureShrine.serves(offers[i], themes), "offer %d serves the run" % i)
+	check(ResonanceData.is_style(offers[2]), "the third is a style Resonance")
+	check(not offers.has("iron_resolve"), "one the run holds is never offered")
+	eq(AdventureShrine.claim_roll(run, here), offers, "the roll is seeded by the run and the node")
+	var loaded: AdventureRun = AdventureRun.from_dict(JSON.parse_string(JSON.stringify(run.to_dict())))
+	eq(AdventureRun.SAVE_VERSION, 11, "the save version moved for the Elite rework")
+	eq(loaded.status, "claim", "a run saved on the claim loads back on it")
+	eq(loaded.shrine_offers, offers, "with the same offers")
+	AdventureShrine.open(loaded)
+	eq(loaded.shrine_offers, offers, "and opening it again rolls nothing new")
+	var left: AdventureRun = AdventureRun.from_dict(run.to_dict())
+	var picks: int = left.picks.size()
+	AdventureShrine.leave(left)
+	eq(left.status, "map", "taking nothing returns to the map")
+	eq(left.resonances, ["iron_resolve"] as Array[String], "with nothing gained")
+	eq(left.picks.size(), picks, "and no pick recorded")
+	var walked: AdventureRun = AdventureRun.from_dict(run.to_dict())
+	walked.walk_to_next_duel(map, shipped)
+	check(walked.resonances.size() == 1, "the tools' walk takes nothing at a claim")
+	check(AdventureShrine.take(run, 1), "an offer is taken")
+	eq(run.resonances, ["iron_resolve", offers[1]] as Array[String], "the run holds it")
+	eq(run.status, "map", "which ends the claim")
+	eq(str(run.picks.back().get("kind", "")), "resonance", "recorded as a Resonance pick")
+	eq(str(run.picks.back().get("id", "")), offers[1], "naming it")
+	check(not AdventureShrine.take(run, 0), "a second take is refused")
+	var full: AdventureRun = AdventureRun.from_dict(visit["run"].to_dict())
+	full.status = "reward"
+	full.resonances = ResonanceData.ids()
+	AdventureRewards.finish_reward(full, map)
+	eq(full.status, "map", "a run holding every Resonance goes straight back to the map")
+
+
+func test_only_an_elite_win_opens_the_claim() -> void:
+	var shipped: CardLibrary = shipped_library()
+	var map: AdventureMap = AdventureMap.generate("pyre_beatdown_start", 7)
+	var run: AdventureRun = AdventureRun.begin("pyre_beatdown_start", 7)
+	check(run.walk_to_next_duel(map), "the run steps onto its first duel")
+	eq(str(map.node(run.node_id).get("type", "")), "duel", "an ordinary duel")
+	win_to_reward(shipped, map, run)
+	AdventureRewards.apply_skip(run)
+	AdventureRewards.finish_reward(run, map)
+	eq(run.status, "map", "a plain duel's win goes back to the map")
+	check(run.shrine_offers.is_empty(), "with no claim")
+	run.node_id = AdventureMap.boss_id_of(1)
+	run.status = "stage"
+	win_to_reward(shipped, map, run)
+	AdventureRewards.apply_skip(run)
+	AdventureRewards.finish_reward(run, map)
+	eq(run.status, "map", "a boss's win goes back to the map too")
+	check(run.shrine_offers.is_empty(), "with no claim")
+	var visit: Dictionary = elite_visit(shipped)
+	if visit.is_empty():
+		check(false, "a run reaches an Elite")
+		return
+	var lost: AdventureRun = visit["run"]
+	AdventureRewards.finish_stage(lost, visit["map"], shipped, false)
+	eq(lost.status, "lost", "a lost Elite ends the run")
+	check(lost.shrine_offers.is_empty(), "with no claim")
 
 
 func test_the_forge_copies_one_card_and_the_run_counts_it() -> void:
@@ -7580,7 +8443,7 @@ func test_relic_offers_are_seeded_and_saved() -> void:
 	other.node_id = run.node_id
 	other.status = "relic"
 	check(AdventureRelic.roll(other, shipped, run.node_id) != offers, "another run seed rolls other offers")
-	eq(AdventureRun.SAVE_VERSION, 9, "the save version moved for the Relic, library, offer and starting Reserve fields")
+	check(AdventureRun.SAVE_VERSION >= 9, "the save version moved for the Relic, library, offer and starting Reserve fields")
 
 
 func test_reserve_moves_keep_the_life_deck_size_and_the_rules() -> void:
@@ -8428,7 +9291,7 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 	# expansion added 27, Steel 23, Tide 24, Shade 23, the second Root batch 15, Storm 9, and three
 	# banned cards came in as adventure bombs. The Storm Mentor sheet added 11 cards and 7
 	# personality cards (a four-Aspect duelist and three Allies).
-	eq(shipped().defs.size(), 580, "and the set is 511 other cards plus 69 personality cards")
+	eq(shipped().defs.size(), 598, "and the set is 524 other cards plus 74 personality cards")
 
 
 ## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
@@ -12368,6 +13231,371 @@ func test_storm_mentor_cards_read_as_printed() -> void:
 	var guard: CardDef = lib.get_def("signature_art_17")
 	check(guard.stops_kind("art", false) and guard.stops_kind("strike", false) and guard.remove_after_use, "Skillful Guard stops either kind, once")
 	eq(lib.get_def("relic_05").raw.get("reserve_size", 0), 9, "the Relic's Reserve holds 9")
+
+
+## A mercenary sworn to no one ("either") counts as Vigil and as Pact for every gate, and a deck
+## may not name a side the game does not know.
+func test_an_either_side_mercenary_meets_both_gates() -> void:
+	check(CardDef.side_allows("either", "pact") and CardDef.side_allows("either", "vigil"), "either meets both sides")
+	check(not CardDef.side_allows("vigil", "pact"), "a Vigil player still fails a Pact gate")
+	check(CardDef.side_allows("pact", ""), "and no gate is no gate")
+	var e: DuelEngine = real_engine(real_deck([], "either"), real_deck([], "pact"))
+	check(e._can_play(e.player(0), shipped().get_def("signature_art_07")), "a Pacts only card is playable")
+	check(e._can_play(e.player(0), shipped().get_def("freestyle_art_12")), "and so is a Vigils only one")
+	var problems: Array[String] = DeckValidator.validate(real_deck([], "neither"), shipped())
+	check(problems.any(func(s: String) -> bool: return s.contains("Unknown alignment")), "an unknown side is refused")
+
+
+## "For the remainder of Combat the bottom 15 cards of your discard pile are Vegeta Named cards",
+## read with "shuffle all Vegeta Named cards in your discard pile into your Life Deck".
+func test_ruinous_bolt_names_the_bottom_of_the_discard_pile() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "either"), real_deck([], "pact"))
+	var p: PlayerState = e.player(0)
+	var pile: Array[CardInstance] = []
+	for i in range(3):
+		var c: CardInstance = e._instance(shipped().get_def("root_strike_04"), 0, &"discard")
+		p.discard.append(c)
+		pile.append(c)
+	check(not e.counts_as_named(p, pile[0], "Gideon Mourne"), "a plain card is not his")
+	e.dev_effect(0, {"op": "float", "what": "discard_named", "duration": "combat", "params": {"character": "Gideon Mourne", "count": 2}})
+	check(e.counts_as_named(p, pile[0], "Gideon Mourne") and e.counts_as_named(p, pile[1], "Gideon Mourne"), "the bottom two count as his")
+	check(not e.counts_as_named(p, pile[2], "Gideon Mourne"), "the third does not")
+	var before: int = p.life_deck.size()
+	e.dev_effect(0, {"op": "shuffle_discard", "all": true, "character": "Gideon Mourne"})
+	eq(p.life_deck.size(), before + 2, "every card counted as his goes back into the Life Deck")
+	eq(p.discard.size(), 1, "and the rest stay")
+	check(CardText.rules_text(shipped().get_def("signature_art_19")).contains("bottom 15 cards"), "the text says how many")
+
+
+## "Choose 3 Vegeta Named cards that are removed from the game and shuffle them into your Life Deck."
+func test_grudge_returns_at_most_three_named_cards() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "either"), real_deck([], "pact"))
+	var p: PlayerState = e.player(0)
+	for i in range(4):
+		var named: CardInstance = e._instance(shipped().get_def("signature_art_18"), 0, &"removed")
+		p.removed.append(named)
+	var plain: CardInstance = e._instance(shipped().get_def("root_strike_04"), 0, &"removed")
+	p.removed.append(plain)
+	var before: int = p.life_deck.size()
+	e.dev_effect(0, {"op": "return_removed", "character": "Gideon Mourne", "max": 3})
+	eq(p.life_deck.size(), before + 3, "three of his come back")
+	eq(p.removed.size(), 2, "the fourth and the card that is not his stay out")
+	check(p.removed.has(plain), "the unnamed card is never taken")
+
+
+## "You may remove 2 cards in your Sensei Deck from the game to shuffle this card back into your
+## Life Deck after use."
+func test_rebounding_ward_pays_the_reserve_to_come_back() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "either"), real_deck([], "pact"))
+	var p: PlayerState = e.player(0)
+	for i in range(2):
+		p.reserve.append(e._instance(shipped().get_def("root_strike_04"), 0, &"reserve"))
+	check(e._cond({"reserve_min": 2}, 0, {}), "two in the Reserve can pay")
+	var removed_before: int = p.removed.size()
+	e.dev_effect(0, {"op": "remove_reserve", "amount": 2})
+	eq(p.reserve.size(), 0, "both leave the Reserve")
+	eq(p.removed.size(), removed_before + 2, "and are removed from the game")
+	check(not e._cond({"reserve_min": 2}, 0, {}), "an empty Reserve cannot pay again")
+	e.dev_effect(0, {"op": "remove_reserve", "amount": 2})
+	eq(p.removed.size(), removed_before + 2, "and nothing is taken when there are not enough")
+
+
+## "If ... you have a 'Freestyle Mastery' in play": the school of your own Mastery.
+func test_near_miss_stops_all_only_on_a_freestyle_mastery() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "either"), real_deck([], "pact"))
+	var p: PlayerState = e.player(0)
+	p.mastery = e._instance(shipped().get_def("freestyle_mastery_01"), 0, &"mastery")
+	check(e._cond({"own_mastery_school": ""}, 0, {}), "a Freestyle Mastery passes")
+	p.mastery = e._instance(shipped().get_def("steel_mastery_01"), 0, &"mastery")
+	check(not e._cond({"own_mastery_school": ""}, 0, {}), "a Steel one does not")
+	var near: CardDef = shipped().get_def("freestyle_combat_22")
+	check(near.stops_kind("strike", false) and near.stops_kind("art", false) and near.remove_after_use, "Near Miss stops either kind, once")
+
+
+## "You can only have 1 'Broly's Evil Drill' in play at a time", and its search is for a card that
+## prints "Villains only".
+func test_grim_drill_is_one_in_play_and_finds_pact_only_cards() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "either"), real_deck([], "pact"))
+	var p: PlayerState = e.player(0)
+	var first: CardInstance = real_inject(e, 0, "signature_drill_08")
+	var second: CardInstance = real_to_hand(e, 0, "signature_drill_08")
+	check(not e._can_place(p, second), "a second copy cannot join the first")
+	p.in_play.erase(first)
+	check(e._can_place(p, second), "and can once the first is gone")
+	var jolt: CardInstance = e._instance(shipped().get_def("signature_art_07"), 0, &"life_deck")
+	var plain: CardInstance = e._instance(shipped().get_def("root_strike_04"), 0, &"life_deck")
+	check(e._search_matches(p, jolt, {"alignment_only": "pact"}, "hand"), "a Pacts only card matches")
+	check(not e._search_matches(p, plain, {"alignment_only": "pact"}, "hand"), "an ungated card does not")
+
+
+## "When you perform an attack, remove a card in your opponent's discard pile from the game": a
+## Drill's own line, fired as the attack is declared.
+func test_leering_drill_fires_when_its_owner_attacks() -> void:
+	var e: DuelEngine = real_engine(real_deck([]), real_deck([], "pact"))
+	real_inject(e, 0, "freestyle_drill_08")
+	for i in range(2):
+		e.player(1).discard.append(e._instance(shipped().get_def("root_strike_04"), 1, &"discard"))
+	to_attack(e, 0)
+	var removed_before: int = e.player(1).removed.size()
+	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	eq(e.player(1).removed.size(), removed_before + 1, "one of their discards leaves the game")
+	eq(e.player(1).discard.size(), 1, "and one stays")
+
+
+## The earlier Gideon Mourne on his own ladder, either side, against a Pact rival.
+func mercenary_engine(cards: Array[String], aspects: int = 3, foe_cards: Array[String] = [], foe_style: String = "") -> DuelEngine:
+	var mine: DeckList = real_deck(cards, "either")
+	var ids: Array[String] = []
+	for i in range(aspects):
+		ids.append("personality_%d" % (70 + i))
+	mine.set_duelist(ids)
+	return real_engine(mine, real_deck(foe_cards, "pact", foe_style))
+
+
+const QUIET_ORDER: Array[StringName] = [&"done", &"pick_none", &"no_defense", &"no_endure", &"no_critical", &"target", &"decline"]
+
+
+## Aspect 1: "Search your discard pile for a Vegeta named card and shuffle it back into your Life Deck."
+func test_mercenary_betrayer_shuffles_a_mourne_card_back() -> void:
+	var e: DuelEngine = mercenary_engine([])
+	var named: CardInstance = real_to_discard(e, 0, "signature_art_16")
+	real_to_discard(e, 0, "root_strike_04")
+	to_attack(e, 0)
+	var power: Command = e.prompt.find(&"power", e.player(0).duelist.uid)
+	check(power != null, "the Power is on offer")
+	e.submit(power)
+	if prompt_kind(e) == &"pick_option" and e.prompt.find(&"pick_option", named.uid) != null:
+		answer(e, &"pick_option", named.uid)
+	eq(named.zone, &"life_deck", "his card goes back into the Life Deck")
+
+
+## Aspect 2: "Your opponent cannot play and use Combat cards. All of your attacks do +2 life cards."
+func test_mercenary_sellsword_locks_combat_cards() -> void:
+	var e: DuelEngine = mercenary_engine([], 2)
+	check(not e._forbidden(e.player(1), "combat_cards"), "not at Aspect 1")
+	e.player(0).duelist.go_to_aspect(2)
+	check(e._forbidden(e.player(1), "combat_cards"), "at Aspect 2 the rival cannot use Combat cards")
+	check(not e._forbidden(e.player(0), "combat_cards"), "and he still can")
+	var mods: Array = e._constant(e.player(0)).get("modifiers", [])
+	check(mods.size() == 1 and int((mods[0] as Dictionary).get("life", 0)) == 2, "his attacks do +2 wounds")
+
+
+## Aspect 3: "When entering Combat, look at your opponent's hand, then choose and discard 1
+## Non-Dragon Ball card."
+func test_mercenary_silver_tongue_takes_a_card_of_his_choice() -> void:
+	var e: DuelEngine = mercenary_engine([], 3)
+	e.player(0).duelist.go_to_aspect(3)
+	var wanted: CardInstance = real_to_hand(e, 1, "freestyle_combat_01")
+	var hand_before: int = e.player(1).hand.size()
+	to_attack(e, 0)
+	var guard: int = 0
+	while prompt_kind(e) != &"attack_action" and guard < 6:
+		guard += 1
+		if e.prompt.find(&"discard_choice", wanted.uid) != null:
+			answer(e, &"discard_choice", wanted.uid)
+		else:
+			settle(e, 1, QUIET_ORDER)
+	eq(wanted.zone, &"discard", "the card he chose is discarded")
+	check(e.player(1).hand.size() < hand_before + 3, "nothing else went with it")
+
+
+## Aspect 4: "Defense Shield: stop the first unstopped attack performed against you."
+func test_mercenary_free_captain_shields_any_attack() -> void:
+	var e: DuelEngine = mercenary_engine([], 4)
+	e.player(0).duelist.go_to_aspect(4)
+	eq(e.player(0).duelist.aspect_shield(), "any", "the shield stops either kind")
+
+
+## Gutter Wallop: "Physical attack doing +4 power stages of damage. Look at your opponent's hand. If
+## successful and used by Vegeta, raise your anger 3 levels."
+func test_low_blow_reads_the_hand_and_climbs_on_a_hit() -> void:
+	var e: DuelEngine = mercenary_engine(["signature_strike_32"])
+	to_attack(e, 0)
+	var before: int = e.player(0).fervor
+	answer(e, &"attack", uid_in_hand(e, 0, "signature_strike_32"))
+	check(has_event(e, &"hand_revealed"), "the rival's hand is shown")
+	settle(e, 12, QUIET_ORDER)
+	eq(e.player(0).fervor, before + 3, "a hit with Mourne in control is 3 Fervor")
+
+
+## Energy Detonation: "If used by Vegeta, then for the remainder of Combat the bottom 15 cards of
+## your discard pile are Vegeta Named cards."
+func test_ruinous_bolt_puts_its_float_out_for_mourne() -> void:
+	var e: DuelEngine = mercenary_engine(["signature_art_19"])
+	to_attack(e, 0)
+	e.player(0).duelist.energy = CardInstance.MAX_STAGE
+	answer(e, &"attack", uid_in_hand(e, 0, "signature_art_19"))
+	var f: Dictionary = e._floating_first(0, "discard_named")
+	check(not f.is_empty(), "the float is out once he performs it")
+	eq(int(f.get("count", 0)), 15, "for the bottom 15")
+
+
+## Energy Thrust: "If successful, shuffle all Vegeta Named cards in your discard pile into your Life Deck."
+func test_calls_in_debts_recovers_his_cards_on_a_hit() -> void:
+	var e: DuelEngine = mercenary_engine(["signature_art_18"])
+	var named: Array[CardInstance] = [real_to_discard(e, 0, "signature_art_16"), real_to_discard(e, 0, "signature_strike_32")]
+	var plain: CardInstance = real_to_discard(e, 0, "root_strike_04")
+	to_attack(e, 0)
+	e.player(0).duelist.energy = CardInstance.MAX_STAGE
+	answer(e, &"attack", uid_in_hand(e, 0, "signature_art_18"))
+	settle(e, 12, QUIET_ORDER)
+	for c in named:
+		eq(c.zone, &"life_deck", "his card is back in the Life Deck")
+	eq(plain.zone, &"discard", "a card that is not his stays")
+
+
+## Vegeta is Lurking: "Vegeta only. Search your Life Deck for 3 Vegeta named cards and place them in
+## your hand."
+func test_bides_his_time_fetches_three_mourne_cards() -> void:
+	var e: DuelEngine = mercenary_engine(["signature_combat_10"])
+	var targets: Array[int] = []
+	for id in ["signature_art_16", "signature_art_18", "signature_strike_32", "signature_art_19"]:
+		targets.append(real_to_deck(e, 0, id).uid)
+	to_attack(e, 0)
+	var hand_before: int = e.player(0).hand.size()
+	answer(e, &"use", uid_in_hand(e, 0, "signature_combat_10"))
+	decline_responses(e)
+	eq(prompt_kind(e), &"pick_option", "the Life Deck is searched")
+	check(e.submit(Command.new(0, &"pick_option", -1, targets.slice(0, 3))), "three of his cards are picked")
+	eq(e.player(0).hand.size(), hand_before - 1 + 3, "three come to hand for the one spent")
+
+
+## Vegeta's Lunge: "Select, unseen, a card from your opponent's hand and discard it."
+func test_grasping_lunge_takes_a_random_card() -> void:
+	var e: DuelEngine = mercenary_engine(["signature_combat_11"])
+	to_attack(e, 0)
+	var theirs: int = e.player(1).hand.size()
+	check(theirs > 0, "the rival holds cards")
+	answer(e, &"use", uid_in_hand(e, 0, "signature_combat_11"))
+	decline_responses(e)
+	eq(e.player(1).hand.size(), theirs - 1, "one of them is discarded")
+
+
+## Vegeta's Elbow Slam, with the Tokui-Waza clause read as the rival's declared style: against Pyre,
+## the rival drops an Aspect and cannot gain Fervor for the rest of the turn.
+func test_humbling_blow_drops_a_pyre_rival_an_aspect() -> void:
+	var e: DuelEngine = mercenary_engine(["signature_strike_33"], 3, [], "pyre")
+	to_attack(e, 0)
+	var them: PlayerState = e.player(1)
+	them.duelist.go_to_aspect(2)
+	answer(e, &"attack", uid_in_hand(e, 0, "signature_strike_33"))
+	eq(them.duelist.aspect, 1, "a Pyre rival drops an Aspect")
+	check(not e._floating_first(1, "no_fervor_gain").is_empty(), "and cannot gain Fervor this turn")
+	var calm: DuelEngine = mercenary_engine(["signature_strike_33"], 3, [], "steel")
+	to_attack(calm, 0)
+	calm.player(1).duelist.go_to_aspect(2)
+	answer(calm, &"attack", uid_in_hand(calm, 0, "signature_strike_33"))
+	eq(calm.player(1).duelist.aspect, 2, "any other rival keeps it")
+
+
+## Releasing the Sword: "Use when entering Combat. Reveal the top 7 cards of your Life Deck. Place in
+## play any Non-Combat cards revealed and shuffle the rest back into your Life Deck."
+func test_raid_the_armory_places_every_non_combat_it_turns_over() -> void:
+	var e: DuelEngine = mercenary_engine([])
+	var raid: CardInstance = real_inject(e, 0, "freestyle_noncombat_22")
+	var drills: Array[CardInstance] = []
+	for id in ["freestyle_drill_08", "signature_drill_03"]:
+		var c: CardInstance = e._instance(shipped().get_def(id), 0, &"life_deck")
+		e.player(0).life_deck.insert(0, c)
+		drills.append(c)
+	to_attack(e, 0)
+	var guard: int = 0
+	while prompt_kind(e) != &"attack_action" and guard < 6:
+		guard += 1
+		if e.prompt.find(&"pick_option", -1, "yes") != null:
+			answer(e, &"pick_option", -1, "yes")
+		else:
+			settle(e, 1, QUIET_ORDER)
+	for c in drills:
+		eq(c.zone, &"in_play", "a Drill it turned over is in play")
+	eq(raid.zone, &"removed", "and the card is removed from the game (rulings document, IR20)")
+
+
+## The scorer counts what "shuffle every <Name> card back" takes, prices the discard-naming float by
+## what it names, reads a Fervor gain that completes a climb as the Aspect it reaches (when the deck
+## asks), caps an Energy gift at the room left, ignores a lock already in place, and brings a card
+## aimed at one declared style in only against that style.
+func test_scorer_prices_recursion_climbs_and_wasted_effects() -> void:
+	var e: DuelEngine = mercenary_engine([])
+	var profile: AiProfile = AiProfile.default_profile()
+	var me: PlayerState = e.player(0)
+	real_to_hand(e, 0, "signature_art_18")
+	for i in range(2):
+		real_to_discard(e, 0, "signature_art_16")
+	for i in range(5):
+		real_to_discard(e, 0, "root_strike_04")
+	var all_back: Dictionary = {"op": "shuffle_discard", "all": true, "character": "Gideon Mourne"}
+	eq(AiScorer._effect_value(all_back, profile, 0.0, e, 0), 2.0 * profile.w("effect", "recover"), "two of his cards back are two recovered")
+	var named: Dictionary = {"op": "float", "what": "discard_named", "params": {"character": "Gideon Mourne", "count": 15}}
+	check(AiScorer._effect_value(named, profile, 0.0, e, 0) > profile.w("effect", "float"), "naming the pile beats a plain float with the payoff in hand")
+	var climb: AiProfile = AiProfile.default_profile()
+	climb.merge({"effect": {"fervor_climb": 1.0}})
+	me.fervor = 3
+	var gain: Dictionary = {"op": "fervor", "amount": 3}
+	check(AiScorer._effect_value(gain, climb, 0.0, e, 0) > AiScorer._effect_value(gain, profile, 0.0, e, 0), "the gain that climbs is worth the Aspect")
+	me.fervor = 0
+	eq(AiScorer._effect_value(gain, climb, 0.0, e, 0), AiScorer._effect_value(gain, profile, 0.0, e, 0), "one that does not is not")
+	var them: PlayerState = e.player(1)
+	them.duelist.energy = CardInstance.MAX_STAGE - 1
+	eq(AiScorer._effect_value({"op": "energy", "who": "opponent", "amount": 5}, profile, 0.0, e, 0), -profile.w("effect", "energy"), "only the room left in their gauge counts")
+	them.mastery = e._instance(shipped().get_def("steel_mastery_01"), 1, &"mastery")
+	var lock: Dictionary = {"op": "forbid", "who": "opponent", "what": "mastery", "duration": "turn"}
+	e.state.step = GameState.Step.COMBAT
+	check(AiScorer._effect_value(lock, profile, 0.0, e, 0) > 0.0, "locking their Mastery in a Combat is worth what it does for them")
+	eq(AiScorer._effect_value(lock, profile, 0.0, e, 0), AiScorer.mastery_threat(e, them, profile), "and exactly that")
+	e._float(1, "forbid", "turn", {"what": "mastery"})
+	eq(AiScorer._effect_value(lock, profile, 0.0, e, 0), 0.0, "a second lock the same turn is worth nothing")
+	var pyre: DuelEngine = mercenary_engine([], 3, [], "pyre")
+	var steel: DuelEngine = mercenary_engine([], 3, [], "steel")
+	var slam_p: CardInstance = pyre._instance(shipped().get_def("signature_strike_33"), 0, &"reserve")
+	var slam_s: CardInstance = steel._instance(shipped().get_def("signature_strike_33"), 0, &"reserve")
+	check(AiReserve.score(pyre, 0, slam_p, profile) > AiReserve.score(steel, 0, slam_s, profile), "the Pyre answer comes in against Pyre")
+
+
+## `play.combo`: the recursion half waits for the enabler in hand, each half is worth the payoff
+## while the other is at hand, and a search that completes the pair is worth the payoff too.
+func test_combo_planning_orders_and_assembles_the_recursion() -> void:
+	eq(str(AiScorer.combo_role(shipped().get_def("signature_art_18")).get("role", "")), "recur", "Calls In Debts is the recursion")
+	eq(str(AiScorer.combo_role(shipped().get_def("signature_art_19")).get("role", "")), "enable", "Ruinous Bolt is the enabler")
+	check(AiScorer.combo_role(shipped().get_def("signature_art_16")).is_empty(), "an ordinary named Art is neither")
+	var e: DuelEngine = mercenary_engine([])
+	var profile: AiProfile = AiProfile.default_profile()
+	profile.merge({"play": {"combo": 1.0}})
+	var me: PlayerState = e.player(0)
+	for i in range(6):
+		real_to_discard(e, 0, "root_strike_04")
+	var recur: CardInstance = real_to_hand(e, 0, "signature_art_18")
+	var tutor: CardInstance = real_to_hand(e, 0, "signature_combat_10")
+	real_to_deck(e, 0, "signature_art_19")
+	to_attack(e, 0)
+	me.duelist.energy = CardInstance.MAX_STAGE
+	eq(AiScorer._combo_hold(e, profile, me, recur), 0.0, "no enabler in hand, nothing to wait for")
+	check(AiScorer._combo_tutor_value(e, profile, me, tutor) > 0.0, "a search that finds the missing enabler is worth the payoff")
+	var enabler: CardInstance = real_to_hand(e, 0, "signature_art_19")
+	check(AiScorer._combo_hold(e, profile, me, recur) > 0.0, "with the enabler in hand, the recursion waits")
+	check(AiScorer._recursion_combo_value(e, me, recur, profile) > 0.0, "and each half is worth the payoff")
+	check(AiScorer._recursion_combo_value(e, me, enabler, profile) > 0.0, "both ways")
+	e.dev_effect(0, {"op": "float", "what": "discard_named", "duration": "combat", "params": {"character": "Gideon Mourne", "count": 15}})
+	eq(AiScorer._combo_hold(e, profile, me, recur), 0.0, "once the float is out it goes at once")
+	var off: AiProfile = AiProfile.default_profile()
+	eq(AiScorer._combo_tutor_value(e, off, me, tutor), 0.0, "and none of it without the knob")
+
+
+## "You may use the power of any drill in play, during Combat": the opponent's Drills are offered
+## too, for their use lines and their blocks.
+func test_borrowed_rite_lends_the_opponents_drills() -> void:
+	var e: DuelEngine = real_engine(real_deck([]), real_deck([], "pact"))
+	var theirs: CardInstance = real_inject(e, 1, "freestyle_drill_02")
+	check(not e._borrows_drills(e.player(0)), "nothing lends Drills yet")
+	real_inject(e, 0, "signature_noncombat_12")
+	check(e._borrows_drills(e.player(0)), "the Rite lends them")
+	check(not e._borrows_drills(e.player(1)), "to its owner only")
+	to_attack(e, 0)
+	var offered: bool = false
+	for o in e.prompt.options:
+		if o.type == &"use" and o.card == theirs.uid:
+			offered = true
+	check(offered, "the opponent's Drill's use line is on offer")
 
 
 ## "Namekian Heritage only. Shuffle the top or bottom 3 cards from your discard pile into your Life

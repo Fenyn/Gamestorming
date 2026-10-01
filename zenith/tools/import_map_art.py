@@ -1,10 +1,10 @@
 """Copies the adventure screens' art out of the local art library into assets/adventure_map/,
 composed and scaled for the screens, and writes SOURCES.md naming every file's origin.
 
-    python tools/import_map_art.py [--art F:/UnityNVME/Art] [--phase-only]
+    python tools/import_map_art.py [--art F:/UnityNVME/Art] [--phase-only | --resonances-only]
 
 Run it again after changing a pick below; it rewrites the whole folder, .import files included,
-so `--phase-only` is the way to change a phase track icon. Nothing here is generated:
+so `--phase-only` is the way to change a phase track icon and `--resonances-only` a sigil. Nothing here is generated:
 every pixel comes from a licensed pack in the library (see SOURCES.md for the licences).
 """
 import argparse
@@ -116,6 +116,29 @@ PHASE_ICONS = {
     "discard": "card_remove",
     "recover": "cards_return",
     "turn_end": "hourglass",
+}
+
+## Resonance sigils (designs/zenith_adventure.md 7.7): cells of the Raven Megapack spell sheet, 16
+## columns by 28 rows of 64 px, doubled with nearest filtering. Resonance id -> (row, column).
+RESONANCE_OUT = os.path.join(OUT, "resonances")
+RESONANCE_SHEET = "Sprites/Raven Megapack/Skills and Spells/icons64x64.png"
+RESONANCE_CELL = 64
+RESONANCE_SCALE = 2
+RESONANCE_CELLS = {
+    "iron_resolve": (16, 14),
+    "ready_channel": (8, 0),
+    "steady_flame": (0, 15),
+    "rising_ash": (0, 6),
+    "spoils_of_ruin": (20, 8),
+    "deep_well": (4, 5),
+    "open_hand": (22, 5),
+    "first_stone": (16, 15),
+    "warband": (20, 3),
+    "sealwrights_patience": (12, 15),
+    "braced_stance": (22, 2),
+    "blood_price": (21, 1),
+    "glass_cannon": (0, 13),
+    "patient_tide": (3, 11),
 }
 
 ## Single icons copied whole: name -> path under the art library.
@@ -271,16 +294,34 @@ def import_phase_icons(art):
             f.write("- `%s.png`: `%s/%s.png`\n" % (step, KENNEY_ICONS, name))
 
 
+def import_resonances(art, rows):
+    # Overwritten in place, so Godot keeps each sigil's .import file and UID.
+    os.makedirs(RESONANCE_OUT, exist_ok=True)
+    sheet = Image.open(os.path.join(art, RESONANCE_SHEET)).convert("RGBA")
+    for resonance, (row, col) in RESONANCE_CELLS.items():
+        x, y = col * RESONANCE_CELL, row * RESONANCE_CELL
+        cell = sheet.crop((x, y, x + RESONANCE_CELL, y + RESONANCE_CELL))
+        side = RESONANCE_CELL * RESONANCE_SCALE
+        cell.resize((side, side), Image.NEAREST).save(os.path.join(RESONANCE_OUT, resonance + ".png"))
+        rows.append(("resonances/%s.png" % resonance, "%s, row %d, column %d, doubled" % (RESONANCE_SHEET, row, col)))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--art", default="F:/UnityNVME/Art")
     parser.add_argument("--phase-only", action="store_true",
                         help="rewrite only assets/ui/phase_icons, leaving the other folders and their .import files alone")
+    parser.add_argument("--resonances-only", action="store_true",
+                        help="rewrite only assets/adventure_map/resonances, leaving the other folders and SOURCES.md alone")
     args = parser.parse_args()
     art = args.art
     if args.phase_only:
         import_phase_icons(art)
         print("wrote %d phase icons to %s" % (len(PHASE_ICONS), os.path.normpath(PHASE_OUT)))
+        return
+    if args.resonances_only:
+        import_resonances(art, [])
+        print("wrote %d Resonance sigils to %s" % (len(RESONANCE_CELLS), os.path.normpath(RESONANCE_OUT)))
         return
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
@@ -299,6 +340,7 @@ def main():
 
     import_kenney(art, rows)
     import_phase_icons(art)
+    import_resonances(art, rows)
 
     for name, rel in ICONS.items():
         shutil.copyfile(os.path.join(art, rel), os.path.join(OUT, "ui", name + ".png"))

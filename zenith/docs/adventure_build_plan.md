@@ -42,7 +42,7 @@ The spine. Everything else hangs off it.
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 2.1 | Duel node on the map | todo | Existing duel flow |
-| 2.2 | Elite node: a stronger band and a better reward | todo | What "better reward" means needs a number; propose one when building |
+| 2.2 | Elite node: a harder opponent and a better reward | done | 2026-09-29, `AdventureElite`. Reworked from "one band stronger": an Elite draws from the band a duel on its node would (bosses unchanged), and its opponent holds Resonances, 1 in acts 1 and 2 and 2 in act 3 (`elite_resonances` in `map.json`), themed to the family's archetype and starter subthemes, style ones allowed (at most one), never two alike, derived from the run seed and the node. The better reward is a Resonance claim after the bundle step: three by the Shrine's rules on the Shrine screen ("Claim a Resonance", "Take nothing"), status `claim`, save version 11. The map's side panel lists the Elite's Resonances; the far seat prints its sigils mirrored. `ai_arena.gd --resonances-a=` checks the AI with each. Dev flags in `README.md`. The AI scorer now charges an attack's Life Deck cost (`cost_life` in `attack_forecasts`), which Blood Price exposed; measured play did not move. 75493 checks, 0 failures; `ui_cleanup_tests.gd` 265, `ui_redesign_smoke.gd` 746 |
 | 2.3 | Forge node: cut cards, add copies of cards already in the deck | done | 2026-09-29. One free action per visit, or leave (`AdventureForge`, `scenes/adventure/forge.tscn`); a copy is a run gain through `added_cards()`. The 2.6 size cap goes in `AdventureForge.max_size` |
 | 2.4 | Mana: run wallet, income per duel, spend API | done | 2026-09-29. `AdventureRun.mana` (saved), 50 at the start, paid in `AdventureRewards.finish_stage` by node type and act, spent with `spend_mana`; numbers in the `mana` block of `economy.json` |
 | 2.5 | Shop node: stock roll, buy with Mana | done | 2026-09-29. Five single cards from `AdventureRewards.eligible_cards`, rolled once per Shop and saved, 45/70/110 Mana by band, no reroll (`AdventureShop`, `scenes/adventure/shop.tscn`); a buy is a run gain recorded as a `buy` pick |
@@ -81,10 +81,10 @@ One per-duel options block passed from `Session` to the engine at setup, each wi
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 5.1 | Engine: run-owned hidden Drill, cannot be discarded or removed, survives ascending | todo | |
-| 5.2 | Resonance data, starting with the examples in the design doc | todo | Guard: nothing that touches the Ascension or MPPV win |
-| 5.3 | Shrine node: pick one of three | todo | |
-| 5.4 | Resonance display in the duel HUD | todo | |
+| 5.1 | Engine: run-owned Resonances that no card can touch and ascending leaves | done | 2026-09-29. Not hidden Drills after all: `PlayerState.resonances`, filled from `DeckList.resonances` (set only by `AdventureRun.deck()`), read through data-first `rules` keys in `DuelEngine`. Carried by clones, public in `SeatPlayer`, logged as `resonance` events |
+| 5.2 | Resonance data | done | 2026-09-29. `data/adventure/resonances.json` (`ResonanceData`): the 14 in design doc 7.7, three of them style with a penalty. Nothing touches Fervor, the Aspect or the Ascension and MPPV wins |
+| 5.3 | Shrine node: pick one of three | done | 2026-09-29. `AdventureShrine`, `scenes/adventure/shrine.tscn`: two that serve the starter plus one style, rolled once per node and saved (save version 10), take one or leave. `adventure_lab.gd --take-shrine` takes the first offer. Dev flags in `README.md`. 70648 checks, 0 failures; `ui_cleanup_tests.gd` (246 checks) drives the screen, `ui_redesign_smoke.gd` the board sigils |
+| 5.4 | Resonance display in the duel HUD | done | 2026-09-29. A row of sigils under the seat's status chips, printed on the felt (`DuelistReadout`), with a framed tip on hover (`DuelHud.show_resonance_tip`). The View Deck list shows them too. Sigils cut from the Raven Megapack by `tools/import_map_art.py` |
 
 ## Phase 6: unlocks and missions
 

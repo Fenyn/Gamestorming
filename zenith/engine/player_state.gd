@@ -52,6 +52,13 @@ var last_searched: int = -1             # uid of the last card a search put into
 var pending_fight_back: Array[Dictionary] = []   # wound-triggered effects waiting for the next fight-back phase
 var pending_turn_end: Array[Dictionary] = []     # ...and the ones that wait for the end of the turn
 var must_declare_combat: bool = false    # forced by an opponent's card this turn
+# Resonances (ResonanceData ids) an adventure run brought. Held here rather than as cards, so no card
+# effect can count, target or discard one, and ascending leaves them alone.
+var resonances: Array[String] = []
+var guarded: Array[int] = []            # uids in play the other side's effects may not discard
+var seal_turns: Dictionary = {}         # Seal uid -> the turn this player placed it
+var arts_combat: int = 0                # Arts this player has performed this Combat
+var turns_taken: int = 0                # turns this player has begun
 
 
 ## A copy for a simulated engine. `cards` maps uid to that engine's own CardInstance.
@@ -103,6 +110,11 @@ func copy(cards: Dictionary) -> PlayerState:
 	p.pending_fight_back = pending_fight_back.duplicate(true)
 	p.pending_turn_end = pending_turn_end.duplicate(true)
 	p.must_declare_combat = must_declare_combat
+	p.resonances = resonances.duplicate()
+	p.guarded = guarded.duplicate()
+	p.seal_turns = seal_turns.duplicate()
+	p.arts_combat = arts_combat
+	p.turns_taken = turns_taken
 	return p
 
 
@@ -182,6 +194,7 @@ func reset_combat_flags() -> void:
 	entering_combat_done = false
 	controlling = duelist
 	attack_count_combat = 0
+	arts_combat = 0
 
 
 ## Cards attached to any of this player's personalities.

@@ -41,6 +41,8 @@ const ANIMATED: Dictionary = {
 	&"control": ["card"], &"power_used": ["card", "aspect"], &"relic_used": ["card"],
 	&"boss_power": ["card", "id"], &"boss_power_used": ["card", "left"],
 	&"window_skipped": ["window"],
+	# A scripted duel's board adjustments (`DuelEngine.script_op`), public as they happen.
+	&"script_dealt": ["cards"], &"script_swap": ["gone", "arrived"],
 }
 
 ## After every command `submit` accepts and every effect `dev` applies, with the entry `history`
@@ -48,8 +50,9 @@ const ANIMATED: Dictionary = {
 signal command_applied(seat: int, command: Dictionary)
 
 var engine: DuelEngine = DuelEngine.new()
-## Every accepted command in wire form, in order, with each dev effect as {"player", "dev"}. A
-## referee set up the same way and handed this through `replay` stands where this one stands.
+## Every accepted command in wire form, in order, with each dev effect as {"player", "dev"} and
+## each script operation as {"player": -1, "script"}. A referee set up the same way and handed
+## this through `replay` stands where this one stands.
 var history: Array[Dictionary] = []
 var _started: bool = false
 ## What a replay produced from its last turn start on. The next update sends these as log lines
@@ -88,7 +91,13 @@ func replay(entries: Array[Dictionary]) -> String:
 	for i in range(entries.size()):
 		var entry: Dictionary = entries[i]
 		var seat: int = int(entry.get("player", -1))
-		var problem: String = dev({"player": seat, "effect": entry["dev"]}) if entry.has("dev") else submit(seat, entry)
+		var problem: String = ""
+		if entry.has("script"):
+			problem = script(entry["script"])
+		elif entry.has("dev"):
+			problem = dev({"player": seat, "effect": entry["dev"]})
+		else:
+			problem = submit(seat, entry)
 		if problem != "":
 			return "entry %d %s: %s" % [i, str(entry), problem]
 	var events: Array[GameEvent] = engine.take_events()
@@ -135,7 +144,7 @@ func _check_integrity(cmd: Command) -> void:
 	var fault: String = engine.integrity_problem()
 	if fault == "":
 		return
-	integrity_fault = "turn %d, after %s: %s" % [engine.state.turn, cmd.describe(), fault]
+	integrity_fault = "turn %d, after %s: %s" % [engine.state.turn, cmd.describe() if cmd != null else "a script operation", fault]
 	push_error("DUPLICATED OR MISPLACED CARD: " + integrity_fault)
 
 
@@ -150,6 +159,18 @@ func dev(wire: Dictionary) -> String:
 		var entry: Dictionary = {"player": seat, "dev": effect.duplicate(true)}
 		history.append(entry)
 		command_applied.emit(seat, entry)
+	return problem
+
+
+## A scripted duel's board adjustment (`DuelEngine.script_op`), kept in `history` like a command.
+## Refused for every other duel.
+func script(op: Dictionary) -> String:
+	var problem: String = engine.script_op(op)
+	if problem == "":
+		_check_integrity(null)
+		var entry: Dictionary = {"player": -1, "script": op.duplicate(true)}
+		history.append(entry)
+		command_applied.emit(-1, entry)
 	return problem
 
 

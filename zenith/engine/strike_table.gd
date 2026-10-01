@@ -29,5 +29,7 @@ func band(might: int) -> int:
 	return 0
 
 
-func base_damage(attacker_might: int, defender_might: int) -> int:
-	return clampi(band(attacker_might) - band(defender_might) + 1, 0, cap)
+## `attacker_bands` lifts the attacker's band, never past the top one.
+func base_damage(attacker_might: int, defender_might: int, attacker_bands: int = 0) -> int:
+	var own: int = mini(band(attacker_might) + attacker_bands, thresholds.size() - 1)
+	return clampi(own - band(defender_might) + 1, 0, cap)

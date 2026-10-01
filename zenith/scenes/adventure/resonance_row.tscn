@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/resonance_sigil.gd" id="1_sigil"]
+
+[node name="ResonanceRow" type="HBoxContainer"]
+theme_override_constants/separation = 18
+mouse_filter = 2
+
+[node name="Sigil" type="Control" parent="."]
+texture_filter = 1
+custom_minimum_size = Vector2(84, 84)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("1_sigil")
+
+[node name="Name" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"BodyLabel"
+text = ""
+vertical_alignment = 1
+autowrap_mode = 3

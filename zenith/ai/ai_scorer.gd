@@ -167,6 +167,8 @@ static func _attack_score(engine: DuelEngine, profile: AiProfile, me: PlayerStat
 		return AiEvaluator.WIN
 	var v: float = wounds * profile.w("play", "damage_life") + soaked * profile.w("play", "damage_stage")
 	v -= int(f.get("cost_stages", 0)) * _cost_weight(engine, profile, me)
+	# Life Deck cards paid to perform it are wounds this side deals itself.
+	v -= int(f.get("cost_life", 0)) * life_card_price(me, profile)
 	if o.type == &"final_strike":
 		# A bare Strike: the card is thrown away unplayed, and the rest of the Combat is spent passing.
 		return v - card_value(engine, me, c, profile, TUTOR_DEPTH) - profile.w("play", "final_strike_penalty") - me.hand.size() * 0.5
@@ -184,6 +186,8 @@ static func _attack_score(engine: DuelEngine, profile: AiProfile, me: PlayerStat
 			# A card thrown into a block is gone for nothing, so while the rival can still block, lead
 			# with the lesser card and keep the better one for a swing that lands.
 			v -= profile.w("play", "attack_hold") * block_chance(foe) * hold_value(c, profile)
+		if o.type == &"attack" and profile.w("play", "combo") > 0.0:
+			v -= _combo_hold(engine, profile, me, c)
 	return v + 0.1
 
 
@@ -459,6 +463,7 @@ static func _use_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, 
 	return effects_value(c.def.effects, profile, USE_TRIGGERS, handover, engine, me.index) \
 		+ _aspect_jump_value(c, me, profile) + _bond_use_value(engine, me, c.def, profile) \
 		+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c) \
+		+ _combo_tutor_value(engine, profile, me, c) \
 		- profile.w("play", "use_cost")
 
 
@@ -485,8 +490,9 @@ static func _aspect_jump_value(c: CardInstance, me: PlayerState, profile: AiProf
 static func relic_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, c: CardInstance) -> float:
 	if c == null:
 		return 0.0
+	# A use spent is one fewer for later, so a use that does nothing loses to not using it.
 	return effects_value(c.def.effects, profile, ["relic_use"], AiEvaluator.handover_progress(engine, me), engine, me.index) \
-		+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c)
+		+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c) - profile.w("play", "use_cost")
 
 
 ## Whether forbidding `what` to the rival takes anything away: a forbidden Mastery, Drill, Ally or
@@ -789,6 +795,10 @@ static func _bond_prospect(engine: DuelEngine, me: PlayerState, bond: CardDef, p
 
 ## What a card is worth as a piece of a fusion: the Bonding card itself, or an Ally it names.
 static func _combo_value(engine: DuelEngine, me: PlayerState, c: CardInstance, profile: AiProfile) -> float:
+	if profile.w("play", "combo") > 0.0:
+		var recursion: float = _recursion_combo_value(engine, me, c, profile)
+		if recursion > 0.0:
+			return recursion
 	if profile.w("play", "bond_band") <= 0.0:
 		return 0.0
 	for e in c.def.effects:
@@ -810,6 +820,121 @@ static func _combo_value(engine: DuelEngine, me: PlayerState, c: CardInstance, p
 				if bond != null and (bond.raw.get("bond_of", []) as Array).has(c.def.character):
 					return _bond_prospect(engine, me, bond, profile)
 	return 0.0
+
+
+# --- Recursion combos -------------------------------------------------------
+# Two roles, read off the card data: a recursion card shuffles every card of a named character from
+# the discard pile back ("shuffle all Vegeta Named cards in your discard pile into your Life Deck"),
+# and an enabler makes the bottom of the pile count as that character's for the Combat. Played in
+# that order in one Combat, the recursion takes back far more. `play.combo` turns the planning on.
+
+## {"role": "recur" or "enable", "character", "count"} for a card that plays either part, else empty.
+static func combo_role(def: CardDef) -> Dictionary:
+	for raw in def.effects:
+		if not (raw is Dictionary):
+			continue
+		var e: Dictionary = raw
+		var op: String = str(e.get("op", ""))
+		if op == "shuffle_discard" and bool(e.get("all", false)) and str(e.get("character", "")) != "":
+			return {"role": "recur", "character": str(e["character"])}
+		if op == "float" and str(e.get("what", "")) == "discard_named":
+			var params: Dictionary = e.get("params", {})
+			return {"role": "enable", "character": str(params.get("character", "")), "count": int(params.get("count", 0))}
+	return {}
+
+
+## The first card in `pool` playing `role` for `character`, other than `except`.
+static func _combo_piece(pool: Array[CardInstance], role: String, character: String, except: CardInstance = null) -> CardInstance:
+	for c in pool:
+		if c == except:
+			continue
+		var r: Dictionary = combo_role(c.def)
+		if str(r.get("role", "")) == role and str(r.get("character", "")) == character:
+			return c
+	return null
+
+
+## What the recursion takes back if the enabler's float is out first: the pile's own named cards
+## plus the bottom `count` it names, as recovery on a hit.
+static func _combo_payoff(engine: DuelEngine, me: PlayerState, character: String, count: int, profile: AiProfile) -> float:
+	var taken: int = 0
+	for i in range(me.discard.size()):
+		var c: CardInstance = me.discard[i]
+		if i < count or engine.counts_as_named(me, c, character):
+			taken += 1
+	return float(taken) * profile.w("effect", "recover") * profile.w("effect", "if_successful")
+
+
+## How much a recursion card loses by going before an enabler it could have waited for: the
+## enabler is in hand, its float is not out yet, and the gap between the two payoffs is the price.
+static func _combo_hold(engine: DuelEngine, profile: AiProfile, me: PlayerState, c: CardInstance) -> float:
+	if c == null:
+		return 0.0
+	var role: Dictionary = combo_role(c.def)
+	if str(role.get("role", "")) != "recur":
+		return 0.0
+	var character: String = str(role["character"])
+	if not engine._floating_first(me.index, "discard_named").is_empty():
+		return 0.0
+	var enabler: CardInstance = _combo_piece(me.hand, "enable", character, c)
+	if enabler == null or not engine._can_pay(me.in_control(), me, enabler.def.attack, enabler):
+		return 0.0
+	var count: int = int(combo_role(enabler.def).get("count", 0))
+	var gain: float = _combo_payoff(engine, me, character, count, profile) - _combo_payoff(engine, me, character, 0, profile)
+	return maxf(0.0, gain) * profile.w("play", "combo")
+
+
+## A card that is one half of the combo is worth the payoff while its other half is at hand (in
+## hand, or the enabler's float already out). This is what makes a search fetch the missing half
+## and makes the discard step and a Mastery's fodder keep the pieces.
+static func _recursion_combo_value(engine: DuelEngine, me: PlayerState, c: CardInstance, profile: AiProfile) -> float:
+	var role: Dictionary = combo_role(c.def)
+	if role.is_empty():
+		return 0.0
+	var character: String = str(role["character"])
+	var partner_role: String = "enable" if str(role["role"]) == "recur" else "recur"
+	var partner: CardInstance = _combo_piece(me.hand, partner_role, character, c)
+	var float_out: bool = not engine._floating_first(me.index, "discard_named").is_empty()
+	if partner == null and not (str(role["role"]) == "recur" and float_out):
+		return 0.0
+	var count: int = int(role.get("count", 0))
+	if partner != null and str(role["role"]) == "recur":
+		count = int(combo_role(partner.def).get("count", 0))
+	return _combo_payoff(engine, me, character, count, profile) * profile.w("play", "combo")
+
+
+## Using a search that can fetch a missing half of the combo while the other half is in hand, or
+## both halves when neither is: worth the payoff it assembles.
+static func _combo_tutor_value(engine: DuelEngine, profile: AiProfile, me: PlayerState, c: CardInstance) -> float:
+	if c == null or profile.w("play", "combo") <= 0.0:
+		return 0.0
+	var best: float = 0.0
+	for raw in c.def.effects:
+		if not (raw is Dictionary):
+			continue
+		var e: Dictionary = raw
+		if str(e.get("op", "")) != "search":
+			continue
+		var reach: int = int(e.get("amount", 1))
+		var pieces: Dictionary = {}
+		for cand in engine.search_candidates(me, e):
+			var r: Dictionary = combo_role(cand.def)
+			if not r.is_empty():
+				pieces["%s|%s" % [r["role"], r["character"]]] = r
+		for key in pieces.keys():
+			var r: Dictionary = pieces[key]
+			var character: String = str(r["character"])
+			var partner_role: String = "enable" if str(r["role"]) == "recur" else "recur"
+			var have_partner: bool = _combo_piece(me.hand, partner_role, character) != null
+			var fetches_partner: bool = pieces.has("%s|%s" % [partner_role, character]) and reach >= 2
+			if have_partner or fetches_partner:
+				var count: int = int(r.get("count", 0))
+				if str(r["role"]) == "recur":
+					var partner: Dictionary = pieces.get("enable|%s" % character, {})
+					var held: CardInstance = _combo_piece(me.hand, "enable", character)
+					count = int(partner.get("count", 0)) if not partner.is_empty() else (int(combo_role(held.def).get("count", 0)) if held != null else 0)
+				best = maxf(best, _combo_payoff(engine, me, character, count, profile))
+	return best * profile.w("play", "combo")
 
 
 ## Remaining usable power, with rule-engine affordability, restrictions, control eligibility and
@@ -1263,6 +1388,9 @@ static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0
 		"energy":
 			if str(e.get("amount", "")) == "max":
 				amount = float(CardInstance.MAX_STAGE - target.duelist.energy) if known else 5.0
+			elif known and amount > 0.0:
+				# A gain past a full gauge is lost, so only the room left counts.
+				amount = minf(amount, float(CardInstance.MAX_STAGE - target.duelist.energy))
 			# A deck that fights through its Allies wants its own Energy spent rather than gained,
 			# since the Allies only take over once the Duelist is down to 0 or 1. It says so with
 			# `energy_self`, often below zero, the way a camping deck sets `fervor_self`. It only
@@ -1272,7 +1400,10 @@ static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0
 				return amount * lerpf(profile.w("effect", "energy"), profile.w("effect", "energy_self"), handover)
 			return side * amount * profile.w("effect", "energy")
 		"fervor":
-			return _fervor_value(amount, on_foe, profile)
+			var fervor_v: float = _fervor_value(amount, on_foe, profile)
+			if known and profile.w("effect", "fervor_climb") > 0.0:
+				fervor_v += _climb_bonus(board, target, amount, on_foe, profile)
+			return fervor_v
 		"set_fervor":
 			if not known:
 				return profile.w("effect", "other")
@@ -1307,6 +1438,9 @@ static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0
 				return -amount * life_card_price(me, profile)
 			return -side * amount * profile.w("effect", "discard_life")
 		"recover", "shuffle_discard":
+			# "Shuffle every <kind> card in your discard pile": as many as the pile holds of it.
+			if known and op == "shuffle_discard" and bool(e.get("all", false)):
+				amount = float(_discard_matches(board, target, e))
 			return side * amount * profile.w("effect", "recover")
 		"remove_discard":
 			return -side * amount * profile.w("effect", "remove_discard")
@@ -1316,12 +1450,19 @@ static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0
 				return -profile.w("effect", "forbid")
 			if known and op == "forbid" and not _foe_has(target, str(e.get("what", ""))):
 				return 0.0
+			# A second forbid of what is already forbidden changes nothing.
+			if known and op == "forbid" and board._forbidden(target, str(e.get("what", ""))):
+				return 0.0
+			if known and op == "forbid" and str(e.get("what", "")) == "mastery":
+				return _mastery_lock_value(board, profile, me, target)
 			return profile.w("effect", "forbid")
 		"next_attack_tax", "force_declare":
 			return profile.w("effect", "forbid")
 		"float":
 			if str(e.get("what", "")) == "modifier":
 				return modifier_value(e.get("params", {}), str(e.get("duration", "combat")), profile)
+			if str(e.get("what", "")) == "discard_named" and known and not on_foe:
+				return _named_discard_value(e, profile, board, me)
 			return profile.w("effect", "float")
 		"focus_attack":
 			return profile.w("effect", "float")
@@ -1351,6 +1492,91 @@ static func _effect_value(e: Dictionary, profile: AiProfile, handover: float = 0
 			# An attack phase lost is an attack not made: an Art's base hit, the reference swing.
 			return -side * DuelEngine.ART_BASE_LIFE * profile.w("play", "damage_life")
 	return profile.w("effect", "other")
+
+
+## Locking the rival's Mastery: what that Mastery does for them in a Combat, and only as far as a
+## Combat is coming. Used before Combat, it is worth something only on a turn this side means to
+## declare, so a limited lock (a Relic used twice a game) waits for the Combat it protects.
+static func _mastery_lock_value(board: DuelEngine, profile: AiProfile, me: PlayerState, foe: PlayerState) -> float:
+	if foe.mastery == null:
+		return 0.0
+	var threat: float = mastery_threat(board, foe, profile)
+	if board.state.step == GameState.Step.COMBAT:
+		return threat
+	return threat if _declare_score(board, profile, me) > 0.0 else 0.0
+
+
+## What a player's Mastery is worth to them over one Combat: its standing damage, its triggered
+## lines as they would read them, and a Mastery that buys wounds off instead of blocking.
+static func mastery_threat(board: DuelEngine, p: PlayerState, profile: AiProfile) -> float:
+	var def: CardDef = p.mastery.def
+	var v: float = 0.0
+	for m in def.modifiers:
+		v += maxf(0.0, modifier_value(m, "combat", profile))
+	v += maxf(0.0, effects_value(def.effects, profile, [], 0.0, board, p.index))
+	if def.raw.has("defense_burn"):
+		v += 2.0 * profile.w("play", "defend_card")
+	if def.opponent_aspect_threshold > 0:
+		v += profile.w("effect", "fervor")
+	return v
+
+
+## Cards in `p`'s discard pile a "shuffle every ..." line would take: its school and its named
+## character, read the way the engine reads them.
+static func _discard_matches(board: DuelEngine, p: PlayerState, e: Dictionary) -> int:
+	var school: String = str(e.get("school", ""))
+	var character: String = str(e.get("character", ""))
+	var n: int = 0
+	for c in p.discard:
+		if (school == "" or c.def.school == school) and (character == "" or board.counts_as_named(p, c, character)):
+			n += 1
+	return n
+
+
+## "The bottom N cards of your discard pile are <Name> Named cards": worth the cards it newly names,
+## as recovery, when a card in hand shuffles that character's cards back; a quarter of that when
+## the payoff is still somewhere in the deck.
+static func _named_discard_value(e: Dictionary, profile: AiProfile, board: DuelEngine, me: PlayerState) -> float:
+	var params: Dictionary = e.get("params", {})
+	var character: String = str(params.get("character", ""))
+	var count: int = mini(int(params.get("count", 0)), me.discard.size())
+	var newly: int = 0
+	for i in range(count):
+		if me.discard[i].def.character != character:
+			newly += 1
+	var share: float = 0.25
+	for c in me.hand:
+		if _recycles_named(c.def.effects, character):
+			share = profile.w("effect", "if_successful")
+			break
+	return float(newly) * share * profile.w("effect", "recover")
+
+
+static func _recycles_named(effects: Array, character: String) -> bool:
+	for raw in effects:
+		if not (raw is Dictionary):
+			continue
+		var e: Dictionary = raw
+		if str(e.get("op", "")) == "shuffle_discard" and str(e.get("character", "")) == character:
+			return true
+		if _recycles_named(e.get("then", []), character):
+			return true
+	return false
+
+
+## `effect.fervor_climb` (off by default): a Fervor gain that completes a climb is worth the Aspect
+## it reaches, scaled by the knob. A deck whose second Aspect is its whole plan sets it, so the gain
+## that gets there reads as more than the same gain anywhere else.
+static func _climb_bonus(board: DuelEngine, target: PlayerState, amount: float, on_foe: bool, profile: AiProfile) -> float:
+	if amount <= 0.0 or target.duelist.stack == null:
+		return 0.0
+	if target.duelist.aspect >= target.duelist.stack.highest_aspect():
+		return 0.0
+	var needed: int = board.fervor_needed(target)
+	if target.fervor >= needed or target.fervor + int(amount) * board.fervor_gain(target) < needed:
+		return 0.0
+	var worth: float = profile.w("foe", "aspect") * -1.0 if on_foe else profile.w("own", "aspect")
+	return worth * profile.w("effect", "fervor_climb")
 
 
 ## A Fervor change, priced by whose it is. A deck that wants to stay on its aspect sets `fervor_self`,

@@ -49,9 +49,9 @@
 			"id": "mourne_draik_offer",
 			"character": "Gideon Mourne",
 			"title": "The Draik offer",
-			"hint": "Beat Sable Draik, the act 2 boss of a Mind Siege run.",
+			"hint": "Beat Sable Draik, the act 2 boss of a Mercenary Lord run.",
 			"visibility": "public",
-			"steps": [{ "event": "duel_won", "starter": "shade_mind_siege_start", "node": "boss", "act": 2 }],
+			"steps": [{ "event": "duel_won", "starter": "mercenary_lord_start", "node": "boss", "act": 2 }],
 			"starter": "shade_henchmen_start"
 		},
 		{

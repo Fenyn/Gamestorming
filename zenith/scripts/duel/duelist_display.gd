@@ -8,6 +8,9 @@ extends Node3D
 signal clicked(uid: int)
 signal inspected(uid: int)
 signal hovered(uid: int, on: bool)
+## The pointer entered a Resonance sigil (its id and screen rect) or left it (""). `far` is true for
+## the rival's seat, and `screen` is then `far_tip_anchor`, which its tip opens over.
+signal resonance_hovered(id: String, screen: Rect2, far: bool)
 
 ## World units per canvas pixel.
 const PIXEL: float = 0.0029
@@ -23,6 +26,7 @@ const LIFE_CAPTION_FORWARD: float = 0.22
 @export var interactive: bool = true
 var duelist_uid: int = -1
 var _hovering: bool = false
+var _hovered_sigil: int = -1
 @onready var surface: Sprite3D = $Surface
 @onready var viewport: SubViewport = $ReadoutViewport
 @onready var readout: DuelistReadout = $ReadoutViewport/Readout
@@ -117,7 +121,7 @@ func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
 		var inner: Vector2 = _canvas_point(flag_row[0])
 		var outer: Vector2 = _canvas_point(flag_row[1])
 		readout.flag_home = Rect2(Vector2(minf(inner.x, outer.x), inner.y), Vector2(absf(outer.x - inner.x), 0.0))
-	for rect: Rect2 in readout.stat_hit_rects:
+	for rect: Rect2 in readout.stat_hit_rects + readout.sigil_rects:
 		bounds = bounds.merge(rect)
 	# Covered even while empty: the canvas regrows only when the card moves.
 	if readout.flag_home.size.x > 0.0:
@@ -133,12 +137,16 @@ func anchor_to_card(card: Card3D, camera: Camera3D) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not interactive or not visible or duelist_uid < 0:
+		if _hovered_sigil >= 0:
+			hover_sigil(-1, null)
 		return
 	var camera: Camera3D = get_viewport().get_camera_3d()
 	if camera == null:
 		return
 	if event is InputEventMouseMotion:
-		var inside: bool = hit_test((event as InputEventMouseMotion).position, camera)
+		var point: Vector2 = (event as InputEventMouseMotion).position
+		hover_sigil(sigil_at(point, camera), camera)
+		var inside: bool = _hovered_sigil < 0 and hit_test(point, camera)
 		if inside != _hovering:
 			_hovering = inside
 			hovered.emit(duelist_uid, inside)
@@ -160,6 +168,54 @@ func peek_screen(slot: int, camera: Camera3D) -> Variant:
 	if local == null or not visible or camera.is_position_behind(global_position):
 		return null
 	return camera.unproject_position(_world_point(local as Vector2))
+
+
+## The Resonance sigil under a screen point, -1 for none.
+func sigil_at(point: Vector2, camera: Camera3D) -> int:
+	if readout.sigil_rects.is_empty() or camera.is_position_behind(global_position):
+		return -1
+	var on_felt: Variant = _ray_on(surface, camera.project_ray_origin(point), camera.project_ray_normal(point))
+	return readout.sigil_at(on_felt as Vector2) if on_felt != null else -1
+
+
+## Lights sigil `index` (-1 for none) and says which Resonance it is and where it sits on screen.
+func hover_sigil(index: int, camera: Camera3D) -> void:
+	if index == _hovered_sigil:
+		return
+	_hovered_sigil = index
+	readout.lit_sigil = index
+	if index < 0 or index >= readout.resonances.size():
+		resonance_hovered.emit("", Rect2(), false)
+		return
+	if not readout.far_side():
+		resonance_hovered.emit(readout.resonances[index], sigil_screen_rect(index, camera), false)
+		return
+	resonance_hovered.emit(readout.resonances[index], far_tip_anchor(camera), true)
+
+
+## Where the rival's tip opens from: the whole sigil row, its left edge moved past their hand fan
+## when the fan sits over the row's left end, so the tip over the row leaves the hand count readable.
+func far_tip_anchor(camera: Camera3D) -> Rect2:
+	var row: Rect2 = sigil_screen_rect(0, camera)
+	for i in range(1, readout.sigil_rects.size()):
+		row = row.merge(sigil_screen_rect(i, camera))
+	var fan: Rect2 = screen_rect_of(readout.hand_fan_rect(), camera)
+	if fan.end.x > row.position.x and fan.position.x < row.end.x and fan.position.y < row.position.y:
+		row = Rect2(Vector2(fan.end.x, row.position.y), Vector2(maxf(0.0, row.end.x - fan.end.x), row.size.y))
+	return row
+
+
+## The screen rectangle sigil `index` covers.
+func sigil_screen_rect(index: int, camera: Camera3D) -> Rect2:
+	return screen_rect_of(readout.sigil_rects[index], camera)
+
+
+## The screen rectangle a region of the printed canvas covers.
+func screen_rect_of(rect: Rect2, camera: Camera3D) -> Rect2:
+	var bounds: Rect2 = Rect2(camera.unproject_position(_world_point(rect.position)), Vector2.ZERO)
+	for corner: Vector2 in [Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]:
+		bounds = bounds.expand(camera.unproject_position(_world_point(corner)))
+	return bounds
 
 
 ## Only the printed regions are interactive; the centre belongs to the card.

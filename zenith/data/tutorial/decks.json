@@ -1,0 +1,71 @@
+{
+  "emrys": {
+    "name": "Emrys Rooke",
+    "duelist": ["personality_35", "personality_36"],
+    "style": "steel",
+    "alignment": "vigil",
+    "mastery": "",
+    "cards": [
+      "signature_strike_29", "signature_strike_12", "freestyle_art_03",
+      "signature_strike_22",
+      "signature_strike_29", "signature_strike_12", "signature_strike_11",
+      "signature_strike_01",
+      "signature_strike_11", "signature_strike_01", "signature_strike_12",
+      "signature_strike_11", "signature_strike_01", "signature_strike_12",
+      "signature_strike_29", "signature_strike_09", "signature_strike_29",
+      "signature_strike_11",
+      "signature_strike_12",
+      "signature_strike_10",
+      "signature_strike_01", "signature_strike_12",
+      "signature_strike_11", "signature_strike_01", "signature_strike_12",
+      "signature_drill_01",
+      "signature_strike_11", "signature_strike_01", "signature_strike_12",
+      "signature_strike_11", "signature_strike_01", "signature_strike_12",
+      "signature_strike_11", "signature_strike_01", "signature_strike_12"
+    ]
+  },
+  "straw_knight": {
+    "name": "Straw Knight",
+    "duelist": ["tutorial_personality_01"],
+    "style": "freestyle",
+    "alignment": "vigil",
+    "mastery": "",
+    "cards": [
+      "freestyle_strike_04", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_04",
+      "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_04", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_04", "freestyle_strike_02", "freestyle_art_07",
+      "freestyle_strike_04", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_04",
+      "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_04", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_04", "freestyle_strike_02", "freestyle_art_07",
+      "freestyle_strike_04", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_04",
+      "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_04", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_04", "freestyle_strike_02", "freestyle_art_07",
+      "freestyle_strike_04", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_04"
+    ]
+  },
+  "caedan": {
+    "name": "Caedan Vale",
+    "duelist": ["personality_16", "personality_17"],
+    "style": "freestyle",
+    "alignment": "vigil",
+    "mastery": "freestyle_mastery_01",
+    "cards": [
+      "signature_strike_21", "signature_strike_14", "freestyle_strike_02", "signature_strike_13",
+      "freestyle_art_07", "freestyle_strike_02", "signature_strike_14", "signature_strike_15",
+      "signature_art_09", "freestyle_art_07", "signature_strike_13",
+      "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02", "freestyle_art_07",
+      "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02",
+      "signature_strike_14", "signature_strike_21", "signature_strike_21",
+      "freestyle_art_07", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02",
+      "freestyle_art_07", "freestyle_strike_02", "freestyle_art_07", "freestyle_strike_02"
+    ]
+  }
+}

@@ -48,8 +48,8 @@ static func begin_run(starter_id: String) -> bool:
 
 
 ## Wins `duels` duels of the Session run in memory, taking the first choice, the first Aspect and
-## the first bundle every time, so a dev screen can open part way through a run. Stops early at the
-## end of the run. Nothing is saved and no Motes move.
+## the first bundle every time and nothing at an Elite's claim, so a dev screen can open part way
+## through a run. Stops early at the end of the run. Nothing is saved and no Motes move.
 static func walk(duels: int) -> void:
 	var run: AdventureRun = Session.run
 	for i in range(duels):
@@ -58,6 +58,7 @@ static func walk(duels: int) -> void:
 		AdventureRewards.finish_stage(run, Session.map, Session.library, true)
 		_take_firsts(run)
 		AdventureRewards.finish_reward(run, Session.map)
+		AdventureShrine.leave(run)
 		if run.status != "map":
 			return
 
@@ -65,34 +66,85 @@ static func walk(duels: int) -> void:
 ## Walks the Session run along the map to the next stop of `type` and leaves it waiting there, so a
 ## dev screen opens on a run whose act, duels won and deck agree. At a fork it takes that stop when
 ## offered, else a road that still reaches one; fights on the way are won with the first Aspect and
-## bundle, and other stops are left untouched. With no such stop ahead it waits on the node it
-## stands on.
+## bundle, and other stops are left untouched. A fighting type stops on the fight with its duel
+## still to play. With no such stop ahead it waits on the node it stands on.
 static func stand_on_next(type: String) -> void:
 	var run: AdventureRun = Session.run
 	var map: AdventureMap = Session.map
 	var guard: int = 0
-	while run.status != type and guard < 200:
+	while not _arrived(run, map, type) and guard < 200:
 		guard += 1
-		match run.status:
-			"map":
-				var next: Array[String] = run.choices(map)
-				if next.is_empty():
-					break
-				run.enter(map, _step_towards(map, next, type))
-			"forge":
-				AdventureForge.leave(run)
-			"shop":
-				AdventureShop.leave(run)
-			AdventureRelic.STATUS_OFFERS, AdventureRelic.STATUS_TRIM:
-				AdventureRelic.pass_through(run, Session.library)
-			"stage":
-				AdventureRewards.finish_stage(run, map, Session.library, true)
-				_take_firsts(run)
-				AdventureRewards.finish_reward(run, map)
-			_:
+		if run.status == "map":
+			var next: Array[String] = run.choices(map)
+			if next.is_empty():
 				break
-	if run.status == "map":
+			run.enter(map, _step_towards(map, next, type))
+		elif not _settle(run, map):
+			break
+	if run.status == "map" and not AdventureMap.is_fight(type):
 		run.status = type
+
+
+## Walks the Session run until a node of `type` is one of its choices, fights and stops on the way
+## settled as `stand_on_next` settles them, so the map opens with that node to pick. Returns its id,
+## "" when none lies ahead.
+static func choose_next(type: String) -> String:
+	var run: AdventureRun = Session.run
+	var map: AdventureMap = Session.map
+	for _step in range(200):
+		if run.status != "map":
+			if not _settle(run, map):
+				return ""
+			continue
+		var next: Array[String] = run.choices(map)
+		for id in next:
+			if str(map.node(id).get("type", "")) == type:
+				return id
+		if next.is_empty():
+			return ""
+		run.enter(map, _step_towards(map, next, type))
+	return ""
+
+
+## Ends whatever the run stands on the way the walks do: leaves a stop untouched, passes the Relic
+## node, wins a fight with the first Aspect and bundle. False for a status it cannot end.
+static func _settle(run: AdventureRun, map: AdventureMap) -> bool:
+	match run.status:
+		"forge":
+			AdventureForge.leave(run)
+		"shop":
+			AdventureShop.leave(run)
+		AdventureShrine.STATUS, AdventureShrine.CLAIM_STATUS:
+			AdventureShrine.leave(run)
+		AdventureRelic.STATUS_OFFERS, AdventureRelic.STATUS_TRIM:
+			AdventureRelic.pass_through(run, Session.library)
+		"stage":
+			AdventureRewards.finish_stage(run, map, Session.library, true)
+			_take_firsts(run)
+			AdventureRewards.finish_reward(run, map)
+		_:
+			return false
+	return true
+
+
+## Wins the next Elite in memory, its Aspect and bundle taken as `walk` takes them, and leaves the
+## run on the Resonance claim that follows. False when no Elite lies ahead or the claim had nothing
+## to offer.
+static func claim_next_elite() -> bool:
+	var run: AdventureRun = Session.run
+	stand_on_next("elite")
+	if run.status != "stage" or str(Session.map.node(run.node_id).get("type", "")) != "elite":
+		return false
+	AdventureRewards.finish_stage(run, Session.map, Session.library, true)
+	_take_firsts(run)
+	AdventureRewards.finish_reward(run, Session.map)
+	return AdventureShrine.is_claim(run)
+
+
+static func _arrived(run: AdventureRun, map: AdventureMap, type: String) -> bool:
+	if AdventureMap.is_fight(type):
+		return run.status == "stage" and str(map.node(run.node_id).get("type", "")) == type
+	return run.status == type
 
 
 static func _step_towards(map: AdventureMap, next: Array[String], type: String) -> String:

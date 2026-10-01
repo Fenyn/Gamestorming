@@ -38,6 +38,10 @@ const GROUP_PERSONALITY: String = "personality"
 const GROUP_RELIC: String = "relic"
 const GROUP_SEAL: String = "seal"
 const GROUP_GROUNDS: String = "grounds"
+## The sides a deck or player may take. "either" is a mercenary sworn to no one: it counts as Vigil
+## and as Pact at once, for every gate and condition that names a side.
+const ALIGNMENTS: Array[String] = ["vigil", "pact", "either"]
+const EITHER: String = "either"
 
 var id: String = ""
 var title: String = ""
@@ -93,6 +97,12 @@ var reserve_size: int = 0
 var relic_flags: Dictionary = {}     # Relic passives: {"no_ascension_win": true, "fervor_shield": true, "aspect_shield": true}
 var opponent_aspect_threshold: int = 0  # Mastery: opponent needs this much Fervor to rise an aspect
 var raw: Dictionary = {}
+
+
+## Whether a player on `side` meets a gate or condition naming `wanted`. An empty `wanted` is no
+## gate at all.
+static func side_allows(side: String, wanted: String) -> bool:
+	return wanted == "" or side == wanted or side == EITHER
 
 
 static func from_dict(d: Dictionary) -> CardDef:

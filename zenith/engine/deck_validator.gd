@@ -42,7 +42,7 @@ static func ally_problems(def: CardDef, deck: DeckList, duelist: CardDef) -> Arr
 	var out: Array[String] = []
 	if def.character == duelist.character:
 		out.append("Ally '%s' is the same character as the Duelist" % def.id)
-	if def.alignment_only != "" and def.alignment_only != deck.alignment:
+	if not CardDef.side_allows(deck.alignment, def.alignment_only):
 		out.append("Ally '%s' does not match alignment %s" % [def.id, deck.alignment])
 	if not ally_aspect_allowed(def.aspect):
 		out.append("Ally '%s' is Aspect %d; an Ally may be Aspect 1 to %d"
@@ -74,7 +74,7 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 		if seen_aspects.has(d.aspect):
 			problems.append("Duelist has two cards at Aspect %d" % d.aspect)
 		seen_aspects[d.aspect] = true
-		if d.alignment_only != "" and d.alignment_only != deck.alignment:
+		if not CardDef.side_allows(deck.alignment, d.alignment_only):
 			problems.append("Duelist card '%s' does not match alignment %s" % [d.id, deck.alignment])
 	for n in range(1, stack_defs.size() + 1):
 		if not seen_aspects.has(n):
@@ -91,6 +91,8 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 			problems.append("Unknown subtheme '%s'" % s)
 	if deck.difficulty != "" and not Archetype.DIFFICULTIES.has(deck.difficulty):
 		problems.append("Unknown difficulty '%s'" % deck.difficulty)
+	if not CardDef.ALIGNMENTS.has(deck.alignment):
+		problems.append("Unknown alignment '%s'" % deck.alignment)
 	var max_cards: int = MAX_CARDS_ROOT if deck.style == "root" else MAX_CARDS
 	var min_cards: int = MIN_CARDS_ADVENTURE if adventure else MIN_CARDS
 	var total: int = deck.total_cards()

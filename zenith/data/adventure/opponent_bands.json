@@ -1,5 +1,5 @@
 {
-  "weaker": ["pyre_ascent", "tide_companions", "storm_unbound", "shade_salvage", "steel_heir"],
-  "medium": ["shade_henchmen", "pyre_beatdown", "freestyle_swords", "pyre_attrition", "tide_deepwater", "storm_volley"],
-  "stronger": ["steel_beatdown", "root_seals", "shade_mind_siege"]
+  "weaker": ["pyre_ascent", "shade_salvage", "tide_deepwater", "storm_volley", "storm_unbound", "mercenary_lord"],
+  "medium": ["shade_henchmen", "steel_heir", "tide_companions", "pyre_beatdown", "root_seals"],
+  "stronger": ["pyre_attrition", "steel_beatdown", "shade_mind_siege", "freestyle_swords"]
 }

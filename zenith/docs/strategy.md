@@ -134,7 +134,15 @@ every Combat. The Mastery makes Arts cost 1 instead of 2 and adds a life card to
 - **Lever.** Arts ignore the Strike Table, which is the only reason this deck is playable: its ladder
   tops in D at aspect 3, a full band under Steel and Pyre. It must not try to win the table.
 - **Line.** Race to aspect 3, then fire discounted Arts every Combat off the free Art and the draw.
-  Blocks that search replace themselves, so defend freely. Stage damage is not the goal; wounds are.
+  Blocks that search or refill replace themselves (Siphon's Sidestep, Storm Drawn Charge, the Second
+  Winds), so defend freely. Weighted Hollow taxes the rival's Strikes 2 Energy. Stage damage is not
+  the goal; wounds are.
+- **The 2026-09-29 revision.** Trampled Crossroads was locking the deck out of its own Non-Combats,
+  and the AI never plays Raised Stakes or Respite (both hand the rival something), so they, the Sun
+  Seals and the three-Strike packages went for Weighted Hollow, Storm Drawn Charge, Storm Idle Spark,
+  Storm Jolt, Storm Residual Shock and more Static Field, Chain Lightning and Earthing blocks.
+  Measured 2026-09-30 (scorer, seed 4242): 33.9% against the whole field and 40.2% against the
+  eleven decks from Storm Mentor down, up from 29%.
 - **Mistake.** Hoarding Energy. At Surge 1 to 2 it is never going to out-Energy anyone, and stages
   held back are stages a Strike takes for free. Spend them on Arts.
 
@@ -154,6 +162,13 @@ climbing for itself. It wins by making the rival's Strikes unaffordable and then
 - **Mistake.** Treating it like `storm_volley` and hoarding for a barrage. It has no Relic shielding
   its Fervor and no discount on its Arts, so held Energy is wasted. Also playing the Hollow against
   an Art deck, where it does nothing at all and costs a turn of Combat.
+- **The 2026-09-29 revision.** Respite (the AI never plays it), Sun Seal 5, Rites Unmade, Foresight,
+  The Fortress' Arcane Aegis and the Storm Earthing Rods went for Storm Ungrounded Flash, Storm
+  Residual Shock and Storm Drawn Charge. That cleared dead cards but moved the win rate by less than
+  the noise: no card-only change measured lifts this list, and the only change that did (The
+  Champion's Laurel as a Relic, about +13) was ruled out to keep it Relic-free. Measured 2026-09-30
+  (scorer, seed 4242): 33.2% against the whole field and 39.4% against the eleven decks from Storm
+  Mentor down.
 
 ### Root — Osric Thornwald, `root_seals` (seals)
 
@@ -174,9 +189,11 @@ aspect all the way up; the aspect powers feed on the discard pile instead.
 Wins by survival, by attrition. Aspect 1 carries `protect_allies`, so the deck wants to stay there;
 Fervor and aspect gains are actively unwanted. Its own aspect 1 also advances on 5 Allies in play,
 which is a hazard to stay under, not a goal: the deck ships four personalities to field as Allies on
-purpose. The Mastery
-is a free block every Combat, paid for with a card from hand, and paid back double when the card
-spent is a Tide card. It is not a damage engine; it is the reason the deck survives to assemble.
+purpose. The Mastery,
+Tide's second since 2026-09-29, gives Tide Strikes +2 wounds and lets the deck buy wounds off with
+the Tide cards already in its discard pile instead of defending, so every spent Tide card is armour
+for later. It is the reason the deck survives to assemble. (Tide Undertow, the Mastery it shipped
+with, is now the first Tide Mastery a player unlocks in the adventure rather than a starting card.)
 
 - **Lever.** The Bond. Two named Allies fuse into one card that enters at full Energy in band F,
   three bands above either partner and above anything else the deck fields. Everything else is
@@ -184,8 +201,11 @@ spent is a Tide card. It is not a damage engine; it is the reason the deck survi
 - **Second lever.** Allies take control of Combat once the Duelist is at Energy 0 or 1, and then use
   their own Might rather than the Duelist's 3-to-12 ladder.
 - **Line.** Allies out early, the Bonding card into play, fuse the moment both partners are there.
-  Let the Duelist's Energy fall, hand Combat over, win on wounds from Allies' Arts. The Mastery and
-  the Arts keep the opponent's Fervor down, so Ascension is the clock to police.
+  Let the Duelist's Energy fall, hand Combat over, win on wounds from Allies' Arts. Burn Tide cards
+  from the discard pile against the big hits and keep the hand's blocks for the rest. The Arts keep
+  the opponent's Fervor down, so Ascension is the clock to police.
+- **Hold back until the Bond.** Declaring Combat more readily before the fusion measured 9 points
+  worse (2026-09-29), so the profile's pre-Bond caution is right.
 - **Mistake.** Defending the Duelist's Energy. Unlike every other deck, going to 0 is this deck's
   plan, not its failure state. Also climbing: the aspect 1 constant is the deck.
 - **Measured 2026-09-18 with `tests/ally_probe.gd`.** Allies are not held back: the first lands on
@@ -194,6 +214,9 @@ spent is a Tide card. It is not a damage engine; it is the reason the deck survi
   what kept the fusion at 4%; with the guard actually holding it loses 0.25 and fuses in 33%. The
   residual is real and not a bug: a Constant Combat Power is a power, so an opponent card that
   forbids powers switches the guard off, and the guard is on aspect 1 only.
+- **Measured 2026-09-30** (scorer, seed 4242, 672 games against the whole field and 960 against the
+  eleven decks from Storm Mentor down): 50.0% and 55.7%, up from 33% and 38% with Undertow. The
+  Mastery swap alone did it; the card swaps tried on this list all measured flat.
 
 ### Shade — the eighth deck, `shade_salvage` (art_beatdown)
 
@@ -212,9 +235,11 @@ itself, and the bodies on the table are there to make its numbers bigger.
   Duelist. Against Steel and Pyre, whose damage is almost entirely modifiers, that is the whole
   matchup. Aspects 3 and 4 hit harder while The Breaker's Yard is in play, so the Yard is worth
   keeping out and not spending on an empty board.
-- **Line.** Assembly Drill down, a body or two out, the rival's following removed, then Arts. Hold
-  Energy: Arts cost it and the deck has no way to make it back in bulk. The hand empties fast,
-  which is what the Shade Hoarded Secrets Drill and the Shade Gleaning Drill are for.
+- **Line.** Assembly Drill down, a body or two out, the rival's following removed, then Arts. Energy
+  is the fuel and, since the 2026-09-29 revision, the list makes it back: three Shade Shadow Respite,
+  Centering, Bravado Drill and the Second Winds all refill the Duelist, so spend it on Arts rather
+  than hoard it. The hand empties fast; the Strikes (Shade Dread Grip, Slipping Thought, Silenced
+  and Lingering Whisper) empty the rival's in return.
 - **Mistake.** Playing it like the Draik deck and handing Combat to an Ally. Its Might ladder is
   better than theirs and the Drill pays the Duelist the most. Also spending The Breaker's Yard or
   Dismissal with nothing worth removing; both are limited, and the Yard is a condition two of the
@@ -224,6 +249,9 @@ itself, and the bodies on the table are there to make its numbers bigger.
   0.5, and the Allies reach play in most games. Re-pointing the profile from Allies to Arts halved
   its Ally-held attack phases (4.9 to 2.4 a game) without moving the win rate, which is the profile
   doing what it now says.
+- **Measured 2026-09-30**, after the revision (same method as Tide above): 38.4% against the whole
+  field and 41.7% against the lower eleven, up from 20%. The four Salt Seals, the situational
+  one-offs and the Umbra Drills went for Energy refills and hand-attacking Strikes.
 
 ### Pyre — the ninth deck, Sir Edric Rooke, `pyre_ascent` (strike_beatdown)
 
@@ -257,14 +285,21 @@ Aspects, 79 life cards, no Relic, no Reserve, one Ally, one Seal. **The distingu
 its damage comes from what is already on the table** by the time the cards are played.
 
 - **Lever.** Stacked modifiers. Three copies of The Long Year give +1 Energy to every attack for the
-  rest of the game, and they stay through every climb. Two Steel Clawed Hands Drills add +2 Energy
-  to every Strike, but climbing an Aspect discards all Drills (`designs/zenith.md`, Fervor at 5), so
-  they pay only until the next climb. With all five down on one Aspect a Strike is at +7 Energy
-  before the card in hand counts; after a climb it is back to +3 until a Drill lands again.
-- **Second lever.** Card flow from several directions at once. The Mastery draws one a Combat and
-  two on a Steel flip, three copies of The High Watch draw on entering Combat, and Aspect 1 draws
-  again whenever he is the attacker. Mourne's Quickness Drill and Foresight pull from the discard
-  pile. Aspect 2 then fetches the exact Strike or Art it wants.
+  rest of the game, and they stay through every climb. Three Steel Clawed Hands Drills add +2
+  Energy to every Strike, but climbing an Aspect discards all Drills (`designs/zenith.md`, Fervor at
+  5), so they pay only until the next climb. With The Long Year and two Drills down on one Aspect a
+  Strike is at +7 Energy before the card in hand counts; after a climb it is back to +3 until a
+  Drill lands again.
+- **Second lever.** Card flow. The Mastery draws one a Combat and two on a Steel flip, and Aspect 1
+  draws again whenever he is the attacker. Mourne's Quickness Drill and Foresight pull from the
+  discard pile. Aspect 2 then fetches the exact Strike or Art it wants.
+- **The 2026-09-29 revision.** Barrage, Edric's Training and six situational one-offs (Rites
+  Unmade, Mourne Takes the Measure, Spoiled Rite, Emrys Spots the Fraud Drill, Caedan's
+  Declaration, Steel Kindred Standoff) made way for a third Clawed Hands Drill line, three Steel
+  Ironscale Hide (stops any attack, refills 7) and six Endurance Strikes (Steel Scalebound Blow,
+  Steel Taloned Fist). Plain heavy Strikes and blocks beat the utility cards by a wide margin.
+  Measured 2026-09-30 (scorer, seed 4242): 48.5% against the whole field and 56.9% against the
+  eleven decks from Storm Mentor down, up from 34%.
 - **Third lever.** Life cards are ammunition. Steel Clawed Heel buys +3 wounds and Steel Clawed
   Pounce buys +3 Energy, each for the top card of the Life Deck, and the Mastery discards one more
   every Combat. With 79 cards it can afford that for a while.
@@ -272,8 +307,7 @@ its damage comes from what is already on the table** by the time the cards are p
   Year applies to both uses. Aspect 4 before it is a free Art for 4 Energy and 4 wounds, and
   Aspect 3 is a Strike at +5 Energy that can also remove a Non-Combat card.
 - **Line.** Spend the early turns getting the floor down. The Long Year first, because it survives
-  the climb, then a Steel Clawed Hands Drill on the Aspect you expect to stay on, and The High Watch
-  when the ground is free. Enter Combat every turn for the draws even when the attack is poor. Save
+  the climb, then a Steel Clawed Hands Drill on the Aspect you expect to stay on. Enter Combat every turn for the draws even when the attack is poor. Save
   Steel Talon Cleave, which deals a flat 10 Energy and leaves the game, for a turn where a full
   drain means the rival cannot answer, not for a turn where they were already empty. From Aspect 4
   on, the Power is the main attack and the hand is support.

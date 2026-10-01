@@ -90,6 +90,11 @@ custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 text = "Hotseat duel"
 
+[node name="Tutorial" type="Button" parent="Center/Column"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+text = "Tutorial"
+
 [node name="OnlineHeader" type="HBoxContainer" parent="Center/Column"]
 layout_mode = 2
 theme_override_constants/separation = 12

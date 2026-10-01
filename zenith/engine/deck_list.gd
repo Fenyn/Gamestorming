@@ -29,6 +29,9 @@ var cards: Array[String] = []   # expanded, one entry per copy
 ## "tournament" is a multiplayer precon; "adventure" is a run deck, which DeckValidator holds to
 ## lower floors on size and aspect count. See designs/zenith_adventure.md section 9.
 var mode: String = "tournament"
+## An adventure run's Resonances (ResonanceData ids). Set only by `AdventureRun.deck()`: no deck file
+## carries them, so an opponent never has any. They are not cards and count toward nothing here.
+var resonances: Array[String] = []
 
 
 static func from_dict(d: Dictionary) -> DeckList:

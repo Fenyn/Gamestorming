@@ -20,7 +20,8 @@ var starter_id: String = ""
 var run_seed: int = 0
 ## id -> node: {id, act, tier, lane, type, next: Array[String]}. A fighting node also carries
 ## `duel`, the row a ladder stage used to be: {opponent, tier, band, ai_level, grant, story, node},
-## plus `guest` on an Encounter: the personality card that starts in play on the player's side.
+## plus `guest` on an Encounter: the personality card that starts in play on the player's side, and
+## `resonances` on an Elite: the ones its opponent holds (AdventureElite).
 ## Inside `duel`, `tier` is the opponent deck's tier (t1..t5, boss), not the map tier.
 var nodes: Dictionary = {}
 var acts: int = 0
@@ -158,7 +159,7 @@ static func type_blurb(type: String) -> String:
 		"duel":
 			return "An ordinary duel."
 		"elite":
-			return "A duel against a stronger deck, for a better reward."
+			return "A duel against an opponent who holds Resonances. Win it to claim one of your own."
 		"key":
 			return "A meeting with a character the story wants you to reach."
 		"boss":
@@ -405,8 +406,8 @@ static func _parents_in(act_nodes: Dictionary, id: String) -> Array[String]:
 
 # --- Opponents ----------------------------------------------------------------
 
-## Gives every fighting node of tiers 1 to 7 its duel. A family is drawn from the node type's band,
-## never one of `own` (the run's own character), and never one already met on a path into this node
+## Gives every fighting node of tiers 1 to 7 its duel. A family is drawn from the act's band, Elites
+## included, never one of `own` (the run's own character), and never one already met on a path into this node
 ## while the band still has another; failing that, never one met on the fight just before or just
 ## after (the boss, for tier 7). The final boss's family and the storyline's set bosses are kept for
 ## their own nodes while the band allows. An Encounter brings in one of `guests`, and becomes a
@@ -449,16 +450,17 @@ func _fill_duels(act: int, spec: Dictionary, bands: Dictionary, own: Array[Strin
 			neighbours_and_final.append_array(story_bosses)
 			var everything: Array[String] = neighbours_and_final.duplicate()
 			everything.append_array(before)
-			var band: String = str(spec.get("elite_band" if type == "elite" else "band", "weaker"))
+			var band: String = str(spec.get("band", "weaker"))
 			# LORE: placeholder, make lore-relevant. A key character is a random opponent until
 			# the character links name who the player is meant to meet here.
 			var family: String = _draw(bands.get(band, []), own,
 				[everything, neighbours_and_final, parent_families], rng)
 			if parent_families.has(family):
-				# The band has nothing but the neighbours left; a neighbouring band does.
+				# The band has nothing but the neighbours left; a neighbouring band does. Never the
+				# stronger band, which is the boss pool.
 				var excluded: Array[String] = own.duplicate()
 				excluded.append_array(parent_families)
-				for other in ["medium", "stronger", "weaker"]:
+				for other in ["medium", "weaker"]:
 					var swap: String = _draw(bands.get(other, []), excluded, [everything], rng) \
 						if other != band else ""
 					if swap != "":
@@ -471,6 +473,9 @@ func _fill_duels(act: int, spec: Dictionary, bands: Dictionary, own: Array[Strin
 			nodes[id]["duel"] = _duel_row(family, deck_tier, band, ai, grant, type)
 			if type == "encounter":
 				nodes[id]["duel"]["guest"] = guests[rng.randi_range(0, guests.size() - 1)]
+			if type == "elite":
+				nodes[id]["duel"]["resonances"] = AdventureElite.resonances_for(str(nodes[id]["duel"]["opponent"]),
+					int(spec.get("elite_resonances", 0)), AdventureElite.seed_for(run_seed, id))
 			var after: Array[String] = before.duplicate()
 			if not after.has(family):
 				after.append(family)

@@ -53,6 +53,7 @@ const XP: Color = Color(0.62, 0.55, 0.90)
 const MOTES: Color = Color(0.48, 0.72, 1.00)               # arcane blue, drawn with a soft glow
 const MANA: Color = Color(0.77, 0.63, 0.94)                # lavender, the run's own currency
 const SHORT: Color = Color(0.92, 0.47, 0.39)               # a price the player cannot pay
+const PENALTY: Color = Color(0.95, 0.78, 0.35)             # amber, the price a style Resonance charges
 
 ## Titles, banners and card names. Everything else uses the project font, Kurale.
 const TITLE_FONT: Font = preload("res://assets/fonts/pirata_one/PirataOne-Regular.ttf")

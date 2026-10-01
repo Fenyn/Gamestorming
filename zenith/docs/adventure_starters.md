@@ -124,7 +124,20 @@ Kept: Vesna and Brann with their own Strikes, which fetch more Allies on hit; `f
 `freestyle_art_05`. Hand: `nightmare_hold`, `oblivion_touch`, `dread_grip`, `mind_rot`.
 Board: `signature_art_03`, `signature_combat_04`. Stops: 9.
 
+### Mercenary Lord, Gideon Mourne (before the mark)
+Added 2026-09-30 as the open Mourne starter, replacing Mind Siege on a new save.
+Plan: rush Aspect 2 (the rival cannot use Combat cards, +2 wounds) on Mourne's Low Blow's Fervor,
+strip the hand, and recycle his named cards back into the Life Deck.
+Bombs: `signature_strike_32` Mourne's Low Blow and `signature_art_18` Mourne Calls In Debts.
+Kept: the named Arts, Energy Focus as Mourne's Unpaid Bolt, Stare Down and Lunge for the hand, the
+non-lockout stops, the tutors and the four Drills. Aspects 1 to 3.
+Out, as unlocks on Gideon's personality track: Mourne Bides His Time and Mourne's Ruinous Bolt
+(level 2, the recursion combo), the Relic and Reserve (3), Aspect 4 (4), Jolting Arc and
+Mourne's Stance (5, lockouts), Aspect 5 (6).
+Stops: 12, five of them stop-any. Chaff: Braced Guard x2, Corin's Practiced Guard, Lobbed Bolt.
+
 ### Shade Mind Siege, Gideon Mourne (Marked)
+Locked from 2026-09-30 until its story quest exists; the Mercenary Lord starter replaces it.
 Plan: take their hand, table and options, then finish.
 Bombs: `freestyle_drill_01` and `freestyle_art_11` (trades wounds for their Drills).
 Kept: the Whisper Strikes with `returning_whisper` to recur them, `sifting_whisper`,

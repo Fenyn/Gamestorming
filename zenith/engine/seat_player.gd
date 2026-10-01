@@ -50,6 +50,7 @@ var must_pass: bool = false
 var skip_next_attack_phase: bool = false
 var seal_victory_pending: bool = false
 var no_ascension_win: bool = false
+var resonances: Array[String] = []   # an adventure run's Resonances (ResonanceData ids), public
 
 
 func to_dict() -> Dictionary:
@@ -67,7 +68,7 @@ func to_dict() -> Dictionary:
 		"non_combats": non_combats, "seals": seals, "remain": remain, "attachments": attachments,
 		"must_pass": must_pass,
 		"skip_next_attack_phase": skip_next_attack_phase, "seal_victory_pending": seal_victory_pending,
-		"no_ascension_win": no_ascension_win,
+		"no_ascension_win": no_ascension_win, "resonances": resonances,
 	}
 
 
@@ -115,6 +116,7 @@ static func from_dict(d: Dictionary) -> SeatPlayer:
 	p.skip_next_attack_phase = bool(d.get("skip_next_attack_phase", false))
 	p.seal_victory_pending = bool(d.get("seal_victory_pending", false))
 	p.no_ascension_win = bool(d.get("no_ascension_win", false))
+	p.resonances = strings(d.get("resonances", []))
 	return p
 
 
@@ -193,4 +195,5 @@ static func of(p: PlayerState, engine: DuelEngine) -> SeatPlayer:
 	v.skip_next_attack_phase = p.skip_next_attack_phase
 	v.seal_victory_pending = p.seal_victory_pending
 	v.no_ascension_win = p.no_ascension_win
+	v.resonances = p.resonances.duplicate()
 	return v

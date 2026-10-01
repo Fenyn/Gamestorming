@@ -34,6 +34,11 @@ enum Tab { NONE, BANK, AWAY }
 const TAB_SIZE: Vector2 = Vector2(440, 54)
 const TAB_FONT: int = 44
 const TAB_GAP: float = 10.0
+## The seat's Resonance sigils: a row of medallions under the status chips.
+const SIGIL_SIZE: float = 96.0
+const SIGIL_GAP: float = 14.0
+## How far the Seal line's printing rises above its baseline, as its click region counts it.
+const SEAL_LINE_HEIGHT: float = 34.0
 
 var reduced_motion: bool = false
 ## Projected front-face bounds, in texture pixels relative to the card's world anchor.
@@ -45,6 +50,17 @@ var card_bounds: Rect2 = Rect2(-80, -90, 160, 180):
 		update_layout()
 		request_redraw()
 var stat_hit_rects: Array[Rect2] = []
+## One rect per Resonance sigil, in `resonances` order. Kept apart from `stat_hit_rects`, since a
+## sigil answers the pointer with its own tip rather than the duelist's.
+var sigil_rects: Array[Rect2] = []
+var resonances: Array[String] = []
+## The sigil drawn with a lit ring, -1 for none.
+var lit_sigil: int = -1:
+	set(value):
+		if lit_sigil == value:
+			return
+		lit_sigil = value
+		request_redraw()
 ## The seat's status spot under its Seals, in canvas pixels, from the table's StatusHome marker.
 var status_home: Vector2 = Vector2.ZERO:
 	set(value):
@@ -148,6 +164,9 @@ func refresh(view: SeatView, player_index: int, viewer: int, live: Dictionary = 
 			held.append(seal_def.seal_number)
 		_seal_sets[seal_def.seal_set] = held
 	_flags = PLAYER_STATUS.flags(p)
+	resonances = p.resonances.duplicate()
+	if lit_sigil >= resonances.size():
+		lit_sigil = -1
 	_has_allies = not p.allies.is_empty()
 	# Lives: a seat falls when the rival scores `points_to_win[rival]` points against it.
 	var rival: int = 1 - player_index
@@ -182,13 +201,56 @@ func update_layout() -> Dictionary:
 		stat_hit_rects.append(tab_rect())
 	var flag_rows: int = _flag_row_count(at_home)
 	if not _seal_sets.is_empty():
-		stat_hit_rects.append(Rect2(flag_left, first_row - 34, text_width, 42))
+		stat_hit_rects.append(Rect2(flag_left, first_row - SEAL_LINE_HEIGHT, text_width, SEAL_LINE_HEIGHT + 8.0))
 	var lines: Array[PackedStringArray] = _flag_rows(text_width)
 	var font: int = _chip_font()
-	for i in range(mini(lines.size(), flag_rows)):
+	var shown_rows: int = mini(lines.size(), flag_rows)
+	for i in range(shown_rows):
 		var baseline: float = _chip_baseline(i, first_row)
 		stat_hit_rects.append(Rect2(flag_left, baseline - font - 6.0, text_width, font + 20.0))
+	_lay_sigils(first_row, shown_rows, flag_left, text_width, at_home)
 	return {"flags": first_row, "flag_left": flag_left, "flag_width": text_width, "home": at_home}
+
+
+## The sigils run in one row under the last chip row shown, from the chips' left end, or centred
+## with them in the Ally row. The table is point-mirrored, so the rival's row runs over the first
+## line printed (its Seals or its first chip row), from the chips' right end; with nothing printed
+## it takes that first line's place.
+func _lay_sigils(first_row: float, shown_rows: int, left: float, width: float, centred: bool) -> void:
+	sigil_rects.clear()
+	if resonances.is_empty():
+		return
+	var top: float = _chip_baseline(shown_rows, first_row) - _chip_font() + SIGIL_GAP
+	var row: float = SIGIL_SIZE * resonances.size() + SIGIL_GAP * (resonances.size() - 1)
+	var x: float = left + (width - row) * 0.5 if centred else left
+	if _player_index != _viewer:
+		x = left + (width - row) * 0.5 if centred else left + width - row
+		if _seal_sets.is_empty() and shown_rows == 0:
+			top = _chip_baseline(0, first_row) - _chip_font() + _chip_height() - SIGIL_GAP - SIGIL_SIZE
+		elif not _seal_sets.is_empty():
+			top = first_row - SEAL_LINE_HEIGHT - SIGIL_GAP - SIGIL_SIZE
+		else:
+			top = _chip_baseline(0, first_row) - _chip_font() - SIGIL_GAP - SIGIL_SIZE
+	for i in range(resonances.size()):
+		sigil_rects.append(Rect2(x + i * (SIGIL_SIZE + SIGIL_GAP), top, SIGIL_SIZE, SIGIL_SIZE))
+
+
+## True for the rival's seat, printed at the far end of the table.
+func far_side() -> bool:
+	return _player_index != _viewer
+
+
+## The sigil under a canvas point, -1 for none.
+func sigil_at(point: Vector2) -> int:
+	for i in range(sigil_rects.size()):
+		if sigil_rects[i].get_center().distance_to(point) <= SIGIL_SIZE * 0.5:
+			return i
+	return -1
+
+
+## The rival's hand fan, count and caption included, on the canvas.
+func hand_fan_rect() -> Rect2:
+	return _fan_rect()
 
 
 ## The rival's hand fan: at the status spot's left end.
@@ -254,6 +316,9 @@ func _draw() -> void:
 				rest += 1
 			row.append("+%d more" % rest)
 		_draw_chip_row(row, flag_left, _chip_baseline(i, first_row), text_width, centred)
+	for i in range(mini(sigil_rects.size(), resonances.size())):
+		var rect: Rect2 = sigil_rects[i]
+		ResonanceSigil.draw_medallion(self, rect.get_center(), rect.size.x * 0.5, resonances[i], i == lit_sigil)
 
 
 func _draw_caption() -> void:
@@ -286,6 +351,8 @@ func status_text() -> String:
 		var held: Array = _seal_sets[set_id]
 		lines.append("%s Seals: %d / %d" % [str(set_id).capitalize(), held.size(), DuelEngine.SEALS_PER_SET])
 	lines.append_array(_flags)
+	for id in resonances:
+		lines.append("%s: %s" % [ResonanceData.name_of(id), ResonanceData.effect_of(id)])
 	return "\n".join(lines)
 
 

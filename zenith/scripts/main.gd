@@ -32,6 +32,7 @@ static var ranked_search: bool = false
 @onready var adventure_button: Button = $Center/Column/Adventure
 @onready var hotseat_button: Button = $Center/Column/Hotseat
 @onready var vs_ai_button: Button = $Center/Column/VsAi
+@onready var tutorial_button: Button = $Center/Column/Tutorial
 @onready var rating_label: Label = $Center/Column/OnlineHeader/Rating
 @onready var idle_box: VBoxContainer = $Center/Column/OnlineSlot/Idle
 @onready var find_button: Button = $Center/Column/OnlineSlot/Idle/FindDuel
@@ -96,6 +97,8 @@ func _ready() -> void:
 	adventure_button.pressed.connect(func() -> void: Session.go_to_adventure())
 	hotseat_button.pressed.connect(func() -> void: _offline(-1))
 	vs_ai_button.pressed.connect(func() -> void: _offline(1))
+	tutorial_button.pressed.connect(_on_tutorial)
+	tutorial_button.text = tutorial_text(Session.progress)
 	find_button.pressed.connect(_on_find)
 	ranked_button.pressed.connect(_on_find.bind(true))
 	host_button.pressed.connect(_on_host)
@@ -169,6 +172,7 @@ func apply_state() -> void:
 	adventure_button.disabled = busy
 	vs_ai_button.disabled = busy
 	hotseat_button.disabled = busy
+	tutorial_button.disabled = busy
 	idle_box.visible = idle or state == TitleState.COOLDOWN
 	search_box.visible = busy
 	rejoin_box.visible = state == TitleState.REJOIN_OFFERED
@@ -263,6 +267,18 @@ func _nobody_looking() -> bool:
 	if state != TitleState.SEARCHING:
 		return false
 	return _waited_ms() >= (Net.QUEUE_NOTICE_MS if ranked_search else NOTE_CASUAL_MS)
+
+
+## The training session, from the lesson it was left at.
+func _on_tutorial() -> void:
+	Session.leave_adventure()
+	Session.start_tutorial()
+
+
+## "Tutorial", or "Continue tutorial" once a later lesson has been reached and the session is not
+## finished.
+static func tutorial_text(progress: AdventureProgress) -> String:
+	return "Continue tutorial" if progress.tutorial_resume_lesson() > 1 else "Tutorial"
 
 
 ## Hotseat when `ai_seat` is -1, otherwise that seat is played by the AI.
@@ -474,6 +490,7 @@ func _dev_args() -> void:
 	var args: PackedStringArray = DevArgs.user_args()
 	var online: bool = false
 	var adventure: bool = false
+	var tutorial: bool = false
 	var requeued: bool = Net.queue_state == "queued"
 	var ranked: bool = args.has("--dev-ranked")
 	var rejoinable: bool = state == TitleState.REJOIN_OFFERED
@@ -496,6 +513,9 @@ func _dev_args() -> void:
 			_on_join()
 		elif arg.begins_with("--dev-title-state="):
 			dev_fake_state(arg.get_slice("=", 1))
+		elif arg == "--dev-tutorial" or arg.begins_with("--dev-tutorial="):
+			tutorial = true
+			_dev_tutorial.call_deferred(arg)
 	if adventure:
 		# Deferred: a scene change fired straight from _ready() lands while the initial scene's
 		# own node tree is still being built, the same reason the --server branch above defers.
@@ -517,9 +537,23 @@ func _dev_args() -> void:
 			if shot != "":
 				await get_tree().create_timer(Net.CONNECT_TIMEOUT_SECONDS + 1.0).timeout
 				_save_shot(shot)
-	if not online and not adventure and shot != "":
+	if not online and not adventure and not tutorial and shot != "":
 		await get_tree().create_timer(0.3).timeout
 		_save_shot(shot)
+
+
+## `--dev-tutorial=L:B` opens the tutorial on lesson L's first step numbered B in the script (beat
+## 0 is a lesson's opening) and `L:B:N` on the Nth after it, `--dev-tutorial=L` at lesson L's
+## start, the bare flag at lesson 1. The steps before it are played at once, and the player's saved
+## lesson is left alone.
+func _dev_tutorial(arg: String) -> void:
+	var at: String = arg.get_slice("=", 1) if arg.contains("=") else "1"
+	var lesson: int = maxi(1, int(at.get_slice(":", 0)))
+	var stop: int = -1
+	if at.contains(":"):
+		stop = TutorialDirector.new().beat_index(lesson, int(at.get_slice(":", 1)), int(at.get_slice(":", 2)) if at.get_slice_count(":") > 2 else 0)
+	Session.leave_adventure()
+	Session.start_tutorial(Session.TITLE_SCENE, lesson, 0, stop, false)
 
 
 ## Puts the title in a named state from made-up facts, nothing connected. Searches read 0:42.
@@ -561,6 +595,7 @@ func _dev_adventure(args: PackedStringArray) -> void:
 	var starter_id: String = ""
 	var stage: int = -1
 	var duel: bool = false
+	var elite: bool = false
 	for arg in args:
 		if arg.begins_with("--dev-adventure="):
 			starter_id = arg.get_slice("=", 1)
@@ -568,8 +603,19 @@ func _dev_adventure(args: PackedStringArray) -> void:
 			stage = int(arg.get_slice("=", 1))
 		elif arg == "--dev-adventure-duel":
 			duel = true
+		elif arg == "--dev-adventure-elite":
+			elite = true
 	if AdventureDev.flag("--dev-scratch=") != "":
 		AdventureDev.use_scratch_saves()
+	if starter_id != "" and elite:
+		# The dev seed's run, in memory like the dev screens', so the same Elite comes up every time.
+		if AdventureDev.begin_run(starter_id):
+			if stage > 0:
+				AdventureDev.walk(stage)
+			AdventureDev.stand_on_next("elite")
+			if Session.run.status == "stage":
+				Session.begin_stage()
+				return
 	if starter_id != "":
 		Session.abandon_run()
 		Session.start_run(starter_id)

@@ -34,6 +34,7 @@ func open(deck: DeckList, might_max: int, faces: CardFaceCache) -> void:
 		rungs if rungs != "" else "Aspects %d" % deck.aspects, deck.cards.size()])
 	deck_list.show_cards(deck.cards, Session.library, faces)
 	deck_list.show_reserve(deck.relic_id, deck.reserve)
+	deck_list.show_resonances(deck.resonances)
 	visible = true
 	close_button.grab_focus()
 

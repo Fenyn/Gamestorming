@@ -1,0 +1,34 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/bark_bubble.gd" id="1_bark"]
+
+[node name="BarkBubble" type="PanelContainer"]
+visible = false
+offset_right = 200.0
+offset_bottom = 48.0
+mouse_filter = 2
+script = ExtResource("1_bark")
+
+[node name="Row" type="HBoxContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Face" type="TextureRect" parent="Row"]
+visible = false
+texture_filter = 1
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Text" type="Label" parent="Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"BodyLabel"
+autowrap_mode = 3
+
+[node name="Tail" type="Polygon2D" parent="."]
+visible = false

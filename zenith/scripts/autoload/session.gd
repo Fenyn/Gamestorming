@@ -16,6 +16,7 @@ const ADVENTURE_REWARD_SCENE: String = "res://scenes/adventure/reward.tscn"
 const ADVENTURE_FORGE_SCENE: String = "res://scenes/adventure/forge.tscn"
 const ADVENTURE_SHOP_SCENE: String = "res://scenes/adventure/shop.tscn"
 const ADVENTURE_RELIC_SCENE: String = "res://scenes/adventure/relic.tscn"
+const ADVENTURE_SHRINE_SCENE: String = "res://scenes/adventure/shrine.tscn"
 const ADVENTURE_LIBRARY_SCENE: String = "res://scenes/adventure/library.tscn"
 const ADVENTURE_SETTLE_SCENE: String = "res://scenes/adventure/settle.tscn"
 const ADVENTURE_VENDOR_SCENE: String = "res://scenes/adventure/vendor.tscn"
@@ -70,6 +71,19 @@ var _record_host: DuelHost = null
 ## can show it calls `take_dissolve_report()`, which hands it over and clears it, so the line is
 ## shown once and not on every screen after.
 var dissolve_report: Dictionary = {}
+## The training session on the table, null outside it. `start_tutorial` sets both, and every way
+## out clears them.
+var tutorial: TutorialDirector = null
+var tutorial_referee: Referee = null
+## The scene the tutorial goes to when it ends or is left.
+var tutorial_return: String = TITLE_SCENE
+## The script was played on to a later lesson before the table opened, so the table opens on the
+## referee's `catch_up` rather than replaying everything that led there.
+var tutorial_resumed: bool = false
+## False for a dev run, which must not move the player's saved lesson.
+var tutorial_saves: bool = true
+## The shipped pool while the tutorial's library, which adds its own cards, stands in its place.
+var _pool_library: CardLibrary = null
 
 
 func _ready() -> void:
@@ -315,7 +329,83 @@ func go_to_versus() -> void:
 
 
 func go_to_title() -> void:
+	leave_tutorial()
 	get_tree().change_scene_to_file(TITLE_SCENE)
+
+
+# --- Tutorial -----------------------------------------------------------------
+
+## The training session's own entry, which the title calls today and a first-run adventure can
+## call later: lessons `from_lesson` (0 resumes the saved lesson) through `to_lesson` (0 for all of
+## them), then the scene `return_to`. `stop_at`, a dev option, opens the table at that step of the
+## script instead of at the lesson's start. Everything before the opening step is played at once,
+## headless, so the board is the one the script leaves there.
+func start_tutorial(return_to: String = TITLE_SCENE, from_lesson: int = 0, to_lesson: int = 0, stop_at: int = -1, saves: bool = true) -> void:
+	leave_tutorial()
+	var director: TutorialDirector = TutorialDirector.new(to_lesson)
+	_pool_library = library
+	library = TutorialDirector.library_from(_pool_library)
+	var referee: Referee = director.build_referee(library, strike_table)
+	referee.start()
+	var first: int = from_lesson if from_lesson > 0 else progress.tutorial_resume_lesson()
+	var problem: String = director.fast_forward(referee, stop_at if stop_at >= 0 else director.lesson_start(first))
+	if problem != "":
+		push_error("The tutorial could not reach its opening step: %s" % problem)
+	tutorial_resumed = director.index > 0
+	if tutorial_resumed:
+		referee.take_updates()
+	tutorial = director
+	tutorial_referee = referee
+	tutorial_return = return_to
+	tutorial_saves = saves
+	chosen = director.seat_decks()
+	ai_seat = -1
+	lead_in = {}
+	roll_colors()
+	get_tree().change_scene_to_file(DUEL_SCENE)
+
+
+func in_tutorial() -> bool:
+	return tutorial != null
+
+
+## Lesson `n` has begun: a later start resumes there.
+func tutorial_reached(n: int) -> void:
+	if not tutorial_saves:
+		return
+	progress.reach_lesson(n)
+	progress.save()
+
+
+## The script ran to its end. The last lesson of the session marks the tutorial done; a range that
+## stopped short keeps the next lesson for later. Then on to where the tutorial was started from.
+func finish_tutorial() -> void:
+	if tutorial != null and tutorial_saves:
+		if tutorial.last_lesson() >= tutorial.final_lesson():
+			progress.finish_tutorial()
+		else:
+			progress.reach_lesson(tutorial.last_lesson() + 1)
+		progress.save()
+	var destination: String = tutorial_return
+	leave_tutorial()
+	get_tree().change_scene_to_file(destination)
+
+
+## Left partway: the saved lesson stays where it is, and the tutorial goes where it was started from.
+func abandon_tutorial() -> void:
+	var destination: String = tutorial_return
+	leave_tutorial()
+	get_tree().change_scene_to_file(destination)
+
+
+## Puts the shipped pool back and forgets the session, for every way out of the tutorial.
+func leave_tutorial() -> void:
+	if _pool_library != null:
+		library = _pool_library
+		_pool_library = null
+	tutorial = null
+	tutorial_referee = null
+	tutorial_resumed = false
 
 
 # --- Adventure --------------------------------------------------------------
@@ -382,15 +472,16 @@ func leave_adventure() -> void:
 	_record_host = null
 
 
-## Steps the run onto a map node and saves. A fight goes straight into its duel, and a Forge, a Shop
-## or the Relic node opens its screen, a Shop with its stock rolled and the Relic node with its
-## offers; any other node is passed through for now and the map screen reopens. A node that is not a
-## choice does nothing.
+## Steps the run onto a map node and saves. A fight goes straight into its duel, and a Forge, a Shop,
+## a Shrine or the Relic node opens its screen, a Shop with its stock rolled and the Relic node and a
+## Shrine with their offers; any other node is passed through for now and the map screen reopens. A
+## node that is not a choice does nothing.
 func enter_node(id: String) -> void:
 	if run == null or not run.enter(map, id):
 		return
 	AdventureShop.open(run, library)
 	AdventureRelic.open(run, library)
+	AdventureShrine.open(run)
 	AdventureSave.store(run)
 	if run.status == "stage":
 		begin_stage()
@@ -456,6 +547,23 @@ func relic_keep() -> bool:
 	return true
 
 
+## Takes a Shrine or Elite claim offer, saves and returns to the map. False, and nothing moves, when
+## it is refused.
+func shrine_take(index: int) -> bool:
+	if run == null or not AdventureShrine.take(run, index):
+		return false
+	_back_to_map()
+	return true
+
+
+## Leaves the Shrine or the Elite claim with nothing taken.
+func leave_shrine() -> void:
+	if run == null or not AdventureShrine.is_open(run):
+		return
+	AdventureShrine.leave(run)
+	_back_to_map()
+
+
 ## Moves one card between the Reserve and the library and saves. False when it is refused.
 func reserve_move(from: String, id: String, to: String) -> bool:
 	if run == null or not AdventureReserve.move(run, library, from, id, to):
@@ -500,7 +608,7 @@ func _back_to_map() -> void:
 func begin_stage() -> void:
 	var row: Dictionary = map.duel_for(run.node_id)
 	var opponent_id: String = str(row.get("opponent", ""))
-	var opponent: DeckList = DeckList.resolve(opponent_id)
+	var opponent: DeckList = AdventureElite.opponent_deck(row)
 	chosen = [run.deck(), opponent]
 	locked = [true, true]
 	ai_seat = 1
@@ -594,6 +702,8 @@ func _reward_or_stage_scene() -> String:
 		return ADVENTURE_SHOP_SCENE
 	if run.status == AdventureRelic.STATUS_OFFERS:
 		return ADVENTURE_RELIC_SCENE
+	if AdventureShrine.is_open(run):
+		return ADVENTURE_SHRINE_SCENE
 	if run.status == AdventureRelic.STATUS_TRIM:
 		return ADVENTURE_LIBRARY_SCENE
 	if run.status == "settle":
@@ -619,8 +729,9 @@ func finish_aspect(card_id: String) -> void:
 	get_tree().change_scene_to_file(ADVENTURE_REWARD_SCENE)
 
 
-## Leaves the reward screen for the map, or the run's end. Beating the final boss pays the
-## completion bonus and opens the settlement, where the run deck is on offer at a discount.
+## Leaves the reward screen for the map, an Elite's Resonance claim, or the run's end. Beating the
+## final boss pays the completion bonus and opens the settlement, where the run deck is on offer at
+## a discount.
 func finish_reward() -> void:
 	win_results.clear()
 	var bonus: int = AdventureRewards.finish_reward(run, map)

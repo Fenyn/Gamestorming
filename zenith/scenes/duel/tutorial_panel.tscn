@@ -1,0 +1,189 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/duel/tutorial_panel.gd" id="1_panel"]
+[ext_resource type="PackedScene" path="res://scenes/duel/bark_bubble.tscn" id="2_bark"]
+[ext_resource type="Shader" path="res://scripts/duel/tether.gdshader" id="3_tether"]
+[ext_resource type="Shader" path="res://scripts/duel/ribbon.gdshader" id="4_ribbon"]
+
+[sub_resource type="ShaderMaterial" id="Material_tether"]
+shader = ExtResource("3_tether")
+shader_parameter/tint = Color(0.93, 0.91, 0.87, 0.8)
+shader_parameter/reveal = 1.0
+shader_parameter/period = 1.4
+shader_parameter/glow = 0.14
+shader_parameter/motion = 1.0
+
+[sub_resource type="Gradient" id="Gradient_white"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="Texture_white"]
+gradient = SubResource("Gradient_white")
+width = 8
+height = 8
+
+[sub_resource type="ShaderMaterial" id="Material_ribbon"]
+shader = ExtResource("4_ribbon")
+shader_parameter/tint = Color(0.085, 0.078, 0.08, 0.92)
+shader_parameter/edge = 0.22
+shader_parameter/rule = 0.04
+
+[node name="TutorialPanel" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_panel")
+
+[node name="LessonTag" type="Label" parent="."]
+layout_mode = 0
+offset_left = 100.0
+offset_top = 16.0
+offset_right = 760.0
+offset_bottom = 48.0
+mouse_filter = 2
+theme_type_variation = &"CaptionLabel"
+text = "Lesson 1 · The Straw Knight"
+
+[node name="Tether" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Thread" type="Line2D" parent="Tether"]
+visible = false
+material = SubResource("Material_tether")
+width = 3.0
+texture = SubResource("Texture_white")
+texture_mode = 2
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="Head" type="Line2D" parent="Tether"]
+visible = false
+width = 3.0
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="Caption" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -520.0
+offset_top = 70.0
+offset_right = 520.0
+offset_bottom = 130.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="Ribbon" type="ColorRect" parent="Caption"]
+material = SubResource("Material_ribbon")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Text" type="Label" parent="Caption"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"BodyLabel"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Coach" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 100.0
+offset_top = 64.0
+offset_right = 400.0
+offset_bottom = 124.0
+
+[node name="Row" type="HBoxContainer" parent="Coach"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="Face" type="PanelContainer" parent="Coach/Row"]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+
+[node name="Portrait" type="TextureRect" parent="Coach/Row/Face"]
+texture_filter = 1
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Column" type="VBoxContainer" parent="Coach/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Text" type="Label" parent="Coach/Row/Column"]
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+autowrap_mode = 3
+
+[node name="Reason" type="Label" parent="Coach/Row/Column"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+autowrap_mode = 3
+
+[node name="Hint" type="Label" parent="Coach/Row/Column"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Click or press Space."
+
+[node name="Timer" type="Control" parent="Coach/Row/Column"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Fill" type="ColorRect" parent="Coach/Row/Column/Timer"]
+layout_mode = 0
+offset_right = 100.0
+offset_bottom = 2.0
+mouse_filter = 2
+
+[node name="Barks" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BarkYou" parent="Barks" instance=ExtResource("2_bark")]
+layout_mode = 0
+
+[node name="BarkRival" parent="Barks" instance=ExtResource("2_bark")]
+layout_mode = 0
+
+[node name="BarkNote" parent="Barks" instance=ExtResource("2_bark")]
+layout_mode = 0

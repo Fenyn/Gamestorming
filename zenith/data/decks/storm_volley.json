@@ -28,8 +28,8 @@
     "fervor"
   ],
   "ai_profile": "storm_volley",
-  "tagline": "Build your engine with Drills, charge your Energy, and unleash a barrage of discounted Arts.",
-  "blurb": "Siphon is a warded construct that charges through ritual and releases all at once. Its Arts come cheap and hit hard, and its Drills keep the charge coming. Poor at close range and helpless on empty Energy.",
+  "tagline": "Tax the rival's Strikes, recharge off your own blocks, and unleash a barrage of discounted Arts.",
+  "blurb": "Siphon is a warded construct that charges through ritual and releases all at once. Its Arts come cheap and hit hard, and its wards pay the charge back when they stop a blow. Poor at close range and helpless on empty Energy.",
   "cards": [
     {
       "id": "freestyle_drill_01",

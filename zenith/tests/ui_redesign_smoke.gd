@@ -4,6 +4,9 @@ extends SceneTree
 ## Run: godot --headless --path zenith -s tests/ui_redesign_smoke.gd
 
 const FaceCacheFill = preload("res://tests/face_cache_fill.gd")
+const SIGILS: Array[String] = ["iron_resolve", "braced_stance", "blood_price"]
+## The rival holds these, as an act 3 Elite does.
+const FAR_SIGILS: Array[String] = ["patient_tide", "steady_flame"]
 
 var failures: int = 0
 var checks: int = 0
@@ -23,7 +26,13 @@ func _check(condition: bool, message: String) -> void:
 
 func _run() -> void:
 	var session: Node = root.get_node("Session")
-	var chosen: Array[DeckList] = [session.decks[0], session.decks[1]]
+	# The near seat carries three Resonances, as an adventure run's deck would, so the sigil row is
+	# laid out and checked against everything around it.
+	var near_deck: DeckList = DeckList.resolve((session.decks[0] as DeckList).id)
+	near_deck.resonances.assign(SIGILS)
+	var far_deck: DeckList = DeckList.resolve((session.decks[1] as DeckList).id)
+	far_deck.resonances.assign(FAR_SIGILS)
+	var chosen: Array[DeckList] = [near_deck, far_deck]
 	session.chosen = chosen
 	session.seed_value = 5
 	session.ai_seat = -1
@@ -287,6 +296,7 @@ func _run() -> void:
 	for fixture in [duel.near_duelist, duel.far_duelist]:
 		footprint_areas.append(fixture.readout.card_bounds.get_area())
 		_check_fixture_geometry(duel, fixture)
+	await _check_sigils(duel)
 	duel.camera.dev_set(Vector2.ZERO, 4)
 	duel._layout_fixtures()
 	for i in range(2):
@@ -558,6 +568,125 @@ func _printed_surge(card: SeatCard) -> int:
 	return int(def.aspect_data(aspect).get("surge", 0)) + DuelEngine.STYLE_SURGE_BONUS
 
 
+## Each seat's Resonance sigils: one per Resonance in a row, the near seat's under its status chips
+## and the rival's mirrored over theirs, clear of the chips, Seals, the caption, the rival's hand
+## fan, the duelist, the Life Deck, the Discard pile, the phase track and the history strip at
+## 1600x900 and 1280x720, with and without chips, Seals and an Ally, and a hover that opens the
+## framed tip with the name, the sentence and the penalty in its colour.
+func _check_sigils(duel: Node3D) -> void:
+	var near: Node3D = duel.near_duelist
+	var far: Node3D = duel.far_duelist
+	var readout: Control = near.readout
+	_check(readout.resonances == SIGILS and readout.sigil_rects.size() == SIGILS.size(), "The near seat lays out one sigil per Resonance")
+	_check(far.readout.resonances == FAR_SIGILS and far.readout.sigil_rects.size() == FAR_SIGILS.size(), "The rival lays out one sigil per Resonance too")
+	var original_scale: Vector2i = root.content_scale_size
+	var original_window: Vector2i = root.size
+	for size: Vector2i in [Vector2i(1600, 900), Vector2i(1280, 720)]:
+		root.size = size
+		root.content_scale_size = size
+		duel._layout_fixtures()
+		for fixture: Node3D in [near, far]:
+			_check_seat_sigils(duel, fixture, size)
+			# The same row beside a crowded status block: chips over two rows and a Seal set, in the
+			# Ally row and, with an Ally in play, at the status spot.
+			var printed: Control = fixture.readout
+			var flags: PackedStringArray = printed._flags
+			var seals: Dictionary = printed._seal_sets
+			var allies: bool = printed._has_allies
+			printed._flags = PackedStringArray(["Mastery silenced", "Cannot declare Combat", "Arts cost 1 more", "No Drills"])
+			printed._seal_sets = {"root": [1, 3]}
+			for with_ally: bool in [false, true]:
+				printed._has_allies = with_ally
+				duel._layout_fixtures()
+				printed.update_layout()
+				_check(printed.stat_hit_rects.size() >= 3, "The crowded block prints its chip rows and its Seal line")
+				_check_seat_sigils(duel, fixture, size, "crowded%s" % (" beside an Ally" if with_ally else ""))
+			printed._flags = flags
+			printed._seal_sets = seals
+			printed._has_allies = allies
+			duel._layout_fixtures()
+			printed.update_layout()
+	var far_readout: Control = far.readout
+	var near_row: Rect2 = readout.sigil_rects[0].merge(readout.sigil_rects[readout.sigil_rects.size() - 1])
+	var far_row: Rect2 = far_readout.sigil_rects[0].merge(far_readout.sigil_rects[far_readout.sigil_rects.size() - 1])
+	var near_block: Rect2 = Rect2(readout.flag_home.position, Vector2(readout.flag_home.size.x, 1.0))
+	var far_block: Rect2 = Rect2(far_readout.flag_home.position, Vector2(far_readout.flag_home.size.x, 1.0))
+	_check(near_row.get_center().y > near_block.position.y and far_row.get_center().y < far_block.position.y,
+		"The rival's row is mirrored: over its status block where the near seat's is under")
+	near.hover_sigil(2, duel.camera)
+	await process_frame
+	var tip: PanelContainer = duel.hud.resonance_tip
+	_check(tip.visible and duel.hud.resonance_tip_name.text == "Blood Price", "Hovering a sigil opens its tip")
+	_check(duel.hud.resonance_tip_effect.text == ResonanceData.effect_of("blood_price"), "with its sentence")
+	_check(duel.hud.resonance_tip_penalty.visible and duel.hud.resonance_tip_penalty.get_theme_color("font_color") == ZenithTheme.PENALTY,
+		"and its penalty in the penalty colour")
+	_check(Rect2(Vector2.ZERO, Vector2(root.size)).encloses(tip.get_global_rect()), "The tip stays on screen")
+	_check(readout.lit_sigil == 2, "The hovered sigil's ring is lit")
+	near.hover_sigil(0, duel.camera)
+	await process_frame
+	_check(not duel.hud.resonance_tip_penalty.visible, "A Resonance with no penalty shows none")
+	near.hover_sigil(-1, duel.camera)
+	_check(not tip.visible and readout.lit_sigil == -1, "Leaving the sigil closes the tip")
+	far.hover_sigil(0, duel.camera)
+	await process_frame
+	_check(tip.visible and duel.hud.resonance_tip_name.text == "Patient Tide", "Hovering the rival's sigil opens its tip")
+	_check(duel.hud.resonance_tip_penalty.visible and duel.hud.resonance_tip_penalty.text == ResonanceData.penalty_of("patient_tide"),
+		"with the penalty the rival pays")
+	var tip_rect: Rect2 = tip.get_global_rect()
+	var covers: bool = false
+	for i in range(far.readout.sigil_rects.size()):
+		covers = covers or tip_rect.intersects(far.sigil_screen_rect(i, duel.camera))
+	var far_owner: int = duel.view.card(far.duelist_uid).owner
+	for zone: StringName in [&"life_deck", &"discard"]:
+		var pile: Vector2 = duel.camera.unproject_position(duel.zones.to_global(duel.zones.slot(far_owner, zone, 0, 1, duel.viewer).origin))
+		covers = covers or tip_rect.has_point(pile)
+	var fan: Rect2 = far.screen_rect_of(far.readout.hand_fan_rect(), duel.camera)
+	covers = covers or tip_rect.intersects(fan)
+	_check(not covers, "The rival's tip opens over their row, covering none of its sigils, their piles or their hand fan: tip %s, row %s, fan %s"
+		% [str(tip_rect), str(far.far_tip_anchor(duel.camera)), str(fan)])
+	_check(Rect2(Vector2.ZERO, Vector2(root.size)).encloses(tip.get_global_rect()), "and stays on screen")
+	far.hover_sigil(-1, duel.camera)
+	_check(not tip.visible and far.readout.lit_sigil == -1, "Leaving it closes the tip")
+	root.content_scale_size = original_scale
+	root.size = original_window
+	duel._layout_fixtures()
+
+
+## One seat's sigil row at one window size: clear of every printed region of the seat, the duelist,
+## the seat's Life Deck and Discard pile, the phase track and the history strip, on screen, and
+## found by the pointer.
+func _check_seat_sigils(duel: Node3D, fixture: Node3D, size: Vector2i, what: String = "") -> void:
+	var printed: Control = fixture.readout
+	var label: String = "%s %s%s" % [str(size), "near" if fixture == duel.near_duelist else "far", (" " + what) if what != "" else ""]
+	var clear: bool = true
+	for sigil: Rect2 in printed.sigil_rects:
+		for rect: Rect2 in printed.stat_hit_rects:
+			clear = clear and not sigil.intersects(rect)
+		clear = clear and not sigil.intersects(printed.card_bounds)
+	_check(clear, "At %s the sigils clear the status chips, the Seals, the caption, the hand fan and the duelist" % label)
+	var owner: int = duel.view.card(fixture.duelist_uid).owner
+	var piles: Array[Rect2] = []
+	for zone: StringName in [&"life_deck", &"discard"]:
+		var slot: Transform3D = duel.zones.slot(owner, zone, 0, 1, duel.viewer)
+		var centre: Vector2 = duel.camera.unproject_position(duel.zones.to_global(slot.origin))
+		piles.append(Rect2(centre, Vector2.ZERO).grow(4.0))
+	var band: Rect2 = PhaseTrack.band_rect()
+	var band_y: float = duel.phase_track.band.global_position.y
+	var track: Rect2 = Rect2(duel.camera.unproject_position(Vector3(band.position.x, band_y, band.position.y)), Vector2.ZERO)
+	for corner: Vector2 in [Vector2(band.end.x, band.position.y), band.end, Vector2(band.position.x, band.end.y)]:
+		track = track.expand(duel.camera.unproject_position(Vector3(corner.x, band_y, corner.y)))
+	var history: Rect2 = duel.hud.history.get_global_rect()
+	for i in range(printed.sigil_rects.size()):
+		var screen: Rect2 = fixture.sigil_screen_rect(i, duel.camera)
+		_check(screen.has_area() and Rect2(Vector2.ZERO, Vector2(size)).encloses(screen), "At %s sigil %d is on screen: %s" % [label, i, str(screen)])
+		for pile: Rect2 in piles:
+			_check(not screen.intersects(pile), "At %s sigil %d keeps off the Life Deck and the Discard pile" % [label, i])
+		_check(not screen.intersects(track), "At %s sigil %d keeps off the phase track: %s against %s" % [label, i, str(screen), str(track)])
+		_check(not screen.intersects(history), "At %s sigil %d keeps off the history strip" % [label, i])
+		_check(fixture.sigil_at(screen.get_center(), duel.camera) == i, "At %s the pointer over sigil %d finds it" % [label, i])
+		_check(not fixture.hit_test(screen.get_center(), duel.camera), "and does not open the duelist's own hover")
+
+
 func _check_fixture_geometry(duel: Node3D, fixture: Node3D) -> void:
 	var readout: Control = fixture.readout
 	_check(readout.card_bounds.has_area(), "Readout must measure a real projected card footprint")
@@ -565,7 +694,7 @@ func _check_fixture_geometry(duel: Node3D, fixture: Node3D) -> void:
 	var separated: bool = true
 	var fits_canvas: bool = true
 	var canvas: Rect2 = Rect2(-Vector2(fixture.viewport.size) * 0.5, Vector2(fixture.viewport.size))
-	for rect: Rect2 in readout.stat_hit_rects:
+	for rect: Rect2 in readout.stat_hit_rects + readout.sigil_rects:
 		separated = separated and not rect.intersects(readout.card_bounds)
 		fits_canvas = fits_canvas and canvas.encloses(rect)
 	_check(separated, "Resource click regions must stay outside the projected card face")

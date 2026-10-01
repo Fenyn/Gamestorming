@@ -81,7 +81,7 @@ static func _cards_ok(bundle: Dictionary, deck: DeckList, duelist: CardDef, libr
 static func card_gates_ok(def: CardDef, deck: DeckList, duelist: CardDef, library: CardLibrary) -> bool:
 	if def == null:
 		return false
-	if def.alignment_only != "" and def.alignment_only != deck.alignment:
+	if not CardDef.side_allows(deck.alignment, def.alignment_only):
 		return false
 	return _only_ok(def.only, deck, duelist, library)
 
@@ -118,7 +118,7 @@ static func _only_ok(gate: Dictionary, deck: DeckList, duelist: CardDef, library
 				if not any_passed:
 					return false
 			"alignment":
-				if deck.alignment != str(value):
+				if not CardDef.side_allows(deck.alignment, str(value)):
 					return false
 			"character":
 				# The gated personality must be someone the deck can put in control.
@@ -389,13 +389,15 @@ static func finish_aspect(run: AdventureRun, map: AdventureMap, library: CardLib
 	run.status = "reward"
 
 
-## Leaves the reward screen for the map, or ends the run when the duel just won was the final
-## boss. Returns the completion bonus when the run is won and 0 otherwise; the caller credits it.
+## Leaves the reward screen for the map, or for the Resonance claim when the duel just won was an
+## Elite (AdventureElite.open_claim), or ends the run when it was the final boss. Returns the
+## completion bonus when the run is won and 0 otherwise; the caller credits it.
 static func finish_reward(run: AdventureRun, map: AdventureMap) -> int:
 	run.pending_offer.clear()
 	run.stage += 1
 	if run.node_id != map.final_id():
 		run.status = "map"
+		AdventureElite.open_claim(run, map)
 		return 0
 	run.status = "won"
 	return AdventureEconomy.completion_bonus()

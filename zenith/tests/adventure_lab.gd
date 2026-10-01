@@ -30,6 +30,7 @@ const SPEC: Dictionary = {
 	"json": {"type": "str", "default": ""},
 	"verbose": {"type": "bool", "default": "off"},
 	"progress": {"type": "int", "default": 0, "min": 0, "max": 1000000},
+	"take-shrine": {"type": "bool", "default": "off"},
 }
 
 ## A run that somehow never leaves a status is cut off here rather than hanging the bench.
@@ -41,6 +42,8 @@ var runner: SimMatch = null
 var player_side: SimSeat = null
 var use_lives: bool = true
 var verbose: bool = false
+## `--take-shrine`: take the first offer at every Shrine and every Elite's claim instead of leaving it.
+var take_shrine: bool = false
 var opponent_sides: Dictionary = {}   # policy name -> SimSeat
 
 var stage_rows: Array[Dictionary] = []
@@ -77,6 +80,7 @@ func _init() -> void:
 	runner = SimMatch.make(library, table, args.int_of("max-steps"))
 	use_lives = args.bool_of("lives")
 	verbose = args.bool_of("verbose")
+	take_shrine = args.bool_of("take-shrine")
 
 	var runs: int = args.int_of("runs")
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -139,7 +143,7 @@ func _play_run(index: int, starter: String, run_seed: int, opponent_policy: Stri
 	var mana_spent: int = 0
 	var shops: int = 0
 	var guard: int = 0
-	while run.status in ["map", "stage", "forge", "shop", "relic", "reserve", "aspect", "reward"] and guard < MAX_STEPS_PER_RUN:
+	while run.status in ["map", "stage", "forge", "shop", "relic", "reserve", "shrine", "claim", "aspect", "reward"] and guard < MAX_STEPS_PER_RUN:
 		guard += 1
 		match run.status:
 			"map":
@@ -155,6 +159,10 @@ func _play_run(index: int, starter: String, run_seed: int, opponent_policy: Stri
 				mana_spent += _visit_shop(run)
 			"relic", "reserve":
 				_visit_relic(run, rng)
+			"shrine", "claim":
+				AdventureShrine.open(run)
+				if not take_shrine or not AdventureShrine.take(run, 0):
+					AdventureShrine.leave(run)
 			"stage":
 				var row: Dictionary = map.duel_for(run.node_id)
 				var record: Dictionary = _play_stage(index, run, map, row, opponent_policy, taken.duplicate())
@@ -283,7 +291,7 @@ func _play_stage(index: int, run: AdventureRun, map: AdventureMap, row: Dictiona
 		opponent_policy: String, held: Array[String]) -> Dictionary:
 	var opponent_id: String = str(row.get("opponent", ""))
 	var player_deck: DeckList = run.deck()
-	var opponent_deck: DeckList = DeckList.resolve(opponent_id)
+	var opponent_deck: DeckList = AdventureElite.opponent_deck(row)
 	var here: Dictionary = map.node(run.node_id)
 	var record: Dictionary = {
 		"run": index, "stage": run.stage + 1, "opponent": opponent_id,
@@ -471,10 +479,14 @@ func _reward_summary() -> void:
 	var cuts: int = 0
 	var copies: int = 0
 	var bought: int = 0
+	var resonances: Dictionary = {}   # Resonance id -> times taken
 	for row in run_rows:
 		for entry in row.get("picks", []):
 			var kind: String = str((entry as Dictionary).get("kind", ""))
-			if kind == AdventureShop.KIND_BUY:
+			if kind == AdventureShrine.KIND:
+				var id: String = str((entry as Dictionary).get("id", ""))
+				resonances[id] = int(resonances.get(id, 0)) + 1
+			elif kind == AdventureShop.KIND_BUY:
 				bought += 1
 			elif kind == "aspect":
 				aspects += 1
@@ -498,6 +510,8 @@ func _reward_summary() -> void:
 	print("")
 	print("Forge: %d cuts, %d copies." % [cuts, copies])
 	print("Shop: %d cards bought, the cheapest affordable each time." % bought)
+	if take_shrine:
+		print("Shrine: first offer taken each visit: %s" % _counts(resonances, 14))
 	print("Rewards: %d Aspect picks, %d skipped offers. The win rate is the stages played after" % [aspects, skips])
 	print("taking the bundle, over every run that took it, which is rough: a bundle taken late is")
 	print("credited with fewer and harder stages than one taken early.")

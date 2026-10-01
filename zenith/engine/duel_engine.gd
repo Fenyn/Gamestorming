@@ -50,6 +50,10 @@ var prompt: Prompt:
 			prompts.append(p)
 var events: Array[GameEvent] = []
 var shuffle_decks: bool = true
+## A scripted duel, the tutorial: set before `setup()`. Life Decks keep their listed order (index 0
+## on top) and nothing is ever shuffled, seat 0 opens without the Double Power Rule or chance, and
+## `set_opening` and `script_op` are open. Every other duel leaves it off and reads none of it.
+var scripted: bool = false
 ## Stamp every event with the table numbers as they stood when it fired, so a client can pace
 ## the beats. A Referee turns it on for its own engine; `clone()` leaves it off, so the AI's
 ## simulations never pay for it.
@@ -78,6 +82,8 @@ func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable,
 	library = p_library
 	strike_table = p_table
 	rng = ZenithRng.new(seed_value)
+	if scripted:
+		shuffle_decks = false
 	state = GameState.new()
 	state.seed_value = seed_value
 	for i in range(2):
@@ -86,6 +92,13 @@ func setup(decks: Array[DeckList], p_library: CardLibrary, p_table: StrikeTable,
 			state.players[i].name = names[i]
 	var first_reason: String = _apply_first_player_rule()
 	_emit(&"setup", {"first": state.active, "reason": first_reason, "seed": seed_value})
+	# "You open each duel at your highest Energy stage": after the Double Power Rule, which reads the
+	# stage every duelist starts on and still decides who goes first.
+	for p in state.players:
+		var opener: Dictionary = _resonance_with(p, "open_at_highest_energy")
+		if not opener.is_empty():
+			p.duelist.energy = CardInstance.MAX_STAGE
+			_resonance_fired(p, str(opener["id"]), "open_energy")
 
 
 ## `seat` opens the duel whatever the Double Power Rule or chance decided; a series hands the first
@@ -101,6 +114,23 @@ func set_first_player(seat: int) -> void:
 			ev.data["reason"] = "forced"
 			if record_display_state:
 				ev.state = _display_state()
+
+
+## A scripted duel's opening numbers for `seat` in place of the printed start: `energy`, `fervor`
+## and `aspect` (the Duelist's tier), each only when given. Call between `setup()` and `start()`.
+func set_opening(seat: int, values: Dictionary) -> void:
+	assert(scripted, "set_opening() is for a scripted duel")
+	assert(state.step == GameState.Step.SETUP and state.turn == 0, "set_opening() after start()")
+	var p: PlayerState = state.players[seat]
+	if values.has("aspect"):
+		p.duelist.go_to_aspect(clampi(int(values["aspect"]), p.duelist.stack.lowest_aspect(), p.highest_aspect))
+	if values.has("energy"):
+		p.duelist.energy = clampi(int(values["energy"]), 0, CardInstance.MAX_STAGE)
+	if values.has("fervor"):
+		p.fervor = maxi(0, int(values["fervor"]))
+	if record_display_state:
+		for ev in events:
+			ev.state = _display_state()
 
 
 ## Call between `setup()` and `start()`. 1 is the printed game; adventure duels use 2 for both.
@@ -264,6 +294,7 @@ func clone_into(e: DuelEngine) -> DuelEngine:
 	e.strike_table = strike_table
 	e.rng = rng.copy()
 	e.shuffle_decks = shuffle_decks
+	e.scripted = scripted
 	e.record_display_state = false
 	e.events.clear()
 	var spare: Dictionary = e._cards
@@ -379,6 +410,126 @@ func dev_effect(owner: int, e: Dictionary) -> String:
 	return ""
 
 
+## A scripted duel's board adjustments between beats, each told as ordinary events so a client
+## animates it and every seat's view follows. "" when applied, else why not.
+## - `deal` {seat, cards, at}: new copies of those card ids go on the `top` (the default) or the
+##   `bottom` of the seat's Life Deck, in the listed order from that end inward.
+## - `swap_duelist` {seat, deck, name, energy}: every card the seat owns is carried off the table
+##   (zone `offstage`, in no list) and the side is dealt again from `deck`, a DeckList dictionary,
+##   its Life Deck in listed order. Never in Combat, and never while that seat has a decision open.
+## - `set_energy` {seat, energy}: the seat's Duelist stands at that Energy.
+## - `set_fervor` {seat, fervor}: the seat's Fervor stands at that level. It never climbs an Aspect.
+## - `end_combat`: the Combat ends between attacks, as a card that ends Combat would end it.
+## - `end_session`: the duel ends with no winner.
+## Every op but the last two leaves the pending decision as it was.
+func script_op(op: Dictionary) -> String:
+	if not scripted:
+		return "Only a scripted duel takes script operations."
+	if state.is_over():
+		return "The duel is over."
+	if not _queue.is_empty() or not _choice.is_empty():
+		return "Not while a card effect is mid-resolution."
+	var seat: int = int(op.get("seat", 0))
+	if seat < 0 or seat > 1:
+		return "There is no seat %d." % seat
+	match str(op.get("op", "")):
+		"deal":
+			var ids: Array = op.get("cards", [])
+			for id in ids:
+				if not library.has(str(id)):
+					return "There is no card %s." % str(id)
+			var at: String = str(op.get("at", "top"))
+			if at != "top" and at != "bottom":
+				return "A deal goes to the top or the bottom, not %s." % at
+			_deal(state.players[seat], ids, at == "top")
+		"swap_duelist":
+			if state.step == GameState.Step.COMBAT:
+				return "Not during Combat."
+			if prompt_of(seat) != null:
+				return "Not while that seat has a decision open."
+			var deck: DeckList = DeckList.from_dict(op.get("deck", {}))
+			if deck.duelist_ids.is_empty():
+				return "The new side has no Duelist."
+			var named: Array[String] = []
+			named.append_array(deck.duelist_ids)
+			named.append_array(deck.cards)
+			named.append_array(deck.reserve)
+			named.append(deck.mastery_id)
+			named.append(deck.relic_id)
+			for id in named:
+				if id != "" and not library.has(id):
+					return "There is no card %s." % id
+			_swap_duelist(seat, deck, str(op.get("name", "")), op)
+		"set_energy":
+			var p: PlayerState = state.players[seat]
+			var before: int = p.duelist.energy
+			p.duelist.energy = clampi(int(op.get("energy", before)), 0, CardInstance.MAX_STAGE)
+			_emit(&"energy_changed", {"player": seat, "card": p.duelist.uid, "from": before, "to": p.duelist.energy, "source": -1, "script": true})
+		"set_fervor":
+			var p: PlayerState = state.players[seat]
+			var before: int = p.fervor
+			p.fervor = clampi(int(op.get("fervor", before)), 0, maxi(0, fervor_needed(p) - 1))
+			_emit(&"fervor_changed", {"player": seat, "from": before, "to": p.fervor, "source": -1, "source_owner": -1})
+		"end_combat":
+			if state.step != GameState.Step.COMBAT or not state.attack.is_empty() or prompt == null or not DEV_SAFE_PROMPTS.has(prompt.kind):
+				return "No Combat to end between attacks."
+			prompt = null
+			_end_combat()
+			_run()
+		"end_session":
+			prompt = null
+			_queue.clear()
+			state.ended = true
+			state.win_reason = "session_ended"
+			state.step = GameState.Step.GAME_OVER
+			_emit(&"game_over", {"winner": -1, "reason": "session_ended"})
+		_:
+			return "There is no script operation %s." % str(op.get("op", ""))
+	return ""
+
+
+func _deal(p: PlayerState, ids: Array, on_top: bool) -> void:
+	var dealt: Array[int] = []
+	for i in range(ids.size()):
+		var c: CardInstance = _instance(library.get_def(str(ids[i])), p.index, &"life_deck")
+		dealt.append(c.uid)
+	for i in range(dealt.size()):
+		var c: CardInstance = card(dealt[i])
+		if on_top:
+			p.life_deck.insert(i, c)
+		else:
+			p.life_deck.insert(p.life_deck.size() - i, c)
+	_emit(&"script_dealt", {"player": p.index, "cards": dealt, "at": "top" if on_top else "bottom"})
+
+
+func _swap_duelist(seat: int, deck: DeckList, name: String, op: Dictionary) -> void:
+	var old: PlayerState = state.players[seat]
+	var gone: Array[int] = []
+	for uid in _cards:
+		var c: CardInstance = _cards[uid]
+		if c.owner == seat and c.zone != &"offstage":
+			c.zone = &"offstage"
+			c.attached_to = null
+			c.remain = 0
+			c.cards_under.clear()
+			gone.append(c.uid)
+	var fresh: PlayerState = _build_player(seat, deck)
+	if name != "":
+		fresh.name = name
+	fresh.turns_taken = old.turns_taken
+	if op.has("energy"):
+		fresh.duelist.energy = clampi(int(op["energy"]), 0, CardInstance.MAX_STAGE)
+	state.players[seat] = fresh
+	var arrived: Array[int] = [fresh.duelist.uid]
+	if fresh.mastery != null:
+		arrived.append(fresh.mastery.uid)
+	if fresh.relic != null:
+		arrived.append(fresh.relic.uid)
+	for c in fresh.life_deck:
+		arrived.append(c.uid)
+	_emit(&"script_swap", {"player": seat, "gone": gone, "arrived": arrived, "name": fresh.name})
+
+
 ## Returns and clears the events accumulated since the last call.
 func take_events() -> Array[GameEvent]:
 	var out: Array[GameEvent] = events
@@ -457,10 +608,11 @@ func pending_items() -> Array[Dictionary]:
 	for i in range(_queue.size()):
 		var job: Dictionary = _queue[i]
 		var source: CardInstance = job.get("source")
+		var sourceless: String = ResonanceData.name_of(str(job["resonance"])) if job.has("resonance") else ""
 		out.append({
 			"kind": &"trigger",
 			"uid": source.uid if source != null else -1,
-			"title": source.def.title if source != null else "",
+			"title": source.def.title if source != null else sourceless,
 			"owner": int(job.get("owner", -1)),
 			"target": -1,
 			"note": CardText.trigger_phrase(str(job.get("trigger", "secondary"))),
@@ -500,6 +652,9 @@ func _build_player(index: int, deck: DeckList) -> PlayerState:
 	p.style = deck.style
 	p.archetype = deck.archetype
 	p.subthemes = deck.subthemes.duplicate()
+	for id in deck.resonances:
+		if ResonanceData.has(id) and not p.resonances.has(id):
+			p.resonances.append(id)
 	# The Duelist is a stack of personality cards, one per Aspect. It is assembled once, here, and
 	# the engine then reads "the row for Aspect n" off it exactly as it used to read a ladder card.
 	var stack: PersonalityStack = deck.duelist_stack(library)
@@ -547,6 +702,9 @@ func _instance(def: CardDef, owner: int, zone: StringName) -> CardInstance:
 ## drawn from the duel's own seeded stream so a seed still replays the same game. Returns why
 ## that seat opens: "double_power" or "chance".
 func _apply_first_player_rule() -> String:
+	if scripted:
+		state.active = 0
+		return "scripted"
 	var a: PlayerState = state.players[0]
 	var b: PlayerState = state.players[1]
 	var wild: bool = a.duelist.is_wild() or b.duelist.is_wild()
@@ -575,6 +733,8 @@ func _apply_first_player_rule() -> String:
 ## active player's first. Nobody waits on the other.
 func _advance_reserve() -> void:
 	if state.reserve_index >= 2:
+		if _queue_resonance_setup():
+			return
 		if _prompt_start_in_play():
 			return
 		_begin_turn()
@@ -689,6 +849,30 @@ func _prompt_start_in_play() -> bool:
 	return false
 
 
+## "At the start of each duel you may search your Life Deck for a Drill and put it into play": once
+## both Reserves are settled, each player's setup Resonances queue their search, the active player's
+## first. The search is the ordinary one, so it asks, shows the whole deck, allows taking nothing and
+## shuffles once. True when something was queued.
+func _queue_resonance_setup() -> bool:
+	for index in [state.active, state.opposing()]:
+		if state.resonance_setup_done[index]:
+			continue
+		state.resonance_setup_done[index] = true
+		var p: PlayerState = state.players[index]
+		for id in p.resonances:
+			var search: Dictionary = ResonanceData.rules(id).get("setup_search", {})
+			if search.is_empty():
+				continue
+			var e: Dictionary = search.duplicate(true)
+			e["resonance"] = id
+			_resonance_fired(p, id, "setup_search")
+			var list: Array[Dictionary] = [e]
+			_queue.append({"effects": list, "index": 0, "trigger": "resonance", "owner": index, "ctx": {}, "source": null, "resonance": id})
+		if not _queue.is_empty():
+			return true
+	return false
+
+
 func _handle_start_play(cmd: Command) -> void:
 	var p: PlayerState = state.players[cmd.player]
 	if cmd.type == &"done":
@@ -728,7 +912,7 @@ func _advance() -> void:
 		GameState.Step.SETUP:
 			_advance_reserve()
 		GameState.Step.DRAW:
-			_draw(state.active, DRAW_COUNT)
+			_draw(state.active, DRAW_COUNT + _resonance_sum(state.active_player(), "draw_step_bonus"))
 			if not state.is_over():
 				state.step = GameState.Step.NON_COMBAT
 		GameState.Step.NON_COMBAT:
@@ -811,6 +995,12 @@ func _begin_turn() -> void:
 	state.turn += 1
 	var p: PlayerState = state.active_player()
 	p.reset_turn_flags()
+	p.turns_taken += 1
+	# "You cannot declare Combat on your first turn."
+	var patient: Dictionary = _resonance_with(p, "no_combat_first_turn")
+	var patient_now: bool = p.turns_taken == 1 and not patient.is_empty()
+	if patient_now:
+		p.cannot_declare_combat = true
 	# "...until the beginning of his next turn": floats on the player whose turn this is end now.
 	var lasting: Array[Dictionary] = []
 	for f in state.floating:
@@ -823,6 +1013,8 @@ func _begin_turn() -> void:
 	state.step = GameState.Step.DRAW
 	state.phase = GameState.Phase.NONE
 	_emit(&"turn_start", {"turn": state.turn, "player": p.index})
+	if patient_now:
+		_resonance_fired(p, str(patient["id"]), "no_first_combat")
 	# Bonds burn a life card each turn and come apart when the pile is full.
 	for al in p.allies():
 		var timer_max: int = int(al.def.raw.get("bond_timer_max", 0))
@@ -1134,10 +1326,15 @@ func _turn_end_step() -> void:
 
 func _can_place(p: PlayerState, c: CardInstance) -> bool:
 	var def: CardDef = c.def
-	if def.alignment_only != "" and def.alignment_only != p.alignment:
+	if not CardDef.side_allows(p.alignment, def.alignment_only):
 		return false
 	if (def.type == CardDef.Type.NON_COMBAT or def.type == CardDef.Type.DRILL) and c.zone == &"hand" and _non_combat_cap_reached(p):
 		return false
+	# "You can only have 1 <card> in play at a time."
+	if bool(def.raw.get("unique_in_play", false)):
+		for other in p.in_play:
+			if other != c and other.def.id == def.id:
+				return false
 	match def.type:
 		CardDef.Type.PERSONALITY:
 			if not (def.raw.get("bond_of", []) as Array).is_empty():
@@ -1219,6 +1416,7 @@ func _place(p: PlayerState, c: CardInstance) -> void:
 		_played_from_hand(p, c)
 	_erase_from_zone(c)
 	c.controller = p.index
+	p.guarded.erase(c.uid)
 	match c.def.type:
 		CardDef.Type.PERSONALITY:
 			var existing: CardInstance = _ally_of_character(p, c.def.character)
@@ -1252,6 +1450,13 @@ func _place(p: PlayerState, c: CardInstance) -> void:
 	_emit(&"card_placed", {"player": p.index, "card": c.uid, "id": c.def.id})
 	_check_lonely_drills(p)
 	if c.def.type == CardDef.Type.SEAL:
+		p.seal_turns[c.uid] = state.turn
+		# "Placing one draws you a card": a draw from an empty Life Deck would lose the duel, so the
+		# Resonance draws only while there is a card to draw.
+		var sealwright: Dictionary = _resonance_with(p, "seal_place_draw")
+		if not sealwright.is_empty() and not p.life_deck.is_empty():
+			_draw(p.index, mini(int(sealwright["value"]), p.life_deck.size()))
+			_resonance_fired(p, str(sealwright["id"]), "seal_draw")
 		# A Seal's power resolves as it enters play and must be used.
 		_enqueue_keyed(_seal_power(c), "on_place", p.index, {}, c)
 	elif c.def.has_trigger("on_place"):
@@ -1730,6 +1935,11 @@ func attack_phase_options(p: PlayerState) -> Array[Command]:
 		for c in _active(p.drills()):
 			if not c.def.effects_for("use").is_empty() and _drill_use_available(c):
 				opts.append(Command.new(p.index, &"use", c.uid))
+		# "You may use the power of any Drill in play": the opponent's Drills too.
+		if _borrows_drills(p):
+			for c in _active(state.players[1 - p.index].drills()):
+				if not c.def.effects_for("use").is_empty() and _drill_use_available(c) and _can_play(p, c.def):
+					opts.append(Command.new(p.index, &"use", c.uid))
 	if p.mastery != null and not only_attacks and not _forbidden(p, "mastery") and not p.mastery.def.effects_for("use").is_empty() and _drill_use_available(p.mastery) and _can_play(p, p.mastery.def):
 		opts.append(Command.new(p.index, &"use", p.mastery.uid))
 	if not only_attacks and _relic_usable_in(p, "combat"):
@@ -1923,6 +2133,8 @@ func _begin_attack(source: CardInstance, spec: Dictionary, effects: Array[Dictio
 		source.attacked_combat = state.combat_count
 		attacker.used_card_combat = true
 	state.attack = _build_attack(att, source, spec, effects, is_power, is_final, empowered, performer, attacker.attack_count_combat == 1)
+	if str(state.attack["kind"]) == "art":
+		attacker.arts_combat += 1
 	# "Prevent 4 Energy of damage from the first attack performed against you": the first
 	# attack after the rule goes up takes it, stopped or not, and it is gone after that.
 	var shield_first: Dictionary = _floating_first(1 - att, "prevent_first_attack")
@@ -1948,6 +2160,11 @@ func _begin_attack(source: CardInstance, spec: Dictionary, effects: Array[Dictio
 		_enqueue_keyed(constant.get("on_attack", []), "on_attack", att, {"attack": state.attack}, attacker.in_control())
 	if attacker.mastery != null and not _forbidden(attacker, "mastery"):
 		_enqueue(attacker.mastery.def.effects, "on_attack", att, {"attack": state.attack}, attacker.mastery)
+	# "When you perform an attack, remove a card in your opponent's discard pile from the game."
+	if not _forbidden(attacker, "drills"):
+		for dr in _active(attacker.drills()):
+			if dr.def.has_trigger("on_attack"):
+				_enqueue(dr.def.effects, "on_attack", att, {"attack": state.attack}, dr)
 	# "All marked-only attacks discard an Ally in play when they are performed." The Grounds belong
 	# to the table rather than to a player, so the line fires for whoever is attacking.
 	if state.grounds != null:
@@ -2067,6 +2284,8 @@ func _build_attack(att: int, source: CardInstance, spec: Dictionary, effects: Ar
 		"stop_count": 0,
 		"stops_needed": maxi(1, int(spec.get("stops_needed", 1))),
 		"performer": performer.uid,
+		"first_attack": first_attack,
+		"first_art": kind == "art" and attacker.arts_combat == 0,
 		"stages": 0,
 		"life": 0,
 		"extra_life": 0,
@@ -2140,8 +2359,11 @@ func attack_forecasts(seat: int) -> Dictionary:
 			# Costs come off before the Strike Table is read, so the forecast pays them first.
 		var performer: CardInstance = _performer(a)
 		var cost: int = _cost_stages(a["spec"], state.players[seat], card(int(a.get("source", -1))))
+		# Life Deck cards paid to perform it: the card's own and any a standing rule adds.
+		var cost_life: int = int((a["spec"] as Dictionary).get("cost_life", 0)) + _art_wound_cost(state.players[seat], a["spec"])
 		if state.grounds != null and bool(state.grounds.def.raw.get("double_costs", false)) and not _costs_waived(state.players[seat], performer):
 			cost *= 2
+			cost_life *= 2
 		var energy_before: int = performer.energy
 		performer.energy = maxi(0, performer.energy - cost)
 		var b: Dictionary = _damage_calc(a)
@@ -2153,8 +2375,9 @@ func attack_forecasts(seat: int) -> Dictionary:
 		b["wounds"] = int(b["life"]) + int(b["overflow"])
 		b["is_final"] = bool(a["is_final"])
 		b["cost_stages"] = cost
+		b["cost_life"] = cost_life
 		b["energy_left"] = maxi(0, energy_before - cost)
-		var part: Dictionary = {"stages": int(b["stages"]), "life": int(b["life"]), "wounds": int(b["wounds"]), "overflow": int(b["overflow"]), "cost_stages": cost}
+		var part: Dictionary = {"stages": int(b["stages"]), "life": int(b["life"]), "wounds": int(b["wounds"]), "overflow": int(b["overflow"]), "cost_stages": cost, "cost_life": cost_life}
 		if o.type == &"attack" and str(o.value) == "empower" and out.has(o.card):
 			(out[o.card] as Dictionary)["empowered"] = part
 			continue
@@ -2531,7 +2754,15 @@ func _pay_costs(attacker: PlayerState, a: Dictionary) -> void:
 	if _prompt_art_boost(attacker, a):
 		return
 	var cost_stages: int = _cost_stages(spec, attacker, card(int(a.get("source", -1))), a)
-	var cost_life: int = int(spec.get("cost_life", 0))
+	var cost_life: int = int(spec.get("cost_life", 0)) + _art_wound_cost(attacker, spec)
+	if not bool(a.get("resonance_logged", false)):
+		a["resonance_logged"] = true
+		var free: String = _art_free_resonance(attacker, a) if str(spec.get("kind", "")) == "art" else ""
+		if free != "":
+			_resonance_fired(attacker, free, "art_free")
+		var wound: Dictionary = _resonance_with(attacker, "art_cost_life")
+		if not wound.is_empty() and str(spec.get("kind", "")) == "art":
+			_resonance_fired(attacker, str(wound["id"]), "art_wound")
 	# "You may discard a card from your hand to perform this attack": a cost, so it is paid before
 	# the attack and the attack is not offered at all with too few cards in hand.
 	var cost_hand: int = int(spec.get("cost_hand", 0))
@@ -2731,6 +2962,9 @@ func _cost_stages(spec: Dictionary, p: PlayerState, src: CardInstance = null, a:
 				base = maxi(floor_at, base + int(m["stages"]))
 		else:
 			base += int(m.get("stages", 0))
+	# "Your Arts cost no Energy": a Resonance fixes the price last, the way a `set` modifier does.
+	if str(spec.get("kind", "")) == "art" and _art_free_resonance(p, a) != "":
+		base = 0
 	return maxi(0, base)
 
 
@@ -2774,8 +3008,9 @@ func _prompt_art_boost(attacker: PlayerState, a: Dictionary) -> bool:
 	if str(spec.get("kind", "")) != "art" or _art_boost_part(attacker, _performer(a), src, a) != "either":
 		return false
 	var times: int = 2 if state.grounds != null and bool(state.grounds.def.raw.get("double_costs", false)) and not _costs_waived(attacker, _performer(a)) else 1
-	var full: int = _cost_stages(spec, attacker, src, {"art_boost": "life", "attacker": a["attacker"], "performer": _performer(a).uid})
-	var cheap: int = _cost_stages(spec, attacker, src, {"art_boost": "cost", "attacker": a["attacker"], "performer": _performer(a).uid})
+	var first_art: bool = bool(a.get("first_art", false))
+	var full: int = _cost_stages(spec, attacker, src, {"art_boost": "life", "attacker": a["attacker"], "performer": _performer(a).uid, "first_art": first_art})
+	var cheap: int = _cost_stages(spec, attacker, src, {"art_boost": "cost", "attacker": a["attacker"], "performer": _performer(a).uid, "first_art": first_art})
 	if full == cheap:
 		a["art_boost"] = "life"
 		return false
@@ -2841,7 +3076,7 @@ func _can_pay(ic: CardInstance, p: PlayerState, spec: Dictionary, src: CardInsta
 		return false
 	if p.hand.size() < int(spec.get("cost_hand", 0)):
 		return false
-	return p.life_deck.size() > int(spec.get("cost_life", 0))
+	return p.life_deck.size() > int(spec.get("cost_life", 0)) + _art_wound_cost(p, spec)
 
 
 func _prompt_defense() -> void:
@@ -2878,6 +3113,10 @@ func _prompt_defense() -> void:
 	for c in _active(d.drills()):
 		if _defense_usable(d, c, kind, focused):
 			opts.append(Command.new(d.index, &"defend", c.uid))
+	if _borrows_drills(d) and not _forbidden(d, "drills"):
+		for c in _active(state.players[1 - d.index].drills()):
+			if _defense_usable(d, c, kind, focused):
+				opts.append(Command.new(d.index, &"defend", c.uid))
 	# A Mastery can itself be the block ("once per Combat, discard a card to stop an attack").
 	if d.mastery != null and not _forbidden(d, "mastery") and _drill_use_available(d.mastery) and _defense_usable(d, d.mastery, kind, focused):
 		opts.append(Command.new(d.index, &"defend", d.mastery.uid))
@@ -3310,7 +3549,11 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 	var ac: CardInstance = _performer(a)
 	var dc: CardInstance = defender.in_control()
 	var wild: bool = ac.is_wild() or dc.is_wild()
-	var table: int = WILD_BASE_DAMAGE if wild else strike_table.base_damage(ac.might(), dc.might())
+	# "Your Strikes read the Strike Table one band higher": the read only, never the Might a card
+	# compares or the ladder shows.
+	var attacker_might: int = ac.might()
+	var bands: int = _resonance_sum(attacker, "strike_bands") if kind == "strike" else 0
+	var table: int = WILD_BASE_DAMAGE if wild else strike_table.base_damage(attacker_might, dc.might(), bands)
 	# "For the remainder of Combat all of your physical attacks have a Base Damage of X when you use
 	# the Strike Table. X = 4 minus your opponent's current Fervor."
 	if not wild and kind == "strike" and _has_floating(attacker.index, "table_base_fervor"):
@@ -3410,6 +3653,9 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 			adds.append({"source": _modifier_source(entry, attacker), "stages": ms, "life": ml})
 		if bool(m.get("once", false)):
 			spent.append(m)
+	if blind != kind and blind != "any":
+		adds.append_array(_resonance_own_adds(attacker, kind))
+	adds.append_array(_resonance_against_adds(defender, a, no_reduce))
 	var cap_stages: int = -1
 	var cap_life: int = -1
 	var cap_sources: PackedStringArray = PackedStringArray()
@@ -3473,8 +3719,9 @@ func _damage_calc(a: Dictionary) -> Dictionary:
 		life = 0
 	return {
 		"kind": kind, "wild": wild, "printed": printed, "table": table,
-		"attacker_might": ac.might(), "defender_might": dc.might(),
-		"attacker_band": strike_table.band(ac.might()), "defender_band": strike_table.band(dc.might()),
+		"attacker_might": attacker_might, "defender_might": dc.might(),
+		"attacker_band": mini(strike_table.band(attacker_might) + bands, strike_table.thresholds.size() - 1),
+		"defender_band": strike_table.band(dc.might()),
 		"base_stages": base_stages, "base_life": base_life, "adds": adds, "prevented": prevented,
 		"no_reduce": no_reduce, "stages": maxi(0, stages), "life": maxi(0, life), "spent": spent,
 	}
@@ -3601,6 +3848,32 @@ func _hand_keep(p: PlayerState) -> int:
 
 ## The first card with this title anywhere in play, on either side; null when nobody has one out.
 ## Matched by title because that is how the card names it, and how its own text reads it back.
+## "You may use the power of any Drill in play, during Combat": a Non-Combat of `p`'s in play that
+## lends it the opponent's Drills as well as its own.
+func _borrows_drills(p: PlayerState) -> bool:
+	if _forbidden(p, "non_combats"):
+		return false
+	for c in _active(p.non_combats()):
+		if bool(c.def.raw.get("borrows_drill_powers", false)):
+			return true
+	return false
+
+
+## Whether `c` counts as `character`'s named card for `p`. A float can widen that: "for the
+## remainder of Combat the bottom 15 cards of your discard pile are <Name> Named cards while in
+## your discard pile" (`discard_named`, with `character` and `count`).
+func counts_as_named(p: PlayerState, c: CardInstance, character: String) -> bool:
+	if c.def.character == character:
+		return true
+	if c.zone != &"discard" or c.owner != p.index:
+		return false
+	var f: Dictionary = _floating_first(p.index, "discard_named")
+	if f.is_empty() or str(f.get("character", "")) != character:
+		return false
+	var at: int = p.discard.find(c)
+	return at >= 0 and at < int(f.get("count", 0))
+
+
 func card_in_play_titled(title: String) -> CardInstance:
 	for p in state.players:
 		for c in p.in_play:
@@ -4516,8 +4789,11 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			var wanted: int = int(CardDef.TYPE_NAMES.get(str(e.get("card_type", "")), -1))
 			var moved: Array[CardInstance] = []
 			for c in who.removed:
-				if (wanted < 0 or c.def.type == wanted) and (not e.has("tag") or (c.def.raw.get("tags", []) as Array).has(str(e["tag"]))):
+				if (wanted < 0 or c.def.type == wanted) and (not e.has("tag") or (c.def.raw.get("tags", []) as Array).has(str(e["tag"]))) \
+						and (str(e.get("character", "")) == "" or c.def.character == str(e["character"])):
 					moved.append(c)
+			# "Choose 3 <Name> Named cards that are removed from the game": `max` caps how many.
+			var most: int = mini(int(e.get("max", moved.size())), moved.size())
 			# "You may shuffle any of your Allies that are removed from the game into your Life Deck":
 			# which of them, and how many, is the player's call.
 			if bool(e.get("choose", false)) and not moved.is_empty():
@@ -4527,8 +4803,9 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				back_opts.append(Command.new(owner, &"pick_none"))
 				_choice = {"kind": "return_removed", "player": who_index}
 				_set_prompt(owner, &"pick_option", back_opts, _choice_context(source, "return_removed"))
-				prompt.set_batch(&"pick_option", 1, moved.size())
+				prompt.set_batch(&"pick_option", 1, most)
 				return
+			moved = moved.slice(0, most)
 			for c in moved:
 				_move_to_deck_bottom(c)
 			if not moved.is_empty() and shuffle_decks:
@@ -4680,7 +4957,7 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			# "Place the bottom 2 cards of your discard pile at the bottom of your Life Deck" puts
 			# them where the player can count on them, so that one does not shuffle afterwards.
 			var moved_top: CardInstance = who.discard.back() if not who.discard.is_empty() else null
-			_shuffle_discard_into_deck(who, count, bool(e.get("all", false)), str(e.get("from", "top")), str(e.get("school", "")), not bool(e.get("no_shuffle", false)))
+			_shuffle_discard_into_deck(who, count, bool(e.get("all", false)), str(e.get("from", "top")), str(e.get("school", "")), not bool(e.get("no_shuffle", false)), str(e.get("character", "")))
 			# "Shuffle the top card of your discard pile into your Life Deck. If that card is a
 			# Root card, draw a card."
 			if moved_top != null and (e.has("effects") or e.has("else_effects")):
@@ -4861,6 +5138,12 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			var reveal_ctx: Dictionary = _choice_context(source, "reveal_pick")
 			reveal_ctx["library"] = laid
 			_set_prompt(picker, &"pick_option", pick_opts, reveal_ctx)
+		"remove_reserve":
+			# "Remove 2 cards in your Sensei Deck from the game": the first ones, as the Reserve's
+			# ransom does, and nothing is taken when there are not enough.
+			if who.reserve.size() >= int(amount):
+				for c in who.reserve.slice(0, int(amount)):
+					_remove_from_game(c)
 		"shuffle_source":
 			# "If successful, shuffle this card into your Life Deck." Only a card still in the air
 			# goes, so the finish that follows finds it gone and leaves it where it is.
@@ -4924,7 +5207,7 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 				elif me.duelist.def.character != str(v):
 					return false
 			"alignment":
-				if me.alignment != str(v):
+				if not CardDef.side_allows(me.alignment, str(v)):
 					return false
 			"defender_alignment":
 				# "If performed against a Pact duelist": the side of the personality the attack is
@@ -4935,7 +5218,7 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 				var side: String = opp.alignment
 				if aimed_side != null and aimed_side.def.alignment_only != "":
 					side = aimed_side.def.alignment_only
-				if side != str(v):
+				if not CardDef.side_allows(side, str(v)):
 					return false
 			"performed_by":
 				var by_ally: bool = me.in_control() != me.duelist
@@ -5067,6 +5350,14 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 			"opponent_style":
 				# "If your opponent declared a Root style": the school their deck declares.
 				if opp.style != str(v):
+					return false
+			"own_mastery_school":
+				# "If you have a Freestyle Mastery in play": the school of your own Mastery, ""
+				# being Freestyle.
+				if me.mastery == null or me.mastery.def.school != str(v):
+					return false
+			"reserve_min":
+				if me.reserve.size() < int(v):
 					return false
 			"opponent_used_combat_card":
 				if (opp.combat_cards_used_combat == state.combat_count) != bool(v):
@@ -5351,7 +5642,7 @@ func _raw_constant(p: PlayerState) -> Dictionary:
 
 
 func _can_play(p: PlayerState, def: CardDef) -> bool:
-	if def.alignment_only != "" and def.alignment_only != p.alignment:
+	if not CardDef.side_allows(p.alignment, def.alignment_only):
 		return false
 	# "Cards that can lower your duelist any amount of personality levels cannot be played
 	# or used for the remainder of Combat": the other side's cards that lower this side's Aspect,
@@ -5388,7 +5679,7 @@ func _gate_ok(p: PlayerState, def: CardDef, gate: Dictionary) -> bool:
 			if _gate_ok(p, def, sub):
 				return true
 		return false
-	if gate.has("alignment") and p.alignment != str(gate["alignment"]):
+	if gate.has("alignment") and not CardDef.side_allows(p.alignment, str(gate["alignment"])):
 		return false
 	if gate.has("character") and p.in_control().def.character != str(gate["character"]):
 		# The gated personality must be in control, except for a card that attaches to that
@@ -5723,7 +6014,11 @@ func _take_off_table(c: CardInstance, remove: bool, to: String, owner: int) -> v
 	if remove and c.controller != owner and _removal_becomes_discard(state.players[c.controller]):
 		remove = false
 		_emit(&"removal_softened", {"player": c.controller})
+	var taken_from_rival: bool = c.controller != owner and owner >= 0 and not remove and to == "discard"
+	var type: CardDef.Type = c.def.type
 	_discard_or_remove_in_play(c, remove, to)
+	if taken_from_rival:
+		_spoils(state.players[owner], type)
 
 
 ## Takes every card of one type out of both Life Decks, for a card that reaches past the table.
@@ -5748,6 +6043,10 @@ func _in_play_candidates(p: PlayerState, type_name: String, own_effect: bool = f
 	var out: Array[CardInstance] = []
 	for c in p.in_play:
 		if c.remain > 0:
+			continue
+		# A card a Resonance guards cannot be discarded by the other side; removal still reaches it,
+		# the way "cannot be discarded" reads on the printed cards.
+		if not own_effect and not removing and p.guarded.has(c.uid):
 			continue
 		var t: CardDef.Type = c.def.type
 		var ok: bool = false
@@ -5852,6 +6151,13 @@ func _capturable_seals(p: PlayerState) -> Array[CardInstance]:
 		for d in _active(p.drills()):
 			if bool(d.def.raw.get("protect_seals", false)):
 				return none
+	# "Your Seals cannot be captured the turn they are placed."
+	if not _resonance_with(p, "seal_safe_on_placing_turn").is_empty():
+		var out: Array[CardInstance] = []
+		for t in p.seals():
+			if int(p.seal_turns.get(t.uid, -1)) != state.turn:
+				out.append(t)
+		return out
 	return p.seals()
 
 
@@ -6348,7 +6654,7 @@ func recover_gain(p: PlayerState) -> int:
 	# modified by other effects": nothing is added to it, the flat Style bonus included.
 	if _has_floating(p.index, "surge_zero"):
 		return 0
-	return maxi(0, surge_of(p) + STYLE_SURGE_BONUS - power_up_less(p))
+	return maxi(0, surge_of(p) + STYLE_SURGE_BONUS + _resonance_sum(p, "power_up_bonus") - power_up_less(p))
 
 
 ## The duelist's Surge Rate as it stands: printed, or 0 while a card holds it there.
@@ -6559,6 +6865,13 @@ func _aspect_up(p: PlayerState) -> void:
 	p.duelist.energy = CardInstance.MAX_STAGE
 	_discard_drills(p, true)
 	_emit(&"aspect_up", {"player": p.index, "aspect": p.duelist.aspect})
+	# "When you ascend, put the top 3 cards of your discard pile on the bottom of your Life Deck."
+	for id in p.resonances:
+		var n: int = int(ResonanceData.rules(id).get("ascend_recover", 0))
+		if n > 0 and not p.discard.is_empty():
+			var moved: int = mini(n, p.discard.size())
+			_recover_top(p, moved)
+			_resonance_fired(p, id, "recovered", moved)
 	# Entering the Aspect is itself the Most Powerful Personality win, however the climb was paid for.
 	_try_ascension_win(p)
 
@@ -6602,6 +6915,12 @@ func _discard_drills(p: PlayerState, advancing: bool = false) -> void:
 	# "For the remainder of Combat, you do not have to discard any Drills in play when your Main
 	# Personality advances or loses a personality level."
 	if _drills_protected(p) or _has_floating(p.index, "keep_drills"):
+		return
+	# "When you ascend, you keep your Drills in play." Losing an Aspect still clears them.
+	var steady: Dictionary = _resonance_with(p, "ascend_keeps_drills") if advancing else {}
+	if not steady.is_empty():
+		if not p.drills().is_empty():
+			_resonance_fired(p, str(steady["id"]), "drills_kept")
 		return
 	# "Whenever your duelist advances an Aspect, none of your other Drills are discarded. If your
 	# opponent's Fervor is 0 when they advance, this Drill is not discarded either." A climb only;
@@ -6699,6 +7018,99 @@ func _mark_power_used(ic: CardInstance) -> void:
 	ic.power_used_turn = state.turn
 	ic.power_used_combat = state.combat_count
 	ic.power_uses_combat += 1
+
+
+# --- Resonances ------------------------------------------------------------
+
+## The sum of one whole-number rule over the Resonances `p` holds. Only an adventure player holds
+## any (`ResonanceData`); they are never cards, so nothing on the table can reach them.
+func _resonance_sum(p: PlayerState, key: String) -> int:
+	var n: int = 0
+	for id in p.resonances:
+		n += int(ResonanceData.rules(id).get(key, 0))
+	return n
+
+
+## The first Resonance `p` holds that carries `key`, as {id, name, value}; {} when none does.
+func _resonance_with(p: PlayerState, key: String) -> Dictionary:
+	for id in p.resonances:
+		var rules: Dictionary = ResonanceData.rules(id)
+		if rules.has(key):
+			return {"id": id, "name": ResonanceData.name_of(id), "value": rules[key]}
+	return {}
+
+
+func _resonance_fired(p: PlayerState, id: String, what: String, amount: int = 0) -> void:
+	_emit(&"resonance", {"player": p.index, "id": id, "what": what, "amount": amount})
+
+
+## The Resonance that makes this Art free, "" when none does. "first_each_combat" frees only the
+## first Art the player performs in a Combat, stopped or not, whoever of theirs performs it.
+func _art_free_resonance(p: PlayerState, a: Dictionary) -> String:
+	var first: bool = bool(a.get("first_art", p.arts_combat == 0))
+	for id in p.resonances:
+		match str(ResonanceData.rules(id).get("art_cost_free", "")):
+			"always":
+				return id
+			"first_each_combat":
+				if first:
+					return id
+	return ""
+
+
+## Life cards an Art costs on top of its own price ("Your Arts cost one wound").
+func _art_wound_cost(p: PlayerState, spec: Dictionary) -> int:
+	return _resonance_sum(p, "art_cost_life") if str(spec.get("kind", "")) == "art" else 0
+
+
+## The attacker's Resonance additions to one attack, in the breakdown's {source, stages, life} form:
+## "Your attacks do 1 more wound" on every attack, "1 more stage for each Ally" on Strikes.
+func _resonance_own_adds(p: PlayerState, kind: String) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for id in p.resonances:
+		var rules: Dictionary = ResonanceData.rules(id)
+		var life: int = int(rules.get("attack_life", 0))
+		var stages: int = 0
+		if kind == "strike":
+			stages = int(rules.get("strike_stages_per_ally", 0)) * p.allies().size()
+		if life != 0 or stages != 0:
+			out.append({"source": ResonanceData.name_of(id), "stages": stages, "life": life})
+	return out
+
+
+## The defender's Resonances on an attack against them: a penalty that adds wounds, and "the first
+## attack against you each Combat does 1 fewer wound and 2 fewer stages", a reduction, which an
+## attack that cannot be reduced ignores.
+func _resonance_against_adds(p: PlayerState, a: Dictionary, no_reduce: bool) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for id in p.resonances:
+		var rules: Dictionary = ResonanceData.rules(id)
+		var more: int = int(rules.get("attack_life_against", 0))
+		if more != 0:
+			out.append({"source": ResonanceData.name_of(id), "stages": 0, "life": more})
+		var braced: Dictionary = rules.get("first_attack_against", {})
+		if not braced.is_empty() and bool(a.get("first_attack", false)) and not no_reduce:
+			out.append({"source": ResonanceData.name_of(id), "stages": -int(braced.get("stages", 0)), "life": -int(braced.get("life", 0))})
+	return out
+
+
+## "Whenever you make your opponent discard a Drill, Ally or Non-Combat card in play, gain 2
+## Energy stages." The duelist gains it, once per card discarded.
+func _spoils(p: PlayerState, type: CardDef.Type) -> void:
+	for id in p.resonances:
+		var spoils: Dictionary = ResonanceData.rules(id).get("spoils", {})
+		if spoils.is_empty():
+			continue
+		var counts: bool = false
+		for name in spoils.get("types", []):
+			counts = counts or int(CardDef.TYPE_NAMES.get(str(name), -1)) == type
+		if not counts:
+			continue
+		var before: int = p.duelist.energy
+		_gain_energy(p, p.duelist, int(spoils.get("energy", 0)))
+		if p.duelist.energy != before:
+			_emit(&"energy_changed", {"player": p.index, "card": p.duelist.uid, "from": before, "to": p.duelist.energy, "source": -1})
+			_resonance_fired(p, id, "energy", p.duelist.energy - before)
 
 
 # --- Seals ---------------------------------------------------------------
@@ -6832,6 +7244,9 @@ func _prompt_search_pick(p: PlayerState, hits: Array[CardInstance], n: int, e: D
 	if not must:
 		opts.append(Command.new(p.index, &"pick_none"))
 	var context: Dictionary = {"search": true, "amount": mini(n, hits.size()), "to": str(e.get("to", "hand"))}
+	if e.has("resonance"):
+		context["resonance"] = str(e["resonance"])
+		context["card_title"] = ResonanceData.name_of(str(e["resonance"]))
 	if _search_looks_at_deck(e):
 		var deck: Array[CardInstance] = _searched_deck_owner(p, e).life_deck.duplicate()
 		deck.sort_custom(func(a: CardInstance, b: CardInstance) -> bool: return a.def.title < b.def.title if a.def.title != b.def.title else a.uid < b.uid)
@@ -6972,9 +7387,16 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 	# "an X or Y Signature card".
 	var named: Variant = e.get("character", "")
 	if named is Array:
-		if not (named as Array).has(c.def.character):
+		var any_named: bool = false
+		for n in named:
+			if counts_as_named(p, c, str(n)):
+				any_named = true
+		if not any_named:
 			return false
-	elif str(named) != "" and c.def.character != str(named):
+	elif str(named) != "" and not counts_as_named(p, c, str(named)):
+		return false
+	# "Search for a 'Villains only' card": the side the card itself prints as its gate.
+	if e.has("alignment_only") and c.def.alignment_only != str(e["alignment_only"]):
 		return false
 	if e.has("has_effect") and not _def_has_effect(c.def, e["has_effect"]):
 		return false
@@ -7128,6 +7550,10 @@ func _search_take(p: PlayerState, hit: CardInstance, e: Dictionary) -> void:
 	var to: String = str(e.get("to", "hand"))
 	if to == "play":
 		_place(p, hit)
+		# "Your opponent cannot discard it": a Resonance's search guards what it put into play.
+		if bool(e.get("opponent_cannot_discard", false)) and hit.zone == &"in_play":
+			p.guarded.append(hit.uid)
+			_resonance_fired(p, str(e.get("resonance", "")), "guarded")
 		if hit.def.type == CardDef.Type.PERSONALITY and e.has("stages"):
 			# "at their highest Energy" comes through as the string, not a number.
 			var at: Variant = e["stages"]
@@ -7213,10 +7639,10 @@ func _draw_discard(p: PlayerState, n: int, from: String) -> CardInstance:
 
 ## `from` "top_and_bottom" alternates ends, top first; anything else takes from the top.
 ## `school` takes only cards of that school, for a card that recovers its own kind and nothing else.
-func _shuffle_discard_into_deck(p: PlayerState, n: int, all: bool, from: String = "top", school: String = "", shuffle: bool = true) -> void:
+func _shuffle_discard_into_deck(p: PlayerState, n: int, all: bool, from: String = "top", school: String = "", shuffle: bool = true, character: String = "") -> void:
 	var pool: Array[CardInstance] = []
 	for c in p.discard:
-		if school == "" or c.def.school == school:
+		if (school == "" or c.def.school == school) and (character == "" or counts_as_named(p, c, character)):
 			pool.append(c)
 	var count: int = pool.size() if all else mini(n, pool.size())
 	# Two cursors walk in from the ends, so alternating top and bottom never takes one card twice.

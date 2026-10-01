@@ -1,0 +1,222 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/shrine.gd" id="1_shrine"]
+[ext_resource type="Texture2D" path="res://assets/courtyard/textures/brick.png" id="2_brick"]
+[ext_resource type="PackedScene" path="res://scenes/adventure/shrine_offer.tscn" id="3_offer"]
+
+[node name="Shrine" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_shrine")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.03, 0.025, 0.025, 1)
+
+[node name="Brick" type="TextureRect" parent="."]
+texture_filter = 1
+self_modulate = Color(0.3, 0.28, 0.27, 1)
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.3333
+anchor_bottom = 1.3333
+scale = Vector2(0.75, 0.75)
+mouse_filter = 2
+texture = ExtResource("2_brick")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="Strip" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+
+[node name="Row" type="HBoxContainer" parent="Strip"]
+layout_mode = 2
+theme_override_constants/separation = 36
+
+[node name="RunName" type="Label" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"GroupLabel"
+text = ""
+
+[node name="Standing" type="Label" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"BodyLabel"
+text = ""
+
+[node name="Spacer" type="Control" parent="Strip/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ManaBox" type="HBoxContainer" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="ManaIcon" type="TextureRect" parent="Strip/Row/ManaBox"]
+texture_filter = 1
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Mana, spent at Shops during this run"
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ManaValue" type="Label" parent="Strip/Row/ManaBox"]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Mana, spent at Shops during this run"
+mouse_filter = 1
+theme_type_variation = &"HeaderLabel"
+text = "0"
+
+[node name="MotesBox" type="HBoxContainer" parent="Strip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="MoteIcon" type="TextureRect" parent="Strip/Row/MotesBox"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Motes"
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MotesValue" type="Label" parent="Strip/Row/MotesBox"]
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Motes"
+mouse_filter = 1
+theme_type_variation = &"HeaderLabel"
+text = "0"
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_top = -440.0
+offset_bottom = -440.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"TitleLabel"
+text = "The Shrine"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -900.0
+offset_top = -348.0
+offset_right = 900.0
+offset_bottom = -312.0
+grow_horizontal = 2
+theme_type_variation = &"BodyLabel"
+text = "Take one Resonance. It stays with you for the rest of the run."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Row" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -900.0
+offset_top = -286.0
+offset_right = 900.0
+offset_bottom = 418.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Held" type="PanelContainer" parent="Row"]
+custom_minimum_size = Vector2(324, 704)
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="Column" type="VBoxContainer" parent="Row/Held"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Heading" type="Label" parent="Row/Held/Column"]
+layout_mode = 2
+theme_type_variation = &"GroupLabel"
+text = "Your Resonances"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="Row/Held/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="Row/Held/Column/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="Empty" type="Label" parent="Row/Held/Column/Scroll/List"]
+custom_minimum_size = Vector2(270, 0)
+layout_mode = 2
+theme_type_variation = &"BodyLabel"
+text = "You hold no Resonance yet. Each one changes every duel you fight from here on."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Leave" type="Button" parent="Row/Held/Column"]
+custom_minimum_size = Vector2(260, 58)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Leave the Shrine"
+
+[node name="Offer0" parent="Row" instance=ExtResource("3_offer")]
+layout_mode = 2
+
+[node name="Offer1" parent="Row" instance=ExtResource("3_offer")]
+layout_mode = 2
+
+[node name="Offer2" parent="Row" instance=ExtResource("3_offer")]
+layout_mode = 2
+
+[node name="Help" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -900.0
+offset_top = 440.0
+offset_right = 900.0
+offset_bottom = 480.0
+grow_horizontal = 2
+theme_type_variation = &"MutedLabel"
+theme_override_font_sizes/font_size = 24
+text = "Click a Resonance to take it."
+horizontal_alignment = 1
+vertical_alignment = 1

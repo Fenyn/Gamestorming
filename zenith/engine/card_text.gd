@@ -495,6 +495,8 @@ static func rules_text(def: CardDef) -> String:
 			"an attack" if after_kind == "" else _a(after_kind.capitalize())])
 	if bool(def.raw.get("reserve_only", false)):
 		lines.append("Reserve only.")
+	if bool(def.raw.get("borrows_drill_powers", false)):
+		lines.append("During Combat, you may use the power of any Drill in play, yours or your opponent's.")
 	if bool(def.raw.get("banned", false)):
 		lines.append("Adventure only: banned from tournament and online decks.")
 	if str(def.raw.get("duelist_bloodline", "")) != "":
@@ -760,12 +762,16 @@ static func rules_text(def: CardDef) -> String:
 		lines.append("Place at the bottom of your Life Deck after use.")
 	if def.raw.has("bottom_after_use_when"):
 		lines.append(_conditional(def.raw["bottom_after_use_when"], "place this card at the bottom of your Life Deck after use."))
+	if bool(def.raw.get("discard_after_use", false)):
+		lines.append("Discard after use.")
 	if def.remove_after_use:
 		lines.append("Remove from the game after use.")
 		if def.raw.has("discard_instead_when"):
 			lines.append(_conditional(def.raw["discard_instead_when"], "discard it after use instead."))
 	if def.limit_per_deck != 3:
 		lines.append("Limit %d per deck." % def.limit_per_deck)
+	if bool(def.raw.get("unique_in_play", false)):
+		lines.append("You can only have 1 in play at a time.")
 	return "\n".join(lines)
 
 
@@ -987,6 +993,10 @@ static func cond_text(when: Dictionary) -> String:
 				parts.append("performed against %s" % alignment_name(str(v)))
 			"aspect_min":
 				parts.append("your duelist is aspect %d or higher" % int(v))
+			"own_mastery_school":
+				parts.append("your Mastery is %s" % (school_name(str(v)) if str(v) != "" else "Freestyle"))
+			"reserve_min":
+				parts.append("you have %d or more cards in your Reserve" % int(v))
 			"opponent_fervor":
 				parts.append("your opponent's Fervor is %d" % int(v))
 			"opponent_fervor_max":
@@ -1179,6 +1189,8 @@ static func _effect_body(e: Dictionary) -> String:
 			body = ("Your opponent draws %s." if opp else "Draw %s.") % _plural(n, "card", "cards")
 		"shuffle_source":
 			body = "Shuffle this card into your Life Deck."
+		"remove_reserve":
+			body = "Remove %s in your Reserve from the game." % _plural(n, "card", "cards")
 		"show_checked":
 			body = "Show it to your opponent."
 		"exile_source":
@@ -1362,6 +1374,9 @@ static func _effect_body(e: Dictionary) -> String:
 			var kind: String = str(e.get("school", ""))
 			var noun_one: String = "card" if kind == "" else "%s card" % school_name(kind)
 			var noun_many: String = "cards" if kind == "" else "%s cards" % school_name(kind)
+			if str(e.get("character", "")) != "":
+				noun_one = "%s Signature card" % str(e["character"])
+				noun_many = "%s Signature cards" % str(e["character"])
 			var pile: String = "your discard pile" if str(e.get("from", "top")) == "top" else "the bottom of your discard pile"
 			if bool(e.get("no_shuffle", false)):
 				var taken: String = _plural(int(e.get("amount", 1)), noun_one, noun_many)
@@ -1442,7 +1457,13 @@ static func _effect_body(e: Dictionary) -> String:
 			elif what == "at_combat_end":
 				body = "At the end of Combat: %s" % " ".join(PackedStringArray(_texts(params.get("effects", []))))
 			elif what == "no_fervor_gain":
-				body = "%s cannot gain Fervor until the beginning of %s next turn." % [("Your opponent" if opp else "You"), ("their" if opp else "your")]
+				if str(e.get("duration", "")) == "turn":
+					body = "%s cannot gain Fervor for the remainder of the turn." % ("Your opponent" if opp else "You")
+				else:
+					body = "%s cannot gain Fervor until the beginning of %s next turn." % [("Your opponent" if opp else "You"), ("their" if opp else "your")]
+			elif what == "discard_named":
+				body = "For the remainder of Combat, the bottom %d cards of your discard pile are %s Signature cards while in your discard pile." % [
+					int(params.get("count", 0)), str(params.get("character", ""))]
 			elif what == "table_base_fervor":
 				body = "For the remainder of Combat, your Strikes that use the Strike Table have a Base Damage of X. X = 4 minus your opponent's Fervor."
 			elif what == "surge_zero":
@@ -1639,7 +1660,11 @@ static func _effect_body(e: Dictionary) -> String:
 			var gone: String = "Allies" if str(e.get("card_type", "")) == "ally" else "cards"
 			if e.has("tag"):
 				gone = "%s %s" % [keyword_name(str(e["tag"])), gone]
-			if bool(e.get("choose", false)):
+			if str(e.get("character", "")) != "":
+				gone = "%s Signature cards" % str(e["character"])
+			if bool(e.get("choose", false)) and e.has("max"):
+				body = "Choose up to %d of your %s that are removed from the game and shuffle them into your Life Deck." % [int(e["max"]), gone]
+			elif bool(e.get("choose", false)):
 				body = "Shuffle any of your %s that are removed from the game into your Life Deck." % gone
 			else:
 				body = "Shuffle your removed %s into your Life Deck." % gone
@@ -2094,6 +2119,8 @@ static func _search_text_body(e: Dictionary) -> String:
 		qual.append("Signature")
 	if str(e.get("character", "")) != "":
 		qual.append("%s Signature" % _or_names(e["character"]))
+	if e.has("alignment_only"):
+		qual.append("\"%ss only\"" % str(e["alignment_only"]).capitalize())
 	if e.has("aspect"):
 		qual.append("aspect %d" % int(e["aspect"]))
 	var n: int = int(e.get("amount", 1))
@@ -2688,6 +2715,8 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1, reveal
 			return "%s uses %s's Power." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"relic_used":
 			return "%s calls on %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
+		&"resonance":
+			return ResonanceData.log_line(str(d.get("id", "")), str(d.get("what", "")), pname, int(d.get("amount", 0)))
 		&"boss_power":
 			return "%s holds a boss power: %s." % [pname, _cname(engine, int(d.get("card", -1)), seat, actor)]
 		&"boss_power_used":
@@ -2781,6 +2810,8 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1, reveal
 			# The other seat learns the outcome, never the card.
 			return "%s: the %s card is %s%s%s." % [by, how, ("" if matched else "not "), want, ("; the effect follows" if matched else "")]
 		&"energy_changed":
+			if bool(d.get("script", false)):
+				return "%s's Energy is set to %d." % [_cname(engine, int(d.get("card", -1)), seat, actor), int(d.get("to", 0))]
 			var by: String = _cname(engine, int(d.get("source", -1)))
 			return "%s: %s's Energy %d → %d." % [by if by != "a card" else "Effect", _cname(engine, int(d.get("card", -1)), seat, actor), int(d.get("from", 0)), int(d.get("to", 0))]
 		&"gain_blocked":
@@ -2887,10 +2918,17 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1, reveal
 			return "%s scores a point by %s (%d/%d)." % [pname, "emptying the rival's Life Deck" if str(d.get("reason", "")) == "survival" else "Ascension", int(d.get("points", 0)), int(d.get("to_win", 1))]
 		&"second_wind":
 			return "%s shuffles %d discarded cards into a new Life Deck." % [pname, int(d.get("cards", 0))]
+		&"script_dealt":
+			var dealt: int = (d.get("cards", []) as Array).size()
+			return "%s card%s placed on the %s of %s's Life Deck." % [str(dealt), " is" if dealt == 1 else "s are", str(d.get("at", "top")), pname]
+		&"script_swap":
+			return "%s takes the other side of the table." % str(d.get("name", pname))
 		&"game_over":
 			var reason: String = str(d.get("reason", ""))
 			var w: String = _pname(engine, int(d.get("winner", -1)))
 			match reason:
+				"session_ended":
+					return "The session is over, with no winner."
 				"ascension":
 					return "%s ascends fully and the site answers. %s is Eidolarch!" % [w, w]
 				"seal":
@@ -3042,13 +3080,14 @@ static func short_damage(stages: int, life: int) -> String:
 
 ## The Strike Table part of a card's base damage for a known matchup, doubled where the card
 ## doubles its table result; -1 for a card whose base does not come from the table.
-static func strike_table_base(def: CardDef, table: StrikeTable, attacker_might: int, defender_might: int) -> int:
+static func strike_table_base(def: CardDef, table: StrikeTable, attacker_might: int, defender_might: int,
+		attacker_bands: int = 0) -> int:
 	var a: Dictionary = def.attack
 	if a.is_empty() or table == null or attacker_might < 0 or defender_might < 0:
 		return -1
 	if str(a.get("kind", "strike")) != "strike" or a.has("printed_stages") or a.has("printed_life"):
 		return -1
-	var base: int = table.base_damage(attacker_might, defender_might)
+	var base: int = table.base_damage(attacker_might, defender_might, attacker_bands)
 	var times: Dictionary = a.get("table_multiply", {})
 	if not times.is_empty() and (not bool(times.get("higher_might", false)) or attacker_might > defender_might):
 		base *= maxi(1, int(times.get("by", 2)))

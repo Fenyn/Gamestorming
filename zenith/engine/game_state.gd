@@ -26,6 +26,7 @@ var reserve_finished: Array[bool] = [false, false]
 var discard_done: Array[bool] = [false, false]   # per player, within the current Discard step
 var end_combat_done: Array[bool] = [false, false]  # per player, within the end-of-Combat window
 var start_play_done: Array[bool] = [false, false]  # per player, the pre-game "place this in play" offer
+var resonance_setup_done: Array[bool] = [false, false]  # per player, the pre-game Resonance search
 var floating: Array[Dictionary] = []   # {owner, op, duration, ...params}; see DuelEngine._float
 var pending_play: Dictionary = {}      # a Combat card waiting on the opponent's counter window
 var skip_discard: bool = false         # a card ended the turn early: no Discard step
@@ -33,6 +34,8 @@ var pending_ascension: int = -1        # an Ascension win the opponent answered;
 var declare_window_done: bool = false  # the opponent already had their Declare-step response this turn
 var winner: int = -1
 var win_reason: String = ""
+## Over with no winner: a scripted duel's session was ended (`DuelEngine.script_op` end_session).
+var ended: bool = false
 var points_to_win: Array[int] = [1, 1]             # per seat: the points that seat needs; see DuelEngine.set_lives
 var points: Array[int] = [0, 0]
 var ascension_scored: Array[bool] = [false, false]  # an Ascension scores once per duelist per duel
@@ -67,6 +70,7 @@ func copy(cards: Dictionary) -> GameState:
 	s.discard_done = discard_done.duplicate()
 	s.end_combat_done = end_combat_done.duplicate()
 	s.start_play_done = start_play_done.duplicate()
+	s.resonance_setup_done = resonance_setup_done.duplicate()
 	s.floating = floating.duplicate(true)
 	s.pending_play = pending_play.duplicate(true)
 	s.skip_discard = skip_discard
@@ -74,6 +78,7 @@ func copy(cards: Dictionary) -> GameState:
 	s.declare_window_done = declare_window_done
 	s.winner = winner
 	s.win_reason = win_reason
+	s.ended = ended
 	s.points_to_win = points_to_win.duplicate()
 	s.points = points.duplicate()
 	s.ascension_scored = ascension_scored.duplicate()
@@ -100,7 +105,7 @@ func opposing_player() -> PlayerState:
 
 
 func is_over() -> bool:
-	return winner >= 0
+	return winner >= 0 or ended
 
 
 ## Who a client should show as attacking. `attacker` keeps the last Combat's value until the

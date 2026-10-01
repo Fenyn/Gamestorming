@@ -766,6 +766,25 @@ ART = {
     "signature_art_17": "Turning a bolt aside on the flat of a sabre, sparks scattering off the steel.",
     "freestyle_noncombat_21": "A duellist kneeling with eyes closed, spent charge flowing back into open hands.",
     "freestyle_art_12": "A lone duellist driving one great bolt forward against a far larger foe, feet planted.",
+    # Mercenary Lord, 2026-09-30: the earlier Gideon Mourne, before the toll gate. No brand yet.
+    "personality_70": "The Betrayer. Alone on a field he once held, broken crest on his chest, counting what little is left in his hands.",
+    "personality_71": "Sellsword. Leaning on a hired blade at a camp table, a purse in front of him, unimpressed by whoever is paying.",
+    "personality_72": "Silver Tongue. Smiling across a parley table at a rival, one hand open in offer, the other out of sight.",
+    "personality_73": "Free Captain. At the head of a ragged hired company, men gathering behind him, a guard of light at his shoulder.",
+    "personality_74": "Mercenary Lord. Leading the charge at the front of his own company, fist wreathed in force, crest still on his chest.",
+    "signature_art_18": "Pulling a stream of old spells back out of the ground around him into his open hand.",
+    "signature_strike_32": "A short, dirty punch under a rival's guard while he reads the cards in their other hand.",
+    "signature_art_19": "A bolt that leaves the ground behind him scorched in a wide ring, old debris rising in it.",
+    "signature_combat_10": "Waiting in the shadow of a ruined arch, three spells held ready between his fingers.",
+    "signature_combat_11": "Lunging to snatch something from a rival's belt pouch mid-fight.",
+    "signature_noncombat_11": "Lifting three burned scraps of old banners from a fire and folding them away.",
+    "signature_strike_33": "Driving an elbow down onto a kneeling rival, the rival's aura guttering out.",
+    "signature_drill_08": "A heavy man's grim drill in a dark yard, a banner of no side on the wall.",
+    "freestyle_drill_08": "A duellist leering over a rival's scattered discarded spells, grinding one under a boot.",
+    "freestyle_art_13": "A bolt striking a raised palm and rebounding back the way it came.",
+    "freestyle_combat_22": "A fighter twisting aside as a blow passes a finger's width from their face.",
+    "freestyle_noncombat_22": "A ransacked armory, racks overturned, a fighter taking everything that is still whole.",
+    "signature_noncombat_12": "A mage laying a hand on someone else's standing ward and borrowing its light.",
 }
 
 # Seals: one brief per set, the number added by the generator.
@@ -1121,6 +1140,25 @@ NEW_SOURCES = {
     "signature_art_17": "Yamcha's Skillful Defense (Frieza Saga 59)",
     "freestyle_noncombat_21": "Focusing (Cell Saga 115)",
     "freestyle_art_12": "Heroic Effort (Fusion Saga 9)",
+    # Mercenary Lord, from a Score-era Retro tournament list (docs/tournament_import.md).
+    "personality_70": "Super Saiyan Vegeta (Lv 1, Redemption)",
+    "personality_71": "Vegeta, Settled Down (Lv 2, Kid Buu Saga)",
+    "personality_72": "Vegeta, the Last Prince (Lv 3, Cell Saga)",
+    "personality_73": "Vegeta, Ascendant (Lv 4, Cell Saga)",
+    "personality_74": "Vegeta, the Revitalized (Lv 5, Cell Saga)",
+    "signature_art_18": "Vegeta's Energy Thrust (Promo TR2)",
+    "signature_strike_32": "Vegeta's Gutter Wallop (League Promo L6-6)",
+    "signature_art_19": "Vegeta's Energy Detonation (Broly Subset 36)",
+    "signature_combat_10": "Vegeta is Lurking (Cell Games Saga Promo)",
+    "signature_combat_11": "Vegeta's Lunge (Fusion Saga Promo)",
+    "signature_noncombat_11": "Vegeta's Ill Temper (Kid Buu Saga)",
+    "signature_strike_33": "Vegeta's Elbow Slam (Bojack Unbound 14)",
+    "signature_drill_08": "Broly's Evil Drill (Broly Movie)",
+    "freestyle_drill_08": "Master Roshi's Gawking Drill (Bojack Unbound)",
+    "freestyle_art_13": "Energy Ricochet (Buu Saga)",
+    "freestyle_combat_22": "Narrow Escape (Fusion Saga)",
+    "freestyle_noncombat_22": "Releasing the Sword (Irwin promo)",
+    "signature_noncombat_12": "Krillin's Power Tap (Frieza Saga)",
 }
 
 

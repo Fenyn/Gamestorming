@@ -1,0 +1,6 @@
+{"cards": [
+  {"id": "tutorial_personality_01", "title": "Straw Knight", "type": "personality", "school": "",
+   "character": "Straw Knight", "aspect": 1, "aspect_title": "Training Dummy", "surge": 2,
+   "might": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+   "power": {"attack": {"kind": "strike", "stages": 3}}}
+]}

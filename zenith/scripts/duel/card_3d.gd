@@ -25,6 +25,11 @@ const ROLE_DROP: float = 0.006
 const HOVER_TINT: Color = Color(ZenithTheme.ACCENT, 0.6)
 ## Heavier than a plain choice so it reads on the small Remain and Relic cards.
 const USABLE_GLOW: float = 1.8
+const WOBBLE_TIME: float = 0.6
+const WOBBLE_DEGREES: float = 5.0     # per hit tier
+const FACE_HALF_HEIGHT: float = 0.44  # the face quad's half height, where a wobble pivots
+const GATHER_LIFT: float = 0.1
+const SHEEN_TIME: float = 0.9
 var uid: int = -1
 var face_up: bool = true
 @export var reduced_motion: bool = false:
@@ -41,6 +46,7 @@ var face_up: bool = true
 @onready var role: MeshInstance3D = $Body/Surface/Role
 @onready var pick: Area3D = $Pick
 @onready var border_fx: Node3D = $Body/Surface/BorderFx
+@onready var sheen_mesh: MeshInstance3D = $Body/Surface/Sheen
 
 var _front_mat: StandardMaterial3D = StandardMaterial3D.new()
 var _back_mat: StandardMaterial3D = StandardMaterial3D.new()
@@ -52,6 +58,7 @@ var _hover_motion: Tween = null
 var _highlighted: bool = false
 var _usable: bool = false
 var _hovering: bool = false
+var _gathering: bool = false
 var _role_color: Color = Color.TRANSPARENT
 var _presence_color: Color = Color.TRANSPARENT   # the other online player's hover, in their seat colour
 
@@ -126,18 +133,20 @@ func is_usable() -> bool:
 
 
 func _update_glow() -> void:
-	var chosen: bool = _usable or _highlighted
+	var chosen: bool = _usable or _highlighted or _gathering
 	var presence_only: bool = not chosen and not _hovering and _presence_color.a > 0.0 and face_up
 	glow.visible = chosen or _hovering or presence_only
 	var tint: Color = HOVER_TINT
-	if _usable:
+	if _gathering:
+		tint = Color(ZenithTheme.ACCENT, 1.0)
+	elif _usable:
 		tint = Color(ZenithTheme.USABLE, 1.0)
 	elif _highlighted:
 		tint = Color(ZenithTheme.ACCENT, 1.0)
 	elif presence_only:
 		tint = Color(_presence_color, 0.9)
 	_glow_mat.set_shader_parameter("tint", tint)
-	_glow_mat.set_shader_parameter("highlight", USABLE_GLOW if _usable else (1.0 if chosen else 0.0))
+	_glow_mat.set_shader_parameter("highlight", USABLE_GLOW if _usable or _gathering else (1.0 if chosen else 0.0))
 	_update_border()
 
 
@@ -272,6 +281,54 @@ func hop(height: float = 0.12) -> void:
 	await _motion_end(t)
 
 
+## A struck practice dummy rocking on its base: a damped swing of WOBBLE_DEGREES per `tier` about
+## the bottom edge of the face. Awaitable.
+func wobble(tier: float = 1.0) -> void:
+	if reduced_motion:
+		_stop_motion()
+		return
+	var t: Tween = _start_motion()
+	var pivot: Vector3 = surface.transform * Vector3(0.0, 0.0, FACE_HALF_HEIGHT)
+	t.tween_method(func(progress: float) -> void: _rock(progress, tier, pivot), 0.0, 1.0, WOBBLE_TIME)
+	t.tween_callback(func() -> void: body.transform = Transform3D.IDENTITY)
+	await _motion_end(t)
+
+
+func _rock(progress: float, tier: float, pivot: Vector3) -> void:
+	var angle: float = deg_to_rad(WOBBLE_DEGREES * tier) * sin(progress * TAU * 2.5) * (1.0 - progress)
+	var turn: Basis = Basis(Vector3.UP, angle)
+	body.transform = Transform3D(turn, pivot - turn * pivot)
+
+
+## A fighter gathering itself before a move: the card rises, glows and holds for `time`. Awaitable.
+func gather(time: float = 0.5) -> void:
+	_gathering = true
+	_update_glow()
+	if reduced_motion:
+		_stop_motion()
+		await get_tree().create_timer(time).timeout
+	else:
+		var t: Tween = _start_motion()
+		t.tween_property(body, "position:y", GATHER_LIFT, time * 0.4).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		t.tween_interval(time * 0.35)
+		t.tween_property(body, "position:y", 0.0, time * 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		await _motion_end(t)
+	_gathering = false
+	_update_glow()
+
+
+## Grey metal light sweeps across the face once, over a flash of `color`.
+func sheen(color: Color, time: float = SHEEN_TIME) -> void:
+	flash(color)
+	if reduced_motion:
+		return
+	var m: ShaderMaterial = sheen_mesh.material_override
+	sheen_mesh.visible = true
+	var t: Tween = create_tween()
+	t.tween_method(func(value: float) -> void: m.set_shader_parameter("sweep", value), 0.0, 1.0, time)
+	t.tween_callback(func() -> void: sheen_mesh.visible = false)
+
+
 ## Every Body motion replaces the last. A killed tween never emits `finished`, so each motion
 ## is awaited through `motion_done`, which fires when it ends and when a newer motion cuts it off.
 func _start_motion() -> Tween:
@@ -294,7 +351,7 @@ func _stop_motion() -> void:
 		_motion.kill()
 		_motion = null
 		motion_done.emit()
-	body.position = Vector3.ZERO
+	body.transform = Transform3D.IDENTITY
 
 
 ## Target basis for the current facing; the view composes it with the zone slot.

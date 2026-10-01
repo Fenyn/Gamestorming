@@ -4,7 +4,14 @@ extends Control
 ## Session.go_to_adventure() whenever a run is live.
 
 ## Non-fighting node types that do something when entered.
-const BUILT_STOPS: Array[String] = ["forge", "shop", "relic"]
+const BUILT_STOPS: Array[String] = ["forge", "shop", "relic", "shrine"]
+const RESONANCE_ROW: PackedScene = preload("res://scenes/adventure/resonance_row.tscn")
+const ELITE_SIGIL: Vector2 = Vector2(56, 56)
+## The sheet's card sizes, full and while the Elite's Resonances take the room under it.
+const PORTRAIT_FULL: Vector2 = Vector2(314, 440)
+const MASTERY_FULL: Vector2 = Vector2(240, 336)
+const PORTRAIT_ELITE: Vector2 = Vector2(220, 308)
+const MASTERY_ELITE: Vector2 = Vector2(168, 235)
 
 @onready var faces: CardFaceCache = $CardFaceCache
 @onready var deck_name_label: Label = $Margin/Column/Body/Right/RunInfo/Row/Titles/DeckName
@@ -19,6 +26,8 @@ const BUILT_STOPS: Array[String] = ["forge", "shop", "relic"]
 @onready var ladder_list: VBoxContainer = $Margin/Column/Body/Ladder/Scroll/List
 @onready var right_column: VBoxContainer = $Margin/Column/Body/Right
 @onready var next_sheet: DeckSheet = $Margin/Column/Body/Right/NextOpponent
+@onready var elite_panel: PanelContainer = $Margin/Column/Body/Right/EliteResonances
+@onready var elite_list: HBoxContainer = $Margin/Column/Body/Right/EliteResonances/Row/List
 @onready var run_over_panel: PanelContainer = $Margin/Column/Body/Right/RunOver
 @onready var run_over_heading: Label = $Margin/Column/Body/Right/RunOver/Center/Column/Heading
 @onready var run_over_reached: Label = $Margin/Column/Body/Right/RunOver/Center/Column/Reached
@@ -35,6 +44,8 @@ var _route: MapRoute = null
 var _node_icon: TextureRect = null
 ## A small warning line under that note, for what is not built yet.
 var _dev_note: Label = null
+## The node `--dev-elite` picks once the map is up, "" for none.
+var _dev_pick: String = ""
 
 
 func _ready() -> void:
@@ -49,10 +60,7 @@ func _ready() -> void:
 	MapArt.tint_for_school(run_deck.style if run_deck != null else "")
 	theme = SanctumUI.theme()
 	next_sheet.setup(1, faces)
-	next_sheet.portrait.custom_minimum_size = Vector2(314, 440)
-	next_sheet.portrait_caption.custom_minimum_size.x = 314
-	next_sheet.mastery.custom_minimum_size = Vector2(240, 336)
-	next_sheet.mastery_caption.custom_minimum_size.x = 240
+	_size_sheet_cards(false)
 	# The map and the side panel's pieces are all framed panels. Pixel frames keep hard edges;
 	# their contents stay smooth.
 	var frame: PanelContainer = PanelContainer.new()
@@ -89,6 +97,7 @@ func _ready() -> void:
 	_frame(run_info, 28)
 	_frame(run_over_panel, 30)
 	_frame(next_sheet, 26)
+	_frame(elite_panel, 12)
 	mote_icon.texture = MapArt.ui("mote")
 	ZenithTheme.motes_label(motes_label)
 	mana_icon.texture = MapArt.ui("mana")
@@ -119,6 +128,8 @@ func _ready() -> void:
 	new_run_button.pressed.connect(_on_new_run)
 	_refresh()
 	_enter()
+	if _dev_pick != "":
+		_route.select(_dev_pick)
 	if AdventureDev.args().has("--dev-deck"):
 		deck_panel.open(Session.run.deck(), DeckInfo.might_max_of(Session.decks), faces)
 	if AdventureDev.has_flag("--dev-library"):
@@ -138,7 +149,8 @@ func _frame(panel: PanelContainer, content: int) -> void:
 
 ## Only when the stage scene is opened directly with no run in memory: `--dev-adventure=<id>`
 ## builds an unsaved run, `--dev-stage=N` wins N duels along the first choices,
-## `--dev-status=lost|won` forces that state.
+## `--dev-elite` walks on until an Elite is a choice and picks it, `--dev-status=lost|won` forces
+## that state.
 func _dev_bootstrap() -> void:
 	var starter_id: String = AdventureDev.flag("--dev-adventure=")
 	if starter_id == "" or not AdventureDev.begin_run(starter_id):
@@ -146,6 +158,8 @@ func _dev_bootstrap() -> void:
 	var stage_arg: String = AdventureDev.flag("--dev-stage=")
 	if stage_arg != "":
 		AdventureDev.walk(maxi(0, int(stage_arg)))
+	if AdventureDev.has_flag("--dev-elite"):
+		_dev_pick = AdventureDev.choose_next("elite")
 	var status_arg: String = AdventureDev.flag("--dev-status=")
 	if status_arg != "":
 		Session.run.status = status_arg
@@ -247,6 +261,7 @@ func _show_node(id: String) -> void:
 	var choice: bool = run.choices(map).has(id)
 	next_sheet.visible = not duel.is_empty()
 	run_over_panel.visible = duel.is_empty()
+	_show_elite_resonances(AdventureElite.resonances_of(duel))
 	if duel.is_empty():
 		_node_icon.texture = MapArt.marker(type)
 		_node_icon.visible = _node_icon.texture != null
@@ -284,8 +299,44 @@ func _show_next_opponent(row_data: Dictionary) -> void:
 	next_sheet.set_story(str(row_data.get("story", "")))
 
 
+## The Resonances an Elite's opponent holds, under its sheet: each sigil and name, with its sentence
+## and any penalty on hover. Hidden for every other node.
+func _show_elite_resonances(ids: Array[String]) -> void:
+	elite_panel.visible = not ids.is_empty()
+	_size_sheet_cards(elite_panel.visible)
+	for child in elite_list.get_children():
+		elite_list.remove_child(child)
+		child.queue_free()
+	for id in ids:
+		var row: HBoxContainer = RESONANCE_ROW.instantiate() as HBoxContainer
+		elite_list.add_child(row)
+		row.mouse_filter = Control.MOUSE_FILTER_STOP
+		row.tooltip_text = ResonanceData.effect_of(id)
+		if ResonanceData.penalty_of(id) != "":
+			row.tooltip_text += "\n" + ResonanceData.penalty_of(id)
+		var sigil: ResonanceSigil = row.get_node("Sigil") as ResonanceSigil
+		sigil.custom_minimum_size = ELITE_SIGIL
+		sigil.resonance = id
+		var name_label: Label = row.get_node("Name") as Label
+		name_label.text = ResonanceData.name_of(id)
+		name_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		name_label.add_theme_color_override("font_color", ZenithTheme.TEXT)
+
+
+func _size_sheet_cards(compact: bool) -> void:
+	var portrait: Vector2 = PORTRAIT_ELITE if compact else PORTRAIT_FULL
+	var mastery: Vector2 = MASTERY_ELITE if compact else MASTERY_FULL
+	next_sheet.portrait.custom_minimum_size = portrait
+	next_sheet.mastery.custom_minimum_size = mastery
+	# The captions keep their full width so they stay on one line under the smaller cards.
+	next_sheet.portrait_caption.custom_minimum_size.x = PORTRAIT_FULL.x
+	next_sheet.mastery_caption.custom_minimum_size.x = MASTERY_FULL.x
+
+
 func _show_run_over(run: AdventureRun, map: AdventureMap) -> void:
 	_dev_note.visible = false
+	elite_panel.visible = false
 	_node_icon.texture = MapArt.marker("boss")
 	_node_icon.visible = _node_icon.texture != null
 	if run.status == "won":

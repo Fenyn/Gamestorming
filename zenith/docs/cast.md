@@ -707,6 +707,22 @@ The kings and the betrayal above are backstory, and the storylines do not explai
 **Second Aspect 1 card** (`personality_48`, fielded in Scrap Requiem): mid-cast, the broken crest turned to the viewer, light bleeding off
 his knuckles. Art for 1 Energy.
 
+**The earlier Gideon** (settled 2026-09-30; deck in progress). A second Duelist line, set before
+the toll gate and unmarked. It catches him after the fall: every holding lost, the title gone, and
+working to build a mercenary group out of whoever will still follow him. Angry and disenfranchised,
+sworn to no one yet. He is the adventure's open Mourne starter, and the Marked Lord starter
+becomes a story unlock reached from here. His deeper lore (why he goes to the gate) is held for a
+later pass. Deck: Mercenary Lord. He plays either side (alignment `either`), and no brand shows in
+any of his art.
+
+| Aspect | Look | Does |
+|---|---|---|
+| 1 The Betrayer | Alone on a field he once held, broken crest on his chest, counting what little is left | Shuffles a Mourne card from the discard pile back into the Life Deck |
+| 2 Sellsword | Leaning on a hired blade at a camp table, a purse in front of him, unimpressed | Rival cannot use Combat cards; his attacks do +2 wounds |
+| 3 Silver Tongue | Smiling across a parley table, one hand open in offer, the other out of sight | Entering Combat, looks at the rival's hand and discards a card |
+| 4 Free Captain | At the head of a ragged hired company, men gathering behind him | Defense Shield, draws entering Combat |
+| 5 Mercenary Lord | Leading the charge at the front of his own company, fist wreathed in force | Strike +9 |
+
 **Named cards.** Seven across five decks, including Mourne's Jolting Arc.
 
 ### The Fortress

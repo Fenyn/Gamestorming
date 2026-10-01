@@ -488,7 +488,7 @@ Tied to a named character, schoolless unless noted. Listed by character, largest
 | Caedan Vale | Caedan's Pommel Bash | Strike | Endurance 2. Strike doing +4 Energy. Attune 1. Hit: If Caedan Vale is in control, your opponent must pass during their next attack phase. | `signature_strike_15` |
 | Caedan Vale | Caedan's Quickstep | Strike | Strike doing +4 Energy. Empower 2. Disrupt 2. If Caedan Vale or Tavin Vale is in control, search your discard pile for a Caedan Vale or Tavin Vale Signature card and put it into your hand. Remove from the game after use. | `signature_strike_14` |
 | Caedan Vale | Caedan's Riposte | Strike | Stops a Strike. In your next attack phase you may repeat the attack it stopped. | `signature_strike_21` |
-| Caedan Vale | Caedan's Sword Draw | Strike | Strike doing +4 Energy. Attune 1. Hit: Search your Life Deck for a "Sword" card other than "Caedan's Sword Draw" and put it into your hand. | `signature_strike_13` |
+| Caedan Vale | Vale's Sword Draw | Strike | Strike doing +4 Energy. Attune 1. Hit: Search your Life Deck for a "Sword" card other than "Vale's Sword Draw" and put it into your hand. | `signature_strike_13` |
 | Caedan Vale | Caedan's Declaration | Art | Art. Attune 2. Disrupt 2. Remove from the game after use. Limit 1 per deck. | `signature_art_09` |
 | Caedan Vale | Caedan Cuts It Short | Combat | Use when needed. Stops the effects of any Combat card. | `signature_combat_03` |
 | Caedan Vale | Caedan's Quiet Study | Combat | Draw a card. If it is one of your duelist's Signature cards, draw a card. Limit 1 per deck. | `signature_combat_08` |

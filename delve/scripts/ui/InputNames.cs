@@ -28,6 +28,13 @@ public static class InputNames
     public const string RotateLeft = "camera_rotate_left";
     public const string RotateRight = "camera_rotate_right";
 
+    /// <summary>Out-of-combat screens: the number keys pick a frame's page, Q and E page through
+    /// party members, and J opens the journal while exploring.</summary>
+    public const string MenuPrev = "menu_prev";
+    public const string MenuNext = "menu_next";
+    public const string ExploreJournal = "explore_journal";
+    public const string ExploreParty = "explore_party";
+
     /// <summary>Godot's built-in cancel action. Listed here so no script carries the literal.</summary>
     public const string UiCancel = "ui_cancel";
 

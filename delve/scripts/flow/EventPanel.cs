@@ -13,14 +13,13 @@ namespace Delve.Flow;
 /// The option buttons spell out their check ("Athletics DC 15") so the player never guesses what a
 /// choice rolls. Passive - the resolver runs in the flow layer, this only shows and signals.
 /// </summary>
-public partial class EventPanel : Control
+public partial class EventPanel : ScreenFrame
 {
     private readonly List<(PF2eCharacter Actor, Button Button)> _actors = new();
 
-    private Label _title = null!;
     private Label _body = null!;
     private VBoxContainer _options = null!;
-    private HBoxContainer _actorRow = null!;
+    private Container _actorRow = null!;
     private Label _actorHeading = null!;
     private Label _result = null!;
     private Button _continue = null!;
@@ -40,16 +39,29 @@ public partial class EventPanel : Control
 
     public override void _Ready()
     {
-        _title = GetNode<Label>("%TitleLabel");
         _body = GetNode<Label>("%BodyLabel");
         _options = GetNode<VBoxContainer>("%OptionBox");
-        _actorRow = GetNode<HBoxContainer>("%ActorRow");
+        _actorRow = GetNode<Container>("%ActorRow");
         _actorHeading = GetNode<Label>("%ActorHeading");
         _result = GetNode<Label>("%ResultLabel");
         _continue = GetNode<Button>("%ContinueButton");
         _preview = GetNode<Label>("%CheckPreview");
         _previewHeading = GetNode<Label>("%PreviewHeading");
         _continue.Pressed += () => Continued?.Invoke();
+        base._Ready();
+    }
+
+    /// <summary>Before the result Esc reaches the pause menu (an event is left through its own
+    /// choice); after it, Esc continues like the Continue button.</summary>
+    public override void _Input(InputEvent e)
+    {
+        if (IsVisibleInTree() && _continue.Visible && !e.IsEcho() && e.IsActionPressed(InputNames.UiCancel))
+        {
+            GetViewport().SetInputAsHandled();
+            Continued?.Invoke();
+            return;
+        }
+        base._Input(e);
     }
 
     /// <summary>Show an event and let the player choose. Clears any previous result.</summary>
@@ -59,7 +71,7 @@ public partial class EventPanel : Control
         _party = state.Party;
         _resolved = false;
         _previewIndex = 0;
-        _title.Text = definition.Title;
+        SetTitle(definition.Title);
         _body.Text = definition.Body;
         _body.Visible = true;
         if (Report != null) Report.Visible = false;
@@ -72,7 +84,7 @@ public partial class EventPanel : Control
         BuildActors(definition, state.Party);
         BuildOptions(definition);
         RefreshPreviews();
-        Visible = true;
+        if (!Visible) OpenFrame();
         UiFocus.GrabFirst(_optionButtons);
     }
 
@@ -110,7 +122,8 @@ public partial class EventPanel : Control
     public void ShowReport(string title, IReadOnlyList<Delve.Combat.FigureView> figures, IReadOnlyList<ResultMemberRow> rows)
     {
         ShowResult(new EventResult { Resolved = true });
-        _title.Text = title;
+        SetTitle(title);
+        if (Report != null) Report.Visible = true;
         _body.Visible = false;
         _previewHeading.Visible = false;
         _result.Visible = false;
@@ -165,6 +178,7 @@ public partial class EventPanel : Control
     {
         if (_resolved || _definition == null || _party == null || index >= _definition.Options.Count) return;
         _previewIndex = index;
+        RenderActorOdds(_definition.Options[index]);
         _previewHeading.Text = _definition.Options[index].Check == null ? "WHAT HAPPENS · NO ROLL" : "CHECK & POSSIBLE OUTCOMES";
         _preview.Text = EventCheckPreview.Details(_definition.Options[index], _party, SelectedActor());
         _preview.Visible = true;
@@ -188,7 +202,8 @@ public partial class EventPanel : Control
         _actorHeading.Visible = allowed;
         if (!allowed) return;
 
-        var automatic = new Button { Text = "Best suited", ToggleMode = true, ButtonGroup = _actorGroup };
+        var automatic = new Button { Text = "Best suited", ToggleMode = true, ButtonGroup = _actorGroup,
+            Alignment = HorizontalAlignment.Left, SizeFlagsHorizontal = SizeFlags.ExpandFill };
         automatic.SetPressedNoSignal(true);
         automatic.Toggled += pressed => { if (pressed) RefreshPreviews(); };
         _actorRow.AddChild(automatic);
@@ -202,11 +217,27 @@ public partial class EventPanel : Control
                 Text = member.Name,
                 ToggleMode = true,
                 ButtonGroup = _actorGroup,
+                Alignment = HorizontalAlignment.Left,
+                SizeFlagsHorizontal = SizeFlags.ExpandFill,
             };
             _actorRow.AddChild(button);
             _actors.Add((member, button));
             button.Toggled += pressed => { if (pressed) RefreshPreviews(); };
         }
+    }
+
+    /// <summary>Each member's odds on the previewed option ("Elara  +8 · 55%"), and who "Best
+    /// suited" would send.</summary>
+    private void RenderActorOdds(EventOption option)
+    {
+        foreach (var (actor, button) in _actors)
+        {
+            string odds = EventCheckPreview.ActorForecast(option, actor);
+            button.Text = odds.Length > 0 ? $"{actor.Name}  {odds}" : actor.Name;
+        }
+        if (_actorRow.GetChildCount() > 0 && _actorRow.GetChild(0) is Button automatic && _party != null)
+            automatic.Text = option.Check is { } check && EventResolver.ActorFor(_party, check, null) is { } best
+                ? $"Best suited: {best.Name}" : "Best suited";
     }
 
     private PF2eCharacter? SelectedActor()

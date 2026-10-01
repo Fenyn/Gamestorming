@@ -33,7 +33,8 @@ public partial class RestPresentationSpike : SpikeBase
         panel.Theme = UiTheme;
         AddChild(panel);
         panel.Show(state);
-        int submits = 0;
+        int submits = 0, backs = 0;
+        panel.Back += () => backs++;
         panel.SchedulePicked += choices =>
         {
             submits++;
@@ -46,14 +47,14 @@ public partial class RestPresentationSpike : SpikeBase
         var rows = panel.GetNode<VBoxContainer>("%ActivityBox");
         Check("one activity row per party member", rows.GetChildCount() == 4);
         var controls = rows.GetChild<HBoxContainer>(0);
-        var activity = controls.GetChild<OptionButton>(1);
+        var activity = controls.GetChild<HBoxContainer>(1);
         var target = controls.GetChild<OptionButton>(2);
         var confirm = panel.GetNode<Button>("%ConfirmButton");
         await Wait();
-        var frame = panel.GetNode<Control>("Center/Frame");
-        Check($"the schedule is one 44 px row per hero in a 640 px panel ({controls.Size}, {frame.Size.X})",
+        var frame = panel.FramePanel;
+        Check($"the schedule is one 44 px row per hero, activities as chips, inside the frame cap ({controls.Size}, {frame.Size.X})",
             rows.GetChildren().OfType<HBoxContainer>().All(r => Mathf.Abs(r.Size.Y - 44) <= 0.5f)
-            && Mathf.Abs(frame.Size.X - 640) <= 1);
+            && activity.GetChildren().OfType<Button>().Count() == 4 && frame.Size.X <= panel.MaxSize.X);
         var header = panel.GetNode<Label>("%ClockLabel").Text;
         Check($"the header reads as pairs, the rules sit on the hover ('{header}')",
             header.Contains($"Ward {state.Wardstone.Ward} → {state.Wardstone.WardAfterShortRest}") && !header.Contains('.')
@@ -63,20 +64,16 @@ public partial class RestPresentationSpike : SpikeBase
         Check($"the schedule opens on a valid suggestion, not on four quiet rests ({string.Join(", ", opening.Select(a => a.Kind))})",
             !confirm.Disabled && opening.Any(a => a.Kind != ShortRestKind.Rest) && ShortRest.Validate(party, opening) == null);
         // The manual path below starts from quiet rests, as a player clearing the suggestion would.
-        foreach (var row in rows.GetChildren())
-        {
-            var choice = row.GetChild<OptionButton>(1);
-            choice.Select(0);
-            choice.EmitSignal(OptionButton.SignalName.ItemSelected, 0);
-        }
-        activity.Select(1);
-        activity.EmitSignal(OptionButton.SignalName.ItemSelected, 1);
-        target.Select(0);
-        target.EmitSignal(OptionButton.SignalName.ItemSelected, 0);
+        for (int i = 0; i < rows.GetChildCount(); i++) panel.SetActivity(i, ShortRestKind.Rest);
+        panel.SetActivity(0, ShortRestKind.TreatWounds);
+        panel.SetTarget(0, 0);
         Check("Treat Wounds reveals a required target", target.Visible && confirm.Disabled);
-        target.Select(2);
-        target.EmitSignal(OptionButton.SignalName.ItemSelected, 2);
+        panel.SetTarget(0, 2);
         Check("selecting the patient enables the schedule without spending ward", !confirm.Disabled && state.Clock.ShortRestsToday == 0);
+        int patientHp = patient.Health.CurrentHP, patientMax = patient.Health.MaxHP;
+        string yield = panel.Yields[1];
+        Check($"the patient's row shows the Treat Wounds success range as a pair ('{yield}')",
+            yield == $"HP {patientHp} → {Mathf.Min(patientMax, patientHp + 2)}–{Mathf.Min(patientMax, patientHp + 16)} / {patientMax}");
         await Wait();
         var marks = SquadMemberViews.From(patient).Conditions;
         Check($"the chip marks Wounded with its value and the token shows no condition mark ({string.Join(", ", marks.Select(m => m.Label))})",
@@ -94,7 +91,7 @@ public partial class RestPresentationSpike : SpikeBase
         var report = panel.Report;
         var ward = report.FigureLabels.FirstOrDefault();
         Check($"rest result is titled '{ShortRestPanel.DoneTitle}' with the ward pair ({ward?.CaptionText} {ward?.BeforeText} → {ward?.ValueText})",
-            panel.GetNode<Label>("%TitleLabel").Text == ShortRestPanel.DoneTitle && ward != null && ward.CaptionText == "Ward"
+            panel.TitleText == ShortRestPanel.DoneTitle && ward != null && ward.CaptionText == "Ward"
             && ward.BeforeText == (state.Wardstone.Ward + state.Wardstone.Rules.ShortRestBurn).ToString()
             && ward.ValueText == state.Wardstone.Ward.ToString());
         var patientRow = report.MemberRows.FirstOrDefault(r => r.MemberName == patient.Name);
@@ -104,6 +101,8 @@ public partial class RestPresentationSpike : SpikeBase
         Check("rest report has rows only for changed heroes", report.MemberRows.All(r => r.FigureLabels.Count > 0)
             && report.MemberRows.Count < 4);
         Capture("rest_results");
+        panel._Input(new InputEventAction { Action = Delve.UI.InputNames.UiCancel, Pressed = true });
+        Check($"Esc on the result continues exploring ({backs} back)", backs == 1 && !panel.Visible);
         panel.Hide();
         patient.Conditions.AddCondition(ConditionDatabase.Instance.Frightened, value: 2);
         patient.Conditions.AddCondition(ConditionDatabase.Instance.Prone);

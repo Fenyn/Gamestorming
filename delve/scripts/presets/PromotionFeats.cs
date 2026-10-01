@@ -19,12 +19,6 @@ public static class PromotionFeats
         "tharr" => "tharr-war-chaplain", "fenwick" => "fenwick-field-arcanist", _ => id + "-default",
     };
 
-    public static string Name(string id) => id switch
-    {
-        "player" => "Vanguard", "elara" => "Twinblade", "tharr" => "War Chaplain",
-        "fenwick" => "Field Arcanist", _ => "Class progression",
-    };
-
     public static IReadOnlyList<Option> For(PF2eCharacter character)
     {
         var options = new List<Option>();
@@ -35,15 +29,20 @@ public static class PromotionFeats
                 options.Add(new(id, RosterFeats.MinimumLevel(id), Theme(character.Id, id),
                     "Class feat", () => RosterFeats.Build(id)));
             }
+        // Each archetype line starts with its dedication, the free archetype feat every preset
+        // takes at level 2; it heads the column so the later feat's prerequisite is on the ladder.
         switch (character.Id)
         {
             case "player":
+                options.Add(new("bastion-dedication", 2, "Hold", "Bastion", PresetClasses.BuildBastionDedication));
                 options.Add(new("disarming-block", 4, "Hold", "Bastion", PresetClasses.BuildDisarmingBlock, "bastion-dedication"));
                 break;
             case "tharr":
+                options.Add(new("marshal-dedication", 2, "Command", "Marshal", PresetClasses.BuildMarshalDedication));
                 options.Add(new("inspiring-marshal-stance", 4, "Command", "Marshal", PresetClasses.BuildInspiringMarshalStance, "marshal-dedication"));
                 break;
             case "fenwick":
+                options.Add(new("medic-dedication", 2, "Fieldcraft", "Medic", PresetClasses.BuildMedicDedication));
                 options.Add(new("treat-condition", 4, "Fieldcraft", "Medic", PresetClasses.BuildTreatCondition, "medic-dedication"));
                 break;
         }

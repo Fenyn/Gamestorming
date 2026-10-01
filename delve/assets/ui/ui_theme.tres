@@ -589,6 +589,47 @@ texture_margin_top = 12.0
 texture_margin_right = 12.0
 texture_margin_bottom = 12.0
 
+[sub_resource type="StyleBoxFlat" id="sb_screen_scrim"]
+bg_color = Color(0.039216, 0.047059, 0.062745, 0.92)
+
+[sub_resource type="StyleBoxFlat" id="sb_frame_tab"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 2
+border_color = Color(0.321569, 0.380392, 0.419608, 1)
+
+[sub_resource type="StyleBoxFlat" id="sb_frame_tab_hover"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.078431, 0.101961, 0.121569, 1)
+border_width_bottom = 2
+border_color = Color(0.623529, 0.788235, 0.839216, 1)
+
+[sub_resource type="StyleBoxFlat" id="sb_frame_tab_pressed"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.078431, 0.101961, 0.121569, 1)
+border_width_bottom = 3
+border_color = Color(0.901961, 0.862745, 0.776471, 1)
+
+[sub_resource type="StyleBoxTexture" id="sb_screen_frame"]
+content_margin_left = 28.0
+content_margin_top = 24.0
+content_margin_right = 28.0
+content_margin_bottom = 24.0
+texture = ExtResource("kenney_modal")
+texture_margin_left = 12.0
+texture_margin_top = 12.0
+texture_margin_right = 12.0
+texture_margin_bottom = 12.0
+
 [sub_resource type="StyleBoxFlat" id="sb_panel_reaction"]
 content_margin_left = 24.0
 content_margin_top = 12.0
@@ -1335,6 +1376,8 @@ HeadingLabelDisabled/base_type = &"HeadingLabel"
 HeadingLabelDisabled/colors/font_color = Color(0.556863, 0.603922, 0.631373, 1)
 HintLabel/base_type = &"Label"
 HintLabel/colors/font_color = Color(0.639216, 0.690196, 0.713725, 1)
+MemberAlert/base_type = &"Label"
+MemberAlert/colors/font_color = Color(0.851, 0.396, 0.333, 1)
 HpBarAlly/base_type = &"ProgressBar"
 HpBarAlly/styles/background = SubResource("sb_bar_bg")
 HpBarAlly/styles/fill = SubResource("sb_bar_ally")
@@ -1434,6 +1477,16 @@ ModalDim/base_type = &"Panel"
 ModalDim/styles/panel = SubResource("sb_modal_dim")
 ModalVignette/base_type = &"Panel"
 ModalVignette/styles/panel = SubResource("sb_modal_vignette")
+ScreenScrim/base_type = &"Panel"
+ScreenScrim/styles/panel = SubResource("sb_screen_scrim")
+FrameTab/base_type = &"Button"
+FrameTab/styles/normal = SubResource("sb_frame_tab")
+FrameTab/styles/hover = SubResource("sb_frame_tab_hover")
+FrameTab/styles/pressed = SubResource("sb_frame_tab_pressed")
+FrameTab/styles/hover_pressed = SubResource("sb_frame_tab_pressed")
+FrameTab/styles/disabled = SubResource("sb_frame_tab")
+ScreenFrame/base_type = &"PanelContainer"
+ScreenFrame/styles/panel = SubResource("sb_screen_frame")
 ModalPanel/base_type = &"PanelContainer"
 ModalPanel/styles/panel = SubResource("sb_panel_modal")
 Palette/colors/accent = Color(0.901961, 0.862745, 0.776471, 1)

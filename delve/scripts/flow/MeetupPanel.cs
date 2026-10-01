@@ -32,6 +32,20 @@ public partial class MeetupPanel : Control
             };
         }
         GetNode<Button>("%DeclineButton").Pressed += () => Declined?.Invoke();
+        // The offer holds the modal stack, so Esc answers "Keep current party" and never the pause menu.
+        VisibilityChanged += () =>
+        {
+            if (Visible) Delve.Autoload.ModalStack.Instance?.Push(this);
+            else Delve.Autoload.ModalStack.Instance?.Pop(this);
+        };
+    }
+
+    /// <summary>Esc answers "Keep current party", the one choice that changes nothing.</summary>
+    public override void _Input(InputEvent e)
+    {
+        if (!IsVisibleInTree() || e.IsEcho() || !e.IsActionPressed(InputNames.UiCancel)) return;
+        GetViewport().SetInputAsHandled();
+        Declined?.Invoke();
     }
 
     public void Show(Party party, PF2eCharacter guest)

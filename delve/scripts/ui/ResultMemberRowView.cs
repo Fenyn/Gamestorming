@@ -40,6 +40,7 @@ public partial class ResultMemberRowView : HBoxContainer
     public void Render(ResultMemberRow row, bool offerFeat = true)
     {
         _name.Text = row.Member.Name;
+        GetNode<TextureRect>("%Face").Texture = HeroPortraits.Face(row.Member.Id);
         foreach (var child in _figures.GetChildren()) { _figures.RemoveChild(child); child.QueueFree(); }
         if (FigureScene != null)
             foreach (var figure in row.Figures)

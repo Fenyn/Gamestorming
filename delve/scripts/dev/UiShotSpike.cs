@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Delve.Autoload;
 using Delve.Flow;
@@ -79,11 +80,10 @@ public partial class UiShotSpike : SpikeBase
         await Settle();
         Capture("camp_all_unlocked.png");
         await CaptureCampCapacity(panel);
-        var recruitment = panel.GetNode<RecruitmentPanel>("%Recruitment");
-        recruitment.Open();
+        panel.OpenJournal(JournalScreen.UnlocksPage);
         await Settle();
         Capture("hero_select_recruitment.png");
-        recruitment.Hide();
+        panel.Journal.Close();
 
         panel.Preview(PresetCharacters.FenwickId);
         await Settle();
@@ -139,7 +139,7 @@ public partial class UiShotSpike : SpikeBase
         Capture("hero_select_shortsword.png");
         Check("Double Slice summary opens", panel.ShowTipForTesting("Double Slice"));
         await Settle();
-        var tip = panel.GetNode<HeroSheet>("%Sheet").GetNode<CanvasLayer>("%TipLayer").GetChild<Delve.UI.SheetTooltip>(0);
+        var tip = panel.Sheet.GetNode<CanvasLayer>("%TipLayer").GetChild<Delve.UI.SheetTooltip>(0);
         Check("Double Slice summary fits without scrolling", !tip.GetNode<Label>("%ScrollHint").Visible);
         Capture("double_slice_summary.png");
         tip.GetNode<Button>("%FullRules").EmitSignal(Button.SignalName.Pressed);
@@ -160,9 +160,9 @@ public partial class UiShotSpike : SpikeBase
         foreach (var def in CharacterCatalog.All)
         {
             var sheet = HeroSheetBuilder.Read(def.Builder(Party.DefaultLevel));
-            var features = sheet.Row(HeroSheetBuilder.FeaturesRow);
-            if (features == null) continue;
-            foreach (var entry in features.Entries)
+            var features = new[] { HeroSheetBuilder.FeaturesRow, HeroSheetBuilder.FeatsRow }
+                .SelectMany(label => sheet.Row(label)?.Entries ?? System.Array.Empty<SheetEntry>());
+            foreach (var entry in features)
             {
                 if (entry.Tip is not { } feature || !reviewed.Add(feature.Title)) continue;
                 Check($"{feature.Title} has summary and full rules", feature.Meta is { Count: > 0 }

@@ -94,6 +94,10 @@ public partial class KnowledgeJournalSpike
             var rect = panel.GetGlobalRect();
             Check($"the Journal button opens it clear of the timeline ({rect} vs timeline end x {rail.End.X})",
                 panel.Visible && rect.Position.X >= rail.End.X + 16 && rect.Position.Y >= 16);
+            var bar = scene.GetNode<ActionBar>("%ActionBar");
+            var menu = bar.GetNode<Control>("%Stack").GetGlobalRect();
+            Check($"the command menu steps aside from the open journal ({menu} vs {rect})",
+                !bar.MenuShown || !menu.Intersects(rect));
             Capture("knowledge_journal_combat.png");
             hud._UnhandledInput(new InputEventAction { Action = InputNames.Journal, Pressed = true });
             Check("J closes it again", !panel.Visible);
@@ -125,33 +129,41 @@ public partial class KnowledgeJournalSpike
         var facts = bestiary.PageFacts;
         Check($"the first met species opens with its progress ('{bestiary.PageKnownText}')",
             bestiary.SelectedId == Goblin && bestiary.PageKnownText == "Known 3 of 11" && bestiary.PageTitle == "Goblin Warrior");
-        Check($"the page prints only the known facts ({bestiary.ShownFactCount}: '{string.Join("', '", facts.Where(f => f.Known).Select(f => f.Text))}')",
+        Check($"the page prints every field, '?' until known ({bestiary.ShownFactCount}: '{string.Join("', '", facts.Select(f => f.Text))}')",
             facts[0].Text == $"AC {goblinDef.StatBlock.AC}" && facts[2].Text == $"HP {goblinDef.StatBlock.MaxHP}"
-            && facts.Count(f => f.Known) == 3 && bestiary.ShownFactCount == 3);
+            && facts.Count(f => f.Known) == 3 && bestiary.ShownFactCount == MonsterJournal.TotalFields
+            && facts.Where(f => !f.Known).All(f => f.Text.EndsWith(CreatureFacts.Unknown)));
+        Check($"the page names the species' level and traits ('{bestiary.IdentityText}')",
+            bestiary.IdentityText.StartsWith($"Level {goblinDef.StatBlock.CreatureLevel}"));
+        Check($"the grid groups species under their floors ('{bestiary.SummaryText}')",
+            BestiaryPanel.CampaignFloors(campaign.Journal).Count >= FloorThemes.Count && bestiary.SummaryText == "Met 2 of " + pool);
         var portrait = bestiary.Portrait;
         int scale = portrait.Texture == null ? 0 : (int)(portrait.Size.Y / portrait.Texture.GetHeight());
         Check($"a met species shows its idle sprite at a whole scale ({portrait.Size} from {portrait.Texture?.GetSize()})",
             portrait.Texture != null && !bestiary.PortraitSilhouette && scale >= 2
             && Mathf.IsEqualApprox(portrait.Size.Y, portrait.Texture.GetHeight() * scale)
             && Mathf.IsEqualApprox(portrait.Size.X, portrait.Texture.GetWidth() * scale));
-        Check("the first met entry holds focus", GetViewport().GuiGetFocusOwner() is Button { Text: "Goblin Warrior" });
+        Check("the first met tile holds focus", GetViewport().GuiGetFocusOwner() is Button { TooltipText: "Goblin Warrior" });
         Capture("knowledge_journal_bestiary.png");
 
-        GetViewport().PushInput(new InputEventAction { Action = InputNames.UiDown, Pressed = true });
+        bestiary.Select(WolfRef.Slug);
         await Frames(2);
-        Check($"Down moves to the next species and the page follows ('{bestiary.PageKnownText}')",
-            bestiary.SelectedId == WolfRef.Slug && bestiary.PageKnownText == "Known 0 of 11" && bestiary.ShownFactCount == 0);
-        GetViewport().PushInput(new InputEventAction { Action = InputNames.UiUp, Pressed = true });
-        GetViewport().PushInput(new InputEventAction { Action = InputNames.UiUp, Pressed = true });
+        Check($"a met species with nothing learned shows every field as '?' ('{bestiary.PageKnownText}')",
+            bestiary.SelectedId == WolfRef.Slug && bestiary.PageKnownText == "Known 0 of 11"
+            && bestiary.ShownFactCount == MonsterJournal.TotalFields && bestiary.PageFacts.All(f => !f.Known));
+        bestiary.Select(Goblin);
+        bestiary.FocusSelected();
         await Frames(2);
-        Check($"a species not met yet shows a dark silhouette, '???' and no facts ('{bestiary.PageTitle}', {bestiary.SelectedId})",
+        GetViewport().PushInput(new InputEventAction { Action = InputNames.UiLeft, Pressed = true });
+        await Frames(2);
+        Check($"Left moves to the neighbouring tile, a species not met yet: silhouette, '???', no known facts ('{bestiary.PageTitle}', {bestiary.SelectedId})",
             bestiary.PageTitle == BestiaryPanel.Unknown && bestiary.PortraitSilhouette && bestiary.Portrait.Texture != null
-            && bestiary.PageKnownText == "" && bestiary.ShownFactCount == 0 && bestiary.PageFacts.Count == 0);
+            && bestiary.PageKnownText == "Not met yet" && bestiary.PageFacts.All(f => !f.Known));
         Capture("knowledge_journal_bestiary_unmet.png");
-        GetViewport().PushInput(new InputEventAction { Action = InputNames.Decline, Pressed = true });
+        GetViewport().PushInput(new InputEventAction { Action = InputNames.UiCancel, Pressed = true });
         await Frames(2);
-        Check("Esc closes the bestiary and gives focus back to its button",
-            !bestiary.Visible && GetViewport().GuiGetFocusOwner()?.Name == "BestiaryButton");
+        Check("Esc closes the journal and gives focus back to the Bestiary button",
+            !camp.Journal.Visible && GetViewport().GuiGetFocusOwner()?.Name == "BestiaryButton");
         RemoveChild(camp);
         camp.QueueFree();
     }

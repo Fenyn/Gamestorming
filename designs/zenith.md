@@ -407,6 +407,12 @@ Built. Design and decisions are in `zenith_adventure.md`; what ships (ladders, r
 
 ---
 
+## Tutorial
+
+Built: lessons 1 to 5, one scripted training session in which Caedan Vale teaches young Emrys Rooke on one continuous board (the Straw Knight, then Caedan himself, then Emrys' Steel). The script, beat by beat, with the numbers the engine gives and where it differs from the signed-off draft, is `zenith/docs/tutorial_script.md`. The engine runs it as a scripted duel (fixed deck order, no shuffles, board adjustments as script operations); every rule is the normal one. It is its own entry (`Session.start_tutorial`), which the title calls today and a first-run adventure can call later. Lessons 6 (Allies) and 7 (Seals) are not built.
+
+---
+
 ## Status
 
 Done: the engine with headless tests (every rule above, all three wins), the 3D playspace and hotseat client, fourteen starter decks, the fair AI at three levels, online play refereed on a headless duel server, and adventure mode with its economy. The card pool is counted in `zenith/docs/archetypes.md`; the remaining rules approximations are listed in `zenith/README.md`.

@@ -22,7 +22,7 @@ internal static class HeroSelectChecks
     {
         var campaign = new CampaignProgress();
         panel.Setup(campaign.Unlocks, campaign);
-        var menu = panel.GetNode<RecruitmentPanel>("%Recruitment");
+        var menu = panel.Recruitment;
         var entries = menu.GetNode<GridContainer>("%RecruitEntries");
         check("recruitment lists each authored arc", entries.GetChildCount() == RecruitmentCatalog.All.Count);
         check("unmet recruitment cannot stay overnight", menu.GetNode<Button>("%StayButton").Disabled);
@@ -53,8 +53,9 @@ internal static class HeroSelectChecks
         check("four members refuse a fifth unlocked member", panel.CanEmbark && !panel.CanPick(PresetCharacters.ElaraId));
         panel.Pick(PresetCharacters.ElaraId);
         check("refused fifth member preserves formation", panel.SelectedIds.Count == 4);
-        menu.Open();
-        check("recruitment menu is shown on request", menu.Visible);
+        panel.OpenJournal(JournalScreen.UnlocksPage);
+        check("the journal opens on its unlocks page on request", panel.Journal.Visible && menu.Visible
+            && panel.Journal.Page == JournalScreen.UnlocksPage);
         bool embarked = false;
         void OnEmbark(IReadOnlyList<string> members) => embarked = true;
         panel.Confirmed += OnEmbark;
@@ -64,7 +65,7 @@ internal static class HeroSelectChecks
         panel.Confirmed -= OnEmbark;
         check("recruitment blocks underlying formation actions", !embarked && panel.CanEmbark
             && panel.SelectedIds.Contains(PresetCharacters.PlayerId));
-        menu.Hide();
+        panel.Journal.Close();
     }
 
     /// <summary>Every roster card under the panel, so the spike reads the state the player sees.</summary>
@@ -205,13 +206,9 @@ internal static class HeroSelectChecks
 
     internal static bool FeatureExplained(HeroSheetData sheet)
     {
-        var row = sheet.Row(HeroSheetBuilder.FeaturesRow);
-        if (row == null) return false;
-
-        foreach (var entry in row.Entries)
-        {
-            if (entry.Tip is { FullRules.Length: > 20, Meta.Count: > 0 }) return true;
-        }
+        foreach (var label in new[] { HeroSheetBuilder.FeaturesRow, HeroSheetBuilder.FeatsRow })
+            foreach (var entry in sheet.Row(label)?.Entries ?? Array.Empty<SheetEntry>())
+                if (entry.Tip is { FullRules.Length: > 20, Meta.Count: > 0 }) return true;
         return false;
     }
 

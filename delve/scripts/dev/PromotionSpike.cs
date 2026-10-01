@@ -102,17 +102,21 @@ public partial class PromotionSpike : SpikeBase
         var confirm = panel.GetNode<Button>("%ConfirmPromotion");
         Check("opening sheet selects nothing and grants nothing", confirm.Disabled && c.Stats.Level == 2 && panel.Visible);
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        Check($"the empty preview band collapses and Confirm is a 280x44 button, not a banner ({confirm.Size})",
-            !panel.PreviewShown && confirm.Size.X >= 279.5f && confirm.Size.X < 600 && confirm.Size.Y >= 43.5f);
-        panel.GetNode<GridContainer>("%FeatTree").GetNode<Button>("intimidating-strike").EmitSignal(Button.SignalName.Pressed);
+        Check($"nothing is picked on open and Confirm is a 280x44 button, not a banner ({confirm.Size})",
+            confirm.Disabled && confirm.Size.X >= 279.5f && confirm.Size.X < 600 && confirm.Size.Y >= 43.5f);
+        var hpGain = panel.Gains.FirstOrDefault(g => g.Caption == "HP");
+        Check($"the rail lists the next level's gains as pairs ({string.Join(", ", panel.Gains.Select(g => $"{g.Caption} {g.Before} → {g.Value}"))})",
+            hpGain != null && hpGain.Before == c.Health.MaxHP.ToString() && int.Parse(hpGain.Value) > c.Health.MaxHP
+            && panel.Gains.All(g => g.IsChange && g.Before != g.Value));
+        panel.Card("intimidating-strike")!.EmitSignal(Button.SignalName.Pressed);
         Check("selecting a card only previews", !confirm.Disabled && c.Stats.Level == 2 && panel.PreviewShown);
         details.Close();
         details.Open(c, HeroPortraits.For(c.Id), UiColors.CharacterAccent(c.Id));
         Check("closing discards the unconfirmed selection", confirm.Disabled && c.Stats.Level == 2);
-        panel.GetNode<GridContainer>("%FeatTree").GetNode<Button>("intimidating-strike").EmitSignal(Button.SignalName.Pressed);
+        panel.Card("intimidating-strike")!.EmitSignal(Button.SignalName.Pressed);
         confirm.EmitSignal(Button.SignalName.Pressed);
         Check("sheet confirmation advances and refreshes next pending promotion", c.Stats.Level == 3 && confirm.Disabled
-            && panel.GetNode<Label>("%PromotionHeading").Text.Contains("3 → 4"));
+            && panel.LevelText == "3 → 4");
         await Capture();
         details.Close();
         var map = MapScene.Instantiate<RunMapPanel>();
@@ -138,7 +142,7 @@ public partial class PromotionSpike : SpikeBase
         var progression = overlay.GetNode<PromotionPanel>("%Progression");
         Check("Choose feat opens that member's progression", overlay.Visible && overlay.Character == c && progression.Visible
             && !overlay.NextButton.Visible);
-        progression.GetNode<GridContainer>("%FeatTree").GetNode<Button>("shielded-stride").EmitSignal(Button.SignalName.Pressed);
+        progression.Card("shielded-stride")!.EmitSignal(Button.SignalName.Pressed);
         progression.GetNode<Button>("%ConfirmPromotion").EmitSignal(Button.SignalName.Pressed);
         var elara = uiParty.Members[1];
         Check($"after a confirm, Next names the next hero with a pending promotion ('{overlay.NextButton.Text}')",

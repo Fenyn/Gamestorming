@@ -1,0 +1,18 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/HubMockSpike.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/run/hero_select.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/camp/outpost_props.png" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_canopy.tscn" id="4"]
+[ext_resource type="Shader" path="res://scenes/dev/hub_village_ground.gdshader" id="5"]
+
+[node name="HubMockSpike" type="Node"]
+script = ExtResource("1")
+CampScene = ExtResource("2")
+PropAtlas = ExtResource("3")
+TreeScene = ExtResource("4")
+VillageGround = ExtResource("5")
+BuildingFolder = "C:/Users/Midge/AppData/Local/Temp/claude/G--Godot-Gamestorming/854f217f-7fad-43a2-a513-8d43f1597673/scratchpad/ui/buildings2"
+ModelFolder = "C:/Users/Midge/AppData/Local/Temp/claude/G--Godot-Gamestorming/854f217f-7fad-43a2-a513-8d43f1597673/scratchpad/ui/models"
+PackFolder = "C:/Users/Midge/AppData/Local/Temp/claude/G--Godot-Gamestorming/854f217f-7fad-43a2-a513-8d43f1597673/scratchpad/ui/packs"
+DecorFolder = "C:/Users/Midge/AppData/Local/Temp/claude/G--Godot-Gamestorming/854f217f-7fad-43a2-a513-8d43f1597673/scratchpad/ui/decor"

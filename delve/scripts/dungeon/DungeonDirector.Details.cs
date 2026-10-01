@@ -41,7 +41,7 @@ public partial class DungeonDirector
 
     private void OpenCharacterDetails(UnitVisual3D token)
     {
-        if (Phase != DungeonPhase.Doors || _details.Visible || token.Character is not PF2eCharacter character) return;
+        if (Phase != DungeonPhase.Doors || ScreenOpen || token.Character is not PF2eCharacter character) return;
         _pendingDoorClick = null;
         SetHoveredPartyMember(null);
         _doorPress = null;
@@ -56,7 +56,7 @@ public partial class DungeonDirector
     /// <summary>A party strip chip was clicked.</summary>
     private void OpenMemberDetails(int uniqueId)
     {
-        if (Phase != DungeonPhase.Doors || _details.Visible) return;
+        if (Phase != DungeonPhase.Doors || ScreenOpen) return;
         var token = _tokens.FirstOrDefault(t => t.Character.UniqueId == uniqueId);
         if (token != null) OpenCharacterDetails(token);
     }

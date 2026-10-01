@@ -1,0 +1,89 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ScreenFrame.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="caption"]
+
+[node name="ScreenFrame" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("script")
+TabScene = ExtResource("caption")
+PageKeys = Array[StringName]([&"menu_tab_1", &"menu_tab_2", &"menu_tab_3"])
+
+[node name="Scrim" type="Panel" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"ModalDim"
+
+[node name="Frame" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+theme_type_variation = &"ScreenFrame"
+
+[node name="Box" type="VBoxContainer" parent="Frame"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="HBoxContainer" parent="Frame/Box"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="FrameTitle" type="Label" parent="Frame/Box/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"TitleLabel"
+
+[node name="HeaderSlot" type="HBoxContainer" parent="Frame/Box/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="FrameTabs" type="HBoxContainer" parent="Frame/Box/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="HeaderSpacer" type="Control" parent="Frame/Box/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="HeaderActions" type="HBoxContainer" parent="Frame/Box/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 16
+
+[node name="FrameClose" parent="Frame/Box/Header" instance=ExtResource("caption")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 2
+ActionText = "Back"
+InputAction = &"ui_cancel"
+
+[node name="Body" type="VBoxContainer" parent="Frame/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="Footer" type="HBoxContainer" parent="Frame/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 2

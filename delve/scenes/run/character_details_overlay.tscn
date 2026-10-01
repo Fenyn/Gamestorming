@@ -1,82 +1,67 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="caption"]
+[ext_resource type="PackedScene" path="res://scenes/ui/screen_frame.tscn" id="frame"]
 [ext_resource type="Script" path="res://scripts/flow/CharacterDetailsOverlay.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/run/hero_sheet.tscn" id="sheet"]
 [ext_resource type="PackedScene" path="res://scenes/run/promotion_panel.tscn" id="progression"]
+[ext_resource type="PackedScene" path="res://scenes/ui/member_tile.tscn" id="tile"]
+[ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="caption"]
 
-[node name="CharacterDetails" type="Control"]
+[node name="CharacterDetails" instance=ExtResource("frame")]
 visible = false
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 script = ExtResource("script")
+Full = true
+Pages = PackedStringArray("Character", "Progression")
+MemberTileScene = ExtResource("tile")
 
-[node name="Dim" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color(0.054902, 0.070588, 0.082353, 0.8)
+[node name="PrevMember" parent="Frame/Box/Header/HeaderSlot" instance=ExtResource("caption")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Previous party member"
+ActionText = "Prev"
+InputAction = &"menu_prev"
 
-[node name="Body" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -670.0
-offset_top = -460.0
-offset_right = 670.0
-offset_bottom = 460.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Members" type="HBoxContainer" parent="Frame/Box/Header/HeaderSlot"]
+unique_name_in_owner = true
+layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="CloseDetails" parent="Body" instance=ExtResource("caption")]
+[node name="NextMember" parent="Frame/Box/Header/HeaderSlot" instance=ExtResource("caption")]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-size_flags_horizontal = 8
-focus_mode = 2
-theme_type_variation = &"HudButton"
-ActionText = "Return to room"
-InputAction = &"ui_cancel"
+size_flags_vertical = 4
+tooltip_text = "Next party member"
+ActionText = "Next"
+InputAction = &"menu_next"
 
-[node name="Sheet" parent="Body" instance=ExtResource("sheet")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="Progression" parent="Body" instance=ExtResource("progression")]
+[node name="PickMember" type="Button" parent="Frame/Box/Header/HeaderActions"]
 unique_name_in_owner = true
 visible = false
+custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
-size_flags_vertical = 3
+theme_type_variation = &"AccentButton"
+text = "Add to party"
 
-[node name="SheetTabs" type="HBoxContainer" parent="Body"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="OverviewTab" type="Button" parent="Body/SheetTabs"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Character"
-
-[node name="ProgressionTab" type="Button" parent="Body/SheetTabs"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Progression"
-
-[node name="NextHero" type="Button" parent="Body/SheetTabs"]
+[node name="NextHero" type="Button" parent="Frame/Box/Header/HeaderActions"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(240, 0)
+custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
 theme_type_variation = &"AccentButton"
 text = "Next"
+
+[node name="Sheet" parent="Frame/Box/Body" instance=ExtResource("sheet")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"ClearPanel"
+
+[node name="Progression" parent="Frame/Box/Body" instance=ExtResource("progression")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"ClearPanel"

@@ -16,7 +16,7 @@ public sealed record PartyMemberSnapshot(int Hp, int MaxHp, int Wounded, HashSet
     public static PartyMemberSnapshot Read(PF2eCharacter member) => new(
         member.Health?.CurrentHP ?? 0, member.Health?.MaxHP ?? 0,
         member.Conditions?.GetConditionValue(Condition.Wounded) ?? 0,
-        HeroSheetBuilder.Read(member).Row(HeroSheetBuilder.FeaturesRow)?.Entries.Select(e => e.Label).ToHashSet() ?? new(),
+        FeatureNames(HeroSheetBuilder.Read(member)),
         member.Spellcasting?.Cantrips.Concat(member.Spellcasting.LeveledSpells)
             .Select(s => s.ActionName).ToHashSet() ?? new(),
         Enumerable.Range(1, 10).ToDictionary(rank => rank, rank => member.Spellcasting?.GetMaxSlots(rank) ?? 0))
@@ -24,6 +24,12 @@ public sealed record PartyMemberSnapshot(int Hp, int MaxHp, int Wounded, HashSet
         Focus = member.Spellcasting?.CurrentFocusPoints ?? 0,
         ShieldHp = member.Equipment?.Shield?.CurrentShieldHP ?? 0,
     };
+
+    /// <summary>Every class feature and feat the sheet lists.</summary>
+    private static HashSet<string> FeatureNames(HeroSheetData sheet) =>
+        new[] { HeroSheetBuilder.FeaturesRow, HeroSheetBuilder.FeatsRow }
+            .SelectMany(label => sheet.Row(label)?.Entries ?? (IEnumerable<SheetEntry>)System.Array.Empty<SheetEntry>())
+            .Select(e => e.Label).ToHashSet();
 }
 
 public static class PartyChangeSummary

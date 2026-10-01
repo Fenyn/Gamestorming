@@ -1,0 +1,21 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/screen_frame.tscn" id="frame"]
+[ext_resource type="Script" path="res://scripts/flow/JournalScreen.cs" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/run/bestiary_panel.tscn" id="bestiary"]
+[ext_resource type="PackedScene" path="res://scenes/run/recruitment_panel.tscn" id="unlocks"]
+
+[node name="JournalScreen" instance=ExtResource("frame")]
+script = ExtResource("script")
+Title = "Journal"
+Full = true
+Pages = PackedStringArray("Bestiary", "Unlocks")
+
+[node name="Bestiary" parent="Frame/Box/Body" instance=ExtResource("bestiary")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Recruitment" parent="Frame/Box/Body" instance=ExtResource("unlocks")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2

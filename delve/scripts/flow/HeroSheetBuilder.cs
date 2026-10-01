@@ -27,13 +27,22 @@ public static class HeroSheetBuilder
     public const string DefencesRow = "DEFENCES";
     public const string SpellsRow = "SPELLS";
     public const string FeaturesRow = "FEATURES";
+    public const string FeatsRow = "FEATS";
+    public const string StatusRow = "STATUS";
 
     /// <summary>Every label the overview can print. The sheet sizes its label column to the
     /// widest of them, so the content edge stays on one x as the reader moves along the
     /// roster and a caster's extra row does not shift the page.</summary>
     public static readonly string[] RowLabels =
     {
-        SavesRow, SensesRow, SkillsRow, StrikesRow, DefencesRow, SpellsRow, FeaturesRow,
+        StatusRow, SavesRow, SensesRow, SkillsRow, StrikesRow, DefencesRow, SpellsRow, FeaturesRow, FeatsRow,
+    };
+
+    /// <summary>Feature categories that are feats: picked, as opposed to granted by the class.</summary>
+    private static readonly HashSet<FeatureCategory> FeatCategories = new()
+    {
+        FeatureCategory.GeneralFeat, FeatureCategory.ClassFeat, FeatureCategory.SkillFeat,
+        FeatureCategory.DedicationFeat, FeatureCategory.ArchetypeFeat,
     };
 
     private static readonly AbilityScore[] AbilityOrder =
@@ -187,16 +196,18 @@ public static class HeroSheetBuilder
         PF2eCharacter character, PF2eCharacterStats? stats, ClassDefinition? characterClass,
         int level, IReadOnlyList<SheetEntry> strikes, SheetRow? spells)
     {
-        var rows = new List<SheetRow>(7);
+        var rows = new List<SheetRow>(9);
         if (stats == null) return rows;
 
+        Add(rows, StatusRow, HeroSheetStatus.Entries(character), SheetRowStyle.Text);
         Add(rows, SavesRow, Saves(character, stats, characterClass), SheetRowStyle.Text);
         Add(rows, SensesRow, Senses(character, stats, characterClass), SheetRowStyle.Text);
         Add(rows, SkillsRow, Skills(character, stats), SheetRowStyle.Chips);
         Add(rows, StrikesRow, strikes, SheetRowStyle.Chips);
         Add(rows, DefencesRow, HeroSheetLoadout.Defences(character), SheetRowStyle.Chips);
         if (spells != null) rows.Add(spells);
-        Add(rows, FeaturesRow, Features(character, level), SheetRowStyle.Chips);
+        Add(rows, FeaturesRow, Features(character, level, feats: false), SheetRowStyle.Chips);
+        Add(rows, FeatsRow, Features(character, level, feats: true), SheetRowStyle.Chips);
         return rows;
     }
 
@@ -233,8 +244,9 @@ public static class HeroSheetBuilder
         };
     }
 
-    /// <summary>Trained or better, alphabetically, by name alone. The rank and the modifier are on
-    /// the hover - a wall of "+8 T" is what made the old sheet a spreadsheet.</summary>
+    /// <summary>Trained or better, alphabetically, as "Medicine +7": rests and room events ask who
+    /// is best at a skill, so the page prints the number. The rank and the arithmetic stay on the
+    /// hover - a wall of "+8 T" is what made the old sheet a spreadsheet.</summary>
     private static IReadOnlyList<SheetEntry> Skills(PF2eCharacter character, PF2eCharacterStats stats)
     {
         var entries = new List<SheetEntry>();
@@ -245,15 +257,15 @@ public static class HeroSheetBuilder
 
             int total = SkillCalculator.CalculateSkillBonus(character, skill);
             entries.Add(new SheetEntry(
-                skill.ToString(), HeroSheetVitalTips.Skill(stats, skill, proficiency, total)));
+                $"{skill} {Signed(total)}", HeroSheetVitalTips.Skill(stats, skill, proficiency, total)));
         }
         return entries;
     }
 
-    /// <summary>Granted class features, class feats and archetype feats at or below this level,
-    /// by the level they arrived and then by name. The row prints the names; each name carries
-    /// the feature's own description on its hover.</summary>
-    private static IReadOnlyList<SheetEntry> Features(PF2eCharacter character, int level)
+    /// <summary>Granted features, or the feats picked, at or below this level, by the level they
+    /// arrived and then by name. The row prints the names; each name carries the feature's own
+    /// description on its hover.</summary>
+    private static IReadOnlyList<SheetEntry> Features(PF2eCharacter character, int level, bool feats)
     {
         var granted = character.Features?.ActiveFeatures;
         if (granted == null) return Array.Empty<SheetEntry>();
@@ -263,6 +275,7 @@ public static class HeroSheetBuilder
         {
             if (feature == null || string.IsNullOrEmpty(feature.DisplayName)) continue;
             if (feature.LevelRequirement > level) continue;
+            if (FeatCategories.Contains(feature.Category) != feats) continue;
             kept.Add(feature);
         }
         kept.Sort((a, b) => a.LevelRequirement != b.LevelRequirement

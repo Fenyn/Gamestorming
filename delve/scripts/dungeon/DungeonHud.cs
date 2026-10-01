@@ -7,7 +7,7 @@ using Godot;
 namespace Delve.Dungeon;
 public partial class DungeonHud : Control
 {
-    public event Action? RestPressed, CampPressed, PotionPressed, StairsPressed, LayoutPicked, EntryPicked;
+    public event Action? RestPressed, CampPressed, PotionPressed, StairsPressed, JournalPressed, PartyPressed, LayoutPicked, EntryPicked;
     public event Action<int>? RestartPressed, SizePicked;
 
     /// <summary>Time the ward bar takes to slide to a new value.</summary>
@@ -95,6 +95,8 @@ public partial class DungeonHud : Control
         _potion = GetNode<CaptionButton>("%Potion");
         _potion.Pressed += () => PotionPressed?.Invoke();
         _stairs.Pressed += () => StairsPressed?.Invoke();
+        GetNode<Button>("%JournalRow").Pressed += () => JournalPressed?.Invoke();
+        GetNode<Button>("%PartyRow").Pressed += () => PartyPressed?.Invoke();
         foreach (int n in new[]
         {
             12,
@@ -139,8 +141,6 @@ public partial class DungeonHud : Control
         bool fighting = phase is DungeonPhase.Combat or DungeonPhase.Results or DungeonPhase.Transition;
         _fighting = fighting;
         _choosingDoor = phase == DungeonPhase.Doors;
-        _expedition.Visible = !fighting;
-        _notice.Visible = !fighting;
         RenderParty(state, fighting);
         ApplyOverlay();
         int id = state.CurrentNodeId ?? 0;
@@ -270,18 +270,10 @@ public partial class DungeonHud : Control
         HideRoomCard();
     }
 
-    private void HideRoomCard() => _roomCard.Modulate = _roomCard.Modulate with { A = 0 };
-
-    private static readonly string[] SmallWords = { "of", "the", "and", "a", "an", "in", "on", "to" };
-
-    /// <summary>"receiving hall" → "Receiving Hall"; small words stay lower case after the first.</summary>
-    private static string TitleCase(string text)
+    private void HideRoomCard()
     {
-        var words = text.Split(' ');
-        for (int i = 0; i < words.Length; i++)
-            if (words[i].Length > 0 && (i == 0 || !SmallWords.Contains(words[i])))
-                words[i] = char.ToUpperInvariant(words[i][0]) + words[i][1..];
-        return string.Join(' ', words);
+        _cardTween?.Kill();
+        _roomCard.Modulate = _roomCard.Modulate with { A = 0 };
     }
 
     public string RoomCardText => _roomCardTitle.Text;

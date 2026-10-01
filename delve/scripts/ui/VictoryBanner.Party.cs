@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Delve.Flow;
 using Godot;
 using PF2e.Core;
@@ -37,7 +38,6 @@ public partial class VictoryBanner
 
     private void WirePartyDetails()
     {
-        Details.GetNode<CaptionButton>("%CloseDetails").SetActionText("Return to results");
         Details.Closed += () =>
         {
             RenderMembers();
@@ -71,7 +71,8 @@ public partial class VictoryBanner
         if (RowScene != null)
             foreach (var member in _view.Members)
             {
-                if (member.Figures.Count == 0 && !CombatResults.HasFeatChoice(member.Member)) continue;
+                // A row shown only for its feat goes once the feat is chosen.
+                if (member.Figures.All(f => !f.IsChange) && !CombatResults.HasFeatChoice(member.Member)) continue;
                 var row = RowScene.Instantiate<ResultMemberRowView>();
                 _members.AddChild(row);
                 row.Render(member);

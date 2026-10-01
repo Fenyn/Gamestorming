@@ -68,7 +68,7 @@ public partial class DungeonDirector
 
     public async Task Travel(DoorSide side)
     {
-        if (_details.Visible || Phase != DungeonPhase.Doors)
+        if (ScreenOpen || Phase != DungeonPhase.Doors)
             return;
         var from = Current;
         var door = from.Doors.FirstOrDefault(d => d.Side(from.Id) == side);
@@ -205,7 +205,7 @@ public partial class DungeonDirector
         foreach (var (view, _, _) in _corridors)
             if (view.Visible && view is IPassage passage)
                 passage.Cutaway(camera);
-        _hud.SetOverlayOpen(_details.Visible || _event.Visible);
+        _hud.SetOverlayOpen(ScreenOpen || _event.Visible, ScreenOpen);
     }
 
     private Vector2? _doorPress;
@@ -226,7 +226,7 @@ public partial class DungeonDirector
             GetViewport().SetInputAsHandled();
             return;
         }
-        if (!IsVisibleInTree() || _details.Visible || Phase != DungeonPhase.Doors) return;
+        if (!IsVisibleInTree() || ScreenOpen || Phase != DungeonPhase.Doors) return;
         if (HandleDoorKeys(e)) { GetViewport().SetInputAsHandled(); return; }
         if (e is not InputEventMouseButton { ButtonIndex: MouseButton.Left } mouse)
             return;
@@ -248,7 +248,7 @@ public partial class DungeonDirector
     {
         var click = _pendingDoorClick;
         _pendingDoorClick = null;
-        if (!IsVisibleInTree() || _details.Visible || Phase != DungeonPhase.Doors || State == null)
+        if (!IsVisibleInTree() || ScreenOpen || Phase != DungeonPhase.Doors || State == null)
         {
             SetHoveredPartyMember(null);
             _focusedDoor = null;

@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://PolyBlocks/EffectBlocks/assets/other/dust_ring.tscn" id="fx_dust"]
 [ext_resource type="PackedScene" path="res://PolyBlocks/EffectBlocks/assets/other/sparkles.tscn" id="fx_sparkles"]
 [ext_resource type="PackedScene" path="res://scenes/run/character_details_overlay.tscn" id="details"]
+[ext_resource type="PackedScene" path="res://scenes/run/journal_screen.tscn" id="journal"]
 [ext_resource type="Script" path="res://scripts/dungeon/DungeonDirector.cs" id="dir"]
 [ext_resource type="PackedScene" path="res://scenes/combat/combat.tscn" id="combat"]
 [ext_resource type="PackedScene" path="res://scenes/dungeon/event_panel.tscn" id="event"]
@@ -85,6 +86,9 @@ layer = 3
 unique_name_in_owner = true
 
 [node name="CharacterDetails" parent="Screens" instance=ExtResource("details")]
+unique_name_in_owner = true
+
+[node name="Journal" parent="Screens" instance=ExtResource("journal")]
 unique_name_in_owner = true
 
 [node name="SceneTransition" parent="." instance=ExtResource("transition")]

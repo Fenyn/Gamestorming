@@ -2,123 +2,70 @@
 
 [ext_resource type="Script" path="res://scripts/flow/BestiaryPanel.cs" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/ui/journal_facts_grid.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/run/bestiary_tile.tscn" id="3"]
 
-[node name="BestiaryPanel" type="Control"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="BestiaryPanel" type="HBoxContainer"]
+size_flags_vertical = 3
+theme_override_constants/separation = 24
 script = ExtResource("1")
+PortraitHeight = 352
+TileScene = ExtResource("3")
 
-[node name="Backdrop" type="Panel" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_type_variation = &"ModalDim"
-
-[node name="Margin" type="MarginContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 96
-theme_override_constants/margin_right = 96
-theme_override_constants/margin_top = 60
-theme_override_constants/margin_bottom = 60
-
-[node name="Panel" type="PanelContainer" parent="Margin"]
+[node name="Index" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
-theme_type_variation = &"ModalPanel"
+theme_override_constants/separation = 12
 
-[node name="Padding" type="MarginContainer" parent="Margin/Panel"]
-layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_bottom = 24
-
-[node name="Rows" type="VBoxContainer" parent="Margin/Panel/Padding"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="Header" type="HBoxContainer" parent="Margin/Panel/Padding/Rows"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="Title" type="Label" parent="Margin/Panel/Padding/Rows/Header"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"TitleLabel"
-text = "Bestiary"
-
-[node name="CloseBestiary" parent="Margin/Panel/Padding/Rows/Header" instance=ExtResource("3")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 4
-focus_mode = 2
-ActionText = "Return to camp"
-InputAction = &"ui_cancel"
-
-[node name="BestiarySummary" type="Label" parent="Margin/Panel/Padding/Rows"]
+[node name="BestiarySummary" type="Label" parent="Index"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"ScreenHint"
 
-[node name="Body" type="HBoxContainer" parent="Margin/Panel/Padding/Rows"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 24
-
-[node name="Index" type="VBoxContainer" parent="Margin/Panel/Padding/Rows/Body"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="IndexScroll" type="ScrollContainer" parent="Margin/Panel/Padding/Rows/Body/Index"]
+[node name="IndexScroll" type="ScrollContainer" parent="Index"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="BestiaryEntries" type="VBoxContainer" parent="Margin/Panel/Padding/Rows/Body/Index/IndexScroll"]
+[node name="BestiaryEntries" type="VBoxContainer" parent="Index/IndexScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
-[node name="BestiaryEmpty" type="Label" parent="Margin/Panel/Padding/Rows/Body/Index"]
+[node name="BestiaryEmpty" type="Label" parent="Index"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
 theme_type_variation = &"ScreenHint"
 text = "No creatures encountered yet."
 
-[node name="BestiaryPage" type="PanelContainer" parent="Margin/Panel/Padding/Rows/Body"]
+[node name="BestiaryFocusName" type="Label" parent="Index"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+
+[node name="BestiaryPage" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-size_flags_stretch_ratio = 2.0
 theme_type_variation = &"SheetPanel"
 
-[node name="PageRows" type="HBoxContainer" parent="Margin/Panel/Padding/Rows/Body/BestiaryPage"]
+[node name="PageColumn" type="VBoxContainer" parent="BestiaryPage"]
 layout_mode = 2
 theme_override_constants/separation = 32
 
-[node name="Plinth" type="PanelContainer" parent="Margin/Panel/Padding/Rows/Body/BestiaryPage/PageRows"]
-custom_minimum_size = Vector2(480, 480)
+[node name="PageRows" type="HBoxContainer" parent="BestiaryPage/PageColumn"]
+layout_mode = 2
+theme_override_constants/separation = 32
+
+[node name="Plinth" type="PanelContainer" parent="BestiaryPage/PageColumn/PageRows"]
+custom_minimum_size = Vector2(384, 384)
 layout_mode = 2
 size_flags_vertical = 0
 theme_type_variation = &"BestiaryPlinth"
 
-[node name="BestiaryPortrait" type="TextureRect" parent="Margin/Panel/Padding/Rows/Body/BestiaryPage/PageRows/Plinth"]
+[node name="BestiaryPortrait" type="TextureRect" parent="BestiaryPage/PageColumn/PageRows/Plinth"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
@@ -128,22 +75,37 @@ texture_filter = 1
 expand_mode = 1
 stretch_mode = 0
 
-[node name="Info" type="VBoxContainer" parent="Margin/Panel/Padding/Rows/Body/BestiaryPage/PageRows"]
+[node name="Info" type="VBoxContainer" parent="BestiaryPage/PageColumn/PageRows"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
-[node name="BestiaryTitle" type="Label" parent="Margin/Panel/Padding/Rows/Body/BestiaryPage/PageRows/Info"]
+[node name="BestiaryTitle" type="Label" parent="BestiaryPage/PageColumn/PageRows/Info"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
+theme_type_variation = &"BannerLabel"
+
+[node name="BestiaryIdentity" type="Label" parent="BestiaryPage/PageColumn/PageRows/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="BestiaryKnown" type="Label" parent="BestiaryPage/PageColumn/PageRows/Info"]
+unique_name_in_owner = true
+layout_mode = 2
 theme_type_variation = &"HeadingLabel"
 
-[node name="BestiaryKnown" type="Label" parent="Margin/Panel/Padding/Rows/Body/BestiaryPage/PageRows/Info"]
+[node name="BestiaryFacts" parent="BestiaryPage/PageColumn" instance=ExtResource("2")]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"ScreenHint"
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 20
+columns = 3
 
-[node name="BestiaryFacts" parent="Margin/Panel/Padding/Rows/Body/BestiaryPage/PageRows/Info" instance=ExtResource("2")]
+[node name="BestiaryHint" type="Label" parent="BestiaryPage/PageColumn/PageRows/Info"]
 unique_name_in_owner = true
 layout_mode = 2
+autowrap_mode = 3
+theme_type_variation = &"ScreenHint"
+text = "Recall Knowledge in a fight reveals the next unknown field. A critical success reveals two."

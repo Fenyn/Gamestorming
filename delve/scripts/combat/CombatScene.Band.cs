@@ -69,7 +69,9 @@ public partial class CombatScene
         var point = visual.GlobalPosition + Vector3.Up * MenuAnchorLift;
         if (camera.IsPositionBehind(point)) return;
         // Under canvas_items stretch, UnprojectPosition already returns HUD (canvas) coordinates.
-        _actionBar.AnchorMenu(camera.UnprojectPosition(point), visual.PlateZoom);
+        // An open journal is read during play, so the menu steps aside rather than under it.
+        float limit = _journalPanel.Visible ? _journalPanel.GetGlobalRect().Position.X : float.PositiveInfinity;
+        _actionBar.AnchorMenu(camera.UnprojectPosition(point), visual.PlateZoom, limit);
     }
 
     private void ClearBand()

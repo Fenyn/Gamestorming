@@ -34,6 +34,7 @@ public partial class RunDirector
         _dungeon.Hosted = true;
         _dungeon.SharedTransition = _transition;
         _dungeon.Journal = _journal;
+        if (_journal != null) _dungeon.Campaign = _campaign;
         _dungeon.AutoPlayCombat = AutoPlayCombat;
         AddChild(_dungeon);
         _dungeon.CombatRequested += StartDungeonCombat;

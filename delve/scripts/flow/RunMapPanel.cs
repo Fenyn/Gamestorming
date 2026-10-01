@@ -55,7 +55,6 @@ public partial class RunMapPanel : Control
         _detailState = GetNode<Label>("%DetailState");
         _status = GetNode<RunMapStatus>("%Status");
         _details = GetNode<CharacterDetailsOverlay>("%MapCharacterDetails");
-        _details.GetNode<CaptionButton>("%CloseDetails").SetActionText("Return to map");
         _status.DetailsRequested += member =>
         {
             if (!_travel.Traveling) _details.Open(member, HeroPortraits.For(member.Id), UiColors.CharacterAccent(member.Id));

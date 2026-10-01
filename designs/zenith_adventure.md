@@ -437,7 +437,13 @@ and 8.3.
   | 2 | t3, then t4 from tier 5 | t5 | medium | default |
   | 3 | t4, then t5 from tier 5 | Quarr, `steel_beatdown_boss` | medium | default |
 
-  An Elite draws from one band stronger than a duel; every boss draws from the stronger band.
+  An Elite draws from the same band as a duel on its node and holds Resonances instead: one in
+  acts 1 and 2, two in act 3 (7.7). Every boss draws from the stronger band. Since 2026-09-30 the
+  stronger band is the boss pool and nothing else: the four decks that win 67-76% against the
+  field (`pyre_attrition`, `steel_beatdown`, `shade_mind_siege`, `freestyle_swords`) only ever
+  appear as act bosses, and the other ten split into the weaker and medium duel bands by their
+  win rate against each other. Storyline act bosses (section 8.8) are set per starter and may
+  still name a duel-band deck.
 - **Aspect grants:** after the act 1 and act 2 bosses, and only from Aspect cards the player owns
   (section 8.6).
 - The Relic node fills the whole of tier 3 of act 1, so every path meets it.
@@ -457,14 +463,14 @@ and 8.3.
 | Node | What it is |
 |---|---|
 | Duel | An ordinary fight |
-| Elite | A fight from a stronger band, for a better reward |
+| Elite | A duel from the act's band against an opponent holding Resonances; a win adds a Resonance claim to the reward (7.7). Built 2026-09-29 |
 | Key character | A meeting the story or a quest wants the player to reach (7.1) |
 | Boss | Tier 8 of each act. Quarr at the end of act 3 |
 | Twist | A duel under a stated special rule (7.3) |
 | Encounter | A duel with an allied character fighting beside you (7.4) |
 | Relic node | The Relic pick (7.5). Forced, once per run. Built 2026-09-29 |
 | Shop | Spends Mana, the per-run currency (7.6) |
-| Shrine | A choice of Resonance (7.7) |
+| Shrine | Take one of three Resonances, or leave with none (7.7). Built 2026-09-29 |
 | Forge | Cut cards from the deck, or add copies of cards already in it |
 | Mystery | A text event with a choice. Later, after the others |
 
@@ -551,32 +557,83 @@ drain Mana (user, 2026-09-24).
 
 ### 7.7 Resonances
 
-Not built. Approved 2026-09-20. A stacking per-run layer in the Slay the Spire relic sense: small
-permanent modifiers that accumulate over a run and combine into something the player did not plan.
-A duelist who keeps winning on the leylines starts to resonate with them. Deliberately not
+Approved 2026-09-20, **built 2026-09-29**. A stacking per-run layer in the Slay the Spire relic
+sense: permanent buffs that accumulate over a run and combine into something the player did not
+plan. A duelist who keeps winning on the leylines starts to resonate with them. Deliberately not
 "Enchantment", which is what Slay the Spire 2 calls its own system. They are not Relics.
 
-**Implementation.** A Resonance is a hidden Drill with `start_in_play`, owned by the run rather
-than by the Life Deck, and it cannot be discarded or removed. It carries `modifiers` and `effects`
-in the schema `CardDef` already uses, so `card_text.gd` renders it unchanged. Ascending discards
-Drills, so Resonances need a flag exempting them, which is the only engine change the layer needs.
+- **Significant buffs.** Each one changes how every duel plays. The **style** ones are stronger and
+  carry a penalty, printed in its own colour (`game.penalty`, designs/zenith_ui.md).
+- **Not cards.** The engine keeps a player's Resonances in their own list (`PlayerState.resonances`),
+  never in play: no card effect counts, targets or discards one, ascending leaves them, and they are
+  not part of deck size or `DeckValidator`. Only a run's deck (`AdventureRun.deck()`) and an Elite's
+  opponent (`AdventureElite.opponent_deck`) carry them; no deck file can. The seat views show them:
+  they are public.
+- **Data.** `data/adventure/resonances.json` (`ResonanceData`): id, name, tags, style, icon, the
+  sentence, the penalty and the `rules` keys `DuelEngine` reads. The log names one when it fires.
+- **The Shrine.** Three offers, rolled once per node from the run seed and saved: two non-style
+  Resonances whose tags meet the starter's archetype or subthemes, any other non-style ones when
+  fewer than two do (Braced Stance fits every deck), and one style Resonance. One the run holds is
+  never offered. Take one or leave with none; one per visit. The pick is `{kind: "resonance", id}`.
+- **Guard.** Nothing touches Fervor, the Aspect, the Ascension or the MPPV win.
+- **Elites** (built 2026-09-29, `AdventureElite`). The opponent holds `elite_resonances` of them
+  (`map.json`: 1 in acts 1 and 2, 2 in act 3), drawn from the ones whose tags meet its deck's
+  archetype and its family starter's subthemes together with the style ones, at most one style
+  one, never two alike. Seeded by the run seed and the node, so the regenerated map holds the same
+  ones and nothing is saved. The map's side panel lists them before the player commits (sigil,
+  name, sentence and penalty on hover); in the duel they print on the far seat, mirrored from the
+  near seat's row, with the same tip. The AI plays them through `sim_for` like any rule.
+- **The claim.** After a won Elite's Aspect and bundle steps, three offers by the Shrine's rules on
+  their own seed, on the Shrine screen titled "Claim a Resonance". Take one or "Take nothing".
+  Rolled once and saved (status `claim`); the pick is `{kind: "resonance", id}`. Bosses and every
+  other fight give no claim.
+- Not built: tiers held back for gate wins.
 
-**Economy.** Three to five per run, from Shrine nodes and Elite rewards. Tiered the way Slay the
-Spire tiers relics, with the strongest reserved for gate wins.
+The first set, 14:
 
-| Tier | Example |
-|---|---|
-| Common | Open each duel at one Energy stage higher |
-| Common | Draw one extra card on your first turn |
-| Common | Your first Strike each duel does +2 stages |
-| Uncommon | Gain +1 Fervor the first time you ascend |
-| Uncommon | Your Seals cannot be captured the turn they are placed |
-| Uncommon | The opponent opens with one fewer Drill |
-| Gate | Your Reserve holds 3 more cards |
-| Gate | Once per duel, ignore the first successful Art against you |
+| Resonance | Serves | Effect | Penalty |
+|---|---|---|---|
+| Iron Resolve | Strikes | Your Strikes read the Strike Table one band higher, up to the top band. | |
+| Ready Channel | Arts | The first Art you perform each Combat costs no Energy. | |
+| Steady Flame | Fervor, Drills | When you ascend, you keep your Drills in play. | |
+| Rising Ash | Fervor | When you ascend, put the top 3 cards of your discard pile on the bottom of your Life Deck. | |
+| Spoils of Ruin | Disruption | Whenever you make your opponent discard a Drill, Ally or Non-Combat card in play, gain 2 Energy stages. | |
+| Deep Well | Energy | Power Up gains 1 more Energy stage. | |
+| Open Hand | Draw | Draw 1 more card in every draw step. | |
+| First Stone | Drills | At the start of each duel you may search your Life Deck for a Drill and put it into play. Your opponent cannot discard it. | |
+| Warband | Allies | Your Strikes do 1 more stage for each Ally you have in play. | |
+| Sealwright's Patience | Seals | Your Seals cannot be captured the turn they are placed, and placing one draws you a card. | |
+| Braced Stance | Defence, any deck | The first attack against you each Combat does 1 fewer wound and 2 fewer stages. | |
+| Blood Price | Style | Your Arts cost no Energy. | Your Arts cost one wound. |
+| Glass Cannon | Style | Your attacks do 1 more wound. | Attacks against you do 1 more wound. |
+| Patient Tide | Style | You open each duel at your highest Energy stage. | You cannot declare Combat on your first turn. |
 
-**Guard.** Resonances must not touch the Ascension or MPPV win directly. A Resonance that grants
-Fervor on a schedule turns every duel into a race to the same ending.
+Readings settled while building (2026-09-29):
+
+- Iron Resolve lifts the attacker's Strike Table band by one, capped at the top band (user,
+  2026-09-29; the first build's +2 Might crossed a band only about one Strike in five). It never
+  changes a printed Might or a Might comparison, and card faces print the lifted Table number.
+- Open Hand adds its card to the draw step of your own turn only (user, 2026-09-29). The draw in
+  an opponent's Combat is left for a separate style Resonance with a penalty.
+- "Perform an Art" is declaring an Art attack, card, Power or copy, whoever of yours performs it
+  and whether or not it is stopped. A defence Art is not performed. Blood Price's wound is a cost:
+  it is paid off the top of the Life Deck like any `cost_life`, and an Art is not offered with one
+  card left.
+- Steady Flame and Rising Ash fire on every Aspect climb (Fervor or card effect); losing an Aspect
+  still discards the Drills.
+- Spoils of Ruin pays once per card your effect sends from their side of the table to the discard
+  pile; a removal from the game pays nothing, and so does discarding your own.
+- Deep Well adds to the duelist's Power Up only, not an Ally's, and a Surge held at 0 swallows it.
+- Open Hand is the Draw step of your own turn; the Opposing Draws phase in Combat is not a draw step.
+- First Stone asks after both Reserves are settled, before the start-in-play offer. Its Drill is
+  guarded against the opponent's discards, not against removal, as the printed "cannot be discarded"
+  guards read.
+- Warband counts your Allies in play when the Strike is worked out; Arts get nothing.
+- Sealwright's Patience draws only while the Life Deck has a card, so it never loses the duel.
+- Braced Stance is a reduction on the first attack declared against you that Combat, stopped or not,
+  so an attack that "cannot be reduced" ignores it. Glass Cannon's two wounds are additions and land
+  on Strikes that deal only stages too, as "+X" modifiers do.
+- Patient Tide sets the Energy after the Double Power Rule has decided who opens.
 
 ### 7.8 What is built today
 
@@ -592,7 +649,9 @@ Built 2026-09-23: a run plays the node map. The 8-stage pipeline and `AdventureL
   nothing yet and are passed through. The save is at version 5, and older saves are dropped.
 - Forge built 2026-09-29: one free action per visit, cut a card or copy one already in the deck, or leave (`AdventureForge`).
 - Mana and the Shop built 2026-09-29: five single cards for Mana, bought one click at a time until the player leaves (`AdventureShop`, section 7.6).
-- The Relic node, Reserve sets, run library and Reserve screen built 2026-09-29 (`AdventureRelic`, `AdventureReserve`, sections 4.2, 4.7 and 7.5). The save is at version 8.
+- The Relic node, Reserve sets, run library and Reserve screen built 2026-09-29 (`AdventureRelic`, `AdventureReserve`, sections 4.2, 4.7 and 7.5).
+- The Shrine and Resonances built 2026-09-29 (`AdventureShrine`, `ResonanceData`, `scenes/adventure/shrine.tscn`, section 7.7).
+- The Elite rework built 2026-09-29: the duel band, the opponent's Resonances and the Resonance claim (`AdventureElite`, section 7.7). The save is at version 11.
 - The map takes most of the stage screen as a scrolling board (`scripts/adventure/map_route.gd`)
   on plain parchment, with the run's Duelist portrait as the player's token. A full-height side
   panel shows the deck, act, duels won, Mana and Motes over the picked node's preview: the opponent sheet

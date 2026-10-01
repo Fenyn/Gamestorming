@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Delve.Autoload;
 using Delve.Combat;
 using Delve.Dungeon;
 using Delve.Flow;
@@ -41,8 +42,27 @@ public partial class DungeonRunSpike
         var hp = HeroSheetBuilder.Read(member).Headlines.First(h => h.Label == "HP").Value;
         Check($"clicking a chip opens that member's sheet, which shows current/max HP ('{hp}')",
             details.Visible && details.Character == member && hp == $"{member.Health.CurrentHP}/{member.Health.MaxHP}");
-        details.Close();
+        var tiles = details.MemberTiles;
+        Check($"the party screen heads every member as a tile with HP ({string.Join(", ", tiles.Select(t => t.TooltipText))})",
+            tiles.Count == state.Party.Members.Count && tiles.Any(t => t.TooltipText.Contains($"HP {member.Health.CurrentHP}/{member.Health.MaxHP}")));
+        GetViewport().PushInput(new InputEventAction { Action = InputNames.MenuNext, Pressed = true });
+        await Frames(2);
+        Check("E pages to the next member", details.Visible && details.Character == state.Party.Members[2 % state.Party.Members.Count]);
+        GetViewport().PushInput(new InputEventAction { Action = InputNames.UiCancel, Pressed = true });
+        await Frames(2);
+        Check("Esc closes the party screen and nothing else opens", !details.Visible && ModalStack.Instance?.IsOpen != true);
         member.Health.SetCurrentHP(member.Health.MaxHP);
+        Check("a fresh member's sheet has no STATUS line", HeroSheetBuilder.Read(member).Row(HeroSheetBuilder.StatusRow) == null);
+        member.Conditions.AddCondition(PF2e.Conditions.ConditionDatabase.Instance.Wounded, value: 1);
+        var status = HeroSheetBuilder.Read(member).Row(HeroSheetBuilder.StatusRow);
+        Check($"a wounded member's sheet leads with STATUS ('{status?.Line}')", status?.Line.StartsWith("Wounded 1") == true);
+        member.Conditions.RemoveCondition(PF2e.Conditions.ConditionDatabase.Instance.Wounded);
+        dungeon.OpenJournal();
+        await Frames(2);
+        Check("J opens the journal while exploring", dungeon.JournalScreen.Visible && dungeon.JournalScreen.Page == JournalScreen.BestiaryPage);
+        GetViewport().PushInput(new InputEventAction { Action = InputNames.UiCancel, Pressed = true });
+        await Frames(2);
+        Check("Esc closes the journal", !dungeon.JournalScreen.Visible && ModalStack.Instance?.IsOpen != true);
         dungeon.RefreshHud();
         Check("no badge without a pending promotion", strip.Chips.All(c => !c.PromotionBadge));
         await CheckExplorationDyingBadge(dungeon, member);

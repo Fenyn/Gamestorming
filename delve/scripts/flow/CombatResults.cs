@@ -79,7 +79,10 @@ public static class CombatResults
         foreach (var member in members)
         {
             var figures = before.TryGetValue(member.Id, out var old) ? MemberFigures(old, member) : new List<FigureView>();
-            if (figures.Count > 0 || HasFeatChoice(member)) rows.Add(new ResultMemberRow(member, figures));
+            // A row that is only here for its feat still reads HP in the same column as the others.
+            if (figures.Count == 0 && HasFeatChoice(member))
+                figures.Add(new FigureView("HP", (member.Health?.CurrentHP ?? 0).ToString()) { Max = (member.Health?.MaxHP ?? 0).ToString() });
+            if (figures.Count > 0) rows.Add(new ResultMemberRow(member, figures));
         }
         return rows;
     }

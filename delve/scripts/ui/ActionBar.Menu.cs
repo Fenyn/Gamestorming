@@ -43,11 +43,13 @@ public partial class ActionBar
     /// The flip reads the main panel only, so opening a sub-menu never moves the menu; a sub-menu
     /// opens on the side away from the unit. <paramref name="scale"/> shrinks the whole menu, gap
     /// included, with the unit when the camera zooms out.</summary>
-    public void AnchorMenu(Vector2 unitScreen, float scale = 1f)
+    /// <param name="rightLimit">A right edge the menu must stay left of, such as an open journal.</param>
+    public void AnchorMenu(Vector2 unitScreen, float scale = 1f, float rightLimit = float.PositiveInfinity)
     {
         var rect = GetRect();
         var bounds = new Rect2(rect.Position.X + MenuMargins.X, rect.Position.Y + MenuMargins.Y,
             rect.Size.X - MenuMargins.X - MenuMargins.Z, rect.Size.Y - MenuMargins.Y - MenuMargins.W);
+        if (rightLimit < bounds.End.X) bounds.End = new Vector2(Mathf.Max(bounds.Position.X, rightLimit - MenuMargins.Z), bounds.End.Y);
         _stack.Scale = new Vector2(scale, scale);
         SetCompact(scale < CompactBelowScale);
         float gap = MenuGap * scale;

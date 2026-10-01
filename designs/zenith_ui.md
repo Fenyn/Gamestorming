@@ -49,6 +49,7 @@ approved with the mockups the same day.
 | **`game.motes`** | **arcane blue (0.48, 0.72, 1.00) with a soft glow** | Motes and prices only (the second blue) |
 | `game.mana` | lavender (0.77, 0.63, 0.94) with a soft glow (`MANA`) | Mana, the per-run currency, and Shop prices |
 | `state.short` | (0.92, 0.47, 0.39) (`SHORT`) | A price the player cannot pay |
+| `game.penalty` | amber (0.95, 0.78, 0.35) (`PENALTY`) | The penalty sentence of a style Resonance and its STYLE chip, on the Shrine, the board tooltip and the deck list; nothing else (2026-09-29) |
 | `identity.school` | `Palette` school colours | Card frames, school chips, one edge or title per adventure screen |
 | `identity.type` | `Palette` type colours | Card type chips and icons |
 | `identity.seat` | seat colours | Online presence and seat markers |

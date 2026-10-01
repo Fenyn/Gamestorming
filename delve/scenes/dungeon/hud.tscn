@@ -29,6 +29,14 @@ events = [SubResource("key_potion")]
 action = &"explore_descend"
 [sub_resource type="Shortcut" id="shortcut_stairs"]
 events = [SubResource("key_stairs")]
+[sub_resource type="InputEventAction" id="key_party"]
+action = &"explore_party"
+[sub_resource type="Shortcut" id="shortcut_party"]
+events = [SubResource("key_party")]
+[sub_resource type="InputEventAction" id="key_journal"]
+action = &"explore_journal"
+[sub_resource type="Shortcut" id="shortcut_journal"]
+events = [SubResource("key_journal")]
 
 ; Exploration HUD, FFT/MYZ/OAG layout (2026-09-28): room banner top centre, Wardstone and objective
 ; top right, party face cards along the bottom, the floor plan in a round frame bottom right, and
@@ -258,6 +266,36 @@ DisabledLabelVariation = &"CommandLabelDisabled"
 KeyVariation = &"CommandKey"
 ActionText = "Descend stairs"
 InputAction = &"explore_descend"
+
+[node name="PartyRow" parent="PartyMenu/Rows" instance=ExtResource("14_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_type_variation = &"CommandButton"
+tooltip_text = "Every member's sheet and progression."
+shortcut = SubResource("shortcut_party")
+FillRow = true
+KeycapVariation = &"CommandKeycap"
+LabelVariation = &"CommandLabel"
+DisabledLabelVariation = &"CommandLabelDisabled"
+KeyVariation = &"CommandKey"
+ActionText = "Party"
+InputAction = &"explore_party"
+
+[node name="JournalRow" parent="PartyMenu/Rows" instance=ExtResource("14_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_type_variation = &"CommandButton"
+tooltip_text = "The bestiary and the unlock journal."
+shortcut = SubResource("shortcut_journal")
+FillRow = true
+KeycapVariation = &"CommandKeycap"
+LabelVariation = &"CommandLabel"
+DisabledLabelVariation = &"CommandLabelDisabled"
+KeyVariation = &"CommandKey"
+ActionText = "Journal"
+InputAction = &"explore_journal"
 
 [node name="Plan" type="PanelContainer" parent="."]
 unique_name_in_owner = true

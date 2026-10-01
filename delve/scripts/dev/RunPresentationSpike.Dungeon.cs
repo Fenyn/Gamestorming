@@ -66,9 +66,9 @@ public partial class RunPresentationSpike
         var report = panel.Report!;
         var wardPair = report.FigureLabels.FirstOrDefault(f => f.CaptionText == "Ward");
         var aldricHp = report.MemberRows.FirstOrDefault(r => r.MemberName == "Aldric")?.FigureLabels.FirstOrDefault(f => f.CaptionText == "HP");
-        Check($"overnight event applies once and reports the morning as pairs ('{panel.GetNode<Label>("%TitleLabel").Text}', "
+        Check($"overnight event applies once and reports the morning as pairs ('{panel.TitleText}', "
             + $"Ward {wardPair?.BeforeText} → {wardPair?.ValueText}, Aldric HP {aldricHp?.BeforeText} → {aldricHp?.ValueText})",
-            state.Clock.Day == day + 1 && panel.GetNode<Label>("%TitleLabel").Text == $"Morning, day {state.Clock.Day}"
+            state.Clock.Day == day + 1 && panel.TitleText == $"Morning, day {state.Clock.Day}"
             && (state.Wardstone.Ward == ward ? wardPair == null : wardPair?.BeforeText == ward.ToString() && wardPair.ValueText == state.Wardstone.Ward.ToString())
             && aldricHp?.BeforeText == "1" && report.MemberRows.All(r => r.FigureLabels.Count > 0));
         var study = dungeon.LastStudy;

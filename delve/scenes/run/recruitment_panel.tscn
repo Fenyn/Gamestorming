@@ -1,209 +1,145 @@
 [gd_scene load_steps=4 format=3]
+
 [ext_resource type="Script" path="res://scripts/flow/RecruitmentPanel.cs" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/run/recruitment_entry.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/run/journal_step.tscn" id="3"]
 
-[node name="RecruitmentPanel" type="Control"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="RecruitmentPanel" type="HBoxContainer"]
+size_flags_vertical = 3
+theme_override_constants/separation = 24
 script = ExtResource("1")
 EntryScene = ExtResource("2")
 StepScene = ExtResource("3")
 
-[node name="Backdrop" type="Panel" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_type_variation = &"ModalDim"
-
-[node name="Margin" type="MarginContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 96
-theme_override_constants/margin_right = 96
-theme_override_constants/margin_top = 60
-theme_override_constants/margin_bottom = 60
-
-[node name="Panel" type="PanelContainer" parent="Margin"]
+[node name="Index" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
-theme_type_variation = &"ModalPanel"
+theme_override_constants/separation = 12
 
-[node name="Padding" type="MarginContainer" parent="Margin/Panel"]
-layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_bottom = 24
-
-[node name="Rows" type="VBoxContainer" parent="Margin/Panel/Padding"]
-layout_mode = 2
-theme_override_constants/separation = 18
-
-[node name="Title" type="Label" parent="Margin/Panel/Padding/Rows"]
-layout_mode = 2
-text = "Unlock journal"
-autowrap_mode = 3
-theme_type_variation = &"TitleLabel"
-
-[node name="JournalSummary" type="Label" parent="Margin/Panel/Padding/Rows"]
+[node name="JournalSummary" type="Label" parent="Index"]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 autowrap_mode = 3
 theme_type_variation = &"ScreenHint"
 
-[node name="Body" type="HBoxContainer" parent="Margin/Panel/Padding/Rows"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 36
-
-[node name="Index" type="VBoxContainer" parent="Margin/Panel/Padding/Rows/Body"]
-layout_mode = 2
-custom_minimum_size = Vector2(490, 0)
-theme_override_constants/separation = 16
-
-[node name="JournalFilter" type="OptionButton" parent="Margin/Panel/Padding/Rows/Body/Index"]
+[node name="JournalFilter" type="OptionButton" parent="Index"]
 unique_name_in_owner = true
-layout_mode = 2
 custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
 
-[node name="IndexScroll" type="ScrollContainer" parent="Margin/Panel/Padding/Rows/Body/Index"]
+[node name="IndexScroll" type="ScrollContainer" parent="Index"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="RecruitEntries" type="GridContainer" parent="Margin/Panel/Padding/Rows/Body/Index/IndexScroll"]
+[node name="RecruitEntries" type="GridContainer" parent="Index/IndexScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-columns = 2
 theme_override_constants/h_separation = 12
 theme_override_constants/v_separation = 12
+columns = 4
 
-[node name="JournalEmpty" type="Label" parent="Margin/Panel/Padding/Rows/Body/Index"]
+[node name="JournalEmpty" type="Label" parent="Index"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "No entries in this chapter yet."
 autowrap_mode = 3
 theme_type_variation = &"ScreenHint"
+text = "No entries in this chapter yet."
 
-[node name="PageScroll" type="ScrollContainer" parent="Margin/Panel/Padding/Rows/Body"]
+[node name="PagePanel" type="PanelContainer" parent="."]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"SheetPanel"
+
+[node name="PageScroll" type="ScrollContainer" parent="PagePanel"]
+layout_mode = 2
 horizontal_scroll_mode = 0
 
-[node name="JournalPage" type="VBoxContainer" parent="Margin/Panel/Padding/Rows/Body/PageScroll"]
+[node name="JournalPage" type="VBoxContainer" parent="PagePanel/PageScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="Header" type="HBoxContainer" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+[node name="Header" type="HBoxContainer" parent="PagePanel/PageScroll/JournalPage"]
 layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 32
 
-[node name="PortraitFrame" type="Control" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header"]
+[node name="PortraitFrame" type="PanelContainer" parent="PagePanel/PageScroll/JournalPage/Header"]
+custom_minimum_size = Vector2(240, 300)
 layout_mode = 2
-custom_minimum_size = Vector2(120, 160)
+theme_type_variation = &"BestiaryPlinth"
 
-[node name="JournalPortrait" type="TextureRect" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header/PortraitFrame"]
+[node name="JournalPortrait" type="TextureRect" parent="PagePanel/PageScroll/JournalPage/Header/PortraitFrame"]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-expand_mode = 1
-stretch_mode = 5
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
 texture_filter = 1
+expand_mode = 1
+stretch_mode = 0
 
-[node name="UnknownPortrait" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header/PortraitFrame"]
+[node name="UnknownPortrait" type="Label" parent="PagePanel/PageScroll/JournalPage/Header/PortraitFrame"]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
+theme_type_variation = &"BannerLabel"
 text = "?"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_type_variation = &"BannerLabel"
 
-[node name="Identity" type="VBoxContainer" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header"]
+[node name="Identity" type="VBoxContainer" parent="PagePanel/PageScroll/JournalPage/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="RecruitTitle" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header/Identity"]
+[node name="RecruitTitle" type="Label" parent="PagePanel/PageScroll/JournalPage/Header/Identity"]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 autowrap_mode = 3
 theme_type_variation = &"TitleLabel"
 
-[node name="JournalRole" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header/Identity"]
+[node name="JournalRole" type="Label" parent="PagePanel/PageScroll/JournalPage/Header/Identity"]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 autowrap_mode = 3
 theme_type_variation = &"ScreenHint"
 
-[node name="JournalStatus" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage/Header/Identity"]
+[node name="JournalStatus" type="Label" parent="PagePanel/PageScroll/JournalPage/Header/Identity"]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 autowrap_mode = 3
 theme_type_variation = &"HeadingLabel"
 
-[node name="JournalArc" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+[node name="JournalArc" type="Label" parent="PagePanel/PageScroll/JournalPage/Header/Identity"]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 autowrap_mode = 3
 theme_type_variation = &"HeadingLabel"
 
-[node name="JournalStory" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+[node name="JournalStory" type="Label" parent="PagePanel/PageScroll/JournalPage/Header/Identity"]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 autowrap_mode = 3
 theme_type_variation = &"ScreenHint"
 
-[node name="JournalSteps" type="VBoxContainer" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+[node name="JournalSteps" type="VBoxContainer" parent="PagePanel/PageScroll/JournalPage"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="JournalNext" type="Label" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+[node name="JournalNext" type="Label" parent="PagePanel/PageScroll/JournalPage"]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 autowrap_mode = 3
 theme_type_variation = &"ScreenHint"
 
-[node name="StayButton" type="Button" parent="Margin/Panel/Padding/Rows/Body/PageScroll/JournalPage"]
+[node name="StayButton" type="Button" parent="PagePanel/PageScroll/JournalPage"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 52)
 layout_mode = 2
-custom_minimum_size = Vector2(0, 54)
-text = "Invite to stay overnight"
+size_flags_horizontal = 0
 theme_type_variation = &"AccentButton"
-
-[node name="CloseRecruitment" type="Button" parent="Margin/Panel/Padding/Rows"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(240, 52)
-size_flags_horizontal = 8
-text = "Return to camp"
+text = "Invite to stay overnight"

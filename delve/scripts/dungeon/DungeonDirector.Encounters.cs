@@ -117,7 +117,7 @@ public partial class DungeonDirector
     /// <summary>One night in the refuge: long rest, a new day, the camp's ward, then the morning report.</summary>
     public void MakeCamp()
     {
-        if (_details.Visible || Phase != DungeonPhase.Doors || Current.Family != RoomFamily.Camp || Current.Resolved || _transition.Busy)
+        if (ScreenOpen || Phase != DungeonPhase.Doors || Current.Family != RoomFamily.Camp || Current.Resolved || _transition.Busy)
             return;
         Phase = DungeonPhase.Event;
         RefreshHud();
@@ -249,7 +249,7 @@ public partial class DungeonDirector
 
     private void OpenRest()
     {
-        if (_details.Visible || Phase != DungeonPhase.Doors)
+        if (ScreenOpen || Phase != DungeonPhase.Doors)
             return;
         Phase = DungeonPhase.Rest;
         _restUsed = false;

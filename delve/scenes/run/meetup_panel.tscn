@@ -1,13 +1,7 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/flow/MeetupPanel.cs" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/run/hero_sheet.tscn" id="2"]
-
-[sub_resource type="InputEventAction" id="decline"]
-action = &"combat_decline"
-
-[sub_resource type="Shortcut" id="decline_shortcut"]
-events = [SubResource("decline")]
 
 [node name="MeetupPanel" type="Control"]
 layout_mode = 3
@@ -87,6 +81,4 @@ size_flags_horizontal = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-shortcut = SubResource("decline_shortcut")
-shortcut_in_tooltip = false
 text = "Keep current party"

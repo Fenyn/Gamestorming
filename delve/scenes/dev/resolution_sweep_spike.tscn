@@ -7,6 +7,8 @@
 [ext_resource type="Theme" path="res://assets/ui/ui_theme.tres" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/dungeon/dungeon_test.tscn" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/ui/victory_banner.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/run/event_panel.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/event_panel.tscn" id="9"]
 
 [node name="ResolutionSweepSpike" type="Node"]
 script = ExtResource("1")
@@ -15,4 +17,6 @@ CombatTestScene = ExtResource("3")
 ModalScene = ExtResource("4")
 DungeonScene = ExtResource("6")
 VictoryScene = ExtResource("7")
+EventScene = ExtResource("8")
+CrawlEventScene = ExtResource("9")
 UiTheme = ExtResource("5")

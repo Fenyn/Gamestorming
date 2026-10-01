@@ -1,65 +1,163 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/flow/PromotionPanel.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/run/promotion_feat_card.tscn" id="card"]
+[ext_resource type="PackedScene" path="res://scenes/ui/figure_label.tscn" id="figure"]
 
 [node name="Progression" type="PanelContainer"]
 theme_type_variation = &"SheetPanel"
 script = ExtResource("script")
 CardScene = ExtResource("card")
+FigureScene = ExtResource("figure")
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_right = 24
+theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="Content" type="VBoxContainer" parent="Margin"]
+[node name="Columns" type="HBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 32
 
-[node name="PromotionHeading" type="Label" parent="Margin/Content"]
+[node name="Rail" type="VBoxContainer" parent="Margin/Columns"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Plinth" type="PanelContainer" parent="Margin/Columns/Rail"]
+custom_minimum_size = Vector2(320, 240)
+layout_mode = 2
+theme_type_variation = &"BestiaryPlinth"
+
+[node name="PromotionPortrait" type="TextureRect" parent="Margin/Columns/Rail/Plinth"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture_filter = 1
+expand_mode = 1
+stretch_mode = 0
+
+[node name="PromotionHeading" type="Label" parent="Margin/Columns/Rail"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeadingLabel"
+autowrap_mode = 3
 
-[node name="PromotionSummary" type="Label" parent="Margin/Content"]
+[node name="PromotionIdentity" type="Label" parent="Margin/Columns/Rail"]
 unique_name_in_owner = true
 layout_mode = 2
-autowrap_mode = 2
+theme_type_variation = &"HintLabel"
+autowrap_mode = 3
 
-[node name="Scroll" type="ScrollContainer" parent="Margin/Content"]
+[node name="PromotionGains" type="VBoxContainer" parent="Margin/Columns/Rail"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PromotionSummary" type="Label" parent="Margin/Columns/Rail"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"ScreenHint"
+autowrap_mode = 3
+
+[node name="Ladder" type="VBoxContainer" parent="Margin/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="LadderHeader" type="HBoxContainer" parent="Margin/Columns/Ladder"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LevelCaption" type="Label" parent="Margin/Columns/Ladder/LadderHeader"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_type_variation = &"SheetCaption"
+text = "LEVEL"
+
+[node name="ClassCaption" type="Label" parent="Margin/Columns/Ladder/LadderHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"SheetCaption"
+text = "CLASS FEATS"
+
+[node name="ArchetypeCaption" type="Label" parent="Margin/Columns/Ladder/LadderHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"SheetCaption"
+text = "ARCHETYPE"
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/Columns/Ladder"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="FeatTree" type="GridContainer" parent="Margin/Content/Scroll"]
+[node name="FeatTree" type="GridContainer" parent="Margin/Columns/Ladder/Scroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-columns = 2
 theme_override_constants/h_separation = 12
 theme_override_constants/v_separation = 12
+columns = 3
 
-[node name="FeatPreview" type="Label" parent="Margin/Content"]
+[node name="Detail" type="PanelContainer" parent="Margin/Columns"]
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 2
+theme_type_variation = &"HudInset"
+
+[node name="DetailRows" type="VBoxContainer" parent="Margin/Columns/Detail"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="FeatTitle" type="Label" parent="Margin/Columns/Detail/DetailRows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+autowrap_mode = 3
+
+[node name="FeatMeta" type="Label" parent="Margin/Columns/Detail/DetailRows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HintLabel"
+autowrap_mode = 3
+
+[node name="FeatPreview" type="Label" parent="Margin/Columns/Detail/DetailRows"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="FeatReason" type="Label" parent="Margin/Columns/Detail/DetailRows"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-autowrap_mode = 2
+theme_type_variation = &"MemberAlert"
+autowrap_mode = 3
 
-[node name="ConfirmPromotion" type="Button" parent="Margin/Content"]
+[node name="DetailSpacer" type="Control" parent="Margin/Columns/Detail/DetailRows"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="ConfirmPromotion" type="Button" parent="Margin/Columns/Detail/DetailRows"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 44)
 layout_mode = 2
-size_flags_horizontal = 4
-text = "Confirm promotion"
+size_flags_horizontal = 3
+theme_type_variation = &"AccentButton"
 disabled = true
+text = "Confirm promotion"
+autowrap_mode = 3
 
-[node name="SaveFeatChoice" type="Button" parent="Margin/Content"]
+[node name="SaveFeatChoice" type="Button" parent="Margin/Columns/Detail/DetailRows"]
 unique_name_in_owner = true
+visible = false
 custom_minimum_size = Vector2(280, 44)
 layout_mode = 2
-size_flags_horizontal = 4
+size_flags_horizontal = 3
 text = "Keep feat choice"
-visible = false
+autowrap_mode = 3

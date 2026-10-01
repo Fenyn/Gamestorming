@@ -34,7 +34,7 @@ public static class HeroSelectGrid
         check("full cast has clear sprite and label space between header and footer", spaced);
         var page = new Rect2(Vector2.Zero, canvas);
         var camp = Rect(panel, "%CampStage");
-        var sheet = Rect(panel, "%Sheet");
+        var sheet = panel.Sheet.GetGlobalRect();
         var embark = Rect(panel, "%EmbarkButton");
         check("camp fills the selection viewport", camp.Size.IsEqualApprox(canvas));
         check("embark stays inside the screen", page.Encloses(embark));
@@ -50,7 +50,7 @@ public static class HeroSelectGrid
     /// </summary>
     public static void Bands(HeroSelectPanel panel, Action<string, bool> check)
     {
-        var sheetNode = panel.GetNode<Control>("%Sheet");
+        var sheetNode = panel.Sheet;
         var headlines = sheetNode.GetNode<HBoxContainer>("%HeadlineRow");
         var rail = sheetNode.GetNode<GridContainer>("%AbilityGrid");
 

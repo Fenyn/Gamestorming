@@ -108,6 +108,7 @@ public partial class DungeonDirector : Node3D
         if (SharedTransition != null) ownTransition.QueueFree();
         _details = GetNode<CharacterDetailsOverlay>("%CharacterDetails");
         _details.Closed += CloseCharacterDetails;
+        ReadyJournal();
         // A hosted floor fights in the host's combat scene; only the standalone crawl owns one.
         if (!Hosted)
         {
@@ -270,7 +271,7 @@ public partial class DungeonDirector : Node3D
 
     public void UseStairs()
     {
-        if (_details.Visible || Phase != DungeonPhase.Doors || Current.Family != RoomFamily.Guardian || !Current.Completed) return;
+        if (ScreenOpen || Phase != DungeonPhase.Doors || Current.Family != RoomFamily.Guardian || !Current.Completed) return;
         FinishWalkIn();
         _fx.Descended();
         if (Instant) { LeaveFloor(); return; }

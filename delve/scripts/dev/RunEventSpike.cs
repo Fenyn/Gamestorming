@@ -109,8 +109,11 @@ public partial class RunEventSpike : SpikeBase
         string automatic = first.Text;
         Check("preview names the skill, DC and base success chance", automatic.Contains("Athletics")
             && automatic.Contains("DC 15") && automatic.Contains("% base success"));
-        var actors = panel.GetNode<HBoxContainer>("%ActorRow");
-        actors.GetChild<Button>(actors.GetChildCount() - 1).ButtonPressed = true;
+        var actors = panel.GetNode<Container>("%ActorRow");
+        var lastActor = actors.GetChild<Button>(actors.GetChildCount() - 1);
+        Check($"each member shows their odds on the previewed check before any click ('{lastActor.Text}')",
+            lastActor.Text.Contains('%') && lastActor.Text.Contains('·') && actors.GetChild<Button>(0).Text.StartsWith("Best suited: "));
+        lastActor.ButtonPressed = true;
         Check("changing actor updates the check preview", first.Text != automatic);
         Check("success and critical failure explain their effects",
             panel.GetNode<Label>("%CheckPreview").Text.Contains("Heal 10%")
@@ -132,6 +135,10 @@ public partial class RunEventSpike : SpikeBase
         first.EmitSignal(BaseButton.SignalName.Pressed);
         Check("repeated selection cannot resolve twice", requests == 1);
         panel.ShowResult(around);
+        int continued = 0;
+        panel.Continued += () => continued++;
+        panel._Input(new InputEventAction { Action = Delve.UI.InputNames.UiCancel, Pressed = true });
+        Check("after the result, Esc continues like the button", continued == 1);
         Check("resolved event replaces choices with its outcome", !choices.Visible
             && panel.GetNode<Label>("%ResultLabel").Visible
             && panel.GetNode<Label>("%PreviewHeading").Text == "OUTCOME");

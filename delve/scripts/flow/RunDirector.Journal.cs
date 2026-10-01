@@ -15,7 +15,11 @@ public partial class RunDirector
         _journal.Changed += SaveCampaign;
         CreatureKnowledgeLocator.Instance = _journal;
         _combat.Journal = _journal;
-        if (_dungeon != null) _dungeon.Journal = _journal;
+        if (_dungeon != null)
+        {
+            _dungeon.Journal = _journal;
+            _dungeon.Campaign = _campaign;
+        }
     }
 
     private void ReleaseJournal()
@@ -25,7 +29,11 @@ public partial class RunDirector
         if (ReferenceEquals(CreatureKnowledgeLocator.Instance, _journal))
             CreatureKnowledgeLocator.Instance = null!;
         if (IsInstanceValid(_combat)) _combat.Journal = null;
-        if (_dungeon != null && IsInstanceValid(_dungeon)) _dungeon.Journal = null;
+        if (_dungeon != null && IsInstanceValid(_dungeon))
+        {
+            _dungeon.Journal = null;
+            _dungeon.Campaign = null;
+        }
         _journal = null;
     }
 

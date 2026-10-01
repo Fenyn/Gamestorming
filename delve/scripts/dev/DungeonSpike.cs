@@ -13,8 +13,15 @@ public partial class DungeonSpike : SpikeBase
     [Export]
     public PackedScene TestScene { get; set; } = null!;
 
+    /// <summary>Save the captures; also on whenever a rendered run sets DELVE_SHOT_DIRECTORY.</summary>
     [Export]
-    public bool Capture { get; set; }
+    public bool Capture
+    {
+        get => _capture || (DisplayServer.GetName() != "headless" && OS.GetEnvironment("DELVE_SHOT_DIRECTORY").Length > 0);
+        set => _capture = value;
+    }
+
+    private bool _capture;
 
     protected override async Task RunSpikeAsync(DataManager data)
     {
@@ -226,6 +233,14 @@ public partial class DungeonSpike : SpikeBase
             afterCrossing[host.Current.Id] == "event" && host.Current.Doors.All(d => afterCrossing.ContainsKey(d.Other(host.Current.Id))));
         await WaitSeconds((float)hud.WardTweenSeconds + 0.1f);
         Check("ward meter settles on the crossing cost", wardBar.Value == 95);
+        var eventPanel = host.GetNode<CanvasLayer>("%Screens").GetChildren().OfType<Delve.Flow.EventPanel>().Single();
+        var eventRect = eventPanel.FramePanel.GetGlobalRect();
+        var clear = new[] { "%Expedition", "%Plan", "%PartyStrip" }.Select(n => hud.GetNode<Control>(n))
+            .Where(c => c.IsVisibleInTree()).ToList();
+        Check($"the room event docks left, on screen and clear of the HUD it leaves up ({eventRect})",
+            eventRect.Position.X <= 40 && hud.GetViewportRect().Encloses(eventRect)
+            && clear.All(c => !c.GetGlobalRect().Intersects(eventRect)) && !hud.PartyMenu.Visible
+            && ModalStack.Instance?.Holds(eventPanel) != true && !eventPanel.CloseButton.Visible);
         if (Capture)
             await Shot("dungeon_happenstance.png");
         host.ResolveEvent(0, null);

@@ -71,7 +71,9 @@ public static class ThemeNames
     public const string HeadingLabel = "HeadingLabel";
     public const string HeadingLabelDisabled = "HeadingLabelDisabled";
     public const string FeatCardLocked = "FeatCardLocked";
-
+    public const string MemberAlert = "MemberAlert";
+    public const string ScreenScrim = "ScreenScrim";
+    public const string FrameTab = "FrameTab";
     public static string MapHpBarFor(float ratio)
         => ratio > 0.5f ? MapHpHigh : ratio > 0.25f ? MapHpMid : MapHpLow;
 

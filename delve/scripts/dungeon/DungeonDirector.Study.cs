@@ -44,7 +44,7 @@ public partial class DungeonDirector
     /// <summary>The most wounded hero drinks a banked potion.</summary>
     public void DrinkPotion()
     {
-        if (_details.Visible || Phase != DungeonPhase.Doors) return;
+        if (ScreenOpen || Phase != DungeonPhase.Doors) return;
         string? line = Delve.Run.Events.HealingPotions.Drink(State);
         RefreshHud();
         if (line != null) _hud.ShowNotice(line);

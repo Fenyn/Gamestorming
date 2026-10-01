@@ -1,12 +1,11 @@
 [gd_scene load_steps=13 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="caption"]
 [ext_resource type="Script" path="res://scripts/flow/HeroSelectPanel.cs" id="script"]
 [ext_resource type="PackedScene" path="res://scenes/run/camp_resident.tscn" id="resident"]
 [ext_resource type="PackedScene" path="res://scenes/run/camp_stage.tscn" id="camp"]
-[ext_resource type="PackedScene" path="res://scenes/run/hero_sheet.tscn" id="sheet"]
-[ext_resource type="PackedScene" path="res://scenes/run/recruitment_panel.tscn" id="recruit"]
-[ext_resource type="PackedScene" path="res://scenes/run/bestiary_panel.tscn" id="bestiary"]
+[ext_resource type="PackedScene" path="res://scenes/run/character_details_overlay.tscn" id="details"]
+[ext_resource type="PackedScene" path="res://scenes/run/journal_screen.tscn" id="journal"]
+[ext_resource type="PackedScene" path="res://scenes/ui/member_tile.tscn" id="tile"]
 [ext_resource type="Shader" path="res://assets/shaders/camp_mist.gdshader" id="mist"]
 [sub_resource type="FastNoiseLite" id="mist_noise"]
 seed = 37
@@ -32,18 +31,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("script")
 CardScene = ExtResource("resident")
+SquadTileScene = ExtResource("tile")
 
 [node name="CampStage" parent="." instance=ExtResource("camp")]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="RosterList" type="Control" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -63,6 +53,16 @@ grow_vertical = 2
 mouse_filter = 2
 material = SubResource("mist_mat")
 color = Color(1, 1, 1, 1)
+
+[node name="RosterList" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="Header" type="VBoxContainer" parent="."]
 offset_left = 40.0
@@ -142,6 +142,21 @@ text = "Character details"
 theme_type_variation = &"CampLink"
 mouse_default_cursor_shape = 2
 
+[node name="Squad" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -412.0
+offset_top = -100.0
+offset_right = 412.0
+offset_bottom = -36.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 8
+alignment = 1
+
 [node name="Departure" type="VBoxContainer" parent="."]
 anchor_left = 1.0
 anchor_top = 1.0
@@ -178,57 +193,12 @@ text = "Clear party"
 theme_type_variation = &"CampLink"
 mouse_default_cursor_shape = 2
 
-[node name="Details" type="Control" parent="."]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-visible = false
-
-[node name="Dim" type="ColorRect" parent="Details"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.054902, 0.070588, 0.082353, 0.8)
-
-[node name="Body" type="VBoxContainer" parent="Details"]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -670.0
-offset_top = -460.0
-offset_right = 670.0
-offset_bottom = 460.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 8
-
-[node name="CloseDetails" parent="Details/Body" instance=ExtResource("caption")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 8
-focus_mode = 2
-ActionText = "Return to camp"
-InputAction = &"ui_cancel"
-
-[node name="Sheet" parent="Details/Body" instance=ExtResource("sheet")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="Recruitment" parent="." instance=ExtResource("recruit")]
+[node name="Details" parent="." instance=ExtResource("details")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
 
-[node name="Bestiary" parent="." instance=ExtResource("bestiary")]
+[node name="Journal" parent="." instance=ExtResource("journal")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1

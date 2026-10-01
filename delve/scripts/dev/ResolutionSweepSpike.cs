@@ -23,11 +23,13 @@ public partial class ResolutionSweepSpike : SpikeBase
     [Export] public PackedScene CampScene { get; set; } = null!;
     [Export] public PackedScene CombatTestScene { get; set; } = null!;
     [Export] public PackedScene ModalScene { get; set; } = null!;
+    [Export] public PackedScene EventScene { get; set; } = null!;
+    [Export] public PackedScene CrawlEventScene { get; set; } = null!;
     [Export] public PackedScene DungeonScene { get; set; } = null!;
     [Export] public PackedScene VictoryScene { get; set; } = null!;
     [Export] public Theme UiTheme { get; set; } = null!;
     [Export] public Godot.Collections.Array<Vector2I> Sizes { get; set; } =
-        [new(1280, 720), new(1280, 800), new(1920, 1080), new(2560, 1440), new(3440, 1440)];
+        [new(1024, 768), new(1280, 720), new(1280, 800), new(1920, 1080), new(2560, 1080), new(2560, 1440), new(3440, 1440)];
     [Export] public float SettleSeconds { get; set; } = 0.6f;
     [Export] public float PlayerTurnWaitSeconds { get; set; } = 30f;
 
@@ -59,6 +61,8 @@ public partial class ResolutionSweepSpike : SpikeBase
             if (!await Resize(size)) continue;
             CheckLayout("camp", size, panel, "%EmbarkButton", "%ClearPartyButton", "%DetailsButton", "%RecruitmentButton");
             Capture("camp", size);
+            await SweepFrame("journal", size, panel.Journal, () => panel.OpenJournal(JournalScreen.BestiaryPage));
+            await SweepFrame("party screen", size, panel.Details, () => panel.OpenDetails());
         }
         layer.QueueFree();
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -144,10 +148,25 @@ public partial class ResolutionSweepSpike : SpikeBase
         foreach (var size in Sizes)
         {
             if (!await Resize(size)) continue;
-            CheckLayout("short rest modal", size, panel, "%ConfirmButton", "%BackButton");
+            CheckLayout("short rest modal", size, panel, "%ConfirmButton", "%FrameClose");
             Capture("short_rest", size);
         }
         panel.Hide();
+        foreach (var (name, scene) in new[] { ("event", EventScene), ("crawl event", CrawlEventScene) })
+        {
+            var eventPanel = scene.Instantiate<EventPanel>();
+            surface.AddChild(eventPanel);
+            eventPanel.Show(Delve.Run.Events.EventCatalog.CollapsedPassage, state);
+            foreach (var size in Sizes)
+            {
+                if (!await Resize(size)) continue;
+                var rect = eventPanel.FramePanel.GetGlobalRect();
+                Check($"{size.X}x{size.Y} {name}: the frame fits the window ({rect})", GetViewport().GetVisibleRect().Grow(1).Encloses(rect));
+                CheckLayout(name, size, eventPanel, "%OptionBox");
+                Capture(name.Replace(' ', '_'), size);
+            }
+            eventPanel.QueueFree();
+        }
         var victory = VictoryScene.Instantiate<VictoryBanner>();
         surface.AddChild(victory);
         var start = PartyChangeSummary.Capture(party);
@@ -191,6 +210,23 @@ public partial class ResolutionSweepSpike : SpikeBase
         float gap = Mathf.Min(Mathf.Abs(menu.Position.X - unit.X), Mathf.Abs(unit.X - menu.End.X));
         Check($"{size.X}x{size.Y} the command menu opens beside the active unit ({gap:F0} px, unit {unit}, menu {menu})",
             gap < 260f && !menu.HasPoint(unit));
+    }
+
+    /// <summary>Open one full frame, check it fits the window with its close on screen and nothing
+    /// spilling, capture it, then close it with Esc.</summary>
+    private async Task SweepFrame(string screen, Vector2I size, ScreenFrame frame, System.Action open)
+    {
+        open();
+        await Seconds(SettleSeconds);
+        var view = GetViewport().GetVisibleRect().Grow(1);
+        var rect = frame.FramePanel.GetGlobalRect();
+        Check($"{size.X}x{size.Y} {screen}: the frame fits the window and keeps its 1856 px cap ({rect})",
+            view.Encloses(rect) && rect.Size.X <= frame.MaxSize.X + 1);
+        CheckLayout(screen, size, frame, frame.FramePanel, frame.CloseButton);
+        Capture(screen.Replace(' ', '_'), size);
+        GetViewport().PushInput(new InputEventAction { Action = InputNames.UiCancel, Pressed = true });
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        Check($"{size.X}x{size.Y} {screen}: Esc closes it", !frame.Visible);
     }
 
     private void CheckLayout(string screen, Vector2I size, Control root, params string[] keys)

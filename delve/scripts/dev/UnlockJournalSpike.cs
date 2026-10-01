@@ -19,8 +19,8 @@ public partial class UnlockJournalSpike : SpikeBase
         layer.AddChild(camp);
         var campaign = new CampaignProgress();
         camp.Setup(campaign.Unlocks, campaign);
-        _journal = camp.GetNode<RecruitmentPanel>("%Recruitment");
-        _journal.Open();
+        _journal = camp.Recruitment;
+        camp.OpenJournal(JournalScreen.UnlocksPage);
         Check("normal camp has four residents", HeroSelectChecks.Cards(camp).Count == 4);
         _journal.SelectCharacter("aldric");
         Check("champion renamed without changing saved ID", CharacterCatalog.Find("aldric")?.DisplayName == "Sir Garran"

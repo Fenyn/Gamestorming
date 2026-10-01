@@ -180,9 +180,9 @@ public partial class HeroSheet : PanelContainer
 
     /// <summary>
     /// The body's two columns of titled sections, split the way a printed sheet splits: the
-    /// fight-facing numbers (saves, senses, strikes, defences) on the left, the lists that grow
-    /// with the character (skills, spells, features) on the right. Saves and senses stay on one
-    /// dotted line; everything else lists one entry per line.
+    /// status line and the fight-facing numbers (saves, senses, strikes, defences) and the feats
+    /// on the left, the lists that come with the class (skills, spells, features) on the right.
+    /// Status, saves and senses stay on one dotted line; everything else lists one entry per line.
     /// </summary>
     private void RenderRows(IReadOnlyList<SheetRow> rows)
     {
@@ -194,7 +194,7 @@ public partial class HeroSheet : PanelContainer
         {
             bool listColumn = row.Label is HeroSheetBuilder.SkillsRow
                 or HeroSheetBuilder.SpellsRow or HeroSheetBuilder.FeaturesRow;
-            bool inline = row.Label is HeroSheetBuilder.SavesRow or HeroSheetBuilder.SensesRow;
+            bool inline = row.Label is HeroSheetBuilder.SavesRow or HeroSheetBuilder.SensesRow or HeroSheetBuilder.StatusRow;
 
             var section = SectionScene.Instantiate<SheetSection>();
             section.TipTarget += Register;

@@ -1,109 +1,81 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
+[ext_resource type="PackedScene" path="res://scenes/ui/screen_frame.tscn" id="frame"]
 [ext_resource type="Script" path="res://scripts/flow/EventPanel.cs" id="1_ev"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pair_report.tscn" id="2_report"]
 
-[node name="EventPanel" type="Control"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="EventPanel" instance=ExtResource("frame")]
+visible = false
 script = ExtResource("1_ev")
+CompactWidth = 760.0
+CloseText = ""
+HoldsModal = false
 
-[node name="Dim" type="Panel" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_type_variation = &"ModalDim"
-
-[node name="Center" type="CenterContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Frame" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(900, 0)
-layout_mode = 2
-theme_type_variation = &"EventPanel"
-
-[node name="Box" type="VBoxContainer" parent="Center/Frame"]
-layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="TitleLabel" type="Label" parent="Center/Frame/Box"]
+[node name="BodyLabel" type="Label" parent="Frame/Box/Body"]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
-theme_type_variation = &"TitleLabel"
-
-[node name="BodyLabel" type="Label" parent="Center/Frame/Box"]
-unique_name_in_owner = true
-layout_mode = 2
-text = ""
 autowrap_mode = 3
 theme_type_variation = &"EventBody"
 
-[node name="ActorHeading" type="Label" parent="Center/Frame/Box"]
+[node name="ActorHeading" type="Label" parent="Frame/Box/Body"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Who tries?"
 theme_type_variation = &"EventCaption"
+text = "WHO TRIES?"
 
-[node name="ActorRow" type="HBoxContainer" parent="Center/Frame/Box"]
+[node name="ActorRow" type="GridContainer" parent="Frame/Box/Body"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 2
 
-[node name="ChoiceHeading" type="Label" parent="Center/Frame/Box"]
+[node name="ChoiceHeading" type="Label" parent="Frame/Box/Body"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"EventCaption"
 text = "CHOOSE AN ACTION"
-theme_type_variation = &"EventCaption"
 
-[node name="OptionBox" type="VBoxContainer" parent="Center/Frame/Box"]
+[node name="OptionBox" type="VBoxContainer" parent="Frame/Box/Body"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="OutcomePanel" type="PanelContainer" parent="Center/Frame/Box"]
+[node name="OutcomePanel" type="PanelContainer" parent="Frame/Box/Body"]
 layout_mode = 2
 theme_type_variation = &"EventOutcomePanel"
 
-[node name="Content" type="VBoxContainer" parent="Center/Frame/Box/OutcomePanel"]
+[node name="Content" type="VBoxContainer" parent="Frame/Box/Body/OutcomePanel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
-[node name="PreviewHeading" type="Label" parent="Center/Frame/Box/OutcomePanel/Content"]
+[node name="PreviewHeading" type="Label" parent="Frame/Box/Body/OutcomePanel/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"EventCaption"
 
-[node name="CheckPreview" type="Label" parent="Center/Frame/Box/OutcomePanel/Content"]
+[node name="CheckPreview" type="Label" parent="Frame/Box/Body/OutcomePanel/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
 theme_type_variation = &"EventBody"
 
-[node name="ResultLabel" type="Label" parent="Center/Frame/Box/OutcomePanel/Content"]
+[node name="ResultLabel" type="Label" parent="Frame/Box/Body/OutcomePanel/Content"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-text = ""
 autowrap_mode = 3
 theme_type_variation = &"EventBody"
 
-[node name="ContinueButton" type="Button" parent="Center/Frame/Box"]
+[node name="Report" parent="Frame/Box/Body/OutcomePanel/Content" instance=ExtResource("2_report")]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
-size_flags_horizontal = 4
+
+[node name="ContinueButton" type="Button" parent="Frame/Box/Footer"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(280, 44)
+layout_mode = 2
 theme_type_variation = &"AccentButton"
 text = "Continue"

@@ -17,13 +17,28 @@ public static class EventCheckPreview
         var actor = EventResolver.ActorFor(party, check, selected);
         if (actor == null) return "Unavailable: nobody is standing to attempt this check.";
         int bonus = SkillCalculator.CalculateSkillBonus(actor, check.Skill);
+        return $"{actor.Name} · {check.Skill} {bonus:+0;-0;0} · DC {check.Dc} · {SuccessPercent(bonus, check.Dc)}% base success";
+    }
+
+    /// <summary>One member's odds on an option's check, "+8 · 55%", so "Who tries?" is a
+    /// comparison before any click. Empty when the option rolls nothing.</summary>
+    public static string ActorForecast(EventOption option, PF2eCharacter actor)
+    {
+        if (option.Check is not { } check) return "";
+        int bonus = SkillCalculator.CalculateSkillBonus(actor, check.Skill);
+        return $"{bonus:+0;-0;0} · {SuccessPercent(bonus, check.Dc)}%";
+    }
+
+    /// <summary>Chance of a success or better on a d20, natural 1 and 20 shifts included.</summary>
+    public static int SuccessPercent(int bonus, int dc)
+    {
         int successes = 0;
         for (int die = 1; die <= 20; die++)
         {
-            var degree = DegreeOfSuccessCalculator.Calculate(die, check.Dc, bonus);
+            var degree = DegreeOfSuccessCalculator.Calculate(die, dc, bonus);
             if (degree is DegreeOfSuccess.Success or DegreeOfSuccess.CriticalSuccess) successes++;
         }
-        return $"{actor.Name} · {check.Skill} {bonus:+0;-0;0} · DC {check.Dc} · {successes * 5}% base success";
+        return successes * 5;
     }
 
     public static string Details(EventOption option, Party party, PF2eCharacter? selected)
@@ -51,7 +66,7 @@ public static class EventCheckPreview
             if (criticalFailure != EventResolver.OutcomeFor(option, DegreeOfSuccess.Failure))
                 lines.Add("Critical failure: " + Describe(criticalFailure));
         }
-        return string.Join("\n\n", lines);
+        return string.Join("\n", lines);
     }
 
     /// <summary>What an outcome does, as figures only. The outcome's prose stays unread until the

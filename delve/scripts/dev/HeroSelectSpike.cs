@@ -185,7 +185,8 @@ public partial class HeroSelectSpike : SpikeBase
             Check($"(4) {def.Id} names a trained skill",
                 HeroSelectChecks.RowEntries(sheet, HeroSheetBuilder.SkillsRow) > 0);
             Check($"(4) {def.Id} lists a feature or feat",
-                HeroSelectChecks.RowEntries(sheet, HeroSheetBuilder.FeaturesRow) > 0);
+                HeroSelectChecks.RowEntries(sheet, HeroSheetBuilder.FeaturesRow)
+                + HeroSelectChecks.RowEntries(sheet, HeroSheetBuilder.FeatsRow) > 0);
             Check($"(4) {def.Id} strikes with what it carries",
                 HeroSelectChecks.StrikeShowsBonus(built, sheet));
             Check($"(4) {def.Id} lists what it wears",
@@ -268,11 +269,11 @@ public partial class HeroSelectSpike : SpikeBase
         panel.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         panel.Setup(new UnlockState());
 
-        panel.OpenDetails();
-        var sheet = panel.GetNode<Control>("%Sheet");
+        var sheet = panel.Sheet;
         foreach (var def in CharacterCatalog.All)
         {
-            panel.Preview(def.Id);
+            panel.CloseDetails();
+            panel.OpenDetails(def.Id);
             await Settle();
 
             float content = sheet.GetCombinedMinimumSize().Y;

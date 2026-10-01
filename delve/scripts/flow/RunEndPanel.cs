@@ -10,7 +10,7 @@ namespace Delve.Flow;
 /// End of a run: the outcome, how deep the party got, and the way into the next run. No rewards or
 /// scoring yet - the meta layer plugs in here.
 /// </summary>
-public partial class RunEndPanel : Control
+public partial class RunEndPanel : ScreenFrame
 {
     private Label _outcomeLabel = null!;
     private Label _detailLabel = null!;
@@ -26,6 +26,7 @@ public partial class RunEndPanel : Control
         _detailLabel = GetNode<Label>("%DetailLabel");
         _newRunButton = GetNode<Button>("%NewRunButton");
         _newRunButton.Pressed += () => NewRunPressed?.Invoke();
+        base._Ready();
     }
 
     public const string PartyFell = "The party fell.";
@@ -52,8 +53,7 @@ public partial class RunEndPanel : Control
         string cause = won ? "" : state.Wardstone.IsSpent ? WardOut : PartyFell;
         _detailLabel.Text = string.Join("\n\n", new[] { cause, campaignSummary }.Where(s => s.Length > 0));
         _detailLabel.Visible = _detailLabel.Text.Length > 0;
-        GetNode<Control>("%Frame").CustomMinimumSize = new Vector2(Mathf.Min(620, Mathf.Max(240, Size.X - 64)), 0);
-        Visible = true;
+        OpenFrame();
         UiFocus.Grab(_newRunButton);
     }
 }

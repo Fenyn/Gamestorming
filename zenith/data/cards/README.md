@@ -1,6 +1,6 @@
 # Card data
 
-One JSON file per set, each `{"cards": [...]}`. Schema is in `../../README.md`.
+One JSON file per set, each `{"cards": [...]}`. Schema is in `../../docs/dev_reference.md` (Card JSON).
 
 `starter/starter_set.json` is the starter pool: themed titles (naming pass 2026-09-17), real mechanics. Flavor text and art briefs are still to come.
 

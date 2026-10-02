@@ -410,7 +410,7 @@ Rules engine and presentation are separate so the same engine drives hotseat, AI
 
 ## Adventure mode
 
-Built. Design and decisions are in `zenith_adventure.md`; what ships (ladders, rewards, Motes, the collection, loadouts) is in `zenith/README.md`. Opponents are the one AI with a weight profile per playstyle in `data/ai/profiles/`, never a per-deck script.
+Built. Design and decisions are in `zenith_adventure.md`; what ships (ladders, rewards, Motes, the collection, loadouts) is in `zenith/docs/dev_reference.md`. Opponents are the one AI with a weight profile per playstyle in `data/ai/profiles/`, never a per-deck script.
 
 ---
 

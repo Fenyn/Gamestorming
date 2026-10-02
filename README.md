@@ -24,7 +24,7 @@ Projects developed with assistance of Claude.
 | [the-maw-of-rrrbl](the-maw-of-rrrbl/) | Builder-incremental. Place marble track pieces in 3D, earn Sparks, feed The Maw. | — |
 | [war-tactics](war-tactics/) | WWII isometric squad-tactics roguelike. Shooting minigames, permadeath, and medal pickups. | [Play in browser](https://fenyn.github.io/Gamestorming/war-tactics/) |
 | [worldseed](worldseed/) | Terraform an alien planet by farming exotic crops. Manage power and deploy nanobot bees. | — |
-| [zenith](zenith/) | Dueling card game. Houses vie for the king's favor through spellsword duels. Arena-style 3D client planned. | — |
+| [zenith](zenith/) | Eidolarch, a dueling card game between mages and swordsmen. 3D table client with an AI, hotseat, an adventure mode and online ranked play (desktop only). Alpha. | [Play in browser](https://fenyn.github.io/Gamestorming/zenith/) |
 
 ## Shared code
 
@@ -43,4 +43,10 @@ Projects developed with assistance of Claude.
 1. Create a new folder at the root (e.g. `my-game/`)
 2. Put the full Godot project inside it (with its own `project.godot`)
 3. Add a `README.md` and an entry to the `games` matrix in `.github/workflows/build-all.yml` (if web-exportable)
-4. Add a row to the table above
+4. Add a row to the table above, and a card to the landing page `index.html` if it plays in a browser
+
+## Web builds
+
+Pushing `main` runs `.github/workflows/build-all.yml`, which exports every game in its `games` matrix with the "Web" preset in a Godot CI container and publishes them, with `index.html` as the landing page, to GitHub Pages at https://fenyn.github.io/Gamestorming/.
+
+A game whose art packs are kept out of the repo (gitignored local asset packs) cannot be exported by CI. Export it locally instead into `web-prebuilt/<game>/` and commit that folder; the workflow copies every `web-prebuilt/<game>/` to the site as it is. Zenith works this way: `powershell -File zenith\tools\web\export_web.ps1`. Keep such a game out of the `games` matrix.

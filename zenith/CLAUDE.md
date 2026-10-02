@@ -27,7 +27,7 @@ Headless tests, from the repo root, with the 4.6 binary from `README.md`:
 
 Re-run `--import` whenever a `class_name` script is added. Add a test for every rule you touch.
 
-Client changes get a windowed autoplay screenshot (flags in `README.md`) and a look at the PNG. Keep the screenshot under 1900 px wide.
+Client changes get a windowed autoplay screenshot (flags in `docs/dev_reference.md`) and a look at the PNG. Keep the screenshot under 1900 px wide.
 
 ## Style
 

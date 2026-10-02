@@ -3,7 +3,7 @@
 How the duel and menu screens look and behave, and where to tune them. Consolidated 2026-09-22
 from the interface redesign (2026-09-19), the combat UX revamp (2026-09-20 to 21), the combat
 presentation notes and the two ambience passes. The engine-facing detail (views, forecasts, event
-data) is in `../README.md` under Client.
+data) is in `dev_reference.md` under Client.
 
 ## Direction
 

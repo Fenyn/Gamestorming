@@ -15,6 +15,8 @@ const TEXT_TIME: float = 1.2
 const TEXT_LIFT: float = 0.3
 const SLASH_TIME: float = 0.4
 const RING_TIME: float = 0.55
+## The pack effects the duel plays, which `prewarm` compiles ahead of the first real hit.
+const PREWARM_EFFECTS: Array[String] = ["impacts/impact_1", "impacts/impact_4", "ground_effects/ground_effect_1", "loot/power_up"]
 @export var reduced_motion: bool = false
 var _attack_link: MeshInstance3D = null
 var _link_state: StringName = &""
@@ -264,8 +266,12 @@ func ward(pos: Vector3, color: Color, size: float = 1.0) -> void:
 ## Plays each pack effect the duel uses once, shrunk to nothing at the middle of the table, so
 ## their materials are ready before the first real hit instead of hitching on it.
 func prewarm() -> void:
-	for effect in ["impacts/impact_1", "impacts/impact_4", "ground_effects/ground_effect_1", "loot/power_up"]:
-		EffectBlocks.play(self, effect, Vector3.ZERO, Color.WHITE, 0.001, 0.3)
+	for effect in PREWARM_EFFECTS:
+		prewarm_one(effect)
+
+
+func prewarm_one(effect: String) -> void:
+	EffectBlocks.play(self, effect, Vector3.ZERO, Color.WHITE, 0.001, 0.3)
 
 
 ## Only call for resolved damage, never merely declaring an attack.

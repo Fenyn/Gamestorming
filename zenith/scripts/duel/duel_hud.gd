@@ -278,6 +278,8 @@ const CLOCK_WARN_MS: int = 10000
 @onready var reconnect_no: Button = $Root/Modal/Center/Card/Reconnect/Confirm/Buttons/No
 @onready var series_line: Label = $Root/Series
 @onready var loading: ColorRect = $Root/Loading
+@onready var loading_label: Label = $Root/Loading/Center/Label
+@onready var _loading_default: String = loading_label.text
 @onready var prompt_clock: Label = $Root/PromptPanel/Column/Head/Row/Clock
 @onready var prompt_fuse: ProgressBar = $Root/PromptPanel/Column/Head/Fuse
 @onready var tray_clock: Label = $Root/Tray/Center/Panel/Column/Head/Row/Clock
@@ -527,6 +529,11 @@ func _stand_prompt() -> void:
 
 func set_loading(on: bool) -> void:
 	loading.visible = on
+
+
+## The loading screen's line; an empty text puts back the scene's own.
+func set_loading_text(text: String) -> void:
+	loading_label.text = text if text != "" else _loading_default
 
 
 ## How this duel was reached (`Mode`), whether this client may ask for a rematch and the lobby

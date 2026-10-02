@@ -514,7 +514,8 @@ func _on_failed(reason: String) -> void:
 ## alone resumes the save, or opens the start screen when there is none. `--dev-stage=N` (only
 ## with `--dev-adventure=<id>`) sets the run's stage before going on. `--dev-adventure-duel` (only
 ## with `--dev-adventure=<id>`) duels the stage straight away instead of opening the stage screen.
-## `--dev-scratch=<dir>` keeps all of it off the player's saves.
+## `--dev-scratch=<dir>` keeps all of it off the player's saves. `--dev-wait-prewarm` holds the
+## title until Session's ArenaPrewarm has run its menu steps, to time a duel opened after them.
 ## `--dev-screenshot=<png>` alone saves the title once drawn, then quits. With an online flag the
 ## duel further on takes it, unless the attempt fails, when the title takes it with the reason.
 ## `--dev-cancel=N` presses Cancel N seconds into an online attempt. With a screenshot it saves
@@ -637,6 +638,8 @@ func _save_shot(path: String, then_quit: bool = true) -> void:
 
 
 func _dev_adventure(args: PackedStringArray) -> void:
+	if AdventureDev.has_flag("--dev-wait-prewarm") and Session.arena_prewarm != null and not Session.arena_prewarm.menu_finished:
+		await Session.arena_prewarm.menu_done
 	var starter_id: String = ""
 	var stage: int = -1
 	var duel: bool = false

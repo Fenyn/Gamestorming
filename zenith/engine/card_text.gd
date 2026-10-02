@@ -3181,6 +3181,13 @@ static func prompt_title(p: Prompt) -> String:
 			return "%s: capture a Seal instead of dealing damage?" % str(p.context.get("card_title", "Ally"))
 		&"keep":
 			return "Discard step: keep one card"
+		&"start_play":
+			return "Start with a card in play?"
+		&"combat_end":
+			return "Use a card as Combat ends?"
+		&"trade_damage":
+			var taken: String = str(p.context.get("card_type", "drill")).capitalize()
+			return "Deal less damage to discard their %ss?" % taken
 		&"recover":
 			return "Recover a card from your discard?"
 		&"pay":
@@ -3277,7 +3284,8 @@ static func prompt_title(p: Prompt) -> String:
 					return "%s compares Might against Wild Might. Which way does it go?" % asker if asker != "" else "Wild Might: which way does the comparison go?"
 			return "Choose"
 		_:
-			return str(p.kind)
+			# A kind with no title of its own still reads as words, never as its id.
+			return str(p.kind).capitalize()
 
 
 ## What an attack came to, once it is over: "Bram's Strike lands for 3 stages and 2 wounds."

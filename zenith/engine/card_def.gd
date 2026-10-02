@@ -1,6 +1,6 @@
 class_name CardDef
 extends RefCounted
-## Immutable card definition loaded from JSON. See zenith/README.md for the schema.
+## Immutable card definition loaded from JSON. See zenith/docs/dev_reference.md for the schema.
 
 ## There is one personality type, not a Duelist type and an Ally type, and each Aspect is its own
 ## card. Which cards make the Duelist's stack is a property of the deck (`DeckList.duelist_ids`),

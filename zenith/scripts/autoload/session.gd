@@ -89,9 +89,14 @@ var tutorial_resumed: bool = false
 var tutorial_saves: bool = true
 ## The shipped pool while the tutorial's library, which adds its own cards, stands in its place.
 var _pool_library: CardLibrary = null
+## Draws the duel's shaders in the background under the Compatibility renderer; null elsewhere.
+var arena_prewarm: ArenaPrewarm = null
 
 
 func _ready() -> void:
+	if ArenaPrewarm.wanted():
+		arena_prewarm = ArenaPrewarm.new()
+		add_child.call_deferred(arena_prewarm)
 	library.load_dir(CARDS_DIR)
 	strike_table = StrikeTable.load_from(TABLE_PATH)
 	# A dev run with `--dev-scratch=<dir>` keeps its built decks off the player's own.

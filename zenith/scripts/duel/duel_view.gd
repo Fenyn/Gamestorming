@@ -221,7 +221,9 @@ var _replay_playing: bool = false
 const REPLAY_READ: float = 0.7       # while playing, each recorded decision stays up this long first
 const INTRO_FLIGHT: float = 7.0      # the camera's flight in under an adventure lead-in
 const INTRO_LAND: float = 0.8        # what is left of that flight once the lead-in closes
+const WARM_FRAMES: int = 6           # frames each part of the arena is drawn behind the loading screen; particles draw a few frames in
 var _faces_ready: bool = false       # the opening decks' faces have rendered
+var _dev_ready_ms: int = 0           # `--dev-warm-log`: when the scene came up, for the loading time
 var _hands_hidden: bool = false      # a lead-in is up: both hands stay off the table
 var _dev_lead_in_shot: float = -1.0  # `--dev-lead-in-shot=<seconds>`: a shot that far into the lead-in
 var _dev_resonance_tip: int = -1      # `--dev-resonance-tip=N`: hover the viewer's Nth sigil before the shot
@@ -253,6 +255,7 @@ const FERVOR_TAB: Rect2 = Rect2(0.25, -0.025, 0.5, 0.058)   # the Fervor tab on 
 
 
 func _ready() -> void:
+	_dev_ready_ms = Time.get_ticks_msec()
 	online = Net.active()
 	authority = not online or Net.is_authority()
 	_parse_dev_args()
@@ -270,7 +273,9 @@ func _ready() -> void:
 		fixture.hovered.connect(_on_card_hovered)
 		fixture.resonance_hovered.connect(hud.show_resonance_tip)
 	_set_reduced_motion(ArcaneBackdrop.motion_reduced())
-	fx.prewarm()
+	var warm_first: bool = _warms_in_steps()
+	if not warm_first:
+		fx.prewarm()
 	hud.option_chosen.connect(_on_option_chosen)
 	hud.card_clicked.connect(_on_card_clicked)
 	hud.handoff_confirmed.connect(_on_handoff_confirmed)
@@ -283,6 +288,8 @@ func _ready() -> void:
 	hud.leave_requested.connect(_on_leave)
 	hud.dev_command.connect(_on_dev_command)
 	zones.pile_clicked.connect(_on_pile_clicked)
+	if warm_first:
+		await _warm_arena()
 	if not _start_lead_in():
 		hud.set_loading(true)
 	if _replay_file != "":
@@ -360,6 +367,59 @@ func _ready() -> void:
 		_present_prompt()
 	else:
 		await _ready_joiner()   # presents as soon as the authority's first update lands
+
+
+## The Compatibility renderer (the web build) compiles each shader the first time it draws, and
+## the whole arena in one frame held the page for 20 s or more on a first visit with the previous
+## screen still up. There the loading screen goes up first and the arena is drawn behind it a part
+## at a time, the line counting the parts. First Session's ArenaPrewarm runs whatever it did not
+## run on the menus (most of it, since the menus only take its steps that cost under a frame), each
+## step a draw of its own in its hidden viewport. An online or replay duel stops it instead.
+func _warms_in_steps() -> bool:
+	var prewarm: ArenaPrewarm = Session.arena_prewarm
+	if prewarm != null and prewarm.done:
+		return false
+	var stepped: bool = RenderingServer.get_current_rendering_method() == "gl_compatibility" and not online \
+		and _replay_file == "" and DisplayServer.get_name() != "headless"
+	if prewarm != null and not stepped:
+		prewarm.stop()
+	return stepped
+
+
+func _warm_arena() -> void:
+	var steps: Array[Array] = [[$Table, phase_track, near_duelist, far_duelist], [$Atmosphere], [fx]]
+	var shown: Dictionary = {}
+	for step in steps:
+		for node: Node3D in step:
+			shown[node] = node.visible
+			node.visible = false
+	hud.set_loading(true)
+	# The lead-in's flight starts wide and sees more of the courtyard than the table view does.
+	var home: Transform3D = camera.transform
+	camera.transform = Transform3D(Basis.looking_at(TableCamera.INTRO_LOOK - TableCamera.INTRO_FROM), TableCamera.INTRO_FROM)
+	var prewarm: ArenaPrewarm = Session.arena_prewarm
+	var ahead: int = 0
+	if prewarm != null:
+		await RenderingServer.frame_post_draw
+		ahead = prewarm.remaining()
+	var count: int = ahead + steps.size() + 1
+	if prewarm != null:
+		await prewarm.finish(func(i: int, _left: int) -> void:
+			hud.set_loading_text("Preparing the arena (%d of %d)…" % [i + 1, count]))
+	for i in range(steps.size()):
+		hud.set_loading_text("Preparing the arena (%d of %d)…" % [ahead + i + 1, count])
+		await RenderingServer.frame_post_draw
+		for node: Node3D in steps[i]:
+			node.visible = bool(shown[node])
+		if steps[i].has(fx):
+			fx.prewarm()
+		for f in range(WARM_FRAMES):
+			await RenderingServer.frame_post_draw
+	camera.transform = home
+	hud.set_loading_text("Preparing the arena (%d of %d)…" % [count, count])
+	await RenderingServer.frame_post_draw
+	await faces.render_back()
+	hud.set_loading_text("")
 
 
 ## Plays Session's adventure lead-in in place of the loading screen. False when there is none.
@@ -683,6 +743,8 @@ func _ready_host() -> void:
 		await faces.render_deck(d, Session.library)
 	_faces_ready = true
 	hud.set_loading(false)
+	if AdventureDev.has_flag("--dev-warm-log"):
+		print("duel loading screen up %d ms" % (Time.get_ticks_msec() - _dev_ready_ms))
 	if _tutorial == null:
 		hud.log_line("Seed %d" % Session.last_seed)
 	if online:

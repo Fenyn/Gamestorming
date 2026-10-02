@@ -213,6 +213,7 @@ func _init() -> void:
 		test_capture_instead_of_damage,
 		test_last_attack_in_view,
 		test_outcome_lines_and_titles,
+		test_every_prompt_kind_has_a_title,
 		test_constant_keyed_triggers,
 		test_seal_power_on_place_and_capture,
 		test_used_non_combat_is_spent,
@@ -4218,6 +4219,27 @@ func test_outcome_lines_and_titles() -> void:
 	pick.kind = &"pick_option"
 	pick.context = {"purpose": "capture", "card_title": "Test Thief"}
 	eq(CardText.prompt_title(pick), "Test Thief: capture which Seal?", "purpose-driven pick title")
+
+
+## The prompt panel shows `CardText.prompt_title`; every kind the engine opens has written words
+## there rather than falling back to the kind's name.
+func test_every_prompt_kind_has_a_title() -> void:
+	var source: String = FileAccess.get_file_as_string("res://engine/duel_engine.gd")
+	var kinds: RegEx = RegEx.create_from_string("_set_prompt\\([^,]+, &\"([a-z_]+)\"")
+	var found: Dictionary = {}
+	for m: RegExMatch in kinds.search_all(source):
+		found[m.get_string(1)] = true
+	check(found.size() >= 20, "the engine's prompt kinds are found")
+	for kind: String in found:
+		var p: Prompt = Prompt.new()
+		p.kind = StringName(kind)
+		var title: String = CardText.prompt_title(p)
+		# "Endurance" is a written title that happens to match its kind; the check is for the id leaking.
+		check(title != kind and (not kind.contains("_") or title != kind.capitalize()), "%s has its own title" % kind)
+	var trade: Prompt = Prompt.new()
+	trade.kind = &"trade_damage"
+	trade.context = {"card_type": "drill"}
+	eq(CardText.prompt_title(trade), "Deal less damage to discard their Drills?", "the trade title names the card type")
 
 
 ## A constant power's keyed lists fire at their key: turn start, entering Combat, and each attack.

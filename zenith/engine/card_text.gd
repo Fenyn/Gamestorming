@@ -89,6 +89,8 @@ const KEYWORDS: Array[Dictionary] = [
 		"tip": "The most copies of this card a deck may hold, Life Deck and Reserve together."},
 	{"key": "Endurance", "pattern": "\\bEndurance(?: \\d+| X)?\\b", "role": "defense",
 		"tip": "When this card is discarded as a wound, it soaks that many further wounds from the same attack."},
+	{"key": "Transform", "pattern": "\\bTransform\\b", "role": "focus",
+		"tip": "You may play this card from your discard pile as if it were in your hand, by putting a card of the same school and type from your hand into your discard pile. That does not count as discarding. It is removed from the game after use, and removed instead of discarded if it would leave play."},
 	{"key": "Empower", "pattern": "\\bEmpower(?:ed)?(?: \\d+)?\\b", "role": "focus",
 		"tip": "You may perform this attack Empowered: it deals that many extra wounds, but the text printed after Empower is lost for that attack."},
 	{"key": "Focused", "pattern": "\\bFocused\\b", "role": "attack",
@@ -275,7 +277,7 @@ static func card_group_name(def: CardDef) -> String:
 static func card_group_line(def: CardDef) -> String:
 	if not def.is_signature():
 		return card_group_name(def)
-	var line: String = "Signature · %s" % def.character
+	var line: String = "Signature · %s" % ("Your duelist" if def.named_as_duelist and def.character == "" else def.character)
 	return line if def.school == "" else "%s · %s" % [line, school_name(def.school)]
 
 
@@ -364,6 +366,7 @@ const CARD_TYPE_WORDS: Dictionary = {
 	"non_combat_ally_or_grounds": ["Non-Combat card, Ally, or Grounds", "Non-Combat cards, Allies, or Grounds"],
 	"freestyle_drill": ["Freestyle Drill", "Freestyle Drills"], "duelist": ["Duelist", "Duelists"], "mastery": ["Mastery", "Masteries"],
 	"attached": ["attached card", "attached cards"],
+	"non_seal": ["non-Seal card", "non-Seal cards"],
 	"attached_to_duelist": ["card attached to your duelist", "cards attached to your duelist"],
 }
 
@@ -428,6 +431,8 @@ static func _spends(e: Dictionary, key: String, v: Variant) -> bool:
 			return from_pile and int(v) <= n
 		"discard_has_type":
 			return op == "recover" and str(e.get("card_type", "")) == str(v)
+		"discard_has":
+			return op == "recur_source"
 		"own_non_combats_min":
 			return op == "discard_in_play" and str(e.get("card_type", "")).begins_with("non_combat") and int(v) <= n
 		"reserve_min":
@@ -517,6 +522,8 @@ static func _head_and_when(e: Dictionary) -> Array:
 			head = "When your opponent stops one of your " + _attack_noun(about, true)
 		"on_damaged":
 			head = "When you take damage from " + _a(_attack_noun(about, false))
+			if bool(e.get("once_per_combat", false)):
+				head = "The first time each Combat you take damage from " + _a(_attack_noun(about, false))
 	return [head, rest]
 
 
@@ -601,6 +608,12 @@ static func rules_text(def: CardDef) -> String:
 			lines.append("You must have %s in play to use this card." % _plural(int(def.only["allies_min"]), "Ally", "Allies"))
 	if bool(def.raw.get("reserve_only", false)):
 		lines.append("Reserve only.")
+	if def.named_as_duelist and def.character == "":
+		lines.append("This card counts as one of your duelist's Signature cards.")
+	if def.unaffected_by_constants:
+		lines.append("Constant Powers do not affect this card.")
+	if def.transform:
+		lines.append("Transform.")
 	if str(def.raw.get("endurance_from", "")) == "fervor":
 		lines.append("Endurance X. X = your Fervor.")
 	elif def.endurance > 0 and def.endurance_when.is_empty():
@@ -647,6 +660,9 @@ static func rules_text(def: CardDef) -> String:
 	var stop_with_variant: bool = false
 	if def.is_attack():
 		lines.append(attack_text(def.attack))
+		var instead: PackedStringArray = effects_text(def.raw.get("use_instead", []))
+		if not instead.is_empty():
+			lines.append("Or, in place of an attack, %s" % _lc(" ".join(instead)))
 		for v in def.attack.get("variants", []):
 			if not bool(v.get("after_empower", false)) and not bool(v.get("on_empower", false)):
 				var variant_line: String = _conditional(v.get("when", {}), variant_text(v))
@@ -780,6 +796,10 @@ static func rules_text(def: CardDef) -> String:
 		for m in def.attachment.get("host_modifiers", []):
 			# The rider speaks for the personality it rides on, which is not the card's owner.
 			parts.append(modifier_text(m).replace("Your attacks", "%s's attacks" % _cap(that_host)))
+		for m in def.attachment.get("owner_modifiers", []):
+			parts.append(modifier_text(m))
+		if bool(def.attachment.get("stages_as_wounds", false)):
+			parts.append("When an attack against you would deal Energy damage, you may take that damage as wounds instead.")
 		if bool(def.attachment.get("waive_costs", false)):
 			parts.append("Your duelist does not pay costs that other cards add. A card's own cost is still paid.")
 		parts.append_array(effects_text(def.attachment.get("effects", [])))
@@ -833,6 +853,8 @@ static func rules_text(def: CardDef) -> String:
 			lines.append("Discard this card at the end of Combat.")
 		if bool(def.attachment.get("discard_at_full", false)):
 			lines.append("Discard this card when %s is at full Energy." % that_host)
+		if bool(def.attachment.get("discard_on_host_advance", false)):
+			lines.append("Discard this card when %s advances an Aspect." % that_host)
 	if def.remain >= 99:
 		lines.append("Stays on the table to be used any number of times this Combat.")
 	elif def.remain > 0:
@@ -969,6 +991,8 @@ static func rules_text(def: CardDef) -> String:
 		var kind_tax: int = int(def.raw.get("%s_cost_delta" % kind, 0))
 		if kind_tax > 0 and def.type == CardDef.Type.GROUNDS:
 			lines.append("%ss cost %d more Energy to perform." % [("Strike" if kind == "strike" else "Art"), kind_tax])
+		elif kind_tax < 0 and def.type == CardDef.Type.GROUNDS:
+			lines.append("%ss cost %d less Energy to perform, to a minimum of 0." % [("Strike" if kind == "strike" else "Art"), -kind_tax])
 	if def.start_in_play:
 		if str(def.raw.get("start_in_play", "")) == "may":
 			lines.append("Before the first turn begins, you may search your Life Deck for this card and place it into play.")
@@ -978,6 +1002,8 @@ static func rules_text(def: CardDef) -> String:
 		lines.append("One of the seven %s Seals." % def.seal_set.capitalize())
 	if def.type == CardDef.Type.GROUNDS and lines.is_empty():
 		lines.append("Placing Grounds skips Combat this turn.")
+	if str(def.raw.get("counts_as_in_discard", "")) != "":
+		lines.append("While in your discard pile, this card counts as a copy of \"%s\"." % str(def.raw["counts_as_in_discard"]))
 	if def.bottom_after_use:
 		lines.append("Place at the bottom of your Life Deck after use.")
 	if def.raw.has("bottom_after_use_when"):
@@ -1900,6 +1926,8 @@ static func _effect_body(e: Dictionary) -> String:
 					body = "Attach this card to that personality."
 				"named":
 					body = "Attach this card to your %s." % str(e.get("character", ""))
+				"own_mastery":
+					body = "Attach this card to your %s." % str(e.get("mastery_title", "Mastery"))
 				_:
 					body = "Attach this card to your duelist."
 		"capture_seal":
@@ -1945,8 +1973,8 @@ static func _effect_body(e: Dictionary) -> String:
 				body = "Choose one: %s." % " or ".join(choices)
 		"recur_source":
 			var cost: Dictionary = e.get("cost", {})
-			var what: String = "Signature card" if str(cost.get("signature_of", "")) == "duelist" else "card"
-			body = "remove a %s from your discard pile to shuffle this card into your Life Deck." % what
+			var what: String = "one of your duelist's Signature cards" if str(cost.get("signature_of", "")) == "duelist" else "a card"
+			body = "remove %s in your discard pile from the game to shuffle this card into your Life Deck." % what
 		"draw_check":
 			var lead: String = "Discard the top card of your Life Deck." if bool(e.get("discard", false)) else "Draw a card."
 			if str(e.get("from", "top")) == "bottom":
@@ -2777,6 +2805,8 @@ static func _search_text_body(e: Dictionary) -> String:
 		return "Search %s for %s and remove %s from the game." % [from, what, ("it" if n == 1 else "them")]
 	if str(e.get("to", "hand")) == "discard":
 		return "Search %s for %s and discard %s." % [from, what, ("it" if n == 1 else "them")]
+	if str(e.get("to", "hand")) == "aside":
+		return "Search %s for %s and set it aside. Put it into play at the end of Combat." % [from, what]
 	if must:
 		return "Choose %s from %s and put %s into %s." % [what, from, ("it" if n == 1 else "them"), dest]
 	return"Search %s for %s and put %s into %s." % [from, what, ("it" if n == 1 else "them"), dest]
@@ -3009,7 +3039,7 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 		&"reserve_done":
 			return "Finish Reserve swap"
 		&"place":
-			return "Place %s" % name
+			return "Place %s%s" % [name, _from_discard(cmd, engine)]
 		&"shuffle_back":
 			return "Show %s and shuffle it back" % name
 		&"relic":
@@ -3022,12 +3052,14 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 			return "Skip Combat"
 		&"attack":
 			if cmd.value != null and str(cmd.value) == "empower":
-				return "Attack with %s, Empowered" % name
-			return "Attack with %s" % name
+				return "Attack with %s, Empowered%s" % [name, _from_discard(cmd, engine)]
+			return "Attack with %s%s" % [name, _from_discard(cmd, engine)]
 		&"use":
 			if cmd.value != null and str(cmd.value) == "place":
 				return "Put %s into play" % name
-			return "Use %s" % name
+			if cmd.card >= 0 and engine.card(cmd.card) != null and engine.card(cmd.card).def.raw.has("use_instead") and engine.card(cmd.card).zone == &"hand":
+				return "Use %s in place of an attack" % name
+			return "Use %s%s" % [name, _from_discard(cmd, engine)]
 		&"power":
 			return "Use %s's Power" % name
 		&"copied_attack":
@@ -3037,7 +3069,7 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 		&"pass":
 			return "Pass"
 		&"counter":
-			return "Counter with %s" % name
+			return "Counter with %s%s" % [name, _from_discard(cmd, engine)]
 		&"decline":
 			if engine != null and engine.prompt != null and str(engine.prompt.context.get("window", "")) != "":
 				return "Use nothing"
@@ -3045,7 +3077,7 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 		&"defend":
 			if cmd.value != null and str(cmd.value) == DuelEngine.TRY_STOP:
 				return "Play %s for its other effects. The attack still lands." % name
-			return "Defend with %s" % name
+			return "Defend with %s%s" % [name, _from_discard(cmd, engine)]
 		&"power_defend":
 			if cmd.value != null and str(cmd.value) == DuelEngine.TRY_STOP:
 				return "Use %s's Power for its other effects. The attack still lands." % name
@@ -3129,6 +3161,10 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 				return "Show %s and shuffle it back" % name
 			if str(ctx.get("purpose", "")) == "wild_might":
 				return "Count your Might as higher." if str(cmd.value) == "higher" else "Count your Might as not higher."
+			if str(ctx.get("purpose", "")) == "stages_as_wounds":
+				return "Take it as %d wounds" % int(ctx.get("stages", 0)) if str(cmd.value) == "wounds" else "Take it as Energy damage"
+			if str(ctx.get("purpose", "")) == "transform_pay" and name != "":
+				return "Put %s in your discard pile" % name
 			if name != "":
 				return name
 			if str(ctx.get("purpose", "")) == "draw_count":
@@ -3144,6 +3180,23 @@ static func command_label(cmd: Command, engine: DuelEngine) -> String:
 			return str(cmd.type)
 
 
+## ", from your discard pile" for a play that uses Transform, so the button says where the card is.
+static func _from_discard(cmd: Command, engine: DuelEngine) -> String:
+	if engine == null or cmd.card < 0:
+		return ""
+	var c: CardInstance = engine.card(cmd.card)
+	return " from your discard pile" if c != null and c.zone == &"discard" and c.def.transform else ""
+
+
+## A title that also says how many Transform cards the discard pile offers, since they are not
+## in the hand where a player looks first.
+static func _with_transforms(title: String, p: Prompt) -> String:
+	var n: int = int(p.context.get("transform_cards", 0))
+	if n <= 0:
+		return title
+	return "%s %s in your discard pile can be played with Transform." % [title, ("1 card" if n == 1 else "%d cards" % n)]
+
+
 static func prompt_title(p: Prompt) -> String:
 	match p.kind:
 		&"reserve":
@@ -3153,7 +3206,8 @@ static func prompt_title(p: Prompt) -> String:
 		&"declare":
 			return "Declare Combat?"
 		&"attack_action":
-			return "Fight back" if bool(p.context.get("fight_back", false)) else "Your attack phase"
+			var phase_title: String = "Fight back" if bool(p.context.get("fight_back", false)) else "Your attack phase"
+			return _with_transforms(phase_title, p)
 		&"respond":
 			if str(p.context.get("mode", "")) == "declare":
 				return "Your opponent's Declare step: respond?"
@@ -3165,7 +3219,7 @@ static func prompt_title(p: Prompt) -> String:
 		&"defense":
 			if bool(p.context.get("unstoppable", false)):
 				return "The %s cannot be stopped. Play a card for its other effects?" % str(p.context.get("kind", "attack")).capitalize()
-			return "Defend against the %s?" % str(p.context.get("kind", "attack")).capitalize()
+			return _with_transforms("Defend against the %s?" % str(p.context.get("kind", "attack")).capitalize(), p)
 		&"control":
 			if str(p.context.get("role", "")) == "attacker":
 				return "Who attacks? Your Duelist is spent"
@@ -3256,6 +3310,8 @@ static func prompt_title(p: Prompt) -> String:
 			if bool(p.context.get("search", false)):
 				var n: int = int(p.context.get("amount", 1))
 				var where: String = "into play" if str(p.context.get("to", "hand")) == "play" else "into your hand"
+				if str(p.context.get("to", "hand")) == "aside":
+					where = "to set aside until the end of Combat"
 				if n <= 0:
 					return "Search: nothing in your Life Deck matches"
 				return "Search: take up to %d cards %s" % [n, where] if n > 1 else "Search: take a card %s" % where
@@ -3280,6 +3336,12 @@ static func prompt_title(p: Prompt) -> String:
 					return "You drew a Drill you cannot place. Shuffle it back into your Life Deck?"
 				"copy_drill":
 					return "%s: copy which Drill?" % asker if asker != "" else "Copy which Drill?"
+				"recur_pay":
+					return "%s: remove which card from the game?" % asker if asker != "" else "Remove which card from the game?"
+				"transform_pay":
+					return "Transform %s: which card goes to your discard pile?" % asker if asker != "" else "Transform: which card goes to your discard pile?"
+				"stages_as_wounds":
+					return "%s: take %d Energy damage as wounds instead?" % [asker, int(p.context.get("stages", 0))]
 				"wild_might":
 					return "%s compares Might against Wild Might. Which way does it go?" % asker if asker != "" else "Wild Might: which way does the comparison go?"
 			return "Choose"
@@ -3513,6 +3575,11 @@ static func event_line(ev: GameEvent, engine: DuelEngine, seat: int = -1, reveal
 			if str(d.get("to", "")) == "removed":
 				return "%s is removed from the game." % _cname(engine, int(d.get("card", -1)), seat, actor)
 			return ""
+		&"transformed":
+			return "%s transforms %s out of their discard pile, putting %s there in its place." % [
+				pname, _cname(engine, int(d.get("card", -1)), seat, actor), _cname(engine, int(d.get("paid", -1)), seat, actor)]
+		&"stages_as_wounds":
+			return "%s takes %d Energy damage as wounds instead." % [pname, int(d.get("stages", 0))]
 		&"attack_phase_skipped":
 			return "%s's attack phase is skipped." % pname
 		&"life_card_lost":

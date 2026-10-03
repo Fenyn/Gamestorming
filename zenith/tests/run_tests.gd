@@ -214,6 +214,8 @@ func _init() -> void:
 		test_last_attack_in_view,
 		test_outcome_lines_and_titles,
 		test_every_prompt_kind_has_a_title,
+		test_rival_cannot_tell_a_skip_from_a_pass,
+		test_an_entering_recall_with_nothing_to_take_stays_in_play,
 		test_constant_keyed_triggers,
 		test_seal_power_on_place_and_capture,
 		test_used_non_combat_is_spent,
@@ -404,6 +406,8 @@ func _init() -> void:
 		test_pyre_sword_cleave_lends_its_word_only_to_attacks_from_hand,
 		test_pyre_blazing_hide_makes_fervor_hits_secondary,
 		test_pyre_conflagration_is_paid_by_the_duelist,
+		test_a_paid_cost_reaches_the_client_with_its_energy,
+		test_a_feedback_report_carries_no_home_paths,
 		test_steel_shipped_cards_match_their_printed_text,
 		test_steel_drills_tax_and_starve_the_opponent,
 		test_steel_towering_frame_doubles_only_the_table,
@@ -679,6 +683,22 @@ func _init() -> void:
 		test_personality_cards_take_their_printed_side,
 		test_keyword_tips_follow_the_anchor,
 		test_the_scorer_prices_the_sweeps_new_rules,
+		test_fanning_blow_trades_its_top_card_for_a_draw,
+		test_sapping_heat_blocks_and_hexes_by_your_fervor,
+		test_firebreak_counters_then_attunes_or_draws,
+		test_short_circuit_counters_then_refills_and_fetches_a_drill,
+		test_banked_charge_attacks_or_refills_and_rides_the_mastery,
+		test_banked_charge_refills_after_the_first_strike_each_combat,
+		test_valiant_deed_shuffles_a_card_in_play_home,
+		test_echoing_gorge_cheapens_every_art,
+		test_trademark_parry_is_whoever_leads_the_deck,
+		test_the_scorer_reads_counter_and_use_instead_lines,
+		test_newz_decks_match_their_printed_lists,
+		test_transform_plays_a_card_from_the_discard_pile,
+		test_breakneck_surge_lets_energy_damage_land_as_wounds,
+		test_clearing_bolt_sets_a_drill_aside_until_combat_ends,
+		test_feint_ignores_constant_powers_and_counts_as_another_title,
+		test_the_scorer_plays_and_pays_for_transform_cards,
 	]
 	for t in tests:
 		current = t.get_method()
@@ -3275,11 +3295,19 @@ func test_name_card() -> void:
 func test_copied_attack() -> void:
 	var e: DuelEngine = engine(deck(filler(["t_strike_plus2", "t_strike_plus2", "t_strike_plus2"])), deck(filler(["t_copy_parry", "t_copy_parry", "t_copy_parry"]), "pact"))
 	to_combat(e)
-	answer(e, &"attack", uid_in_hand(e, 0, "t_strike_plus2"))
+	var thrown: int = uid_in_hand(e, 0, "t_strike_plus2")
+	answer(e, &"attack", thrown)
 	answer(e, &"defend", uid_in_hand(e, 1, "t_copy_parry"))
 	check(has_event(e, &"attack_stopped"), "parry stopped it")
 	check(e.prompt.find(&"copied_attack") != null, "copied attack offered")
 	answer(e, &"copied_attack")
+	var declared: Dictionary = last_event(e, &"attack_declared")
+	eq(int(declared.get("copied", -1)), thrown, "the copy names the card it copies, for the table to show")
+	eq(str(declared.get("id", "")), "t_strike_plus2", "and its public id")
+	if not e.state.attack.is_empty():
+		var seen: Dictionary = SeatView.of(e, 0).attack
+		eq(int(seen.get("copied", -1)), thrown, "the view carries the copied card")
+		eq(str(seen.get("source_title", "")), e.card(thrown).def.title, "and titles the attack with it")
 	check(e.player(0).duelist.energy < 7, "copied attack dealt stage damage back")
 
 
@@ -4240,6 +4268,77 @@ func test_every_prompt_kind_has_a_title() -> void:
 	trade.kind = &"trade_damage"
 	trade.context = {"card_type": "drill"}
 	eq(CardText.prompt_title(trade), "Deal less damage to discard their Drills?", "the trade title names the card type")
+
+
+## A window closed because the hand held nothing for it reaches the rival as a decline would, and
+## the actor keeps the reason.
+func test_rival_cannot_tell_a_skip_from_a_pass() -> void:
+	var none: GameEvent = GameEvent.new(&"no_defense", {"player": 1, "auto": true, "reason": "none"})
+	eq(Referee.masked_for(none, 1), none, "the defender keeps the reason")
+	var told: GameEvent = Referee.masked_for(none, 0)
+	eq(told.type, &"no_defense", "the attacker still sees no defense")
+	check(not bool(told.data.get("auto", true)) and not told.data.has("reason"), "the attacker sees a plain pass")
+	var standing: GameEvent = GameEvent.new(&"no_defense", {"player": 1, "auto": true, "reason": "final_strike"})
+	eq(Referee.masked_for(standing, 0), standing, "a public reason stays")
+	var respond: GameEvent = GameEvent.new(&"window_skipped", {"player": 1, "window": "respond"})
+	eq(Referee.masked_for(respond, 0).type, &"declined_counter", "an empty counter window reads as declined")
+	var late: GameEvent = GameEvent.new(&"window_skipped", {"player": 1, "window": "late_stop"})
+	eq(Referee.masked_for(late, 0).type, &"no_defense", "an empty late stop reads as no defense")
+	for window: String in ["after_damage", "entering_combat", "combat_end"]:
+		var quiet: GameEvent = GameEvent.new(&"window_skipped", {"player": 1, "window": window})
+		eq(Referee.masked_for(quiet, 0).type, &"prompt", "%s reaches the rival as the blank entry an opened window sends" % window)
+		eq(CardText.event_line(Referee.masked_for(quiet, 0), DuelEngine.new(), 0), "", "%s says nothing to the rival" % window)
+		eq(Referee.masked_for(quiet, 1), quiet, "%s still beats for its owner" % window)
+
+
+## Foresight's print: "Use when entering Combat. Search your discard pile for any one Combat card,
+## show your opponent, and place it in your hand." Using it is the owner's choice at that window,
+## the defender's too; once used, the search must take a card and the player picks it, a lone one
+## included. With nothing to take it is not offered, and kept it waits in play.
+func test_an_entering_recall_with_nothing_to_take_stays_in_play() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var recall: CardInstance = inject(e, 0, "t_nc_enter_fetch")
+	to_combat(e)
+	check(e.prompt == null or e.prompt.find(&"use", recall.uid) == null, "with nothing in the discard pile it is not offered")
+	eq(recall.zone, &"in_play", "and it stays in play")
+	var f: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var waiting: CardInstance = inject(f, 0, "t_nc_enter_fetch")
+	var lone: CardInstance = to_discard(f, 0, "t_strike")
+	to_combat(f)
+	eq(prompt_kind(f), &"follow_up", "entering Combat offers it")
+	check(f.prompt.find(&"use", waiting.uid) != null and f.prompt.find(&"decline") != null, "to use or to keep")
+	answer(f, &"decline")
+	eq(waiting.zone, &"in_play", "kept, it waits in play")
+	check(f.prompt == null or f.prompt.find(&"use", waiting.uid) == null, "and it is not an attack-phase action")
+	var g: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var used: CardInstance = inject(g, 0, "t_nc_enter_fetch")
+	var only: CardInstance = to_discard(g, 0, "t_strike")
+	to_combat(g)
+	answer(g, &"use", used.uid)
+	eq(prompt_kind(g), &"pick_option", "a lone card is still put in front of the player")
+	check(g.prompt.find(&"pick_none") == null, "and the search must take it")
+	answer(g, &"pick_option", only.uid)
+	eq(only.zone, &"hand", "the card goes to the hand")
+	check(used.zone != &"in_play", "and Foresight is spent (zone %s)" % used.zone)
+	# The defender's window comes before their draw.
+	var h: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var theirs: CardInstance = inject(h, 1, "t_nc_enter_fetch")
+	to_discard(h, 1, "t_art")
+	to_combat(h)
+	var guard: int = 0
+	while h.prompt != null and h.prompt.player == 0 and h.prompt.kind == &"follow_up" and guard < 5:
+		guard += 1
+		answer(h, &"decline")
+	eq(prompt_kind(h), &"follow_up", "the defender is offered it too")
+	eq(h.prompt.player, 1, "on their own side")
+	check(h.prompt.find(&"use", theirs.uid) != null, "their own copy")
+	check(lone != null, "fixture placed")
+	# Every Non-Combat printed "Use when entering Combat" is used at that window, never as a trigger.
+	for id: String in ["freestyle_noncombat_04", "signature_noncombat_02", "freestyle_noncombat_22"]:
+		var def: CardDef = shipped().get_def(id)
+		var text: String = CardText.rules_text(def)
+		check(text.begins_with("Use when entering Combat."), "%s reads as a card you use: %s" % [id, text])
+		check(def.effects_for("entering_combat").is_empty(), "%s has no entering-Combat trigger" % id)
 
 
 ## A constant power's keyed lists fire at their key: turn start, entering Combat, and each attack.
@@ -6758,15 +6857,20 @@ func test_lead_in_slots_follow_how_the_pair_met() -> void:
 	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"met": 1, "last": "lost"})), "after_loss", "a loss last time plays after_loss")
 	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"met": 1, "act": 3})), "act3", "act 3 plays act3")
 	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"met": 1, "act": 3, "level": 3})), "level", "a levelled main plays level first")
-	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"met": 1, "shown": ["%s|Dame Alder Rooke|again" % edric]})), "first", "a scene shown this run gives way")
+	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"met": 1, "act": 3, "shown": ["%s|Dame Alder Rooke|act3" % edric]})), "again", "a scene shown this run gives way")
+	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"met": 2, "shown": ["%s|Dame Alder Rooke|again" % edric]})), "again", "an introduction never replays once met")
+	eq(_lead_in_slot(_lead_in_ctx(edric, "Dame Alder Rooke", {"act": 3})), "first", "act 3 waits for a first meeting")
 	eq(_lead_in_slot(_lead_in_ctx(edric, "Emrys Rooke", {"boss": true})), "boss", "a boss node plays boss")
 	eq(_lead_in_slot(_lead_in_ctx(edric, "Emrys Rooke", {"boss": true, "met": 1, "last": "lost"})), "boss_again", "losing the boss plays boss_again")
 	var first_meet: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Sable Draik", {"boss": true}))
 	var met_before: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Sable Draik", {"boss": true, "met": 1}))
 	check(str(first_meet["narration"]) != str(met_before["narration"]), "Sable's boss scene has a met and an unmet variant")
-	var fire: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", edric, {"met": 1, "act": 3, "family": "pyre_ascent"}))
-	var tide: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", edric, {"met": 1, "act": 3, "family": "tide_deepwater"}))
-	check(str(fire["narration"]) != str(tide["narration"]), "Edric's fire deck has its own act 3 scene")
+	var fire: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", edric, {"met": 1, "family": "pyre_ascent"}))
+	var tide: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", edric, {"met": 1, "family": "tide_deepwater"}))
+	check(str(fire["narration"]) != str(tide["narration"]), "Edric's fire deck has its own scene")
+	var marked: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Bram Ashmark", {"main_family": "shade_mind_siege"}))
+	var unmarked: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Bram Ashmark", {"main_family": "mercenary_lord"}))
+	check(str(marked["narration"]) != str(unmarked["narration"]), "the main's own deck picks the marked or the unmarked Mourne")
 	var alder: Dictionary = AdventureLeadIns.pick(_lead_in_ctx(edric, "Dame Alder Rooke"))
 	var lines: Array = alder["lines"]
 	eq(str(lines[0]["speaker"]), "Alder", "the speaker is read off the line")
@@ -6778,30 +6882,40 @@ func test_lead_in_slots_follow_how_the_pair_met() -> void:
 ## An opponent with no pair entry calls, and the main answers with a reply that fits the call.
 func test_lead_in_general_call_gets_a_fitting_reply() -> void:
 	var sable: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Sir Edric Rooke", "Sable Draik"))
-	eq(str(sable["key"]), "call|Sable Draik", "Sable calls Edric")
+	eq(str(sable["key"]), "call|Sable Draik|0", "Sable calls Edric")
 	var lines: Array = sable["lines"]
 	eq(lines.size(), 2, "a call and a reply")
 	eq(str(lines[1]["side"]), AdventureLeadIns.SIDE_MAIN, "Edric answers")
 	check(str(lines[1]["text"]) in ["Not a chance!"], "Edric answers a demand: %s" % lines[1]["text"])
 	var siphon: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Sir Edric Rooke", "Siphon", {"construct": true, "shown": ["reply|Sir Edric Rooke|2"]}))
 	eq(str((siphon["lines"] as Array)[1]["text"]), "I'd feed you if I could...", "the construct reply answers a construct")
-	var levelled: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Sir Edric Rooke", "Sable Draik", {"level": 3}))
-	eq(str((levelled["lines"] as Array)[1]["text"]), "You fight like my brother. That's not a compliment.", "a levelled reply is preferred once reached")
+	var levelled: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Sir Edric Rooke", "Marrow", {"level": 3, "met": 1}))
+	eq(str((levelled["lines"] as Array)[1]["text"]), "Caedan taught me the sword. Shall I show you?", "a levelled reply is preferred once reached")
+	var unlevelled_demand: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Sir Edric Rooke", "Sable Draik", {"level": 3}))
+	check(str((unlevelled_demand["lines"] as Array)[1]["text"]) in ["Not a chance!", "You'll get nothing from me."], "a levelled challenge reply does not answer a demand")
+	var met_call: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Sir Edric Rooke", "Osric Thornwald", {"met": 1}))
+	var new_call: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Sir Edric Rooke", "Osric Thornwald"))
+	check(str(met_call["narration"]) != str(new_call["narration"]), "a call has its own line once the two have met")
+	var next_call: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Sir Edric Rooke", "Osric Thornwald", {"met": 2, "shown": [str(met_call["key"])]}))
+	check(str(next_call["key"]) != str(met_call["key"]), "a call heard this run gives way to another: %s" % next_call["key"])
 
 
 ## A joined Ally adds a line once per act, its `once` line first; Ashmark hears someone he beat.
 func test_lead_in_joined_ally_and_whisper_add_a_line() -> void:
-	var first: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Sable Draik", {"joined": ["Orvath Kell"], "act": 2}))
+	var first: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Dame Alder Rooke", {"joined": ["Orvath Kell"], "act": 2}))
 	var last: Dictionary = (first["lines"] as Array).back()
 	eq(str(last["side"]), AdventureLeadIns.SIDE_ALLY, "Kell speaks as the ally")
-	eq(str(last["text"]), "I still wear the gorget, my lord. Someone has to.", "Kell's first line is his once line")
+	eq(str(last["text"]), "Gorget's polished, my lord. Where do we march?", "Kell's first line is his once line")
 	check((first["keys"] as Array).has("joined|Orvath Kell|act2"), "the act is marked")
-	var later: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Sable Draik",
+	var later: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Dame Alder Rooke",
 		{"joined": ["Orvath Kell"], "act": 3, "shown": ["joined|Orvath Kell|once"]}))
 	eq(str(((later["lines"] as Array).back() as Dictionary)["text"]), "Guard up, my lord!", "after the once line Kell uses any")
-	var same_act: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Sable Draik",
+	var same_act: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Dame Alder Rooke",
 		{"joined": ["Orvath Kell"], "act": 2, "shown": ["joined|Orvath Kell|act2"]}))
 	eq((same_act["lines"] as Array).size(), 2, "Kell speaks once an act")
+	var at_boss: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Gideon Mourne", "Sable Draik",
+		{"joined": ["Orvath Kell"], "act": 2, "boss": true, "shown": ["joined|Orvath Kell|act2", "joined|Orvath Kell|once"]}))
+	eq(str(((at_boss["lines"] as Array).back() as Dictionary)["text"]), "Draiks. Count your purse after, my lord.", "a line for this opponent plays past the act limit")
 	var whisper: Dictionary = AdventureLeadIns.pick(_lead_in_ctx("Bram Ashmark", "Siphon", {"beaten": ["Gideon Mourne"], "seed": 0}))
 	var sides: Array[String] = []
 	for line in whisper["lines"]:
@@ -9499,8 +9613,9 @@ func test_the_expansion_cards_are_in_the_shipped_library() -> void:
 	# 397 before the personality split; the 27 stack cards became 62 one-Aspect cards. The Pyre
 	# expansion added 27, Steel 23, Tide 24, Shade 23, the second Root batch 15, Storm 9, and three
 	# banned cards came in as adventure bombs. The Storm Mentor sheet added 11 cards and 7
-	# personality cards (a four-Aspect duelist and three Allies).
-	eq(shipped().defs.size(), 605, "and the set is 531 other cards plus 74 personality cards")
+	# personality cards (a four-Aspect duelist and three Allies). The two decks' New Z prints added
+	# 12 more on 2026-10-02.
+	eq(shipped().defs.size(), 617, "and the set is 543 other cards plus 74 personality cards")
 
 
 ## The school's plain Strike answers. One is printed in the Art band and still stops a Strike,
@@ -13231,6 +13346,57 @@ func test_pyre_conflagration_is_paid_by_the_duelist() -> void:
 	eq(me.duelist.energy, 0, "and the card then left them at 0")
 
 
+## A paid cost is its own beat on the client, carrying the Energy it left, so the gauge drops
+## when the cost is paid and not at the next animated line.
+func test_a_paid_cost_reaches_the_client_with_its_energy() -> void:
+	var e: DuelEngine = real_engine(real_deck(["pyre_combat_02"], "pact", "pyre"), real_deck([], "vigil"))
+	e.record_display_state = true
+	var me: PlayerState = e.player(0)
+	var r: Referee = Referee.new()
+	r.engine = e
+	to_attack(e, 0)
+	me.duelist.energy = 7
+	e._prompt_attack_action(me)
+	r.take_updates()
+	answer(e, &"use", uid_in_hand(e, 0, "pyre_combat_02"))
+	settle(e, 4)
+	var line: Dictionary = {}
+	for l in r.take_updates()[1].lines:
+		if str(l.get("type", "")) == "cost_paid":
+			line = l
+	check(line.has("data"), "the other seat gets the payment as data: %s" % str(line))
+	eq(int((line.get("data", {}) as Dictionary).get("stages", -1)), 5, "with the stages paid")
+	var energy: Dictionary = (line.get("state", {}) as Dictionary).get("energy", {})
+	eq(int(energy.get(me.duelist.uid, -1)), 2, "and the state the table reads at that beat is the Energy after it")
+
+
+## A bug report's game details never carry the player's own folders or user name, and the report
+## is capped and shaped the way the relay (tools/feedback_worker) reads it.
+func test_a_feedback_report_carries_no_home_paths() -> void:
+	var log: String = "\n".join(PackedStringArray([
+		"ERROR: res://x.gd:1 - failed",
+		"   at: C:\\Users\\Ada Lovelace\\AppData\\Roaming\\Godot\\app_userdata\\Eidolarch\\logs\\godot.log",
+		"Loading C:/Users/ada/Documents/game/data.pck",
+		"macOS /Users/ada/Library/Application Support/Godot",
+		"linux /home/ada/.local/share/godot/app_userdata/Eidolarch",
+		"saved D:/Games/Eidolarch/user/feedback/report.json",
+	]))
+	var clean: String = FeedbackReport.scrub(log, PackedStringArray(["D:/Games/Eidolarch/user"]))
+	for name in ["Ada", "ada", "Lovelace", "D:/Games"]:
+		check(not clean.contains(name), "no trace of %s in: %s" % [name, clean])
+	check(clean.contains("<home>") and clean.contains("<path>"), "the paths are marked as removed")
+	check(clean.contains("ERROR: res://x.gd:1 - failed"), "and the rest of the log is kept")
+	eq(FeedbackReport.tail("a\n\nb\nc\nd\n", 2), "c\nd", "the tail keeps the last non-empty lines")
+	var r: FeedbackReport = FeedbackReport.make("crash", "  " + "x".repeat(200), " text ", "Version: 0.1.0")
+	eq(r.kind, "bug", "an unknown kind files as a bug")
+	eq(r.title.length(), FeedbackReport.MAX_TITLE, "the title is capped")
+	eq(r.description, "text", "and trimmed")
+	var body: Dictionary = r.payload("0.1.0", "Windows", "abc")
+	for key in ["kind", "title", "description", "details", "version", "platform", "screenshot"]:
+		check(body.has(key), "the relay's %s field is there" % key)
+	check(r.to_text().begins_with("Bug: x") and r.to_text().contains("--- Game details ---\nVersion: 0.1.0"), "the copied text heads with the kind and title")
+
+
 # --- The Steel expansion and review, 2026-09-23 ----------------------------
 
 ## The shipped Steel cards, each against the clause the review found it missing.
@@ -14553,14 +14719,23 @@ func test_raid_the_armory_places_every_non_combat_it_turns_over() -> void:
 		var c: CardInstance = e._instance(shipped().get_def(id), 0, &"life_deck")
 		e.player(0).life_deck.insert(0, c)
 		drills.append(c)
-	to_attack(e, 0)
+	# Into Combat by hand: `to_attack` declines every optional window, this card's included.
 	var guard: int = 0
+	while e.prompt != null and e.prompt.find(&"use", raid.uid) == null and guard < 8:
+		guard += 1
+		var step: Command = null
+		for t in [&"done", &"declare", &"order_confirm"]:
+			step = e.prompt.find(t)
+			if step != null:
+				break
+		if step == null:
+			break
+		e.submit(step)
+	answer(e, &"use", raid.uid)
+	guard = 0
 	while prompt_kind(e) != &"attack_action" and guard < 6:
 		guard += 1
-		if e.prompt.find(&"pick_option", -1, "yes") != null:
-			answer(e, &"pick_option", -1, "yes")
-		else:
-			settle(e, 1, QUIET_ORDER)
+		settle(e, 1, QUIET_ORDER)
 	for c in drills:
 		eq(c.zone, &"in_play", "a Drill it turned over is in play")
 	eq(raid.zone, &"removed", "and the card is removed from the game (rulings document, IR20)")
@@ -15568,8 +15743,10 @@ func test_freestyle_cards_match_their_printed_text() -> void:
 	check(not bool(shipped().get_def("freestyle_combat_01").raw.get("use_in_attack", false)), "Stillness is a defense only")
 	eq(str(shipped().get_def("freestyle_combat_03").defense.get("stop_all", "")), "stopped", "Terms of the Pact stops all of the kind it stopped")
 	# Restricted to one per deck (CRD restricted list), a sample.
-	for id in ["freestyle_art_01", "freestyle_strike_01", "freestyle_combat_10", "freestyle_combat_16", "tide_strike_07", "pyre_strike_11"]:
+	for id in ["freestyle_art_01", "freestyle_strike_01", "freestyle_combat_10", "freestyle_combat_16", "tide_strike_07"]:
 		eq(shipped().get_def(id).limit_per_deck, 1, "%s is restricted to one" % id)
+	# The anchor CRD's Restricted list does not name the card Pyre Flame Lash parallels (user, 2026-10-02).
+	eq(shipped().get_def("pyre_strike_11").limit_per_deck, 3, "Pyre Flame Lash is not restricted")
 	# "When your opponent uses a card effect besides damage that makes you discard the top cards of
 	# your Life Deck, you may discard this card from your hand to reduce the amount by 10."
 	real_to_hand(e, 1, "freestyle_strike_05")
@@ -17780,3 +17957,589 @@ func test_keyword_tips_follow_the_anchor() -> void:
 	# Anchor CRD p10: an Ally may take control "If your MP is at 0 or 1 power stage above 0".
 	check(str(tips.get("in control", "")).contains("Energy 0 or 1"), "an Ally steps in at Energy 0 or 1, as the engine allows")
 	check(str(tips.get("Defense Shield", "")).contains("Focused attack sets it off but is not stopped"), "and the Shield tip says what a Focused attack does to it")
+
+
+# --- New Z prints in Last Standing and Endless Squall, 2026-10-02 -----------------------------
+# Printed text is in tools/source_cards_newz.tsv; the quotes below put our terms in brackets. Riders
+# gated on a declared style are always on, as everywhere else.
+
+## "Physical attack doing +4 power stages of damage. Raise your anger 1 level. If successful, ...
+## you may discard the top card of your life deck. If you do, draw a card. Remove from the game
+## after use."
+func test_fanning_blow_trades_its_top_card_for_a_draw() -> void:
+	var e: DuelEngine = real_engine(real_deck(["pyre_strike_29"]), real_deck([], "pact"))
+	var me: PlayerState = e.player(0)
+	to_attack(e, 0)
+	var blow: int = uid_in_hand(e, 0, "pyre_strike_29")
+	eq(int(shipped().get_def("pyre_strike_29").attack.get("stages", 0)), 4, "a Strike doing +4 Energy")
+	var fervor: int = me.fervor
+	answer(e, &"attack", blow)
+	eq(me.fervor, fervor + 1, "it Attunes 1")
+	eq(prompt_kind(e), &"pick_option", "a hit offers the trade")
+	check(bool(e.prompt.context.get("may", false)), "as a choice")
+	var deck_size: int = me.life_deck.size()
+	var hand_size: int = me.hand.size()
+	var top: CardInstance = me.life_deck[0]
+	answer(e, &"pick_option", -1, "yes")
+	eq(top.zone, &"discard", "the top card of the Life Deck is discarded")
+	eq(me.life_deck.size(), deck_size - 2, "and the next one drawn")
+	eq(me.hand.size(), hand_size + 1, "into the hand")
+	eq(e.card(blow).zone, &"removed", "the card is removed from the game after use")
+	var f: DuelEngine = real_engine(real_deck(["pyre_strike_29"]), real_deck([], "pact"))
+	to_attack(f, 0)
+	answer(f, &"attack", uid_in_hand(f, 0, "pyre_strike_29"))
+	var kept: int = f.player(0).life_deck.size()
+	answer(f, &"pick_option", -1, "no")
+	eq(f.player(0).life_deck.size(), kept, "declined, the Life Deck is untouched")
+
+
+## "Stops a physical attack. Raise your anger 1 level. ... attach this card to your opponent's MP.
+## While attached, your opponent's attacks deal -X stages of damage, where X= your anger level. You
+## may only have 1 ... attached at a time. Discard this card when your opponent's MP advances a
+## personality level."
+func test_sapping_heat_blocks_and_hexes_by_your_fervor() -> void:
+	var e: DuelEngine = real_engine(real_deck([]), real_deck(["pyre_art_12"], "pact"))
+	var them: PlayerState = e.player(1)
+	to_attack(e, 0)
+	var heat: int = uid_in_hand(e, 1, "pyre_art_12")
+	var fervor: int = them.fervor
+	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	eq(prompt_kind(e), &"defense", "the defender may block")
+	answer(e, &"defend", heat)
+	check(bool(last_event(e, &"defense_played").get("stopped", false)), "it stops the Strike")
+	eq(them.fervor, fervor + 1, "it Attunes 1")
+	eq(e.card(heat).attached_to, e.player(0).duelist, "and rides the attacker's duelist")
+	# The rider takes X Energy off every attack against its owner, X = the owner's Fervor.
+	var g: DuelEngine = real_engine(real_deck([]), real_deck([], "pact"))
+	var rider: CardInstance = real_inject(g, 1, "pyre_art_12")
+	rider.attached_to = g.player(0).duelist
+	g.player(1).fervor = 3
+	to_attack(g, 0)
+	g.player(1).duelist.energy = CardInstance.MAX_STAGE
+	answer(g, &"attack", uid_in_hand(g, 0, "root_strike_04"))
+	var hexed: int = CardInstance.MAX_STAGE - g.player(1).duelist.energy
+	var h: DuelEngine = real_engine(real_deck([]), real_deck([], "pact"))
+	h.player(1).fervor = 3
+	to_attack(h, 0)
+	h.player(1).duelist.energy = CardInstance.MAX_STAGE
+	answer(h, &"attack", uid_in_hand(h, 0, "root_strike_04"))
+	var plain: int = CardInstance.MAX_STAGE - h.player(1).duelist.energy
+	check(plain >= 3, "the plain Strike does at least 3 Energy (%d)" % plain)
+	eq(plain - hexed, 3, "the hexed Strike does 3 less at Fervor 3")
+	# A second copy still blocks; it just does not attach while one rides.
+	var second: CardInstance = real_to_hand(g, 1, "pyre_art_12")
+	check(g._can_play(g.player(1), second.def), "a second copy can still be played")
+	second.zone = &"resolving"
+	g.player(1).hand.erase(second)
+	g._apply_effect({"op": "attach", "to": "opponent_duelist"}, 1, {}, second)
+	eq(second.attached_to, null, "but does not attach while one is attached")
+	g._aspect_up(g.player(0))
+	eq(rider.zone, &"discard", "the rider is discarded when its host advances an Aspect")
+	eq(rider.attached_to, null, "and rides nothing")
+
+
+## "Stops the effects of any combat card. Use when needed. ... raise your anger 2 levels or draw a
+## card. Limit 1 per deck. Remove from game after use."
+func test_firebreak_counters_then_attunes_or_draws() -> void:
+	for pick in ["0", "1"]:
+		var e: DuelEngine = real_engine(real_deck(["freestyle_combat_07"]), real_deck(["pyre_combat_04"], "pact"))
+		var them: PlayerState = e.player(1)
+		to_attack(e, 0)
+		var bay: int = uid_in_hand(e, 0, "freestyle_combat_07")
+		var held: int = uid_in_hand(e, 1, "pyre_combat_04")
+		answer(e, &"use", bay)
+		eq(prompt_kind(e), &"respond", "the rival may answer the Combat card")
+		answer(e, &"counter", held)
+		eq(e.card(bay).zone, &"discard", "the Combat card is spent and does nothing")
+		check(not e._forbidden(them, "strike_attack_cards"), "so its forbid never lands")
+		eq(prompt_kind(e), &"pick_option", "then the counter asks which line")
+		eq(e.prompt.player, 1, "of its owner")
+		var fervor: int = them.fervor
+		var hand: int = them.hand.size()
+		answer(e, &"pick_option", -1, pick)
+		if pick == "0":
+			eq(them.fervor, fervor + 2, "Attune 2")
+			eq(them.hand.size(), hand, "and no draw")
+		else:
+			eq(them.hand.size(), hand + 1, "a card drawn")
+			eq(them.fervor, fervor, "and no Fervor")
+		eq(e.card(held).zone, &"removed", "the counter is removed from the game")
+		eq(prompt_kind(e), &"attack_action", "and the fight-back phase opens")
+		var spare: CardInstance = real_to_hand(e, 1, "pyre_combat_04")
+		e._prompt_attack_action(them)
+		check(e.prompt.find(&"use", spare.uid) == null, "a counter is not an attack-phase action")
+	eq(shipped().get_def("pyre_combat_04").limit_per_deck, 1, "Limit 1 per deck")
+
+
+## "Stops the effects of any combat card. Use when needed. ... raise your Main personality to its
+## highest power stage and search your life deck for a [Storm] drill and place it into play. Limit 1
+## per deck. Remove from game after use."
+func test_short_circuit_counters_then_refills_and_fetches_a_drill() -> void:
+	var e: DuelEngine = real_engine(real_deck(["freestyle_combat_07"]), real_deck(["storm_combat_03"], "pact", "storm"))
+	var them: PlayerState = e.player(1)
+	var drill: CardInstance = real_to_deck(e, 1, "storm_drill_03")
+	var other: CardInstance = real_to_deck(e, 1, "tide_drill_01")
+	to_attack(e, 0)
+	them.duelist.energy = 2
+	var held: int = uid_in_hand(e, 1, "storm_combat_03")
+	answer(e, &"use", uid_in_hand(e, 0, "freestyle_combat_07"))
+	answer(e, &"counter", held)
+	eq(them.duelist.energy, CardInstance.MAX_STAGE, "the duelist is raised to full")
+	eq(prompt_kind(e), &"pick_option", "then the Life Deck is searched")
+	check(bool(e.prompt.context.get("search", false)), "as a search")
+	check(e.prompt.find(&"pick_option", drill.uid) != null, "a Storm Drill is on offer")
+	check(e.prompt.find(&"pick_option", other.uid) == null, "another school's is not")
+	answer(e, &"pick_option", drill.uid)
+	eq(drill.zone, &"in_play", "the Drill is put into play")
+	eq(e.card(held).zone, &"removed", "and the counter is removed from the game")
+
+
+## "Energy attack or raise your MP to its highest power stage. Attach this card to your [Storm
+## Brewing Mastery]. While attached, your [Storm] energy attacks deal +1 life card of damage ... You
+## may only have 1 ... attached at a time."
+func test_banked_charge_attacks_or_refills_and_rides_the_mastery() -> void:
+	var d: DeckList = real_deck(["storm_art_27", "storm_art_06"], "vigil", "storm")
+	d.mastery_id = "storm_mastery_01"
+	var e: DuelEngine = real_engine(d, real_deck([], "pact"))
+	var me: PlayerState = e.player(0)
+	to_attack(e, 0)
+	var charge: int = uid_in_hand(e, 0, "storm_art_27")
+	check(e.prompt.find(&"attack", charge) != null, "it attacks")
+	check(e.prompt.find(&"use", charge) != null, "or is used in place of an attack")
+	eq(CardText.command_label(e.prompt.find(&"use", charge), e), "Use Storm Banked Charge in place of an attack", "and says so")
+	me.duelist.energy = 1
+	answer(e, &"use", charge)
+	eq(me.duelist.energy, CardInstance.MAX_STAGE, "used, it raises the duelist to full")
+	eq(e.card(charge).attached_to, me.mastery, "and rides the Mastery")
+	var bolt: CardInstance = e.card(uid_in_hand(e, 0, "storm_art_06"))
+	var adds: int = 0
+	for entry in e._modifiers_for(me, "own", "art", bolt, {}):
+		adds += int((entry["m"] as Dictionary).get("life", 0))
+	eq(adds, 1, "your Storm Arts do +1 wound while it rides")
+	var root_art: CardInstance = real_to_hand(e, 0, "freestyle_art_03")
+	var plain_adds: int = 0
+	for entry in e._modifiers_for(me, "own", "art", root_art, {}):
+		plain_adds += int((entry["m"] as Dictionary).get("life", 0))
+	eq(plain_adds, 0, "a Freestyle Art does not")
+	var second: CardInstance = real_to_hand(e, 0, "storm_art_27")
+	check(e._can_play(me, second.def), "a second copy is still playable")
+	me.hand.erase(second)
+	second.zone = &"resolving"
+	e._apply_effect(second.def.effects[0], 0, {}, second)
+	eq(second.attached_to, null, "but does not attach while one rides")
+	# Attacking with it attaches it too.
+	var f_deck: DeckList = real_deck(["storm_art_27"], "vigil", "storm")
+	f_deck.mastery_id = "storm_mastery_01"
+	var f: DuelEngine = real_engine(f_deck, real_deck([], "pact"))
+	to_attack(f, 0)
+	var swung: int = uid_in_hand(f, 0, "storm_art_27")
+	var before: int = f.player(1).life_deck.size()
+	answer(f, &"attack", swung)
+	check(f.player(1).life_deck.size() < before, "the Art lands")
+	eq(f.card(swung).attached_to, f.player(0).mastery, "and the card rides the Mastery after")
+	# Only the one printing hosts it: under another Mastery it is spent like any other card.
+	var g_deck: DeckList = real_deck(["storm_art_27"], "vigil", "storm")
+	g_deck.mastery_id = "storm_mastery_02"
+	var g: DuelEngine = real_engine(g_deck, real_deck([], "pact"))
+	to_attack(g, 0)
+	var spent: int = uid_in_hand(g, 0, "storm_art_27")
+	answer(g, &"use", spent)
+	eq(g.card(spent).zone, &"discard", "with another Mastery it is discarded")
+	eq(g.card(spent).attached_to, null, "and attaches to nothing")
+	eq(str(shipped().get_def("storm_art_27").effects[0].get("mastery_title", "")), shipped().get_def("storm_mastery_01").title, "the text names the host Mastery by its title")
+
+
+## "...and after taking damage from a physical attack the first time each combat, raise your MP to
+## its highest power stage."
+func test_banked_charge_refills_after_the_first_strike_each_combat() -> void:
+	var d: DeckList = real_deck([], "vigil", "storm")
+	d.mastery_id = "storm_mastery_01"
+	var e: DuelEngine = real_engine(d, real_deck([], "pact"))
+	var me: PlayerState = e.player(0)
+	var rider: CardInstance = real_inject(e, 0, "storm_art_27")
+	rider.attached_to = me.mastery
+	to_attack(e, 1)
+	me.duelist.energy = 6
+	answer(e, &"attack", uid_in_hand(e, 1, "root_strike_04"))
+	eq(me.duelist.energy, CardInstance.MAX_STAGE, "the first Strike that lands refills the duelist")
+	to_attack(e, 1)
+	check(e.prompt != null and e.prompt.player == 1, "the rival attacks again this Combat")
+	me.duelist.energy = 6
+	answer(e, &"attack", uid_in_hand(e, 1, "root_strike_04"))
+	check(me.duelist.energy < 6, "the second does not (%d)" % me.duelist.energy)
+
+
+## "(You cannot name or affect a Main Personality card, [Seal, Relic], or Mastery with this card.)
+## Heroes Only. Energy attack. You may shuffle a card in play into its owner's life deck."
+func test_valiant_deed_shuffles_a_card_in_play_home() -> void:
+	var e: DuelEngine = real_engine(real_deck(["freestyle_art_14"]), real_deck([], "pact"))
+	var theirs: CardInstance = real_inject(e, 1, "storm_drill_03")
+	var seal: CardInstance = real_inject(e, 1, "seal_01")
+	var grounds: CardInstance = e._instance(shipped().get_def("grounds_01"), 1, &"grounds")
+	e.state.grounds = grounds
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "freestyle_art_14"))
+	eq(prompt_kind(e), &"pick_option", "it asks first")
+	check(bool(e.prompt.context.get("may", false)), "because the shuffle is optional")
+	answer(e, &"pick_option", -1, "yes")
+	eq(prompt_kind(e), &"pick_in_play", "then which card")
+	check(e.prompt.find(&"pick_in_play", theirs.uid) != null, "a Drill is on offer")
+	check(e.prompt.find(&"pick_in_play", grounds.uid) != null, "and the Grounds")
+	check(e.prompt.find(&"pick_in_play", seal.uid) == null, "but not a Seal")
+	answer(e, &"pick_in_play", grounds.uid)
+	eq(grounds.zone, &"life_deck", "the Grounds go into their owner's Life Deck")
+	check(e.player(1).life_deck.has(grounds), "which is the rival's")
+	eq(e.state.grounds, null, "and leave the table")
+	eq(theirs.zone, &"in_play", "the Drill stays")
+	check(not e._can_play(e.player(1), shipped().get_def("freestyle_art_14")), "a Pact player cannot play it")
+
+
+## "Energy attacks cost -2 power stages to perform." A Location: both players' Arts.
+func test_echoing_gorge_cheapens_every_art() -> void:
+	var e: DuelEngine = real_engine(real_deck([]), real_deck([], "pact"))
+	var gorge: CardInstance = e._instance(shipped().get_def("grounds_08"), 1, &"grounds")
+	e.state.grounds = gorge
+	var two: Dictionary = shipped().get_def("storm_art_06").attack
+	var three: Dictionary = shipped().get_def("storm_art_15").attack
+	eq(e._cost_stages(two, e.player(0)), 0, "a 2-Energy Art costs nothing")
+	eq(e._cost_stages(three, e.player(0)), 1, "a 3-Energy Art costs 1")
+	eq(e._cost_stages(three, e.player(1)), 1, "for either player")
+	eq(e._cost_stages(shipped().get_def("storm_strike_02").attack, e.player(0)), 0, "a Strike is untouched")
+	e.state.grounds = null
+	eq(e._cost_stages(three, e.player(0)), 3, "and without the Grounds the price is back")
+
+
+## "Stops a physical or energy attack. Gain 3 Power Stages. You may remove a named card matching your
+## main personality in your discard pile from the game to shuffle this into your life deck. This card
+## is considered a named card matching your main personality for deck construction and gameplay."
+func test_trademark_parry_is_whoever_leads_the_deck() -> void:
+	var parry: CardDef = shipped().get_def("signature_strike_35")
+	check(parry.is_signature(), "a Signature card")
+	check(parry.names_duelist("Idris Sparrow") and parry.names_duelist("Bram Ashmark"), "of whoever leads the deck")
+	eq(CardText.type_line(parry), "Signature · Your duelist · Strike", "and the type line says so")
+	var four: Array[String] = ["signature_strike_35", "signature_strike_35", "signature_strike_35", "signature_strike_35"]
+	var legal: Array[String] = DeckValidator.validate(real_deck(four, "vigil", "", "Idris Sparrow"), shipped())
+	check(not legal.any(func(s: String) -> bool: return s.contains("signature_strike_35")), "four copies are legal, as for the duelist's own cards: %s" % ", ".join(legal))
+	four.append("signature_strike_35")
+	var five: Array[String] = DeckValidator.validate(real_deck(four, "vigil", "", "Idris Sparrow"), shipped())
+	check(five.any(func(s: String) -> bool: return s.contains("signature_strike_35")), "five are not")
+	check(parry.stops_kind("strike", false) and parry.stops_kind("art", false), "it stops either kind")
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck(["signature_strike_35"], "vigil", "", "Idris Sparrow"))
+	var them: PlayerState = e.player(1)
+	var named: CardInstance = real_to_discard(e, 1, "signature_art_17")
+	var also: CardInstance = real_to_discard(e, 1, "signature_art_17")
+	to_attack(e, 0)
+	var held: int = uid_in_hand(e, 1, "signature_strike_35")
+	check(e.counts_as_named(them, e.card(held), "Idris Sparrow"), "in play it counts as Idris Sparrow's card for its owner")
+	check(not e.counts_as_named(e.player(0), e.card(held), "Osric Thornwald"), "and nobody else's")
+	them.duelist.energy = 2
+	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	answer(e, &"defend", held)
+	check(bool(last_event(e, &"defense_played").get("stopped", false)), "it stops the Strike")
+	eq(them.duelist.energy, 5, "and gains 3 Energy")
+	eq(prompt_kind(e), &"pick_option", "it offers to go back into the Life Deck")
+	answer(e, &"pick_option", -1, "yes")
+	eq(prompt_kind(e), &"pick_option", "two cards could pay, so the player picks")
+	eq(str(e.prompt.context.get("purpose", "")), "recur_pay", "which one pays")
+	answer(e, &"pick_option", also.uid)
+	eq(also.zone, &"removed", "the chosen card is removed from the game")
+	eq(named.zone, &"discard", "the other stays")
+	eq(e.card(held).zone, &"life_deck", "and the card is shuffled into the Life Deck")
+	# Nothing to pay with: no question, and the card is discarded as usual.
+	var f: DuelEngine = real_engine(real_deck([], "pact"), real_deck(["signature_strike_35"], "vigil", "", "Idris Sparrow"))
+	to_attack(f, 0)
+	var lone: int = uid_in_hand(f, 1, "signature_strike_35")
+	answer(f, &"attack", uid_in_hand(f, 0, "root_strike_04"))
+	answer(f, &"defend", lone)
+	check(prompt_kind(f) != &"pick_option" or not bool(f.prompt.context.get("may", false)), "no offer without a card to pay")
+	eq(f.card(lone).zone, &"discard", "and it is discarded")
+
+
+## The scorer counts what a counter does after it lands, and what an attack card does when it is
+## used in place of its attack.
+func test_the_scorer_reads_counter_and_use_instead_lines() -> void:
+	var profile: AiProfile = AiProfile.default_profile()
+	var d: DeckList = real_deck([], "vigil", "storm")
+	d.mastery_id = "storm_mastery_01"
+	var e: DuelEngine = real_engine(d, real_deck([], "pact"))
+	var me: PlayerState = e.player(0)
+	me.duelist.energy = 1
+	var charge: CardInstance = real_to_hand(e, 0, "storm_art_27")
+	var bare_raw: Dictionary = charge.def.raw.duplicate(true)
+	bare_raw.erase("use_instead")
+	var bare: CardInstance = e._instance(CardDef.from_dict(bare_raw), 0, &"hand")
+	check(AiScorer._use_score(e, profile, me, charge) > AiScorer._use_score(e, profile, me, bare), "the refill is counted")
+	var f: DuelEngine = real_engine(real_deck(["freestyle_combat_07"]), real_deck(["storm_combat_03"], "pact", "storm"))
+	to_attack(f, 0)
+	f.player(1).duelist.energy = 1
+	answer(f, &"use", uid_in_hand(f, 0, "freestyle_combat_07"))
+	eq(prompt_kind(f), &"respond", "the rival may counter")
+	var circuit: CardInstance = f.card(uid_in_hand(f, 1, "storm_combat_03"))
+	var plain_raw: Dictionary = circuit.def.raw.duplicate(true)
+	plain_raw.erase("effects")
+	var plain: CardInstance = f._instance(CardDef.from_dict(plain_raw), 1, &"hand")
+	check(AiScorer._counter_score(f, profile, f.player(1), f.prompt, circuit) > AiScorer._counter_score(f, profile, f.player(1), f.prompt, plain), "the refill after the counter is counted")
+
+
+## Last Standing and Endless Squall against their tournament sheets, copy for copy, as of 2026-10-02.
+func test_newz_decks_match_their_printed_lists() -> void:
+	var last: Dictionary = {
+		"signature_art_14": 4, "signature_combat_04": 3, "signature_combat_03": 2, "pyre_combat_04": 1,
+		"signature_art_09": 1, "signature_strike_29": 3, "freestyle_strike_03": 3, "freestyle_combat_07": 1,
+		"signature_strike_03": 1, "signature_strike_01": 1, "pyre_strike_01": 3, "pyre_strike_06": 3,
+		"pyre_strike_11": 3, "pyre_strike_16": 2, "pyre_strike_08": 3, "pyre_art_01": 3, "pyre_strike_29": 3,
+		"pyre_strike_13": 3, "pyre_strike_05": 3, "pyre_art_12": 3, "pyre_strike_09": 3, "pyre_strike_21": 3,
+		"pyre_combat_01": 3, "pyre_strike_20": 3, "signature_strike_23": 2, "signature_strike_02": 4,
+		"freestyle_art_09": 1, "freestyle_combat_20": 1, "freestyle_combat_01": 1, "grounds_01": 3,
+		"signature_strike_04": 1, "signature_strike_13": 3, "signature_combat_02": 1,
+	}
+	var last_reserve: Array[String] = ["freestyle_noncombat_09", "freestyle_noncombat_18", "freestyle_noncombat_18",
+		"freestyle_noncombat_18", "freestyle_noncombat_10", "signature_strike_01", "signature_strike_01"]
+	var squall: Dictionary = {
+		"storm_art_27": 3, "storm_art_23": 3, "storm_art_25": 3, "storm_art_28": 3, "storm_art_05": 2,
+		"storm_art_19": 1, "storm_art_10": 2, "storm_art_04": 2, "storm_art_02": 2, "storm_art_03": 3,
+		"storm_art_29": 2, "storm_art_15": 1, "freestyle_art_14": 3, "signature_art_10": 2, "freestyle_art_03": 1,
+		"signature_art_15": 1, "signature_art_12": 1, "signature_art_02": 1, "freestyle_art_08": 2,
+		"signature_art_16": 1, "signature_strike_01": 3, "grounds_08": 3, "storm_art_30": 3,
+		"signature_strike_35": 2, "storm_art_26": 2, "freestyle_strike_06": 3, "freestyle_combat_01": 1,
+		"signature_strike_03": 1, "signature_art_01": 1, "signature_strike_04": 1, "freestyle_combat_07": 1,
+		"freestyle_combat_06": 3, "freestyle_combat_12": 2, "storm_combat_03": 1, "signature_combat_03": 1,
+		"personality_67": 1, "personality_68": 1, "personality_69": 1, "freestyle_drill_01": 1,
+		"freestyle_drill_02": 1, "storm_drill_09": 1, "storm_drill_10": 1, "storm_drill_03": 1,
+		"signature_drill_07": 1, "freestyle_noncombat_02": 1, "freestyle_noncombat_04": 1, "storm_strike_02": 1,
+	}
+	var squall_reserve: Array[String] = ["signature_strike_02", "signature_strike_02", "signature_strike_02",
+		"freestyle_combat_17", "freestyle_combat_17", "freestyle_combat_23", "freestyle_combat_23",
+		"freestyle_noncombat_10", "freestyle_noncombat_09"]
+	var cases: Array = [
+		["pyre_attrition", last, last_reserve],
+		["storm_mentor", squall, squall_reserve],
+	]
+	for case in cases:
+		var id: String = str(case[0])
+		var printed: Dictionary = case[1]
+		var deck_list: DeckList = DeckList.load_from("res://data/decks/%s.json" % id)
+		var life: int = 0
+		for card_id in printed.keys():
+			life += int(printed[card_id])
+		var printed_total: int = life + deck_list.duelist_ids.size() + 2
+		eq(printed_total, 85, "%s: the sheet totals 85 as the validator counts it" % id)
+		var counts: Dictionary = {}
+		for card_id in deck_list.cards:
+			counts[card_id] = int(counts.get(card_id, 0)) + 1
+		for card_id in printed.keys():
+			eq(int(counts.get(card_id, 0)), int(printed[card_id]), "%s: %s" % [id, card_id])
+		for card_id in counts.keys():
+			check(printed.has(card_id), "%s: %s is on the sheet" % [id, card_id])
+		var reserve: Array[String] = deck_list.reserve.duplicate()
+		reserve.sort()
+		var wanted: Array[String] = (case[2] as Array[String]).duplicate()
+		wanted.sort()
+		eq(reserve, wanted, "%s: the Sensei Deck is the Reserve" % id)
+		eq(deck_list.total_cards(), 85, "%s: the deck counts 85" % id)
+		eq(DeckValidator.validate(deck_list, shipped()), [] as Array[String], "%s is legal" % id)
+
+
+## Whether an event of `type` names `uid` as its card.
+func event_names(e: DuelEngine, type: StringName, uid: int) -> bool:
+	for ev in e.events:
+		if ev.type == type and int(ev.data.get("card", -1)) == uid:
+			return true
+	return false
+
+
+## New Z ruling (NZ3): "A card with the 'Transform' keyword may be played from your discard pile as
+## though it were in your hand by placing a card of the same style and card type in your discard
+## pile. This is not considered discarding a card for other card effects. ... All cards with
+## 'Transform' are removed from game after use." Tested on a block, with "Stops a physical attack.
+## Raise your anger 1. For the remainder of combat, your [Storm] attacks cost -2 power stages to
+## perform, to a minimum of 0."
+func test_transform_plays_a_card_from_the_discard_pile() -> void:
+	var e: DuelEngine = real_engine(real_deck([], "pact"), real_deck(["storm_art_06", "storm_art_16"], "vigil", "storm"))
+	var them: PlayerState = e.player(1)
+	var wind: CardInstance = real_to_discard(e, 1, "storm_art_30")
+	to_attack(e, 0)
+	answer(e, &"attack", uid_in_hand(e, 0, "root_strike_04"))
+	eq(prompt_kind(e), &"defense", "the defender may block")
+	check(e.prompt.find(&"defend", wind.uid) != null, "the Transform card in the discard pile is offered as a block")
+	check(CardText.prompt_title(e.prompt).contains("1 card in your discard pile can be played with Transform"), "the prompt says so: %s" % CardText.prompt_title(e.prompt))
+	eq(CardText.command_label(e.prompt.find(&"defend", wind.uid), e), "Defend with Storm Turning Wind from your discard pile", "and its button says where it is")
+	var fervor: int = them.fervor
+	answer(e, &"defend", wind.uid)
+	eq(prompt_kind(e), &"pick_option", "two Storm Arts in hand could pay, so the player picks")
+	eq(str(e.prompt.context.get("purpose", "")), "transform_pay", "which one goes to the discard pile")
+	var arc: CardInstance = e.card(uid_in_hand(e, 1, "storm_art_06"))
+	var flash: CardInstance = e.card(uid_in_hand(e, 1, "storm_art_16"))
+	check(e.prompt.find(&"pick_option", arc.uid) != null and e.prompt.find(&"pick_option", flash.uid) != null, "both are on offer")
+	answer(e, &"pick_option", arc.uid)
+	eq(arc.zone, &"discard", "the payment goes to the discard pile")
+	check(not event_names(e, &"hand_discarded", arc.uid), "without counting as a discard")
+	check(event_names(e, &"transformed", wind.uid), "the Transform is announced")
+	check(bool(last_event(e, &"defense_played").get("stopped", false)), "the block stops the Strike")
+	eq(them.fervor, fervor + 1, "Attune 1")
+	eq(wind.zone, &"removed", "and it is removed from the game after use")
+	eq(flash.zone, &"hand", "the other Storm Art stays in hand")
+	eq(e._cost_stages(flash.def.attack, them, flash), 0, "Storm attacks cost 2 less for the rest of the Combat")
+	var lob: CardInstance = real_to_hand(e, 1, "freestyle_art_03")
+	eq(e._cost_stages(lob.def.attack, them, lob), 2, "other attacks do not")
+	# One card that can pay is taken without a question.
+	var f: DuelEngine = real_engine(real_deck([], "pact"), real_deck(["storm_art_06"], "vigil", "storm"))
+	var lone: CardInstance = real_to_discard(f, 1, "storm_art_30")
+	to_attack(f, 0)
+	answer(f, &"attack", uid_in_hand(f, 0, "root_strike_04"))
+	answer(f, &"defend", lone.uid)
+	check(prompt_kind(f) != &"pick_option" or str(f.prompt.context.get("purpose", "")) != "transform_pay", "one payer is not a choice")
+	eq(lone.zone, &"removed", "the card was played and removed")
+	# Nothing in hand of the same school and type: it stays where it is.
+	var g: DuelEngine = real_engine(real_deck([], "pact"), real_deck(["freestyle_art_03"], "vigil", "storm"))
+	var idle: CardInstance = real_to_discard(g, 1, "storm_art_30")
+	to_attack(g, 0)
+	answer(g, &"attack", uid_in_hand(g, 0, "root_strike_04"))
+	check(g.prompt == null or g.prompt.find(&"defend", idle.uid) == null, "without a Storm Art in hand nothing can pay")
+	eq(idle.zone, &"discard", "and it stays in the discard pile")
+	# As an attack, and never as a Final Strike's discard.
+	var h: DuelEngine = real_engine(real_deck(["storm_art_06"], "vigil", "storm"), real_deck([], "pact"))
+	var surge: CardInstance = real_to_discard(h, 0, "storm_art_28")
+	to_attack(h, 0)
+	check(h.prompt.find(&"attack", surge.uid) != null, "a Transform attack is offered from the discard pile")
+	check(h.prompt.find(&"final_strike", surge.uid) == null, "but not as a Final Strike's discard")
+	# "If a card with 'Transform' in its text box would be discarded from play, it is removed from
+	# the game instead."
+	var rider: CardInstance = real_inject(h, 0, "storm_art_28")
+	rider.attached_to = h.player(0).duelist
+	h._move_to_discard(rider)
+	eq(rider.zone, &"removed", "a Transform card leaving play is removed, not discarded")
+	eq(shipped().get_def("storm_art_29").remove_after_use, true, "every Transform card is removed after use")
+
+
+## "Transform. Focused Energy Attack doing 6 life cards of damage. If successful, attach this to your
+## main personality. While attached, if your opponent would deal power stages of damage with an
+## attack, you may instead take the damage as Life Cards. If stopped, remove from the game after use."
+func test_breakneck_surge_lets_energy_damage_land_as_wounds() -> void:
+	var e: DuelEngine = real_engine(real_deck(["storm_art_28"], "vigil", "storm"), real_deck([], "pact"))
+	var me: PlayerState = e.player(0)
+	var them: PlayerState = e.player(1)
+	to_attack(e, 0)
+	var surge: int = uid_in_hand(e, 0, "storm_art_28")
+	var before: int = them.life_deck.size()
+	answer(e, &"attack", surge)
+	check(bool(last_event(e, &"attack_declared").get("focused", false)), "a Focused Art")
+	eq(before - them.life_deck.size(), 6, "dealing 6 wounds")
+	eq(e.card(surge).attached_to, me.duelist, "a hit attaches it to the duelist")
+	eq(prompt_kind(e), &"attack_action", "the rival fights back")
+	me.duelist.energy = CardInstance.MAX_STAGE
+	var life: int = me.life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 1, "root_strike_04"))
+	eq(prompt_kind(e), &"pick_option", "Energy damage coming asks how to take it")
+	eq(str(e.prompt.context.get("purpose", "")), "stages_as_wounds", "Energy or wounds")
+	var stages: int = int(e.prompt.context.get("stages", 0))
+	check(stages > 0, "there is Energy damage to take (%d)" % stages)
+	eq(CardText.command_label(e.prompt.find(&"pick_option", -1, "wounds"), e), "Take it as %d wounds" % stages, "the button names the trade")
+	answer(e, &"pick_option", -1, "wounds")
+	eq(me.duelist.energy, CardInstance.MAX_STAGE, "as wounds, the Energy is untouched")
+	eq(life - me.life_deck.size(), stages, "and that many cards come off the Life Deck")
+	answer(e, &"pass")
+	me.duelist.energy = CardInstance.MAX_STAGE
+	life = me.life_deck.size()
+	answer(e, &"attack", uid_in_hand(e, 1, "root_strike_04"))
+	stages = int(e.prompt.context.get("stages", 0))
+	answer(e, &"pick_option", -1, "energy")
+	eq(CardInstance.MAX_STAGE - me.duelist.energy, stages, "taken as Energy damage, it drains Energy as usual")
+	eq(me.life_deck.size(), life, "and no wounds")
+
+
+## "Transform. Focused energy attack doing 5 life cards of damage. Discard an opponent's ally in play.
+## If successful, search your life deck for a drill and set it aside. Place the chosen drill into play
+## at the end of combat. Remove from game after use."
+func test_clearing_bolt_sets_a_drill_aside_until_combat_ends() -> void:
+	var e: DuelEngine = real_engine(real_deck(["storm_art_29"], "vigil", "storm"), real_deck([], "pact"))
+	var drill: CardInstance = real_to_deck(e, 0, "storm_drill_03")
+	var ally: CardInstance = real_inject(e, 1, _an_ally_id())
+	to_attack(e, 0)
+	var bolt: int = uid_in_hand(e, 0, "storm_art_29")
+	var before: int = e.player(1).life_deck.size()
+	answer(e, &"attack", bolt)
+	eq(ally.zone, &"discard", "one of the rival's Allies is discarded")
+	eq(prompt_kind(e), &"pick_option", "a hit searches the Life Deck")
+	check(bool(e.prompt.context.get("search", false)), "as a search")
+	answer(e, &"pick_option", drill.uid)
+	eq(before - e.player(1).life_deck.size(), 5, "the Focused Art dealt 5 wounds")
+	eq(drill.zone, &"aside", "the Drill is set aside")
+	eq(e.card(bolt).zone, &"removed", "the card is removed from the game")
+	answer(e, &"pass")
+	answer(e, &"pass")
+	eq(drill.zone, &"in_play", "at the end of Combat the Drill is put into play")
+	check(e.player(0).drills().has(drill), "as one of the duelist's Drills")
+
+
+## "[This card is unaffected by Constant Combat Powers.] Discard the top 3 cards of your Life Deck.
+## Advance your opponent's Main Personality 1 level. This card counts as 1 copy of '[another card]'
+## while in your discard pile."
+func test_feint_ignores_constant_powers_and_counts_as_another_title() -> void:
+	var rival: DeckList = real_deck([], "pact")
+	rival.set_duelist(["personality_70", "personality_71", "personality_72"] as Array[String])
+	var e: DuelEngine = real_engine(real_deck(["freestyle_combat_23", "freestyle_combat_07"]), rival)
+	var me: PlayerState = e.player(0)
+	var them: PlayerState = e.player(1)
+	them.duelist.go_to_aspect(2)
+	check(e._forbidden(me, "combat_cards"), "the rival's Constant Power forbids Combat cards")
+	to_attack(e, 0)
+	var feint: int = uid_in_hand(e, 0, "freestyle_combat_23")
+	var bay: int = uid_in_hand(e, 0, "freestyle_combat_07")
+	check(e.prompt.find(&"use", feint) != null, "a card Constant Powers do not affect is still offered")
+	check(e.prompt.find(&"use", bay) == null, "another Combat card is not")
+	var life: int = me.life_deck.size()
+	var aspect: int = them.duelist.aspect
+	answer(e, &"use", feint)
+	decline_responses(e)
+	eq(me.life_deck.size(), life - 3, "the top 3 cards of the Life Deck are discarded")
+	eq(them.duelist.aspect, aspect + 1, "the rival advances one Aspect")
+	eq(e.card(feint).zone, &"discard", "the card goes to the discard pile")
+	var counted: String = "PLACEHOLDER's Growing Spite"
+	check(e.titles_of(e.card(feint)).has(counted), "where it counts as a copy of the card it names")
+	eq(e.effect_amount({"amount": "discard_copies", "copies_of": counted}, me, me), 1, "a count of that title's copies counts it")
+	var fervor: int = me.fervor
+	e._apply_effect({"op": "fervor", "amount": "discard_copies", "copies_of": counted}, 0, {}, null)
+	eq(me.fervor, fervor + 1, "so a card raising Fervor for each copy raises it by 1")
+	var held: CardInstance = real_to_hand(e, 0, "freestyle_combat_23")
+	check(not e.titles_of(held).has(counted), "outside the discard pile it is only itself")
+	# At the top of the rival's ladder the advance does nothing.
+	them.duelist.go_to_aspect(them.highest_aspect)
+	e._apply_effect({"op": "advance_aspect", "who": "opponent"}, 0, {}, null)
+	eq(them.duelist.aspect, them.highest_aspect, "a rival at their top Aspect stays there")
+
+
+## The AI plays a Transform card out of the discard pile when it is the best attack, and pays with
+## the card it values least.
+func test_the_scorer_plays_and_pays_for_transform_cards() -> void:
+	var profile: AiProfile = AiProfile.default_profile()
+	var e: DuelEngine = real_engine(real_deck(["storm_art_14", "storm_art_16"], "vigil", "storm"), real_deck([], "pact"))
+	var me: PlayerState = e.player(0)
+	var surge: CardInstance = real_to_discard(e, 0, "storm_art_28")
+	to_attack(e, 0)
+	me.duelist.energy = CardInstance.MAX_STAGE
+	check(e.prompt.find(&"attack", surge.uid) != null, "the discard pile's Transform attack is on offer")
+	var forecasts: Dictionary = e.attack_forecasts(0)
+	check(forecasts.has(surge.uid), "and forecast like a hand card")
+	e.submit(Command.new(0, &"attack", surge.uid))
+	eq(prompt_kind(e), &"pick_option", "two Storm Arts could pay")
+	var paid: Command = AiScorer.pick(e, profile, null, 0)
+	var cheapest: CardInstance = null
+	for o in e.prompt.options:
+		var c: CardInstance = e.card(o.card)
+		if cheapest == null or AiScorer.hold_value(c, profile) < AiScorer.hold_value(cheapest, profile):
+			cheapest = c
+	eq(paid.card, cheapest.uid, "the scorer pays with the card it holds cheapest")
+	e.submit(paid)
+	check(surge.zone != &"discard", "and the attack goes ahead")
+	# Facing the attack it can soak, it weighs Energy against wounds rather than picking blindly.
+	var f: DuelEngine = real_engine(real_deck([], "pact"), real_deck([], "vigil"))
+	var rider: CardInstance = real_inject(f, 1, "storm_art_28")
+	rider.attached_to = f.player(1).duelist
+	to_attack(f, 0)
+	f.player(1).duelist.energy = 0
+	f.submit(Command.new(0, &"attack", uid_in_hand(f, 0, "root_strike_04")))
+	decline_responses(f)
+	eq(str(f.prompt.context.get("purpose", "")), "stages_as_wounds", "the defender is asked")
+	var choice: Command = AiScorer.pick(f, profile, null, 1)
+	check(choice != null and str(choice.value) in ["wounds", "energy"], "the scorer answers it")

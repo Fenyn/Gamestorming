@@ -1,5 +1,5 @@
 {
-	"_note": "Playstyle for the Storm Sensei list. An Art beatdown that refills instead of hoarding: Orange Strength, Pikkon's-style blocks, Gathering and Centering put the duelist back to full, so Energy is fuel to spend, not a store. The Relic adds a wound to every attack and takes one off every attack against it, which makes trading hits good and declaring readily right. A first pass: tune it with tools/spsa_tune.py --deck.",
+	"_note": "Playstyle for the Storm Sensei list. An Art beatdown that refills instead of hoarding: Storm Banked Charge, the Second Wind blocks, Rallying Call and Storm Short Circuit put the duelist back to full, and Echoing Gorge makes Arts cheaper for both sides, so Energy is fuel to spend, not a store. The Relic adds a wound to every attack and takes one off every attack against it, which makes trading hits good and declaring readily right. A first pass: tune it with tools/spsa_tune.py --deck.",
 	"name": "storm_mentor",
 	"own": {"energy": 0.8, "hand": 1.4},
 	"effect": {"energy": 1.0, "discard_in_play": 2.4, "forbid": 1.8},

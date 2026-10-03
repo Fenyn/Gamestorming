@@ -792,6 +792,19 @@ ART = {
     "signature_art_21": "Throwing a quick bolt from his off hand while his sword arm stays on guard.",
     "signature_art_22": "Turning his back on a rival mid-duel, a cold flash of force knocking their fire down.",
     "signature_strike_34": "Bringing a spell-wrapped fist down like a hammer, a rival's scattered scrolls burning away.",
+    # New Z prints, 2026-10-02.
+    "pyre_strike_29": "A burning blade swept wide, the gust of its passing fanning a brazier behind into a fresh blaze.",
+    "pyre_art_12": "A palm raised against a charging blow, a haze of heat settling over the attacker and dulling their swing.",
+    "pyre_combat_04": "A line of fire cut across the ground between two duellists, a rival's thrown working guttering out against it.",
+    "storm_art_27": "Lightning coiling back into a caster's open hand and winding round a storm-marked token at the belt.",
+    "storm_combat_03": "A crackling ward snapping shut on a rival's spell mid-cast, the spent charge earthing into a standing rod.",
+    "freestyle_art_14": "A lone duellist driving a bolt through a rival's standing ward, the ward folding away like smoke.",
+    "grounds_08": "A deep red-rock gorge of stacked stone pillars, every spark cast there echoing back twice as bright.",
+    "signature_strike_35": "A fighter checking a heavy blow with a raised shin, catching their breath in the same motion.",
+    "storm_art_28": "A caster burning far past their limit, lightning crawling over their own skin as a bolt leaves both hands.",
+    "storm_art_29": "A bolt scattering a rival's hired fighter off the field, a standing ward being raised behind the caster.",
+    "storm_art_30": "A gust turning a heavy blow aside, the caster's next spell already gathering cheaply in the eddy.",
+    "freestyle_combat_23": "A cloaked figure gesturing grandly at a rival while quietly letting their own satchel of spells spill to the ground.",
 }
 
 # Seals: one brief per set, the number added by the generator.
@@ -1173,6 +1186,19 @@ NEW_SOURCES = {
     "signature_art_21": "Vegeta's Powering Up (Frieza Saga 61)",
     "signature_art_22": "Vegeta's Gallic Gun (Frieza Saga 60)",
     "signature_strike_34": "Vegeta's Percussion Concussion (League Promo L6-1)",
+    # New Z prints for Last Standing and Endless Squall, 2026-10-02 (tools/source_cards_newz.tsv).
+    "pyre_strike_29": "Red Critical Blow (NZ14)",
+    "pyre_art_12": "Red Energy Hold (NZ35)",
+    "pyre_combat_04": "Red Negation (NZ70)",
+    "storm_art_27": "Orange Rising Energy (NZ146)",
+    "storm_combat_03": "Orange Negation (NZ66)",
+    "freestyle_art_14": "Heroic Deeds (NZ161)",
+    "grounds_08": "Lonely Canyon (NZ193)",
+    "signature_strike_35": "____'s Left Leg Check (NZ195)",
+    "storm_art_28": "Orange Kaio-Ken Outburst (NZ149)",
+    "storm_art_29": "Orange Right Blast (NZ67)",
+    "storm_art_30": "Orange Aura Deflection (NZ147)",
+    "freestyle_combat_23": "Frieza's Deception (NZ41)",
 }
 
 

@@ -21,6 +21,11 @@ const LIFE_FLY_REVEAL: float = 0.18
 const LIFE_FLY_SETTLE: float = 0.22
 const BEAT: float = 0.22              # pause after a hit or a flipped card, so each one reads
 const TOAST_BEAT: float = 0.35
+const GAUGE_WAIT_MS: int = 1600       # the longest a beat waits for an Energy gauge to settle
+## Events whose handler moves the Energy gauges itself, at the moment the hit lands.
+const GAUGE_AT_IMPACT: Array[StringName] = [&"damage_stages"]
+## Events whose handler floats its own Energy number, so the readout's float would repeat it.
+const OWN_ENERGY_NUMBER: Array[StringName] = [&"damage_stages", &"power_up", &"energy_changed"]
 const SPOTLIGHT_BEAT: float = 0.45    # hold on the card whose effect is about to resolve
 const QUIET_BEAT: float = 0.3         # a window that opened on nothing still gets its moment
 const WINDOW_BEAT: float = 0.15       # a skipped response window, the shortest thing said out loud
@@ -341,6 +346,7 @@ func _ready() -> void:
 		tutorial_panel.reduced_motion = _reduced_motion
 		tutorial_panel.advanced.connect(_on_tutorial_advanced)
 		hud.gated_hover.connect(tutorial_panel.show_reason)
+		hud.voiced_reasons = true
 		hud.gated_clicked.connect(tutorial_panel.refuse)
 		hud.reserve_top(TUTORIAL_TRAY_ROOM)
 	elif Session.ai_seat >= 0:
@@ -473,6 +479,9 @@ func _set_reduced_motion(on: bool) -> void:
 	hud.reduced_motion_toggle.set_pressed_no_signal(on)
 	for card in views.values():
 		(card as Card3D).reduced_motion = on
+	for m in _markers.values():
+		if is_instance_valid(m):
+			(m as StatusMarkers).reduced_motion = on
 
 
 func _process(_delta: float) -> void:
@@ -668,7 +677,7 @@ func _float_stat_delta(fixture: DuelistDisplay, player: int) -> void:
 	if anchor == Vector3.ZERO:
 		return
 	anchor += Vector3.UP * 0.1
-	if energy != int(previous[0]):
+	if energy != int(previous[0]) and _replaying not in OWN_ENERGY_NUMBER:
 		var gained: bool = energy > int(previous[0])
 		fx.float_text(anchor, "%+d Energy" % (energy - int(previous[0])), ZenithTheme.ENERGY if gained else ZenithTheme.WARN, 52)
 	if might != int(previous[1]):
@@ -1182,6 +1191,10 @@ func _play_update(up: SeatUpdate) -> void:
 			_refresh_state(_live)
 			_refresh_displays()
 			_refresh_roles()
+			# Each line moves the Energy gauges to its own numbers as it plays; a hit moves them
+			# at its impact instead.
+			if _replaying not in GAUGE_AT_IMPACT:
+				_refresh_markers()
 			if not bulk_cards.is_empty():
 				await _fly_recover_batch(bulk_cards, targets)
 				_live = up.lines[bulk_recover_end].get("state", {})
@@ -1272,12 +1285,16 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			_refresh_roles()
 			var kind: String = str(data.get("kind", "strike"))
 			var head: String = "Final Strike" if bool(data.get("is_final", false)) else ("Focused " if bool(data.get("focused", false)) else "") + ("Strike" if kind == "strike" else "Art")
-			var src_def: CardDef = _attack_def(int(data.get("source", -1)), data)
+			# A copied attack has no card of its own: the table shows the card it copies.
+			var shown: int = int(data.get("source", -1))
+			if shown < 0:
+				shown = int(data.get("copied", -1))
+			var src_def: CardDef = _attack_def(shown, data)
 			if src_def != null:
 				head += ": " + src_def.title
 			elif bool(data.get("is_power", false)):
 				head += " from a Power"
-			_pin_attack(int(data.get("source", -1)), player, data)
+			_pin_attack(shown, player, data)
 			await _swing(player)
 			hud.toast(head, ZenithTheme.ATTACK)
 			await _read_beat(ATTACK_READ_OWN if player == viewer else ATTACK_READ)
@@ -1356,6 +1373,8 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			fx.impact(pos, ZenithTheme.ATTACK, HIT_IMPACT[tier])
 			if v != null:
 				v.flash(ZenithTheme.ATTACK)
+			_cue_energy(target, MightLadder.Motion.HIT, tier)
+			_refresh_markers()
 			if tier == HEAVY and not _reduced_motion:
 				camera.kick(Vector2(0, -1) if _is_far(target) else Vector2(0, 1))
 			if HIT_STOP[tier] > 0.0 and not _reduced_motion:
@@ -1370,6 +1389,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 			elif v != null:
 				await v.shake(HIT_SHAKE[tier])
 			_refresh_markers()
+			await _gauges_settled()
 			await _beat(BEAT)
 		&"life_card_flipped":
 			_wounds += 1
@@ -1405,6 +1425,10 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 		&"final_strike", &"hand_discarded", &"in_play_discarded", &"card_moved":
 			var uid: int = int(data.get("card", data.get("discarded", -1)))
 			await _fly(uid, targets)
+		&"transformed":
+			# The payment drops into the discard pile and the Transform card rises out of it.
+			await _fly(int(data.get("paid", -1)), targets)
+			await _fly(int(data.get("card", -1)), targets)
 		&"card_used", &"card_placed":
 			var used_uid: int = int(data.get("card", -1))
 			# Held in the Play slot even when the rules already sent it face down to the Life Deck.
@@ -1517,6 +1541,7 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 				var ally: int = int(key)
 				if ally != uid:
 					fx.float_text(_card_pos(ally), "+1 Energy", ZenithTheme.ENERGY, 44)
+			await _gauges_settled()
 			await _beat(BEAT)
 		&"energy_changed":
 			var delta: int = int(data.get("to", 0)) - int(data.get("from", 0))
@@ -1524,7 +1549,12 @@ func _replay(type: StringName, player: int, data: Dictionary, targets: Dictionar
 				fx.resource_pulse(_card_pos(int(data.get("card", -1))), ZenithTheme.ENERGY, delta > 0)
 				_source_pulse(int(data.get("source", -1)))
 				await _number(int(data.get("card", -1)), "%+d Energy" % delta, ZenithTheme.ENERGY if delta > 0 else ZenithTheme.WARN)
+				await _gauges_settled()
 				await _beat(BEAT)
+		&"cost_paid":
+			# The readout floats the amount; hold while the gauge slides down to it.
+			if int(data.get("stages", 0)) > 0:
+				await _gauges_settled()
 		&"gain_blocked":
 			# A gain swallowed by a standing effect.
 			var uid: int = int(data.get("card", -1))
@@ -3451,6 +3481,52 @@ func _refresh_markers() -> void:
 		m.set_duelist(energy, might, CardFace.recover_reach(energy, p), fervor, p.fervor_needed, control)
 
 
+## Waits until no gauge's pill is still travelling, so the next beat follows the drain or charge.
+## Capped, so a stuck gauge never holds the duel.
+func _gauges_settled() -> void:
+	var start: int = Time.get_ticks_msec()
+	while Time.get_ticks_msec() - start < GAUGE_WAIT_MS:
+		var busy: bool = false
+		for m in _markers.values():
+			if is_instance_valid(m) and (m as StatusMarkers).moving():
+				busy = true
+				break
+		if not busy:
+			return
+		await get_tree().process_frame
+
+
+## What a bug report says about this duel (the `Feedback` overlay asks the current scene): its
+## mode, the seed when it is not an online duel, the decks, the step, and the table log under "log".
+func feedback_context() -> Dictionary:
+	var mode: String = "hotseat"
+	if online:
+		mode = "online"
+	elif _tutorial != null:
+		mode = "tutorial, lesson %d" % _tutorial_lesson
+	elif Session.in_adventure():
+		mode = "adventure"
+	elif Session.ai_seat >= 0:
+		mode = "vs AI (%s)" % Session.ai_profile
+	var decks: PackedStringArray = PackedStringArray()
+	for d in Session.decks:
+		decks.append(d.id if d.id != "" else d.name)
+	var out: Dictionary = {"Duel": mode, "Seat": viewer, "Decks": ", ".join(decks)}
+	if not online:
+		out["Seed"] = Session.last_seed
+	if view != null:
+		out["Step"] = "%s, phase %s, active seat %d" % [GameState.Step.find_key(view.step), GameState.Phase.find_key(view.phase), view.active]
+	out["log"] = hud.log_text.get_parsed_text()
+	return out
+
+
+## How the next marker refresh moves `uid`'s gauge, if it has one yet.
+func _cue_energy(uid: int, motion: MightLadder.Motion, tier: int = 0) -> void:
+	var m: Variant = _markers.get(uid)
+	if is_instance_valid(m):
+		(m as StatusMarkers).cue(motion, tier)
+
+
 ## A number the beat stamps for a card, else the view's. Keys may be strings after JSON.
 func _live_stat(live: Dictionary, uid: int, settled: int) -> int:
 	if live.has(uid):
@@ -4020,6 +4096,8 @@ func _tutorial_shot() -> void:
 				hand_3d._layout(true)
 				hand_3d.set_process(false)
 				hand_3d.set_process_unhandled_input(false)
+				# The coach box steps aside from the preview; the shot waits for it to settle.
+				await get_tree().create_timer(0.6, true, false, true).timeout
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(_dev_screenshot)
@@ -4044,8 +4122,10 @@ func _tutorial_locate(target: String) -> Dictionary:
 			body = _duelist_cluster(seat)
 		"hand", "number", "text":
 			if arg != "" and arg != "rival":
-				var fan_rect: Rect2 = hand_3d.fan_rect_of(_viewer_card(arg, _fan_uids(view.player(viewer))))
-				body = fan_rect if fan_rect.has_area() else ring
+				# The card as drawn now: its enlarged preview while the pointer is on it, so the box
+				# picks a side of the preview instead of landing under it.
+				var card_rect: Rect2 = hand_3d.screen_rect_of(_viewer_card(arg, _fan_uids(view.player(viewer))))
+				body = card_rect if card_rect.has_area() else ring
 		"prompt":
 			body = hud.prompt_panel.get_global_rect() if hud.prompt_panel.visible else ring
 		"bark":
@@ -4143,7 +4223,7 @@ func _ring_rect(target: String) -> Rect2:
 			var ladder: Rect2 = faces.ladder_rect()
 			return _card_rect(p.duelist, Rect2(ladder.position / Hand3D.FACE_SIZE, ladder.size / Hand3D.FACE_SIZE))
 		"power":
-			return _card_rect(p.duelist, Rect2(0.03, 0.79, 0.94, 0.19))
+			return _card_rect(p.duelist, _words_part(p.duelist, Rect2(0.03, 0.79, 0.94, 0.19)))
 		"fervor":
 			return _card_rect(p.duelist, FERVOR_TAB)
 		"aspect":
@@ -4160,7 +4240,7 @@ func _ring_rect(target: String) -> Rect2:
 			# The attack badge over the art, or the rules text box. While the fan is tucked neither
 			# is on screen, so the ring goes round the card until the pointer opens it.
 			var shown: int = _viewer_card(arg, _fan_uids(p))
-			var part: Rect2 = NUMBER_BADGE if what == "number" else TEXT_BOX
+			var part: Rect2 = NUMBER_BADGE if what == "number" else _words_part(shown, TEXT_BOX)
 			var inner: Rect2 = hand_3d.screen_rect_of(shown, part)
 			if inner.size.y > 4.0 and inner.end.y < get_viewport().get_visible_rect().size.y - 1.0:
 				return inner
@@ -4177,6 +4257,16 @@ func _ring_rect(target: String) -> Rect2:
 				return (c != null and c.def_id == arg) or (o.value != null and str(o.value) == arg)
 			return hud.option_rect(names, true)
 	return Rect2()
+
+
+## A card's words box in face fractions, as its rendered face laid it out, or `fallback` before
+## that face has rendered.
+func _words_part(uid: int, fallback: Rect2) -> Rect2:
+	var c: SeatCard = view.card(uid)
+	var words: Rect2 = faces.words_rect(c.def_id, c.aspect) if c != null and not c.hidden() else Rect2()
+	if not words.has_area():
+		return fallback
+	return Rect2(words.position / Hand3D.FACE_SIZE, words.size / Hand3D.FACE_SIZE)
 
 
 ## What the fan draws: the hand, then the Remain cards as ghosts.

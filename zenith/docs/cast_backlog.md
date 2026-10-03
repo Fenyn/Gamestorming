@@ -111,7 +111,7 @@ with the character's title name once it is approved. Ids are unchanged.
 | **Nappa** | 2 | `signature_art_01`, `signature_strike_04` | Art, Strike |
 | **Bulma** | 1 | `freestyle_noncombat_14` | Vigils only |
 | **Captain Ginyu** | 1 | `freestyle_art_06` | Art |
-| **Frieza** | 1 | `freestyle_art_01` | Art |
+| **Frieza** | 2 | `freestyle_art_01`, `freestyle_combat_23` | Art, Combat |
 | **Hercule** | 1 | `freestyle_combat_10` | Combat |
 | **Majin Babidi** | 1 | `grounds_03` | Grounds |
 | **Pikkon** | 1 | `freestyle_strike_06` | Strike |

@@ -202,6 +202,7 @@ func _run() -> void:
 
 	_check_lobby()
 	_check_matchup()
+	_check_chapters()
 	RejoinFile.clear()
 	RejoinFile.path_override = ""
 	await process_frame
@@ -265,6 +266,31 @@ func _check_release(title: Node) -> void:
 	var version: String = str(ProjectSettings.get_setting("application/config/version", ""))
 	_check(version != "" and note.visible and note.text == "Alpha build %s. Expect bugs and missing pieces." % version,
 		"The alpha note names the project version: %s" % note.text)
+
+
+## The tutorial's lesson panes: lesson 1 always opens, a lesson opens once reached, the one the
+## session was left at says so, and a finished tutorial opens them all.
+func _check_chapters() -> void:
+	var title_script: GDScript = load("res://scripts/main.gd")
+	var titles: Array[String] = ["One", "Two", "Three", "Four", "Five"]
+	var progress: AdventureProgress = AdventureProgress.new()
+	var states: Array[String] = []
+	for c in title_script.tutorial_chapters(progress, titles):
+		states.append(str(c["state"]))
+	_check(states == ["Play", "Locked", "Locked", "Locked", "Locked"], "A new profile opens lesson 1 only: %s" % str(states))
+	progress.tutorial_lesson = 3
+	states.clear()
+	for c in title_script.tutorial_chapters(progress, titles):
+		states.append(str(c["state"]))
+	_check(states == ["Done", "Done", "Continue here", "Locked", "Locked"], "Lesson 3 reached opens 1 to 3 and marks where to go on: %s" % str(states))
+	progress.finish_tutorial()
+	states.clear()
+	var open: int = 0
+	for c in title_script.tutorial_chapters(progress, titles):
+		states.append(str(c["state"]))
+		open += 1 if bool(c["open"]) else 0
+	_check(open == 5 and states == ["Done", "Done", "Done", "Done", "Done"], "A finished tutorial opens every lesson: %s" % str(states))
+	_check(title_script.call("_lesson_titles").size() == 5, "The panes take their titles from the five lessons")
 
 
 ## The queue lobby's lock-in line beside Lock in, and the seat panel's online wording.

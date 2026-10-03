@@ -593,6 +593,29 @@ layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
+[node name="Link" type="Line2D" parent="Root/Tray"]
+visible = false
+width = 4.0
+default_color = Color(0.965, 0.84, 0.55, 1)
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="Source" type="Control" parent="Root/Tray"]
+visible = false
+layout_mode = 0
+mouse_filter = 2
+
+[node name="Face" parent="Root/Tray/Source" instance=ExtResource("3_face")]
+layout_mode = 0
+offset_right = 512.0
+offset_bottom = 716.0
+mouse_filter = 2
+
+[node name="Mark" type="Panel" parent="Root/Tray/Source"]
+layout_mode = 0
+mouse_filter = 2
+
 [node name="Pile" type="ColorRect" parent="Root"]
 visible = false
 layout_mode = 1
@@ -1131,6 +1154,13 @@ alignment = 0
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Back to title"
+flat = true
+alignment = 0
+
+[node name="Report" type="Button" parent="Root/OptionsMenu/Column/Items"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Report a bug (F8)"
 flat = true
 alignment = 0
 

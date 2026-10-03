@@ -1,17 +1,18 @@
 """Copies the adventure screens' art out of the local art library into assets/adventure_map/,
 composed and scaled for the screens, and writes SOURCES.md naming every file's origin.
 
-    python tools/import_map_art.py [--art F:/UnityNVME/Art] [--phase-only | --resonances-only]
+    python tools/import_map_art.py [--art F:/UnityNVME/Art] [--phase-only | --resonances-only | --frames-only]
 
 Run it again after changing a pick below; it rewrites the whole folder, .import files included,
-so `--phase-only` is the way to change a phase track icon and `--resonances-only` a sigil. Nothing here is generated:
-every pixel comes from a licensed pack in the library (see SOURCES.md for the licences).
+so `--phase-only` is the way to change a phase track icon, `--resonances-only` a sigil and
+`--frames-only` the panel and button faces. Apart from those faces, which are drawn here, every
+pixel comes from a licensed pack in the library (see SOURCES.md for the licences).
 """
 import argparse
 import os
 import shutil
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "assets", "adventure_map")
@@ -20,7 +21,7 @@ ORNATE = "Sprites/Ornate Fantasy UI Assets v1.3/Ornate Fantasy UI Assets v1.3/Sp
 ## Kenney Board Game Icons (CC0): solid white icons, 128 px.
 KENNEY_ICONS = "Sprites/UI/kenney_board-game-icons/PNG/Double (128px)"
 
-## Map nodes: a Kenney icon on a dark tile under the button rule (border 001), so a node reads as
+## Map nodes: a Kenney icon on a dark tile under Kenney border 001, so a node reads as
 ## something to click. The boss gets the Double style's rule and a larger tile. Node type -> icon.
 MARKER_ICONS = {
     "duel": "sword",
@@ -64,29 +65,42 @@ ORNATE_PIECES = {
 }
 
 ## Kenney Fantasy UI Borders (CC0): white line art, made to be tinted. Every set is copied, doubled,
-## to assets/ui/borders/<style>/<set>/ so any screen can pick a variant. The adventure's default
-## frame is the Default style's single rule with small corner squares, border 009, and two panels
-## are composed from it.
+## to assets/ui/borders/<style>/<set>/ so any screen can pick a variant.
 KENNEY = "Sprites/UI/kenney_fantasy-ui-borders/PNG"
 KENNEY_OUT = os.path.join(HERE, "..", "assets", "ui", "borders")
-DEFAULT_BORDER = "Default/Border/panel-border-009.png"
-## The side panels and the map board: a dark fill under a white rule, both tinted together. The
-## fill is chosen so that under the iron frame tint (designs/zenith_ui.md, frame.metal) it lands on
-## surface.panel.
+
+## The panel and button faces are drawn here, with no outline: a dark fill, a soft drop shadow
+## baked round it, and a faint 1 px highlight along the top edge. The shadow lies outside the face,
+## so MapArt draws these with expand margins of the shadow pad (keep the numbers in step with
+## map_art.gd). Drawn at FRAME_SUPERSAMPLE times the size and scaled down for smooth corners.
+FRAME_SUPERSAMPLE = 4
+## The panel: one texture, tinted whole by MapArt, so the fill is chosen to land on surface.panel
+## under the iron frame tint (designs/zenith_ui.md, frame.metal). A faint rule engraved 5 px inside
+## the edge.
 PANEL_FILL = (39, 35, 35, 245)
-## Buttons: Kenney's rule with square corner blocks (border 001) over a flat fill, one piece per
-## state, never tinted.
-## Ordinary buttons are dark with an iron rule; the one primary action on a screen is bone-white
-## with a dark rule. name -> (fill, line).
-BUTTON_BORDER = "Default/Border/panel-border-001.png"
+PANEL_RADIUS = 4
+PANEL_SHADOW_PAD = 28          # MapArt.PANEL_SHADOW
+PANEL_MARGIN = 36              # MapArt.PANEL_MARGIN: the pad plus the corner, rule and highlight
+PANEL_SHADOW = ((0, 5), 8, 170)   # offset, blur, alpha
+PANEL_RULE = (5, (255, 255, 255, 50))   # inset, colour
+PANEL_HIGHLIGHT = (255, 255, 255, 40)
+## Buttons, one piece per state, never tinted. Ordinary buttons are a raised dark fill; the one
+## primary action on a screen is bone-white. Pressed sinks: no shadow, and a bone rule engraved
+## inside, which is also how a toggled button shows it is on.
+## name -> (fill, top highlight or None, shadow, engraved rule or None).
+BUTTON_RADIUS = 3
+BUTTON_SHADOW_PAD = 10         # MapArt.BUTTON_SHADOW
+BUTTON_MARGIN = 16             # MapArt.BUTTON_MARGIN
+BUTTON_SHADOW = ((0, 2), 3, 120)
+BUTTON_RULE_INSET = 3
 BUTTON_PIECES = {
-    "button_normal": ((34, 32, 32, 245), (143, 145, 148, 255)),
-    "button_hover": ((58, 55, 55, 248), (200, 201, 203, 255)),
-    "button_pressed": ((24, 22, 22, 248), (240, 232, 214, 255)),
-    "button_disabled": ((28, 27, 27, 210), (92, 94, 97, 255)),
-    "accent_normal": ((240, 232, 214, 255), (58, 54, 48, 255)),
-    "accent_hover": ((252, 248, 238, 255), (36, 33, 29, 255)),
-    "accent_pressed": ((206, 198, 180, 255), (36, 33, 29, 255)),
+    "button_normal": ((46, 43, 42, 255), (255, 255, 255, 26), True, None),
+    "button_hover": ((64, 60, 58, 255), (255, 255, 255, 34), True, None),
+    "button_pressed": ((30, 28, 28, 255), None, False, (240, 232, 214, 220)),
+    "button_disabled": ((32, 30, 30, 200), None, False, None),
+    "accent_normal": ((236, 228, 210, 255), (255, 255, 255, 90), True, None),
+    "accent_hover": ((250, 245, 234, 255), (255, 255, 255, 110), True, None),
+    "accent_pressed": ((206, 198, 180, 255), None, False, (58, 54, 48, 200)),
 }
 
 ## Card face rules: Kenney borders scaled up so a line survives the card face (512 px) being drawn
@@ -193,13 +207,45 @@ def neutral(im):
     return out
 
 
-def compose_panel(border, fill, line):
-    """A filled panel: `fill` under the border's lines recoloured to `line`."""
-    base = Image.new("RGBA", border.size, fill)
-    lines = Image.new("RGBA", border.size, line)
-    lines.putalpha(border.getchannel("A"))
-    base.alpha_composite(lines)
-    return base
+def compose_face(pad, margin, radius, fill, shadow=None, highlight=None, rule=None):
+    """A frame face for a nine-slice: a `radius`-cornered `fill` with `pad` pixels round it for
+    `shadow` ((dx, dy), blur, alpha), a 1 px `highlight` along its top edge and a 1 px `rule`
+    ((inset, colour)) inside it. The face is two margins wide, minus the pads, plus a little to
+    stretch."""
+    k = FRAME_SUPERSAMPLE
+    size = 2 * margin + 8
+    face = (pad, pad, size - pad - 1, size - pad - 1)
+    out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    if shadow:
+        (dx, dy), blur, alpha = shadow
+        cast = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        ImageDraw.Draw(cast).rounded_rectangle((face[0] + dx, face[1] + dy, face[2] + dx, face[3] + dy), radius, fill=(0, 0, 0, alpha))
+        out.alpha_composite(cast.filter(ImageFilter.GaussianBlur(blur)))
+    big = Image.new("RGBA", (size * k, size * k), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(big)
+    x0, y0, x1, y1 = (v * k for v in face)
+    draw.rounded_rectangle((x0, y0, x1 + k - 1, y1 + k - 1), radius * k, fill=fill)
+    if highlight:
+        draw.rectangle((x0 + radius * k, y0 + k, x1 + k - 1 - radius * k, y0 + 2 * k - 1), fill=highlight)
+    if rule:
+        inset, colour = rule
+        i = inset * k
+        draw.rounded_rectangle((x0 + i, y0 + i, x1 + k - 1 - i, y1 + k - 1 - i), max(radius - inset, 1) * k, outline=colour, width=k)
+    out.alpha_composite(big.resize((size, size), Image.LANCZOS))
+    return out
+
+
+def import_frames(rows):
+    """The panel and button faces, written in place so Godot keeps their .import files."""
+    ui = os.path.join(OUT, "ui")
+    os.makedirs(ui, exist_ok=True)
+    compose_face(PANEL_SHADOW_PAD, PANEL_MARGIN, PANEL_RADIUS, PANEL_FILL, PANEL_SHADOW, PANEL_HIGHLIGHT,
+                 PANEL_RULE).save(os.path.join(ui, "panel.png"))
+    rows.append(("ui/panel.png", "drawn by the tool: neutral dark fill, engraved rule, drop shadow"))
+    for name, (fill, highlight, shadow, rule) in BUTTON_PIECES.items():
+        compose_face(BUTTON_SHADOW_PAD, BUTTON_MARGIN, BUTTON_RADIUS, fill, BUTTON_SHADOW if shadow else None,
+                     highlight, (BUTTON_RULE_INSET, rule) if rule else None).save(os.path.join(ui, name + ".png"))
+        rows.append(("ui/%s.png" % name, "drawn by the tool: flat fill, no outline"))
 
 
 def compose_button(border, fill, line):
@@ -240,14 +286,7 @@ def import_kenney(art, rows):
         f.write("tinted. Licence: Creative Commons Zero (CC0); crediting Kenney (www.kenney.nl) is ")
         f.write("appreciated, not required.\n")
     rows.append(("../ui/borders/ (%d files)" % count, KENNEY))
-    border = Image.open(os.path.join(art, KENNEY, DEFAULT_BORDER)).convert("RGBA")
-    border = border.resize((border.width * UI_SCALE, border.height * UI_SCALE), Image.NEAREST)
-    compose_panel(border, PANEL_FILL, (255, 255, 255, 255)).save(os.path.join(OUT, "ui", "panel.png"))
-    button = Image.open(os.path.join(art, KENNEY, BUTTON_BORDER)).convert("RGBA")
-    button = button.resize((button.width * UI_SCALE, button.height * UI_SCALE), Image.NEAREST)
-    for name, (fill, line) in BUTTON_PIECES.items():
-        compose_button(button, fill, line).save(os.path.join(OUT, "ui", name + ".png"))
-        rows.append(("ui/%s.png" % name, "%s, over a flat fill" % BUTTON_BORDER))
+    import_frames(rows)
     if os.path.isdir(CARD_RULE_OUT):
         shutil.rmtree(CARD_RULE_OUT)
     os.makedirs(CARD_RULE_OUT)
@@ -260,7 +299,6 @@ def import_kenney(art, rows):
         f.write("scaled with nearest filtering, white, for `CardFace` to tint.\n\n")
         for name, (rel, scale) in CARD_RULES.items():
             f.write("- `%s.png`: `%s/%s` at %dx\n" % (name, KENNEY, rel, scale))
-    rows.append(("ui/panel.png", "%s, over a neutral dark fill" % DEFAULT_BORDER))
 
 
 def import_markers(art, rows):
@@ -313,8 +351,14 @@ def main():
                         help="rewrite only assets/ui/phase_icons, leaving the other folders and their .import files alone")
     parser.add_argument("--resonances-only", action="store_true",
                         help="rewrite only assets/adventure_map/resonances, leaving the other folders and SOURCES.md alone")
+    parser.add_argument("--frames-only", action="store_true",
+                        help="rewrite only the panel and button faces in assets/adventure_map/ui, leaving the rest and SOURCES.md alone")
     args = parser.parse_args()
     art = args.art
+    if args.frames_only:
+        import_frames([])
+        print("wrote the panel and %d button faces to %s" % (len(BUTTON_PIECES), os.path.normpath(os.path.join(OUT, "ui"))))
+        return
     if args.phase_only:
         import_phase_icons(art)
         print("wrote %d phase icons to %s" % (len(PHASE_ICONS), os.path.normpath(PHASE_OUT)))
@@ -349,7 +393,7 @@ def main():
     with open(os.path.join(OUT, "SOURCES.md"), "w", encoding="utf-8") as f:
         f.write("# Adventure map art sources\n\n")
         f.write("Written by `tools/import_map_art.py` from the local art library under `F:/UnityNVME/Art/`. ")
-        f.write("Nothing here is generated. Re-run the tool rather than editing these files by hand.\n\n")
+        f.write("Only the panel and button faces are drawn by the tool. Re-run it rather than editing these files by hand.\n\n")
         f.write("Licences:\n\n")
         f.write("- Ornate Fantasy UI Assets v1.3: personal or commercial use, modification allowed ")
         f.write("(`LICENSE.rtf` in the pack).\n")

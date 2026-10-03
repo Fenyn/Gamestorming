@@ -1,5 +1,5 @@
 {
-	"_note": "Pre-duel lead-ins (AdventureLeadIns). Edit freely. Every spoken line is \"Speaker: text\", where Speaker is a short name from `names`. A scene is {narration, lines}. `pairs` is main character -> opponent character -> slot. Slots, in the order they are tried: boss_again (a boss node, and the main lost the last duel against them), boss (any boss node), after_loss (lost the last duel against them), level (main's personality level at least level_min), act3 (act 3), again (met before), first. A slot can be a list of variants; the first whose conditions hold is used. Variant conditions: deck (the opponent's deck family), met (true: met before, false: never met). A lead-in already shown this run is skipped when a later slot fits. With no pair entry, the opponent's `calls` entry plays and the main answers with a `replies` line whose fits holds the call's kind or \"any\".",
+	"_note": "Pre-duel lead-ins (AdventureLeadIns). Edit freely. Every spoken line is \"Speaker: text\", where Speaker is a short name from `names`. A scene is {narration, lines}. `pairs` is main character -> opponent character -> slot. Slots, in the order they are tried: boss_again (a boss node, and the main lost the last duel against them), boss (any boss node), after_loss (lost the last duel against them), level (met before, and the main's personality level at least level_min), act3 (met before, in act 3), again (met before), first (never met). A slot can be a list of variants; the first whose conditions hold is used. Variant conditions: deck (the opponent's deck family), main_deck (the main's deck family), met (true: met before, false: never met). Unconditioned Mourne lines are the unmarked Mercenary Lord; toll-gate lines are variants keyed to shade_mind_siege. A lead-in already shown this run is skipped when a later slot fits. With no pair entry, the opponent's `calls` entry plays (a call can be a list of variants with the same conditions) and the main answers with a `replies` line whose fits holds the call's kind or \"any\".",
 	"names": {
 		"Sir Edric Rooke": "Edric",
 		"Dame Alder Rooke": "Alder",
@@ -18,128 +18,142 @@
 		"Sir Edric Rooke": {
 			"Dame Alder Rooke": {
 				"first": {
-					"narration": "Edric meets his wife Alder for the first time since he left for the Heart without telling her.",
+					"narration": "Dame Alder Rooke, Edric's wife, has caught up with him. He left for the Heart without telling her.",
 					"lines": ["Alder: Edric Rooke! You went after the Heart without one word to me!", "Edric: I left a note!", "Alder: For Wren! Shield up, you coward!"]
 				},
 				"again": {
-					"narration": "Alder again. She hasn't forgiven him, and she's brought the whole coven to watch.",
-					"lines": ["Alder: Again, Edric! And keep your left side up this time!", "Edric: Yes, dear."]
+					"narration": "Alder has brought the whole coven out to watch her take her husband home.",
+					"lines": ["Alder: The whole coven's watching, Edric! Don't you dare go easy!", "Edric: Yes, dear."]
 				},
 				"after_loss": {
-					"narration": "Alder beat her husband last time, and the coven hasn't stopped talking about it.",
-					"lines": ["Edric: Go easy on me this time, Alder.", "Alder: Not a chance, old man!"]
+					"narration": "Alder put Edric on his back last time, in front of the whole coven.",
+					"lines": ["Edric: My ribs still remember last time, Alder.", "Alder: Good! Then they'll know to duck!"]
 				},
 				"act3": {
-					"narration": "Close to the Heart, Alder makes one last try at taking her husband home.",
-					"lines": ["Alder: Come home, Edric! Quarr isn't worth dying for!", "Edric: It isn't Quarr I'm doing this for."]
+					"narration": "With the Heart a day's walk away, Alder makes her last try at taking Edric home.",
+					"lines": ["Alder: Come home, Edric! Let Quarr keep the cursed thing!", "Edric: Quarr can't hold it alone, Alder.", "Alder: Neither can you! Raise that shield!"]
 				},
 				"level": {
 					"level_min": 3,
-					"narration": "Alder has noticed Edric fighting more and more like the brother he left behind.",
+					"narration": "Edric has started fighting like his brother Torvan Hask, and Alder has noticed.",
 					"lines": ["Alder: You fight like a Hask now! Is that Torvan's doing?", "Edric: I haven't seen Torvan in years!", "Alder: Then why is he writing to you?!"]
 				}
 			},
 			"Emrys Rooke": {
 				"first": {
-					"narration": "Emrys, Edric's eldest son, has come looking for a fight to prove himself to his father.",
+					"narration": "Emrys Rooke, Edric's eldest son, wants a fight to prove himself to his father.",
 					"lines": ["Emrys: Father! Caedan says you drop your left shoulder!", "Edric: Does he, now?"]
 				},
 				"again": {
-					"narration": "Emrys again. The grey metal on his arms has spread since last time.",
+					"narration": "The grey metal on Emrys's arms has spread since Edric last saw him.",
 					"lines": ["Emrys: Look, Father! It's growing!", "Edric: So I see. Does your mother know?"]
 				},
 				"after_loss": {
-					"narration": "Emrys beat his father last time and is trying very hard not to gloat.",
-					"lines": ["Emrys: I won't go easy on you, Father!", "Edric: You never do, son."]
+					"narration": "Emrys has a win over his father now, and he is trying very hard not to gloat.",
+					"lines": ["Edric: Go on, son. Say it.", "Emrys: I BEAT YOU! ...Sorry, Father."]
 				},
 				"boss": {
-					"narration": "Emrys blocks the crossing. If he wins, he comes along. If Edric wins, Emrys goes home.",
-					"lines": ["Emrys: Father! Take me with you, or go through me!", "Edric: Emrys, go home. Your mother will skin us both.", "Emrys: Then she can skin me after I win!"]
+					"narration": "Emrys Rooke, Edric's eldest son, blocks the crossing. Win or lose, he means to come along.",
+					"lines": ["Emrys: Father! Get past me, and I'm coming with you!", "Edric: Your mother will skin us both.", "Emrys: Then she can skin me on the road!"]
 				},
 				"boss_again": {
-					"narration": "Emrys blocks the crossing again. He isn't giving up.",
-					"lines": ["Emrys: You come back worse every time! Let me help!", "Edric: ...Fine. Show me you can."]
+					"narration": "Emrys sent his father home from the crossing last time. He's waiting there now.",
+					"lines": ["Emrys: I beat you, Father! You can't go alone!", "Edric: Once, Emrys. Don't get used to it."]
 				}
 			},
 			"Caedan Vale": {
 				"first": {
 					"narration": "Caedan Vale fought beside Edric in the war and taught him the sword. Caedan's son lives with Edric.",
-					"lines": ["Caedan: Rooke. How's my boy?", "Edric: Taller than me! He misses you, Caedan.", "Caedan: ...Guard."]
+					"lines": ["Caedan: Rooke. How's my boy?", "Edric: Taller than me. Tavin misses you, Caedan.", "Caedan: ...Guard."]
 				},
 				"again": {
-					"narration": "Caedan again. He's never been one for small talk.",
-					"lines": ["Caedan: Guard, Edric!", "Edric: Tavin asked after you, Vale.", "Caedan: ...Guard!"]
+					"narration": "Caedan is teaching Edric's son Emrys the Vale sword, as he promised when the boy was born.",
+					"lines": ["Caedan: Your boy drops the same shoulder. I'm fixing it.", "Edric: Emrys? You're still teaching him?", "Caedan: I promised. Guard."]
 				},
 				"after_loss": {
-					"narration": "Caedan won last time, and he still has notes.",
+					"narration": "Caedan's last win over Edric came from the same old fault.",
 					"lines": ["Caedan: Left shoulder! Still!", "Edric: You've been saying that since the war!"]
 				},
-				"boss": {
-					"narration": "Caedan stands between Edric and the Heart. He wants to see what his old student has become.",
-					"lines": ["Caedan: Show me what you did with my sword, Rooke!", "Edric: Everything I could, old friend!"]
-				},
+				"boss": [
+					{
+						"met": false,
+						"narration": "Caedan Vale taught Edric the sword in the war. Now he blocks the road to see what Edric made of it.",
+						"lines": ["Caedan: Rooke. How's my boy?", "Edric: Taller than me. Tavin misses you, Caedan.", "Caedan: ...Guard."]
+					},
+					{
+						"narration": "Caedan blocks the road to the Heart. He wants to see what his old student has become.",
+						"lines": ["Caedan: I taught you outside the blood, Rooke. Show me 'twas worth it.", "Edric: Guard, Caedan!"]
+					}
+				],
 				"boss_again": {
-					"narration": "Caedan blocks the road again, with a fresh burn on his arm.",
-					"lines": ["Edric: Caedan, you're hurt!", "Caedan: Something burning came through ahead of you. Be faster than me, Rooke!"]
+					"narration": "Edric fell to Caedan on this road last time. Now Caedan has a fresh burn on his arm.",
+					"lines": ["Edric: Caedan! Who did that to your arm?", "Caedan: Something burning came through ahead of you. ...Guard, Rooke."]
 				}
 			},
 			"Gideon Mourne": {
 				"first": {
-					"narration": "Gideon Mourne is a disgraced lord who hates knights that kneel. Edric is one.",
-					"lines": ["Mourne: Well, well! Sir Kneels-a-Lot!", "Edric: Stop calling me that, Mourne.", "Mourne: LORD Mourne!"]
+					"narration": "Gideon Mourne lost his title and his lands. He's raising a company now, and he hates knights who kneel.",
+					"lines": ["Mourne: Well, well! Sir Kneels-a-Lot!", "Edric: That's Sir Edric to you, Mourne.", "Mourne: And that's LORD Mourne to you!"]
 				},
 				"again": {
 					"narration": "Mourne is after the Heart like everyone else, and already looking for a buyer.",
-					"lines": ["Mourne: Does the Vigil pay you yet, Rooke? No? Ha!", "Edric: Not everything's for sale, Mourne."]
+					"lines": ["Mourne: Rooke! What's the Vigil bidding for the Heart? Coin or land, I'm not fussy!", "Edric: Nothing. It isn't yours to sell.", "Mourne: Not YET!"]
 				},
 				"after_loss": {
-					"narration": "Mourne won last time and told everyone he met.",
-					"lines": ["Mourne: Back for more, Sir Kneels-a-Lot?", "Edric: They say you sleep well these days. How?", "Mourne: Like a lord! Now draw!"]
-				},
-				"act3": {
-					"narration": "Close to the Heart, Mourne offers Edric a deal. They fought in the same war once.",
-					"lines": ["Mourne: Help me take it off Quarr, Rooke! For old times' sake!", "Edric: We were never on the same side, Mourne."]
+					"narration": "Mourne won their last duel and has bragged about it since.",
+					"lines": ["Edric: You've told every inn on this road, Mourne. I heard you in three.", "Mourne: Four! Now draw!"]
 				},
 				"level": {
 					"level_min": 3,
-					"narration": "Mourne has been digging into Edric's family.",
-					"lines": ["Mourne: Your brother's Pact, isn't he? Torvan Hask!", "Edric: Leave my brother out of this!"]
+					"narration": "Mourne offers Edric a share of the Heart if he helps take it off Quarr.",
+					"lines": ["Mourne: Help me take it off Quarr, Rooke, and half is yours!", "Edric: I don't want half! I want it locked away.", "Mourne: Locked away? Who holds the key, Rooke? A KING?"]
+				},
+				"act3": {
+					"narration": "Mourne has a buyer for the Heart lined up, and only Edric in his way.",
+					"lines": ["Mourne: Out of my road, Sir Kneels-a-Lot! I've a buyer waiting!", "Edric: Then he'll wait a long time, Mourne."]
 				}
 			},
 			"Bram Ashmark": {
 				"first": {
 					"narration": "Bram Ashmark is burning his way toward the Heart. Edric has come to stop him.",
-					"lines": ["Edric: Stop this, boy! Those were people's homes!", "Ashmark: ...They were warm."]
+					"lines": ["Edric: Stop this, Bram! Those were people's homes!", "Ashmark: ...They were warm."]
 				},
 				"again": {
-					"narration": "Ashmark again, thinner and hungrier than before.",
-					"lines": ["Edric: Ashmark! You were someone's son once!", "Ashmark: Hungry..."]
+					"narration": "Ashmark is thinner and hungrier than when Edric last stood in his way.",
+					"lines": ["Edric: Bram! You were someone's son once!", "Ashmark: ...Whose?"]
 				},
 				"after_loss": {
-					"narration": "Ashmark beat the realm's hero last time. All he remembers is being hungry afterwards.",
+					"narration": "Edric lost to Ashmark last time. Ashmark walked off still hungry.",
 					"lines": ["Edric: Nothing fills you, does it?", "Ashmark: You might."]
 				},
 				"act3": {
-					"narration": "Ashmark is close to the Heart now, and the leylines around it are going dark.",
-					"lines": ["Ashmark: The gold one... behind the wall... I can smell it!", "Edric: Whatever's back there, it won't fill you either!"]
+					"narration": "Ashmark has nearly reached the Heart. He wants what waits behind the gates.",
+					"lines": ["Ashmark: The gold one... behind the wall... I can smell it!", "Edric: Then I'll stand in front of the wall, Bram."]
 				},
 				"level": {
 					"level_min": 3,
 					"narration": "Edric has been asking about Ashmark in the villages he burned.",
-					"lines": ["Edric: There was a boy who sang on the old road. Was that you?", "Ashmark: SHUT UP!"]
+					"lines": ["Edric: There was a boy who sang on the old road, Bram. Was that you?", "Ashmark: SHUT UP!"]
 				}
 			},
 			"Halden Quarr": {
-				"boss": {
-					"narration": "Halden Quarr wears the Lodestone Heart and guards it from everyone. Edric wants it locked away.",
-					"lines": ["Edric: Give me the Heart, Quarr! It belongs in a vault!", "Quarr: Vaults get opened. Go home, Rooke."]
-				},
+				"boss": [
+					{
+						"met": false,
+						"narration": "Halden Quarr wears the Lodestone Heart and guards it from everyone. Edric wants it locked in a vault.",
+						"lines": ["Edric: Give me the Heart, Quarr! It belongs in a vault!", "Quarr: Vaults get opened, Rooke. Go home."]
+					},
+					{
+						"narration": "Halden Quarr still wears the Heart. Edric has come to take it from him.",
+						"lines": ["Edric: That thing could open every gate there is, Quarr.", "Quarr: Aye. And I'll never use it. Go home."]
+					}
+				],
 				"boss_again": {
-					"narration": "Quarr beat Edric last time. He hasn't moved since.",
-					"lines": ["Edric: Where did you even find that thing?!", "Quarr: Go home."]
+					"narration": "Quarr sent Edric home from the Heart last time. Edric has come back for it.",
+					"lines": ["Edric: You can't carry it forever, Quarr!", "Quarr: Go home, Rooke."]
 				},
 				"first": {
-					"narration": "Quarr, a long way from his post, with the Heart still on him.",
+					"narration": "Halden Quarr carries the Lodestone Heart, far from his post. Edric wants it in a vault.",
 					"lines": ["Edric: Quarr?! Out here?", "Quarr: Move."]
 				}
 			}
@@ -147,24 +161,31 @@
 		"Gideon Mourne": {
 			"Marrow": {
 				"first": {
-					"narration": "Marrow's crew salvages old battlefields. Some of Marrow was once a construct in Mourne's company.",
-					"lines": ["Marrow: My lord! Some of me marched under your crest!", "Mourne: Then salute me, scrap heap!", "Marrow: Some of me wants to bite!"]
+					"narration": "Marrow is a construct built from scrap. Some of her once marched in Mourne's old company.",
+					"lines": ["Marrow: My lord! Some of me marched under your crest!", "Mourne: Then salute me, scrap heap.", "Marrow: The rest of me wants to bite!"]
 				},
 				"again": {
-					"narration": "Marrow again. A name is stamped under her jaw, and she can't read it.",
-					"lines": ["Marrow: My lord... whose name is under my jaw?", "Mourne: How should I know?!", "Marrow: Some of me thinks you do."]
+					"narration": "Marrow has a name stamped under her jaw, and she can't read it.",
+					"lines": ["Marrow: My lord... whose name is under my jaw?", "Mourne: How should I know?", "Marrow: Some of me thinks you do."]
 				},
 				"after_loss": {
-					"narration": "Marrow won last time and kept a piece of Mourne's armour as a trophy.",
-					"lines": ["Mourne: Give that back, you walking junk pile!", "Marrow: Some of me likes it here."]
+					"narration": "Marrow's crew watched her beat Mourne last time.",
+					"lines": ["Mourne: Lost to a scrap heap. Nobody hears of this.", "Marrow: Some of me already told Kell."]
 				},
-				"boss": {
-					"narration": "Marrow wants Mourne's help taking the Heart, but they can't agree on his price.",
-					"lines": ["Marrow: Name your price, my lord!", "Mourne: More than all of you put together!", "Marrow: Then we take it out of you!"]
-				},
+				"boss": [
+					{
+						"met": false,
+						"narration": "Marrow is a construct built from scrap. Some of her once marched in Mourne's old company.",
+						"lines": ["Marrow: My lord! Some of me marched under your crest!", "Mourne: Then salute me, scrap heap.", "Marrow: The rest of me wants to bite!"]
+					},
+					{
+						"narration": "Marrow blocks the salvage road. If Mourne wins, part of his old company comes back to him.",
+						"lines": ["Marrow: Beat me, and some of me will follow you again!", "Mourne: Only SOME?!"]
+					}
+				],
 				"boss_again": {
-					"narration": "Marrow again. Kell watches from the edge of the field.",
-					"lines": ["Marrow: Beat me, and some of me will follow you again!", "Mourne: Only some?!"]
+					"narration": "Mourne lost to Marrow on the salvage road last time. She's wearing a piece of his armour.",
+					"lines": ["Mourne: Give that back, you walking junk pile!", "Marrow: No. It fits, my lord."]
 				}
 			},
 			"Sable Draik": {
@@ -173,12 +194,12 @@
 					"lines": ["Sable: Gideon Mourne! Just the man I wanted!", "Mourne: That's LORD Mourne to you, pirate!"]
 				},
 				"again": {
-					"narration": "Sable again, carrying a company coat in Mourne's size.",
-					"lines": ["Sable: Try it on, Gideon! Just once!", "Mourne: I'd sooner die!"]
+					"narration": "Sable has brought a company coat in Mourne's size.",
+					"lines": ["Sable: Try it on, Gideon! Just once!", "Mourne: I'm raising my OWN company, pirate!"]
 				},
 				"after_loss": {
-					"narration": "Sable beat him last time, and she still wants him.",
-					"lines": ["Mourne: Why me, Sable?!", "Sable: Nobody can make you kneel. I like that!"]
+					"narration": "Mourne lost to Sable last time. Now she wants him more than ever.",
+					"lines": ["Mourne: Why me, Sable?!", "Sable: You lost and still called me pirate! I like that!"]
 				},
 				"boss": [
 					{
@@ -188,100 +209,142 @@
 					},
 					{
 						"met": false,
-						"narration": "The Draik captain has heard about a disgraced lord on the Heart's road, and she wants him.",
-						"lines": ["Sable: You! Win, and you're crew. Lose, and you're cargo!", "Mourne: I'm nobody's cargo!"]
+						"narration": "Sable Draik, captain of the Draik Company, has heard of a lord with no lands. She wants him.",
+						"lines": ["Sable: You! The lord with no lands! Win, and you're crew!", "Mourne: And if I lose?!", "Sable: Cargo!"]
 					}
 				],
 				"boss_again": {
-					"narration": "Sable again, the coat still over her arm.",
-					"lines": ["Sable: It's still your size, Gideon!", "Mourne: Put that thing away!"]
+					"narration": "Sable won their last meeting. The company coat is still over her arm.",
+					"lines": ["Sable: It's still your size, Gideon!", "Mourne: Put that thing away."]
 				}
 			},
 			"Sir Edric Rooke": {
 				"first": {
-					"narration": "Sir Edric Rooke, the realm's hero, kneels to the Vigil. Mourne hates him for it.",
-					"lines": ["Mourne: Sir Kneels-a-Lot! What a treat!", "Edric: Mourne. Still no title, I see.", "Mourne: LORD Mourne, you old dog!"]
+					"narration": "Sir Edric Rooke kneels to the Vigil. Mourne would rather stay titleless than kneel to anyone.",
+					"lines": ["Mourne: Sir Kneels-a-Lot! What a treat!", "Edric: Mourne. You're a long way from your hall.", "Mourne: LORD Mourne, you old dog!"]
 				},
-				"again": {
-					"narration": "Edric again, alone as always.",
-					"lines": ["Edric: They say you sleep well these days, Mourne.", "Mourne: Every night! Jealous, Rooke?"]
-				},
-				"after_loss": {
-					"narration": "Edric won last time. Mourne hasn't forgiven him. Mourne forgives nobody.",
-					"lines": ["Mourne: You got lucky, Rooke!", "Edric: I got up, Mourne. Try it sometime."]
-				},
-				"act3": [
+				"again": [
 					{
 						"deck": "pyre_ascent",
-						"narration": "Edric has fire in his hands now. Mourne knows the look of a man who paid for his power.",
-						"lines": ["Mourne: Who's holding your leash, Rooke?!", "Edric: Nobody! It's mine!", "Mourne: Hah! That's what I said!"]
+						"narration": "Edric has fire in his hands now. Mourne wants to know who he paid for it.",
+						"lines": ["Mourne: Who's holding your leash, Rooke?!", "Edric: Nobody! It's mine!", "Mourne: Hah! Everyone says that!"]
 					},
 					{
-						"narration": "Close to the Heart, Mourne wants to know who Edric kneels to now.",
-						"lines": ["Mourne: Both kings are dead, Rooke! Who do you kneel to now?!", "Edric: Whoever stands between the gate and the village!"]
+						"narration": "Mourne wants to know what a knight serves once his king is gone.",
+						"lines": ["Mourne: Both kings lie dead, Rooke! Whom do you kneel to now?!", "Edric: The ones who can't fight back, Mourne."]
 					}
 				],
-				"level": {
-					"level_min": 3,
-					"narration": "Mourne has been asking about Edric's brother, Torvan Hask.",
-					"lines": ["Mourne: Your brother's Pact, Rooke! Runs in the family?", "Edric: Leave Torvan out of this!"]
+				"after_loss": {
+					"narration": "Mourne lost to Edric last time and wants the rematch now.",
+					"lines": ["Mourne: You beat me on your knees, Rooke! Get up and do it again!", "Edric: As you like. LORD Mourne.", "Mourne: Don't you DARE be polite to me!"]
+				},
+				"level": [
+					{
+						"main_deck": "shade_mind_siege",
+						"level_min": 3,
+						"narration": "Mourne carries a demon's mark now, and Edric wants to know what it cost him.",
+						"lines": ["Edric: They say you sleep well these days, Mourne.", "Mourne: Like a lord! Jealous, Rooke?"]
+					},
+					{
+						"level_min": 3,
+						"narration": "Mourne has a small hired company behind him now, and Edric has noticed.",
+						"lines": ["Edric: You've got men behind you now, Mourne.", "Mourne: A company! MINE! And not one of them kneels!"]
+					}
+				],
+				"act3": {
+					"narration": "Mourne is hiring swords for a company of his own. He'd like the realm's best one.",
+					"lines": ["Mourne: Rooke! Still guarding villages for free?", "Edric: Somebody should.", "Mourne: Work for me, and somebody will PAY you!"]
 				}
 			},
 			"Bram Ashmark": {
-				"first": {
-					"narration": "Mourne and Ashmark both carry a demon's mark from the same toll gate.",
-					"lines": ["Mourne: So you've got his mark too, boy!", "Ashmark: Hungry...", "Mourne: Yes, yes, I can see that!"]
-				},
-				"again": {
-					"narration": "Ashmark again. He burned down a farm to find Mourne.",
-					"lines": ["Mourne: It took my claim. What did it take from you?", "Ashmark: ...Everything."]
-				},
+				"first": [
+					{
+						"main_deck": "shade_mind_siege",
+						"narration": "Mourne and Ashmark both carry a demon's mark from the same toll gate.",
+						"lines": ["Mourne: So you've got his mark too, boy!", "Ashmark: Hungry...", "Mourne: Yes, yes, I can see that!"]
+					},
+					{
+						"narration": "Bram Ashmark is burning his way to the Heart. Mourne has seen the brand on his arm.",
+						"lines": ["Mourne: That brand, boy! Who gave you that?", "Ashmark: A man... at a gate...", "Mourne: Keep it! I've troubles enough!"]
+					}
+				],
+				"again": [
+					{
+						"main_deck": "shade_mind_siege",
+						"narration": "Both of them paid the man at the toll gate. Mourne wants to compare prices.",
+						"lines": ["Mourne: I traded him a claim. What did you trade, boy?", "Ashmark: ...Everything."]
+					},
+					{
+						"narration": "Mourne is raising a hired company, and he wants Ashmark's fire in it.",
+						"lines": ["Mourne: Fight for me! I pay in coin!", "Ashmark: Coin is cold."]
+					}
+				],
 				"after_loss": {
-					"narration": "Ashmark won last time. Mourne thinks he can use him anyway.",
-					"lines": ["Mourne: Work for me, boy! I'll point, you eat!", "Ashmark: I'll eat you."]
+					"narration": "Ashmark won their last fight. Mourne thinks he can hire him anyway.",
+					"lines": ["Mourne: Work for me. I'll point, you eat.", "Ashmark: I'll eat you."]
 				},
 				"act3": {
-					"narration": "Both are close to the Heart. Mourne wants to sell it. Ashmark wants to eat what's behind it.",
-					"lines": ["Mourne: Leave something for me to sell, boy!", "Ashmark: No."]
+					"narration": "Mourne wants the Heart to sell. Ashmark wants what is behind it.",
+					"lines": ["Mourne: Leave something for me to sell.", "Ashmark: Bones. Sell the bones."]
 				},
-				"level": {
-					"level_min": 3,
-					"narration": "Mourne wonders what the man at the toll gate asked Ashmark.",
-					"lines": ["Mourne: What did he ask you first, at the gate? He asked me my name!", "Ashmark: ...What I wanted.", "Mourne: And you told him?! Fool!"]
-				}
+				"level": [
+					{
+						"main_deck": "shade_mind_siege",
+						"level_min": 3,
+						"narration": "Mourne wonders what the man at the toll gate asked Ashmark.",
+						"lines": ["Mourne: What did he ask you first, at the gate? He asked me my name!", "Ashmark: ...What I wanted.", "Mourne: And you told him?! Fool!"]
+					},
+					{
+						"level_min": 3,
+						"narration": "Mourne's company has grown, and he wants Ashmark in its front rank.",
+						"lines": ["Mourne: Front rank! First pick of the spoils!", "Ashmark: I'd eat the front rank."]
+					}
+				]
 			},
 			"Halden Quarr": {
-				"boss": {
-					"narration": "Quarr guards the Heart. Mourne wants to buy it, or take it.",
-					"lines": ["Mourne: Name your price, Quarr! Everyone has one!", "Quarr: Not for sale."]
-				},
+				"boss": [
+					{
+						"main_deck": "shade_mind_siege",
+						"narration": "Halden Quarr wears the Lodestone Heart and guards it. Mourne has sold everything else he had.",
+						"lines": ["Mourne: Everything's for sale, Quarr! I traded my claim at the toll gate!", "Quarr: And look at you.", "Mourne: LOOK at me? I'm doing splendidly!"]
+					},
+					{
+						"met": false,
+						"narration": "Halden Quarr wears the Lodestone Heart and guards it. Mourne wants to buy it, or take it.",
+						"lines": ["Mourne: Name your price, Quarr! Everyone has one!", "Quarr: Not for sale, lad."]
+					},
+					{
+						"narration": "Quarr has turned down every buyer on the road. Mourne has brought a better offer.",
+						"lines": ["Mourne: You were Pact once, Quarr. Sell like one.", "Quarr: Was."]
+					}
+				],
 				"boss_again": {
-					"narration": "Quarr beat Mourne last time. Mourne has brought a better offer.",
-					"lines": ["Mourne: Half of what it's worth! Final offer!", "Quarr: No."]
+					"narration": "Mourne has come back to Quarr with a bigger purse.",
+					"lines": ["Mourne: Half of what it's worth. Final offer.", "Quarr: Naught for sale. Go home."]
 				},
 				"first": {
-					"narration": "Quarr, a long way from his post, with the Heart still on him.",
+					"narration": "Halden Quarr carries the Lodestone Heart, far from his post. Mourne knows what it would sell for.",
 					"lines": ["Mourne: You look tired, Quarr! Let me carry it!", "Quarr: Keep walking."]
 				}
 			}
 		},
 		"Bram Ashmark": {
 			"Siphon": {
-				"first": [
+				"first": {
+					"narration": "Siphon, a runaway construct, drinks from the leylines. Ashmark burns the same ones.",
+					"lines": ["Siphon: You are burning my leyline!", "Ashmark: Then take it back."]
+				},
+				"again": [
 					{
 						"deck": "storm_unbound",
-						"narration": "Siphon has been rebuilt with new wards. It's still hungry.",
+						"narration": "Siphon has been rebuilt with new wards. It is still hungry.",
 						"lines": ["Siphon: New wards. They itch. You have charge?", "Ashmark: No.", "Siphon: Liar. You are warm!"]
 					},
 					{
-						"narration": "Siphon, a runaway construct, drinks from the leylines. Ashmark burns the same ones.",
-						"lines": ["Siphon: You are burning my leyline!", "Ashmark: Then take it back."]
+						"narration": "Siphon stands on a leyline Ashmark has already drained.",
+						"lines": ["Siphon: This one was mine! You left only ash!", "Ashmark: More..."]
 					}
 				],
-				"again": {
-					"narration": "Siphon again, standing on a leyline Ashmark has already drained.",
-					"lines": ["Siphon: This one was mine! You left only ash!", "Ashmark: More..."]
-				},
 				"after_loss": {
 					"narration": "Siphon won last time, and drank some of Ashmark's fire.",
 					"lines": ["Siphon: You were delicious. Thank you.", "Ashmark: Give it BACK!"]
@@ -291,61 +354,90 @@
 					"lines": ["Siphon: So much charge in you! Give it to me!", "Ashmark: Mine!"]
 				},
 				"boss_again": {
-					"narration": "Siphon is starving now, and has stopped being polite.",
-					"lines": ["Siphon: Give! GIVE IT!", "Ashmark: Now you understand."]
+					"narration": "Siphon drank its fill from Ashmark last time. It is starving again.",
+					"lines": ["Siphon: Give! GIVE IT!", "Ashmark: ...Me too."]
 				}
 			},
 			"Sir Edric Rooke": {
 				"first": {
-					"narration": "Sir Edric Rooke, the realm's hero, stands between Ashmark and the next town.",
-					"lines": ["Edric: Turn back, Ashmark!", "Ashmark: To what?"]
+					"narration": "Sir Edric Rooke stands between Ashmark and the next town.",
+					"lines": ["Edric: Turn back, Bram!", "Ashmark: To what?"]
 				},
 				"again": {
-					"narration": "The hero again. His coven has flooded the road to stop the fire.",
-					"lines": ["Edric: There's still a man in there! I know it!", "Ashmark: Look closer."]
+					"narration": "Edric has followed Ashmark's smoke to the next town.",
+					"lines": ["Edric: There's still a man in there, Bram! I know it!", "Ashmark: Look closer."]
 				},
 				"after_loss": {
-					"narration": "Edric beat Ashmark last time. Ashmark has been hungry about it ever since.",
-					"lines": ["Ashmark: Again!", "Edric: As many times as it takes!"]
+					"narration": "Ashmark lost to Edric last time and has come back hungrier.",
+					"lines": ["Ashmark: Again!", "Edric: Again? You can barely stand, Bram!"]
 				},
-				"boss": {
-					"narration": "Edric has found a fire of his own. Ashmark can smell it.",
-					"lines": ["Ashmark: You burn now, hero!", "Edric: Not like you!", "Ashmark: Not yet..."]
-				},
-				"boss_again": {
-					"narration": "The fire has spread up Edric's arms since last time.",
-					"lines": ["Ashmark: Does it want more yet, hero?", "Edric: ...Every day."]
-				}
+				"boss": [
+					{
+						"deck": "pyre_ascent",
+						"narration": "Edric has found a fire of his own. Ashmark can smell it on him.",
+						"lines": ["Ashmark: You burn now, hero!", "Edric: Not like you!", "Ashmark: Not yet..."]
+					},
+					{
+						"narration": "Edric's coven has put out every fire Ashmark lit on the way here.",
+						"lines": ["Ashmark: Water... you put out my fires.", "Edric: Every one, Bram."]
+					}
+				],
+				"boss_again": [
+					{
+						"deck": "pyre_ascent",
+						"narration": "The fire has spread up Edric's arms since he last beat Ashmark.",
+						"lines": ["Ashmark: Does it want more yet, hero?", "Edric: ...Every day."]
+					},
+					{
+						"narration": "Edric put Ashmark down on this road before.",
+						"lines": ["Ashmark: Put me down again, hero. Try.", "Edric: Stay down this time, Bram."]
+					}
+				]
 			},
 			"Gideon Mourne": {
-				"first": {
-					"narration": "Gideon Mourne went to the same toll gate as Ashmark, years before him.",
-					"lines": ["Mourne: Same mark, boy! Mine's just better behaved!", "Ashmark: Yours is quiet."]
-				},
+				"first": [
+					{
+						"deck": "shade_mind_siege",
+						"narration": "Gideon Mourne carries a mark from the same toll gate as Ashmark.",
+						"lines": ["Mourne: Same mark, boy! Mine's just better behaved!", "Ashmark: Yours is quiet."]
+					},
+					{
+						"narration": "Gideon Mourne lost his lands and is raising a hired company. Ashmark is on his road.",
+						"lines": ["Mourne: Out of my road, boy! I've a company to raise!", "Ashmark: Men... warm ones."]
+					}
+				],
 				"again": {
-					"narration": "Mourne again, with a proposal. He always has a proposal.",
-					"lines": ["Mourne: Let's work together, boy! I know every road!", "Ashmark: Fuel."]
+					"narration": "Mourne wants Ashmark in his hired company, and he's willing to pay.",
+					"lines": ["Mourne: Join my company. I know every road.", "Ashmark: Fuel."]
 				},
 				"after_loss": {
-					"narration": "Mourne won last time and told the whole county.",
-					"lines": ["Mourne: Heel, boy!", "Ashmark: No."]
+					"narration": "Mourne won their last fight and thinks he can keep Ashmark on a leash.",
+					"lines": ["Mourne: Heel, boy!", "Ashmark: ...I remember you."]
 				},
-				"act3": {
-					"narration": "Close to the Heart, Mourne tries to strike a deal.",
+				"level": {
+					"level_min": 3,
+					"narration": "Mourne has a deal: the Heart for him, and whatever is behind the wall for Ashmark.",
 					"lines": ["Mourne: Give me the Heart, and you can eat whatever's behind the wall!", "Ashmark: You first."]
 				}
 			},
 			"Halden Quarr": {
-				"boss": {
-					"narration": "Quarr guards the Heart. Ashmark wants the Eidolons behind the wall, to eat them.",
-					"lines": ["Quarr: Turn back, lad. Nothing back there will fill you.", "Ashmark: Liar!"]
-				},
+				"boss": [
+					{
+						"met": false,
+						"narration": "Halden Quarr wears the Lodestone Heart and guards it. Ashmark wants the Eidolons behind the gates, to eat.",
+						"lines": ["Quarr: It won't make you more, lad. Go home.", "Ashmark: Home...?"]
+					},
+					{
+						"narration": "Halden Quarr still wears the Heart, and Ashmark has found him again.",
+						"lines": ["Quarr: Go home, lad.", "Ashmark: ...What home?"]
+					}
+				],
 				"boss_again": {
-					"narration": "Quarr beat Ashmark last time. Both of them are still bleeding.",
+					"narration": "Quarr turned Ashmark back from the Heart last time.",
 					"lines": ["Ashmark: The pale one... the moths... she's hungry too...", "Quarr: Then she'll eat you first."]
 				},
 				"first": {
-					"narration": "Quarr, away from his post. Ashmark can smell the Heart on him.",
+					"narration": "Halden Quarr carries the Lodestone Heart, far from his post. Ashmark wants the gates it opens.",
 					"lines": ["Ashmark: I smell it on you!", "Quarr: Walk away, lad."]
 				}
 			}
@@ -354,14 +446,20 @@
 	"_joined_note": "A personality that joined the run deck (Emrys for Edric, Kell for Mourne) adds one line after the exchange, at most once per act. Keys: `once` (the first duel after joining), an opponent character, `construct` (an opponent tagged construct), then `any`.",
 	"joined": {
 		"Emrys Rooke": {
+			"Dame Alder Rooke": "Emrys: Mother?! I can explain!",
+			"Caedan Vale": "Emrys: Master Vale! Watch my shoulder this time!",
+			"Osric Thornwald": "Emrys: Master Osric! I've kept up my reading!",
 			"Gideon Mourne": "Emrys: Is that the lord Mother warned me about?",
 			"Bram Ashmark": "Emrys: Father... he's looking at me like I'm food!",
 			"Halden Quarr": "Emrys: He's HUGE!",
-			"construct": "Emrys: Does it feel it when you hit it?"
+			"construct": "Emrys: Does it feel it when you hit it?",
+			"any": "Emrys: Can I take this one, Father? ...No? Fine."
 		},
 		"Orvath Kell": {
-			"once": "Kell: I still wear the gorget, my lord. Someone has to.",
+			"once": "Kell: Gorget's polished, my lord. Where do we march?",
 			"Marrow": "Kell: Those rivets... those were ours!",
+			"Osric Thornwald": "Kell: Grove blood, my lord. Same as mine.",
+			"Sable Draik": "Kell: Draiks. Count your purse after, my lord.",
 			"any": "Kell: Guard up, my lord!"
 		}
 	},
@@ -372,8 +470,8 @@
 				"Siphon": "The leash was warm... why did we break it...",
 				"Sir Edric Rooke": "Alder... I'm coming home...",
 				"Gideon Mourne": "Nobody left to pay me... nobody...",
-				"Sable Draik": "Keep the man... sell the coat...",
-				"Caedan Vale": "Keep Tavin out of this...",
+				"Sable Draik": "It was his size... his size...",
+				"Caedan Vale": "How tall is he now... how tall...",
 				"Emrys Rooke": "Father will come. He always comes.",
 				"Marrow": "Whose name... whose name..."
 			},
@@ -386,72 +484,187 @@
 		}
 	},
 	"calls": {
-		"Sable Draik": {
-			"kind": "demand",
-			"narration": "Sable Draik, captain of a mercenary crew, buys up debts. She thinks you owe somebody.",
-			"line": "Sable: Everyone on this road owes someone! Pay up!"
-		},
-		"Osric Thornwald": {
-			"kind": "question",
-			"narration": "Osric Thornwald, an old druid of the grove, sits reading in the middle of the road.",
-			"line": "Osric: Hm? Did the grove send you?"
-		},
-		"Siphon": {
-			"kind": "demand",
-			"narration": "Siphon, a runaway construct, is starving. It can smell the mana on you.",
-			"line": "Siphon: You have charge! Give it!"
-		},
-		"Marrow": {
-			"kind": "challenge",
-			"narration": "Marrow, a construct built out of scrap, is always looking for parts.",
-			"line": "Marrow: Good joints! Some of me wants them!"
-		},
-		"Dame Alder Rooke": {
-			"kind": "warning",
-			"narration": "Dame Alder Rooke, matriarch of the coven, guards the roads her family travels.",
-			"line": "Alder: Turn back! My family's on this road!"
-		},
-		"Emrys Rooke": {
-			"kind": "challenge",
-			"narration": "Emrys Rooke, a young knight's son, wants practice against strangers.",
-			"line": "Emrys: You there! Fight me!"
-		},
-		"Caedan Vale": {
-			"kind": "challenge",
-			"narration": "Caedan Vale, the last Vale swordsman, is blocking the road.",
-			"line": "Caedan: Draw."
-		}
+		"Sable Draik": [
+			{
+				"met": false,
+				"kind": "demand",
+				"narration": "Sable Draik captains the Draik Company, hexers who deal in stolen mana. She can see yours.",
+				"line": "Sable: That's a lot of mana for one traveller! Hand it over, darling!"
+			},
+			{
+				"met": true,
+				"kind": "challenge",
+				"narration": "Sable Draik has another contract, and this time your name is on it.",
+				"line": "Sable: Nothing personal, darling! You're on a contract!"
+			},
+			{
+				"met": true,
+				"kind": "demand",
+				"narration": "Sable Draik's crew has the road blocked. She says it's a toll.",
+				"line": "Sable: The crew voted, darling. You're paying the toll!"
+			}
+		],
+		"Osric Thornwald": [
+			{
+				"met": false,
+				"kind": "question",
+				"narration": "Osric Thornwald, an old druid of the grove, sits reading in the middle of the road.",
+				"line": "Osric: Hm? Did the grove send you?"
+			},
+			{
+				"met": true,
+				"kind": "challenge",
+				"narration": "Osric Thornwald has moved his reading a little further down the road.",
+				"line": "Osric: Ah! Back for another lesson, are we?"
+			},
+			{
+				"met": true,
+				"kind": "warning",
+				"narration": "Osric Thornwald is tending a sapling in the road and does not look up.",
+				"line": "Osric: Mind your feet. I've regrown that one twice."
+			}
+		],
+		"Siphon": [
+			{
+				"met": false,
+				"kind": "demand",
+				"narration": "Siphon, a runaway construct, is starving. It can smell the mana on you.",
+				"line": "Siphon: You have charge! Give it!"
+			},
+			{
+				"met": true,
+				"kind": "demand",
+				"narration": "Siphon remembers the taste of your mana, and it is starving again.",
+				"line": "Siphon: You came back! You are so full of charge!"
+			},
+			{
+				"met": true,
+				"kind": "demand",
+				"narration": "Siphon has been fed since you last met, and it is being polite about it.",
+				"line": "Siphon: Good evening. May I have your charge? Please?"
+			}
+		],
+		"Marrow": [
+			{
+				"met": false,
+				"kind": "challenge",
+				"narration": "Marrow, a construct built out of scrap, is always looking for parts.",
+				"line": "Marrow: Good joints! Some of me wants them!"
+			},
+			{
+				"met": true,
+				"kind": "challenge",
+				"narration": "Marrow has new plates since you last met, and she still wants your joints.",
+				"line": "Marrow: Some of me remembers you! The hungry part!"
+			},
+			{
+				"met": true,
+				"kind": "ask",
+				"narration": "Marrow is still looking for the name stamped under her jaw.",
+				"line": "Marrow: You! Can you read? What does my jaw say?"
+			}
+		],
+		"Dame Alder Rooke": [
+			{
+				"met": false,
+				"kind": "warning",
+				"narration": "Dame Alder Rooke, matriarch of the coven, guards the roads her family travels.",
+				"line": "Alder: Turn back! My family's on this road!"
+			},
+			{
+				"met": true,
+				"kind": "warning",
+				"narration": "Dame Alder Rooke has her coven out on the road, watching for strangers.",
+				"line": "Alder: You again! I warned you once!"
+			},
+			{
+				"met": true,
+				"kind": "challenge",
+				"narration": "Dame Alder Rooke has heard you've been on her family's road again.",
+				"line": "Alder: Twice on my family's road?! Shield up, stranger!"
+			}
+		],
+		"Emrys Rooke": [
+			{
+				"met": false,
+				"kind": "challenge",
+				"narration": "Emrys Rooke, Sir Edric's eldest son, wants practice against strangers.",
+				"line": "Emrys: You there! Fight me!"
+			},
+			{
+				"met": true,
+				"kind": "challenge",
+				"narration": "Emrys Rooke has been practising since you last met.",
+				"line": "Emrys: You again! Good! I've been practising!"
+			},
+			{
+				"met": true,
+				"kind": "ask",
+				"narration": "Emrys Rooke is looking for his father, and he hopes you've seen him.",
+				"line": "Emrys: Have you seen my father? Grey mail, plain sword?"
+			}
+		],
+		"Caedan Vale": [
+			{
+				"met": false,
+				"kind": "challenge",
+				"narration": "Caedan Vale, the last Vale swordsman, is blocking the road.",
+				"line": "Caedan: Draw."
+			},
+			{
+				"met": true,
+				"kind": "challenge",
+				"narration": "Caedan Vale is blocking the road, sword already drawn.",
+				"line": "Caedan: Again."
+			}
+		]
 	},
-	"_replies_note": "fits: the call kinds a reply answers (challenge, demand, warning, question, any). `construct`: only against a construct. level_min: the main's personality level needed; a reply that has one is preferred once it is reached.",
+	"_replies_note": "fits: the call kinds a reply answers (challenge, demand, warning, question, ask, any). `question` asks who you are; `ask` asks you for help. `construct`: only against a construct. level_min: the main's personality level needed; a reply that has one is preferred once it is reached. A reply can also hold the variant conditions met, deck and main_deck.",
 	"replies": {
 		"Sir Edric Rooke": [
-			{ "fits": ["challenge"], "line": "Edric: Very well!" },
-			{ "fits": ["challenge"], "line": "Edric: If I must!" },
+			{ "fits": ["challenge"], "line": "Edric: Come and try it!" },
+			{ "fits": ["challenge"], "line": "Edric: If I must." },
 			{ "fits": ["demand"], "line": "Edric: Not a chance!" },
 			{ "fits": ["demand"], "construct": true, "line": "Edric: I'd feed you if I could..." },
-			{ "fits": ["warning"], "line": "Edric: I've been warned before!" },
-			{ "fits": ["question"], "line": "Edric: Edric Rooke. Just passing through!" },
-			{ "fits": ["any"], "level_min": 3, "line": "Edric: You fight like my brother. That's not a compliment." },
-			{ "fits": ["any"], "level_min": 5, "line": "Edric: Caedan taught me better than this!" }
+			{ "fits": ["demand"], "line": "Edric: You'll get nothing from me." },
+			{ "fits": ["warning"], "line": "Edric: I've been warned before." },
+			{ "fits": ["warning"], "line": "Edric: Then stand aside, friend." },
+			{ "fits": ["question"], "line": "Edric: Edric Rooke. Just passing through." },
+			{ "fits": ["question"], "line": "Edric: Nobody sent me. I'm bound for the Heart." },
+			{ "fits": ["ask"], "line": "Edric: Sorry, friend. I can't help you." },
+			{ "fits": ["ask"], "line": "Edric: I wish I could tell you." },
+			{ "fits": ["challenge"], "level_min": 3, "line": "Edric: Caedan taught me the sword. Shall I show you?" },
+			{ "fits": ["challenge"], "level_min": 5, "line": "Edric: I've stood against worse than you this year." }
 		],
 		"Gideon Mourne": [
-			{ "fits": ["challenge"], "line": "Mourne: LORD Mourne, if you please!" },
-			{ "fits": ["challenge"], "line": "Mourne: Nobody's paying you for this, you know!" },
-			{ "fits": ["demand"], "line": "Mourne: Everything's for sale. You can't afford it!" },
+			{ "fits": ["challenge"], "line": "Mourne: For a fee, gladly!" },
+			{ "fits": ["challenge"], "line": "Mourne: Do you know who you're talking to?!" },
+			{ "fits": ["demand"], "line": "Mourne: I don't pay. I get paid!" },
 			{ "fits": ["demand"], "construct": true, "line": "Mourne: Scrap! I've sold better!" },
+			{ "fits": ["demand"], "line": "Mourne: Take it off me, then!" },
 			{ "fits": ["warning"], "line": "Mourne: Kings have warned me. Look where they are now!" },
-			{ "fits": ["question"], "line": "Mourne: Someone who's owed!" },
-			{ "fits": ["any"], "level_min": 3, "line": "Mourne: I've paid worse tolls than you!" },
-			{ "fits": ["any"], "level_min": 5, "line": "Mourne: I had a whole company once. You'd never have made the front rank." }
+			{ "fits": ["warning"], "line": "Mourne: Warn me again, and I'll bill you for it!" },
+			{ "fits": ["question"], "line": "Mourne: Nobody sends me anywhere!" },
+			{ "fits": ["question"], "line": "Mourne: Who's asking? Never mind. Draw!" },
+			{ "fits": ["ask"], "line": "Mourne: What's it worth to you?" },
+			{ "fits": ["ask"], "line": "Mourne: Do I look like a guide?" },
+			{ "fits": ["challenge"], "level_min": 3, "line": "Mourne: I'm hiring, you know! Win, and I'll make you an offer!" },
+			{ "fits": ["challenge"], "level_min": 3, "main_deck": "shade_mind_siege", "line": "Mourne: I've paid worse tolls than you!" },
+			{ "fits": ["challenge"], "level_min": 5, "line": "Mourne: I had a whole company once. You'd never have made the front rank." }
 		],
 		"Bram Ashmark": [
-			{ "fits": ["challenge"], "line": "Ashmark: Yes." },
+			{ "fits": ["challenge"], "line": "Ashmark: Then come." },
 			{ "fits": ["challenge"], "line": "Ashmark: Come closer." },
 			{ "fits": ["demand"], "line": "Ashmark: Mine!" },
+			{ "fits": ["demand"], "line": "Ashmark: Take it. Try." },
 			{ "fits": ["warning"], "line": "Ashmark: Later..." },
-			{ "fits": ["question"], "line": "Ashmark: Hungry..." },
+			{ "fits": ["warning"], "line": "Ashmark: ...Warm." },
+			{ "fits": ["question"], "line": "Ashmark: ...Hunger sends me." },
+			{ "fits": ["question"], "line": "Ashmark: ...Who?" },
+			{ "fits": ["ask"], "line": "Ashmark: ...Don't know." },
+			{ "fits": ["ask"], "line": "Ashmark: Ask the ones I ate." },
 			{ "fits": ["any"], "line": "Ashmark: More!" },
-			{ "fits": ["any"], "level_min": 3, "line": "Ashmark: ...I know you." },
+			{ "fits": ["any"], "level_min": 3, "met": true, "line": "Ashmark: ...I know you." },
 			{ "fits": ["any"], "level_min": 5, "line": "Ashmark: QUIET! Not you... them." }
 		]
 	}

@@ -50,6 +50,11 @@ var school: String = ""          # "" is Freestyle
 var text: String = ""
 var character: String = ""      # personalities: which character this card belongs to. The identity,
                                 # and the only thing a character owns: see `variant`
+var named_as_duelist: bool = false  # "This card is considered a named card matching your main
+                                    # personality for deck construction and gameplay": a Signature
+                                    # card of whoever its owner's duelist is
+var transform: bool = false     # Transform: playable from the discard pile, removed after use
+var unaffected_by_constants: bool = false  # Constant Powers neither forbid nor change it
 var variant: String = ""        # personalities: a label saying which printed line this Aspect was
                                 # written for, kept for display and for picking a run's next tier.
                                 # It no longer identifies a stack: cards of one character mix
@@ -118,6 +123,9 @@ static func from_dict(d: Dictionary) -> CardDef:
 	c.school = str(d.get("school", ""))
 	c.text = str(d.get("text", ""))
 	c.character = str(d.get("character", ""))
+	c.named_as_duelist = bool(d.get("named_as_duelist", false))
+	c.transform = bool(d.get("transform", false))
+	c.unaffected_by_constants = bool(d.get("unaffected_by_constants", false))
 	c.variant = str(d.get("variant", ""))
 	c.bloodline = str(d.get("bloodline", ""))
 	c.alignment_only = str(d.get("alignment_only", ""))
@@ -125,7 +133,8 @@ static func from_dict(d: Dictionary) -> CardDef:
 	c.limit_per_deck = int(d.get("limit_per_deck", 3))
 	c.endurance = int(d.get("endurance", 0))
 	c.endurance_when = d.get("endurance_when", {})
-	c.remove_after_use = bool(d.get("remove_after_use", false))
+	# New Z ruling: "All cards with 'Transform' are removed from game after use".
+	c.remove_after_use = bool(d.get("remove_after_use", false)) or bool(d.get("transform", false))
 	c.bottom_after_use = bool(d.get("bottom_after_use", false))
 	c.attack = d.get("attack", {})
 	c.defense = d.get("defense", {})
@@ -206,7 +215,14 @@ func is_personality() -> bool:
 ## as its own identity, which is why it is excluded here. In the shipped data only Strikes, Arts,
 ## Combat cards, Non-Combat cards and Drills carry one; Mastery, Relic, Seal and Grounds never do.
 func is_signature() -> bool:
-	return character != "" and type != Type.PERSONALITY
+	return (character != "" or named_as_duelist) and type != Type.PERSONALITY
+
+
+## Whether this card names the character its owner's duelist is, for deck construction and play.
+func names_duelist(duelist_character: String) -> bool:
+	if type == Type.PERSONALITY or duelist_character == "":
+		return false
+	return character == duelist_character or named_as_duelist
 
 
 ## The group a card belongs to for identity and display: its school id, GROUP_FREESTYLE for a

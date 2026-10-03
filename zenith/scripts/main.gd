@@ -19,6 +19,11 @@ enum TitleState {IDLE, CONNECTING, SEARCHING, REJOIN_OFFERED, COOLDOWN, UNAVAILA
 ## own QUEUE_NOTICE_MS, since its window takes that long to open to everyone.
 const NOTE_CASUAL_MS: int = 10000
 const NOBODY_TEXT: String = "Nobody else is looking right now."
+## The state line on a tutorial lesson pane.
+const CHAPTER_DONE: String = "Done"
+const CHAPTER_CONTINUE: String = "Continue here"
+const CHAPTER_OPEN: String = "Play"
+const CHAPTER_LOCKED: String = "Locked"
 const VERSION_TEXT: String = "This copy of the game is out of date. Update it to play online."
 ## The failure reasons that mean this build and the duel server's differ.
 const VERSION_MARKS: Array[String] = ["different version", "speaks online version", "Your cards or decks differ"]
@@ -62,7 +67,12 @@ static var ranked_search: bool = false
 @onready var join_button: Button = $Center/Column/JoinRow/Join
 @onready var status_label: Label = $Center/Column/Status
 @onready var quit_button: Button = $Center/Column/Quit
+@onready var report_button: Button = $Center/Column/Report
 @onready var alpha_note: Label = $AlphaNote
+@onready var chapters: ColorRect = $Chapters
+@onready var chapters_panel: PanelContainer = $Chapters/Center/Panel
+@onready var chapter_row: HBoxContainer = $Chapters/Center/Panel/Column/Lessons
+@onready var chapters_close: Button = $Chapters/Center/Panel/Column/Footer/Close
 
 var state: TitleState = TitleState.IDLE
 ## The duel server refused this build as a different version. Every way online stays disabled on
@@ -111,8 +121,10 @@ func _ready() -> void:
 		Session.go_to_adventure())
 	hotseat_button.pressed.connect(func() -> void: _offline(-1))
 	vs_ai_button.pressed.connect(func() -> void: _offline(1))
-	tutorial_button.pressed.connect(_on_tutorial)
+	tutorial_button.pressed.connect(_show_chapters)
 	tutorial_button.text = tutorial_text(Session.progress)
+	chapters_panel.add_theme_stylebox_override("panel", MapArt.panel_box(24, ZenithTheme.FRAME))
+	chapters_close.pressed.connect(chapters.hide)
 	builder_button.pressed.connect(func() -> void:
 		Session.leave_adventure()
 		Session.go_to_builder())
@@ -127,6 +139,7 @@ func _ready() -> void:
 	confirm_yes.pressed.connect(_on_concede_confirmed)
 	confirm_no.pressed.connect(_on_concede_cancelled)
 	quit_button.pressed.connect(func() -> void: get_tree().quit())
+	report_button.pressed.connect(func() -> void: Feedback.open())
 	tick.timeout.connect(_refresh)
 	Net.connected.connect(_on_connected)
 	Net.connection_failed.connect(_on_failed)
@@ -300,11 +313,59 @@ func _nobody_looking() -> bool:
 	return _waited_ms() >= (Net.QUEUE_NOTICE_MS if ranked_search else NOTE_CASUAL_MS)
 
 
-## The training session, from the lesson it was left at.
-func _on_tutorial() -> void:
+## The training session from lesson `n`.
+func _on_tutorial(n: int) -> void:
 	_forget_builder_deck()
 	Session.leave_adventure()
-	Session.start_tutorial()
+	Session.start_tutorial(Session.TITLE_SCENE, n)
+
+
+## The lessons as panes: every lesson reached so far can be opened again, lesson 1 always, and the
+## one the session was left at says so.
+func _show_chapters() -> void:
+	for child in chapter_row.get_children():
+		child.queue_free()
+	for c in tutorial_chapters(Session.progress, _lesson_titles()):
+		var pane: Button = Button.new()
+		pane.custom_minimum_size = Vector2(230, 150)
+		pane.text = "Lesson %d\n%s\n%s" % [int(c["n"]), str(c["title"]), str(c["state"])]
+		pane.disabled = not bool(c["open"])
+		if not bool(c["open"]):
+			pane.tooltip_text = "Reach this lesson to open it."
+		elif str(c["state"]) == CHAPTER_CONTINUE:
+			pane.theme_type_variation = &"AccentButton"
+		pane.pressed.connect(_on_tutorial.bind(int(c["n"])))
+		chapter_row.add_child(pane)
+	chapters.show()
+
+
+## Each lesson's title, in order, from the tutorial script.
+static func _lesson_titles() -> Array[String]:
+	var out: Array[String] = []
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(TutorialDirector.LESSONS))
+	if parsed is Dictionary:
+		for lesson in (parsed as Dictionary).get("lessons", []):
+			out.append(str((lesson as Dictionary).get("title", "")))
+	return out
+
+
+## One entry per lesson: {n, title, open, state}. Lessons up to the one the session was left at
+## are open (all of them once it was finished); the rest stay locked until reached.
+static func tutorial_chapters(progress: AdventureProgress, titles: Array[String]) -> Array[Dictionary]:
+	var reached: int = titles.size() if progress.tutorial_done else maxi(1, progress.tutorial_lesson)
+	var resume: int = progress.tutorial_resume_lesson()
+	var out: Array[Dictionary] = []
+	for i in titles.size():
+		var n: int = i + 1
+		var state: String = CHAPTER_LOCKED
+		if n <= reached:
+			state = CHAPTER_OPEN
+			if n == resume and resume > 1 and not progress.tutorial_done:
+				state = CHAPTER_CONTINUE
+			elif n < resume or progress.tutorial_done:
+				state = CHAPTER_DONE
+		out.append({"n": n, "title": titles[i], "open": n <= reached, "state": state})
+	return out
 
 
 ## "Tutorial", or "Continue tutorial" once a later lesson has been reached and the session is not
@@ -527,7 +588,8 @@ func _on_failed(reason: String) -> void:
 ## given. A client sent back into the queue returns here still waiting and does not press either
 ## again; with a screenshot it saves the waiting title 2 seconds in.
 ## `--dev-title-state=<idle|search|search-ranked|rejoin|rejoin-ranked|cooldown|version>` fakes that
-## state with made-up facts and nothing connected, for a screenshot.
+## state with made-up facts and nothing connected, for a screenshot. `--dev-chapters` opens the
+## tutorial's lesson panes.
 func _dev_args() -> void:
 	var args: PackedStringArray = DevArgs.user_args()
 	var online: bool = false
@@ -556,6 +618,8 @@ func _dev_args() -> void:
 			_on_join()
 		elif arg.begins_with("--dev-title-state="):
 			dev_fake_state(arg.get_slice("=", 1))
+		elif arg == "--dev-chapters":
+			_show_chapters()
 		elif arg == "--dev-tutorial" or arg.begins_with("--dev-tutorial="):
 			tutorial = true
 			_dev_tutorial.call_deferred(arg)

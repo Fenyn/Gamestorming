@@ -12,6 +12,7 @@ signal _render_done
 var _cache: Dictionary = {}   # key -> Texture2D
 var _back: Texture2D = null
 var _ladder: Rect2 = Rect2()
+var _words: Dictionary = {}   # "<def id>:<aspect>" -> Rect2 in face pixels
 var _rendering: bool = false
 var _strike_table: StrikeTable = null
 ## Per owning seat, the Might its Strikes are performed at, the Might they land on, and the bands
@@ -105,6 +106,7 @@ func render_face(def: CardDef, aspect: int = 0, backdrop: Color = CardFace.NO_BA
 	_cache[key] = tex
 	if def.is_personality() and not _ladder.has_area():
 		_ladder = face_control.ladder_rect()
+	_words["%s:%d" % [def.id, aspect]] = face_control.words_rect()
 	_rendering = false
 	_render_done.emit()
 	return tex
@@ -114,6 +116,13 @@ func render_face(def: CardDef, aspect: int = 0, backdrop: Color = CardFace.NO_BA
 ## personality has rendered.
 func ladder_rect() -> Rect2:
 	return _ladder
+
+
+## The box holding a card's words (a duelist's Power, a card's rules text) in face pixels, as its
+## face laid it out; Rect2() until that face has rendered. The box moves with each card's art.
+func words_rect(def_id: String, aspect: int = 0) -> Rect2:
+	# A card that is not a duelist renders once, as Aspect 0, whatever its holder's Aspect.
+	return _words.get("%s:%d" % [def_id, aspect], _words.get("%s:0" % def_id, Rect2()))
 
 
 func render_back() -> Texture2D:

@@ -79,14 +79,17 @@ antialiased = true
 [node name="Caption" type="Control" parent="."]
 visible = false
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = -1
 anchor_left = 0.5
+anchor_top = 0.4
 anchor_right = 0.5
-offset_left = -520.0
-offset_top = 70.0
-offset_right = 520.0
-offset_bottom = 130.0
+anchor_bottom = 0.4
+offset_left = -560.0
+offset_top = -48.0
+offset_right = 560.0
+offset_bottom = 48.0
 grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
 [node name="Ribbon" type="ColorRect" parent="Caption"]
@@ -107,6 +110,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_type_variation = &"BodyLabel"
+theme_override_font_sizes/font_size = 34
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -139,6 +143,7 @@ stretch_mode = 6
 [node name="Column" type="VBoxContainer" parent="Coach/Row"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 4
 mouse_filter = 2
 theme_override_constants/separation = 4
 
@@ -146,6 +151,7 @@ theme_override_constants/separation = 4
 layout_mode = 2
 theme_type_variation = &"BodyLabel"
 autowrap_mode = 3
+visible_characters_behavior = 1
 
 [node name="Reason" type="Label" parent="Coach/Row/Column"]
 visible = false
@@ -187,3 +193,28 @@ layout_mode = 0
 
 [node name="BarkNote" parent="Barks" instance=ExtResource("2_bark")]
 layout_mode = 0
+
+[node name="Chat" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ChatA" parent="Chat" instance=ExtResource("2_bark")]
+layout_mode = 0
+
+[node name="ChatB" parent="Chat" instance=ExtResource("2_bark")]
+layout_mode = 0
+
+[node name="ChatC" parent="Chat" instance=ExtResource("2_bark")]
+layout_mode = 0
+
+[node name="Hint" type="Label" parent="Chat"]
+visible = false
+layout_mode = 0
+mouse_filter = 2
+theme_type_variation = &"CaptionLabel"
+text = "Click anywhere or press Space."

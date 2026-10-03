@@ -1000,6 +1000,8 @@ func _advance() -> void:
 
 
 func _handle(kind: StringName, cmd: Command, context: Dictionary) -> void:
+	if _transform_first(kind, cmd, context):
+		return
 	match kind:
 		&"reserve":
 			_handle_reserve(cmd)
@@ -1047,7 +1049,89 @@ func _handle(kind: StringName, cmd: Command, context: Dictionary) -> void:
 		_flush_then()
 
 
+# --- Transform (New Z ruling, NZ3) -----------------------------------------
+# "A card with the 'Transform' keyword may be played from your discard pile as though it were in
+# your hand by placing a card of the same style and card type in your discard pile. This is not
+# considered discarding a card for other card effects."
+
+const TRANSFORM_PLAYS: Array[StringName] = [&"attack", &"use", &"defend", &"counter", &"place"]
+const PICK_KINDS: Array[StringName] = [&"discard_choice", &"pick_in_play", &"name_card", &"pick_option", &"pick_discard"]
+
+
+## What `p` could play as if from the hand: the hand itself, and each Transform card in the
+## discard pile that a card in the hand can pay for.
+func _playable_from_hand(p: PlayerState) -> Array[CardInstance]:
+	var out: Array[CardInstance] = p.hand.duplicate()
+	out.append_array(transform_ready(p))
+	return out
+
+
+func transform_ready(p: PlayerState) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	for c in p.discard:
+		if c.def.transform and not transform_payers(p, c).is_empty():
+			out.append(c)
+	return out
+
+
+## Hand cards of the same school and card type as `c`, any one of which pays for it.
+func transform_payers(p: PlayerState, c: CardInstance) -> Array[CardInstance]:
+	var out: Array[CardInstance] = []
+	for h in p.hand:
+		if h != c and h.def.type == c.def.type and h.def.school == c.def.school:
+			out.append(h)
+	return out
+
+
+## A play naming a Transform card in the discard pile pays first and then goes ahead as a play
+## from the hand. With more than one card that could pay, the player picks; true while that asks.
+func _transform_first(kind: StringName, cmd: Command, context: Dictionary) -> bool:
+	if cmd.card < 0 or PICK_KINDS.has(kind) or not TRANSFORM_PLAYS.has(cmd.type):
+		return false
+	var c: CardInstance = card(cmd.card)
+	if c == null or c.zone != &"discard" or not c.def.transform:
+		return false
+	var p: PlayerState = state.players[c.owner]
+	var payers: Array[CardInstance] = transform_payers(p, c)
+	if payers.is_empty():
+		return false
+	if payers.size() == 1:
+		_transform(p, c, payers[0])
+		return false
+	var opts: Array[Command] = []
+	for h in payers:
+		opts.append(Command.new(p.index, &"pick_option", h.uid))
+	_choice = {"kind": "transform_pay", "player": p.index, "card": c.uid, "prompt_kind": kind,
+		"cmd_type": cmd.type, "cmd_value": cmd.value, "context": context}
+	_set_prompt(p.index, &"pick_option", opts, _choice_context(c, "transform_pay"))
+	return true
+
+
+## The payment and the move: `paid` goes from the hand to the discard pile without being
+## discarded, and the Transform card comes up as if it were in the hand.
+func _transform(p: PlayerState, c: CardInstance, paid: CardInstance) -> void:
+	p.hand.erase(paid)
+	paid.zone = &"discard"
+	p.discard.append(paid)
+	p.discard.erase(c)
+	c.zone = &"hand"
+	p.hand.append(c)
+	_emit(&"transformed", {"player": p.index, "card": c.uid, "paid": paid.uid})
+
+
 func _set_prompt(player_index: int, kind: StringName, options: Array[Command], context: Dictionary = {}) -> void:
+	# A decision that can play cards out of the discard pile says how many it offers, so a player
+	# who does not open the pile still learns they are there.
+	var transforms: Dictionary = {}
+	if not PICK_KINDS.has(kind):
+		for o in options:
+			if o.card >= 0 and TRANSFORM_PLAYS.has(o.type):
+				var offered: CardInstance = card(o.card)
+				if offered != null and offered.zone == &"discard" and offered.def.transform:
+					transforms[o.card] = true
+	if not transforms.is_empty():
+		context = context.duplicate()
+		context["transform_cards"] = transforms.size()
 	var p: Prompt = Prompt.new()
 	p.player = player_index
 	p.kind = kind
@@ -1159,6 +1243,9 @@ func _prompt_non_combat() -> void:
 			opts.append(Command.new(p.index, &"place", c.uid))
 		elif _drill_locked_out(p, c.def):
 			opts.append(Command.new(p.index, &"shuffle_back", c.uid))
+	for c in transform_ready(p):
+		if _can_place(p, c):
+			opts.append(Command.new(p.index, &"place", c.uid))
 	if _relic_usable_in(p, "non_combat"):
 		opts.append(Command.new(p.index, &"relic", p.relic.uid))
 	if opts.is_empty():
@@ -1723,6 +1810,15 @@ func _prompt_entering_combat(player_index: int) -> bool:
 		if not _can_play(p, c.def) or not _use_allowed(p, c.def) or _band_forbidden(p, c.def):
 			continue
 		opts.append(Command.new(player_index, &"use", c.uid))
+	# A Non-Combat in play printed "Use when entering Combat" is either side's to use or keep, the
+	# defender's before their draw. One with nothing to find cannot be used, so it is not offered.
+	if not _forbidden(p, "non_combats"):
+		for c in _active(p.non_combats()):
+			if str(c.def.raw.get("use_at", "")) != "entering_combat" or c.def.effects_for("use").is_empty():
+				continue
+			if not _can_play(p, c.def) or _nothing_to_find(p, c.def.effects_for("use")):
+				continue
+			opts.append(Command.new(player_index, &"use", c.uid))
 	if opts.is_empty():
 		p.entering_combat_done = true
 		_emit(&"window_skipped", {"player": player_index, "window": "entering_combat"})
@@ -1741,7 +1837,7 @@ func _band_forbidden(p: PlayerState, def: CardDef) -> bool:
 		CardDef.Type.ART:
 			return _forbidden(p, "art_cards")
 		CardDef.Type.COMBAT:
-			return _forbidden(p, "combat_cards")
+			return _card_forbidden(p, def, "combat_cards")
 		CardDef.Type.NON_COMBAT:
 			return _forbidden(p, "non_combats")
 		CardDef.Type.DRILL:
@@ -1777,7 +1873,7 @@ func _prompt_after_damage(defender: PlayerState, a: Dictionary) -> bool:
 	if stages <= 0 and wounds <= 0:
 		return false
 	var opts: Array[Command] = []
-	for c in defender.hand:
+	for c in _playable_from_hand(defender):
 		# "Whenever you take damage from one of your opponent's attacks, you may place this card
 		# directly into play from your hand" (rulebook errata).
 		if str(c.def.raw.get("place_at", "")) == "after_damage" and _can_place(defender, c):
@@ -1809,6 +1905,15 @@ func _prompt_after_damage(defender: PlayerState, a: Dictionary) -> bool:
 	return true
 
 
+## True when every one of `effects` is a search of a public or known pile that holds nothing it
+## could take. A Life Deck search is always a look, so it is never "nothing to find".
+func _nothing_to_find(p: PlayerState, effects: Array[Dictionary]) -> bool:
+	for e in effects:
+		if str(e.get("op", "")) != "search" or _search_looks_at_deck(e) or not search_candidates(p, e).is_empty():
+			return false
+	return true
+
+
 ## Card data names the side of the entering-Combat window as the printed cards do, "attacker" or
 ## "defender"; the window itself is keyed "active" / "opposing" (older data still says so).
 static func role_matches(wanted: String, role: String) -> bool:
@@ -1837,6 +1942,11 @@ func _resolve_entering(player_index: int) -> void:
 					effects.append(e)
 		if not effects.is_empty():
 			if c.def.type == CardDef.Type.NON_COMBAT and c.attached_to == null:
+				# "If you see it and can use it, do what it says! If not, move on" (anchor CRD, the
+				# Prepare Phase): a discard or Reserve search with nothing to take is not used, so the
+				# card stays in play for a later Combat instead of being spent on nothing.
+				if _nothing_to_find(p, effects):
+					continue
 				# A Non-Combat used on entry is spent.
 				_enqueue(effects, "entering_combat", player_index, ctx, c)
 				_enqueue([{"trigger": "entering_combat", "op": "spend_source"}], "entering_combat", player_index, ctx, c)
@@ -1911,7 +2021,7 @@ func _prompt_combat_end() -> void:
 		return
 	var p: PlayerState = state.players[seat]
 	var opts: Array[Command] = []
-	for c in p.hand:
+	for c in _playable_from_hand(p):
 		if str(c.def.raw.get("use_at", "")) == "end_of_combat" and c.def.is_hand_combat_card() and _use_allowed(p, c.def) and _can_play(p, c.def):
 			opts.append(Command.new(seat, &"use", c.uid))
 	if opts.is_empty():
@@ -2070,18 +2180,23 @@ func _prompt_attack_action(p: PlayerState) -> void:
 func attack_phase_options(p: PlayerState) -> Array[Command]:
 	var opts: Array[Command] = []
 	var ic: CardInstance = p.in_control()
-	for c in p.hand:
+	for c in _playable_from_hand(p):
 		if c.def.is_hand_combat_card() and _can_play(p, c.def):
 			if c.def.is_attack() and _attack_allowed(p, c.def):
 				if _can_pay(ic, p, c.def.attack, c):
 					opts.append(Command.new(p.index, &"attack", c.uid))
 					if c.def.empower > 0:
 						opts.append(Command.new(p.index, &"attack", c.uid, "empower"))
-			elif not c.def.is_attack() and str(c.def.raw.get("use_at", "")) == "" and _has_trigger(c.def.effects, "secondary") and (not c.def.is_defense() or bool(c.def.raw.get("use_in_attack", false)) or c.def.is_end_combat_card()) and _use_allowed(p, c.def) and not _forbidden(p, "non_attack_actions"):
+			# "Energy attack or raise your MP to its highest power stage": the same card used in
+			# place of an attack, which no attack restriction reaches but a ban on its card type does.
+			if c.def.is_attack() and c.def.raw.has("use_instead") and _use_allowed(p, c.def) and not _forbidden(p, "non_attack_actions") \
+					and not (c.def.type == CardDef.Type.STRIKE and _forbidden(p, "strike_cards")) and not (c.def.type == CardDef.Type.ART and _forbidden(p, "art_cards")):
+				opts.append(Command.new(p.index, &"use", c.uid))
+			elif not c.def.is_attack() and str(c.def.raw.get("use_at", "")) == "" and _has_trigger(c.def.effects, "secondary") and (not c.def.is_defense() or bool(c.def.raw.get("use_in_attack", false)) or c.def.is_end_combat_card()) and _use_allowed(p, c.def) and not _card_forbidden(p, c.def, "non_attack_actions"):
 				# Only a card with something to do when played: a pure counter ("use when needed")
 				# waits for the response window instead of being an attack-phase action.
 				opts.append(Command.new(p.index, &"use", c.uid))
-		if not p.final_strike_used:
+		if not p.final_strike_used and c.zone == &"hand":
 			opts.append(Command.new(p.index, &"final_strike", c.uid))
 	for c in p.remain_cards():
 		# `remain_by` names who the extra uses belong to, for a card that stays out "to be used one
@@ -2096,6 +2211,9 @@ func attack_phase_options(p: PlayerState) -> Array[Command]:
 	var only_attacks: bool = _forbidden(p, "non_attack_actions")
 	if not _forbidden(p, "non_combats") and not only_attacks:
 		for c in _active(p.non_combats()):
+			# One with its own timing ("Use when entering Combat") waits for that window.
+			if str(c.def.raw.get("use_at", "")) != "":
+				continue
 			if not c.def.effects_for("use").is_empty() and _can_play(p, c.def) and _copy_has_target(c):
 				opts.append(Command.new(p.index, &"use", c.uid))
 	if not only_attacks:
@@ -2266,6 +2384,9 @@ func _use_card(p: PlayerState, c: CardInstance, advance: bool = true) -> void:
 		if pays > 0:
 			p.duelist.energy = maxi(0, p.duelist.energy - pays)
 			_emit(&"cost_paid", {"player": p.index, "stages": pays, "life": 0, "energy": p.duelist.energy})
+		# An attack card used in place of its attack does its other half, then the lines it shares.
+		if c.def.is_attack():
+			_enqueue(c.def.raw.get("use_instead", []), "secondary", p.index, {}, c)
 		_enqueue(c.def.effects, "secondary", p.index, {}, c)
 		_enqueue([{"trigger": "secondary", "op": "finish_source"}], "secondary", p.index, {}, c)
 	else:
@@ -2340,7 +2461,8 @@ func _begin_attack(source: CardInstance, spec: Dictionary, effects: Array[Dictio
 	# client replays the declaration (a Life Deck bottom after use), and the view is read after that.
 	_emit(&"attack_declared", {
 		"player": att, "kind": state.attack["kind"], "source": state.attack["source"],
-		"id": source.def.id if source != null else "",
+		"id": source.def.id if source != null else str(spec.get("copied_id", "")),
+		"copied": int(spec.get("copied_card", -1)),
 		"is_power": is_power, "is_final": is_final, "focused": state.attack["focused"], "empowered": empowered,
 	})
 	state.battle_step = 2
@@ -2683,8 +2805,8 @@ func _open_counter_window(c: CardInstance, mode: String) -> bool:
 	var opp: PlayerState = state.players[1 - owner.index]
 	var opts: Array[Command] = []
 	if c.zone == &"hand" and c.def.type == CardDef.Type.COMBAT:
-		for k in opp.hand:
-			if k.def.counter == "combat" and k.def.is_hand_combat_card() and _can_play(opp, k.def) and not _forbidden(opp, "combat_cards"):
+		for k in _playable_from_hand(opp):
+			if k.def.counter == "combat" and k.def.is_hand_combat_card() and _can_play(opp, k.def) and not _card_forbidden(opp, k.def, "combat_cards"):
 				opts.append(Command.new(opp.index, &"counter", k.uid))
 	# "Stop the effect of any non-Seal card ... This card does not affect personalities":
 	# a Non-Combat in play that answers any card at all but a Seal.
@@ -2747,6 +2869,9 @@ func _handle_respond(cmd: Command) -> void:
 			_erase_from_zone(k)
 			k.zone = &"resolving"
 			_finish_card(k, false)
+		# "Stops the effects of any combat card. ... raise your anger 2 levels or draw a card": what
+		# the counter does besides stopping happens once the stop has landed.
+		_enqueue(k.def.effects, "on_counter", cmd.player, {}, k)
 		# "...and remove the card from the game."
 		if bool(k.def.raw.get("counter_removes", false)):
 			_remove_from_game(c)
@@ -2886,6 +3011,17 @@ func _advance_battle() -> void:
 						_set_prompt(defender.index, &"redirect", opts, {"source": int(a.get("source", -1))})
 						return
 				a["target"] = defender.in_control().uid
+			# "While attached, if your opponent would deal power stages of damage with an attack, you
+			# may instead take the damage as Life Cards": the defender's call, once per attack.
+			var rider: CardInstance = _stages_as_wounds_rider(defender)
+			if rider != null and int(a["stages"]) > 0 and not bool(a.get("stages_as_wounds_asked", false)):
+				a["stages_as_wounds_asked"] = true
+				var take_opts: Array[Command] = [Command.new(defender.index, &"pick_option", -1, "wounds"), Command.new(defender.index, &"pick_option", -1, "energy")]
+				_choice = {"kind": "stages_as_wounds"}
+				var take_ctx: Dictionary = _choice_context(rider, "stages_as_wounds")
+				take_ctx["stages"] = int(a["stages"])
+				_set_prompt(defender.index, &"pick_option", take_opts, take_ctx)
+				return
 			_deal_stage_damage(defender, a)
 			state.battle_step = 13
 		13:
@@ -2900,6 +3036,15 @@ func _advance_battle() -> void:
 					for dr in _drill_powers(defender):
 						if dr.def.has_trigger("on_damaged"):
 							_enqueue(dr.def.effects, "on_damaged", defender.index, {"attack": a}, dr)
+					# A rider's own "after taking damage" line answers the same way. One printed
+					# "the first time each combat" marks itself used, and is quiet after that.
+					for at in _active(defender.attachments()):
+						var answers: Array[Dictionary] = []
+						for line in at.def.attachment.get("effects", []):
+							if bool((line as Dictionary).get("once_per_combat", false)) and at.power_used_combat == state.combat_count:
+								continue
+							answers.append(line)
+						_enqueue(answers, "on_damaged", defender.index, {"attack": a}, at)
 					_order_since(damaged_mark, defender.index, "on_damaged")
 					if not _queue.is_empty():
 						return
@@ -3302,7 +3447,7 @@ func _prompt_defense() -> void:
 		return
 	var opts: Array[Command] = []
 	var candidates: Array[CardInstance] = []
-	candidates.append_array(d.hand)
+	candidates.append_array(_playable_from_hand(d))
 	candidates.append_array(d.remain_cards())
 	candidates.append_array(_active(d.non_combats()))
 	candidates.append_array(_active(d.drills()))
@@ -3419,7 +3564,7 @@ func _prompt_late_stop() -> bool:
 	var kind: String = str(a["kind"])
 	var focused: bool = bool(a["focused"])
 	var opts: Array[Command] = []
-	for c in d.hand:
+	for c in _playable_from_hand(d):
 		var mode: int = _defense_mode(d, c, kind, focused, true)
 		if mode == DEFENSE_STOPS:
 			opts.append(Command.new(d.index, &"defend", c.uid))
@@ -3631,6 +3776,10 @@ func _copied_attack(a: Dictionary) -> Dictionary:
 		adds.append({"source": str(a.get("extra_source", "Energy paid")), "stages": int(a.get("extra_stages", 0)), "life": int(a.get("extra_life", 0))})
 	spec["copied_adds"] = adds
 	spec["copied_multiply"] = int(b["own_multiply"])
+	# The copy has no card of its own, so it names the one it copies for the table to show.
+	if src != null:
+		spec["copied_card"] = src.uid
+		spec["copied_id"] = src.def.id
 	var again: int = 0
 	if src != null and not bool(a["is_power"]):
 		# It repeats only if the stopped card stays on the table to be used again: after a use from
@@ -3807,7 +3956,24 @@ func effect_amount(e: Dictionary, who: PlayerState, owner: PlayerState) -> int:
 			return 2 * who.fervor
 		"per_ally":
 			return who.allies().size()
+		"discard_copies":
+			# "For every <title> in your discard pile": copies of that title, and cards that count
+			# as one while they are there.
+			var copies: int = 0
+			for c in who.discard:
+				if titles_of(c).has(str(e.get("copies_of", ""))):
+					copies += 1
+			return copies
 	return 0
+
+
+## The titles a card answers to where it lies: its own, and in a discard pile any title it
+## "counts as 1 copy of while in your discard pile".
+func titles_of(c: CardInstance) -> Array[String]:
+	var out: Array[String] = [c.def.title]
+	if c.zone == &"discard" and str(c.def.raw.get("counts_as_in_discard", "")) != "":
+		out.append(str(c.def.raw["counts_as_in_discard"]))
+	return out
 
 
 ## The part of an attack's base damage the card fixes on its own, as {stages, life}: its printed
@@ -4228,6 +4394,8 @@ func _grounds_double_costs() -> bool:
 func counts_as_named(p: PlayerState, c: CardInstance, character: String) -> bool:
 	if c.def.character == character:
 		return true
+	if c.def.named_as_duelist and c.owner == p.index and c.def.names_duelist(p.duelist.def.character) and character == p.duelist.def.character:
+		return true
 	if c.zone != &"discard" or c.owner != p.index:
 		return false
 	var f: Dictionary = _floating_first(p.index, "discard_named")
@@ -4273,9 +4441,14 @@ func _modifiers_for(p: PlayerState, scope: String, kind: String, src: CardInstan
 	if p.relic != null and not _forbidden(p, "relic"):
 		pools.append([p.relic.def.modifiers, p.relic])
 	for at in _active(p.attachments()):
-		# A rider only speaks for the personality it rides on, for damage and for price alike.
-		if (scope == "own" or scope == "cost") and at.attached_to == p.in_control():
+		# A rider only speaks for the personality it rides on, for damage and for price alike. One
+		# riding the Mastery speaks for the whole side, the way the Mastery does.
+		if (scope == "own" or scope == "cost") and (at.attached_to == p.in_control() or (p.mastery != null and at.attached_to == p.mastery)):
 			pools.append([at.def.attachment.get("modifiers", []), at])
+		# "Attach this card to your opponent's MP. While attached, your opponent's attacks deal -X":
+		# a line that speaks for the side that laid the rider, wherever it rides.
+		if at.def.attachment.has("owner_modifiers"):
+			pools.append([at.def.attachment.get("owner_modifiers", []), at])
 	# "While attached, all attacks performed by that personality do -2 Energy": a hex the
 	# other side laid on this personality, read as this side's own modifier.
 	if scope == "own":
@@ -4312,7 +4485,7 @@ func _modifiers_for(p: PlayerState, scope: String, kind: String, src: CardInstan
 				continue
 			# "Attacks you perform with Named cards that match your Main Personality": a card of
 			# your duelist's character, not their personality card's own Power.
-			if bool(m.get("duelist_named", false)) and (src == null or src.def.type == CardDef.Type.PERSONALITY or src.def.character != p.duelist.def.character):
+			if bool(m.get("duelist_named", false)) and (src == null or src.def.type == CardDef.Type.PERSONALITY or not counts_as_named(p, src, p.duelist.def.character)):
 				continue
 			# "All of your marked attacks do +3 Energy": reads the keyword the card itself carries.
 			if m.has("tag") and (src == null or not has_tag(src, str(m["tag"]))):
@@ -4550,7 +4723,7 @@ func _use_when_needed_options(p: PlayerState) -> Array[Command]:
 	var opts: Array[Command] = []
 	if p.must_pass and state.step == GameState.Step.COMBAT:
 		return opts
-	for c in p.hand:
+	for c in _playable_from_hand(p):
 		if not bool(c.def.raw.get(USE_WHEN_NEEDED, false)) or not c.def.is_hand_combat_card() or c.def.counter != "":
 			continue
 		if _can_play(p, c.def) and _use_allowed(p, c.def) and not _band_forbidden(p, c.def) and _has_live_lines(c.def.effects, "secondary", p.index):
@@ -4643,7 +4816,7 @@ func _prompt_performing_attack(attacker: PlayerState, a: Dictionary) -> bool:
 		return false
 	a["performing_done"] = true
 	var opts: Array[Command] = []
-	for c in attacker.hand:
+	for c in _playable_from_hand(attacker):
 		if str(c.def.raw.get("use_at", "")) != "performing_attack" or not c.def.is_hand_combat_card() or not _can_play(attacker, c.def):
 			continue
 		if not _band_forbidden(attacker, c.def):
@@ -4663,7 +4836,7 @@ func _prompt_follow_up(attacker: PlayerState, a: Dictionary) -> bool:
 		return false
 	a["follow_up_done"] = true
 	var opts: Array[Command] = []
-	for c in attacker.hand:
+	for c in _playable_from_hand(attacker):
 		if str(c.def.raw.get("use_at", "")) != "own_successful_attack" or not c.def.is_hand_combat_card():
 			continue
 		var wants: String = str(c.def.raw.get("use_after_kind", ""))
@@ -5293,6 +5466,8 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		return
 	match op:
 		"fervor":
+			if amount is String:
+				amount = effect_amount(e, who, me)
 			# "Raise your Fervor 1 level. If a named character is in play, raise your Fervor 2 levels instead."
 			var instead: Dictionary = e.get("instead", {})
 			if not instead.is_empty() and _cond(instead.get("when", {}), owner, ctx):
@@ -5677,21 +5852,21 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 		"recur_source":
 			# "Remove a card from your discard pile to shuffle this card back into your Life Deck
 			# after use." `cost` says which discarded card pays; nothing happens without one.
-			var paid: CardInstance = null
+			var payers: Array[CardInstance] = []
 			for c in who.discard:
 				if c != source and _search_matches(who, c, e.get("cost", {}), "removed"):
-					paid = c
-					break
-			if paid != null and source != null:
-				_remove_from_game(paid)
-				# The card can be mid-resolution from hand or still sitting in play, so it leaves
-				# wherever it is before it joins the Life Deck.
-				_erase_from_zone(source)
-				source.zone = &"life_deck"
-				who.life_deck.append(source)
-				if shuffle_decks:
-					rng.shuffle(who.life_deck)
-				_emit(&"recur_source", {"player": who.index, "card": source.uid, "paid": paid.uid})
+					payers.append(c)
+			if payers.is_empty() or source == null:
+				return
+			# Which card pays is the player's call when more than one could.
+			if payers.size() > 1:
+				var pay_opts: Array[Command] = []
+				for c in payers:
+					pay_opts.append(Command.new(owner, &"pick_option", c.uid))
+				_choice = {"kind": "recur_pay", "player": who.index, "source": source.uid}
+				_set_prompt(owner, &"pick_option", pay_opts, _choice_context(source, "recur_pay"))
+				return
+			_recur_source(who, source, payers[0])
 		"discard_grounds":
 			# The Grounds is one card for the whole table rather than either player's, so it is
 			# not reachable through discard_in_play.
@@ -5784,6 +5959,16 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 			who.no_ascension_win = true
 			_emit(&"no_ascension_win", {"player": who_index})
 		"attach":
+			# "You may only have 1 of these attached at a time": the card still does the rest of what
+			# it says, and simply does not attach while one is already riding.
+			if source != null and bool(source.def.attachment.get("limit_only_attach", false)) and _attach_limit_reached(me, source.def):
+				return
+			if source != null and str(e.get("to", "")) == "own_mastery":
+				# "Attach this card to your <Mastery>": only that one printing hosts it.
+				var mastery_host: CardInstance = _attach_host(me, source.def)
+				if mastery_host != null:
+					_attach_to_host(source, me, mastery_host)
+				return
 			if source != null and str(e.get("to", "")) == "opponent_non_combat":
 				# "Attach to one of your opponent's Non-Combat cards in play": a Drill is one; a card
 				# already riding something is not a place to put another. None there, nothing rides.
@@ -5927,6 +6112,15 @@ func _apply_effect(e: Dictionary, owner: int, ctx: Dictionary, source: CardInsta
 				if shuffle_decks:
 					rng.shuffle(home.life_deck)
 					_emit(&"deck_shuffled", {"player": home.index})
+		"place_aside":
+			# The card a search set aside comes into play now. One that can no longer be placed (a
+			# Drill of another school already standing) goes to the discard pile instead.
+			var aside: CardInstance = card(int(e.get("card", -1)))
+			if aside != null and aside.zone == &"aside":
+				if _can_place(me, aside):
+					_place(me, aside)
+				else:
+					_move_to_discard(aside)
 		"mark_used":
 			# A "once per Combat" that is spent by taking it, not by being offered it. Put this in
 			# a `then` so a declined "may" leaves the card still available this Combat.
@@ -6092,6 +6286,14 @@ func _cond(when: Dictionary, owner: int, ctx: Dictionary) -> bool:
 					if _search_matches(me, c, {"card_type": v}, "deck"):
 						has_one = true
 				if not has_one:
+					return false
+			"discard_has":
+				# A discard pile holding a card that matches a search spec, for a cost paid from it.
+				var holds: bool = false
+				for c in me.discard:
+					if _search_matches(me, c, v, "removed"):
+						holds = true
+				if not holds:
 					return false
 			"drill_school_in_play":
 				# "Discard one of your Storm Drills in play": there has to be one to discard.
@@ -6321,9 +6523,15 @@ func _forbidden(p: PlayerState, what: String) -> bool:
 	return _forbid_hits(p).has(what)
 
 
+## A forbid as it reaches one card: "This card is unaffected by Constant Combat Powers" sets aside
+## what the rival's Constant Power forbids.
+func _card_forbidden(p: PlayerState, def: CardDef, what: String) -> bool:
+	return _forbid_hits(p, not def.unaffected_by_constants).has(what)
+
+
 ## Standing restrictions on a player from floating forbids, Grounds, Drills, Non-Combats, Seals and
 ## the opponent's constant power, as a set of forbid `what` words.
-func _forbid_hits(p: PlayerState) -> Dictionary:
+func _forbid_hits(p: PlayerState, with_constants: bool = true) -> Dictionary:
 	var hit: Dictionary = {}
 	for f in state.floating:
 		if int(f.get("owner", -1)) != p.index or str(f.get("op", "")) != "forbid":
@@ -6349,6 +6557,8 @@ func _forbid_hits(p: PlayerState) -> Dictionary:
 				hit[str(rule.get("what", ""))] = true
 	# The opponent's constant power can forbid things too, but never powers. Read it raw: going
 	# through _constant() would ask whether *their* powers are forbidden and recurse forever.
+	if not with_constants:
+		return hit
 	for w in _raw_constant(state.players[1 - p.index]).get("forbid_opponent", []):
 		if str(w) != "powers":
 			hit[str(w)] = true
@@ -6372,7 +6582,7 @@ func _attack_allowed(p: PlayerState, def: CardDef, kind_override: String = "") -
 			return false
 		if def.type == CardDef.Type.ART and _forbidden(p, "art_cards"):
 			return false
-		if def.type == CardDef.Type.COMBAT and _forbidden(p, "combat_cards"):
+		if def.type == CardDef.Type.COMBAT and _card_forbidden(p, def, "combat_cards"):
 			return false
 		if _named_forbidden(def):
 			return false
@@ -6380,11 +6590,11 @@ func _attack_allowed(p: PlayerState, def: CardDef, kind_override: String = "") -
 
 
 func _use_allowed(p: PlayerState, def: CardDef) -> bool:
-	if def.type == CardDef.Type.COMBAT and _forbidden(p, "combat_cards"):
+	if def.type == CardDef.Type.COMBAT and _card_forbidden(p, def, "combat_cards"):
 		return false
-	if def.is_end_combat_card() and _forbidden(p, "end_combat"):
+	if def.is_end_combat_card() and _card_forbidden(p, def, "end_combat"):
 		return false
-	if def.is_stop_all_card() and _forbidden(p, "stop_all"):
+	if def.is_stop_all_card() and _card_forbidden(p, def, "stop_all"):
 		return false
 	if _named_forbidden(def):
 		return false
@@ -6469,16 +6679,22 @@ func _can_play(p: PlayerState, def: CardDef) -> bool:
 	if _attaches_to(def) == "named" and _attach_host(p, def) == null:
 		return false
 	# "X may have only 1 attached": a second copy stays in hand while one is on that personality.
-	var attach_limit: int = int(def.attachment.get("limit_attached", 0))
-	if attach_limit > 0:
-		var host: CardInstance = _attach_host(p, def)
-		var attached: int = 0
-		for at in p.attachments():
-			if at.def.id == def.id and at.attached_to == host:
-				attached += 1
-		if attached >= attach_limit:
-			return false
+	# A card whose attaching is only one of the things it does is still played; it just stays off.
+	if not bool(def.attachment.get("limit_only_attach", false)) and _attach_limit_reached(p, def):
+		return false
 	return true
+
+
+func _attach_limit_reached(p: PlayerState, def: CardDef) -> bool:
+	var attach_limit: int = int(def.attachment.get("limit_attached", 0))
+	if attach_limit <= 0:
+		return false
+	var host: CardInstance = _attach_host(p, def)
+	var attached: int = 0
+	for at in p.attachments():
+		if at.def.id == def.id and at.attached_to == host:
+			attached += 1
+	return attached >= attach_limit
 
 
 ## One "X only" gate. `any_of` holds a list of gates and passes when any one of them does, which
@@ -6550,6 +6766,10 @@ func _attach_host(p: PlayerState, def: CardDef) -> CardInstance:
 				return state.players[1 - p.index].duelist
 			"opponent_in_control":
 				return state.players[1 - p.index].in_control()
+			"own_mastery":
+				if p.mastery != null and p.mastery.def.id == str(e.get("mastery", "")):
+					return p.mastery
+				return null
 			_:
 				return p.duelist
 	return null
@@ -6637,7 +6857,7 @@ func _hand_filtered(p: PlayerState, filter: Variant) -> Array[CardInstance]:
 	for c in p.hand:
 		match named:
 			"signature":
-				if c.def.character != "" and c.def.character == p.duelist.def.character:
+				if c.def.names_duelist(p.duelist.def.character):
 					out.append(c)
 			"non_seal":
 				if c.def.type != CardDef.Type.SEAL:
@@ -6753,9 +6973,9 @@ func _draw_check_matches(p: PlayerState, drawn: CardInstance, e: Dictionary) -> 
 			# "if it is a Physical or Energy Combat card": a card that attacks, either kind.
 			return drawn.def.type == CardDef.Type.STRIKE or drawn.def.type == CardDef.Type.ART
 		"named":
-			return drawn.def.character != ""
+			return drawn.def.character != "" or drawn.def.named_as_duelist
 		"signature":
-			return drawn.def.character != "" and drawn.def.character == p.duelist.def.character
+			return drawn.def.names_duelist(p.duelist.def.character)
 		"title_contains":
 			return drawn.def.title.contains(str(e.get("title_contains", "")))
 		_:
@@ -6900,7 +7120,8 @@ func _in_play_candidates(p: PlayerState, type_name: String, own_effect: bool = f
 	# The Grounds is one card for the whole table rather than a card in anyone's in-play zone, so
 	# a card that reaches it has to name it and it joins the list here. Only the side that put it
 	# out loses it, which is what "your opponent's Grounds" means when one Grounds is on the table.
-	if type_name == "non_combat_ally_or_grounds" and state.grounds != null and state.grounds.owner == p.index:
+	# Any card in play but a Seal: everything the default type takes, Grounds too.
+	if (type_name == "non_combat_ally_or_grounds" or type_name == "non_seal") and state.grounds != null and state.grounds.owner == p.index:
 		out.append(state.grounds)
 	return out
 
@@ -7412,6 +7633,26 @@ func _handle_choice(cmd: Command) -> void:
 			var attaching: CardInstance = card(int(_choice["source"]))
 			if attaching != null:
 				_attach_to_host(attaching, state.players[int(_choice["player"])], card(cmd.card))
+		"recur_pay":
+			var recurring: CardInstance = card(int(_choice["source"]))
+			if recurring != null:
+				_recur_source(state.players[int(_choice["player"])], recurring, card(cmd.card))
+		"stages_as_wounds":
+			if str(cmd.value) == "wounds" and not state.attack.is_empty():
+				var taken: Dictionary = state.attack
+				_emit(&"stages_as_wounds", {"player": cmd.player, "stages": int(taken["stages"])})
+				taken["life"] = int(taken["life"]) + int(taken["stages"])
+				taken["stages"] = 0
+		"transform_pay":
+			var transformer: PlayerState = state.players[int(_choice["player"])]
+			var played: CardInstance = card(int(_choice["card"]))
+			_transform(transformer, played, card(cmd.card))
+			var again: Command = Command.new(transformer.index, StringName(str(_choice["cmd_type"])), played.uid, _choice.get("cmd_value"))
+			var again_kind: StringName = StringName(str(_choice["prompt_kind"]))
+			var again_context: Dictionary = _choice["context"]
+			_choice = {}
+			_handle(again_kind, again, again_context)
+			return
 		"energy_target":
 			var picked: CardInstance = card(cmd.card)
 			# A board-wide choice may land on the other side, so the pile it belongs to is the
@@ -7743,6 +7984,13 @@ func _aspect_up(p: PlayerState) -> void:
 	p.duelist.go_to_aspect(p.duelist.aspect + 1)
 	p.duelist.energy = CardInstance.MAX_STAGE
 	_discard_drills(p, true)
+	# "Discard this card when your opponent's MP advances a personality level."
+	for q in state.players:
+		for at in q.attachments():
+			if at.attached_to == p.duelist and bool(at.def.attachment.get("discard_on_host_advance", false)):
+				at.attached_to = null
+				_emit(&"in_play_discarded", {"player": at.controller, "card": at.uid, "removed": false, "to": "discard"})
+				_move_to_discard(at)
 	_emit(&"aspect_up", {"player": p.index, "aspect": p.duelist.aspect})
 	# "When you ascend, put the top 3 cards of your discard pile on the bottom of your Life Deck."
 	for id in p.resonances:
@@ -8089,7 +8337,9 @@ func _search(p: PlayerState, e: Dictionary) -> void:
 	if cands.is_empty() and not looks:
 		return
 	var distinct: Array[CardInstance] = _search_distinct(cands)
-	if looks or (bool(e.get("choose", true)) and distinct.size() > 1):
+	# A search the card makes you complete still puts the pile in front of the player, a lone hit
+	# included, so they see what they take rather than having it taken for them.
+	if looks or (bool(e.get("choose", true)) and (distinct.size() > 1 or bool(e.get("must", false)))):
 		_choice = {"kind": "search_pick", "player": p.index, "effect": e, "remaining": n}
 		_prompt_search_pick(p, distinct, n, e)
 		return
@@ -8262,12 +8512,12 @@ func _search_matches(p: PlayerState, c: CardInstance, e: Dictionary, to: String)
 	if e.has("school_not") and c.def.school == str(e["school_not"]):
 		return false
 	var title_contains: String = str(e.get("title_contains", ""))
-	if title_contains != "" and not c.def.title.contains(title_contains):
+	if title_contains != "" and not titles_of(c).any(func(t: String) -> bool: return t.contains(title_contains)):
 		return false
 	var exclude: String = str(e.get("exclude_title", ""))
 	if exclude != "" and c.def.title == exclude:
 		return false
-	if str(e.get("signature_of", "")) == "duelist" and c.def.character != p.duelist.def.character:
+	if str(e.get("signature_of", "")) == "duelist" and not counts_as_named(p, c, p.duelist.def.character):
 		return false
 	# "A <Name> named card": that character's Signature cards, whoever is searching. A list is
 	# "an X or Y Signature card".
@@ -8456,6 +8706,12 @@ func _search_take(p: PlayerState, hit: CardInstance, e: Dictionary, searched: bo
 		hit.zone = &"hand"
 		p.hand.append(hit)
 		_pending_attack = hit.uid
+	elif to == "aside":
+		# "Search your life deck for a drill and set it aside. Place the chosen drill into play at
+		# the end of combat." It waits outside every zone until then.
+		_erase_from_zone(hit)
+		hit.zone = &"aside"
+		_float(p.index, "at_combat_end", "combat", {"effects": [{"op": "place_aside", "card": hit.uid}], "source": hit.uid})
 	elif to == "removed":
 		# "Remove 1 of them from the game": the card leaves from wherever it sits, deck included.
 		_remove_from_game(hit)
@@ -8511,6 +8767,26 @@ func _attach_to_host(c: CardInstance, p: PlayerState, host: CardInstance) -> voi
 	p.in_play.append(c)
 	_emit(&"attached", {"player": p.index, "card": c.uid, "host": host.uid})
 	_check_lonely_drills(p)
+
+
+## A rider of `p`'s that lets them take an attack's Energy damage as wounds instead, or null.
+func _stages_as_wounds_rider(p: PlayerState) -> CardInstance:
+	for at in _active(p.attachments()):
+		if at.attached_to != null and bool(at.def.attachment.get("stages_as_wounds", false)):
+			return at
+	return null
+
+
+## "Remove a card from your discard pile to shuffle this card back into your Life Deck": `paid` goes
+## first. The card can be mid-resolution or still on the table, so it leaves wherever it is.
+func _recur_source(p: PlayerState, source: CardInstance, paid: CardInstance) -> void:
+	_remove_from_game(paid)
+	_erase_from_zone(source)
+	source.zone = &"life_deck"
+	p.life_deck.append(source)
+	if shuffle_decks:
+		rng.shuffle(p.life_deck)
+	_emit(&"recur_source", {"player": p.index, "card": source.uid, "paid": paid.uid})
 
 
 ## Returns the last card drawn, null when the pile was empty.
@@ -8640,6 +8916,11 @@ func _move_to_discard(c: CardInstance, quiet: bool = false) -> void:
 	if c.def.type == CardDef.Type.SEAL:
 		_bypass_seal(c)
 		return
+	# "If a card with 'Transform' in its text box would be discarded from play, it is removed from
+	# the game instead."
+	if c.def.transform and (c.zone == &"in_play" or c.zone == &"resolving"):
+		_remove_from_game(c, quiet)
+		return
 	# "When one of your non-Root cards goes to the discard pile, remove it from the game
 	# instead."
 	var keeper: PlayerState = state.players[c.owner]
@@ -8741,6 +9022,11 @@ func _finish_card(c: CardInstance, empowered: bool) -> void:
 		c.remain_combat = state.combat_count
 		owner.in_play.append(c)
 		_emit(&"remain", {"player": c.owner, "card": c.uid, "uses": remain})
+		return
+	# "All cards with 'Transform' are removed from game after use, even if they have not been
+	# 'Transformed' first": no Empower or other rule sends one anywhere else.
+	if def.transform:
+		_remove_from_game(c)
 		return
 	# "When you use a Steel card to perform an attack, it is placed on the bottom of your Life
 	# Deck after use": a block or a Combat card of that school is not using it to attack.

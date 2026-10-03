@@ -31,6 +31,10 @@
       "count": 3
     },
     {
+      "id": "pyre_art_12",
+      "count": 3
+    },
+    {
       "id": "signature_art_09",
       "count": 1
     },
@@ -43,15 +47,15 @@
       "count": 1
     },
     {
-      "id": "freestyle_combat_07",
-      "count": 1
-    },
-    {
       "id": "freestyle_combat_20",
       "count": 1
     },
     {
       "id": "pyre_combat_01",
+      "count": 1
+    },
+    {
+      "id": "pyre_combat_04",
       "count": 1
     },
     {
@@ -64,7 +68,7 @@
     },
     {
       "id": "signature_combat_04",
-      "count": 2
+      "count": 1
     },
     {
       "id": "freestyle_strike_03",
@@ -75,12 +79,8 @@
       "count": 3
     },
     {
-      "id": "pyre_strike_02",
-      "count": 3
-    },
-    {
       "id": "pyre_strike_05",
-      "count": 3
+      "count": 2
     },
     {
       "id": "pyre_strike_06",
@@ -96,7 +96,7 @@
     },
     {
       "id": "pyre_strike_11",
-      "count": 1
+      "count": 2
     },
     {
       "id": "pyre_strike_13",
@@ -104,10 +104,6 @@
     },
     {
       "id": "pyre_strike_16",
-      "count": 2
-    },
-    {
-      "id": "pyre_strike_19",
       "count": 2
     },
     {
@@ -119,12 +115,16 @@
       "count": 2
     },
     {
+      "id": "pyre_strike_29",
+      "count": 2
+    },
+    {
       "id": "signature_strike_01",
       "count": 1
     },
     {
       "id": "signature_strike_02",
-      "count": 2
+      "count": 3
     },
     {
       "id": "signature_strike_03",

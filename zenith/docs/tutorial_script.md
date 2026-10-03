@@ -55,7 +55,7 @@ Three kinds of step carry words:
   (`says`), shown as it is made.
 
 Stops per lesson: lesson 1 has 4, lesson 2 has 2, lesson 3 has 3, lesson 4 has 2, lesson 5 has 3:
-14 in all (the cap is 4, 3, 4, 3 and 3). The session puts 548 words on screen in lines and
+14 in all (the cap is 4, 3, 4, 3 and 3). The session puts 550 words on screen in lines and
 callouts, down from 846.
 
 Before each scripted rival move the rival's card gathers itself for 0.5 s (it rises and glows) so
@@ -104,23 +104,23 @@ opens.
 
 | # | Kind | What happens | Words |
 |---|---|---|---|
-| 1 | Stop | The table opens | Narration: "Caedan Vale, the last Vale swordsman, keeps his promise to teach Emrys." / Vale [the Knight's card]: "That's the Straw Knight. Hit it." / Emrys: "It's STRAW, Master Vale!" / Vale [the Knight's card]: "Then you'll win." |
-| 6 | Move | Declare Combat, the only enabled option | Vale [Declare Combat button]: "Declare Combat." |
-| 8 | Move | Emrys' Power, "draw a card?": only Yes. Draws Emrys' Hilt Guard | Vale [the Yes tile]: "Draw a card. Your Power gives one when you declare." |
-| 7 | Bark | The Knight draws 3 | Vale note [the Knight's hand]: "It draws three when you declare." |
-| 9 | Move | Attack: Emrys' Rising Blow. Might 10 (C) against 5 (B) gives 2, +3: 5 Energy, Knight 5 to 0. Attune 1, Fervor 1 | Vale [the card's number]: "Click the Rising Blow to attack. Its number counts both fighters' Might." |
-| 9 | Bark | The Blow lands; the Knight rocks | Emrys: "Ha! Take THAT, straw!" |
-| 9 | Stop | | Vale [Emrys' Fervor tab]: "Attune fills your Fervor. Five and you climb." |
-| 10 | Rival | The Knight passes | Emrys: "Can't hit back, can you?!" |
-| 11 | Move | Attack: Emrys' Sword Thrust. 2 + 2 = 4, the Knight has no Energy left: 4 wounds | Vale [the card]: "Attack with the Sword Thrust." |
-| 11 | Stop, held | | Vale [the Knight's Life Deck]: "No Energy left, so the damage hit its Life Deck. Empty it and you win." |
+| 1 | Stop | The table opens | Narration: "Caedan Vale keeps a promise to teach Emrys, son of his former comrade." / Vale [the Knight's card]: "Your father fought at my side in the war, and he became the only man outside my blood to learn our sword." / Vale [the Knight's card]: "Seeing you there, I could swear the years had turned back. Strike the knight, and let me watch how you hold that sword." / Emrys: "What is to be learned from striking a bundle of straw?" / Vale [the Knight's card]: "Your father asked me the same, boy. A wall is raised one stone at a time." |
+| 6 | Move | Declare Combat, the only enabled option | Vale [Declare Combat button]: "Declare Combat, and let us begin." |
+| 8 | Move | Emrys' Power, "draw a card?": only Yes. Draws Emrys' Hilt Guard | Vale [the Yes tile]: "Draw the card your Power grants when you declare." |
+| 7 | Bark | The Knight draws 3 | Vale note [the Knight's hand]: "When you declare, the knight draws three." |
+| 9 | Move | Attack: Emrys' Rising Blow. Might 10 (C) against 5 (B) gives 2, +3: 5 Energy, Knight 5 to 0. Attune 1, Fervor 1 | Vale [the card's number]: "Attack with the Rising Blow. Its number is the Energy it drains." |
+| 9 | Bark | The Blow lands; the Knight rocks | Emrys: "Ha! It's wobbling!" |
+| 9 | Stop | | Vale [Emrys' Fervor tab]: "See your Fervor rise? That's Attune, and at five you climb." |
+| 10 | Rival | The Knight passes | Emrys: "Won't you hit back? Coward!" |
+| 11 | Move | Attack: Emrys' Sword Thrust. 2 + 2 = 4, the Knight has no Energy left: 4 wounds | Vale [the card]: "Now attack with the Sword Thrust." |
+| 11 | Stop, held | | Vale [the Knight's Life Deck]: "With its Energy gone, your Thrust wounded its Life Deck. Empty that deck and you win." |
 | 12 | Rival | The Knight passes | |
-| 13 | Move | Attack: Lobbed Bolt. Costs 2 Energy (7 to 5), 4 wounds | Vale [the card]: "Attack with the Lobbed Bolt. Arts cost Energy and ignore Might." |
-| 13 | Bark | Emrys' Might falls to 8, band B | Vale note [Emrys' ladder]: "Spending Energy lowers your Might." |
-| 14 | Move | Knight passes, Emrys passes (only Pass enabled), Combat ends | Vale [Pass button]: "Pass and keep the Hilt Guard." |
+| 13 | Move | Attack: Lobbed Bolt. Costs 2 Energy (7 to 5), 4 wounds | Vale [the card]: "Attack with the Lobbed Bolt. An Art costs 2 Energy but wounds directly." |
+| 13 | Bark | Emrys' Might falls to 8, band B | Vale note [Emrys' ladder]: "Paying Energy lowered your Might, which drives your Strikes." |
+| 14 | Move | Knight passes, Emrys passes (only Pass enabled), Combat ends | Vale [Pass button]: "Pass, for two passes in a row end Combat." |
 | 15 | | Discard step: Emrys holds only the Hilt Guard, nothing to decide | |
 | 16 | | The Knight's turn plays out on its own: draw, Power Up to 3, no Combat, discard | |
-| 17 | Stop | At the end of the Knight's turn | Vale [the Knight's card]: "Good. Now it hits back." / Emrys: "Since WHEN?!" |
+| 17 | Stop | At the end of the Knight's turn | Vale [the Knight's card]: "Well struck, boy, but now the knight hits back." / Emrys: "Hit back with WHAT?" |
 
 ## Lesson 2. Guard (2 stops)
 
@@ -129,23 +129,23 @@ step, being attacked, Final Strike, skipping Combat, Recover.
 
 | # | Kind | What happens | Words |
 |---|---|---|---|
-| 0 | Stop | | Narration: "Caedan ties a rope to the Straw Knight's arm." / Vale [the Knight's Power line]: "Now it can use its Power, a Strike." |
+| 0 | Stop | | Narration: "Caedan ties a rope to the Straw Knight's arm." / Vale [the Knight's Power line]: "Now its Power works. It's a Strike." |
 | 1 | | Emrys draws Emrys' Rising Blow, Emrys' Sword Thrust, Emrys' Sword Sweep. No Non-Combat decision. Power Up to 7 | |
 | 2 | Move | Declares Combat | Vale [Declare Combat button]: "Declare Combat." |
-| 3 | Move | Power: Yes, draws a card | Vale [the Yes tile]: "Take your card." |
+| 3 | Move | Power: Yes, draws a card | Vale [the Yes tile]: "Draw your card." |
 | 4 | Move | Attack: Emrys' Rising Blow, 5 Energy against the Knight's 3: 3 Energy and 2 wounds. Fervor 2 | Vale [the card]: "Attack with the Rising Blow." |
-| 5 | Rival | Power: Strike, pulled on the rope. Might 5 (B) against 10 (C) gives 0, +3: 3 Energy | Emrys, as it winds up: "It MOVES?!" |
-| 6 | Move | Defend: Emrys' Hilt Guard (the only enabled defence). Stops it, then brings Emrys' Sword Thrust back from the discard pile | Vale [the Hilt Guard]: "Block with the Hilt Guard. Strike cards stop Strikes." |
-| 7 | Move | Pass (the only enabled option). The Knight passes, Combat ends | Vale [Pass button]: "Pass. Two passes in a row end Combat." |
-| 9 | Move | Discard step: keeps one card of his choice | Vale: "End your turn by keeping one card." |
+| 5 | Rival | Power: Strike, pulled on the rope. Might 5 (B) against 10 (C) gives 0, +3: 3 Energy | Emrys, as it winds up: "You're CHEATING!" |
+| 6 | Move | Defend: Emrys' Hilt Guard (the only enabled defence). Stops it, then brings Emrys' Sword Thrust back from the discard pile | Vale [the Hilt Guard]: "Defend with the Hilt Guard. It stops Strikes." |
+| 7 | Move | Pass (the only enabled option). The Knight passes, Combat ends | Vale [Pass button]: "Pass." |
+| 9 | Move | Discard step: keeps one card of his choice | Vale: "Keep one card." |
 | 10 | Rival | Its turn: Caedan pulls the rope, it declares Combat. Emrys draws 3 | |
 | 11 | Rival | Power: Strike. Emrys holds nothing that stops it and takes 3 Energy (7 to 4) | |
-| 11 | Bark | | Emrys: "OW! It's STRAW!" / Vale note [Emrys' ladder]: "Energy soaks hits first." |
-| 12 | Move | Attack: Final Strike, on any card (the only enabled option). Discards it for a bare Strike: 1 Energy | Vale [Final Strike button]: "Make a Final Strike. Any card becomes one bare Strike, once per Combat." |
+| 11 | Bark | | Emrys: "Ow! That was YOU!" / Vale note [Emrys' ladder]: "Strikes drain your Energy first." |
+| 12 | Move | Attack: Final Strike, on any card (the only enabled option). Discards it for a bare Strike: 1 Energy | Vale [Final Strike button]: "Make a Final Strike. Any card becomes a Strike, then you sit out this Combat." |
 | 13 | Move | Knight passes, Combat ends. Emrys keeps one card of his choice | (no words) |
 | 14 | Move | New turn. Draws 3. Declare: only Skip Combat is enabled. Then keeps one card of his choice | Vale [Skip Combat button]: "Skip Combat this turn." / keep: (no words) |
-| 15 | Move | Recover: moves the top discard to the bottom of his Life Deck | Vale [Recover button]: "Recover a card. A skipped Combat puts one back into your life." |
-| 16 | Stop | The Knight's turn plays out, then Emrys draws Emrys' Rising Blow, Emrys Risks It All, Emrys' Rising Blow and powers up to 8 | Vale: "Enough straw." / Narration: "Caedan draws his sword." |
+| 15 | Move | Recover: moves the top discard to the bottom of his Life Deck | Vale [Recover button]: "Recover a card. Your top discard goes back under your Life Deck." |
+| 16 | Stop | The Knight's turn plays out, then Emrys draws Emrys' Rising Blow, Emrys Risks It All, Emrys' Rising Blow and powers up to 8 | Vale: "Enough straw. You wanted me." / Narration: "Caedan draws his sword." |
 
 ## Lesson 3. The Spar (3 stops)
 
@@ -158,19 +158,19 @@ everything: Energy 8, Fervor 2, hand, piles.
 
 | # | Kind | What happens | Words |
 |---|---|---|---|
-| 1 | Stop | | Emrys: "Finally! No more straw!" / Caedan: "Guard." |
-| 2 | Move | Declares. Power: Yes, draws a card | Vale [Declare Combat button]: "Declare Combat." / Vale [the Yes tile]: "Take your card." |
+| 1 | Stop | | Emrys: "Finally! Don't go easy!" / Caedan: "Guard." |
+| 2 | Move | Declares. Power: Yes, draws a card | Vale [Declare Combat button]: "Declare Combat." / Vale [the Yes tile]: "Draw your card." |
 | 3 | Rival | Power: looks at his top 8, takes Vale's Sword Draw. Draws 3 | Vale note [his Power line]: "Every Duelist has a Power. Read mine." |
 | 4 | Move | Attack: Emrys' Rising Blow. Attune 1, Fervor 3 | Vale [the card]: "Attack with the Rising Blow." |
-| 5 | Rival | Defends with Caedan's Riposte and stops it | Vale note [Emrys' Fervor tab]: "Stopped, but the Attune counted." |
-| 6 | Rival | Attack: repeats the stopped Rising Blow against Emrys: 4 Energy (8 to 4) | Caedan, as he winds up: "Left shoulder. Just like your father." / then Vale note [his card]: "My Riposte threw your attack back." |
+| 5 | Rival | Defends with Caedan's Riposte and stops it | Vale note [Emrys' Fervor tab]: "I stopped it. The Attune still counted." |
+| 6 | Rival | Attack: repeats the stopped Rising Blow against Emrys: 4 Energy (8 to 4) | Caedan, as he winds up: "Left shoulder. Like your father." / then Vale note [his card]: "My Riposte threw your Blow back." |
 | 7 | | Emrys takes it (nothing in hand can stop it) | |
-| 8 | Move | Attack: Emrys Risks It All, 4 Energy (Caedan 10 to 6). Caedan can't answer with a Strike card. Fervor 4 | Vale [the card's text]: "Attack with Emrys Risks It All. Strike cards can't stop it." / Emrys, as he plays it: "Everything I've GOT!" |
+| 8 | Move | Attack: Emrys Risks It All, 4 Energy (Caedan 10 to 6). Caedan can't answer with a Strike card. Fervor 4 | Vale [the card's text]: "Attack with Emrys Risks It All. Strike cards can't stop it." / Emrys, as he plays it: "Shoulder UP! Everything I've got!" |
 | 9 | Rival | Attack: Vale's Sword Draw. Emrys takes 4 Energy and 1 wound | |
 | 10 | Move | Attack: Emrys' Rising Blow. Fervor 5: he climbs as the Blow is made, and it lands at Might 21 for 6 Energy | Vale [the card]: "Attack with the Rising Blow." |
-| 11 | Stop | Emrys stands at First Plate: full Energy, Fervor back to 0. His card flashes and a grey metal sheen sweeps across it (0.9 s) as the caption shows | Narration: "Grey metal closes over Emrys' forearms." / Emrys: "Master Vale... my ARMS?!" / Caedan: "...That isn't my sword art, boy." / Emrys: "Is it GOOD?!" |
-| 12 | Stop | | Vale [Emrys' Aspect]: "Five Fervor climbs an Aspect and refills your Energy." / Caedan: "Let's find out. Again." |
-| 13 | Move | A fresh bout: Combat ends, both fighters to Energy 5, Caedan's Fervor to 0. Emrys keeps one card of his choice | Vale: "We both restart at five Energy. Keep one card." |
+| 11 | Stop | Emrys stands at First Plate: full Energy, Fervor back to 0. His card flashes and a grey metal sheen sweeps across it (0.9 s) as the caption shows | Narration: "Grey metal closes over Emrys' forearms." / Emrys: "Master Vale... my arms?" / Caedan: "'Tis no sword art of mine." / Emrys: "Is it good?!" / Caedan: "I've no idea." |
+| 12 | Stop | | Vale [Emrys' Aspect]: "You climbed an Aspect. Your Energy refills and your Fervor resets." / Caedan: "Again." |
+| 13 | Move | A fresh bout: Combat ends, both fighters to Energy 5, Caedan's Fervor to 0. Emrys keeps one card of his choice | Vale: "Keep one card." |
 
 ## Lesson 4. Steel (2 stops)
 
@@ -183,21 +183,21 @@ Routing Roar).
 
 | # | Kind | What happens | Words |
 |---|---|---|---|
-| 1 | Stop | | Caedan: "I don't know magic. I know what hits. Show me." |
+| 1 | Stop | | Caedan: "I can't teach magic. Show me what hits." |
 | 2 | | Draws Steel Clawed Hands Drill, Steel Hardscale Drill, Steel Lashing Tail | |
-| 3 | Move | Non-Combat: places both Drills, one at a time. Power Up to 8 | Vale [the Drill]: "Set out the Clawed Hands Drill. Drills stay until you climb." / Vale [the Drill]: "Set out the Hardscale Drill. It stops one Strike each Combat." |
-| 4 | Move | Declares. First Plate's Power searches the Life Deck (whole deck shown): only the Ironscale Hide enabled. Caedan's Power takes his second Vale's Sword Draw | Vale [Declare Combat button]: "Declare Combat." / Vale [the Hide in the tray]: "Take the Ironscale Hide. Your new Power fetches it." |
-| 5 | Move | Attack: Steel Lashing Tail, with the Clawed Hands Drill adding 2: 3 Energy and 4 wounds. Fervor 1 | Vale [the card's number]: "Attack with the Lashing Tail. Its number includes the Drill's +2." |
-| 6 | Rival, Move | Attack: Caedan's Pommel Bash. Emrys declines to block; the Hardscale Drill stops it | Vale [No Defense button]: "Don't block. Your Hardscale Drill is a Defense Shield." |
-| 6 | Bark | | Emrys: "It held!" / Caedan: "...Hm." |
+| 3 | Move | Non-Combat: places both Drills, one at a time. Power Up to 8 | Vale [the Drill]: "Place the Clawed Hands Drill. Drills stay until you climb." / Vale [the Drill]: "Place the Hardscale Drill. It stops my first Strike each Combat." |
+| 4 | Move | Declares. First Plate's Power searches the Life Deck (whole deck shown): only the Ironscale Hide enabled. Caedan's Power takes his second Vale's Sword Draw | Vale [Declare Combat button]: "Declare Combat." / Vale [the Hide in the tray]: "Pick the Ironscale Hide. Your new Power fetches it." |
+| 5 | Move | Attack: Steel Lashing Tail, with the Clawed Hands Drill adding 2: 3 Energy and 4 wounds. Fervor 1 | Vale [the card's number]: "Attack with the Lashing Tail. The Drill adds 2." |
+| 6 | Rival, Move | Attack: Caedan's Pommel Bash. Emrys declines to block; the Hardscale Drill stops it | Vale [Take it button]: "Take it. Your Hardscale Drill is a Defense Shield." |
+| 6 | Bark | | Emrys: "It HELD!" |
 | 7 | Move | Passes | Vale [Pass button]: "Pass." |
-| 8 | Rival, Move | Attack: Caedan's Declaration, an Art: a battle shout. Disrupt 2 as it is made. 4 wounds; Emrys declines to block. The first card flipped is Steel Taloned Fist | Caedan, as he winds up: "HAH!" / Vale [No Defense button]: "Don't block this one." |
-| 9 | Move | Endurance prompt: only Use Endurance. Removes Taloned Fist to prevent 3, so the shout costs 1 card | Vale [Use Endurance button]: "Use Endurance. The flipped card soaks the rest." |
-| 10 | Bark | Declaration's Disrupt 2 took Fervor 1 to 0 | Vale note [Emrys' Fervor tab]: "My Disrupt lowered your Fervor." / Caedan: "One Aspect a day, boy." |
+| 8 | Rival, Move | Attack: Caedan's Declaration, an Art: a battle shout. Disrupt 2 as it is made. 4 wounds; Emrys declines to block. The first card flipped is Steel Taloned Fist | Caedan, as he winds up: "HAH!" / Vale [Take it button]: "Take it. Your Drill only stops Strikes." (greyed Hide: "Save the Hide for my next Strike.") |
+| 9 | Move | Endurance prompt: only Use Endurance. Removes Taloned Fist to prevent 3, so the shout costs 1 card | Vale [Use Endurance button]: "Use Endurance. It stops 3 wounds, then leaves the game." |
+| 10 | Bark | Declaration's Disrupt 2 took Fervor 1 to 0 | Vale note [Emrys' Fervor tab]: "My shout's Disrupt lowered your Fervor." / Caedan: "Not twice, boy." |
 | 11 | Move | Passes | Vale [Pass button]: "Pass again." |
 | 12 | Rival | Attack: Vale's Sword Draw | |
-| 13 | Move | Defends with Steel Ironscale Hide. Stops it and gains up to 7 Energy: 8 to 10 | Vale [the Hide]: "Block with the Ironscale Hide. It also gains Energy." |
-| 14 | Move, Stop | Emrys passes, Caedan passes, Combat ends | Vale [Pass button]: "Pass." / Caedan: "...It holds." |
+| 13 | Move | Defends with Steel Ironscale Hide. Stops it and gains up to 7 Energy: 8 to 10 | Vale [the Hide]: "Defend with the Ironscale Hide. It stops any attack." |
+| 14 | Move, Stop | Emrys passes, Caedan passes, Combat ends | Vale [Pass button]: "Pass." / Caedan: "Your metal's good." / Emrys: "Say that AGAIN!" |
 
 ## Lesson 5. Both (3 stops)
 
@@ -206,20 +206,20 @@ critical damage, and the Fervor win at the last Aspect.
 
 | # | Kind | What happens | Words |
 |---|---|---|---|
-| 0 | Bark, Op | Both fighters to Energy 5, before Caedan's turn | Narration: "They square up for a fresh bout." |
-| 1 | Stop | Caedan's turn plays out quietly | Vale: "Sword and metal. Both at once." |
-| 2 | Move | Draws Steel Clawed Heel, Emrys' Sword Flourish and a spare card. Power Up to 8. Declares. His Power fetches Steel Twin Claws | Vale [Declare Combat button]: "Declare Combat." / Vale [the Claws in the tray]: "Take the Twin Claws." |
-| 5 | Move | Attack: Steel Clawed Heel. Asked whether to discard his own top card for +3 wounds: only Yes. 7 Energy (Caedan 8 to 1) and 3 wounds | Vale [the card]: "Attack with the Clawed Heel." / Vale [Discard a life card button]: "Discard a life card for 3 more wounds." |
+| 0 | Bark, Op | Both fighters to Energy 5, before Caedan's turn | Narration: "A fresh bout begins." |
+| 1 | Stop | Caedan's turn plays out quietly | Vale: "Once is enough. Now both." |
+| 2 | Move | Draws Steel Clawed Heel, Emrys' Sword Flourish and a spare card. Power Up to 8. Declares. His Power fetches Steel Twin Claws | Vale [Declare Combat button]: "Declare Combat." / Vale [the Claws in the tray]: "Pick the Twin Claws." |
+| 5 | Move | Attack: Steel Clawed Heel. Asked whether to discard his own top card for +3 wounds: only Yes. 7 Energy (Caedan 8 to 1) and 3 wounds | Vale [the card]: "Attack with the Clawed Heel." / Vale [Take a wound button]: "Take a wound yourself to deal 3 more wounds." |
 | 4 | Rival | Attack: Caedan's Quickstep. Hardscale stops it | |
-| 3 | Move | Attack: Emrys' Sword Flourish, Focused: 4 Energy, 1 of it spilling into 3 wounds. Hit: puts Emrys' Swordplay Drill into play from the Life Deck (whole deck shown, only the Drill enabled) | Vale [the card]: "Attack with the Sword Flourish." / Vale note as it is played [his card]: "It's Focused, so Shields and stop-anything cards can't touch it." / Vale [the Drill in the tray]: "It landed. Put your Swordplay Drill into play." |
+| 3 | Move | Attack: Emrys' Sword Flourish, Focused: 4 Energy, 1 of it spilling into 3 wounds. Hit: puts Emrys' Swordplay Drill into play from the Life Deck (whole deck shown, only the Drill enabled) | Vale [the card]: "Attack with the Sword Flourish." / Vale note as it is played [his card]: "It's Focused. Defense Shields and cards that stop any attack miss it." / Vale [the Drill in the tray]: "It landed. Put your Swordplay Drill into play." |
 | 6 | Rival | Passes | |
-| 7 | Move, Rival | Attack: Steel Twin Claws. Caedan's Riposte stops it; Remain 1 keeps it on the table | Vale [the card]: "Attack with the Twin Claws. Remain keeps it for another attack." |
+| 7 | Move, Rival | Attack: Steel Twin Claws. Caedan's Riposte stops it; Remain 1 keeps it on the table | Vale [the card]: "Attack with the Twin Claws. Remain lets it attack twice." |
 | 8 | Rival | Passes | |
-| 9 | Move | Attack: Steel Twin Claws again; the second Riposte stops it. Caedan passes, Emrys passes, Combat ends, Emrys keeps one card | Vale [the card]: "Attack with it again." / Vale [Pass button]: "Pass." / keep: (no words) |
-| 10 | Move | Next turn. Declares. His Power fetches Steel Routing Roar. Attack: Routing Roar with Empower 3 (only the Empowered attack enabled): 4 + 3 = 7 wounds | Vale [Declare Combat button]: "Declare Combat." / Vale [the Roar in the tray]: "Take the Routing Roar." / Vale [the card]: "Attack with the Routing Roar. Empower adds wounds but skips its text." / Emrys, as he plays it: "My turn to shout! HAAAH!" |
-| 11 | Move | Critical damage: only Disrupt 1 (lower Caedan's Fervor by 1) enabled. Fervor 4 to 3 | Vale [Disrupt 1 button]: "Five or more wounds is a critical hit. Use it to lower my Fervor." |
-| 12 | Stop, held | | Vale [Emrys' Fervor tab and Aspect]: "At your last Aspect, filling this meter wins." |
-| 13 | Stop | Caedan calls the session | Caedan: "Enough. Go show your father." / Emrys: "Same time tomorrow, Master Vale!" / Caedan: "...Same time tomorrow." |
+| 9 | Move | Attack: Steel Twin Claws again; the second Riposte stops it. Caedan passes, Emrys passes, Combat ends, Emrys keeps one card | Vale [the card]: "Attack with the Twin Claws again." / Vale [Pass button]: "Pass." / keep: (no words) |
+| 10 | Move | Next turn. Declares. His Power fetches Steel Routing Roar. Attack: Routing Roar with Empower 3 (only the Empowered attack enabled): 4 + 3 = 7 wounds | Vale [Declare Combat button]: "Declare Combat." / Vale [the Roar in the tray]: "Pick the Routing Roar." / Vale [the card]: "Attack with the Routing Roar, Empowered. Empower adds wounds but skips its text." / Emrys, as he plays it: "Me too! HAAAH!" |
+| 11 | Move, Bark | Critical damage: only Disrupt 1 (lower Caedan's Fervor by 1) enabled. Fervor 4 to 3 | Vale [Disrupt 1 button]: "Five wounds or more is a critical hit. Pick Disrupt 1 to lower my Fervor." / Caedan: "Ngh! That hurt." |
+| 12 | Stop, held | | Vale [Emrys' Fervor tab and Aspect]: "At your last Aspect, filling your Fervor wins." |
+| 13 | Stop | Caedan calls the session | Caedan: "Enough. Show your father those arms." / Emrys: "Same time tomorrow, Master Vale?" / Caedan: "...Same time tomorrow." |
 
 The session ends with no winner ("Session ended") and the table closes to where the tutorial was
 started from (the title today). Lessons 6 (Allies) and 7 (Seals) are not built yet.
@@ -228,12 +228,17 @@ started from (the title today). Lessons 6 (Allies) and 7 (Seals) are not built y
 
 ## Greyed-option reasons
 
-Vale's reason for each greyed option is in `lessons.json` beside its step. The common ones: a
-Final Strike on an attack step, "Use your cards first."; the wrong attack, "Start with the Rising
-Blow." or "Use the Sword Thrust." (and so on); Pass on an attack step, "Keep going." or "Attack
-me."; an attack while he wants a pass, "Pass now." or "Wait for me."; Discard everything on a
-keep, "Keep one."; a Life Deck card that is not the pick, "Take the Ironscale Hide." (and so on).
-Any option the script gives no reason for says "Not that. Do what I told you."
+Vale's reason for each greyed option is in `lessons.json` beside its step, and it says why where
+it can (reasons do not count against the word budget). The common ones: a Final Strike on an
+attack step, "Use your cards first." (in lesson 1 with "A Final Strike ends your attacks."); the
+wrong attack, "Start with the Rising Blow." or "Attack with the Sword Thrust." (and so on); Pass on
+an attack step, "Keep going." or "Attack me."; an attack while he wants a pass, "Pass now." or
+"Wait for me."; Discard everything on a keep, "Keep one."; a Life Deck card that is not the pick,
+"Pick the Ironscale Hide." (and so on). Any option the script gives no reason for says "Not that
+one. Make the move I named."
+
+Verbs follow the buttons: "Defend with", "Take it" (no defense), "Take a wound", "Place", "Pick"
+for a search, "Draw" for a draw. A bare "Take" always means damage.
 
 ## Left to first-time tips in normal play
 
@@ -294,7 +299,9 @@ Where the build differs from the signed-off draft, and why. Numbers are the engi
 - The two ways to win are said where they first happen, in lesson 1: the Life Deck on the first
   wounds, the Fervor meter on the first Attune. Lesson 5's closing callout only reminds the Fervor
   win at the last Aspect.
-- "Is it GOOD?!" stays in the plate stop: "Let's find out. Again." answers it.
+- "Is it good?!" stays in the plate stop. Caedan has no answer ("I've no idea."); he gives it
+  in lesson 4 ("Your metal's good."), and Emrys' "Say that AGAIN!" gets "Once is enough." at
+  the start of lesson 5.
 - Lobbed Bolt stays as it was: an Art can be mundane for a fighter who casts nothing, like
   Caedan's shouted Declaration.
 - Caedan's signature card `signature_strike_13` is named "Vale's Sword Draw" throughout.

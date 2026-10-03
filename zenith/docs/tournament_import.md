@@ -11,10 +11,15 @@ The filename prefix names the Mastery printing the list runs: **TS** Trunks Saga
 Saga, **MBS** Majin Buu Saga. Two printings of one school's Mastery need two card ids, the way
 `pyre_mastery` and `pyre_ember_mastery` already split.
 
-**These lists carry fan-made cards**, which the starter sheets did not. Cards with an `NZ` set
-code and a "Not for Profit" footer are fan prints and fail our printed-Score-cards-only rule.
-Codes seen that still need checking against `tools/source_cards.tsv`: `SZ`, `GK`, `GB`, `M`,
-`Preview`. `IR` is Irwin, a real Score promo set. Verify every card's set before building it.
+**These lists carry New Z cards**, which the starter sheets did not: an `NZ` set code and a
+"Not for Profit" footer. Since 2026-10-02 New Z cards are allowed, with the New Z team's official
+permission (credited in `../CREDITS.md`), so they can be built as printed. Their keywords may not be
+in the anchor CRD, so define any new one in `designs/zenith.md` first. A code that is neither an
+original-era set nor New Z is still out. On the Red and Orange sheets every other code checked out
+as a Score print in `tools/source_cards.tsv` (2026-10-02): `SZ3`/`SZ5` World Championship, `GB3`/`GB7`
+Capsule Corp Power Pack, `M13` movie promo, `Preview 1/3/4/6`, `INF1`, `CGR4`, `TR3`, `P2`-`P9`
+promos, `IR31` Irwin; `GK11` and Buu Saga 166 are verified below. Verify every card's set before
+building it. New Z printed text is transcribed in `tools/source_cards_newz.tsv`.
 
 ## Status
 
@@ -96,6 +101,29 @@ to `reserve`, which took the deck from 90 cards to 85.
 **You're Invited is verified.** It is GK11, a Score World Championships card, ©2003 Score. The
 source audit had `open_challenge` down as the one card it could not source, because the card is
 missing from the LackeyCCG plugin database.
+
+**New Z prints built, 2026-10-02.** The user asked for the list as printed, New Z cards included,
+and all three were built, so their Score stand-ins are out of the deck:
+
+| Slots | Print | Was | Now |
+|---|---|---|---|
+| 3 | Red Critical Blow NZ14 | Red Knee Bash `pyre_strike_19` | `pyre_strike_29` Pyre Fanning Blow |
+| 3 | Red Energy Hold NZ35 | Red Passive Block `pyre_strike_02` | `pyre_art_12` Pyre Sapping Heat |
+| 1 | Red Negation NZ70 | third Trunks' Energy Sphere `signature_combat_03` | `pyre_combat_04` Pyre Firebreak |
+
+Engine work: a counter's own lines run once the stop lands (`on_counter`), an attachment line that
+speaks for the side that laid it wherever it rides (`owner_modifiers`), "discard this when its host
+advances" (`discard_on_host_advance`), and a "only 1 attached at a time" that skips the attach
+rather than blocking the play (`limit_only_attach`). The Tokui-Waza riders are always on, as
+everywhere. "DBZ League Only" is a format note and is dropped, like "Tuff Enuff Only".
+
+**Red Whiplash runs at 3, as printed.** `pyre_strike_11` (Pyre Flame Lash) carried Limit 1 per deck,
+a leftover of the later rulings document; the anchor CRD's Restricted list does not name the card,
+and the user lifted the limit on 2026-10-02. The deck now matches the sheet card for card and counts
+85. The opponent tiers (`data/adventure/opponents/pyre_attrition_*`) match `tools/scale_deck.py`'s
+output for the new list, and the hand-built starter `pyre_attrition_start` takes the three New Z
+cards in place of the same stand-ins (Fanning Blow x3, Sapping Heat x3, Firebreak x1 for one Caedan
+Cuts It Short).
 
 ## Blue MBS Goku, built 2026-09-20 as `tide_deepwater`, "Crushing Depths"
 
@@ -248,6 +276,46 @@ modifiers spent at payment, `next_art_free` on an Energy raise, paying an Art's 
 Deck card (`life_for_art_costs`, with a choice when Energy could pay), a `max_base_life` search filter
 on printed Base Damage, and `no_ally_takeover` for "cannot have Allies take control" without the
 damage lock `no_ally_control` also carries.
+
+**New Z prints, 2026-10-02.** Re-read from the sheet: the nine fan prints are NZ41, NZ66, NZ67,
+NZ146, NZ147, NZ149, NZ161, NZ193 and NZ195. The NZ61 and NZ95 noted in the first triage are not
+on the sheet; they were probably misreads of NZ161 and NZ195. All nine are built and replace their
+stand-ins, so the deck matches the sheet card for card (85):
+
+| Slots | Print | Was | Now |
+|---|---|---|---|
+| 3 | Orange Rising Energy NZ146 | Orange Strength `storm_strike_03` | `storm_art_27` Storm Banked Charge |
+| 3 | Heroic Deeds NZ161 | Heroic Effort `freestyle_art_12` | `freestyle_art_14` Valiant Deed |
+| 3 | Lonely Canyon NZ193 | Focusing `freestyle_noncombat_21` | `grounds_08` Echoing Gorge |
+| 2 | Left Leg Check NZ195 | Yamcha's Skillful Defense `signature_art_17` | `signature_strike_35` Trademark Parry |
+| 1 | Orange Negation NZ66 | second Trunks' Energy Sphere `signature_combat_03` | `storm_combat_03` Storm Short Circuit |
+| 3 | Orange Kaio-Ken Outburst NZ149 | Orange Ki Assailment `storm_art_18` | `storm_art_28` Storm Breakneck Surge |
+| 2 | Orange Right Blast NZ67 | Orange Focused Attack `storm_art_17` | `storm_art_29` Storm Clearing Bolt |
+| 3 | Orange Aura Deflection NZ147 | Orange Sidestep `storm_strike_04` | `storm_art_30` Storm Turning Wind |
+| 2 (Reserve) | Frieza's Deception NZ41 | Drills are for the Weak and a third Orange Obliteration | `freestyle_combat_23` PLACEHOLDER's Feint |
+
+**Transform** is the New Z ruling the user supplied on 2026-10-02 (`designs/zenith.md`, Keywords).
+The three Transform cards are played from the discard pile by moving a Storm Art from the hand to the
+discard pile, and are always removed after use.
+
+**Frieza's Deception** has no mirror character yet, so it is a PLACEHOLDER card, like the other
+unmirrored named cards. "Counts as 1 copy of 'Frieza's Irritation Grows' while in your discard pile"
+names that Score card's future mirror, "PLACEHOLDER's Growing Spite" (`counts_as_in_discard`), which
+is not built; the clause does nothing until it is, and that card's title must match or the key must
+be updated. Its advance of the rival's duelist goes through the normal climb, so under the Most
+Powerful Personality house rule it can hand a taller-laddered rival the win.
+
+Engine work: an attack card that can be used in place of an attack instead (`use_instead`), an
+attach to one named Mastery printing (`to: "own_mastery"`), riders on the Mastery speaking for the
+whole side, a once-per-Combat "after taking damage" line on a rider, a Signature card of whoever
+leads the deck (`named_as_duelist`, read by the deck validator and every "named card" check),
+a player-chosen payer for "remove a card to shuffle this back", a `non_seal` in-play pick that
+reaches the Grounds, a negative Grounds cost delta, Transform (play from the discard pile with a
+paid hand card), a rider that lets Energy damage land as wounds (`stages_as_wounds`), a search that
+sets a card aside until the end of Combat (`to: "aside"`), forbids that skip Constant Powers for a
+card unaffected by them, and a card counting as another title in the discard pile. The dropped
+stand-ins Centering, Vigilant Effort, Sparrow's Skillful Guard, Storm Assailing Arc, Storm Focused
+Bolt and Storm Rising Gust stay in the pool.
 
 ## Freestyle Vegeta (Didier G, Gen Con 2012), planned as the pre-mark Gideon Mourne deck
 

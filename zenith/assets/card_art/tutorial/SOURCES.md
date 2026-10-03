@@ -7,3 +7,6 @@ and centred on a transparent 604 x 868 portrait canvas.
 
 Licence (the pack's `LICENSE.txt`): may be edited and used in commercial and non-commercial
 projects; may not be resold or redistributed as an asset. Credit appreciated: limezu.itch.io.
+
+`tutorial_strike_01.svg` to `_03.svg` and `tutorial_art_01.svg` are the house placeholder drawings
+of Emrys' Rising Blow, Sword Thrust, Hilt Guard and Lobbed Bolt, copied under the tutorial ids.

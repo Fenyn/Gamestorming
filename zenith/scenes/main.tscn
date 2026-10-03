@@ -313,3 +313,61 @@ text_overrun_behavior = 3
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 text = "Quit"
+
+[node name="Report" type="Button" parent="Center/Column"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_type_variation = &"CompactButton"
+text = "Report a bug or send feedback (F8)"
+
+[node name="Chapters" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.72)
+
+[node name="Center" type="CenterContainer" parent="Chapters"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Chapters/Center"]
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="Chapters/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Head" type="Label" parent="Chapters/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "Tutorial"
+horizontal_alignment = 1
+
+[node name="Sub" type="Label" parent="Chapters/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "A training session between Emrys Rooke and Master Vale."
+horizontal_alignment = 1
+
+[node name="Lessons" type="HBoxContainer" parent="Chapters/Center/Panel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Footer" type="HBoxContainer" parent="Chapters/Center/Panel/Column"]
+layout_mode = 2
+alignment = 1
+
+[node name="Close" type="Button" parent="Chapters/Center/Panel/Column/Footer"]
+custom_minimum_size = Vector2(160, 48)
+layout_mode = 2
+text = "Back"

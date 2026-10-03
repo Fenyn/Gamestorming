@@ -391,7 +391,9 @@ static func _counter_score(engine: DuelEngine, profile: AiProfile, me: PlayerSta
 	var denied: float = effects_value(pending.def.effects, profile, USE_TRIGGERS, 0.0, engine, foe_seat)
 	if pending.def.is_attack():
 		denied += _expected_damage_value(pending.def.attack, pending.def.attack_kind(), profile)
-	return denied - (hold_value(c, profile) * 0.5 if c != null else 0.0)
+	# A counter that also does something once it lands is worth that too.
+	var own: float = effects_value(c.def.effects, profile, ["on_counter"], 0.0, engine, me.index) if c != null else 0.0
+	return denied + own - (hold_value(c, profile) * 0.5 if c != null else 0.0)
 
 
 ## Buying wounds off with the discard pile: the wounds prevented, less the cards burned. The engine
@@ -488,7 +490,11 @@ static func _entering_value(engine: DuelEngine, profile: AiProfile, me: PlayerSt
 ## Using `c` now: what its lines do, less the small price of spending an action on it.
 static func _use_score(engine: DuelEngine, profile: AiProfile, me: PlayerState, c: CardInstance) -> float:
 	var handover: float = AiEvaluator.handover_progress(engine, me)
-	return effects_value(c.def.effects, profile, USE_TRIGGERS, handover, engine, me.index) \
+	# An attack card used in place of its attack does its other half as well as the lines it shares.
+	var lines: Array = c.def.effects.duplicate()
+	if c.def.is_attack():
+		lines.append_array(c.def.raw.get("use_instead", []))
+	return effects_value(lines, profile, USE_TRIGGERS, handover, engine, me.index) \
 		+ _aspect_jump_value(c, me, profile) + _bond_use_value(engine, me, c.def, profile) \
 		+ _tutor_value(engine, me, c.def, profile, TUTOR_DEPTH, c) \
 		+ _combo_tutor_value(engine, profile, me, c) \
@@ -1114,6 +1120,19 @@ static func _pick_option_score(engine: DuelEngine, me: PlayerState, profile: AiP
 			# Shuffling a Drill that cannot be placed back draws nothing in its place, the same
 			# trade the Non-Combat step's `shuffle_back` prices.
 			return -0.5
+		"transform_pay", "recur_pay":
+			# A card given up as a payment: give up the one worth least.
+			return -hold_value(c, profile)
+		"stages_as_wounds":
+			# Energy damage drains the personality hit, and past 0 it becomes wounds anyway; taking it
+			# all as wounds keeps the Energy and costs Life Deck cards.
+			var hit_a: Dictionary = engine.state.attack
+			var stages: int = int(hit_a.get("stages", 0))
+			var hit: CardInstance = engine.card(int(hit_a.get("target", -1)))
+			var energy: int = hit.energy if hit != null else 0
+			if str(o.value) == "wounds":
+				return -float(stages) * life_card_price(me, profile)
+			return -float(mini(stages, energy)) * duelist_energy_price(engine, me, profile) - float(maxi(0, stages - energy)) * life_card_price(me, profile)
 	if c != null:
 		# A search, a look at the top cards, a Seal to capture: take the best card on offer, which
 		# for a deck that runs tutor chains means the card that carries the chain furthest.

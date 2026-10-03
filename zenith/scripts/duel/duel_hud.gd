@@ -37,6 +37,9 @@ signal gated_hover(reason: String)
 ## A greyed option was clicked (its reason).
 signal gated_clicked(reason: String)
 
+## True while someone on screen speaks the greyed options' reasons (the tutorial's coach).
+var voiced_reasons: bool = false
+
 const HAND_CARD_SIZE: Vector2 = Vector2(126, 176)
 const FAR_HAND_CARD: Vector2 = Vector2(100, 140)   # a replay's far hand, in the strip over the far crest
 const HAND_LIFT: float = 26.0
@@ -50,6 +53,7 @@ const TRAY_SIDE_ROOM: float = 180.0   # screen width the tray panel leaves besid
 const TRAY_FRAME: Vector2 = Vector2(6.0, 32.0)   # a face's frame across; frame, gap and caption down
 const TRAY_HEIGHT_SHARE: float = 0.57 # of the screen height, for the rows shown before scrolling
 const CHOICE_HEIGHT: float = 100.0    # a tray tile that is a wording rather than a card
+const CHOICE_LIFT: float = 1.02       # its hover scale
 const LOG_EXPANDED_FRACTION: float = 0.72
 const FRAME_TINT: Color = ZenithTheme.FRAME
 const TRAY_COLUMNS: int = 6          # cards per row before the tray wraps
@@ -78,6 +82,11 @@ const FILAMENT_CHEVRON: Vector2 = Vector2(17.0, 9.0)   # chevron length along an
 const FILAMENT_CAP: float = 13.0          # half-width of the transverse cap on a stopped attack
 const CARD_FACE: PackedScene = preload("res://scenes/duel/card_face.tscn")
 const CARD_ASPECT: float = 716.0 / 512.0
+## The card behind a "you may" stands left of the tray at this share of the screen height, its
+## words lit and linked to the panel.
+const SOURCE_HEIGHT_SHARE: float = 0.52
+const SOURCE_GAP: float = 56.0
+const SOURCE_GLOW: Color = Color(0.965, 0.84, 0.55)
 const DECISION_GAP: float = 10.0
 ## The right-edge rail. The decision frame's top stands DECISION_GAP under the card's home
 ## (`panel_top`) whether or not a card is showing, and scrolls once it would pass GUTTER from the bottom.
@@ -178,6 +187,7 @@ const CLOCK_WARN_MS: int = 10000
 @onready var menu_concede_match: Button = $Root/OptionsMenu/Column/Items/ConcedeMatch
 @onready var menu_rematch: Button = $Root/OptionsMenu/Column/Items/Rematch
 @onready var menu_leave: Button = $Root/OptionsMenu/Column/Items/Leave
+@onready var menu_report: Button = $Root/OptionsMenu/Column/Items/Report
 @onready var fullscreen_toggle: CheckButton = $Root/OptionsMenu/Column/Items/Fullscreen
 @onready var menu_confirm: VBoxContainer = $Root/OptionsMenu/Column/Confirm
 @onready var menu_question: Label = $Root/OptionsMenu/Column/Confirm/Question
@@ -286,6 +296,11 @@ const CLOCK_WARN_MS: int = 10000
 @onready var tray_fuse: ProgressBar = $Root/Tray/Center/Panel/Column/Head/Fuse
 @onready var tray_balance: Control = $Root/Tray/Center/Panel/Column/Head/Row/Balance
 @onready var tray_panel: PanelContainer = $Root/Tray/Center/Panel
+@onready var tray_center: CenterContainer = $Root/Tray/Center
+@onready var tray_source: Control = $Root/Tray/Source
+@onready var tray_source_face: CardFace = $Root/Tray/Source/Face
+@onready var tray_source_mark: Panel = $Root/Tray/Source/Mark
+@onready var tray_link: Line2D = $Root/Tray/Link
 ## Once a second: the between-games count, the away and rejoin lines, and the rival's tab.
 @onready var tick: Timer = $Tick
 @onready var far_hand: HBoxContainer = $Root/FarHand
@@ -429,6 +444,7 @@ func _ready() -> void:
 	menu_concede_match.pressed.connect(_ask.bind(&"concede_match"))
 	menu_rematch.pressed.connect(_ask.bind(&"rematch"))
 	menu_leave.pressed.connect(_ask.bind(&"leave"))
+	menu_report.pressed.connect(_report_bug)
 	menu_yes.pressed.connect(func() -> void: _menu_act(_menu_action))
 	menu_no.pressed.connect(_show_menu_question.bind(&""))
 	fullscreen_toggle.toggled.connect(func(on: bool) -> void:
@@ -1344,7 +1360,8 @@ func option_reason(opt: OptionView) -> String:
 
 ## A greyed control says why on hover, through `gated_hover`, and a click on it is reported.
 func _explain_on_hover(control: Control, reason: String) -> void:
-	control.tooltip_text = reason
+	# In the tutorial the coach says the reason, so the control keeps no tooltip of its own.
+	control.tooltip_text = "" if voiced_reasons else reason
 	control.mouse_entered.connect(func() -> void: gated_hover.emit(reason))
 	control.mouse_exited.connect(func() -> void: gated_hover.emit(""))
 	control.gui_input.connect(func(event: InputEvent) -> void:
@@ -1444,6 +1461,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	else:
 		_fill_buttons([], primary_box, true)
 		_show_tray(TRAY_WHO, prompt_title.text, prompt_hint.text, browse, primaries, false, p if p.has_batch() else null)
+		_show_tray_source(p, view)
 
 
 ## A lone action becomes one large accent button that says what will happen; Space takes it.
@@ -1602,7 +1620,9 @@ func _amount(stages: int, wounds: int) -> String:
 ## The question the panel asks. A defence names the attack it answers, from the public attack.
 func _prompt_title(p: PromptView, view: SeatView) -> String:
 	if p.kind == &"defense" and view != null and not view.attack.is_empty():
-		return "Defend against %s?" % attack_name(view.attack)
+		# Keeps the engine's note on Transform cards in the discard pile, which follows the question.
+		var note: String = p.title.substr(p.title.find("?") + 1) if p.title.contains("with Transform.") else ""
+		return "Defend against %s?%s" % [attack_name(view.attack), note]
 	return p.title
 
 
@@ -2269,7 +2289,55 @@ func _refresh_selection() -> void:
 		_confirm.disabled = n < _batch.batch_min
 
 
+## A "you may" from a card in view: the card stands beside the tray with its words lit, and the
+## panel asks the yes as a question.
+func _show_tray_source(p: PromptView, view: SeatView) -> void:
+	_hide_tray_source()
+	if not bool(p.context.get("may", false)) or view == null:
+		return
+	var c: SeatCard = view.card(int(p.context.get("source", -1)))
+	var def: CardDef = Session.library.defs.get(c.def_id) if c != null and not c.hidden() else null
+	if def == null:
+		return
+	tray_source_face.show_def(def, c.aspect, -1, null, seat_backdrop(c.owner))
+	var ask: String = str(p.context.get("yes_label", "")).trim_suffix(".")
+	if ask != "":
+		tray_title.text = ask + "?"
+	tray_hint.text = "%s's Power." % def.title if def.is_personality() else "From %s. Skip it and the rest of the card still resolves." % def.title
+	tray_hint.visible = true
+	var mark: StyleBoxFlat = ZenithTheme.box(Color(SOURCE_GLOW, 0.1), SOURCE_GLOW, 6, 4, 0, 0)
+	mark.shadow_color = Color(SOURCE_GLOW, 0.45)
+	mark.shadow_size = 12
+	tray_source_mark.add_theme_stylebox_override("panel", mark)
+	var height: float = root.size.y * SOURCE_HEIGHT_SHARE
+	tray_source.size = Vector2(height / CARD_ASPECT, height)
+	tray_center.offset_left = tray_source.size.x + SOURCE_GAP
+	tray_source.visible = true
+	tray_link.visible = true
+
+
+func _hide_tray_source() -> void:
+	tray_source.visible = false
+	tray_link.visible = false
+	tray_center.offset_left = 0.0
+
+
+## Every frame the source stands centred on the panel's height, the lit words track the face's own
+## layout, and the link runs from them to the panel's edge.
+func _place_tray_source() -> void:
+	var panel: Rect2 = Rect2(tray_panel.global_position - tray.global_position, tray_panel.size)
+	var face_scale: float = tray_source.size.x / 512.0
+	tray_source_face.scale = Vector2.ONE * face_scale
+	tray_source.position = Vector2(panel.position.x - SOURCE_GAP - tray_source.size.x, panel.get_center().y - tray_source.size.y * 0.5)
+	var words: Rect2 = tray_source_face.words_rect()
+	tray_source_mark.position = words.position * face_scale - Vector2(4, 4)
+	tray_source_mark.size = words.size * face_scale + Vector2(8, 8)
+	var from: Vector2 = tray_source.position + tray_source_mark.position + Vector2(tray_source_mark.size.x, tray_source_mark.size.y * 0.5)
+	tray_link.points = PackedVector2Array([from, Vector2(panel.position.x, panel.get_center().y)])
+
+
 func _hide_tray() -> void:
+	_hide_tray_source()
 	hide_peek()
 	# Only ever turns the panel back on; callers that want it hidden clear the prompt first.
 	if tray.visible and _current_prompt != null:
@@ -2290,7 +2358,7 @@ func _tray_choice_entry(opt: OptionView) -> Control:
 	column.set_meta("option", opt)
 	var frame: PanelContainer = PanelContainer.new()
 	frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, ZenithTheme.RADIUS, 3, 3, 3))
-	frame.pivot_offset = _tray_face * 0.5 + Vector2(3.0, 3.0)
+	frame.pivot_offset = Vector2(_tray_face.x, CHOICE_HEIGHT) * 0.5 + Vector2(3.0, 3.0)
 	var b: Button = Button.new()
 	b.flat = true
 	b.custom_minimum_size = Vector2(_tray_face.x, CHOICE_HEIGHT)
@@ -2307,12 +2375,13 @@ func _tray_choice_entry(opt: OptionView) -> Control:
 		column.add_child(frame)
 		return column
 	b.pressed.connect(func() -> void: option_chosen.emit(opt))
+	# A wide tile lifts less than a card, so it stays inside a tutorial ring round it.
 	b.mouse_entered.connect(func() -> void:
-		frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.ACCENT, ZenithTheme.RADIUS, 3, 3, 3))
-		_lift(frame, true))
+		frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_ACTIVE, ZenithTheme.FRAME, ZenithTheme.RADIUS, 3, 3, 3))
+		_lift(frame, true, CHOICE_LIFT))
 	b.mouse_exited.connect(func() -> void:
 		frame.add_theme_stylebox_override("panel", ZenithTheme.box(ZenithTheme.BG_INPUT, ZenithTheme.BORDER, ZenithTheme.RADIUS, 3, 3, 3))
-		_lift(frame, false))
+		_lift(frame, false, CHOICE_LIFT))
 	frame.add_child(b)
 	column.add_child(frame)
 	return column
@@ -2720,8 +2789,20 @@ func show_pile(view: SeatView, player: int, zone: StringName) -> void:
 		pile_hint.text = _relic_pile_hint(view, p)
 	else:
 		pile_hint.text = "%d card%s, top of the pile first.  Right-click a card to read it." % [n, "" if n == 1 else "s"]
+		var playable: int = 0
+		for uid in _pile_uids:
+			if _pile_playable(uid):
+				playable += 1
+		if playable > 0:
+			pile_hint.text += "  %s can be played with Transform. Click it to play it." % ("1 card" if playable == 1 else "%d cards" % playable)
 	pile.visible = true
 	await _fill_pile()
+
+
+## A discard card the pending decision offers to play (Transform): clicking it in the browser plays it.
+func _pile_playable(uid: int) -> bool:
+	return _pile_zone == &"discard" and _current_prompt != null and _current_prompt.player == _pile_player \
+		and not _current_prompt.options_for_card(uid).is_empty()
 
 
 func hide_pile() -> void:
@@ -2842,6 +2923,15 @@ func _pile_entry(c: SeatCard, is_top: bool) -> Control:
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caption.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	caption.add_theme_color_override("font_color", ZenithTheme.ACCENT if is_top else ZenithTheme.MUTED)
+	if _pile_playable(uid):
+		caption.text = "Play (Transform)"
+		caption.add_theme_color_override("font_color", ZenithTheme.DEFEND)
+		face.tooltip_text = "Click to play this card from your discard pile."
+		face.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		face.gui_input.connect(func(event: InputEvent) -> void:
+			if event is InputEventMouseButton and (event as InputEventMouseButton).pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+				hide_pile()
+				card_clicked.emit(uid))
 	column.add_child(caption)
 	return column
 
@@ -2926,13 +3016,13 @@ func hand_forecast(uid: int) -> String:
 	return _forecast_text(uid)
 
 
-func _lift(frame: Control, up: bool) -> void:
+func _lift(frame: Control, up: bool, amount: float = 1.08) -> void:
 	if reduced_motion_toggle.button_pressed:
 		frame.scale = Vector2.ONE
 		frame.z_index = 1 if up else 0
 		return
 	var t: Tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	t.tween_property(frame, "scale", Vector2.ONE * (1.08 if up else 1.0), 0.12)
+	t.tween_property(frame, "scale", Vector2.ONE * (amount if up else 1.0), 0.12)
 	frame.z_index = 1 if up else 0
 
 
@@ -3266,6 +3356,8 @@ func pulse_pending(uid: int) -> bool:
 
 func _process(_delta: float) -> void:
 	_draw_filament()
+	if tray_source.visible:
+		_place_tray_source()
 	if banner.visible:
 		_place_banner()
 
@@ -3531,6 +3623,9 @@ func _focus_uid(p: PromptView) -> int:
 		if not _view.attack.is_empty():
 			# A Final Strike has no card of its own, so the rail shows who is making it.
 			var source: int = int(_view.attack.get("source", -1))
+			if source < 0:
+				# A copied attack shows the card it copies.
+				source = int(_view.attack.get("copied", -1))
 			return source if source >= 0 else int(_view.attack.get("performer", -1))
 		# This list is unordered. Only a single public source is unambiguous to focus.
 		if _view.resolving.size() == 1:
@@ -3589,6 +3684,14 @@ func hover_primary(index: int) -> void:
 	var buttons: Array[Node] = primary_box.get_children()
 	if index >= 0 and index < buttons.size():
 		(buttons[index] as Button).mouse_entered.emit()
+
+
+## Closes the menu and opens the report form once a frame without the menu is drawn, so the
+## screenshot shows the table.
+func _report_bug() -> void:
+	set_options_open(false)
+	await RenderingServer.frame_post_draw
+	Feedback.open()
 
 
 ## The options menu, from the gear or Esc. Its shade takes the mouse while open; a click on it closes the menu.

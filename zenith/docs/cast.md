@@ -146,7 +146,7 @@ field more than one school later; Sir Edric Rooke already does.
 | clan | fields now | side | what they are |
 |---|---|---|---|
 | The Rooke Coven | Tide, and Pyre and Steel in its sons' own lists | Vigil | An old family of water mages |
-| The Vale line | Freestyle | Vigil | A family sword art, nearly extinct, taught to blood and once to a friend |
+| The Vale line | Freestyle | Vigil | A family sword art, nearly extinct, taught to blood, to a friend and to the friend's son |
 | The Draik Company | Shade | Pact | Mercenary hexers, pirates by trade and warlocks by method |
 | The Collegium | Storm | Pact | Artificer wizardry: wrights who build, charge and repair |
 | The Thornwald Grove | Root | Vigil | Druids whose rites regrow what is cut away |
@@ -325,7 +325,7 @@ water raised, furious. Stops a Strike aimed at Edric or Emrys.
 carries it. Fresh from leaving the Hask line he fought the King's Tourney for purses, on a team with
 Idris Sparrow and Aldo Voss, and the Kingsguard recruited him off the sand. Trained with the
 Kingsguard before he married into the coven, which is the coven's only tie to the order. Caedan Vale fought beside him in the two kings' war and taught him the Vale
-sword, the only time the Vales have taught it outside the blood. Fields Pyre in his own list and Tide beside his
+sword, the first time the Vales taught it outside the blood (the second is his son Emrys). Fields Pyre in his own list and Tide beside his
 wife. He is the first character to field two schools, which settled the rule that a card's look
 comes from the card and not from a fixed element on the person.
 
@@ -417,7 +417,7 @@ personality card.
 
 ## The Vale line
 
-A family sword art, nearly extinct, taught to blood and once to a friend. The Vales and the Rookes
+A family sword art, nearly extinct, taught to blood, to a friend and to the friend's son. The Vales and the Rookes
 are old friends from the two kings' war: Caedan fought beside Edric and taught him the Vale cut.
 When Emrys was born, Caedan promised the boy the same teaching, and kept the promise. Caedan's
 mother keeps the line's measures and

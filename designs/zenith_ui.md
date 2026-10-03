@@ -56,7 +56,7 @@ approved with the mockups the same day.
 
 ## 2. Metrics
 
-- **Radii:** 0 for pixel-framed panels and buttons; 4 for flat tiles, chips and bars. Nothing else.
+- **Radii:** 4 for panels, tiles, chips and bars; 3 for buttons. Nothing else.
 - **Borders:** 1 px for tiles and dividers, 2 px for selection. The 5 px coloured edge on edged
   cards is the one exception.
 - **Spacing:** multiples of 6 (6, 12, 18, 24, 36).
@@ -70,13 +70,14 @@ approved with the mockups the same day.
 
 | Component | Standard |
 |---|---|
-| Framed panel | Kenney border 009 (thin rule, small corner squares) in `frame.metal` over `surface.panel`. The panel fill is never tinted |
+| Framed panel | No outline: `surface.panel` fill, a faint rule engraved 5 px inside the edge, a 1 px top highlight and a soft drop shadow, tinted whole by `frame.metal` (2026-10-02, replaced Kenney border 009) |
 | Modal | Framed panel over the `scrim` |
 | Flat tile / row | `surface.raised`, radius 4, optional 5 px edge in a meaning or school colour |
-| Button, primary | `accent.act` fill, `text.on_light` text, iron frame |
-| Button, secondary | `surface.panel` fill, `text.primary`, iron frame |
-| Button, disabled | `frame.dim` frame, `text.disabled` |
-| Tab / toggle | One implementation: secondary button, selected shows `state.selected` ring |
+| Button, primary | `accent.act` fill, `text.on_light` text, no outline, small drop shadow |
+| Button, secondary | Raised dark fill, `text.primary`, no outline, small drop shadow |
+| Button, pressed | Darker fill, no shadow, a bone rule engraved 3 px inside |
+| Button, disabled | Dim fill, no shadow, `text.disabled` |
+| Tab / toggle | One implementation: secondary button; on shows the pressed face's bone rule |
 | Chip | Tag: outlined, tinted text. Badge: filled, `text.on_light`. Radius 4 |
 | Screen title | Ornate scroll banner in iron on every screen (`SanctumUI.dress`); an adventure run adds a 4 px school-coloured edge under it (`MapArt.school`) |
 | Map roads | Walked road in the run's school colour, open roads bone, the rest iron |

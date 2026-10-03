@@ -1,0 +1,17 @@
+{
+  "name": "zenith-feedback",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "vars": {
+    // Ships in the game (project setting zenith/feedback/key), so it only keeps out casual
+    // traffic; the rate limit below is what caps abuse. Change both together to cut a build off.
+    "REPORT_KEY": "-47tgUAizPhHTX21l4iqJ4agPiymHt4z",
+    // Forum tag ids to put on each thread; empty puts none.
+    "TAG_BUG": "",
+    "TAG_FEEDBACK": ""
+  },
+  // Three reports a minute from one address.
+  "ratelimits": [
+    { "name": "REPORT_LIMIT", "namespace_id": "4801", "simple": { "limit": 3, "period": 60 } }
+  ]
+}

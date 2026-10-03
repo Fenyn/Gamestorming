@@ -11,8 +11,11 @@ const DIR: String = "res://assets/adventure_map"
 ## Caps on a school colour's saturation and brightness before it tints the trim (see `muted`).
 const TINT_MAX_SATURATION: float = 0.5
 const TINT_MAX_VALUE: float = 0.78
-## The panel texture's rule and corner squares, in its own pixels, kept whole when it stretches.
-const PANEL_MARGIN: int = 24
+## The panel texture's shadow, corners and engraved rule, in its own pixels, kept whole when it
+## stretches. The shadow lies PANEL_SHADOW pixels outside the face, so the box expands by that.
+## Both match tools/import_map_art.py.
+const PANEL_MARGIN: int = 36
+const PANEL_SHADOW: int = 28
 ## The Kenney half-divider that fades in towards a knot; `fade_divider` mirrors it.
 const FADE_DIVIDER: String = "res://assets/ui/borders/default/divider_fade/divider-fade-003.png"
 ## The same double rule with its knot, unfaded: the map's rule between acts, mirrored the same way.
@@ -62,17 +65,18 @@ static func muted(color: Color) -> Color:
 	return Color.from_hsv(color.h, minf(color.s, TINT_MAX_SATURATION), minf(color.v, TINT_MAX_VALUE))
 
 
-## The button pieces' corner blocks, kept whole when the face stretches (Kenney border 001,
-## doubled: 12 px corners become 24).
-const BUTTON_MARGIN: int = 24
+## The button pieces' shadow and corners, kept whole when the face stretches, and the shadow's
+## reach outside the face. Both match tools/import_map_art.py.
+const BUTTON_MARGIN: int = 16
+const BUTTON_SHADOW: int = 10
 
 ## Passed as `color` to mean "use the current trim tint".
 const USE_TINT: Color = Color(0, 0, 0, 0)
 
 
-## The default panel (Kenney border 009) in `color`, or the trim tint when none is given.
+## The default panel (engraved rule, drop shadow) in `color`, or the trim tint when none is given.
 static func panel_box(content: int, color: Color = USE_TINT) -> StyleBox:
-	return _sliced("panel", PANEL_MARGIN, content, tint if color == USE_TINT else color)
+	return _sliced("panel", PANEL_MARGIN, PANEL_SHADOW, content, tint if color == USE_TINT else color)
 
 
 ## A scroll banner as a StyleBox: the curled ends kept whole, the middle stretched to the text.
@@ -169,7 +173,7 @@ static func draw_brackets(canvas: CanvasItem, rect: Rect2, color: Color) -> void
 ## A button face, one piece per state from tools/import_map_art.py. Never tinted. Pressed text
 ## drops a pixel.
 static func button_box(piece: String) -> StyleBox:
-	var box: StyleBox = _sliced(piece, BUTTON_MARGIN, 0, Color.WHITE)
+	var box: StyleBox = _sliced(piece, BUTTON_MARGIN, BUTTON_SHADOW, 0, Color.WHITE)
 	box.content_margin_left = 24
 	box.content_margin_right = 24
 	var pressed: bool = piece.ends_with("_pressed")
@@ -178,7 +182,7 @@ static func button_box(piece: String) -> StyleBox:
 	return box
 
 
-static func _sliced(piece: String, margin: int, content: int, color: Color) -> StyleBox:
+static func _sliced(piece: String, margin: int, shadow: int, content: int, color: Color) -> StyleBox:
 	var tex: Texture2D = ui(piece)
 	if tex == null:
 		return StyleBoxEmpty.new()
@@ -186,5 +190,6 @@ static func _sliced(piece: String, margin: int, content: int, color: Color) -> S
 	box.texture = tex
 	box.modulate_color = color
 	box.set_texture_margin_all(margin)
+	box.set_expand_margin_all(shadow)
 	box.set_content_margin_all(content)
 	return box

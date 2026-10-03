@@ -3,7 +3,8 @@ extends Control
 ## The tutorial's voices over the table. Vale coaches from a small box that docks beside what he
 ## means, with a glowing thread from the box and a ring round the spot. Narration runs in a ribbon
 ## at the top; Emrys, and Caedan once he fights, shout in bubbles at their own duelist cards; Vale's
-## passing notes sit in a bubble beside what they are about. A stop plays its lines on a
+## passing notes sit in a bubble beside what they are about, and a line of his that points at nothing
+## pops in as a chat bubble on the left, the newest under the ones before. A stop plays its lines on a
 ## `TutorialPacing` clock and goes on by itself: a click on the box, Space or Enter skips ahead, and
 ## the pointer on the box pauses it. An instruction stays up until its move is made. While the
 ## pointer rests on a greyed option, the reason it is greyed takes the instruction's place.
@@ -49,7 +50,13 @@ const PREVIEW_ALPHA: float = 0.35
 const CAPTION_FADE: float = 0.15
 ## A bubble in a stop outlasts its line by this much, so the reply pops beside it.
 const LINGER: float = 1.0
-const CAPTION_PAD: float = 220.0
+const CAPTION_PAD: float = 320.0
+## The narration banner: the band sweeps open from its middle, the line rises into it a beat later,
+## and the whole banner fades on its way out.
+const CAPTION_OPEN: float = 0.35
+const CAPTION_TEXT_DELAY: float = 0.15
+const CAPTION_RISE: float = 14.0
+const CAPTION_OUT: float = 0.45
 const RING_GROW: float = 6.0
 const RING_WIDTH: int = 4
 const SMALL_RING: float = 44.0
@@ -77,12 +84,19 @@ const RIVAL_SLOTS: Array[int] = [Slot.ABOVE, Slot.LEFT, Slot.RIGHT, Slot.BELOW]
 const YOU_LEVEL: float = 0.3
 const RIVAL_LEVEL: float = 0.5
 const NOTE_SLOTS: Array[int] = [Slot.ABOVE, Slot.RIGHT, Slot.LEFT, Slot.BELOW]
+## The chat column: its bottom edge as a share of the screen height, the gap between bubbles, how
+## far the earlier ones dim, and a hold long enough that only the stop's end takes them down.
+const CHAT_BOTTOM: float = 0.5
+const CHAT_GAP: float = 10.0
+const CHAT_DIM: float = 0.55
+const CHAT_HOLD: float = 3600.0
 
 @onready var lesson_label: Label = $LessonTag
 @onready var thread: Line2D = $Tether/Thread
 @onready var head: Line2D = $Tether/Head
 @onready var caption: Control = $Caption
 @onready var caption_text: Label = $Caption/Text
+@onready var caption_ribbon: ColorRect = $Caption/Ribbon
 @onready var coach: PanelContainer = $Coach
 @onready var face_frame: PanelContainer = $Coach/Row/Face
 @onready var portrait: TextureRect = $Coach/Row/Face/Portrait
@@ -95,6 +109,8 @@ const NOTE_SLOTS: Array[int] = [Slot.ABOVE, Slot.RIGHT, Slot.LEFT, Slot.BELOW]
 @onready var bark_you: BarkBubble = $Barks/BarkYou
 @onready var bark_rival: BarkBubble = $Barks/BarkRival
 @onready var bark_note: BarkBubble = $Barks/BarkNote
+@onready var chat_bubbles: Array[BarkBubble] = [$Chat/ChatA, $Chat/ChatB, $Chat/ChatC]
+@onready var chat_hint: Label = $Chat/Hint
 
 ## Where a target is on screen, from its name: {"ring": the Rect2 to ring, "body": the Rect2 to stand
 ## clear of}. Read every frame, so everything follows the camera and the cards.
@@ -116,8 +132,12 @@ var reduced_motion: bool = false:
 		if is_node_ready():
 			for b: BarkBubble in [bark_you, bark_rival, bark_note]:
 				b.reduced_motion = value
+			for b: BarkBubble in chat_bubbles:
+				b.reduced_motion = value
 
 var _mode: Mode = Mode.IDLE
+## The chat bubbles up in this stop, oldest first.
+var _chat: Array[BarkBubble] = []
 var _rings: Array[String] = []
 var _pacing: TutorialPacing = null
 var _lines: Array[Dictionary] = []
@@ -140,6 +160,7 @@ var _slot_key: String = ""
 var _slot_at: Vector2 = Vector2(-9999.0, -9999.0)
 var _slot_size: Vector2 = Vector2.ZERO
 var _slot_outs: int = -1
+var _slot_preview: Rect2 = Rect2()
 var _notch: PackedVector2Array = PackedVector2Array()
 var _coach_tween: Tween = null
 var _text_tween: Tween = null
@@ -160,6 +181,9 @@ func _ready() -> void:
 	head.default_color = TETHER_COLOR
 	(thread.material as ShaderMaterial).set_shader_parameter("tint", TETHER_COLOR)
 	coach.gui_input.connect(_on_coach_input)
+	for b: BarkBubble in chat_bubbles:
+		b.mouse_filter = Control.MOUSE_FILTER_STOP
+		b.gui_input.connect(_on_coach_input)
 	visible = false
 
 
@@ -197,7 +221,8 @@ func instruct(line: String, face: Texture2D, rings: Array[String]) -> void:
 	_reveal_text(TutorialPacing.reveal_time(line))
 
 
-## Lines said while the table waits, each {at, text, face, rings}: `coach` in the box, `caption`
+## Lines said while the table waits, each {at, text, face, rings}: `coach` in the box (or, with no
+## rings, in a chat bubble from the speaker off the left edge), `caption`
 ## in the ribbon, `you` and `rival` in bubbles at the duelist cards. `advanced` fires once the last
 ## is done, or on the click that ends a stop that `hold`s.
 func play_stop(lines: Array[Dictionary], hold: bool) -> void:
@@ -251,6 +276,7 @@ func clear() -> void:
 	_caption_hide()
 	for b: BarkBubble in [bark_you, bark_rival, bark_note]:
 		b.dismiss()
+	_chat_clear()
 
 
 ## The reason a greyed option is greyed, in place of the instruction; "" puts the instruction back
@@ -314,12 +340,18 @@ func _show_line() -> void:
 			for r in l.get("rings", []):
 				rings.append(str(r))
 			_set_rings(rings)
+			# A held last line keeps the box, which carries the "Click or press Space." hint.
+			if rings.is_empty() and not (_pacing.hold and last):
+				_coach_leave()
+				_chat_pop(line, face)
+				return
 			hint.visible = _pacing.hold and last
 			_coach_show(line, face)
 			text.visible_ratio = 0.0
 			timer.visible = not (_pacing.hold and last)
 		"caption":
 			_caption_show(line)
+			_caption_left = _pacing.times[i]
 		"you":
 			bark_you.pop(line, null, _pacing.times[i] + LINGER, "bark:you")
 		"rival":
@@ -332,6 +364,7 @@ func _end_stop() -> void:
 	_caption_hide()
 	_set_rings([])
 	_coach_leave()
+	_chat_clear()
 	advanced.emit()
 
 
@@ -352,11 +385,16 @@ func _on_coach_input(event: InputEvent) -> void:
 	_skip()
 
 
+## While the table waits on a stop, Space, Enter or a left click anywhere moves it on: the table
+## has nothing to click until the stop is over.
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or _mode != Mode.STOP:
 		return
 	var key: InputEventKey = event as InputEventKey
-	if key != null and key.pressed and not key.echo and key.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER]:
+	var press: InputEventMouseButton = event as InputEventMouseButton
+	var keyed: bool = key != null and key.pressed and not key.echo and key.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER]
+	var clicked: bool = press != null and press.pressed and press.button_index == MOUSE_BUTTON_LEFT
+	if keyed or clicked:
 		get_viewport().set_input_as_handled()
 		_skip()
 
@@ -517,12 +555,20 @@ func _caption_show(line: String) -> void:
 	caption.visible = true
 	_caption_left = 0.0
 	_kill(_caption_tween)
+	caption.modulate.a = 1.0
+	caption_text.position.y = 0.0
 	if reduced_motion:
-		caption.modulate.a = 1.0
+		caption_ribbon.scale = Vector2.ONE
+		caption_text.modulate.a = 1.0
 		return
-	caption.modulate.a = 0.0
-	_caption_tween = create_tween()
-	_caption_tween.tween_property(caption, "modulate:a", 1.0, CAPTION_FADE)
+	caption_ribbon.pivot_offset = Vector2(half, caption.size.y * 0.5)
+	caption_ribbon.scale = Vector2(0.0, 1.0)
+	caption_text.modulate.a = 0.0
+	caption_text.position.y = CAPTION_RISE
+	_caption_tween = create_tween().set_parallel()
+	_caption_tween.tween_property(caption_ribbon, "scale:x", 1.0, CAPTION_OPEN).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_caption_tween.tween_property(caption_text, "modulate:a", 1.0, CAPTION_OPEN).set_delay(CAPTION_TEXT_DELAY)
+	_caption_tween.tween_property(caption_text, "position:y", 0.0, CAPTION_OPEN).set_delay(CAPTION_TEXT_DELAY).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 func _caption_hide() -> void:
@@ -533,8 +579,50 @@ func _caption_hide() -> void:
 		caption.visible = false
 		return
 	_caption_tween = create_tween()
-	_caption_tween.tween_property(caption, "modulate:a", 0.0, CAPTION_FADE)
+	_caption_tween.tween_property(caption, "modulate:a", 0.0, CAPTION_OUT)
 	_caption_tween.tween_callback(caption.hide)
+
+
+# --- The chat column -----------------------------------------------------------------
+
+## A new chat bubble at the bottom of the column; past three, the oldest is reused.
+func _chat_pop(line: String, face: Texture2D) -> void:
+	var b: BarkBubble = null
+	if _chat.size() >= chat_bubbles.size():
+		b = _chat.pop_front()
+	else:
+		for free in chat_bubbles:
+			if not _chat.has(free):
+				b = free
+				break
+	b.pop(line, face, CHAT_HOLD, "chat")
+	b.label.visible_ratio = 1.0 if reduced_motion else 0.0
+	_chat.append(b)
+
+
+func _chat_clear() -> void:
+	for b in _chat:
+		b.dismiss()
+	_chat.clear()
+
+
+## The newest bubble sits on the column's bottom edge with its tail toward the speaker off the left
+## edge; the earlier ones slide up above it and dim.
+func _place_chat(delta: float) -> void:
+	var y: float = size.y * CHAT_BOTTOM
+	chat_hint.visible = not _chat.is_empty() and _mode == Mode.STOP
+	if chat_hint.visible:
+		chat_hint.position = Vector2(SAFE_LEFT + 14.0, y + 6.0)
+	for i in range(_chat.size() - 1, -1, -1):
+		var b: BarkBubble = _chat[i]
+		y -= b.size.y
+		var goal: Vector2 = Vector2(SAFE_LEFT, y)
+		var newest: bool = i == _chat.size() - 1
+		b.home = goal if newest or reduced_motion else b.home.lerp(goal, 1.0 - exp(-SMOOTHING * delta))
+		b.aim = Vector2(0.0, goal.y + b.size.y * 0.5) if newest else Vector2.ZERO
+		if not newest:
+			b.modulate.a = CHAT_DIM
+		y -= CHAT_GAP
 
 
 # --- Every frame ---------------------------------------------------------------------
@@ -550,8 +638,11 @@ func _process(delta: float) -> void:
 			_show_line()
 		if _mode == Mode.STOP and _pacing != null:
 			if str(_lines[_pacing.line].get("at", "")) == "coach":
-				text.visible_ratio = _pacing.revealed()
-				timer_fill.size = Vector2(timer.size.x * _pacing.left(), timer.size.y)
+				if _coach_on:
+					text.visible_ratio = _pacing.revealed()
+					timer_fill.size = Vector2(timer.size.x * _pacing.left(), timer.size.y)
+				elif not _chat.is_empty():
+					_chat.back().label.visible_ratio = _pacing.revealed()
 	elif _mode == Mode.MOVE:
 		_idle += delta
 	if _reason_linger > 0.0:
@@ -561,7 +652,7 @@ func _process(delta: float) -> void:
 			_swap_reason()
 	if _caption_left > 0.0:
 		_caption_left -= delta
-		if _caption_left <= 0.0 and _mode != Mode.STOP:
+		if _caption_left <= 0.0:
 			_caption_hide()
 	if _shake > 0.0:
 		_shake = maxf(0.0, _shake - delta)
@@ -588,6 +679,7 @@ func _layout(delta: float) -> void:
 	_place_bubble(bark_you, YOU_SLOTS, YOU_LEVEL, outs, placed)
 	_place_bubble(bark_rival, RIVAL_SLOTS, RIVAL_LEVEL, outs, placed)
 	_place_bubble(bark_note, NOTE_SLOTS, 0.5, outs, placed)
+	_place_chat(delta)
 	_draw_tether()
 
 
@@ -598,6 +690,10 @@ func _keepouts() -> Array[Rect2]:
 			outs.append(r as Rect2)
 	if caption.visible:
 		outs.append(caption.get_global_rect())
+	# The hand's enlarged card while the pointer is on it: the box steps aside rather than sit under it.
+	var under: Rect2 = preview.call() if preview.is_valid() else Rect2()
+	if under.has_area():
+		outs.append(under.grow(GAP))
 	return outs
 
 
@@ -644,11 +740,14 @@ func _choose_slot(force: bool, outs: Array[Rect2] = []) -> Vector2:
 		return HOME
 	var key: String = ",".join(_rings)
 	var anchor: Vector2 = body.get_center()
-	if force or key != _slot_key or anchor.distance_to(_slot_at) > RESLOT or box != _slot_size or outs.size() != _slot_outs:
+	var under: Rect2 = preview.call() if preview.is_valid() else Rect2()
+	var preview_moved: bool = under.position.distance_to(_slot_preview.position) > RESLOT or under.has_area() != _slot_preview.has_area()
+	if force or key != _slot_key or anchor.distance_to(_slot_at) > RESLOT or box != _slot_size or outs.size() != _slot_outs or preview_moved:
 		_slot_key = key
 		_slot_at = anchor
 		_slot_size = box
 		_slot_outs = outs.size()
+		_slot_preview = under
 		var kind: String = _rings[0].get_slice(":", 0) if not _rings.is_empty() else ""
 		var order: Array = SLOTS.get(kind, DEFAULT_SLOTS)
 		if kind in ["life_deck", "discard"] and ring.get_center().x > size.x * 0.5:

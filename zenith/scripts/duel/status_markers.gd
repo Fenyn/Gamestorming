@@ -13,7 +13,11 @@ const NEAR_CAPTION_Z: float = 0.77
 const FAR_VALUE_Z: float = -0.7
 const FAR_CAPTION_Z: float = -0.51
 
-@export var reduced_motion: bool = false
+@export var reduced_motion: bool = false:
+	set(value):
+		reduced_motion = value
+		if ladder != null:
+			ladder.animate = not value
 @onready var viewport: SubViewport = $Viewport
 @onready var ladder: MightLadder = $Viewport/Face/Ladder
 @onready var tabs: DuelistTabs = $Viewport/Face/Tabs
@@ -26,6 +30,7 @@ var _shown: bool = false
 
 func _ready() -> void:
 	(overlay.material_override as StandardMaterial3D).albedo_texture = viewport.get_texture()
+	ladder.animate = not reduced_motion
 	ladder.changed.connect(_render)
 	tabs.changed.connect(_render)
 
@@ -66,14 +71,25 @@ func set_ally(energy: int, might: int, far: bool = false) -> void:
 	stat_value.modulate = ZenithTheme.WARN if energy <= 0 else ZenithTheme.ENERGY
 
 
+## How the next Energy change moves the gauge (`MightLadder.cue`).
+func cue(motion: MightLadder.Motion, tier: int = 0) -> void:
+	ladder.cue(motion, tier)
+
+
+## True while the gauge's pill is still travelling to its rung.
+func moving() -> bool:
+	return ladder.moving()
+
+
 ## Preview only: the rung a projected cost would drop Energy to, outlined.
 func preview_energy(cost: int = 0) -> void:
 	ladder.set_preview(cost)
 
 
-## The lit pill brightens for a moment when Energy or Fervor moves.
+## The lit pill brightens for a moment when Fervor moves, or Energy with the ladder's own motion
+## off.
 func _pulse_on_change(energy: int, fervor: int) -> void:
-	var moved: bool = _shown and (energy != ladder.energy() or fervor != tabs.fervor())
+	var moved: bool = _shown and ((energy != ladder.energy() and not ladder.animate) or fervor != tabs.fervor())
 	_shown = true
 	if not moved or reduced_motion:
 		return

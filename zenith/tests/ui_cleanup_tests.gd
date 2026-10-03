@@ -41,6 +41,49 @@ func _check_seat_colors() -> void:
 			"Two seats on one style must also split their brightness (seed %d)" % s)
 
 
+## Transform: a discard-pile card the pending decision offers is marked in the pile browser, the
+## hint says so, and clicking it hands the card to the table's click handler like a hand card.
+func _check_transform_pile() -> void:
+	var hud: Node = _hud("LOCAL")
+	var view: SeatView = SeatView.new()
+	var p: SeatPlayer = SeatPlayer.new()
+	p.name = "Ada"
+	p.discard = [21, 22] as Array[int]
+	view.players = [p]
+	view.cards[21] = SeatCard.from_dict({"uid": 21, "def": "storm_art_30", "title": "Storm Turning Wind", "zone": "discard"})
+	view.cards[22] = SeatCard.from_dict({"uid": 22, "def": "storm_art_06", "title": "Storm Arc Bolt", "zone": "discard"})
+	var pv: PromptView = PromptView.new()
+	pv.player = 0
+	pv.kind = &"defense"
+	var play: OptionView = OptionView.new()
+	play.type = &"defend"
+	play.card = 21
+	pv.options = [play] as Array[OptionView]
+	hud._current_prompt = pv
+	await hud.show_pile(view, 0, &"discard")
+	_check("can be played with Transform" in hud.pile_hint.text, "The pile browser says a card in it can be played: %s" % hud.pile_hint.text)
+	var captions: Dictionary = {}
+	var faces: Dictionary = {}
+	for i in range(hud.pile_cards.get_child_count()):
+		var column: Control = hud.pile_cards.get_child(i)
+		var uid: int = hud._pile_uids[i]
+		captions[uid] = (column.get_child(1) as Label).text
+		faces[uid] = column.get_child(0)
+	_check(str(captions.get(21, "")) == "Play (Transform)", "The playable card is marked: %s" % str(captions.get(21, "")))
+	_check(str(captions.get(22, "")) != "Play (Transform)", "A card with nothing offered is not")
+	var clicked: Array[int] = []
+	hud.card_clicked.connect(func(uid: int) -> void: clicked.append(uid))
+	var press: InputEventMouseButton = InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	(faces[22] as Control).gui_input.emit(press)
+	_check(clicked.is_empty() and hud.pile.visible, "Clicking a card with nothing offered does nothing")
+	(faces[21] as Control).gui_input.emit(press)
+	_check(clicked.size() == 1 and clicked[0] == 21, "Clicking the marked card plays it through the table's click handler: %s" % str(clicked))
+	_check(not hud.pile.visible, "and the browser closes for it")
+	hud.free()
+
+
 # --- Helpers ----------------------------------------------------------------
 
 func _mode(name: String) -> int:
@@ -1142,6 +1185,7 @@ func _run() -> void:
 	readout.card_bounds = Rect2(10, 20, 100, 140)
 	_check(redraws == 1, "Changed projected bounds must request a resource viewport redraw")
 	_check_seat_colors()
+	await _check_transform_pile()
 	_check_options_menu()
 	_check_result_states()
 	await _check_card_size()

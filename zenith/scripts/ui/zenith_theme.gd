@@ -222,7 +222,7 @@ static func _rule(horizontal: bool) -> StyleBoxLine:
 	return line
 
 
-## The framed panel: Kenney border 009 in iron over the panel fill. The fill is never tinted.
+## The framed panel: the shared panel face (engraved rule, drop shadow) under the iron tint.
 static func panel(content: int = 22) -> StyleBox:
 	return MapArt.panel_box(content, FRAME)
 

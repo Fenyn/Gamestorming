@@ -13,7 +13,7 @@ extends RefCounted
 ## A played card's id remains public for this replay beat even if its final zone is hidden.
 const ANIMATED: Dictionary = {
 	&"combat_begin": ["attacker"], &"combat_end": [],
-	&"attack_declared": ["kind", "source", "id", "is_power", "is_final", "focused", "empowered"],
+	&"attack_declared": ["kind", "source", "copied", "id", "is_power", "is_final", "focused", "empowered"],
 	&"defense_played": ["card", "id", "stopped", "tried"], &"defense_power": ["card", "tried"], &"shield": ["card"],
 	&"attack_stopped": [], &"attack_successful": [],
 	&"base_damage": ["stages", "life"], &"modified_damage": ["stages", "life"],
@@ -24,10 +24,15 @@ const ANIMATED: Dictionary = {
 	&"attack_end": ["stopped", "stages_dealt", "life_dealt"],
 	&"critical_fervor": [],
 	&"hand_discarded": ["card"], &"in_play_discarded": ["card", "removed"], &"card_moved": ["card", "to"],
+	&"transformed": ["card", "paid"],
 	&"card_used": ["card", "id"], &"card_placed": ["card"], &"final_strike": ["discarded"],
 	&"remain": ["card", "uses"],
 	&"power_up": ["gain", "energy", "energies"], &"recover": ["card"],
 	&"energy_changed": ["card", "from", "to", "source"], &"gain_blocked": ["card", "amount"],
+	# Energy that moves with no number of its own on the table: a cost, the Fervor peak's refill,
+	# an Ally bonding or splitting. Animated so the gauges move on the beat it happens.
+	&"cost_paid": ["stages", "life", "energy"], &"fervor_peak": ["energy"],
+	&"bonded": ["card", "parts"], &"unbonded": ["card"],
 	&"fervor_changed": ["from", "to", "source", "source_owner"], &"fervor_shielded": [], &"aspect_up": ["aspect"], &"aspect_down": ["aspect"],
 	&"trigger_fired": ["card", "trigger"], &"draw": ["card", "from"],
 	&"countered": ["card", "target"], &"game_over": ["winner", "reason"],
@@ -202,15 +207,11 @@ func _update_for(seat: int, events: Array[GameEvent], quiet: int) -> SeatUpdate:
 	var u: SeatUpdate = SeatUpdate.new()
 	# Lines are worded per seat: a card this seat may not see is never named in its log.
 	for index in range(events.size()):
-		var ev: GameEvent = events[index]
+		var ev: GameEvent = masked_for(events[index], seat)
 		var line: String = CardText.event_line(ev, engine, seat)
 		var entry: Dictionary = {"type": String(ev.type), "player": int(ev.data.get("player", -1)), "line": line}
 		if ANIMATED.has(ev.type) and index >= quiet:
-			var data: Dictionary = {}
-			for key in ANIMATED[ev.type]:
-				if ev.data.has(key):
-					data[key] = ev.data[key]
-			entry["data"] = data
+			entry["data"] = animation_data(ev)
 			# What the table read at that moment, so the beat draws the state it belongs to
 			# instead of the state at the end of the whole update.
 			if not ev.state.is_empty():
@@ -219,6 +220,45 @@ func _update_for(seat: int, events: Array[GameEvent], quiet: int) -> SeatUpdate:
 	u.view = view_for(seat)
 	u.prompt = prompt_for(seat)
 	return u
+
+
+## The fields of `ev` a client animates with, the same for both seats.
+static func animation_data(ev: GameEvent) -> Dictionary:
+	var data: Dictionary = {}
+	for key in ANIMATED.get(ev.type, []):
+		if ev.data.has(key):
+			data[key] = ev.data[key]
+	return data
+
+
+## `ev` as `seat` may learn it. A window the engine closed because the actor's hand held nothing
+## for it reads to the rival as a window the actor declined, so the rival learns that they passed
+## and never that they could not act. A window whose decline sends no event becomes the blank
+## `prompt` entry an opened window sends. One event in, one out, so a seat's lines still line up
+## with the engine's events. The actor's own seat keeps the reason.
+static func masked_for(ev: GameEvent, seat: int) -> GameEvent:
+	var actor: int = int(ev.data.get("player", -1))
+	if seat < 0 or actor < 0 or actor == seat:
+		return ev
+	var shown: GameEvent = null
+	match ev.type:
+		&"no_defense":
+			var reason: String = str(ev.data.get("reason", ""))
+			if not bool(ev.data.get("auto", false)) or (reason != "none" and reason != "unstoppable"):
+				return ev
+			shown = GameEvent.new(&"no_defense", {"player": actor, "auto": false})
+		&"window_skipped":
+			match str(ev.data.get("window", "")):
+				"respond":
+					shown = GameEvent.new(&"declined_counter", {"player": actor})
+				"late_stop":
+					shown = GameEvent.new(&"no_defense", {"player": actor, "auto": false})
+				_:
+					shown = GameEvent.new(&"prompt", {"player": actor})
+		_:
+			return ev
+	shown.state = ev.state
+	return shown
 
 
 ## A simulation keeps the seat's own known composition, randomizes unknown placement, and

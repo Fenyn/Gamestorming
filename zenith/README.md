@@ -92,4 +92,5 @@ The web build is published prebuilt because the art packs are gitignored, so CI 
 | `docs/card_roster.csv`, `card_pool.md` | Every card with its rules text and source card. |
 | `docs/tutorial_script.md` | The tutorial beat by beat. |
 | `docs/presentation.md` | Screens and effects. |
+| `CREDITS.md` | Credits, including the New Z team and the Z League, whose cards and decklists are used with their permission. |
 | `CLAUDE.md` | Rules for working in this project. |

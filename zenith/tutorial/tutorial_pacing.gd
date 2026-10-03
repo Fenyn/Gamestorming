@@ -82,9 +82,13 @@ func waits_for_click() -> bool:
 	return hold and line == times.size() - 1 and elapsed >= times[line]
 
 
-## Moves the clock on unless `paused`. True when the line shown changed.
+## Moves the clock on unless `paused`. A pause holds the line up, but its typing still finishes.
+## True when the line shown changed.
 func tick(delta: float, paused: bool) -> bool:
-	if finished() or paused:
+	if finished():
+		return false
+	if paused:
+		elapsed = maxf(elapsed, minf(elapsed + delta, reveals[line]))
 		return false
 	elapsed += delta
 	if elapsed < times[line]:

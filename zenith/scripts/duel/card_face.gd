@@ -318,6 +318,13 @@ func show_back() -> void:
 
 
 ## The Might ladder's rect in face pixels; valid after a personality layout.
+## The box that holds the card's words (a duelist's Power), in the face's own coordinates.
+func words_rect() -> Rect2:
+	var box: Control = p_words if person.visible else words_box
+	var local: Transform2D = get_global_transform().affine_inverse() * box.get_global_transform()
+	return Rect2(local.origin, box.size)
+
+
 func ladder_rect() -> Rect2:
 	var local: Transform2D = get_global_transform().affine_inverse() * p_ladder.get_global_transform()
 	return Rect2(local.origin, p_ladder.size)

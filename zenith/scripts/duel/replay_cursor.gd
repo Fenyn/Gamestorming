@@ -188,6 +188,10 @@ func _full(seat_update: SeatUpdate, events: Array[GameEvent]) -> SeatUpdate:
 		var line: Dictionary = seat_update.lines[i].duplicate()
 		if i < events.size():
 			line["line"] = CardText.event_line(events[i], _referee.engine, 0, true)
+			# The seat's entry may stand masked for its rival; this view shows the event itself.
+			line["type"] = String(events[i].type)
+			if line.has("data"):
+				line["data"] = Referee.animation_data(events[i])
 		u.lines.append(line)
 	u.view = view(0, true)
 	var next: Dictionary = next_entry()

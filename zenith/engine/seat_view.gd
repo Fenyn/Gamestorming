@@ -279,6 +279,8 @@ static func _attack_summary(engine: DuelEngine) -> Dictionary:
 		# The card the attack came from, public from the moment it is declared, so a client can
 		# put it in front of the defender while they answer it.
 		"source": int(a.get("source", -1)),
+		# A copied attack (a Riposte throwing one back) has no source; this is the card it copies.
+		"copied": int((a.get("spec", {}) as Dictionary).get("copied_card", -1)),
 		"performer": int(a.get("performer", -1)),
 		"source_title": "",
 		"performer_title": "",
@@ -298,6 +300,8 @@ static func _attack_summary(engine: DuelEngine) -> Dictionary:
 		"endurance_prevented": int(a.get("endurance_prevented", 0)),
 	}
 	var src: CardInstance = engine.card(int(a.get("source", -1)))
+	if src == null:
+		src = engine.card(int(out["copied"]))
 	if src != null:
 		out["source_title"] = src.def.title
 	var performer: CardInstance = engine.card(int(a.get("performer", -1)))

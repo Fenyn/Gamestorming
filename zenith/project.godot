@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 
 Session="*res://scripts/autoload/session.gd"
 Net="*res://scripts/autoload/net.gd"
+Feedback="*res://scenes/ui/feedback_overlay.tscn"
 
 [display]
 
@@ -36,9 +37,19 @@ project/assembly_name="Zenith"
 
 theme/custom_font="res://assets/fonts/kurale/Kurale-Regular.ttf"
 
+[input]
+
+feedback_report={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194339,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+
 [zenith]
 
 net/duel_server="198.44.38.215:7777"
 net/duel_server_cert="res://data/net/duel_server.crt"
-release/tutorial=false
+release/tutorial=true
 release/deck_builder=false
+feedback/endpoint="https://zenith-feedback.royal-bonus-8491.workers.dev/report"
+feedback/key="-47tgUAizPhHTX21l4iqJ4agPiymHt4z"

@@ -129,7 +129,7 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 		var limit: int = def.limit_per_deck
 		if def.type == CardDef.Type.SEAL or def.type == CardDef.Type.PERSONALITY:
 			limit = 1
-		elif def.character != "" and def.character == duelist.character and limit >= DEFAULT_LIMIT:
+		elif def.names_duelist(duelist.character) and limit >= DEFAULT_LIMIT:
 			# A card naming your duelist allows a fourth copy, unless the card prints a
 			# limit of its own. A printed limit is the tighter rule and wins.
 			limit = SIGNATURE_LIMIT
@@ -189,7 +189,7 @@ static func validate(deck: DeckList, library: CardLibrary) -> Array[String]:
 		var limit: int = def.limit_per_deck
 		if def.type == CardDef.Type.SEAL or def.type == CardDef.Type.PERSONALITY:
 			limit = 1
-		elif def.character != "" and def.character == duelist.character and limit >= DEFAULT_LIMIT:
+		elif def.names_duelist(duelist.character) and limit >= DEFAULT_LIMIT:
 			# A card naming your duelist allows a fourth copy, unless the card prints a
 			# limit of its own. A printed limit is the tighter rule and wins.
 			limit = SIGNATURE_LIMIT

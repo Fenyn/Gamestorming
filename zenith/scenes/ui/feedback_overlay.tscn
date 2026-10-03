@@ -1,0 +1,140 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/feedback_overlay.gd" id="1_feedback"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_kind"]
+
+[node name="Feedback" type="CanvasLayer"]
+process_mode = 3
+layer = 120
+script = ExtResource("1_feedback")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Scrim" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="Center" type="CenterContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Root/Center"]
+custom_minimum_size = Vector2(760, 0)
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="Root/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Heading" type="Label" parent="Root/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"GroupLabel"
+text = "Report a bug or send feedback"
+
+[node name="Kinds" type="HBoxContainer" parent="Root/Center/Panel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Bug" type="Button" parent="Root/Center/Panel/Column/Kinds"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("ButtonGroup_kind")
+text = "Bug"
+
+[node name="Feedback" type="Button" parent="Root/Center/Panel/Column/Kinds"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_kind")
+text = "Feedback"
+
+[node name="Summary" type="LineEdit" parent="Root/Center/Panel/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "A short title"
+max_length = 90
+
+[node name="Description" type="TextEdit" parent="Root/Center/Panel/Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+placeholder_text = "What happened, and what did you expect to happen?"
+wrap_mode = 1
+
+[node name="Attach" type="HBoxContainer" parent="Root/Center/Panel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Include" type="CheckBox" parent="Root/Center/Panel/Column/Attach"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+button_pressed = true
+text = "Attach a screenshot and game details"
+
+[node name="Shot" type="TextureRect" parent="Root/Center/Panel/Column/Attach"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(192, 108)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Note" type="Label" parent="Root/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Game details are the build, your system and screen size, what was on screen and the recent game log. Nothing else about you is sent."
+autowrap_mode = 3
+
+[node name="Status" type="Label" parent="Root/Center/Panel/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Root/Center/Panel/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Cancel" type="Button" parent="Root/Center/Panel/Column/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel"
+
+[node name="Copy" type="Button" parent="Root/Center/Panel/Column/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Copy report"
+
+[node name="Gap" type="Control" parent="Root/Center/Panel/Column/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Send" type="Button" parent="Root/Center/Panel/Column/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Send"
+
+[node name="Request" type="HTTPRequest" parent="."]
+timeout = 20.0

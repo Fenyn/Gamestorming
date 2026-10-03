@@ -28,7 +28,7 @@ static func read_data() -> Dictionary:
 
 ## What a lead-in is picked from. Every field has a default, so tests and the preview can pass
 ## only what they need.
-##   main, opponent: characters. family: the opponent's deck family.
+##   main, opponent: characters. family: the opponent's deck family. main_family: the main's.
 ##   boss: a boss node. act: 1 to 3. level: the main's personality level.
 ##   met: finished duels between the two, any run. last: "won", "lost" or "" for the main.
 ##   construct: the opponent is tagged construct. joined: characters that joined the run deck.
@@ -36,7 +36,7 @@ static func read_data() -> Dictionary:
 ##   seed: for the picks that are not ordered.
 static func empty_context() -> Dictionary:
 	return {
-		"main": "", "opponent": "", "family": "", "boss": false, "act": 1, "level": 1,
+		"main": "", "opponent": "", "family": "", "main_family": "", "boss": false, "act": 1, "level": 1,
 		"met": 0, "last": "", "construct": false, "joined": [], "beaten": [], "shown": [],
 		"seed": 0,
 	}
@@ -49,11 +49,13 @@ static func context_for(run: AdventureRun, map: AdventureMap, library: CardLibra
 	var here: Dictionary = map.node(run.node_id)
 	var opponent_id: String = str(map.duel_for(run.node_id).get("opponent", ""))
 	var family: String = AdventureDecks.family_of(opponent_id)
-	var main: String = AdventureDecks.character_of(AdventureDecks.family_of(run.starter_id))
+	var main_family: String = AdventureDecks.family_of(run.starter_id)
+	var main: String = AdventureDecks.character_of(main_family)
 	var opponent: String = AdventureDecks.character_of(family)
 	ctx["main"] = main
 	ctx["opponent"] = opponent
 	ctx["family"] = family
+	ctx["main_family"] = main_family
 	ctx["boss"] = str(here.get("type", "")) == "boss"
 	ctx["act"] = int(here.get("act", 1))
 	ctx["level"] = progress.personality_level(main) if progress != null else 1
@@ -132,11 +134,11 @@ static func _slot_holds(slot: String, scene: Dictionary, ctx: Dictionary) -> boo
 		"level":
 			return met > 0 and int(ctx.get("level", 1)) >= int(scene.get("level_min", DEFAULT_LEVEL_MIN))
 		"act3":
-			return int(ctx.get("act", 1)) >= 3
+			return met > 0 and int(ctx.get("act", 1)) >= 3
 		"again":
 			return met > 0
 		"first":
-			return true
+			return met == 0
 	return false
 
 
@@ -144,26 +146,42 @@ static func _slot_holds(slot: String, scene: Dictionary, ctx: Dictionary) -> boo
 static func _variant(value: Variant, ctx: Dictionary) -> Dictionary:
 	var options: Array = value if value is Array else [value]
 	for option in options:
-		if not (option is Dictionary):
-			continue
-		var scene: Dictionary = option
-		if scene.has("deck") and str(scene["deck"]) != str(ctx.get("family", "")):
-			continue
-		if scene.has("met") and bool(scene["met"]) != (int(ctx.get("met", 0)) > 0):
-			continue
-		return scene
+		if option is Dictionary and _conditions_hold(option, ctx):
+			return option
 	return {}
+
+
+## `deck` is the opponent's deck family, `main_deck` the main's, `met` whether the two have met.
+static func _conditions_hold(entry: Dictionary, ctx: Dictionary) -> bool:
+	if entry.has("deck") and str(entry["deck"]) != str(ctx.get("family", "")):
+		return false
+	if entry.has("main_deck") and str(entry["main_deck"]) != str(ctx.get("main_family", "")):
+		return false
+	if entry.has("met") and bool(entry["met"]) != (int(ctx.get("met", 0)) > 0):
+		return false
+	return true
 
 
 static func _general_scene(ctx: Dictionary, data: Dictionary) -> Dictionary:
 	var main: String = str(ctx["main"])
 	var opponent: String = str(ctx["opponent"])
-	var call: Dictionary = (data.get("calls", {}) as Dictionary).get(opponent, {})
+	var value: Variant = (data.get("calls", {}) as Dictionary).get(opponent, {})
+	var options: Array = value if value is Array else [value]
+	var shown: Array = ctx.get("shown", [])
+	var call: Dictionary = {}
+	var key: String = ""
+	for i in options.size():
+		if not (options[i] is Dictionary) or not _conditions_hold(options[i], ctx):
+			continue
+		var k: String = "call|%s|%d" % [opponent, i]
+		if call.is_empty() or (shown.has(key) and not shown.has(k)):
+			call = options[i]
+			key = k
 	if call.is_empty():
 		return {}
 	var reply: Dictionary = _reply(ctx, data, str(call.get("kind", "")))
 	var scene: Dictionary = {"narration": call.get("narration", ""), "lines": [call.get("line", "")]}
-	var out: Dictionary = _build("call|%s" % opponent, scene, ctx, data)
+	var out: Dictionary = _build(key, scene, ctx, data)
 	if not reply.is_empty():
 		(out["lines"] as Array).append(parse_line(str(reply["line"]), ctx, data))
 		(out["keys"] as Array).append(str(reply["key"]))
@@ -186,6 +204,8 @@ static func _reply(ctx: Dictionary, data: Dictionary, kind: String) -> Dictionar
 			continue
 		if bool(r.get("construct", false)) and not bool(ctx.get("construct", false)):
 			continue
+		if not _conditions_hold(r, ctx):
+			continue
 		if r.has("level_min") and level < int(r["level_min"]):
 			continue
 		var entry: Dictionary = {"line": str(r.get("line", "")), "key": "reply|%s|%d" % [main, i]}
@@ -200,15 +220,16 @@ static func _reply(ctx: Dictionary, data: Dictionary, kind: String) -> Dictionar
 		for i in replies.size():
 			var r: Dictionary = replies[i]
 			var fits: Array = r.get("fits", [])
-			if (fits.has(kind) or fits.has("any")) and not r.has("level_min") and not bool(r.get("construct", false)):
+			if (fits.has(kind) or fits.has("any")) and not r.has("level_min") and not bool(r.get("construct", false)) \
+					and _conditions_hold(r, ctx):
 				pool.append({"line": str(r.get("line", "")), "key": "reply|%s|%d" % [main, i]})
 	if pool.is_empty():
 		return {}
 	return pool[absi(int(ctx.get("seed", 0))) % pool.size()]
 
 
-## A joined character's line, at most once per act: `once` the first time, then the opponent's
-## own line, `construct`, or `any`.
+## A joined character's line. A line for this opponent plays once a run whenever they meet;
+## otherwise at most one line an act: `once` the first time, then `construct` or `any`.
 static func _add_joined(out: Dictionary, ctx: Dictionary, data: Dictionary) -> void:
 	var joined_data: Dictionary = data.get("joined", {})
 	var shown: Array = ctx.get("shown", [])
@@ -217,6 +238,13 @@ static func _add_joined(out: Dictionary, ctx: Dictionary, data: Dictionary) -> v
 		if lines.is_empty():
 			continue
 		var act_key: String = "joined|%s|act%d" % [who, int(ctx.get("act", 1))]
+		var opponent_key: String = "joined|%s|%s" % [who, ctx["opponent"]]
+		if lines.has(str(ctx["opponent"])) and not shown.has(opponent_key):
+			var own: Dictionary = parse_line(str(lines[str(ctx["opponent"])]), ctx, data)
+			own["side"] = SIDE_ALLY
+			(out["lines"] as Array).append(own)
+			(out["keys"] as Array).append_array([opponent_key, act_key])
+			return
 		if shown.has(act_key):
 			continue
 		var once_key: String = "joined|%s|once" % who
@@ -224,8 +252,6 @@ static func _add_joined(out: Dictionary, ctx: Dictionary, data: Dictionary) -> v
 		if lines.has("once") and not shown.has(once_key):
 			line = str(lines["once"])
 			(out["keys"] as Array).append(once_key)
-		elif lines.has(str(ctx["opponent"])):
-			line = str(lines[str(ctx["opponent"])])
 		elif bool(ctx.get("construct", false)) and lines.has("construct"):
 			line = str(lines["construct"])
 		elif lines.has("any"):
@@ -333,12 +359,23 @@ static func all_scenes(data: Dictionary = {}) -> Array[Dictionary]:
 		for main in mains:
 			if main == opponent or ((pairs.get(main, {}) as Dictionary).has(opponent)):
 				continue
-			var ctx: Dictionary = empty_context()
-			ctx["main"] = main
-			ctx["opponent"] = opponent
-			var scene: Dictionary = _general_scene(ctx, data)
-			scene["main"] = main
-			scene["opponent"] = opponent
-			scene["title"] = "%s vs %s  /  call and reply" % [main, opponent]
-			out.append(scene)
+			var options: Array = calls[opponent] if calls[opponent] is Array else [calls[opponent]]
+			for i in options.size():
+				var option: Dictionary = options[i]
+				var ctx: Dictionary = empty_context()
+				ctx["main"] = main
+				ctx["opponent"] = opponent
+				ctx["met"] = 1 if bool(option.get("met", false)) else 0
+				ctx["family"] = str(option.get("deck", ""))
+				ctx["main_family"] = str(option.get("main_deck", ""))
+				for j in i:
+					(ctx["shown"] as Array).append("call|%s|%d" % [opponent, j])
+				var scene: Dictionary = _general_scene(ctx, data)
+				if scene.is_empty():
+					continue
+				scene["main"] = main
+				scene["opponent"] = opponent
+				var tag: String = "call and reply" if options.size() == 1 else "call and reply %d" % (i + 1)
+				scene["title"] = "%s vs %s  /  %s" % [main, opponent, tag]
+				out.append(scene)
 	return out

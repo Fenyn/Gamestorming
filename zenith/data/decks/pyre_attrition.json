@@ -41,7 +41,11 @@
     },
     {
       "id": "signature_combat_03",
-      "count": 3
+      "count": 2
+    },
+    {
+      "id": "pyre_combat_04",
+      "count": 1
     },
     {
       "id": "signature_art_09",
@@ -77,7 +81,7 @@
     },
     {
       "id": "pyre_strike_11",
-      "count": 1
+      "count": 3
     },
     {
       "id": "pyre_strike_16",
@@ -92,7 +96,7 @@
       "count": 3
     },
     {
-      "id": "pyre_strike_19",
+      "id": "pyre_strike_29",
       "count": 3
     },
     {
@@ -104,7 +108,7 @@
       "count": 3
     },
     {
-      "id": "pyre_strike_02",
+      "id": "pyre_art_12",
       "count": 3
     },
     {

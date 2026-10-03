@@ -2,5 +2,14 @@
   {"id": "tutorial_personality_01", "title": "Straw Knight", "type": "personality", "school": "",
    "character": "Straw Knight", "aspect": 1, "aspect_title": "Training Dummy", "surge": 2,
    "might": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-   "power": {"attack": {"kind": "strike", "stages": 3}}}
+   "power": {"attack": {"kind": "strike", "stages": 3}}},
+  {"id": "tutorial_strike_01", "character": "Emrys Rooke", "title": "Emrys' Rising Cut", "type": "strike", "school": "",
+   "attack": {"kind": "strike", "stages": 3},
+   "effects": [{"op": "fervor", "amount": 1}]},
+  {"id": "tutorial_strike_02", "character": "Emrys Rooke", "title": "Emrys' Overhand Cut", "type": "strike", "school": "",
+   "attack": {"kind": "strike", "stages": 2}},
+  {"id": "tutorial_strike_03", "character": "Emrys Rooke", "title": "Emrys' Parry", "type": "strike", "school": "",
+   "defense": {"stops": "strike"}},
+  {"id": "tutorial_art_01", "title": "Thrown Dagger", "type": "art", "school": "",
+   "attack": {"kind": "art"}}
 ]}

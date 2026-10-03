@@ -6,7 +6,7 @@ Duel card game client. Godot 4.6, GDScript. Design doc is `../designs/zenith.md`
 
 - No source-material names anywhere: code, data, assets, comments, docs. Mechanics are emulated, flavor is original.
 - Rules and rulings come from the anchor CRD, `docs/reference/crd_2014-08-19.pdf` (searchable copy beside it). Check every rule and card ruling against it first, and never against a later rules document. House rules are the ones `../designs/zenith.md` marks as house rules.
-- Every starter card parallels one printed card from the reference game's era, promos included. Nothing from fan-made, custom or homebrew sets, even when a deck sheet or article lists it. `docs/card_roster.csv` records the source; check it against a printed-card listing before adding a card.
+- Every card parallels one printed card: a print from the reference game's era, promos included, or a New Z card (used with the New Z team's official permission since 2026-10-02 and credited in `CREDITS.md`). Nothing from other fan-made, custom or homebrew sets, even when a deck sheet or article lists it. A New Z card's keywords and rules may not be in the anchor CRD; define them in `../designs/zenith.md` before building the card. `docs/card_roster.csv` records the source; check it against a printed-card listing before adding a card.
 - Engine stays pure: `engine/` is RefCounted only, no Nodes, no autoloads, no scene access. Deterministic for a seed plus a command list.
 - Every player decision is a `Prompt` with explicit `Command` options. Clients and AI pick from `options`, never construct commands by hand.
 - Clients render from `SeatView` / `PromptView` only, through `Referee`. Never hand a client the `DuelEngine` or a `CardInstance`; if the view lacks something, extend the view.

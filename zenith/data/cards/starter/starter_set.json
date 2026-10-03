@@ -4651,14 +4651,16 @@
    "title": "Foresight",
    "type": "non_combat",
    "school": "",
+   "use_at": "entering_combat",
    "effects": [
 	{
-	 "trigger": "entering_combat",
+	 "trigger": "use",
 	 "op": "search",
 	 "card_type": "hand_combat",
 	 "source": "discard",
 	 "to": "hand",
-	 "show": true
+	 "show": true,
+	 "must": true
 	}
    ]
   },
@@ -4704,20 +4706,21 @@
    "type": "non_combat",
    "school": "",
    "remove_after_use": true,
+   "use_at": "entering_combat",
    "effects": [
 	{
-	 "trigger": "entering_combat",
+	 "trigger": "use",
 	 "op": "fervor",
 	 "amount": 1
 	},
 	{
-	 "trigger": "entering_combat",
+	 "trigger": "use",
 	 "op": "energy",
 	 "amount": "max",
 	 "target": "duelist"
 	},
 	{
-	 "trigger": "entering_combat",
+	 "trigger": "use",
 	 "op": "draw_discard",
 	 "amount": 1,
 	 "from": "bottom"
@@ -5755,7 +5758,6 @@
   },
   {
    "id": "pyre_strike_11",
-   "limit_per_deck": 1,
    "title": "Pyre Flame Lash",
    "type": "strike",
    "school": "pyre",
@@ -13694,10 +13696,11 @@
    "type": "non_combat",
    "school": "",
    "limit_per_deck": 1,
+   "remove_after_use": true,
+   "use_at": "entering_combat",
    "effects": [
 	{
-	 "trigger": "entering_combat",
-	 "may": true,
+	 "trigger": "use",
 	 "op": "look_at",
 	 "amount": 7,
 	 "pick": {
@@ -13706,12 +13709,7 @@
 	 "to": "play",
 	 "all_matches": true,
 	 "shuffle_after": true,
-	 "from": "top",
-	 "then": [
-	  {
-	   "op": "exile_source"
-	  }
-	 ]
+	 "from": "top"
 	}
    ]
   },
@@ -13852,6 +13850,337 @@
 	 "amount": 2
 	}
    ]
+  },
+  {
+   "id": "pyre_strike_29",
+   "title": "Pyre Fanning Blow",
+   "type": "strike",
+   "school": "pyre",
+   "attack": {
+	"kind": "strike",
+	"stages": 4
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "trigger": "if_successful",
+	 "may": true,
+	 "op": "discard_life",
+	 "amount": 1,
+	 "then": [
+	  {
+	   "op": "draw",
+	   "amount": 1
+	  }
+	 ]
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "pyre_art_12",
+   "title": "Pyre Sapping Heat",
+   "type": "art",
+   "school": "pyre",
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "attach",
+	 "to": "opponent_duelist"
+	}
+   ],
+   "attachment": {
+	"target": "opponent_duelist",
+	"limit_attached": 1,
+	"limit_only_attach": true,
+	"discard_on_host_advance": true,
+	"owner_modifiers": [
+	 {
+	  "scope": "against",
+	  "kind": "any",
+	  "stages": 1,
+	  "per_fervor": true
+	 }
+	]
+   }
+  },
+  {
+   "id": "pyre_combat_04",
+   "title": "Pyre Firebreak",
+   "type": "combat",
+   "school": "pyre",
+   "counter": "combat",
+   "effects": [
+	{
+	 "trigger": "on_counter",
+	 "op": "choose_one",
+	 "choices": [
+	  {
+	   "label": "Attune 2",
+	   "effects": [
+		{
+		 "op": "fervor",
+		 "amount": 2
+		}
+	   ]
+	  },
+	  {
+	   "label": "Draw a card",
+	   "effects": [
+		{
+		 "op": "draw",
+		 "amount": 1
+		}
+	   ]
+	  }
+	 ]
+	}
+   ],
+   "remove_after_use": true,
+   "limit_per_deck": 1
+  },
+  {
+   "id": "storm_art_27",
+   "title": "Storm Banked Charge",
+   "type": "art",
+   "school": "storm",
+   "attack": {
+	"kind": "art"
+   },
+   "use_instead": [
+	{
+	 "op": "energy",
+	 "target": "duelist",
+	 "amount": "max"
+	}
+   ],
+   "effects": [
+	{
+	 "op": "attach",
+	 "to": "own_mastery",
+	 "mastery": "storm_mastery_01",
+	 "mastery_title": "Storm Brewing Mastery"
+	}
+   ],
+   "attachment": {
+	"target": "own_mastery",
+	"limit_attached": 1,
+	"limit_only_attach": true,
+	"modifiers": [
+	 {
+	  "scope": "own",
+	  "kind": "art",
+	  "school": "storm",
+	  "life": 1
+	 }
+	],
+	"effects": [
+	 {
+	  "trigger": "on_damaged",
+	  "when": {
+	   "attack_kind": "strike"
+	  },
+	  "once_per_combat": true,
+	  "op": "energy",
+	  "target": "duelist",
+	  "amount": "max",
+	  "then": [
+	   {
+		"op": "mark_used"
+	   }
+	  ]
+	 }
+	]
+   }
+  },
+  {
+   "id": "storm_combat_03",
+   "title": "Storm Short Circuit",
+   "type": "combat",
+   "school": "storm",
+   "counter": "combat",
+   "effects": [
+	{
+	 "trigger": "on_counter",
+	 "op": "energy",
+	 "target": "duelist",
+	 "amount": "max"
+	},
+	{
+	 "trigger": "on_counter",
+	 "op": "search",
+	 "card_type": "drill",
+	 "school": "storm",
+	 "to": "play"
+	}
+   ],
+   "remove_after_use": true,
+   "limit_per_deck": 1
+  },
+  {
+   "id": "freestyle_art_14",
+   "title": "Valiant Deed",
+   "type": "art",
+   "school": "",
+   "alignment_only": "vigil",
+   "attack": {
+	"kind": "art"
+   },
+   "effects": [
+	{
+	 "may": true,
+	 "op": "discard_in_play",
+	 "who": "any",
+	 "card_type": "non_seal",
+	 "amount": 1,
+	 "choose": true,
+	 "to": "deck_shuffle"
+	}
+   ]
+  },
+  {
+   "id": "grounds_08",
+   "title": "Echoing Gorge",
+   "type": "grounds",
+   "school": "",
+   "limit_per_deck": 3,
+   "art_cost_delta": -2
+  },
+  {
+   "id": "signature_strike_35",
+   "title": "Trademark Parry",
+   "type": "strike",
+   "school": "",
+   "named_as_duelist": true,
+   "defense": {
+	"stops": "any"
+   },
+   "effects": [
+	{
+	 "op": "energy",
+	 "amount": 3
+	},
+	{
+	 "may": true,
+	 "op": "recur_source",
+	 "cost": {
+	  "signature_of": "duelist"
+	 },
+	 "when": {
+	  "discard_has": {
+	   "signature_of": "duelist"
+	  }
+	 }
+	}
+   ]
+  },
+  {
+   "id": "storm_art_28",
+   "title": "Storm Breakneck Surge",
+   "type": "art",
+   "school": "storm",
+   "transform": true,
+   "attack": {
+	"kind": "art",
+	"focused": true,
+	"printed_life": 6
+   },
+   "effects": [
+	{
+	 "trigger": "if_successful",
+	 "op": "attach",
+	 "to": "duelist"
+	}
+   ],
+   "attachment": {
+	"target": "duelist",
+	"stages_as_wounds": true
+   },
+   "remove_after_use": true
+  },
+  {
+   "id": "storm_art_29",
+   "title": "Storm Clearing Bolt",
+   "type": "art",
+   "school": "storm",
+   "transform": true,
+   "attack": {
+	"kind": "art",
+	"focused": true,
+	"printed_life": 5
+   },
+   "effects": [
+	{
+	 "op": "discard_in_play",
+	 "who": "opponent",
+	 "card_type": "ally",
+	 "amount": 1,
+	 "choose": true
+	},
+	{
+	 "trigger": "if_successful",
+	 "op": "search",
+	 "card_type": "drill",
+	 "to": "aside"
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "storm_art_30",
+   "title": "Storm Turning Wind",
+   "type": "art",
+   "school": "storm",
+   "transform": true,
+   "defense": {
+	"stops": "strike"
+   },
+   "effects": [
+	{
+	 "op": "fervor",
+	 "amount": 1
+	},
+	{
+	 "op": "float",
+	 "what": "modifier",
+	 "duration": "combat",
+	 "params": {
+	  "scope": "cost",
+	  "kind": "any",
+	  "school": "storm",
+	  "stages": -2,
+	  "min": 0
+	 }
+	}
+   ],
+   "remove_after_use": true
+  },
+  {
+   "id": "freestyle_combat_23",
+   "title": "PLACEHOLDER's Feint",
+   "type": "combat",
+   "school": "",
+   "unaffected_by_constants": true,
+   "effects": [
+	{
+	 "op": "discard_life",
+	 "amount": 3
+	},
+	{
+	 "op": "advance_aspect",
+	 "who": "opponent"
+	}
+   ],
+   "counts_as_in_discard": "PLACEHOLDER's Growing Spite"
   }
  ]
 }

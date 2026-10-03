@@ -18,7 +18,7 @@ const LOCK_WARN_MS: int = 10000
 @onready var status_label: Label = $Margin/Column/TitleRow/Status
 @onready var back_button: Button = $Margin/Column/TitleRow/Back
 @onready var players_strip: HBoxContainer = $Margin/Column/TitleRow/Players
-@onready var seat_chips: Array[Label] = [$Margin/Column/TitleRow/Players/Seat0/Label, $Margin/Column/TitleRow/Players/Seat1/Label]
+@onready var seat_chips: Array[SeatChip] = [$Margin/Column/TitleRow/Players/Seat0, $Margin/Column/TitleRow/Players/Seat1]
 @onready var code_banner: PanelContainer = $Margin/Column/CodeBanner
 @onready var code_label: Label = $Margin/Column/CodeBanner/Row/Code
 @onready var copy_button: Button = $Margin/Column/CodeBanner/Row/Copy
@@ -135,13 +135,13 @@ func _copy_code() -> void:
 	copied_label.text = "copied again"
 
 
+## One word for whose seat this is: YOU against the AI or online, the AI's own seat, or the seat's
+## number in a hotseat duel.
 func _tag(seat: int) -> String:
-	if _online:
-		return "YOU  ·  PLAYER %d" % (seat + 1)
-	if seat == Session.ai_seat:
-		return "AI OPPONENT  ·  PLAYER %d" % (seat + 1)
-	if Session.ai_seat >= 0:
-		return "YOU  ·  PLAYER %d" % (seat + 1)
+	if seat == Session.ai_seat and not _online:
+		return "AI OPPONENT"
+	if _online or Session.ai_seat >= 0:
+		return "YOU"
 	return "PLAYER %d" % (seat + 1)
 
 
@@ -231,7 +231,7 @@ func _on_peer_left() -> void:
 
 ## The title shows why, from `Net.last_error`.
 func _on_connection_failed(_reason: String) -> void:
-	Session.player_names = ["Player 1", "Player 2"]
+	Session.player_names = Session.default_names()
 	Session.go_to_title()
 
 
@@ -282,6 +282,8 @@ func _refresh() -> void:
 		status_label.text = "Both locked in."
 	else:
 		status_label.text = ""
+	# An empty line would still take the row's spacing and push the players strip off the grid.
+	status_label.visible = status_label.text != ""
 	if _online and Net.queue_room():
 		_show_lock_countdown()
 		back_button.text = "Back to title"
@@ -295,30 +297,16 @@ func _refresh_players() -> void:
 	var me: int = Net.local_player
 	var filled: bool = Net.seats_filled()
 	for seat in range(2):
-		var chip: Label = seat_chips[seat]
 		var present: bool = seat == me or filled
-		var state: String
-		if not present:
-			state = "waiting"
-		elif bool(Net.lobby[seat]["ready"]):
-			state = "locked in"
-		else:
-			state = "choosing"
-		var who: String = str(Net.lobby[seat]["name"]) if present else "empty seat"
-		var picked: bool = present and DuelRoom.has_deck(Net.lobby[seat])
-		# The other seat's deck arrives only once both have locked.
-		if Net.queue_room() and seat != me and picked:
-			var duelist: String = Session.duelist_name(Net.lobby_deck(Net.lobby[seat]))
-			who = duelist if duelist != "" else who
-		if seat == me:
-			who += " (you)"
-		chip.text = "P%d  %s  ·  %s" % [seat + 1, who, state]
-		chip.add_theme_color_override("font_color", Session.seat_color(seat) if picked else (ZenithTheme.TEXT if present else ZenithTheme.MUTED))
-		var border: Color = ZenithTheme.BORDER
+		var entry: Dictionary = Net.lobby[seat]
+		var locked: bool = present and bool(entry["ready"])
+		var state: String = "Waiting" if not present else ("Locked in" if locked else "Choosing")
+		var picked: bool = present and DuelRoom.has_deck(entry)
+		# The seat colour on the edge, full once locked in; the text stays neutral.
+		var edge: Color = ZenithTheme.BORDER
 		if picked:
-			border = Session.seat_color(seat) if state == "locked in" else Color(Session.seat_color(seat), 0.45)
-		var fill: Color = ZenithTheme.RAISED if present else Color.TRANSPARENT
-		(chip.get_parent() as PanelContainer).add_theme_stylebox_override("panel", ZenithTheme.box(fill, border, ZenithTheme.RADIUS, 1, 12, 6))
+			edge = Session.seat_color(seat) if locked else Color(Session.seat_color(seat), 0.45)
+		seat_chips[seat].show_seat(str(entry["name"]), str(entry.get("tag", "")), int(entry.get("rank", 0)), state, edge, seat == me, present)
 	code_banner.visible = not filled and Net.room_code != "" and not Net.queue_room()
 
 
@@ -340,7 +328,7 @@ func _on_back() -> void:
 		return
 	if _online:
 		Net.leave()
-		Session.player_names = ["Player 1", "Player 2"]
+		Session.player_names = Session.default_names()
 	# Opened by the deck builder's Play: Back returns to the deck being built.
 	elif Session.builder_deck_id != "":
 		Session.go_to_builder()

@@ -6,6 +6,10 @@ extends RefCounted
 ## hall, `CourtyardSet`'s leaves). `--dev-web` makes a desktop debug build behave as the web build.
 
 const UNAVAILABLE_TEXT: String = "Online play is only available in the desktop version."
+## The web build is a taste of the game: Duel the AI and the tutorial. Everything else is greyed
+## with FULL_GAME_TEXT as its tooltip, and the title says so once with WEB_LIMITS_TEXT.
+const FULL_GAME_TEXT: String = "Download the full game from the itch.io page to play this."
+const WEB_LIMITS_TEXT: String = "This browser version has Duel the AI and the tutorial. Download the full game from the itch.io page for everything else."
 
 ## Tests set this: 1 acts as the web build, 0 as the desktop, -1 asks the platform.
 static var forced_web: int = -1

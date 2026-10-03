@@ -431,9 +431,11 @@ func dev_effect(owner: int, e: Dictionary) -> String:
 ## animates it and every seat's view follows. "" when applied, else why not.
 ## - `deal` {seat, cards, at}: new copies of those card ids go on the `top` (the default) or the
 ##   `bottom` of the seat's Life Deck, in the listed order from that end inward.
-## - `swap_duelist` {seat, deck, name, energy}: every card the seat owns is carried off the table
-##   (zone `offstage`, in no list) and the side is dealt again from `deck`, a DeckList dictionary,
-##   its Life Deck in listed order. Never in Combat, and never while that seat has a decision open.
+## - `swap_duelist` {seat, deck, name, energy, draw}: every card the seat owns is carried off the
+##   table (zone `offstage`, in no list) and the side is dealt again from `deck`, a DeckList
+##   dictionary, its Life Deck in listed order, then draws `draw` cards (default 0). Never in
+##   Combat, and never while that seat has a decision open, except whether to declare Combat, which
+##   names no card and stands for the new side as it did for the old.
 ## - `set_energy` {seat, energy}: the seat's Duelist stands at that Energy.
 ## - `set_fervor` {seat, fervor}: the seat's Fervor stands at that level. It never climbs an Aspect.
 ## - `end_combat`: the Combat ends between attacks, as a card that ends Combat would end it.
@@ -462,7 +464,7 @@ func script_op(op: Dictionary) -> String:
 		"swap_duelist":
 			if state.step == GameState.Step.COMBAT:
 				return "Not during Combat."
-			if prompt_of(seat) != null:
+			if prompt_of(seat) != null and not _swap_keeps_prompt(prompt_of(seat)):
 				return "Not while that seat has a decision open."
 			var deck: DeckList = DeckList.from_dict(op.get("deck", {}))
 			if deck.duelist_ids.is_empty():
@@ -545,6 +547,16 @@ func _swap_duelist(seat: int, deck: DeckList, name: String, op: Dictionary) -> v
 	for c in fresh.life_deck:
 		arrived.append(c.uid)
 	_emit(&"script_swap", {"player": seat, "gone": gone, "arrived": arrived, "name": fresh.name})
+	_draw(seat, int(op.get("draw", 0)))
+
+
+func _swap_keeps_prompt(p: Prompt) -> bool:
+	if p.kind != &"declare":
+		return false
+	for o in p.options:
+		if o.card >= 0:
+			return false
+	return true
 
 
 ## Returns and clears the events accumulated since the last call.
@@ -2709,6 +2721,32 @@ func attack_forecasts(seat: int) -> Dictionary:
 			(out[o.card] as Dictionary)["final"] = part
 			continue
 		out[o.card] = b
+	return out
+
+
+## What each attack card in `seat`'s hand would deal if performed now, keyed by uid, as
+## {stages, life}: the number its face badge shows, with the Strike Table and every standing
+## modifier in (a Drill's +2 included), its cost paid first. Unlike `attack_forecasts` it does not
+## wait for an attack prompt, so the badge reads the same at every step.
+func hand_forecasts(seat: int) -> Dictionary:
+	var out: Dictionary = {}
+	if state.is_over() or seat < 0 or seat > 1:
+		return out
+	var p: PlayerState = state.players[seat]
+	var first: bool = p.attack_count_combat == 0
+	for c in p.hand:
+		if not c.def.is_attack():
+			continue
+		var a: Dictionary = _build_attack(seat, c, c.def.attack, c.def.effects, false, false, false, null, first)
+		var performer: CardInstance = _performer(a)
+		var cost: int = _cost_stages(a["spec"], p, c)
+		if _grounds_double_costs() and not _costs_waived(p, performer):
+			cost *= 2
+		var energy_before: int = performer.energy
+		performer.energy = maxi(0, performer.energy - cost)
+		var b: Dictionary = _damage_calc(a)
+		performer.energy = energy_before
+		out[c.uid] = {"stages": int(b["stages"]), "life": int(b["life"])}
 	return out
 
 

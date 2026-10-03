@@ -149,6 +149,7 @@ var _series_game: int = 0
 var _series_wins: Array[int] = [0, 0]
 var _series_over: Dictionary = {}
 var _match_payload: Dictionary = {}
+var _rank_up: int = -1             # the rank this match's result reached, -1 for none
 ## The facts the result card is drawn from (`_sync_result`). `_shown`: this game's result is up.
 var _shown: bool = false
 var _game_winner: int = -1
@@ -325,6 +326,8 @@ func _ready() -> void:
 		# The deal cleared these, so any facts here belong to this game.
 		_series_over = Net.last_game_over.duplicate()
 		_match_payload = Net.last_match.duplicate()
+		_rank_up = Net.rank_up if not _match_payload.is_empty() else -1
+		Net.rank_up = -1
 		_room_code = Net.room_code
 		# A duel that ended while this scene loaded signalled the previous scene; read what Net kept.
 		var ended: Dictionary = Net.last_duel_ended
@@ -758,6 +761,7 @@ func _ready_host() -> void:
 		hud.log_line("Seed %d" % Session.last_seed)
 	if online:
 		hud.log_line("Online duel. You are hosting as %s." % Session.player_names[viewer])
+		_show_plates()
 		Net.command_received.connect(_on_net_command)
 	var updates: Array[SeatUpdate] = duel_host.start()
 	# A tutorial opened at a later lesson was played there headless: the table opens on where it
@@ -787,6 +791,7 @@ func _ready_joiner() -> void:
 	await faces.render_deck(Session.chosen[1 - viewer], Session.library, true)
 	hud.set_loading(false)
 	hud.log_line("Online duel. You are %s." % Session.player_names[viewer])
+	_show_plates()
 	if Net.resumed:
 		hud.log_line("You are back in the duel.")
 		hud.set_rejoined(true)
@@ -1011,9 +1016,11 @@ func _on_handoff_confirmed() -> void:
 	view = duel_host.view_for(viewer)
 	prompt = duel_host.prompt_for(viewer)
 	faces.set_matchups(view, Session.library, Session.strike_table)
+	# Replace private textures before uncovering the new seat, including during camera motion, and
+	# before any face render yields a frame: the new seat's numbered faces may still be rendering.
+	_set_hand({})
 	var seat_backdrops: Array[Color] = [hud.seat_backdrop(0), hud.seat_backdrop(1)]
 	await faces.render_missing(view, Session.library, seat_backdrops)
-	# Replace private textures before uncovering the new seat, including during camera motion.
 	_set_hand({})
 	hud.hide_handoff()
 	_adopt_cards()
@@ -2748,6 +2755,9 @@ func _on_match_over(payload: Dictionary) -> void:
 	if not is_inside_tree():
 		return
 	_match_payload = payload.duplicate()
+	# This match's rank-up, taken once so a later match on the same connection never repeats it.
+	_rank_up = Net.rank_up
+	Net.rank_up = -1
 	if not _shown and not busy and (view == null or not view.is_over()):
 		_end_table()
 		return
@@ -2797,7 +2807,7 @@ func _result_facts() -> Dictionary:
 		"reason": _game_reason, "rules_text": _rules_text, "game": game, "wins": wins,
 		"best_of": Net.RANKED_BEST_OF, "next_at": next_at, "ready": _ready_sent, "match": _match_payload,
 		"rival_asked": _rival_asked, "rematch_sent": _rematch_sent, "rival_gone": _rival_gone,
-		"gone_note": _gone_note,
+		"gone_note": _gone_note, "rank_up": _rank_up if not _match_payload.is_empty() else -1,
 	}
 	for key: String in _lost:
 		facts[key] = _lost[key]
@@ -3496,6 +3506,19 @@ func _gauges_settled() -> void:
 		await get_tree().process_frame
 
 
+## Online: both players' plates, each on its own side of the table, with the tags only when both
+## players share a name. A player this side has no badge for (a LAN host's joiner) shows its name
+## alone.
+func _show_plates() -> void:
+	if viewer < 0 or viewer > 1 or Net.lobby.size() < 2:
+		return
+	var same: bool = Session.player_names[0] == Session.player_names[1]
+	for seat in range(2):
+		var entry: Dictionary = Net.lobby[seat]
+		var tag: String = str(entry.get("tag", ""))
+		hud.show_plate(seat == viewer, Session.player_names[seat], tag if same else "", int(entry.get("rank", 0)), tag != "")
+
+
 ## What a bug report says about this duel (the `Feedback` overlay asks the current scene): its
 ## mode, the seed when it is not an online duel, the decks, the step, and the table log under "log".
 func feedback_context() -> Dictionary:
@@ -3964,6 +3987,11 @@ func _tutorial_rival(action: Dictionary) -> void:
 	if not says.is_empty():
 		var said: Array[Dictionary] = [says]
 		_tutorial_bark(said)
+		# A note from Vale on the coming move is read before the move plays, so its blow and what
+		# follows (wounds, a prompt) come after the words, not under them. A click sends it early.
+		if str(_tutorial.speaker(str(says.get("who", ""))).get("at", "")) == "coach":
+			while tutorial_panel.bark_note.showing() and is_inside_tree():
+				await get_tree().process_frame
 	if not bool(action.get("advance", false)):
 		await get_tree().create_timer(0.05).timeout
 	else:

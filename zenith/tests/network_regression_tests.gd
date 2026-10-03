@@ -45,6 +45,10 @@ func _run() -> void:
 	hud.free()
 	var net: Node = root.get_node("Net")
 	var session: Node = root.get_node("Session")
+	# A rating the tests hand the client lands in a profile of the tests' own, never the player's.
+	PlayerProfile.path_override = "user://network_tests_profile.json"
+	DirAccess.remove_absolute(PlayerProfile.path_override)
+	session.profile = PlayerProfile.new()
 	net.mode = "host"
 	net.peer_id = 42
 	net.reset_lobby()
@@ -136,18 +140,31 @@ func _room_tests(net: Node, session: Node) -> void:
 	_check(room.phase == DuelRoom.Phase.LOBBY and not room.deal_ready[0], "A deal request before both seats lock in is refused")
 	var deck0: String = session.decks[0].name
 	var deck1: String = session.decks[1].name
+	var listed: String = PlayerNames.compose(PlayerNames.firsts()[1], PlayerNames.seconds()[1])
+	var renamed: String = PlayerNames.compose(PlayerNames.firsts()[2], PlayerNames.seconds()[2])
+	var joiner_id: String = "3f9a1c07" + "e".repeat(56)
+	net._peer_identity[42] = joiner_id
 	net._on_lobby_pick(41, 0, deck0, "[b]Host[/b]", true)
-	net._on_lobby_pick(42, 1, deck1, "Joiner", true)
-	_check(room.lobby[0]["name"] == "bHost/b" and room.lobby[1]["name"] == "Joiner", "Names are cleaned on the server")
+	net._on_lobby_pick(42, 1, deck1, listed, true)
+	_check(room.lobby[0]["name"] == "Player 1" and room.lobby[1]["name"] == listed,
+		"A typed name becomes the seat's stock name on the server, and a name from the lists goes on: %s" % str([room.lobby[0]["name"], room.lobby[1]["name"]]))
+	_check(str(room.lobby[1]["tag"]) == PlayerProfile.tag_of(joiner_id) and int(room.lobby[1]["rank"]) == 0 and str(room.lobby[0]["tag"]) == "",
+		"The server tags a seat from the identity it proved, ranks it from its best rating, and tags no seat it has no identity for")
+	var same_word: String = PlayerNames.compose(PlayerNames.seconds()[9], PlayerNames.seconds()[9])
+	_check(not PlayerNames.valid(same_word), "The same word twice is no name: %s" % same_word)
+	var forged: Dictionary = net._checked_pick({"name": listed, "deck": -1, "deck_name": "", "ready": false, "tag": "12345", "rank": 99}, 1)
+	_check(str(forged.get("tag", "")) == "" and int(forged.get("rank", -1)) == Ranks.LADDER.size() - 1,
+		"A client drops a malformed tag and caps a rank past the ladder: %s" % str(forged))
+	net._peer_identity.erase(42)
 	_check(room.both_locked(), "Two valid locked picks lock the room")
-	net._on_lobby_pick(42, 2, session.decks[2].name, "Joiner", true)
-	net._on_lobby_pick(42, 1, deck1, "Joiner", false)
-	net._on_lobby_pick(41, 0, deck0, "Renamed", true)
-	_check(room.both_locked() and room.lobby[1]["deck"] == 1 and room.lobby[0]["name"] == "bHost/b",
+	net._on_lobby_pick(42, 2, session.decks[2].name, listed, true)
+	net._on_lobby_pick(42, 1, deck1, listed, false)
+	net._on_lobby_pick(41, 0, deck0, renamed, true)
+	_check(room.both_locked() and room.lobby[1]["deck"] == 1 and room.lobby[0]["name"] == "Player 1",
 		"Once both seats have locked and seen each other's deck, no pick, unlock or rename is taken")
 	for bad in [["0", deck0, "Host", true], [0, 5, "Host", true], [0, deck0, 7, true], [0, deck0, "Host", "yes"], [null, null, null, null]]:
 		net._on_lobby_pick(41, bad[0], bad[1], bad[2], bad[3])
-	_check(room.lobby[0]["deck"] == 0 and room.lobby[0]["name"] == "bHost/b" and room.lobby[0]["ready"], "Malformed picks are dropped")
+	_check(room.lobby[0]["deck"] == 0 and room.lobby[0]["name"] == "Player 1" and room.lobby[0]["ready"], "Malformed picks are dropped")
 	net._on_lobby_pick(99, 2, session.decks[2].name, "Stranger", true)
 	_check(room.lobby[0]["deck"] == 0 and room.lobby[1]["deck"] == 1, "A pick from a peer without a seat is dropped")
 	net._on_deal_ready(41)
@@ -293,8 +310,8 @@ func _record_tests(net: Node, session: Node) -> void:
 	var room: DuelRoom = net._room_of(61)
 	var code: String = room.code
 	net._on_room_request(62, code)
-	net._on_lobby_pick(61, 0, session.decks[0].name, "Ada", true)
-	net._on_lobby_pick(62, 1, session.decks[1].name, "Bryn", true)
+	net._on_lobby_pick(61, 0, session.decks[0].name, _listed("Ada"), true)
+	net._on_lobby_pick(62, 1, session.decks[1].name, _listed("Bryn"), true)
 	# Dealt by hand rather than through _start_room, so the seed is one the checks can look for.
 	room.phase = DuelRoom.Phase.DUEL
 	room.seed_value = 1987654321
@@ -335,7 +352,7 @@ func _record_tests(net: Node, session: Node) -> void:
 	if written != null:
 		_check(written.seed_value == room.seed_value and int(written.result["winner"]) == host.referee.engine.state.winner,
 			"with the duel's seed and winner")
-		_check(str(written.seats[0]["name"]) == "Ada" and str(written.seats[1]["deck"]) == session.decks[1].id,
+		_check(str(written.seats[0]["name"]) == _listed("Ada") and str(written.seats[1]["deck"]) == session.decks[1].id,
 			"and each seat's name and deck id")
 		_check(log.verify(written) and reopened.verify(written), "Its signature checks under the key, made or loaded")
 		var tampered: MatchRecord = MatchRecord.from_dict(JSON.parse_string(server_line))
@@ -585,8 +602,8 @@ func _isolation_tests(net: Node, session: Node) -> void:
 	var a: DuelRoom = _dealt_room(net, session, 81, 82, [0, _reserve_deck(session)], ["Ada", "Bryn"])
 	var b: DuelRoom = _dealt_room(net, session, 83, 84, [3, 5], ["Cato", "Dara"])
 	var who: Dictionary = {81: [a, 0], 82: [a, 1], 83: [b, 0], 84: [b, 1]}
-	games.append([a.seed_value, "Ada", "Bryn"])
-	games.append([b.seed_value, "Cato", "Dara"])
+	games.append([a.seed_value, _listed("Ada"), _listed("Bryn")])
+	games.append([b.seed_value, _listed("Cato"), _listed("Dara")])
 	var first_tokens: Array[String] = a.tokens.duplicate()
 	_check(a.code != b.code and a.phase == DuelRoom.Phase.DUEL and b.phase == DuelRoom.Phase.DUEL and server.hosts.size() == 2,
 		"Two rooms deal side by side")
@@ -652,7 +669,7 @@ func _isolation_tests(net: Node, session: Node) -> void:
 
 	net._on_rematch(81)
 	net._on_rematch(82)
-	games.append([a.seed_value, "Ada", "Bryn"])
+	games.append([a.seed_value, _listed("Ada"), _listed("Bryn")])
 	got = _read_inboxes(server, inbox, who, tokens, problems)
 	_check(a.phase == DuelRoom.Phase.DUEL and a.tokens[0] != "" and a.tokens[1] != "" and not a.tokens.has(first_tokens[0])
 		and not a.tokens.has(first_tokens[1]), "A rematch deals each seat a new token")
@@ -883,9 +900,9 @@ func _rejoin_tests(net: Node, session: Node) -> void:
 		and fourth_host.away == [false, true], "The first one back with its seat's token takes that seat again, and the other seat's grace runs on from here")
 	_check(fourth_host.record.disconnects == [1, 1] and fourth_host.record.reconnects == [1, 0], "The return is counted")
 	var methods: Array = _methods(got, 141)
-	_check(methods.size() >= 3 and methods[0] == "_rpc_resume" and methods[1] == "_rpc_seat_away" and methods[2] == "_rpc_update",
-		"It gets the resume, word that the other seat is still away, then one update: %s" % str(methods))
-	var caught: Dictionary = _unpack((got[141][2] as Array)[1]) if methods.size() >= 3 else {}
+	_check(methods.size() >= 4 and methods[0] == "_rpc_lobby" and methods[1] == "_rpc_resume" and methods[2] == "_rpc_seat_away" and methods[3] == "_rpc_update",
+		"It gets the lobby (for the rival's plate), the resume, word that the other seat is still away, then one update: %s" % str(methods))
+	var caught: Dictionary = _unpack((got[141][3] as Array)[1]) if methods.size() >= 4 else {}
 	var animated: int = 0
 	for line: Dictionary in caught.get("lines", []):
 		if line.has("data"):
@@ -907,7 +924,7 @@ func _rejoin_tests(net: Node, session: Node) -> void:
 	got = _read_inboxes(server, inbox, who, tokens, problems)
 	_check(fourth.seat_peer == [141, 143] and fourth.away_since == [0, 0] and fourth_host.away == [false, false]
 		and fourth_host.record.reconnects == [1, 1], "The second one back takes its own seat")
-	_check(_methods(got, 141).has("_rpc_seat_back") and not _methods(got, 143).is_empty() and _methods(got, 143)[0] == "_rpc_resume",
+	_check(_methods(got, 141).has("_rpc_seat_back") and _methods(got, 143).slice(0, 2) == ["_rpc_lobby", "_rpc_resume"],
 		"and the first one hears it")
 	var next: Prompt = fourth_host.referee.engine.prompt
 	var history: int = fourth_host.referee.history.size()
@@ -1518,12 +1535,21 @@ func _reserve_deck(session: Node) -> int:
 	return -1
 
 
+## A test's stand-in name ("Ada") as a name the server takes: a fixed pair from the lists, the same
+## for the same stand-in and different for different ones.
+static func _listed(stand_in: String) -> String:
+	var firsts: Array[String] = PlayerNames.firsts()
+	var seconds: Array[String] = PlayerNames.seconds()
+	var h: int = absi(stand_in.hash())
+	return PlayerNames.compose(firsts[h % firsts.size()], seconds[(h / firsts.size()) % seconds.size()])
+
+
 func _dealt_room(net: Node, session: Node, peer_a: int, peer_b: int, decks: Array, names: Array) -> DuelRoom:
 	net._on_room_request(peer_a, "")
 	var room: DuelRoom = net._room_of(peer_a)
 	net._on_room_request(peer_b, room.code)
-	net._on_lobby_pick(peer_a, int(decks[0]), session.decks[int(decks[0])].name, str(names[0]), true)
-	net._on_lobby_pick(peer_b, int(decks[1]), session.decks[int(decks[1])].name, str(names[1]), true)
+	net._on_lobby_pick(peer_a, int(decks[0]), session.decks[int(decks[0])].name, _listed(str(names[0])), true)
+	net._on_lobby_pick(peer_b, int(decks[1]), session.decks[int(decks[1])].name, _listed(str(names[1])), true)
 	net._on_deal_ready(peer_a)
 	net._on_deal_ready(peer_b)
 	return room
@@ -2016,7 +2042,7 @@ func _ranked_tests(net: Node, session: Node) -> void:
 		"The next game is dealt with that seat away, its clock running")
 	net._peer_identity[494] = _ranked_id(491)
 	net._on_rejoin(494, away.code if away != null else "", token)
-	_check(away != null and away.seat_peer[dropped] == 494 and _methods(inbox, 494).slice(0, 2) == ["_rpc_series", "_rpc_resume"],
+	_check(away != null and away.seat_peer[dropped] == 494 and _methods(inbox, 494).slice(0, 3) == ["_rpc_series", "_rpc_lobby", "_rpc_resume"],
 		"and the same token takes the seat back in it: %s" % str(_methods(inbox, 494)))
 	var away_code: String = away.code if away != null else ""
 	_check(net.send_record(away_code, "{}", 1) and not net.send_record(away_code, "{}", 2) and not net.send_record(away_code, "{}"),
@@ -2029,8 +2055,10 @@ func _ranked_tests(net: Node, session: Node) -> void:
 	net._peer_identity[496] = winner_id
 	net._on_peer_connected(496)
 	var fresh: Array = _first_args(inbox, 495, "_rpc_rating")
-	_check(fresh.size() == 4 and fresh[0] == 0 and fresh[1] == true and is_equal_approx(float(fresh[2]), Rating.MU),
-		"After the greeting a new player hears its rating: %s" % str(fresh))
+	_check(fresh.size() == 5 and fresh[0] == 0 and fresh[1] == true and is_equal_approx(float(fresh[2]), Rating.MU) and fresh[4] == 0,
+		"After the greeting a new player hears its rating and a best of 0: %s" % str(fresh))
+	var winner_heard: Array = _first_args(inbox, 496, "_rpc_rating")
+	_check(winner_heard.size() == 5 and int(winner_heard[4]) >= 138, "and a player who won a match hears a best of at least what it holds: %s" % str(winner_heard))
 	_check(_first_args(inbox, 496, "_rpc_rating").slice(0, 2) == [138, true], "and a player who won a match hears 138, provisional")
 
 	for id in [_ranked_id(421), _ranked_id(441), winner_id]:
@@ -2110,16 +2138,25 @@ func _ranked_client_tests(net: Node) -> void:
 		net._on_match_over(net.HOST_ID, bad)
 	_check(heard.is_empty(), "A malformed match result is dropped")
 	net._on_match_over(net.HOST_ID, payload)
-	_check(heard.size() == 2 and heard[0][0] == "match" and heard[1] == ["rating", 138, true] and int(net.rating["shown"]) == 138,
-		"The match result is heard, and this seat's new rating with it: %s" % str(heard))
+	_check(heard.size() == 2 and heard[0] == ["rating", 138, true] and heard[1][0] == "match" and int(net.rating["shown"]) == 138,
+		"This seat's new rating is kept before the match result is heard, so the result card reads it: %s" % str(heard))
 	heard.clear()
 	net._on_match_over(net.HOST_ID, payload.merged({"reason": "concede_match"}, true))
-	_check(heard.size() == 2 and str((heard[0][1] as Dictionary).get("reason", "")) == "concede_match",
+	_check(heard.size() == 2 and str((heard[1][1] as Dictionary).get("reason", "")) == "concede_match",
 		"A match conceded as a whole comes with its own reason: %s" % str(heard))
+	# A rank is reached only by a match, against the best the server sent before it.
+	net.rating = {"shown": 150, "provisional": false, "mu": 25.0, "sigma": 5.0, "peak": 150}
+	net._on_match_over(net.HOST_ID, payload.merged({"shown_after": [0, 230], "provisional": [false, false]}, true))
+	_check(net.rank_up == 1 and int(net.rating["peak"]) == 230, "A match that lifts the best from 150 to 230 reaches Adept: %d" % net.rank_up)
+	net._on_match_over(net.HOST_ID, payload.merged({"shown_after": [0, 210], "provisional": [false, false]}, true))
+	_check(net.rank_up == -1 and int(net.rating["peak"]) == 230, "a later match below the best reaches nothing and keeps the best")
+	net._on_rating(net.HOST_ID, 900, false, 40.0, 2.0, 900)
+	_check(net.rank_up == -1, "A rating from the greeting never reads as a rank-up")
 	heard.clear()
-	net._on_rating(net.HOST_ID, 200, false, 30.1, 5.5)
-	net._on_rating(77, 900, false, 40.0, 2.0)
-	net._on_rating(net.HOST_ID, -1, false, 30.1, 5.5)
+	net._on_rating(net.HOST_ID, 200, false, 30.1, 5.5, 200)
+	net._on_rating(77, 900, false, 40.0, 2.0, 900)
+	net._on_rating(net.HOST_ID, -1, false, 30.1, 5.5, 0)
+	net._on_rating(net.HOST_ID, 300, false, 30.1, 5.5, -4)
 	_check(heard == [["rating", 200, false]] and is_equal_approx(float(net.rating["mu"]), 30.1), "The rating after the greeting is taken only from the server")
 	net.game_over.disconnect(on_game)
 	net.match_over.disconnect(on_match)

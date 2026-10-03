@@ -97,9 +97,10 @@ static func valid_code(text: String) -> bool:
 const CUSTOM_PICK: int = -2
 
 
-## The lobby entry of a seat nobody has picked for.
+## The lobby entry of a seat nobody has picked for. "tag" and "rank" are the seated player's, which
+## the duel server fills in from the identity it proved (`Net.seat_badge`), never from the client.
 static func empty_pick(seat: int) -> Dictionary:
-	return {"name": "Player %d" % (seat + 1), "deck": -1, "deck_name": "", "ready": false, "list": {}}
+	return {"name": "Player %d" % (seat + 1), "deck": -1, "deck_name": "", "ready": false, "list": {}, "tag": "", "rank": 0}
 
 
 ## Whether an entry names a deck, from the catalog or built by its player.
@@ -138,10 +139,10 @@ func seat_locked(seat: int) -> bool:
 	return has_deck(lobby[seat]) and bool(lobby[seat]["ready"])
 
 
-## The name the other player, the rules and the record get for a seat: what its player typed in a
-## share-code room, the stock name in a queue room, where strangers never see each other's typing.
+## The name the other player, the rules and the record get for a seat: its player's profile name,
+## in every kind of room.
 func shown_name(seat: int) -> String:
-	return str(empty_pick(seat)["name"]) if kind == "queue" else str(lobby[seat]["name"])
+	return str(lobby[seat]["name"])
 
 
 func other_peer(seat: int) -> int:

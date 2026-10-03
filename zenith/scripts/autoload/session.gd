@@ -30,6 +30,9 @@ var decks: Array[DeckList] = []
 var chosen: Array[DeckList] = [null, null]
 var locked: Array[bool] = [false, false]   # each seat confirmed its pick on the select screen
 var player_names: Array[String] = ["Player 1", "Player 2"]
+## This player's name and best ranked rating (`PlayerProfile`). The title asks for the name on first
+## launch, while `profile.named()` is false.
+var profile: PlayerProfile = null
 var seed_value: int = 0   # 0 means pick one at random when the duel starts
 var last_seed: int = 0
 ## Seed for cosmetics only (the per-battle seat colours). Derived from the duel seed so both
@@ -94,6 +97,8 @@ var arena_prewarm: ArenaPrewarm = null
 
 
 func _ready() -> void:
+	profile = PlayerProfile.load_profile()
+	player_names = default_names()
 	if ArenaPrewarm.wanted():
 		arena_prewarm = ArenaPrewarm.new()
 		add_child.call_deferred(arena_prewarm)
@@ -443,6 +448,29 @@ func leave_tutorial() -> void:
 	tutorial_resumed = false
 
 
+## The names a new duel starts with: this player's profile name, and Player 2.
+func default_names() -> Array[String]:
+	return [profile.name if profile != null and profile.named() else "Player 1", "Player 2"]
+
+
+## Saves `player_name`, a `PlayerNames` pair, as the profile's name, which the next duel and every
+## online room use. "" when written, otherwise why not.
+func set_profile_name(player_name: String) -> String:
+	if not PlayerNames.valid(player_name):
+		return "%s is not a name from the lists" % player_name
+	profile.name = player_name
+	player_names[0] = profile.name
+	return profile.save()
+
+
+## This install's tag ("7625"), from its identity key, the one the duel server shows beside the name.
+## "" on the web build, which never goes online and so never makes a key.
+func profile_tag() -> String:
+	if OnlineGate.is_web():
+		return ""
+	return PlayerProfile.tag_of(Net.identity().id())
+
+
 # --- Adventure --------------------------------------------------------------
 
 ## True whenever a run is live in memory.
@@ -498,7 +526,7 @@ func leave_adventure() -> void:
 	last_seed = 0
 	ai_seat = -1
 	ai_profile = "default"
-	player_names = ["Player 1", "Player 2"]
+	player_names = default_names()
 	lead_in = {}
 	win_results = []
 	last_referee = null

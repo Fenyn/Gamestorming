@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/select/duelist_select.gd" id="1_select"]
 [ext_resource type="PackedScene" path="res://scenes/select/select_seat.tscn" id="2_seat"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face_cache.tscn" id="3_faces"]
 [ext_resource type="Script" path="res://scripts/ui/arcane_backdrop.gd" id="4_atmosphere"]
+[ext_resource type="PackedScene" path="res://scenes/select/seat_chip.tscn" id="5_seat"]
 
 [node name="DuelistSelect" type="Control"]
 layout_mode = 3
@@ -69,32 +70,18 @@ size_flags_horizontal = 3
 visible = false
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
 [node name="PlayersTag" type="Label" parent="Margin/Column/TitleRow/Players"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "PLAYERS"
 
-[node name="Seat0" type="PanelContainer" parent="Margin/Column/TitleRow/Players"]
-custom_minimum_size = Vector2(216, 0)
+[node name="Seat0" parent="Margin/Column/TitleRow/Players" instance=ExtResource("5_seat")]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Margin/Column/TitleRow/Players/Seat0"]
+[node name="Seat1" parent="Margin/Column/TitleRow/Players" instance=ExtResource("5_seat")]
 layout_mode = 2
-theme_type_variation = &"CaptionLabel"
-text = "P1  Player 1"
-horizontal_alignment = 1
-
-[node name="Seat1" type="PanelContainer" parent="Margin/Column/TitleRow/Players"]
-custom_minimum_size = Vector2(216, 0)
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Margin/Column/TitleRow/Players/Seat1"]
-layout_mode = 2
-theme_type_variation = &"CaptionLabel"
-text = "P2  waiting"
-horizontal_alignment = 1
 
 [node name="Status" type="Label" parent="Margin/Column/TitleRow"]
 layout_mode = 2

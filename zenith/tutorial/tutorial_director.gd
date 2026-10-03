@@ -1,7 +1,7 @@
 class_name TutorialDirector
 extends RefCounted
-## The training session of lessons 1 to 5 (`docs/tutorial_script.md`), read as a list of steps
-## from `data/tutorial/lessons.json`. It holds no engine and no Node: a caller asks `next` with the
+## The training session of lessons 1 to 5, read as a list of steps from `data/tutorial/lessons.json`
+## (its rules and turn order: `docs/tutorial_script.md`). It holds no engine and no Node: a caller asks `next` with the
 ## two seats' views and prompts, applies what comes back through its Referee, and reports with
 ## `done`. The rival seat is played by picking from its own PromptView; for the player it says
 ## which options are open and why every other one is not. RefCounted only, like `engine/`.

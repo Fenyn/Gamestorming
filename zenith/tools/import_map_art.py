@@ -114,6 +114,18 @@ CARD_RULES = {
     "notched": ("Default/Border/panel-border-003.png", 2),
 }
 
+## The profile's icons, written white for the screens to tint: the ranked ladder's emblems
+## (scripts/net/ranks.gd, drawn by RankEmblem in the rank's colour). icon name -> Kenney icon.
+RANK_OUT = os.path.join(HERE, "..", "assets", "ui", "profile_icons")
+RANK_ICONS = {
+    "novice": "book_open",
+    "adept": "flask_full",
+    "duelist": "sword",
+    "archmage": "fire",
+    "gatecarver": "structure_gate",
+    "eidolarch": "crown_b",
+}
+
 ## The duel's phase track printed on the table: step -> Kenney icon, written white for the track
 ## to tint. Turn start in the left notch, Combat across the ring, turn end in the right notch.
 PHASE_OUT = os.path.join(HERE, "..", "assets", "ui", "phase_icons")
@@ -332,6 +344,19 @@ def import_phase_icons(art):
             f.write("- `%s.png`: `%s/%s.png`\n" % (step, KENNEY_ICONS, name))
 
 
+def import_rank_icons(art):
+    # Overwritten in place, so Godot keeps each icon's .import file and UID.
+    os.makedirs(RANK_OUT, exist_ok=True)
+    for rank, name in RANK_ICONS.items():
+        icon = Image.open(os.path.join(art, KENNEY_ICONS, name + ".png")).convert("RGBA")
+        recolour(icon, (255, 255, 255, 255)).save(os.path.join(RANK_OUT, rank + ".png"))
+    with open(os.path.join(RANK_OUT, "SOURCES.md"), "w", encoding="utf-8") as f:
+        f.write("# Profile icon sources\n\nWritten by `tools/import_map_art.py`: Kenney Board Game Icons 1.1 ")
+        f.write("(CC0), 128 px, written white for `RankEmblem` to tint.\n\n")
+        for rank, name in RANK_ICONS.items():
+            f.write("- `%s.png`: `%s/%s.png`\n" % (rank, KENNEY_ICONS, name))
+
+
 def import_resonances(art, rows):
     # Overwritten in place, so Godot keeps each sigil's .import file and UID.
     os.makedirs(RESONANCE_OUT, exist_ok=True)
@@ -351,10 +376,16 @@ def main():
                         help="rewrite only assets/ui/phase_icons, leaving the other folders and their .import files alone")
     parser.add_argument("--resonances-only", action="store_true",
                         help="rewrite only assets/adventure_map/resonances, leaving the other folders and SOURCES.md alone")
+    parser.add_argument("--ranks-only", action="store_true",
+                        help="rewrite only assets/ui/profile_icons, leaving the other folders and their .import files alone")
     parser.add_argument("--frames-only", action="store_true",
                         help="rewrite only the panel and button faces in assets/adventure_map/ui, leaving the rest and SOURCES.md alone")
     args = parser.parse_args()
     art = args.art
+    if args.ranks_only:
+        import_rank_icons(art)
+        print("wrote %d profile icons to %s" % (len(RANK_ICONS), os.path.normpath(RANK_OUT)))
+        return
     if args.frames_only:
         import_frames([])
         print("wrote the panel and %d button faces to %s" % (len(BUTTON_PIECES), os.path.normpath(os.path.join(OUT, "ui"))))
@@ -384,6 +415,7 @@ def main():
 
     import_kenney(art, rows)
     import_phase_icons(art)
+    import_rank_icons(art)
     import_resonances(art, rows)
 
     for name, rel in ICONS.items():

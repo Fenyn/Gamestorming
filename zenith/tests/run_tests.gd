@@ -131,6 +131,7 @@ func _init() -> void:
 		test_damage_breakdown_in_view,
 		test_attack_forecasts_in_view,
 		test_attack_badge_table_base,
+		test_hand_badges_count_standing_modifiers,
 		test_attach_to_named_character,
 		test_multiplier_cap_and_no_reduce,
 		test_seals_immune_unless_named,
@@ -408,6 +409,9 @@ func _init() -> void:
 		test_pyre_conflagration_is_paid_by_the_duelist,
 		test_a_paid_cost_reaches_the_client_with_its_energy,
 		test_a_feedback_report_carries_no_home_paths,
+		test_online_names_are_pairs_from_the_lists,
+		test_a_profile_keeps_a_listed_name_and_its_peak,
+		test_ranks_climb_with_the_best_rating_and_never_fall,
 		test_steel_shipped_cards_match_their_printed_text,
 		test_steel_drills_tax_and_starve_the_opponent,
 		test_steel_towering_frame_doubles_only_the_table,
@@ -2290,7 +2294,16 @@ func test_script_ops_deal_set_swap_and_end_the_session() -> void:
 	check(has_event(e, &"script_swap"), "the swap is an event")
 	eq(e.integrity_problem(), "", "every card still sits in one place")
 	eq(e.prompt, open, "the swap left seat 0's decision open")
-	eq(e.script_op({"op": "swap_duelist", "seat": 0, "deck": titan}), "Not while that seat has a decision open.", "a seat that owes a decision keeps its side")
+	var keep: Prompt = Prompt.new()
+	keep.kind = &"keep"
+	keep.options = [Command.new(0, &"keep", e.player(0).life_deck[0].uid)] as Array[Command]
+	check(not e._swap_keeps_prompt(keep), "a decision that names a card keeps its side")
+	eq(e.script_op({"op": "swap_duelist", "seat": 0, "deck": titan, "draw": 2}), "", "a seat deciding whether to declare can be swapped")
+	eq(e.player(0).duelist.def.id, "tf_titan_1", "the new side takes that seat")
+	eq(e.player(0).hand.size(), 2, "and draws the cards the op names")
+	eq(life_ids(e, 0), ["t_parry"] as Array[String], "off the top of its own Life Deck")
+	eq(e.prompt, open, "the declare decision stands for the new side")
+	eq(e.integrity_problem(), "", "every card still sits in one place after the second swap")
 	eq(e.script_op({"op": "end_session"}), "", "the session ends")
 	check(e.is_over(), "the duel is over")
 	eq(e.state.winner, -1, "with no winner")
@@ -2705,6 +2718,31 @@ func test_attack_forecasts_in_view() -> void:
 	eq(str(badge["num"]), "Table", "a bare Strike badge points at the table")
 	badge = CardText.attack_badge(lib.get_def("t_art"))
 	eq(str(badge["num"]) + " " + str(badge["word"]), "4 wounds", "Art badge shows the base wounds")
+
+
+## A seat's view carries what every attack card in its hand deals as performed now, standing
+## modifiers in, at any step and not only at its attack prompt; the face badge reads that.
+func test_hand_badges_count_standing_modifiers() -> void:
+	var e: DuelEngine = engine(deck(filler()), deck(filler(), "pact"))
+	var strike: CardInstance = to_hand(e, 0, "t_strike_plus2")
+	var art: CardInstance = to_hand(e, 0, "t_art")
+	var mine: int = e.player(0).in_control().might()
+	var theirs: int = e.player(1).in_control().might()
+	var table_part: int = table.base_damage(mine, theirs)
+	var v: SeatView = SeatView.of(e, 0)
+	check(v.forecast(strike.uid).is_empty(), "no attack prompt is up, so there is no forecast")
+	eq(int(v.badge(strike.uid)["stages"]), table_part + 2, "the badge is the table plus the card's +2")
+	eq(int(v.badge(art.uid)["life"]), DuelEngine.ART_BASE_LIFE, "an Art's badge is its base wounds")
+	e._float(0, "modifier", "combat", {"scope": "own", "kind": "strike", "stages": 2})
+	v = SeatView.of(e, 0)
+	eq(int(v.badge(strike.uid)["stages"]), table_part + 4, "a standing +2 to Strikes is in the badge")
+	eq(int(v.badge(art.uid)["life"]), DuelEngine.ART_BASE_LIFE, "and stays out of an Art's")
+	check(SeatView.of(e, 1).badge(strike.uid).is_empty(), "the rival's view has no badge for a card in this hand")
+	eq(int(SeatView.from_dict(v.to_dict()).badge(strike.uid)["stages"]), table_part + 4, "wire form keeps the badges")
+	var shown: Dictionary = CardText.attack_badge(lib.get_def("t_strike_plus2"), 3, Vector2i(6, 4))
+	eq("%s %s / %s" % [shown["num"], shown["word"], shown["extra"]], "6 Energy / +4 wounds", "a resolved badge shows the resolved numbers")
+	shown = CardText.attack_badge(lib.get_def("t_art"), -1, Vector2i(0, 5))
+	eq("%s %s / %s" % [shown["num"], shown["word"], shown["extra"]], "5 wounds / ", "an Art leads with its wounds")
 
 
 ## Inside a duel a table Strike's badge reads the Strike Table number for the matchup it is shown
@@ -13370,6 +13408,77 @@ func test_a_paid_cost_reaches_the_client_with_its_energy() -> void:
 	eq(int(energy.get(me.duelist.uid, -1)), 2, "and the state the table reads at that beat is the Energy after it")
 
 
+## An online name is one word from each list, in order; nothing else passes, so nothing typed can.
+func test_online_names_are_pairs_from_the_lists() -> void:
+	var a: String = PlayerNames.firsts()[0]
+	var b: String = PlayerNames.seconds()[0]
+	check(PlayerNames.firsts().size() > 10 and PlayerNames.seconds().size() > 10, "both lists load")
+	check(PlayerNames.valid(PlayerNames.compose(a, b)), "a pair from the lists is a name")
+	for bad in [b + " " + a, a, a + "  " + b, a + " " + b + " x", "Ada Lovelace", "", a.to_lower() + " " + b]:
+		check(not PlayerNames.valid(bad), "'%s' is not" % bad)
+	eq(PlayerNames.split(PlayerNames.compose(a, b)), [a, b] as Array[String], "a name splits into its words")
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 7
+	for i in 20:
+		check(PlayerNames.valid(PlayerNames.random(rng)), "a drawn name is always a valid pair")
+	eq(PlayerProfile.clean("  Ash#en [x]  ", "Player 1"), "Ashen x", "cleaning drops the tag mark and brackets")
+	eq(PlayerProfile.clean(" # ", "Player 1"), "Player 1", "and falls back when nothing is left")
+
+
+## The profile file keeps a listed name and the best rating; an unlisted name is dropped so the
+## title asks again. The tag is four digits from the identity id, the same every time.
+func test_a_profile_keeps_a_listed_name_and_its_peak() -> void:
+	var file: String = "user://run_tests_profile.json"
+	DirAccess.remove_absolute(file)
+	var fresh: PlayerProfile = PlayerProfile.load_profile(file)
+	check(not fresh.named() and fresh.peak == 0 and fresh.rank() == 0, "with no file there is no name yet and the rank is the first")
+	var p: PlayerProfile = PlayerProfile.new()
+	p.name = PlayerNames.compose(PlayerNames.firsts()[1], PlayerNames.seconds()[2])
+	p.peak = 640
+	eq(p.save(file), "", "the profile saves")
+	var back: PlayerProfile = PlayerProfile.load_profile(file)
+	check(back.name == p.name and back.peak == 640 and back.rank() == 3, "and loads with its name, peak and rank: %s %d" % [back.name, back.peak])
+	var f: FileAccess = FileAccess.open(file, FileAccess.WRITE)
+	f.store_string(JSON.stringify({"name": "Someone Typed", "peak": 120}))
+	f.close()
+	var typed: PlayerProfile = PlayerProfile.load_profile(file)
+	check(not typed.named() and typed.peak == 120, "a name not from the lists is dropped, the peak kept")
+	DirAccess.remove_absolute(file)
+	var id: String = "3f9a1c07" + "0".repeat(56)
+	eq(PlayerProfile.tag_of(id), "%04d" % (0x3f9a1c07 % 10000), "the tag is the id's first 8 hex digits, mod 10000")
+	eq(PlayerProfile.tag_of(id), PlayerProfile.tag_of(id), "and the same every time")
+	eq(PlayerProfile.tag_of("zz"), "", "no tag from a malformed id")
+	eq(PlayerProfile.display("Ashen Warden", "0412"), "Ashen Warden#0412", "a name shows with its tag")
+
+
+## Ranks follow the best shown rating, so a loss never takes one away; the store keeps that best.
+func test_ranks_climb_with_the_best_rating_and_never_fall() -> void:
+	eq(Ranks.LADDER.size(), 6, "six ranks")
+	for pair in [[0, 0], [199, 0], [200, 1], [599, 2], [600, 3], [999, 4], [1000, 5], [5000, 5]]:
+		eq(Ranks.index_for(int(pair[0])), int(pair[1]), "a best rating of %d is rank %d" % [int(pair[0]), int(pair[1])])
+	eq(Ranks.rank_name(0), "Novice", "everyone starts a Novice")
+	eq(Ranks.rank_name(5), "Eidolarch", "and the top is the Eidolarch")
+	check(RankLadder.ladder_text(640, true).ends_with("Your best is 640, which makes you an Archmage, and Gatecarver opens at 800."),
+		"the ladder names the player's rank, the next one and where it opens: %s" % RankLadder.ladder_text(640, true))
+	check(RankLadder.ladder_text(250, true).contains("makes you an Adept"), "with the right article")
+	check(RankLadder.ladder_text(0, false).ends_with("Every player starts as a Novice."), "and a player never rated starts as a Novice")
+	check(RankLadder.ladder_text(1200, true).ends_with("the top of the ladder."), "and the top rank has nothing above it")
+	var store: RatingsStore = RatingsStore.new()
+	eq(int(store.get_or_new("a".repeat(64))["peak"]), 0, "a new player's best is 0")
+	var winner: String = "a".repeat(64)
+	var loser: String = "b".repeat(64)
+	for i in 6:
+		store.apply(winner, loser, 1000 + i)
+	var top: int = int(store.entries[winner]["peak"])
+	check(top > 0 and top == Rating.shown(float(store.entries[winner]["mu"]), float(store.entries[winner]["sigma"])), "winning raises the best: %d" % top)
+	for i in 6:
+		store.apply(loser, winner, 2000 + i)
+	check(int(store.entries[winner]["peak"]) == top and Rating.shown(float(store.entries[winner]["mu"]), float(store.entries[winner]["sigma"])) < top,
+		"losing lowers the rating but not the best")
+	var old: Dictionary = RatingsStore._entry({"mu": 30.0, "sigma": 2.0, "games": 4, "wins": 3, "last_played": 9})
+	eq(int(old["peak"]), Rating.shown(30.0, 2.0), "a file written before the best was kept starts it at the rating")
+
+
 ## A bug report's game details never carry the player's own folders or user name, and the report
 ## is capped and shaped the way the relay (tools/feedback_worker) reads it.
 func test_a_feedback_report_carries_no_home_paths() -> void:
@@ -17213,7 +17322,7 @@ func test_the_ratings_store_round_trips_and_rebuilds_from_the_records() -> void:
 	var c: String = "c".repeat(64)
 	var store: RatingsStore = RatingsStore.new()
 	eq(store.open(RANKED_DIR), "", "a data directory with no ratings file opens empty")
-	eq(store.get_or_new(a), {"mu": Rating.MU, "sigma": Rating.SIGMA, "games": 0, "wins": 0, "last_played": 0}, "an unknown identity reads as new")
+	eq(store.get_or_new(a), {"mu": Rating.MU, "sigma": Rating.SIGMA, "games": 0, "wins": 0, "last_played": 0, "peak": 0}, "an unknown identity reads as new")
 	check(store.entries.is_empty(), "and is not stored by reading it")
 	var change: Dictionary = store.apply(a, b, 1000)
 	var expected: Array[Dictionary] = Rating.rate(Rating.fresh(), Rating.fresh())

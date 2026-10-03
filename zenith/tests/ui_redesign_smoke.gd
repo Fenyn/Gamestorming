@@ -539,8 +539,32 @@ func _run() -> void:
 		await create_timer(1.2).timeout
 	duel.queue_free()
 	await process_frame
+	_check_note_then_instruction()
 	print("UI redesign smoke: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)
+
+
+## A tutorial instruction that comes while Vale's passing note is up waits for the note to go, so
+## the two are read one after the other.
+func _check_note_then_instruction() -> void:
+	var panel: Control = (load("res://scenes/duel/tutorial_panel.tscn") as PackedScene).instantiate() as Control
+	root.add_child(panel)
+	var note: Control = panel.get("bark_note") as Control
+	var words: Label = panel.get("text") as Label
+	var rings: Array[String] = ["hand:rival"]
+	panel.call("bark", "coach", "When you declare, the knight draws three cards to answer with.", null, rings)
+	_check(bool(note.call("showing")), "Vale's note is up")
+	var move_rings: Array[String] = ["number:tutorial_strike_01"]
+	panel.call("instruct", "Attack with it.", null, move_rings)
+	_check(not bool(panel.get("_coach_on")), "The instruction waits while Vale's note is up")
+	panel.call("_process", 0.016)
+	_check(not bool(panel.get("_coach_on")), "The instruction keeps waiting while the note is up")
+	note.call("dismiss")
+	panel.call("_process", 0.016)
+	_check(bool(panel.get("_coach_on")) and words.text == "Attack with it.", "The instruction shows once the note is gone")
+	panel.call("instruct", "Pass.", null, move_rings)
+	_check(words.text == "Pass.", "With no note up, an instruction shows at once")
+	panel.free()
 
 
 ## The Surge a personality card prints for the Aspect it stands at.

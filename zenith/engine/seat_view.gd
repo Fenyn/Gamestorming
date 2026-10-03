@@ -23,6 +23,7 @@ var deciding_kind: StringName = &""
 var attack: Dictionary = {}            # public summary of the attack in the air, {} when none
 var last_attack: Dictionary = {}       # outcome of the last attack this Combat, {} until one ends
 var forecasts: Dictionary = {}         # uid -> damage breakdown for each attack this seat may declare now
+var badges: Dictionary = {}            # uid -> {stages, life}, every attack card in this seat's hand as performed now
 var grounds: int = -1
 var standing: Array[Dictionary] = []   # effects that outlast the Combat: {owner, source, op, kind, stages, life}
 var resolving: Array[int] = []
@@ -126,7 +127,7 @@ func to_dict() -> Dictionary:
 		"pending": pend, "consecutive_passes": consecutive_passes,
 		"seat": seat, "step": step, "phase": phase, "active": active, "attacker": attacker,
 		"winner": winner, "win_reason": win_reason, "ended": ended, "points": points, "points_to_win": points_to_win, "deciding": deciding, "deciding_kind": String(deciding_kind),
-		"attack": attack, "last_attack": last_attack, "forecasts": forecasts,
+		"attack": attack, "last_attack": last_attack, "forecasts": forecasts, "badges": badges,
 		"grounds": grounds, "standing": standing, "resolving": resolving, "pending_card": pending_card, "players": ps, "cards": cs,
 	}
 
@@ -134,6 +135,12 @@ func to_dict() -> Dictionary:
 ## The forecast for a card this seat could attack with now, {} when there is none.
 func forecast(uid: int) -> Dictionary:
 	return forecasts.get(uid, forecasts.get(str(uid), {}))
+
+
+## What an attack card in this seat's hand would deal if performed now, {stages, life}; {} when
+## it is not one.
+func badge(uid: int) -> Dictionary:
+	return badges.get(uid, badges.get(str(uid), {}))
 
 
 static func from_dict(d: Dictionary) -> SeatView:
@@ -156,6 +163,8 @@ static func from_dict(d: Dictionary) -> SeatView:
 	v.last_attack = d.get("last_attack", {})
 	for k in d.get("forecasts", {}).keys():
 		v.forecasts[int(k)] = d["forecasts"][k]
+	for k in d.get("badges", {}).keys():
+		v.badges[int(k)] = d["badges"][k]
 	v.grounds = int(d.get("grounds", -1))
 	for sd in d.get("standing", []):
 		v.standing.append(sd)
@@ -206,6 +215,7 @@ static func of(engine: DuelEngine, seat: int, include_forecasts: bool = true, re
 	v.last_attack = _last_attack_summary(engine)
 	if include_forecasts:
 		v.forecasts = engine.attack_forecasts(seat)
+		v.badges = engine.hand_forecasts(seat)
 	v.grounds = s.grounds.uid if s.grounds != null else -1
 	# Effects that outlast the Combat have no card left on the table, so the seat is told about
 	# them separately and the client stands a ghost of the source card in for them.

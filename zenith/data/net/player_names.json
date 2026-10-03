@@ -1,0 +1,18 @@
+{
+	"_note": "Online names are one word from each list, \"First Second\", never the same word twice, at most 20 characters together. Approved by the user 2026-10-03.",
+	"first": [
+		"Cindered", "Tidebound", "Stormlit", "Shadowed", "Ironblood", "Rootbound",
+		"Gatebound", "Sealsworn", "Mothlit", "Marbled", "Sunken", "Carven",
+		"Vigilant", "Pactbound", "Oathbound", "Wardless",
+		"Masked", "Ringbound", "Lodestone",
+		"Leyborn", "Kindled", "Waking",
+		"Ashen", "Drowned", "Hollowed", "Veiled", "Hexed"
+	],
+	"second": [
+		"Warden", "Sealwright", "Channeler", "Leywalker", "Gatewatch",
+		"Tidecaller", "Thunderer", "Veilweaver", "Ashwalker", "Rootbinder", "Ironhand", "Hexer",
+		"Mothcaller", "Seer", "Witness", "Supplicant", "Penitent",
+		"Oathkeeper", "Herald", "Envoy", "Heir", "Keeper",
+		"Acolyte", "Mender", "Scribe", "Pilgrim", "Wanderer", "Lantern"
+	]
+}

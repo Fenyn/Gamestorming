@@ -54,6 +54,8 @@ const TRAY_FRAME: Vector2 = Vector2(6.0, 32.0)   # a face's frame across; frame,
 const TRAY_HEIGHT_SHARE: float = 0.57 # of the screen height, for the rows shown before scrolling
 const CHOICE_HEIGHT: float = 100.0    # a tray tile that is a wording rather than a card
 const CHOICE_LIFT: float = 1.02       # its hover scale
+const RANK_UP_FROM: float = 0.6       # the reached rank's emblem grows in from this scale
+const RANK_UP_TIME: float = 0.35
 const LOG_EXPANDED_FRACTION: float = 0.72
 const FRAME_TINT: Color = ZenithTheme.FRAME
 const TRAY_COLUMNS: int = 6          # cards per row before the tray wraps
@@ -188,6 +190,10 @@ const CLOCK_WARN_MS: int = 10000
 @onready var menu_rematch: Button = $Root/OptionsMenu/Column/Items/Rematch
 @onready var menu_leave: Button = $Root/OptionsMenu/Column/Items/Leave
 @onready var menu_report: Button = $Root/OptionsMenu/Column/Items/Report
+## Online, each player's plate on their own side of the table: the other player's in the top-left
+## corner over their half, this player's in the bottom-left over theirs.
+@onready var rival_plate: ProfileChip = $Root/RivalPlate
+@onready var own_plate: ProfileChip = $Root/OwnPlate
 @onready var fullscreen_toggle: CheckButton = $Root/OptionsMenu/Column/Items/Fullscreen
 @onready var menu_confirm: VBoxContainer = $Root/OptionsMenu/Column/Confirm
 @onready var menu_question: Label = $Root/OptionsMenu/Column/Confirm/Question
@@ -273,6 +279,8 @@ const CLOCK_WARN_MS: int = 10000
 @onready var game_over_title: Label = $Root/Modal/Center/Card/GameOver/Title
 @onready var game_over_body: Label = $Root/Modal/Center/Card/GameOver/Body
 @onready var game_over_rating: Label = $Root/Modal/Center/Card/GameOver/Rating
+## A ranked match's result: the rank it reached, over the rating line, when it reached one.
+@onready var rank_up_emblem: RankEmblem = $Root/Modal/Center/Card/GameOver/RankUp
 @onready var game_over_note: Label = $Root/Modal/Center/Card/GameOver/Note
 @onready var ready_button: Button = $Root/Modal/Center/Card/GameOver/Ready
 @onready var primary_button: Button = $Root/Modal/Center/Card/GameOver/Primary
@@ -670,6 +678,9 @@ static func result_texts(state: ResultState, mode: Mode, facts: Dictionary, now:
 			var after: Array = payload.get("shown_after", [])
 			if viewer >= 0 and before.size() == 2 and after.size() == 2:
 				texts[&"Rating"] = rating_line(int(before[viewer]), int(after[viewer]))
+				var reached: int = int(facts.get("rank_up", -1))
+				if reached >= 0:
+					texts[&"Rating"] += "\nYou reached %s." % Ranks.rank_name(reached)
 		ResultState.RESULT:
 			if mode == Mode.LOCAL or mode == Mode.ADVENTURE or viewer < 0:
 				texts[&"Title"] = "No winner" if winner < 0 else "%s wins" % str(names[winner])
@@ -757,6 +768,7 @@ func apply_result(state: ResultState, facts: Dictionary = {}) -> void:
 			button.text = str(spec[0])
 			_button_actions[pair[0]] = spec[1]
 	rematch_button.disabled = bool(facts.get("rematch_sent", false))
+	_show_rank_up(state == ResultState.MATCH and game_over_rating.visible, int(facts.get("rank_up", -1)))
 	ready_button.visible = shown.has(&"Ready")
 	ready_button.disabled = bool(facts.get("ready", false))
 	game_over_actions.visible = rematch_button.visible or leave_button.visible
@@ -771,6 +783,25 @@ func apply_result(state: ResultState, facts: Dictionary = {}) -> void:
 	_show_modal()
 	if options_menu.visible:
 		set_options_open(true)
+
+
+## The reached rank's emblem lands on the card the first time it shows: it grows in from 0.6 and
+## fades up, unless motion is reduced.
+func _show_rank_up(on: bool, rank: int) -> void:
+	var showing: bool = on and rank >= 0
+	var entering: bool = showing and not rank_up_emblem.visible
+	rank_up_emblem.visible = showing
+	if not showing:
+		return
+	rank_up_emblem.rank = rank
+	if not entering or reduced_motion_toggle.button_pressed:
+		return
+	rank_up_emblem.pivot_offset = rank_up_emblem.custom_minimum_size * 0.5
+	rank_up_emblem.scale = Vector2.ONE * RANK_UP_FROM
+	rank_up_emblem.modulate.a = 0.0
+	var t: Tween = create_tween().set_parallel(true)
+	t.tween_property(rank_up_emblem, "scale", Vector2.ONE, RANK_UP_TIME).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(rank_up_emblem, "modulate:a", 1.0, RANK_UP_TIME)
 
 
 ## The count to the next game; the rest of the card stands until the facts change.
@@ -1681,6 +1712,11 @@ func _preview_outcome(outcome: Dictionary) -> void:
 	if not prompt_outcome.visible:
 		_exchange_before_preview = exchange_rail.visible
 	var previewing: bool = outcome.has("stages") or outcome.has("stopped") or outcome.has("life")
+	# The preview stands in the damage text's place at the damage text's height, so the panel keeps
+	# its size while the pointer moves between options.
+	var standing_in: bool = previewing and _damage_available and exchange_damage.visible
+	if standing_in or not previewing:
+		prompt_outcome.custom_minimum_size.y = exchange_damage.size.y if standing_in else 0.0
 	# With no damage line to swap with, a reserved preview row stays up empty between hovers.
 	prompt_outcome.visible = previewing or (_reserve_outcome and not _damage_available)
 	exchange_rail.visible = true if prompt_outcome.visible else _exchange_before_preview
@@ -3056,6 +3092,11 @@ func _uid_table(def: CardDef, uid: int) -> int:
 	return _faces.table_base(def, _uid_owner(uid)) if _faces != null else -1
 
 
+## What the attack card deals as performed now, modifiers in, for its badge; -1s when unknown.
+func _uid_resolved(def: CardDef, uid: int) -> Vector2i:
+	return _faces.resolved_of(def, _uid_owner(uid)) if _faces != null else Vector2i(-1, -1)
+
+
 ## Full-size live face over a dimmed table, so keyword hover works. Right-click or Inspect opens
 ## it; Esc or a click outside closes it.
 func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
@@ -3063,7 +3104,7 @@ func show_inspect(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 		return
 	hide_peek()
 	hide_focus()
-	inspect_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid), _uid_table(def, uid), _live_might(uid))
+	inspect_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid), _uid_table(def, uid), _live_might(uid), _uid_resolved(def, uid))
 	var standing: SeatPlayer = _standing(uid)
 	if standing == null and _view != null:
 		for player in _view.players:
@@ -3103,7 +3144,7 @@ func show_focus(uid: int, caption: String) -> void:
 	_replay_focus = false
 	_focus_card_uid = uid
 	_pending_anchor = ""
-	focus_face.show_def(def, c.aspect, _live_energy(uid), _standing(uid), seat_backdrop(c.owner), _uid_table(def, uid), _live_might(uid))
+	focus_face.show_def(def, c.aspect, _live_energy(uid), _standing(uid), seat_backdrop(c.owner), _uid_table(def, uid), _live_might(uid), _uid_resolved(def, uid))
 	focus.visible = true
 	_compact_prompt()
 
@@ -3117,7 +3158,7 @@ func show_replay_card(def: CardDef, caption: String, color: Color, uid: int = -1
 	_replay_focus = true
 	_focus_card_uid = uid
 	_pending_anchor = ""
-	focus_face.show_def(def, 0, -1, null, _uid_backdrop(uid), _uid_table(def, uid))
+	focus_face.show_def(def, 0, -1, null, _uid_backdrop(uid), _uid_table(def, uid), -1, _uid_resolved(def, uid))
 	set_focus_caption(caption, color)
 	focus.visible = true
 	_compact_prompt()
@@ -3181,7 +3222,7 @@ func _push_face(def: CardDef, caption: String, tint: Color, uid: int) -> Control
 	entry.move_child(face, 0)
 	stack.add_child(entry)
 	# CardFace builds itself from its own @onready children, so it is filled once it is in the tree.
-	face.show_def(def, 0, -1, null, _uid_backdrop(uid), _uid_table(def, uid))
+	face.show_def(def, 0, -1, null, _uid_backdrop(uid), _uid_table(def, uid), -1, _uid_resolved(def, uid))
 	_stack.append(entry)
 	_layout_stack()
 	return entry
@@ -3686,6 +3727,14 @@ func hover_primary(index: int) -> void:
 		(buttons[index] as Button).mouse_entered.emit()
 
 
+## One player's plate, `mine` for this player's own. `tag` "" leaves the name bare; `known` false
+## hides a rank this side cannot know.
+func show_plate(mine: bool, player_name: String, tag: String, rank: int, known: bool = true) -> void:
+	var plate: ProfileChip = own_plate if mine else rival_plate
+	plate.show_player(player_name, tag, rank, known)
+	plate.visible = true
+
+
 ## Closes the menu and opens the report form once a frame without the menu is drawn, so the
 ## screenshot shows the table.
 func _report_bug() -> void:
@@ -3813,7 +3862,7 @@ func set_log_expanded(on: bool) -> void:
 func show_peek(def: CardDef, aspect: int = 0, uid: int = -1) -> void:
 	if def == null or inspect.visible or _log_expanded:
 		return
-	peek_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid), _uid_table(def, uid), _live_might(uid))
+	peek_face.show_def(def, aspect, _live_energy(uid), _standing(uid), _uid_backdrop(uid), _uid_table(def, uid), _live_might(uid), _uid_resolved(def, uid))
 	var forecast: String = _forecast_text(uid)
 	peek_forecast.visible = forecast != ""
 	peek_forecast_text.text = forecast

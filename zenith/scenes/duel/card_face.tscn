@@ -222,6 +222,15 @@ theme_override_font_sizes/font_size = 11
 text = "ENERGY"
 horizontal_alignment = 1
 
+[node name="Extra" type="Label" parent="Margin/Column/Art/Attack/Column"]
+visible = false
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+vertical_alignment = 2
+text = "+4 WOUNDS"
+horizontal_alignment = 1
+
 [node name="Stamps" type="VBoxContainer" parent="Margin/Column/Art"]
 layout_mode = 1
 anchors_preset = 3

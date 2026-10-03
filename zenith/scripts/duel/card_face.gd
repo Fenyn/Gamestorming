@@ -81,6 +81,7 @@ static var strike_table: StrikeTable = null
 @onready var attack_kind: Label = $Margin/Column/Art/Attack/Column/Kind
 @onready var attack_num: Label = $Margin/Column/Art/Attack/Column/Num
 @onready var attack_word: Label = $Margin/Column/Art/Attack/Column/Word
+@onready var attack_extra: Label = $Margin/Column/Art/Attack/Column/Extra
 @onready var title_label: Label = $Margin/Column/Title
 @onready var type_chip: PanelContainer = $Margin/Column/TypeRow/TypeChip
 @onready var type_icon: TypeIcon = $Margin/Column/TypeRow/TypeChip/Row/Icon
@@ -124,8 +125,9 @@ func _ready() -> void:
 ## the owning player when the card is their duelist, null otherwise: it adds the Surge rail up to
 ## where the next Recover lands and the Fervor pips on the top edge.
 ## `backdrop` is the deck colour behind a personality portrait (see NO_BACKDROP). `table_base` is
-## the Strike Table result for the matchup the card is shown in, -1 outside a duel.
-func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPlayer = null, backdrop: Color = NO_BACKDROP, table_base: int = -1, might: int = -1) -> void:
+## the Strike Table result for the matchup the card is shown in, -1 outside a duel. `resolved` is
+## what the card deals as performed now, modifiers in (Energy, wounds), or -1s when not known.
+func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPlayer = null, backdrop: Color = NO_BACKDROP, table_base: int = -1, might: int = -1, resolved: Vector2i = Vector2i(-1, -1)) -> void:
 	inner.visible = true
 	var color: Color = Palette.frame_color(def)
 	_style(frame, color, FRAME_RADIUS, Palette.frame_edge(def))
@@ -142,7 +144,7 @@ func show_def(def: CardDef, aspect: int = 0, energy: int = -1, standing: SeatPla
 	else:
 		person.visible = false
 		margin.visible = true
-		_show_standard(def, color, picture, table_base)
+		_show_standard(def, color, picture, table_base, resolved)
 
 
 ## The stage a duelist at `energy` reaches with its next Recover, or -1 when it gains nothing.
@@ -152,7 +154,7 @@ static func recover_reach(energy: int, standing: SeatPlayer) -> int:
 	return mini(CardInstance.MAX_STAGE, energy + standing.recover_gain)
 
 
-func _show_standard(def: CardDef, color: Color, picture: Texture2D, table_base: int = -1) -> void:
+func _show_standard(def: CardDef, color: Color, picture: Texture2D, table_base: int = -1, resolved: Vector2i = Vector2i(-1, -1)) -> void:
 	var art_height: float = float(ART_HEIGHTS.get(def.type, 280))
 	art.custom_minimum_size = Vector2(0, art_height)
 	_style(art, color.darkened(0.35), FRAME_RADIUS)
@@ -180,19 +182,20 @@ func _show_standard(def: CardDef, color: Color, picture: Texture2D, table_base: 
 	cost_badge.visible = cost > 0
 	cost_num.text = str(cost)
 	# The base attack: what the card adds before the table and the modifiers.
-	var badge: Dictionary = CardText.attack_badge(def, table_base)
+	var badge: Dictionary = CardText.attack_badge(def, table_base, resolved)
 	attack_badge.visible = not badge.is_empty()
 	if not badge.is_empty():
 		attack_kind.text = str(badge["kind"]).to_upper()
 		attack_num.text = str(badge["num"])
-		var word: String = str(badge["word"])
-		if str(badge["extra"]) != "":
-			word += "  " + str(badge["extra"])
-		attack_word.text = word.to_upper()
+		attack_word.text = str(badge["word"]).to_upper()
+		# The second kind of damage on its own row, big enough to read at hand size.
+		attack_extra.text = str(badge["extra"]).to_upper()
+		attack_extra.visible = attack_extra.text != ""
 		_round(attack_badge, Palette.type_ink(def.type), 14, 10, 4)
 		attack_kind.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
 		attack_num.add_theme_color_override("font_color", Color.WHITE)
 		attack_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
+		attack_extra.add_theme_color_override("font_color", Color.WHITE)
 	_round(cost_badge, ZenithTheme.ENERGY.darkened(0.35), 34)
 	cost_num.add_theme_color_override("font_color", Color.WHITE)
 	cost_word.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))

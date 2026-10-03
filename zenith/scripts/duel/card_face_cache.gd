@@ -19,6 +19,9 @@ var _strike_table: StrikeTable = null
 ## its Resonances lift the read by; empty outside a duel, where a table Strike keeps its "Table"
 ## wording.
 var _mights: Array[Vector3i] = []
+## "<owner>:<def id>" -> Vector2i(Energy, wounds) that attack card deals as performed now, from the
+## view's badges: what its face badge shows, Drills and other standing modifiers included.
+var _resolved: Dictionary = {}
 
 
 ## Sets the default portrait backdrop: the run deck's in an adventure, neutral elsewhere. Session
@@ -39,25 +42,43 @@ func _ready() -> void:
 ## `backdrop` is the deck colour behind a personality portrait (CardFace.NO_BACKDROP for the
 ## default). It is part of a personality's key, so one card shown for two decks is two faces.
 ## `table` is a Strike's resolved table base (-1 for none), so each number is its own face.
-static func key_for(def: CardDef, aspect: int = 0, backdrop: Color = CardFace.NO_BACKDROP, table: int = -1) -> String:
+## `resolved` is what the attack deals as performed now (-1s for unknown), which wins over `table`.
+static func key_for(def: CardDef, aspect: int = 0, backdrop: Color = CardFace.NO_BACKDROP, table: int = -1, resolved: Vector2i = Vector2i(-1, -1)) -> String:
 	if def.is_personality():
 		return "%s#%d@%s" % [def.id, def.aspect if def.aspect > 0 else aspect, CardFace.resolve_backdrop(backdrop).to_html(false)]
+	if resolved.x >= 0:
+		return "%s=%d,%d" % [def.id, resolved.x, resolved.y]
 	if table >= 0:
 		return "%s~%d" % [def.id, table]
 	return def.id
 
 
-## Reads both seats' Strike matchups off a duel view. True when either changed, which is when the
-## Strike faces on show need their numbers redrawn.
+## Reads both seats' Strike matchups, and what each attack in the viewer's hand deals, off a duel
+## view. True when any changed, which is when the faces on show need their numbers redrawn.
 func set_matchups(view: SeatView, library: CardLibrary, table: StrikeTable) -> bool:
 	var next: Array[Vector3i] = []
 	for p in view.players:
 		var m: Vector2i = view.strike_mights(p.index, library)
 		next.append(Vector3i(m.x, m.y, view.strike_bands(p.index)))
-	var changed: bool = next != _mights or table != _strike_table
+	var resolved: Dictionary = {}
+	for uid in view.badges:
+		var c: SeatCard = view.card(int(uid))
+		if c == null or c.hidden():
+			continue
+		var b: Dictionary = view.badges[uid]
+		resolved["%d:%s" % [c.owner, c.def_id]] = Vector2i(int(b.get("stages", 0)), int(b.get("life", 0)))
+	var changed: bool = next != _mights or table != _strike_table or resolved != _resolved
 	_mights = next
 	_strike_table = table
+	_resolved = resolved
 	return changed
+
+
+## What an attack card owned by `owner` deals as performed now, Vector2i(-1, -1) when unknown.
+func resolved_of(def: CardDef, owner: int) -> Vector2i:
+	if def == null:
+		return Vector2i(-1, -1)
+	return _resolved.get("%d:%s" % [owner, def.id], Vector2i(-1, -1))
 
 
 ## The table base a card owned by `owner` shows, -1 when it has none or the matchup is unknown.
@@ -72,14 +93,15 @@ func table_base(def: CardDef, owner: int) -> int:
 ## one, so a caller comparing keys swaps in the numbered face when it lands.
 func key_of(def: CardDef, aspect: int = 0, backdrop: Color = CardFace.NO_BACKDROP, owner: int = -1) -> String:
 	var table: int = table_base(def, owner)
-	var key: String = key_for(def, aspect, backdrop, table)
-	if table >= 0 and not _cache.has(key):
+	var resolved: Vector2i = resolved_of(def, owner)
+	var key: String = key_for(def, aspect, backdrop, table, resolved)
+	if (table >= 0 or resolved.x >= 0) and not _cache.has(key):
 		return key_for(def, aspect, backdrop)
 	return key
 
 
 func has_face(def: CardDef, aspect: int = 0, backdrop: Color = CardFace.NO_BACKDROP, owner: int = -1) -> bool:
-	return _cache.has(key_for(def, aspect, backdrop, table_base(def, owner)))
+	return _cache.has(key_for(def, aspect, backdrop, table_base(def, owner), resolved_of(def, owner)))
 
 
 ## Cached texture, or null if it has not been rendered yet. `owner` is the seat whose card it is,
@@ -95,13 +117,14 @@ func back() -> Texture2D:
 ## Renders run one at a time on the shared viewport; callers that arrive mid-render wait their turn.
 func render_face(def: CardDef, aspect: int = 0, backdrop: Color = CardFace.NO_BACKDROP, owner: int = -1) -> Texture2D:
 	var table: int = table_base(def, owner)
-	var key: String = key_for(def, aspect, backdrop, table)
+	var resolved: Vector2i = resolved_of(def, owner)
+	var key: String = key_for(def, aspect, backdrop, table, resolved)
 	while _rendering:
 		await _render_done
 	if _cache.has(key):
 		return _cache[key]
 	_rendering = true
-	face_control.show_def(def, aspect, -1, null, backdrop, table)
+	face_control.show_def(def, aspect, -1, null, backdrop, table, -1, resolved)
 	var tex: Texture2D = await _render()
 	_cache[key] = tex
 	if def.is_personality() and not _ladder.has_area():

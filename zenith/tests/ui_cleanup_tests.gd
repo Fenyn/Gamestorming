@@ -3,7 +3,8 @@ extends SceneTree
 ## HUD's online presentation: the options menu, the result card in every state, the clocks, the
 ## rival's tab and the reconnect card.
 const PLAYER_STATUS: Script = preload("res://scripts/duel/player_status.gd")
-const TOOLS: Array[String] = ["Reduced motion", "Fullscreen"]
+## The items every menu ends with: the bug report, then the two toggles.
+const TOOLS: Array[String] = ["Report a bug (F8)", "Reduced motion", "Fullscreen"]
 ## Words the menu and the result card must not use for a way out.
 const RETIRED: Array[String] = ["Leave duel", "Leave match", "Title", "Give up", "Leave", "Save and quit to title"]
 var checks: int = 0

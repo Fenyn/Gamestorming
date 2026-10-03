@@ -53,6 +53,10 @@ func _ready() -> void:
 		# Nothing on a server room's matchup waits for a click, so the cards do not invite one.
 		sheets[i].aspect_hint = not (_online and Net.server_room())
 		sheets[i].show_deck(Session.chosen[i], _tag(i))
+		if _online:
+			var entry: Dictionary = Net.lobby[i]
+			var tag: String = str(entry.get("tag", ""))
+			sheets[i].show_player(Session.player_names[i], tag, int(entry.get("rank", 0)), tag != "")
 	if _online:
 		advanced.visible = Net.is_host()
 		start_button.visible = Net.is_host()
@@ -103,18 +107,17 @@ static func matchup_text(ranked: bool, game: int, left_ms: int) -> String:
 	return "Starting in %s." % when
 
 
+## One line over each sheet: online YOU or OPPONENT (the player chip under it carries the name,
+## tag and rank); offline the AI's seat, else the player's name, else the seat's number.
 func _tag(seat: int) -> String:
-	var who: String = "PLAYER %d" % (seat + 1)
 	if _online:
-		who = ("YOU" if seat == Net.local_player else "OPPONENT") + "  ·  " + who
-	elif Session.ai_seat == seat:
-		who = "AI OPPONENT  ·  " + who
-	elif Session.ai_seat >= 0:
-		who = "YOU  ·  " + who
+		return "YOU" if seat == Net.local_player else "OPPONENT"
+	if Session.ai_seat == seat:
+		return "AI OPPONENT"
 	var player_name: String = Session.player_names[seat]
-	if player_name.to_upper() == "PLAYER %d" % (seat + 1):
-		return who
-	return "%s  ·  %s" % [who, player_name.to_upper()]
+	if player_name.to_upper() != "PLAYER %d" % (seat + 1):
+		return player_name.to_upper()
+	return "YOU" if Session.ai_seat >= 0 else "PLAYER %d" % (seat + 1)
 
 
 ## The two sheets slide in from their edges and the VS mark lands between them. Waits for the
@@ -169,7 +172,7 @@ func _on_peer_left() -> void:
 
 ## The title shows why, from `Net.last_error`.
 func _on_connection_failed(_reason: String) -> void:
-	Session.player_names = ["Player 1", "Player 2"]
+	Session.player_names = Session.default_names()
 	Session.go_to_title()
 
 

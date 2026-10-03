@@ -37,7 +37,8 @@ only if the sections share no speakers; otherwise one agent keeps the voices con
   only where it changed) with the agent's alternatives for the lines in question, and ask which to
   write. Write it in once the user picks, then run the tests.
 - If the user asked for the whole thing applied, write it in, run the tests, and report.
-- Keep `zenith/docs/tutorial_script.md` (beat tables) in step with tutorial text changes.
+- The tutorial's script is `zenith/data/tutorial/lessons.json` itself; `zenith/docs/tutorial_script.md`
+  holds no lines, so text changes need no doc update.
 - New lore the user approves goes into `zenith/docs/cast.md` in the same pass.
 
 ## House rules that always apply

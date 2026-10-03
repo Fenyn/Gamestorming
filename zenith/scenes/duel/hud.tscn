@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/duel/duel_hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://scenes/duel/card_face.tscn" id="3_face"]
@@ -6,6 +6,8 @@
 [ext_resource type="Shader" path="res://scripts/duel/ribbon.gdshader" id="5_ribbon"]
 [ext_resource type="Script" path="res://scripts/ui/gear_button.gd" id="6_gear"]
 [ext_resource type="FontFile" path="res://assets/fonts/pirata_one/PirataOne-Regular.ttf" id="9_title"]
+[ext_resource type="PackedScene" path="res://scenes/ui/profile_chip.tscn" id="10_chip"]
+[ext_resource type="Script" path="res://scripts/ui/rank_emblem.gd" id="11_emblem"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ribbon"]
 shader = ExtResource("5_ribbon")
@@ -935,6 +937,14 @@ horizontal_alignment = 1
 autowrap_mode = 3
 max_lines_visible = 2
 
+[node name="RankUp" type="Control" parent="Root/Modal/Center/Card/GameOver"]
+visible = false
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+script = ExtResource("11_emblem")
+
 [node name="Rating" type="Label" parent="Root/Modal/Center/Card/GameOver"]
 visible = false
 layout_mode = 2
@@ -1040,6 +1050,32 @@ text = "Keep trying"
 
 [node name="Tick" type="Timer" parent="."]
 autostart = true
+
+[node name="RivalPlate" parent="Root" instance=ExtResource("10_chip")]
+visible = false
+layout_mode = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 25.0
+offset_bottom = 25.0
+emblem_size = 48
+name_size = 24
+solid = true
+
+[node name="OwnPlate" parent="Root" instance=ExtResource("10_chip")]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -25.0
+offset_right = 25.0
+offset_bottom = -24.0
+grow_vertical = 0
+emblem_size = 48
+name_size = 24
+solid = true
 
 [node name="OptionsShade" type="ColorRect" parent="Root"]
 visible = false

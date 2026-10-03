@@ -1,7 +1,8 @@
 class_name RatingsStore
 extends RefCounted
 ## Ranked ratings on the duel server: `ratings.json` in its data directory, identity id ->
-## {"mu", "sigma", "games" (rated matches played), "wins", "last_played" (Unix seconds)}. The file is
+## {"mu", "sigma", "games" (rated matches played), "wins", "last_played" (Unix seconds), "peak" (the
+## best shown rating reached, which sets the rank and never falls; `Ranks`)}. The file is
 ## written whole to a temporary file and renamed over the old one, so a crash leaves one or the
 ## other. The match records stay the source of truth: `rebuild` replays every ranked match result.
 
@@ -35,7 +36,7 @@ func open(dir: String) -> String:
 func get_or_new(id: String) -> Dictionary:
 	if entries.has(id):
 		return (entries[id] as Dictionary).duplicate()
-	return {"mu": Rating.MU, "sigma": Rating.SIGMA, "games": 0, "wins": 0, "last_played": 0}
+	return {"mu": Rating.MU, "sigma": Rating.SIGMA, "games": 0, "wins": 0, "last_played": 0, "peak": 0}
 
 
 ## One rated match, won by `winner_id`, applied and saved: {"winner": {"before", "after"}, "loser":
@@ -55,11 +56,16 @@ func _apply(winner_id: String, loser_id: String, now: int) -> Dictionary:
 	var l: Dictionary = get_or_new(loser_id)
 	var after: Array[Dictionary] = Rating.rate(w, l)
 	entries[winner_id] = {"mu": after[0]["mu"], "sigma": after[0]["sigma"], "games": int(w["games"]) + 1,
-		"wins": int(w["wins"]) + 1, "last_played": now}
+		"wins": int(w["wins"]) + 1, "last_played": now, "peak": _peak(w, after[0])}
 	entries[loser_id] = {"mu": after[1]["mu"], "sigma": after[1]["sigma"], "games": int(l["games"]) + 1,
-		"wins": int(l["wins"]), "last_played": now}
+		"wins": int(l["wins"]), "last_played": now, "peak": _peak(l, after[1])}
 	return {"winner": {"before": {"mu": w["mu"], "sigma": w["sigma"]}, "after": after[0]},
 		"loser": {"before": {"mu": l["mu"], "sigma": l["sigma"]}, "after": after[1]}}
+
+
+## The best shown rating of `entry` once it moves to `after` {"mu", "sigma"}.
+static func _peak(entry: Dictionary, after: Dictionary) -> int:
+	return maxi(int(entry.get("peak", 0)), Rating.shown(float(after["mu"]), float(after["sigma"])))
 
 
 ## "" when written, otherwise why not.
@@ -117,4 +123,9 @@ static func _entry(raw: Variant) -> Dictionary:
 		counts.append(int(n))
 	if counts[1] > counts[0]:
 		return {}
-	return {"mu": float(mu), "sigma": float(sigma), "games": counts[0], "wins": counts[1], "last_played": counts[2]}
+	# Files written before the peak was kept start it at the rating they hold.
+	var peak: int = Rating.shown(float(mu), float(sigma))
+	var stored_peak: Variant = d.get("peak")
+	if (stored_peak is float or stored_peak is int) and float(stored_peak) >= 0.0:
+		peak = maxi(peak, int(stored_peak))
+	return {"mu": float(mu), "sigma": float(sigma), "games": counts[0], "wins": counts[1], "last_played": counts[2], "peak": peak}

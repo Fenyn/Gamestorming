@@ -8,6 +8,8 @@ const HOVER_SCALE: float = 1.05
 const FLIP_TIME: float = 0.11
 
 @onready var tag: Label = $Column/Tag
+## The seat's player as others see them, shown online only.
+@onready var player_chip: ProfileChip = $Column/Player
 @onready var duelist_label: Label = $Column/Duelist
 @onready var deck_label: Label = $Column/Deck
 @onready var tagline_label: Label = $Column/Tagline
@@ -51,6 +53,12 @@ func setup(index: int, faces: CardFaceCache) -> void:
 ## Player 2's Aspect card goes on the inner side too, so the two duelists face each other.
 func _mirror() -> void:
 	cards.move_child(portrait_box, 0)
+
+
+## Online: the seat's player under the YOU or OPPONENT line.
+func show_player(player_name: String, player_tag: String, rank: int, known: bool = true) -> void:
+	player_chip.show_player(player_name, player_tag, rank, known)
+	player_chip.visible = true
 
 
 func show_deck(d: DeckList, tag_text: String) -> void:

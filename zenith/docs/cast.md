@@ -34,6 +34,12 @@ Three tiers, and a character sits in exactly one of them.
 | Made kinds | `tags` on a personality | `construct`, `marked` | Not born. Built by a wright, or marked by a demon |
 | No line | absent | — | Human. Most people |
 
+**The ironblood** (2026-10-03) is the common name for the power to use a Draconic ancestry, the
+gift waking in someone of the line. It shows differently in each person: in Sir Edric it woke as
+fire during the two kings' war, with Caedan Vale beside him to see it; in Emrys it wakes as metal
+on his forearms, mid-lesson with Caedan. Steel's school name, Ironblood, is the same word, since
+Steel is that power turned plainest into the body.
+
 **Born lines stay at two.** Draconic is the fighting line, hot-blooded and hard to put down.
 Verdant is the old line that cut the first seals, patient, and regrows what is taken away. A line
 crosses the Vigil and the Pact freely, because it is not a choice anybody made. A duelist and

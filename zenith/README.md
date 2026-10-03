@@ -14,7 +14,7 @@ The rules emulate a classic collectible card game from the early 2000s under an 
 | Hotseat | Two players on one screen, with a hand-off between turns. |
 | Adventure | A roguelite run over a three-act node map: duels, Elites, bosses, Shops, Forges, Shrines and Relic nodes. Wins pay Motes, which buy cards, deck slots and Aspects between runs. |
 | Online | Duels refereed on a dedicated server: Find a duel (casual queue), share-code rooms, and ranked best-of-three with ratings. Desktop only. |
-| Tutorial | Five scripted lessons in which Caedan Vale trains young Emrys. Built, but switched off for now. |
+| Tutorial | Five scripted lessons in which Caedan Vale trains young Emrys. On in the alpha, the web build included. |
 | Deck builder | Build and import decks. Built, but switched off for now. |
 
 ## Run it
@@ -90,7 +90,7 @@ The web build is published prebuilt because the art packs are gitignored, so CI 
 | `docs/cast.md` | Characters and lore. |
 | `docs/strategy.md` | How each deck and archetype is played well. |
 | `docs/card_roster.csv`, `card_pool.md` | Every card with its rules text and source card. |
-| `docs/tutorial_script.md` | The tutorial beat by beat. |
+| `docs/tutorial_script.md` | The tutorial's rules and turn order; the script itself is `data/tutorial/lessons.json`. |
 | `docs/presentation.md` | Screens and effects. |
 | `CREDITS.md` | Credits, including the New Z team and the Z League, whose cards and decklists are used with their permission. |
 | `CLAUDE.md` | Rules for working in this project. |

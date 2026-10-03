@@ -1,0 +1,82 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/profile_chip.gd" id="1_chip"]
+[ext_resource type="Script" path="res://scripts/ui/rank_emblem.gd" id="2_emblem"]
+
+[node name="ProfileChip" type="Button"]
+script = ExtResource("1_chip")
+
+[node name="Margin" type="MarginContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="Row" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="Emblem" type="Control" parent="Margin/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("2_emblem")
+
+[node name="Text" type="VBoxContainer" parent="Margin/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="NameRow" type="HBoxContainer" parent="Margin/Row/Text"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="PlayerName" type="Label" parent="Margin/Row/Text/NameRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"RowTitleLabel"
+text = "Ashen Warden"
+
+[node name="Tag" type="Label" parent="Margin/Row/Text/NameRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 1
+theme_type_variation = &"CaptionLabel"
+text = "#0000"
+vertical_alignment = 2
+
+[node name="RankName" type="Label" parent="Margin/Row/Text"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Novice"
+
+[node name="EditRule" type="ColorRect" parent="Margin/Row"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(1, 36)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="Edit" type="Label" parent="Margin/Row"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"CaptionLabel"
+text = "EDIT"

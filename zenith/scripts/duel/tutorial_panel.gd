@@ -155,6 +155,9 @@ var _ring_alpha: float = 0.0
 var _ring_scale: float = 1.0
 var _reveal: float = 1.0
 var _caption_left: float = 0.0
+## An instruction that came while Vale's passing note was still up, {line, face, rings}: it shows
+## once the note is gone, so the two are read one after the other.
+var _held: Dictionary = {}
 var _goal: Vector2 = HOME
 var _slot_key: String = ""
 var _slot_at: Vector2 = Vector2(-9999.0, -9999.0)
@@ -205,6 +208,10 @@ func say(_who: String, face: Texture2D, line: String, click: bool) -> void:
 ## "" takes the box down and leaves the rings.
 func instruct(line: String, face: Texture2D, rings: Array[String]) -> void:
 	visible = true
+	_held = {}
+	if line != "" and bark_note.showing():
+		_held = {"line": line, "face": face, "rings": rings}
+		return
 	_mode = Mode.MOVE
 	_pacing = null
 	_idle = 0.0
@@ -265,6 +272,7 @@ func bark(at: String, line: String, face: Texture2D, rings: Array[String]) -> vo
 ## The move was made: the box drops away before the move plays.
 func leave() -> void:
 	_mode = Mode.IDLE
+	_held = {}
 	_clear_reason()
 	_set_rings([])
 	_coach_leave()
@@ -645,6 +653,10 @@ func _process(delta: float) -> void:
 					_chat.back().label.visible_ratio = _pacing.revealed()
 	elif _mode == Mode.MOVE:
 		_idle += delta
+	if not _held.is_empty() and not bark_note.showing():
+		var rings: Array[String] = []
+		rings.assign(_held["rings"])
+		instruct(str(_held["line"]), _held["face"] as Texture2D, rings)
 	if _reason_linger > 0.0:
 		_reason_linger -= delta
 		if _reason_linger <= 0.0:

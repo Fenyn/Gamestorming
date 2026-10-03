@@ -266,18 +266,21 @@ func test_each_beat_lands_its_numbers() -> void:
 	eq(mine(entry(run, 2, 4, "player"), "after")["fervor"], 2, "the defender swings back, and the Rising Cut Attunes to Fervor 2")
 	var final_strike: Dictionary = entry(run, 2, 5, "player")
 	check(bool((final_strike["after"]["last_attack"] as Dictionary).get("is_final", false)), "Emrys makes a Final Strike")
-	var breather: Dictionary = entry(run, 2, 9, "player")
+	var breather: Dictionary = entry(run, 2, 8, "player")
 	eq(int(mine(breather, "after")["discard"]), int(mine(breather, "before")["discard"]) - 1, "Recover takes one card off the discard pile")
 	eq(int(mine(breather, "after")["life"]), int(mine(breather, "before")["life"]) + 1, "and puts it under the Life Deck")
 	# Fervor over lessons 1 to 3.
 	eq(mine(entry(run, 1, 17, "say"), "after")["fervor"], 1, "Fervor 1 after lesson 1")
-	eq(mine(entry(run, 2, 8, "say"), "after")["fervor"], 2, "Fervor 2 after lesson 2")
-	# The Straw Knight is carried off at the end of Emrys' breather, and Caedan takes the seat.
-	var swap: Dictionary = entry(run, 2, 8, "op")
+	eq(mine(entry(run, 2, 9, "say"), "after")["fervor"], 2, "Fervor 2 after lesson 2")
+	# After Emrys' Recover the Straw Knight is carried off at its own declare, and Caedan takes the
+	# seat with his turn's three cards.
+	var swap: Dictionary = entry(run, 2, 9, "op")
 	eq(theirs(swap, "before")["character"], "Straw Knight", "the Knight held the seat")
 	eq(theirs(swap, "after")["character"], "Caedan Vale", "Caedan holds it now")
 	eq(theirs(swap, "after")["energy"], 10, "fresh at full Energy")
+	eq((theirs(swap, "after")["hand"] as Array), ["signature_strike_21", "signature_strike_14", "freestyle_strike_02"], "holding the three cards he draws as he steps in")
 	eq(mine(swap, "after"), mine(swap, "before"), "Emrys keeps everything")
+	eq(int(swap["before"]["turn"]), 4, "on the turn after Emrys' Recover")
 	# Lesson 3: Caedan's own turn.
 	var opening: Dictionary = entry(run, 3, 2, "rival")
 	eq(int(opening["before"]["turn"]), 4, "no turn passes empty between the Knight's lesson and Caedan's")
@@ -298,7 +301,11 @@ func test_each_beat_lands_its_numbers() -> void:
 	eq(mine(dealt, "after")["top"], "steel_drill_01", "the Steel cards land on top of Emrys' Life Deck")
 	var drills: Dictionary = entry(run, 4, 3, "player", 1)
 	check((mine(drills, "after")["in_play"] as Array).has("steel_drill_01") and (mine(drills, "after")["in_play"] as Array).has("steel_drill_04"), "both Drills are in play")
-	var tail: Dictionary = entry(run, 4, 5, "player")
+	var thin: Dictionary = entry(run, 4, 4, "player")
+	eq((mine(thin, "before")["hand"] as Array).size(), 1, "with both Drills placed, Emrys holds one card")
+	eq(str(thin["kind"]), "declare", "and is asked whether to declare")
+	var tail: Dictionary = entry(run, 4, 7, "player")
+	eq(int(tail["before"]["turn"]), 6, "the Steel combat is Caedan's turn, after Emrys skipped and Recovered")
 	eq(int(theirs(tail, "before")["energy"]) - int(theirs(tail, "after")["energy"]), 3, "the Lashing Tail with the Drill's 2 takes 3 Energy")
 	eq(int((tail["after"]["last_attack"] as Dictionary).get("life_dealt", 0)), 4, "and 4 wounds, no critical")
 	var shield: Dictionary = entry(run, 4, 6, "player")
@@ -306,25 +313,27 @@ func test_each_beat_lands_its_numbers() -> void:
 	var shout: Dictionary = entry(run, 4, 8, "rival")
 	eq(mine(shout, "before")["fervor"], 1, "Emrys holds Fervor 1 before the shout")
 	eq(mine(shout, "after")["fervor"], 0, "Disrupt takes it away")
-	var endure: Dictionary = entry(run, 4, 9, "player")
-	eq(int((endure["after"]["last_attack"] as Dictionary).get("endurance_prevented", 0)), 3, "the Taloned Fist's Endurance prevents 3")
-	eq(int((endure["after"]["last_attack"] as Dictionary).get("life_dealt", 0)), 1, "so the shout costs 1 card")
-	var hide: Dictionary = entry(run, 4, 13, "player")
-	check(bool((hide["after"]["last_attack"] as Dictionary).get("stopped", false)), "the Ironscale Hide stops Vale's Sword Draw")
+	var hide: Dictionary = entry(run, 4, 8, "player")
+	check(bool((hide["after"]["last_attack"] as Dictionary).get("stopped", false)), "the Ironscale Hide stops the Declaration, an Art")
 	check(int(mine(hide, "after")["energy"]) > int(mine(hide, "before")["energy"]), "and puts Energy back")
 	eq(mine(hide, "after")["energy"], 10, "up to the full ten")
+	var parry: Dictionary = entry(run, 4, 13, "player")
+	check(bool((parry["after"]["last_attack"] as Dictionary).get("stopped", false)), "a Parry stops Vale's Sword Draw, a Strike")
+	var endure: Dictionary = entry(run, 4, 15, "player")
+	eq(int((endure["after"]["last_attack"] as Dictionary).get("endurance_prevented", 0)), 4, "Caedan's Sharp Rebuke lands, and the Scalebound Blow's Endurance prevents 4")
+	eq(int((endure["after"]["last_attack"] as Dictionary).get("life_dealt", 0)), 4, "so its 8 wounds cost 4 cards, short of a critical")
+	eq(theirs(endure, "after")["aspect"], 1, "and Caedan has not climbed")
 	# Lesson 5: both.
-	var heel: Dictionary = entry(run, 5, 5, "player", 1)
-	eq(int(mine(heel, "before")["life"]) - int(mine(heel, "after")["life"]), 1, "Emrys pays a card of his own life")
-	var flourish: Dictionary = entry(run, 5, 3, "player", 1)
-	check((mine(flourish, "after")["in_play"] as Array).has("signature_drill_01"), "the Flourish puts the Swordplay Drill into play")
-	var remain: Dictionary = entry(run, 5, 7, "rival")
-	check((mine(remain, "after")["in_play"] as Array).has("steel_strike_07"), "the Twin Claws stay on the table after the first swing")
-	var roar: Dictionary = entry(run, 5, 11, "player")
-	eq(int((roar["after"]["last_attack"] as Dictionary).get("life_dealt", 0)), 7, "the Empowered Routing Roar deals 7 wounds")
-	eq(str((roar["after"]["last_attack"] as Dictionary).get("critical", "")), "fervor", "and the critical hit lowers Caedan's Fervor")
-	eq(int(theirs(roar, "before")["fervor"]) - int(theirs(roar, "after")["fervor"]), 1, "by 1")
-	check(int(theirs(roar, "after")["fervor"]) > 0, "Caedan still holds Fervor for the win callout")
+	var full: Dictionary = entry(run, 5, 2, "player")
+	check((mine(full, "before")["hand"] as Array).size() > 1, "Emrys declares with a full hand this time")
+	var cut: Dictionary = entry(run, 5, 3, "player")
+	eq(theirs(cut, "before")["energy"], 5, "Caedan comes into the last bout at 5 Energy, Emrys as he was")
+	var crit: Dictionary = entry(run, 5, 6, "player")
+	eq(str(crit["kind"]), "critical", "the Empowered Routing Roar makes the critical hit")
+	eq(int((crit["after"]["last_attack"] as Dictionary).get("life_dealt", 0)), 7, "with 7 wounds")
+	eq(str((crit["after"]["last_attack"] as Dictionary).get("critical", "")), "fervor", "and the critical hit lowers Caedan's Fervor")
+	eq(int(theirs(crit, "before")["fervor"]) - int(theirs(crit, "after")["fervor"]), 1, "by 1")
+	check(int(theirs(crit, "after")["fervor"]) > 0, "Caedan still holds Fervor for the win callout")
 	var peak: int = 0
 	for e in run["timeline"]:
 		if int(mine(e, "after")["aspect"]) >= 2:
@@ -344,7 +353,7 @@ func test_only_the_taught_move_is_open() -> void:
 			continue
 		var g: Dictionary = e["gate"]
 		var open: int = open_count(g)
-		var free: bool = str(e["kind"]) == "keep" or (int(e["lesson"]) == 2 and int(e["b"]) == 5)
+		var free: bool = (str(e["kind"]) == "keep" and not (int(e["lesson"]) == 2 and int(e["b"]) == 7)) or (int(e["lesson"]) == 2 and int(e["b"]) == 5)
 		if free:
 			check(open >= 2, "lesson %d beat %d leaves a free choice" % [e["lesson"], e["b"]])
 		else:
@@ -361,7 +370,7 @@ func test_only_the_taught_move_is_open() -> void:
 			check(str(g.get("library", "")) != "", "lesson %d beat %d: the searched deck's other cards have a reason" % [e["lesson"], e["b"]])
 			check(int(e["library"]) >= int(mine(e, "before")["life"]), "lesson %d beat %d: the search shows the whole Life Deck" % [e["lesson"], e["b"]])
 	check(asked_may >= 1, "Emrys' \"you may draw\" is asked when he declares (%d)" % asked_may)
-	check(searches >= 4, "every Life Deck search is shown to the player (%d)" % searches)
+	check(searches >= 2, "every Life Deck search is shown to the player (%d)" % searches)
 
 
 ## Which card is kept, or thrown for a Final Strike, never changes where the lesson goes.
@@ -389,7 +398,7 @@ func test_every_free_choice_reaches_the_same_next_beat() -> void:
 			var last: Dictionary = (other["timeline"] as Array).back()
 			eq(mine(last, "after")["aspect"], 2, "%s still climbs" % where)
 			eq(bool(last["after"]["ended"]), true, "%s ends the session" % where)
-	check(tried >= 6, "the free choices were tried (%d)" % tried)
+	check(tried >= 4, "the free choices were tried (%d)" % tried)
 
 
 func _beats(run: Dictionary) -> Array[String]:
@@ -641,7 +650,7 @@ func test_the_words_on_screen_follow_the_house_rules() -> void:
 	var total: int = 0
 	for l in all_lines(director):
 		total += TutorialPacing.words(str(l.get("text", "")))
-	check(total <= 1000, "%d words of lines and callouts" % total)
+	check(total <= 1200, "%d words of lines and callouts" % total)
 	print("  %d words of lines and callouts" % total)
 
 

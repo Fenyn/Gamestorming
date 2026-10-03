@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/select/deck_sheet.gd" id="1_sheet"]
+[ext_resource type="PackedScene" path="res://scenes/ui/profile_chip.tscn" id="2_chip"]
 
 [node name="DeckSheet" type="PanelContainer"]
 offset_right = 760.0
@@ -18,6 +19,12 @@ layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "PLAYER 1"
 horizontal_alignment = 1
+
+[node name="Player" parent="Column" instance=ExtResource("2_chip")]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 4
+emblem_size = 72
 
 [node name="Duelist" type="Label" parent="Column"]
 layout_mode = 2

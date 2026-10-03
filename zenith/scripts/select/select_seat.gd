@@ -181,10 +181,11 @@ func _on_portrait_input(event: InputEvent) -> void:
 			show_aspect(aspects[(aspects.find(_aspect) + 1) % aspects.size()])
 
 
-## Online the button reads "Lock in". A queue room hides the name field and shows the countdown.
+## Online the button reads "Lock in" and the name field goes, since the profile names the seat. A
+## queue room also shows the countdown.
 func set_online(on: bool, queue: bool) -> void:
 	online = on
-	name_edit.visible = not queue
+	name_edit.visible = not on
 	countdown_label.visible = queue
 	set_locked(locked)
 

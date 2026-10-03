@@ -1,7 +1,7 @@
 extends SceneTree
 ## The title's online half, the queue lobby's lock-in line and the matchup line: each title state
-## shows exactly its own nodes, the column keeps one height in every state, and the wording as
-## shipped. Run with --headless --path zenith -s tests/title_ui_tests.gd.
+## shows exactly its own nodes, the Multiplayer page keeps one height in every state, and the
+## wording as shipped. Run with --headless --path zenith -s tests/title_ui_tests.gd.
 
 const REJOIN_PATH: String = "user://title_ui_tests/rejoin.json"
 
@@ -35,9 +35,10 @@ func _shown(title: Node) -> String:
 	return ",".join(parts)
 
 
+## The Multiplayer page's height, which every online state shares.
 func _column_height(title: Node) -> float:
-	var column: Control = title.get("column")
-	return column.get_combined_minimum_size().y
+	var page: Control = title.get("online_page")
+	return page.get_combined_minimum_size().y
 
 
 func _run() -> void:
@@ -58,12 +59,21 @@ func _run() -> void:
 	_check(_shown(title) == "idle_box,rejoin_row,adventure_button,vs_ai_button,hotseat_button,find_button,ranked_button,host_button,join_button,quit_button,address",
 		"Idle shows Find a duel and Ranked match, everything enabled: %s" % _shown(title))
 	_check(status.visible and status.text == "", "The status line is there and empty")
+	var menu_page: Control = title.get("menu_page")
+	var online_page: Control = title.get("online_page")
+	_check(menu_page.visible and not online_page.visible, "The title opens on the menu, the online half on its own page")
+	(title.get("multiplayer_button") as Button).pressed.emit()
+	_check(online_page.visible and not menu_page.visible, "Multiplayer opens its page")
+	(title.get("back_button") as Button).pressed.emit()
+	_check(menu_page.visible and not online_page.visible, "and Back returns to the menu")
 	heights["IDLE"] = _column_height(title)
 
 	# CONNECTING (Host a duel on its way)
 	title.set("_attempt", "host")
 	title.call("_refresh")
 	_check(title.get("state") == states["CONNECTING"], "An attempt under way is connecting")
+	_check(online_page.visible and (title.get("back_button") as Button).disabled,
+		"An attempt brings the Multiplayer page up, and Back waits for Cancel")
 	_check(_shown(title) == "search_box,rejoin_row,quit_button", "Connecting shows the search slot with Cancel and only Quit besides: %s" % _shown(title))
 	_check((title.get("search_label") as Label).text == "Opening a room" and (title.get("elapsed_label") as Label).text == "",
 		"Opening a room has no count")
@@ -179,15 +189,20 @@ func _run() -> void:
 	_check(status.text == "This copy of the game is out of date. Update it to play online.", "and so does a data mismatch")
 	title.call("_on_failed", "Could not reach the duel server. It may be offline, or this computer may not be connected.")
 	_check(status.text.begins_with("Could not reach"), "Other reasons show as they came")
+	var column: Control = title.get("column")
+	var before_long: float = column.get_combined_minimum_size().y
 	title.call("_on_failed", "A reason long enough to need a third line on the status line, which holds two lines at most and cuts the rest off with an ellipsis so the column never grows.")
-	_check(_column_height(title) == heights["IDLE"], "A long reason does not grow the column")
+	_check(column.get_combined_minimum_size().y == before_long, "A long reason does not grow the column")
 
 	# Rating
+	net.rating = {}
 	net.rating_known.emit(138, false)
 	var rating: Label = title.get("rating_label")
-	_check(rating.visible and rating.text == "Rating 138", "The rating shows once known: %s" % rating.text)
+	_check(rating.visible and rating.text == "Your rating is 138.", "The rating shows once known, as a sentence: %s" % rating.text)
 	net.rating_known.emit(0, true)
-	_check(rating.text == "Rating 0 (provisional)", "and says provisional: %s" % rating.text)
+	_check(rating.text == "Your provisional rating is 0.", "and says provisional: %s" % rating.text)
+	_check(title_script.rating_text(612, false, 640) == "Your rating is 612, and your best is 640.",
+		"A best above the rating is named, since it sets the rank")
 
 	await _check_web(title, net, states)
 	_check_release(title)
@@ -200,6 +215,7 @@ func _run() -> void:
 	net.queue_state = ""
 	net.queue_since = 0
 
+	await _check_first_launch()
 	_check_lobby()
 	_check_matchup()
 	_check_chapters()
@@ -210,8 +226,91 @@ func _run() -> void:
 	quit(1 if failures > 0 else 0)
 
 
+## A real left click on `control`, at `at` or its centre: a move there, then press and release,
+## pushed in the viewport's own coordinates.
+func _click(control: Control, at: Vector2 = Vector2.INF) -> void:
+	var point: Vector2 = control.get_global_rect().get_center() if at == Vector2.INF else at
+	var move: InputEventMouseMotion = InputEventMouseMotion.new()
+	move.position = point
+	move.global_position = point
+	root.push_input(move, true)
+	await process_frame
+	for down: bool in [true, false]:
+		var press: InputEventMouseButton = InputEventMouseButton.new()
+		press.button_index = MOUSE_BUTTON_LEFT
+		press.pressed = down
+		press.position = point
+		press.global_position = point
+		root.push_input(press, true)
+		await process_frame
+
+
+## First launch: with no name yet the title opens on the name screen, with a drawn name ready, the
+## menu and the chip hidden behind it; Save names the player and gives the title back. A profile
+## file of the test's own stands in for the player's.
+func _check_first_launch() -> void:
+	var session: Node = root.get_node("Session")
+	var kept: PlayerProfile = session.profile
+	PlayerProfile.path_override = "user://title_ui_tests/profile.json"
+	DirAccess.make_dir_recursive_absolute("user://title_ui_tests")
+	DirAccess.remove_absolute(PlayerProfile.path_override)
+	session.profile = PlayerProfile.new()
+	var title: Control = load("res://scenes/main.tscn").instantiate()
+	root.add_child(title)
+	await process_frame
+	await process_frame
+	var setup: Control = title.get("profile_setup")
+	var chip: Control = title.get("profile_chip")
+	var center: Control = title.get_node("Center")
+	_check(setup.visible and not center.visible and not chip.visible, "With no name yet the name screen comes first, the menu behind it hidden")
+	var drawn: String = str(setup.call("chosen"))
+	_check(PlayerNames.valid(drawn) and not (setup.get("save_button") as Button).disabled, "A name is already drawn, so Save takes it at once: %s" % drawn)
+	_check(not (setup.get("cancel_button") as Button).visible, "and first launch has no Cancel")
+	(setup.get("save_button") as Button).pressed.emit()
+	_check(session.profile.name == drawn and PlayerProfile.load_profile().name == drawn, "Save names the player and writes the profile")
+	_check(not setup.visible and center.visible and chip.visible, "and the title comes back with the chip")
+	# A rename from the chip changes the name only: the best rating, the rank and the tag stay.
+	session.profile.peak = 640
+	session.profile.save()
+	var tag_before: String = str(session.call("profile_tag"))
+	_check((chip.get_node("%Edit") as Label).visible and (chip as Button).focus_mode == Control.FOCUS_ALL,
+		"The title chip shows its EDIT handle and takes keyboard focus")
+	await _click(chip)
+	_check(setup.visible and (setup.get("cancel_button") as Button).visible and str(setup.call("chosen")) == drawn,
+		"A real click on the chip, its labels included, opens the name screen on the current name, with Cancel")
+	(setup.get("cancel_button") as Button).pressed.emit()
+	_check(not setup.visible and session.profile.name == drawn, "Cancel closes it with the name unchanged")
+	var near_edge: Vector2 = Vector2((chip as Control).get_global_rect().end.x - 12.0, (chip as Control).get_global_rect().get_center().y)
+	await _click(chip, near_edge)
+	_check(setup.visible, "and a click on the EDIT handle at the chip's end opens it too")
+	var renamed: String = PlayerNames.compose(PlayerNames.firsts()[3], PlayerNames.seconds()[4])
+	if renamed == drawn:
+		renamed = PlayerNames.compose(PlayerNames.firsts()[5], PlayerNames.seconds()[6])
+	setup.call("_pick", renamed)
+	(setup.get("save_button") as Button).pressed.emit()
+	var stored: PlayerProfile = PlayerProfile.load_profile()
+	_check(session.profile.name == renamed and stored.name == renamed and stored.peak == 640 and stored.rank() == 3,
+		"A rename keeps the best rating and the rank: %s, %d" % [stored.name, stored.peak])
+	_check(str(session.call("profile_tag")) == tag_before, "and the tag, which belongs to the install, not the name")
+	title.free()
+	# The web build never asks for a name.
+	OnlineGate.forced_web = 1
+	session.profile = PlayerProfile.new()
+	var web_title: Control = load("res://scenes/main.tscn").instantiate()
+	root.add_child(web_title)
+	await process_frame
+	_check(not (web_title.get("profile_setup") as Control).visible and (web_title.get_node("Center") as Control).visible,
+		"On the web the title opens straight on the menu, with no name screen")
+	web_title.free()
+	OnlineGate.forced_web = -1
+	DirAccess.remove_absolute(PlayerProfile.path_override)
+	PlayerProfile.path_override = ""
+	session.profile = kept
+
+
 ## The web build: every online control greyed with the reason as its tooltip, the reason once under
-## the ONLINE header, no Quit, the offline modes open, and Net refusing every way online.
+## the ONLINE header, no Quit, only Duel the AI and the tutorial open with the rest pointing to the
+## full game, no profile chip, and Net refusing every way online.
 func _check_web(title: Node, net: Node, states: Dictionary) -> void:
 	var online_controls: Array[String] = ["find_button", "ranked_button", "host_button", "address_edit", "join_button"]
 	var note: Label = title.get("web_note")
@@ -220,10 +319,16 @@ func _check_web(title: Node, net: Node, states: Dictionary) -> void:
 	OnlineGate.forced_web = 1
 	title.call("_refresh")
 	_check(title.get("state") == states["UNAVAILABLE"], "The web build's title is in the unavailable state")
-	_check(_shown(title) == "idle_box,rejoin_row,adventure_button,vs_ai_button,hotseat_button,quit_button",
-		"Only the offline modes take input on the web: %s" % _shown(title))
+	_check(_shown(title) == "idle_box,rejoin_row,vs_ai_button,hotseat_button,quit_button",
+		"On the web Adventure waits for the full game: %s" % _shown(title))
+	for key: String in ["adventure_button", "multiplayer_button", "builder_button"]:
+		var gated: Button = title.get(key)
+		_check(gated.disabled and gated.tooltip_text == OnlineGate.FULL_GAME_TEXT, "%s is greyed on the web and points to the full game" % key)
+	_check(not (title.get("vs_ai_button") as Button).disabled and (title.get("web_limits") as Label).visible,
+		"Duel the AI stays open, and the menu says once what the browser version has")
+	_check(not (title.get("profile_chip") as Control).visible, "The web build shows no profile chip")
 	_check(note.visible and note.text == OnlineGate.UNAVAILABLE_TEXT, "The reason shows under the ONLINE header: %s" % note.text)
-	_check(note.get_parent() == title.get("column") and note.get_index() == (title.get("rating_label") as Label).get_parent().get_index() + 1,
+	_check(note.get_parent() == title.get("online_page") and note.get_index() == (title.get("rating_label") as Label).get_parent().get_index() + 1,
 		"The note sits straight under the ONLINE header")
 	for key: String in online_controls:
 		_check((title.get(key) as Control).tooltip_text == OnlineGate.UNAVAILABLE_TEXT, "%s carries the reason as its tooltip" % key)
@@ -239,6 +344,8 @@ func _check_web(title: Node, net: Node, states: Dictionary) -> void:
 	OnlineGate.forced_web = 0
 	title.call("_refresh")
 	_check(title.get("state") != states["UNAVAILABLE"] and not note.visible and quit.visible, "The desktop build is not gated")
+	_check(not (title.get("adventure_button") as Button).disabled and not (title.get("multiplayer_button") as Button).disabled
+		and not (title.get("web_limits") as Label).visible, "and the desktop menu is whole")
 	for key: String in online_controls:
 		_check((title.get(key) as Control).tooltip_text == "", "%s has no tooltip on the desktop" % key)
 	OnlineGate.forced_web = -1
@@ -250,7 +357,7 @@ func _check_release(title: Node) -> void:
 	var tutorial: Button = title.get("tutorial_button")
 	var builder: Button = title.get("builder_button")
 	var shipped: Array = [ProjectSettings.get_setting("zenith/release/tutorial", false), ProjectSettings.get_setting("zenith/release/deck_builder", false)]
-	_check(shipped == [false, false], "This build ships with the tutorial and the deck builder switched off: %s" % str(shipped))
+	_check(shipped == [true, false], "This build ships with the tutorial on and the deck builder switched off: %s" % str(shipped))
 	for on: bool in [false, true]:
 		ProjectSettings.set_setting("zenith/release/tutorial", on)
 		ProjectSettings.set_setting("zenith/release/deck_builder", on)
@@ -307,7 +414,7 @@ func _check_lobby() -> void:
 	seat.call("set_locked", false)
 	_check(lock.text == "Confirm champion" and name_edit.visible and not countdown.visible, "Offline the button confirms a champion and the name field stays")
 	seat.call("set_online", true, false)
-	_check(lock.text == "Lock in" and name_edit.visible and not countdown.visible, "A share-code room locks in and keeps the name field")
+	_check(lock.text == "Lock in" and not name_edit.visible and not countdown.visible, "A share-code room locks in, and the profile names the seat, not a field")
 	seat.call("set_online", true, true)
 	_check(lock.text == "Lock in" and not name_edit.visible and countdown.visible, "A queue room has no name field and shows the countdown")
 	seat.call("set_countdown", select_script.lock_text(42000), false)

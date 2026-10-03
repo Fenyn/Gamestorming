@@ -426,7 +426,7 @@ Built. Design and decisions are in `zenith_adventure.md`; what ships (ladders, r
 
 ## Tutorial
 
-Built: lessons 1 to 5, one scripted training session in which Caedan Vale teaches young Emrys Rooke on one continuous board (the Straw Knight, then Caedan himself, then Emrys' Steel). The script, beat by beat, with the numbers the engine gives and where it differs from the signed-off draft, is `zenith/docs/tutorial_script.md`. The engine runs it as a scripted duel (fixed deck order, no shuffles, board adjustments as script operations); every rule is the normal one. It is its own entry (`Session.start_tutorial`), which the title calls today and a first-run adventure can call later. Lessons 6 (Allies) and 7 (Seals) are not built.
+Built: lessons 1 to 5, one scripted training session in which Caedan Vale teaches young Emrys Rooke on one continuous board (the Straw Knight, then Caedan himself, then Emrys' Steel). The script is `zenith/data/tutorial/lessons.json`; its rules, turn order and the reasons behind its numbers are in `zenith/docs/tutorial_script.md`. The engine runs it as a scripted duel (fixed deck order, no shuffles, board adjustments as script operations); every rule is the normal one. It is its own entry (`Session.start_tutorial`), which the title calls today and a first-run adventure can call later. Lessons 6 (Allies) and 7 (Seals) are not built.
 
 ---
 

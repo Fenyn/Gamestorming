@@ -97,7 +97,7 @@ signal rating_known(shown: int, provisional: bool)
 
 ## Bump this whenever an RPC is added, removed or renamed, an RPC's arguments or their meaning
 ## change, or the room flow changes. Builds on different numbers refuse each other at the greeting.
-const PROTOCOL: int = 10
+const PROTOCOL: int = 11
 const HOST_ID: int = 1      # the ENet server's multiplayer id, and always the authority
 ## The duel server's greeting challenge, spent on the first proof that comes back for it.
 const NONCE_BYTES: int = 32
@@ -110,7 +110,7 @@ const PRESENCE_PER_SECOND: int = 40
 const CONNECT_TIMEOUT_SECONDS: float = 10.0
 ## Server: how long a connected peer may go without a room before it is dropped.
 const UNSEATED_SECONDS: float = 20.0
-const NAME_MAX: int = 20
+const NAME_MAX: int = PlayerProfile.NAME_MAX
 const HELLO_MAX_BYTES: int = 1024
 const COMMAND_KEYS: Array[String] = ["player", "type", "card", "value"]
 const COMMAND_STRING_MAX: int = 64
@@ -207,8 +207,11 @@ var series_wins: Array[int] = [0, 0]
 ## Client, ranked between games: ticks msec at which the server deals the next game, 0 otherwise.
 var next_game_at: int = 0
 ## Client of the server: this install's ranked rating as the server last sent it, {"shown",
-## "provisional", "mu", "sigma"}; {} before it has.
+## "provisional", "mu", "sigma", "peak"}; {} before it has.
 var rating: Dictionary = {}
+## Client: the rank the last rating reached for the first time (a match result says so), -1 when
+## the last rating reached none.
+var rank_up: int = -1
 ## Server: the most duels running or about to be dealt from the queue; at the cap the queue holds
 ## pairs back. 0 for no cap. The server scene sets it.
 var max_live_duels: int = 0
@@ -437,17 +440,10 @@ static func server_tls(address: String) -> TLSOptions:
 	return TLSOptions.client(cert, str(LanTransport.split_address(address)[0]))
 
 
-## A name as it may travel and reach a log: no BBCode brackets or control characters, at most
-## `NAME_MAX` characters, and the seat's stock name when nothing is left.
+## A name as it may travel and reach a log, by the profile's rules (`PlayerProfile.clean`), and the
+## seat's stock name when nothing is left.
 static func clean_name(raw: String, seat: int) -> String:
-	var out: String = ""
-	for ch in raw.left(NAME_MAX * 4):
-		var code: int = ch.unicode_at(0)
-		if ch == "[" or ch == "]" or code < 32 or code == 127:
-			continue
-		out += ch
-	out = out.strip_edges().left(NAME_MAX).strip_edges()
-	return out if out != "" else "Player %d" % (seat + 1)
+	return PlayerProfile.clean(raw, "Player %d" % (seat + 1))
 
 
 ## Why `code` cannot be joined, or "" when it is worth trying: a share code, or in a debug build
@@ -481,7 +477,9 @@ func host(kind: String = "server") -> String:
 		local_player = 0
 		seat_peer = [0, 0]
 		reset_lobby()
+		Session.player_names[0] = Session.profile.name
 		lobby[0]["name"] = clean_name(Session.player_names[0], 0)
+		lobby[0].merge(seat_badge(0), true)
 		Session.roll_colors()   # the authority owns the seat colours and shares them
 		return ""
 	return await _connect_to_server("")
@@ -865,6 +863,7 @@ func leave() -> void:
 	peer_id = 0
 	room_code = ""
 	lobby_notice = ""
+	rank_up = -1
 	_room_request = ""
 	_via_server = false
 	_other_present = false
@@ -916,6 +915,8 @@ func catalog_fingerprint() -> String:
 	var files: Array[String] = _json_files(Session.CARDS_DIR, true)
 	files.append_array(_json_files(Session.DECKS_DIR, false))
 	files.append(Session.TABLE_PATH)
+	# The name lists too: a server with other lists would turn this player's name into "Player N".
+	files.append(PlayerNames.FILE)
 	var ctx: HashingContext = HashingContext.new()
 	ctx.start(HashingContext.HASH_SHA256)
 	for path in files:
@@ -1143,7 +1144,7 @@ func _on_peer_connected(id: int) -> void:
 			var mine: Dictionary = ratings.get_or_new(who)
 			var mu: float = float(mine["mu"])
 			var sigma: float = float(mine["sigma"])
-			_tell(id, &"_rpc_rating", [Rating.shown(mu, sigma), Rating.provisional(sigma), mu, sigma])
+			_tell(id, &"_rpc_rating", [Rating.shown(mu, sigma), Rating.provisional(sigma), mu, sigma, int(mine["peak"])])
 		return
 	if not is_host():
 		return
@@ -1192,6 +1193,8 @@ func _rpc_assign_seat(seat: int, code: String) -> void:
 	room_code = code
 	_room_kind = "code"
 	note("seated as player %d%s" % [seat + 1, "" if code == "" else " in room " + code])
+	# Online, this seat goes by the profile's name.
+	Session.player_names[seat] = Session.profile.name
 	_rpc_lobby_pick.rpc_id(HOST_ID, -1, "", clean_name(Session.player_names[seat], seat), false, {})
 	connected.emit()
 
@@ -1415,6 +1418,9 @@ func _on_rejoin(sender: int, code: Variant, token: Variant) -> void:
 	args.append_array(_deal_lists(room))
 	if room.ranked:
 		_tell(sender, &"_rpc_series", [room.best_of, room.game, [room.wins[0], room.wins[1]]])
+	# The lobby first: a rejoining client starts from an empty one, and the rival's plate needs the
+	# names, tags and ranks in it.
+	_tell(sender, &"_rpc_lobby", [lobby_for(room.lobby, seat, true), room.filled(), room.color_seed])
 	_tell(sender, &"_rpc_resume", args)
 	if room.away_since[1 - seat] > 0:
 		_tell(sender, &"_rpc_seat_away", [1 - seat, maxi(0, REJOIN_GRACE_MS - (now - room.away_since[1 - seat]))])
@@ -1924,6 +1930,8 @@ func _on_matched(sender: int, seat: Variant, pick_seconds: Variant, code: Varian
 	pick_until = Time.get_ticks_msec() + clampi(pick_seconds, 1, 600) * 1000
 	deal_at = 0
 	note("paired as player %d, %d s to lock in" % [int(seat) + 1, int(pick_seconds)])
+	# The name goes ahead of any pick, so the other seat sees who it faces from the start.
+	set_local_pick(-1, Session.profile.name)
 	queue_changed.emit("picking", "")
 	Session.go_to_select()
 
@@ -2140,13 +2148,12 @@ func _note_leave(room: DuelRoom, seat: int, what: String) -> void:
 func _send_lobby(room: DuelRoom) -> void:
 	var reveal: bool = room.both_locked()
 	for seat in range(2):
-		_tell(room.seat_peer[seat], &"_rpc_lobby", [lobby_for(room.lobby, seat, reveal, room.kind == "queue"), room.filled(), room.color_seed])
+		_tell(room.seat_peer[seat], &"_rpc_lobby", [lobby_for(room.lobby, seat, reveal), room.filled(), room.color_seed])
 
 
-## What one seat may see of the lobby: its own entry, and the other seat's name and lock but not
-## its deck until both seats have locked. With `hide_names` (a queue room) the other seat's name is
-## its stock one.
-static func lobby_for(full: Array[Dictionary], seat: int, reveal: bool, hide_names: bool = false) -> Array[Dictionary]:
+## What one seat may see of the lobby: its own entry, and the other seat's name, tag, rank and lock
+## but not its deck until both seats have locked.
+static func lobby_for(full: Array[Dictionary], seat: int, reveal: bool) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for i in range(full.size()):
 		var entry: Dictionary = full[i].duplicate()
@@ -2154,10 +2161,21 @@ static func lobby_for(full: Array[Dictionary], seat: int, reveal: bool, hide_nam
 			entry["deck"] = -1
 			entry["deck_name"] = ""
 			entry["list"] = {}
-		if i != seat and hide_names:
-			entry["name"] = DuelRoom.empty_pick(i)["name"]
 		out.append(entry)
 	return out
+
+
+## Authority: the tag and rank a seat's player shows, from what this side knows of them. The duel
+## server takes both from the identity the greeting proved (the rank from its best ranked rating);
+## a hosting client knows only its own.
+func seat_badge(sender: int) -> Dictionary:
+	if is_server():
+		var who: String = str(_peer_identity.get(sender, ""))
+		var peak: int = int(ratings.get_or_new(who)["peak"]) if ratings != null and who != "" else 0
+		return {"tag": PlayerProfile.tag_of(who), "rank": Ranks.index_for(peak)}
+	if sender == 0:
+		return {"tag": PlayerProfile.tag_of(identity().id()), "rank": Session.profile.rank()}
+	return {"tag": "", "rank": 0}
 
 
 ## Server: a room's DuelHost sends a remote seat its update through this, bound to the code.
@@ -2236,6 +2254,10 @@ func set_local_pick(deck_index: int, player_name: String, ready: bool = false) -
 			wire_index = DuelRoom.CUSTOM_PICK
 			list = deck.to_dict()
 	_local_index = deck_index
+	# Online a seat always goes by the profile's name, whatever room kind seated it.
+	if Session.profile.named():
+		player_name = Session.profile.name
+		Session.player_names[local_player] = player_name
 	var clean: String = clean_name(player_name, local_player)
 	_apply_pick(local_player, wire_index, deck_name, clean, ready and deck_index >= 0, list)
 	if is_host():
@@ -2258,6 +2280,7 @@ func _apply_pick(seat: int, deck_index: int, deck_name: String, player_name: Str
 	if seat < 0 or seat >= lobby.size() or not _valid_lobby_pick(deck_index, deck_name, ready, list):
 		return
 	lobby[seat] = {"name": player_name, "deck": deck_index, "deck_name": deck_name, "ready": ready, "list": list}
+	lobby[seat].merge(seat_badge(0), true)
 	lobby_changed.emit()
 
 
@@ -2364,7 +2387,12 @@ func _on_lobby_pick(sender: int, deck_index: Variant, deck_name: Variant, player
 		_refuse(room, sender, "a deck that is not in the catalog")
 		_tell(sender, &"_rpc_room_failed", ["Your deck list differs from the one on %s. Both need the same build of the game." % ("the duel server" if is_server() else "the host")])
 		return
-	var entry: Dictionary = {"name": clean_name(str(player_name), seat), "deck": index, "deck_name": deck, "ready": locked, "list": cards}
+	# Only a name built from the lists goes on; anything else becomes the seat's stock name.
+	var shown: String = clean_name(str(player_name), seat)
+	if not PlayerNames.valid(shown):
+		shown = str(DuelRoom.empty_pick(seat)["name"])
+	var entry: Dictionary = {"name": shown, "deck": index, "deck_name": deck, "ready": locked, "list": cards}
+	entry.merge(seat_badge(sender), true)
 	# Both decks are shown once both seats lock, so from then on neither may change its pick.
 	if room != null and room.both_locked():
 		if entry != room.lobby[seat]:
@@ -2426,6 +2454,12 @@ func _checked_pick(raw: Variant, seat: int) -> Dictionary:
 		return out
 	out["name"] = clean_name(str(player_name), seat)
 	out["ready"] = ready
+	var tag: Variant = entry.get("tag", "")
+	if tag is String and (tag as String).length() == 4 and (tag as String).is_valid_int():
+		out["tag"] = tag
+	var rank: Variant = entry.get("rank", 0)
+	if rank is int:
+		out["rank"] = Ranks.clamp_index(rank)
 	var list: Variant = entry.get("list", {})
 	if deck == DuelRoom.CUSTOM_PICK and wire_deck(list, deck_name) != null:
 		out["deck"] = deck
@@ -2778,32 +2812,47 @@ func _on_match_over(sender: int, payload: Variant) -> void:
 	last_match = clean
 	RejoinFile.clear()
 	note("match over, %d-%d (%s)%s" % [series_wins[0], series_wins[1], str(clean["reason"]), ", rated" if bool(clean["rated"]) else ", unrated"])
-	match_over.emit(clean)
+	# The rating first, so the result card the match brings up reads this match's rank-up.
 	if local_player >= 0 and local_player <= 1:
 		var after: Dictionary = clean["rating_after"]
-		_keep_rating(int(clean["shown_after"][local_player]), bool(clean["provisional"][local_player]),
-			float(after["mu"]), float(after["sigma"]))
+		var shown: int = int(clean["shown_after"][local_player])
+		_keep_rating(shown, bool(clean["provisional"][local_player]),
+			float(after["mu"]), float(after["sigma"]), maxi(int(rating.get("peak", 0)), shown), true)
+	match_over.emit(clean)
 
 
 @rpc("authority", "call_remote", "reliable")
-func _rpc_rating(shown: Variant, provisional: Variant, mu: Variant, sigma: Variant) -> void:
-	_on_rating(multiplayer.get_remote_sender_id(), shown, provisional, mu, sigma)
+func _rpc_rating(shown: Variant, provisional: Variant, mu: Variant, sigma: Variant, peak: Variant) -> void:
+	_on_rating(multiplayer.get_remote_sender_id(), shown, provisional, mu, sigma, peak)
 
 
-## Client of the server: this install's ranked rating, sent after the greeting.
-func _on_rating(sender: int, shown: Variant, provisional: Variant, mu: Variant, sigma: Variant) -> void:
+## Client of the server: this install's ranked rating and the best it has reached, sent after the
+## greeting.
+func _on_rating(sender: int, shown: Variant, provisional: Variant, mu: Variant, sigma: Variant, peak: Variant) -> void:
 	if sender != HOST_ID or mode != "client" or not _via_server:
 		return
-	if not (shown is int and provisional is bool and (mu is float or mu is int) and (sigma is float or sigma is int)):
+	if not (shown is int and provisional is bool and (mu is float or mu is int) and (sigma is float or sigma is int) and peak is int):
 		return
-	if int(shown) < 0 or not is_finite(float(mu)) or not is_finite(float(sigma)) or float(sigma) <= 0.0:
+	if int(shown) < 0 or int(peak) < 0 or not is_finite(float(mu)) or not is_finite(float(sigma)) or float(sigma) <= 0.0:
 		return
-	_keep_rating(shown, provisional, float(mu), float(sigma))
+	_keep_rating(shown, provisional, float(mu), float(sigma), peak)
 
 
-func _keep_rating(shown: int, provisional: bool, mu: float, sigma: float) -> void:
-	rating = {"shown": shown, "provisional": provisional, "mu": mu, "sigma": sigma}
-	note("ranked rating %d%s" % [shown, ", provisional" if provisional else ""])
+## Keeps the rating, and the peak in the player's profile so the rank shows offline too. Only a
+## match result (`from_match`) can reach a rank: it compares with the best the server last sent,
+## never with the local file, which may be lost or stale.
+func _keep_rating(shown: int, provisional: bool, mu: float, sigma: float, peak: int, from_match: bool = false) -> void:
+	var rank_before: int = Ranks.index_for(int(rating.get("peak", 0)))
+	var known_before: bool = rating.has("peak")
+	rating = {"shown": shown, "provisional": provisional, "mu": mu, "sigma": sigma, "peak": peak}
+	note("ranked rating %d%s, best %d" % [shown, ", provisional" if provisional else "", peak])
+	# The server's best is the truth: a lost key or a reset server lowers it here too, so the title
+	# never shows a rank that other players do not see.
+	if peak != Session.profile.peak:
+		Session.profile.peak = peak
+		Session.profile.save()
+	var rank_after: int = Ranks.index_for(peak)
+	rank_up = rank_after if from_match and known_before and rank_after > rank_before else -1
 	rating_known.emit(shown, provisional)
 
 

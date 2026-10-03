@@ -3859,12 +3859,26 @@ static func strike_table_base(def: CardDef, table: StrikeTable, attacker_might: 
 ## printed number. A card with both Energy and wound lines shows the Energy and notes the wounds.
 ## `table_base` is the Strike Table result for the matchup the card is shown in (see
 ## `strike_table_base`); when known, a table Strike reads that number with its modifier added.
-static func attack_badge(def: CardDef, table_base: int = -1) -> Dictionary:
+## `resolved` is what the card deals as performed now (Energy, wounds; `SeatView.badge`), standing
+## modifiers included; when given it is the number shown, for every kind of attack.
+static func attack_badge(def: CardDef, table_base: int = -1, resolved: Vector2i = Vector2i(-1, -1)) -> Dictionary:
 	var a: Dictionary = def.attack
 	if a.is_empty():
 		return {}
 	var kind: String = str(a.get("kind", "strike"))
 	var out: Dictionary = {"kind": ("Focused " if bool(a.get("focused", false)) else "") + ("Strike" if kind == "strike" else "Art"), "num": "", "word": "", "extra": ""}
+	if resolved.x >= 0:
+		if kind == "strike":
+			out["num"] = str(resolved.x)
+			out["word"] = "Energy"
+			if resolved.y > 0:
+				out["extra"] = "+%d wounds" % resolved.y
+		else:
+			out["num"] = str(resolved.y)
+			out["word"] = "wounds"
+			if resolved.x > 0:
+				out["extra"] = "+%d Energy" % resolved.x
+		return out
 	if a.has("printed_stages") or a.has("printed_life"):
 		if int(a.get("printed_stages", 0)) > 0:
 			out["num"] = str(int(a["printed_stages"]))

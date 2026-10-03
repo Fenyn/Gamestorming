@@ -1,17 +1,23 @@
 extends Control
-## Title screen. Hotseat goes straight to deck select; online hosts or joins first and moves to
-## the select screen as a lobby once the two clients are connected. Find a duel and Ranked match
+## Title screen. Two pages share the column under the title: the menu (Adventure, Duel the AI,
+## Multiplayer, Tutorial, Deck builder, Quit) and the Multiplayer page (the online half, then
+## Hotseat, then Back). Hotseat goes straight to deck select; online hosts or joins first and moves
+## to the select screen as a lobby once the two clients are connected. Find a duel and Ranked match
 ## wait here, counting up, until the server pairs this client, and a client whose opponent left
 ## before the deal comes back here still waiting.
 ##
 ## The online half has one fixed slot under the ONLINE header that shows one thing at a time (the
 ## two queue buttons, the search with Cancel, or a running duel to rejoin or concede), and one
-## fixed status line, so the column is the same height in every state. `state` is derived from Net
-## and the rejoin file (`_derive`), and `apply_state` sets every node from it.
+## fixed status line, so the page is the same height in every state. `state` is derived from Net
+## and the rejoin file (`_derive`), and `apply_state` sets every node from it. A search, an attempt
+## under way or a duel to rejoin brings the Multiplayer page up by itself, and Back waits until the
+## search or attempt is cancelled.
 ##
 ## The web build cannot play online (`OnlineGate`): the title stays UNAVAILABLE, every online control
 ## is greyed with the reason as its tooltip, the reason shows once under the ONLINE header, and Quit,
-## which would only freeze a browser tab, is hidden.
+## which would only freeze a browser tab, is hidden. It is also a taste of the game only: Duel the AI
+## and the tutorial play, while Adventure, Multiplayer and the deck builder are greyed with a pointer
+## to the full game, which the menu says once. It asks for no name and shows no profile chip.
 
 enum TitleState {IDLE, CONNECTING, SEARCHING, REJOIN_OFFERED, COOLDOWN, UNAVAILABLE}
 
@@ -25,6 +31,7 @@ const CHAPTER_CONTINUE: String = "Continue here"
 const CHAPTER_OPEN: String = "Play"
 const CHAPTER_LOCKED: String = "Locked"
 const VERSION_TEXT: String = "This copy of the game is out of date. Update it to play online."
+const PROFILE_UNSAVED: String = "Your name could not be saved, so the game will ask again next time."
 ## The failure reasons that mean this build and the duel server's differ.
 const VERSION_MARKS: Array[String] = ["different version", "speaks online version", "Your cards or decks differ"]
 
@@ -38,37 +45,46 @@ static var ranked_search: bool = false
 @onready var crest: TextureRect = $Center/Column/Crest
 @onready var swirl: TextureRect = $Center/Column/Swirl
 @onready var column: VBoxContainer = $Center/Column
-@onready var adventure_button: Button = $Center/Column/Adventure
-@onready var hotseat_button: Button = $Center/Column/Hotseat
-@onready var vs_ai_button: Button = $Center/Column/VsAi
-@onready var tutorial_button: Button = $Center/Column/OfflineRow/Tutorial
-@onready var builder_button: Button = $Center/Column/OfflineRow/Builder
-@onready var rating_label: Label = $Center/Column/OnlineHeader/Rating
-@onready var web_note: Label = $Center/Column/WebNote
-@onready var idle_box: VBoxContainer = $Center/Column/OnlineSlot/Idle
-@onready var find_button: Button = $Center/Column/OnlineSlot/Idle/FindDuel
-@onready var ranked_button: Button = $Center/Column/OnlineSlot/Idle/Ranked
-@onready var search_box: VBoxContainer = $Center/Column/OnlineSlot/Search
-@onready var search_label: Label = $Center/Column/OnlineSlot/Search/Row/Label
-@onready var elapsed_label: Label = $Center/Column/OnlineSlot/Search/Row/Elapsed
-@onready var cancel_button: Button = $Center/Column/OnlineSlot/Search/Row/Cancel
-@onready var search_note: Label = $Center/Column/OnlineSlot/Search/Note
-@onready var rejoin_box: VBoxContainer = $Center/Column/OnlineSlot/Rejoin
-@onready var rejoin_note: Label = $Center/Column/OnlineSlot/Rejoin/Note
-@onready var rejoin_row: HBoxContainer = $Center/Column/OnlineSlot/Rejoin/Buttons
-@onready var rejoin_button: Button = $Center/Column/OnlineSlot/Rejoin/Buttons/Rejoin
-@onready var concede_button: Button = $Center/Column/OnlineSlot/Rejoin/Buttons/Concede
-@onready var confirm_row: HBoxContainer = $Center/Column/OnlineSlot/Rejoin/Confirm
-@onready var confirm_question: Label = $Center/Column/OnlineSlot/Rejoin/Confirm/Question
-@onready var confirm_yes: Button = $Center/Column/OnlineSlot/Rejoin/Confirm/Yes
-@onready var confirm_no: Button = $Center/Column/OnlineSlot/Rejoin/Confirm/No
-@onready var host_button: Button = $Center/Column/Host
-@onready var address_edit: LineEdit = $Center/Column/JoinRow/Address
-@onready var join_button: Button = $Center/Column/JoinRow/Join
+@onready var menu_page: VBoxContainer = $Center/Column/Menu
+@onready var online_page: VBoxContainer = $Center/Column/Online
+@onready var multiplayer_button: Button = $Center/Column/Menu/Multiplayer
+@onready var web_limits: Label = $Center/Column/Menu/WebLimits
+@onready var back_button: Button = $Center/Column/Online/Back
+@onready var adventure_button: Button = $Center/Column/Menu/Adventure
+@onready var hotseat_button: Button = $Center/Column/Online/Hotseat
+@onready var vs_ai_button: Button = $Center/Column/Menu/VsAi
+@onready var tutorial_button: Button = $Center/Column/Menu/OfflineRow/Tutorial
+@onready var builder_button: Button = $Center/Column/Menu/OfflineRow/Builder
+@onready var rating_label: Label = $Center/Column/Online/OnlineHeader/Rating
+@onready var web_note: Label = $Center/Column/Online/WebNote
+@onready var idle_box: VBoxContainer = $Center/Column/Online/OnlineSlot/Idle
+@onready var find_button: Button = $Center/Column/Online/OnlineSlot/Idle/FindDuel
+@onready var ranked_button: Button = $Center/Column/Online/OnlineSlot/Idle/Ranked
+@onready var search_box: VBoxContainer = $Center/Column/Online/OnlineSlot/Search
+@onready var search_label: Label = $Center/Column/Online/OnlineSlot/Search/Row/Label
+@onready var elapsed_label: Label = $Center/Column/Online/OnlineSlot/Search/Row/Elapsed
+@onready var cancel_button: Button = $Center/Column/Online/OnlineSlot/Search/Row/Cancel
+@onready var search_note: Label = $Center/Column/Online/OnlineSlot/Search/Note
+@onready var rejoin_box: VBoxContainer = $Center/Column/Online/OnlineSlot/Rejoin
+@onready var rejoin_note: Label = $Center/Column/Online/OnlineSlot/Rejoin/Note
+@onready var rejoin_row: HBoxContainer = $Center/Column/Online/OnlineSlot/Rejoin/Buttons
+@onready var rejoin_button: Button = $Center/Column/Online/OnlineSlot/Rejoin/Buttons/Rejoin
+@onready var concede_button: Button = $Center/Column/Online/OnlineSlot/Rejoin/Buttons/Concede
+@onready var confirm_row: HBoxContainer = $Center/Column/Online/OnlineSlot/Rejoin/Confirm
+@onready var confirm_question: Label = $Center/Column/Online/OnlineSlot/Rejoin/Confirm/Question
+@onready var confirm_yes: Button = $Center/Column/Online/OnlineSlot/Rejoin/Confirm/Yes
+@onready var confirm_no: Button = $Center/Column/Online/OnlineSlot/Rejoin/Confirm/No
+@onready var host_button: Button = $Center/Column/Online/Host
+@onready var address_edit: LineEdit = $Center/Column/Online/JoinRow/Address
+@onready var join_button: Button = $Center/Column/Online/JoinRow/Join
 @onready var status_label: Label = $Center/Column/Status
-@onready var quit_button: Button = $Center/Column/Quit
+@onready var quit_button: Button = $Center/Column/Menu/Quit
 @onready var report_button: Button = $Center/Column/Report
 @onready var alpha_note: Label = $AlphaNote
+@onready var profile_chip: ProfileChip = $Profile
+@onready var profile_setup: ProfileSetup = $ProfileSetup
+@onready var rank_ladder: RankLadder = $RankLadder
+@onready var ranks_button: Button = $Center/Column/Online/OnlineHeader/Ranks
 @onready var chapters: ColorRect = $Chapters
 @onready var chapters_panel: PanelContainer = $Chapters/Center/Panel
 @onready var chapter_row: HBoxContainer = $Chapters/Center/Panel/Column/Lessons
@@ -111,6 +127,7 @@ func _ready() -> void:
 	title_label.add_theme_font_size_override("font_size", ZenithTheme.SIZE_DISPLAY)
 	status_label.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
 	alpha_note.text = ReleaseGate.alpha_text()
+	web_limits.text = OnlineGate.WEB_LIMITS_TEXT
 	crest.self_modulate = MapArt.tint
 	swirl.self_modulate = MapArt.tint
 	# A player sent back into the queue lands here still connected and waiting.
@@ -119,6 +136,8 @@ func _ready() -> void:
 	adventure_button.pressed.connect(func() -> void:
 		_forget_builder_deck()
 		Session.go_to_adventure())
+	multiplayer_button.pressed.connect(show_online_page.bind(true))
+	back_button.pressed.connect(show_online_page.bind(false))
 	hotseat_button.pressed.connect(func() -> void: _offline(-1))
 	vs_ai_button.pressed.connect(func() -> void: _offline(1))
 	tutorial_button.pressed.connect(_show_chapters)
@@ -140,6 +159,19 @@ func _ready() -> void:
 	confirm_no.pressed.connect(_on_concede_cancelled)
 	quit_button.pressed.connect(func() -> void: get_tree().quit())
 	report_button.pressed.connect(func() -> void: Feedback.open())
+	profile_chip.pressed.connect(profile_setup.open.bind(false))
+	ranks_button.pressed.connect(func() -> void:
+		rank_ladder.open(Session.profile.peak, Session.profile.peak > 0 or not Net.rating.is_empty()))
+	profile_setup.saved.connect(_on_profile_saved)
+	# The menu goes while the name screen is up, so nothing behind it takes focus or a click.
+	profile_setup.visibility_changed.connect(func() -> void:
+		$Center.visible = not profile_setup.visible
+		profile_chip.visible = _chip_shown())
+	_show_profile()
+	# First launch: the name screen comes before anything else. The web build plays no one online,
+	# so it never asks.
+	if not Session.profile.named() and not OnlineGate.is_web():
+		profile_setup.open(true)
 	tick.timeout.connect(_refresh)
 	Net.connected.connect(_on_connected)
 	Net.connection_failed.connect(_on_failed)
@@ -192,7 +224,24 @@ func _refresh() -> void:
 		_set_status("", false)
 	if state != TitleState.REJOIN_OFFERED:
 		_confirming = false
+	if state in [TitleState.CONNECTING, TitleState.SEARCHING, TitleState.REJOIN_OFFERED] and not online_page.visible:
+		show_online_page(true)
 	apply_state()
+
+
+## The Multiplayer page when `on`, else the menu. Back clears a line the online half left.
+func show_online_page(on: bool) -> void:
+	menu_page.visible = not on
+	online_page.visible = on
+	if not on:
+		_set_status("", false)
+		apply_state()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if online_page.visible and not back_button.disabled and event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		show_online_page(false)
 
 
 ## Sets every node of the online half, and the buttons elsewhere that wait on it, from `state`.
@@ -201,13 +250,22 @@ func apply_state() -> void:
 	var idle: bool = state == TitleState.IDLE
 	# A leaver cooldown keeps this copy out of the queues only; a share-code room is still open.
 	var rooms_open: bool = (idle or state == TitleState.COOLDOWN) and not out_of_date
-	adventure_button.disabled = busy
+	# The web build plays Duel the AI and the tutorial only; the rest waits for the full game.
+	var web: bool = OnlineGate.is_web()
+	var full_game: String = OnlineGate.FULL_GAME_TEXT if web else ""
+	adventure_button.disabled = busy or web
+	adventure_button.tooltip_text = full_game
+	multiplayer_button.disabled = web
+	multiplayer_button.tooltip_text = full_game
 	vs_ai_button.disabled = busy
 	hotseat_button.disabled = busy
+	back_button.disabled = busy
 	tutorial_button.disabled = busy or not ReleaseGate.tutorial()
-	builder_button.disabled = busy or not ReleaseGate.deck_builder()
+	builder_button.disabled = busy or web or not ReleaseGate.deck_builder()
 	tutorial_button.tooltip_text = "" if ReleaseGate.tutorial() else ReleaseGate.TUTORIAL_LATER
-	builder_button.tooltip_text = "" if ReleaseGate.deck_builder() else ReleaseGate.BUILDER_LATER
+	builder_button.tooltip_text = full_game if web else ("" if ReleaseGate.deck_builder() else ReleaseGate.BUILDER_LATER)
+	web_limits.visible = web
+	profile_chip.visible = _chip_shown()
 	var unavailable: bool = state == TitleState.UNAVAILABLE
 	idle_box.visible = idle or state == TitleState.COOLDOWN or unavailable
 	web_note.visible = unavailable
@@ -465,16 +523,41 @@ func _on_cancel() -> void:
 	_refresh()
 
 
-## The ranked rating as the server last sent it, right of the ONLINE header.
+## The ranked rating as the server last sent it, right of the ONLINE header. The rank it reached
+## shows on the profile chip.
 func _show_rating(shown: int, provisional: bool) -> void:
 	if not is_inside_tree():
 		return
-	rating_label.text = rating_text(shown, provisional)
+	rating_label.text = rating_text(shown, provisional, int(Net.rating.get("peak", 0)))
 	rating_label.visible = true
+	_show_profile()
 
 
-static func rating_text(shown: int, provisional: bool) -> String:
-	return "Rating %d%s" % [shown, " (provisional)" if provisional else ""]
+## The profile chip in the corner: this player's name, tag and rank.
+func _show_profile() -> void:
+	profile_chip.visible = _chip_shown()
+	if Session.profile.named():
+		profile_chip.show_player(Session.profile.name, Session.profile_tag(), Session.profile.rank())
+
+
+## The chip shows once there is a name, while the name screen is not up, and never on the web build,
+## which has no online name.
+func _chip_shown() -> bool:
+	return Session.profile.named() and not profile_setup.visible and not OnlineGate.is_web()
+
+
+## A name that could not be saved still holds for this session; the status line says so.
+func _on_profile_saved(problem: String) -> void:
+	_show_profile()
+	if problem != "":
+		_set_status(PROFILE_UNSAVED, true)
+		apply_state()
+
+
+## The rating as a sentence, with the best one when it is higher, since the best sets the rank.
+static func rating_text(shown: int, provisional: bool, best: int = 0) -> String:
+	var what: String = "Your provisional rating is %d" % shown if provisional else "Your rating is %d" % shown
+	return "%s, and your best is %d." % [what, best] if best > shown else what + "."
 
 
 ## The rejoin ticket while it is good, {} otherwise.
@@ -588,8 +671,9 @@ func _on_failed(reason: String) -> void:
 ## given. A client sent back into the queue returns here still waiting and does not press either
 ## again; with a screenshot it saves the waiting title 2 seconds in.
 ## `--dev-title-state=<idle|search|search-ranked|rejoin|rejoin-ranked|cooldown|version>` fakes that
-## state with made-up facts and nothing connected, for a screenshot. `--dev-chapters` opens the
-## tutorial's lesson panes.
+## state with made-up facts and nothing connected, on the Multiplayer page, for a screenshot.
+## `--dev-multiplayer` opens the Multiplayer page and `--dev-ranks` its rank ladder. `--dev-chapters`
+## opens the tutorial's lesson panes.
 func _dev_args() -> void:
 	var args: PackedStringArray = DevArgs.user_args()
 	var online: bool = false
@@ -620,6 +704,11 @@ func _dev_args() -> void:
 			dev_fake_state(arg.get_slice("=", 1))
 		elif arg == "--dev-chapters":
 			_show_chapters()
+		elif arg == "--dev-multiplayer":
+			show_online_page(true)
+		elif arg == "--dev-ranks":
+			show_online_page(true)
+			ranks_button.pressed.emit()
 		elif arg == "--dev-tutorial" or arg.begins_with("--dev-tutorial="):
 			tutorial = true
 			_dev_tutorial.call_deferred(arg)
@@ -683,6 +772,7 @@ func dev_fake_state(which: String) -> void:
 			Net.cooldown_until_msec = now + 299000
 		"version":
 			_show_failure(VERSION_TEXT)
+	show_online_page(true)
 	_refresh()
 
 

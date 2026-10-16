@@ -38,6 +38,8 @@ Reactions:
 - `NavRegion` bakes a navmesh at startup from every StaticBody3D in the `nav_geometry` group: `Colliders` and the stand's walls, platform and front counter. It takes a few milliseconds.
 - The navmesh uses 0.1 m height cells. The shop script sets the navigation map to the same cell size and height before baking.
 - Customers use a NavigationAgent3D with avoidance, so they route around props and each other. If no navmesh is ready, they walk in a straight line as before.
+- If a walking customer makes no progress for 4 s, they are placed on their target spot, so one stuck customer can't stall the day.
+- Only one customer targets the register at a time today (`MAX_CUSTOMERS = 1`). Raising that will need queue spots, or the second customer will push against the first.
 - Pedestrians and cars do not use navigation. They follow fixed lanes that are kept clear of props.
 
 ## Ambient life

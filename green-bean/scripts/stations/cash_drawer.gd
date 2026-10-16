@@ -232,9 +232,7 @@ func _complete_change() -> void:
 		if _paying_customer is Customer:
 			var c := _paying_customer as Customer
 			if c.state == Customer.State.PAYING:
-				c.state = Customer.State.WALKING_TO_PICKUP
-				c._target_pos = c._pickup_pos
-				c._pickup_patience = Customer.PICKUP_PATIENCE
+				c.order_taken(c.order_data)
 
 	_paying_customer = null
 	_update_drawer_display()

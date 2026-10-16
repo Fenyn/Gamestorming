@@ -44,7 +44,7 @@ Reactions:
 
 `AmbientLife` (`scripts/world/ambient_life.gd`) is added by the shop script.
 
-- **Pedestrians:** they walk the far sidewalk both ways, and sometimes the near sidewalk edge. Up to 8 at a time, a new one every 2.5–6 s. Some carry a takeaway cup or look at a phone. Now and then one stops in front of the stand for a moment.
+- **Pedestrians:** they walk the far sidewalk both ways (z 14.6 and 16.4, either side of the planters), and sometimes the near sidewalk (z 4.4, between the seating and the customer entry point). Up to 8 at a time, a new one every 2.5–6 s. Some carry a takeaway cup or look at a phone. Now and then one stops in front of the stand for a moment.
 - **Traffic:** one car lane each way, a car every 4–11 s per lane at 6–10 m/s, with a slight suspension bob. The parked cars are all on the near side, so the lanes stay clear.
 
 None of this has collision or takes part in orders.

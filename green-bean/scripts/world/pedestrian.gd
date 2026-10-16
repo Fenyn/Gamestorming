@@ -31,8 +31,12 @@ func _process(delta: float) -> void:
 	if _pause > 0.0:
 		_pause -= delta
 		_visual.set_moving(0.0)
+		# Turn to look at the stand, then turn back to keep walking.
+		var look_yaw := PI if _pause > 0.4 else PI * 0.5 * direction
+		rotation.y = lerp_angle(rotation.y, look_yaw, 1.0 - exp(-6.0 * delta))
 		return
-	if not _paused_once and absf(global_position.x) < 1.5 and randf() < 0.004:
+	# About a one-in-five chance per pass, independent of frame rate.
+	if not _paused_once and absf(global_position.x) < 1.5 and randf() < 0.7 * delta:
 		_paused_once = true
 		_pause = randf_range(1.5, 3.0)
 		return

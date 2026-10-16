@@ -45,6 +45,8 @@ func create_status_label(parent: Node3D, offset := Vector3(-999, 0, 0)) -> Label
 				front_z = maxf(front_z, child.position.z + (child as CSGBox3D).size.z * 0.5)
 			elif child is CSGCylinder3D:
 				front_z = maxf(front_z, child.position.z + (child as CSGCylinder3D).radius)
+			elif child is Node3D and child.name == "Model":
+				front_z = maxf(front_z, _model_front_z(parent, child as Node3D))
 		pos = Vector3(0, 0.12, front_z + 0.03)
 	var label := Label3D.new()
 	label.text = ""
@@ -54,6 +56,19 @@ func create_status_label(parent: Node3D, offset := Vector3(-999, 0, 0)) -> Label
 	label.add_to_group("world_label")
 	parent.add_child(label)
 	return label
+
+# Front (+Z) edge of an imported model, in the station's local space.
+# Stations name their visual model node "Model" so labels clear it like a grey box.
+func _model_front_z(parent: Node3D, model: Node3D) -> float:
+	var front_z := 0.05
+	var to_parent: Transform3D = parent.global_transform.affine_inverse()
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance.mesh == null:
+			continue
+		var aabb: AABB = to_parent * mesh_instance.global_transform * mesh_instance.mesh.get_aabb()
+		front_z = maxf(front_z, aabb.end.z)
+	return front_z
 
 func is_same_frame(stored_frame: int) -> bool:
 	return Engine.get_process_frames() == stored_frame

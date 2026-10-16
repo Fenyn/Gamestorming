@@ -65,11 +65,13 @@ func _on_order_charged(data: Dictionary) -> void:
 		if is_instance_valid(c) and c.state == Customer.State.WAITING_TO_ORDER:
 			if c.matches_drink(order):
 				c.order_data = order
+				order.customer_name = c.profile.display_name
 				c.start_paying(price)
 				return
 	for c in _active_customers:
 		if is_instance_valid(c) and c.state == Customer.State.WAITING_TO_ORDER:
 			c.order_data = order
+			order.customer_name = c.profile.display_name
 			c.start_paying(price)
 			return
 

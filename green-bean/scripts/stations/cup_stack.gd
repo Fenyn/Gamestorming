@@ -64,8 +64,8 @@ func _print_ticket(order: OrderData) -> void:
 	paper.material_override = mat
 	ticket.add_child(paper)
 	var code := Label3D.new()
-	code.text = order.ticket_code
-	code.font_size = 40
+	code.text = order.ticket_code if order.customer_name.is_empty() else "%s\n%s" % [order.customer_name, order.ticket_code]
+	code.font_size = 34
 	code.pixel_size = 0.0007
 	code.modulate = Color(0.12, 0.08, 0.06)
 	code.outline_size = 0

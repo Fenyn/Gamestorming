@@ -137,6 +137,35 @@ func _run() -> void:
 	Fx.float_text(hand_off.global_position + Vector3(0, 0.35, 0), "+$0.92 tip", Fx.COIN_COLOR)
 	await _shot("08_tip_coins", Vector3(-0.6, 1.5, 0.2), Vector3(-1.0, 1.15, 1.2), 3)
 
+	# A row of customer styles in front of the outdoor seating.
+	var styles := [
+		{"hat": "beanie", "glasses": true, "skin": 0},
+		{"hat": "cap", "backpack": true, "headphones": true, "skin": 5},
+		{"glasses": true, "skin": 8},
+		{"headphones": true, "backpack": true, "skin": 2},
+		{"hat": "cap", "skin": 6},
+	]
+	for i in range(styles.size()):
+		var style: Dictionary = styles[i]
+		var prof := CustomerProfile.generate()
+		prof.hat = style.get("hat", "")
+		prof.glasses = style.get("glasses", false)
+		prof.backpack = style.get("backpack", false)
+		prof.headphones = style.get("headphones", false)
+		prof.skin_index = style.get("skin", 0)
+		var walker := CharacterVisual.new()
+		walker.setup(prof)
+		_shop.add_child(walker)
+		walker.global_position = Vector3(-1.6 + i * 0.85, 0, 4.4)
+		walker.rotation.y = 0.35 if i % 2 == 0 else -0.35
+		if i == 1:
+			walker.hold_in_hand(CharacterVisual.make_phone())
+		if i == 3:
+			walker.hold_in_hand(CharacterVisual.make_takeaway_cup())
+	await _frames(10)
+	await _shot("18_customer_styles", Vector3(0.1, 1.55, 7.6), Vector3(0.1, 1.15, 4.4))
+	await _shot("19_customer_styles_side", Vector3(2.6, 1.6, 5.8), Vector3(0.0, 1.2, 4.4))
+
 	await _shot("15_customers_close", Vector3(0.0, 1.5, 4.2), Vector3(0.6, 1.0, 2.0))
 	await _shot("16_street_wide", Vector3(-3.0, 3.2, 16.5), Vector3(0.0, 0.8, 2.0), 30)
 	await _shot("17_street_side", Vector3(11.0, 2.2, 9.0), Vector3(0.0, 1.0, 1.5), 30)

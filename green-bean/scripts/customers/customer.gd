@@ -1,21 +1,13 @@
 class_name Customer
 extends CharacterBody3D
 
-const MOVE_SPEED := 2.0
-const CHARACTER_SCENE := preload("res://assets/models/characters/characterMedium.fbx")
-const IDLE_ANIM_SCENE := preload("res://assets/models/characters/idle.fbx")
-const RUN_ANIM_SCENE := preload("res://assets/models/characters/run.fbx")
-const SKIN_PATH := "res://assets/models/characters/skins/customer_%02d.png"
-const SKIN_COUNT := 10
-# characterMedium.fbx imports 3.76 units tall; this makes customers 1.7 m.
-const CHARACTER_SCALE := 0.4516
-# There is no walk animation in the pack, so walking is the run played slowly.
-const WALK_ANIM_SPEED := 0.55
-const ANIM_IDLE := "customer/idle"
-const ANIM_WALK := "customer/run"
-
 const ORDER_PATIENCE := 300.0
 const PICKUP_PATIENCE := 300.0
+const SYRUP_CHANCE := 0.3
+const SAUCE_CHANCE := 0.15
+const ARRIVE_DISTANCE := 0.2
+const IDLE_BARK_MIN := 9.0
+const IDLE_BARK_MAX := 18.0
 
 enum State { WALKING_TO_REGISTER, WAITING_TO_ORDER, PAYING, WALKING_TO_PICKUP, WAITING_FOR_DRINK, LEAVING }
 
@@ -25,8 +17,12 @@ var drink_type: DrinkData.DrinkType = DrinkData.DrinkType.POUR_OVER
 var cup_size: DrinkData.CupSize = DrinkData.CupSize.MEDIUM
 var syrup_type: int = -1
 var sauce_type: int = -1
+## Who this customer is. Generated in _ready unless set before adding to the tree.
+var profile: CustomerProfile = null
 var _payment_amount := 0.0
 
+var _order_patience_max := ORDER_PATIENCE
+var _pickup_patience_max := PICKUP_PATIENCE
 var _order_patience := ORDER_PATIENCE
 var _pickup_patience := PICKUP_PATIENCE
 var _target_pos := Vector3.ZERO
@@ -35,42 +31,35 @@ var _pickup_pos := Vector3.ZERO
 var _exit_pos := Vector3.ZERO
 var _leave_reason := ""
 var _warned_impatient := false
+var _leave_pending := false
 
-static var _anim_library: AnimationLibrary = null
-static var _skin_materials: Array[StandardMaterial3D] = []
-
-var _anim_player: AnimationPlayer = null
+var _visual: CharacterVisual = null
+var _nav_agent: NavigationAgent3D = null
 var _speech_label: Label3D = null
 var _patience_bar_bg: CSGBox3D = null
 var _patience_bar_fill: CSGBox3D = null
-var _visual_root: Node3D = null
 var _anim_time := 0.0
 var _patience_ratio := 1.0
 var _bar_shake := 0.0
+var _bark_timer := 0.0
 
 func _ready() -> void:
+	if profile == null:
+		profile = CustomerProfile.generate()
+	_order_patience_max = ORDER_PATIENCE * profile.patience_mult
+	_pickup_patience_max = PICKUP_PATIENCE * profile.patience_mult
+	_order_patience = _order_patience_max
+	_pickup_patience = _pickup_patience_max
+	_bark_timer = randf_range(IDLE_BARK_MIN, IDLE_BARK_MAX)
 	_build_visual()
+	_build_navigation()
 	_randomize_order()
 
 func _build_visual() -> void:
-	# Body parts hang off a root node so walking can bob and lean them
-	# without moving the collision shape.
-	_visual_root = Node3D.new()
-	add_child(_visual_root)
+	_visual = CharacterVisual.new()
+	_visual.setup(profile)
+	add_child(_visual)
 	_anim_time = randf() * TAU
-
-	# Kenney animated character with a random skin. Faces +Z like the rest of the code expects.
-	var character: Node3D = CHARACTER_SCENE.instantiate()
-	character.scale = Vector3.ONE * CHARACTER_SCALE
-	_visual_root.add_child(character)
-	var skin := _get_skin_material(randi() % SKIN_COUNT)
-	for node in character.find_children("*", "MeshInstance3D", true, false):
-		(node as MeshInstance3D).material_override = skin
-	_anim_player = AnimationPlayer.new()
-	character.add_child(_anim_player)
-	_anim_player.add_animation_library("customer", _get_anim_library())
-	_anim_player.play(ANIM_IDLE)
-	_anim_player.seek(randf() * 1.0, true)
 
 	var col := CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
@@ -106,8 +95,21 @@ func _build_visual() -> void:
 	_patience_bar_fill.material = fill_mat
 	add_child(_patience_bar_fill)
 
-const SYRUP_CHANCE := 0.3
-const SAUCE_CHANCE := 0.15
+## Paths around stalls, planters and seating come from the shop's baked navmesh.
+## Avoidance keeps customers from walking through each other.
+func _build_navigation() -> void:
+	_nav_agent = NavigationAgent3D.new()
+	# Path points sit a little above the ground, so this must be larger than that gap.
+	_nav_agent.path_desired_distance = 0.5
+	_nav_agent.target_desired_distance = ARRIVE_DISTANCE
+	_nav_agent.radius = 0.35
+	_nav_agent.height = 1.7
+	_nav_agent.max_speed = profile.walk_speed
+	_nav_agent.avoidance_enabled = true
+	_nav_agent.neighbor_distance = 3.0
+	_nav_agent.time_horizon_agents = 1.0
+	_nav_agent.velocity_computed.connect(_on_velocity_computed)
+	add_child(_nav_agent)
 
 func _randomize_order() -> void:
 	var available_drinks := UnlockManager.get_menu_drinks()
@@ -121,7 +123,7 @@ func _randomize_order() -> void:
 	cup_size = available_sizes[randi() % available_sizes.size()] as DrinkData.CupSize
 
 	var available_syrups := UnlockManager.owned_syrups.duplicate()
-	if not available_syrups.is_empty() and randf() < SYRUP_CHANCE:
+	if not available_syrups.is_empty() and randf() < SYRUP_CHANCE * profile.modifier_chance_mult:
 		syrup_type = available_syrups[randi() % available_syrups.size()]
 	else:
 		syrup_type = -1
@@ -130,7 +132,7 @@ func _randomize_order() -> void:
 		sauce_type = DrinkData.SauceType.MOCHA
 	else:
 		var available_sauces := UnlockManager.owned_sauces.duplicate()
-		if not available_sauces.is_empty() and randf() < SAUCE_CHANCE:
+		if not available_sauces.is_empty() and randf() < SAUCE_CHANCE * profile.modifier_chance_mult:
 			sauce_type = available_sauces[randi() % available_sauces.size()]
 		else:
 			sauce_type = -1
@@ -139,22 +141,29 @@ func setup(register: Vector3, pickup: Vector3, exit: Vector3) -> void:
 	_register_pos = register
 	_pickup_pos = pickup
 	_exit_pos = exit
-	_target_pos = _register_pos
+	_set_target(_register_pos)
 	state = State.WALKING_TO_REGISTER
+
+func _set_target(pos: Vector3) -> void:
+	_target_pos = pos
+	if _nav_agent:
+		_nav_agent.target_position = pos
 
 func _process(delta: float) -> void:
 	_animate(delta)
+	_tick_barks(delta)
 
 func _animate(delta: float) -> void:
-	if _visual_root == null:
+	if _visual == null:
 		return
-	var moving := velocity.length() > 0.1
-	_anim_time += delta * (10.0 if moving else 2.0)
+	var flat_velocity := Vector3(velocity.x, 0, velocity.z)
+	var moving := flat_velocity.length() > 0.1
+	_anim_time += delta * 2.0
 
 	# Face the walk direction, or the player while waiting at the counter.
 	var face_dir := Vector3.ZERO
 	if moving:
-		face_dir = velocity
+		face_dir = flat_velocity
 	elif state == State.WAITING_TO_ORDER or state == State.PAYING or state == State.WAITING_FOR_DRINK:
 		var player := get_tree().get_first_node_in_group("player") as Node3D
 		if player:
@@ -164,69 +173,112 @@ func _animate(delta: float) -> void:
 		var target_yaw := atan2(face_dir.x, face_dir.z)
 		rotation.y = lerp_angle(rotation.y, target_yaw, 1.0 - exp(-8.0 * delta))
 
-	if _anim_player:
-		var wanted := ANIM_WALK if moving else ANIM_IDLE
-		if _anim_player.current_animation != wanted:
-			_anim_player.play(wanted, 0.25)
-		_anim_player.speed_scale = WALK_ANIM_SPEED if moving else 1.0
+	_visual.set_moving(flat_velocity.length() if moving else 0.0)
 	if moving:
-		_visual_root.rotation.z = 0.0
+		_visual.rotation.z = 0.0
 	else:
 		# Impatient customers sway from side to side.
 		var impatience := clampf((0.35 - _patience_ratio) / 0.35, 0.0, 1.0)
-		_visual_root.rotation.z = sin(_anim_time * 3.0) * 0.04 * impatience
+		_visual.rotation.z = sin(_anim_time * 3.0) * 0.04 * impatience
 
 	if _patience_bar_fill and _patience_bar_bg:
 		_bar_shake = sin(Time.get_ticks_msec() * 0.06) * 0.012 if _patience_ratio < 0.25 else 0.0
 		_patience_bar_bg.position.x = _bar_shake
 		_patience_bar_fill.position.x = -0.25 * (1.0 - _patience_ratio) + _bar_shake
 
+## Occasional small talk while waiting for the drink.
+func _tick_barks(delta: float) -> void:
+	if state != State.WAITING_FOR_DRINK:
+		return
+	_bark_timer -= delta
+	if _bark_timer <= 0.0:
+		_bark_timer = randf_range(IDLE_BARK_MIN, IDLE_BARK_MAX)
+		if _patience_ratio > 0.25:
+			bark(CustomerProfile.pick(CustomerProfile.WAITING))
+
+func bark(text: String, color: Color = Color(1, 0.97, 0.9)) -> void:
+	Fx.float_text(global_position + Vector3(0, 2.2, 0), text, color, 36)
+
 func _physics_process(delta: float) -> void:
 	match state:
 		State.WALKING_TO_REGISTER:
 			_move_toward_target(delta)
 			if _at_target():
+				_stop()
 				state = State.WAITING_TO_ORDER
 				_show_order()
+				bark(CustomerProfile.pick(CustomerProfile.GREETINGS))
 				SoundManager.play("customer_arrive")
-		State.WAITING_TO_ORDER:
+		State.WAITING_TO_ORDER, State.PAYING:
+			_stop()
 			_order_patience -= delta
-			_update_patience_bar(_order_patience / ORDER_PATIENCE)
-			if _order_patience <= 0:
-				_leave("impatient_order")
-		State.PAYING:
-			_order_patience -= delta
-			_update_patience_bar(_order_patience / ORDER_PATIENCE)
+			_update_patience_bar(_order_patience / _order_patience_max)
 			if _order_patience <= 0:
 				_leave("impatient_order")
 		State.WALKING_TO_PICKUP:
 			_move_toward_target(delta)
 			if _at_target():
+				_stop()
 				state = State.WAITING_FOR_DRINK
+				if profile.uses_phone:
+					_visual.hold_in_hand(CharacterVisual.make_phone())
 		State.WAITING_FOR_DRINK:
+			_stop()
 			_pickup_patience -= delta
-			_update_patience_bar(_pickup_patience / PICKUP_PATIENCE)
+			_update_patience_bar(_pickup_patience / _pickup_patience_max)
 			if _pickup_patience <= 0:
 				_leave("impatient_pickup")
 		State.LEAVING:
+			if _leave_pending:
+				_stop()
+				return
 			_move_toward_target(delta)
 			if _at_target():
 				EventBus.customer_left.emit(self, _leave_reason)
 				queue_free()
 
-func _move_toward_target(delta: float) -> void:
-	var dir := (_target_pos - global_position)
+func _stop() -> void:
+	velocity = Vector3.ZERO
+	if _nav_agent and _nav_agent.avoidance_enabled:
+		_nav_agent.velocity = Vector3.ZERO
+
+func _move_toward_target(_delta: float) -> void:
+	var next := _target_pos
+	if _nav_agent and _nav_ready() and not _nav_agent.is_navigation_finished():
+		next = _nav_agent.get_next_path_position()
+	var dir := next - global_position
 	dir.y = 0
-	if dir.length() > 0.1:
-		velocity = dir.normalized() * MOVE_SPEED
+	var desired := Vector3.ZERO
+	if not _at_target() and dir.length() > 0.01:
+		desired = dir.normalized() * profile.walk_speed
+	if _nav_agent and _nav_agent.avoidance_enabled and _nav_ready() and not _nav_agent.is_navigation_finished():
+		# The agent adjusts the velocity around other customers, then calls back.
+		_nav_agent.velocity = desired
 	else:
-		velocity = Vector3.ZERO
+		# No navmesh yet, or the agent counts the path as done while we are still
+		# a few centimetres short: walk straight to the spot.
+		_apply_velocity(desired)
+
+func _on_velocity_computed(safe_velocity: Vector3) -> void:
+	if state == State.WALKING_TO_REGISTER or state == State.WALKING_TO_PICKUP or (state == State.LEAVING and not _leave_pending):
+		_apply_velocity(safe_velocity)
+
+func _apply_velocity(v: Vector3) -> void:
+	velocity = Vector3(v.x, velocity.y, v.z)
+	if not is_on_floor():
+		velocity.y -= 9.8 * get_physics_process_delta_time()
+	else:
+		velocity.y = 0.0
 	move_and_slide()
+
+func _nav_ready() -> bool:
+	var map := _nav_agent.get_navigation_map()
+	return map.is_valid() and NavigationServer3D.map_get_iteration_id(map) > 0
 
 func _at_target() -> bool:
 	var dist := (_target_pos - global_position)
 	dist.y = 0
-	return dist.length() < 0.2
+	return dist.length() < ARRIVE_DISTANCE
 
 func _show_order() -> void:
 	if _speech_label:
@@ -236,8 +288,9 @@ func _show_order() -> void:
 		if sauce_type >= 0 and not DrinkData.has_step(drink_type, DrinkData.Step.ADD_SAUCE):
 			parts.append(DrinkData.get_sauce_name(sauce_type as DrinkData.SauceType))
 		parts.append(DrinkData.get_drink_name(drink_type))
-		_speech_label.text = " ".join(parts)
+		_speech_label.text = "%s: %s" % [profile.display_name, " ".join(parts)]
 		_speech_label.visible = true
+		Fx.pop(_speech_label, 1.4, 0.3)
 
 func start_paying(price: float) -> void:
 	state = State.PAYING
@@ -250,8 +303,9 @@ func start_paying(price: float) -> void:
 	if _speech_label:
 		_speech_label.text = "$%.0f" % _payment_amount
 		_speech_label.visible = true
+		Fx.pop(_speech_label, 1.4, 0.3)
 
-func interact(player: Player) -> void:
+func interact(_player: Player) -> void:
 	if state == State.PAYING:
 		SoundManager.play("cash_collect")
 		EventBus.cash_collected.emit(self, _payment_amount)
@@ -263,8 +317,8 @@ func order_taken(order: OrderData = null) -> void:
 	order_data = order
 	_speech_label.visible = false
 	state = State.WALKING_TO_PICKUP
-	_target_pos = _pickup_pos
-	_pickup_patience = PICKUP_PATIENCE
+	_set_target(_pickup_pos)
+	_pickup_patience = _pickup_patience_max
 
 func drink_received(stars: float = 0.0) -> void:
 	if _speech_label and stars > 0.0:
@@ -272,7 +326,16 @@ func drink_received(stars: float = 0.0) -> void:
 		_speech_label.visible = true
 	else:
 		_speech_label.visible = false
-	_leave("satisfied")
+	_visual.hold_in_hand(CharacterVisual.make_takeaway_cup())
+	bark(profile.review_line(stars), Color(1.0, 0.9, 0.4) if stars >= 4.5 else Color(1, 0.97, 0.9))
+	if stars >= 4.5:
+		# Happy hop, then head off.
+		_leave("satisfied")
+		_leave_pending = true
+		_visual.play_jump()
+		get_tree().create_timer(1.0).timeout.connect(func() -> void: _leave_pending = false)
+	else:
+		_leave("satisfied")
 
 func matches_drink(order: OrderData) -> bool:
 	return order.drink_type == drink_type and order.cup_size == cup_size and order.requested_syrup == syrup_type and order.requested_sauce == sauce_type
@@ -281,18 +344,21 @@ func _leave(reason: String) -> void:
 	if state == State.LEAVING:
 		return
 	state = State.LEAVING
-	_target_pos = _exit_pos
+	_set_target(_exit_pos)
 	_speech_label.visible = false
 	_leave_reason = reason
 	if reason == "satisfied":
 		SoundManager.play("customer_happy")
 	else:
+		_visual.hold_in_hand(null)
+		bark(CustomerProfile.pick(CustomerProfile.ANGRY), Color(1.0, 0.45, 0.35))
 		SoundManager.play("customer_angry")
 
 func _update_patience_bar(ratio: float) -> void:
 	ratio = clampf(ratio, 0.0, 1.0)
 	if ratio < 0.25 and not _warned_impatient:
 		_warned_impatient = true
+		bark(CustomerProfile.pick(CustomerProfile.IMPATIENT), Color(1.0, 0.7, 0.4))
 		SoundManager.play("customer_impatient")
 	_patience_ratio = ratio
 	if _patience_bar_fill:
@@ -313,38 +379,3 @@ func _update_patience_bar(ratio: float) -> void:
 				mat.emission = red * (0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.012))
 			else:
 				mat.emission_enabled = false
-
-
-static func _get_skin_material(index: int) -> StandardMaterial3D:
-	if _skin_materials.is_empty():
-		for i in range(SKIN_COUNT):
-			var mat := StandardMaterial3D.new()
-			mat.albedo_texture = load(SKIN_PATH % (i + 1))
-			mat.roughness = 0.9
-			_skin_materials.append(mat)
-	return _skin_materials[index % _skin_materials.size()]
-
-## Idle and run come from separate FBX files that share the character's skeleton.
-## Copy their animations into one looping library, once.
-static func _get_anim_library() -> AnimationLibrary:
-	if _anim_library:
-		return _anim_library
-	_anim_library = AnimationLibrary.new()
-	_anim_library.add_animation("idle", _extract_animation(IDLE_ANIM_SCENE, "Idle"))
-	_anim_library.add_animation("run", _extract_animation(RUN_ANIM_SCENE, "Run"))
-	return _anim_library
-
-static func _extract_animation(scene: PackedScene, name_suffix: String) -> Animation:
-	var root := scene.instantiate()
-	var found: Animation = null
-	for node in root.find_children("*", "AnimationPlayer", true, false):
-		var player := node as AnimationPlayer
-		for anim_name in player.get_animation_list():
-			if String(anim_name).ends_with(name_suffix):
-				found = player.get_animation(anim_name).duplicate() as Animation
-	root.free()
-	if found == null:
-		push_warning("Customer: no '%s' animation found" % name_suffix)
-		return Animation.new()
-	found.loop_mode = Animation.LOOP_LINEAR
-	return found

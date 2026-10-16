@@ -42,6 +42,10 @@ var _anim_time := 0.0
 var _patience_ratio := 1.0
 var _bar_shake := 0.0
 var _bark_timer := 0.0
+var _avoidance_requested := false
+var _stuck_time := 0.0
+var _last_progress_pos := Vector3.ZERO
+var _player: Node3D = null
 
 func _ready() -> void:
 	if profile == null:
@@ -146,6 +150,8 @@ func setup(register: Vector3, pickup: Vector3, exit: Vector3) -> void:
 
 func _set_target(pos: Vector3) -> void:
 	_target_pos = pos
+	_stuck_time = 0.0
+	_last_progress_pos = global_position
 	if _nav_agent:
 		_nav_agent.target_position = pos
 
@@ -165,9 +171,10 @@ func _animate(delta: float) -> void:
 	if moving:
 		face_dir = flat_velocity
 	elif state == State.WAITING_TO_ORDER or state == State.PAYING or state == State.WAITING_FOR_DRINK:
-		var player := get_tree().get_first_node_in_group("player") as Node3D
-		if player:
-			face_dir = player.global_position - global_position
+		if _player == null or not is_instance_valid(_player):
+			_player = get_tree().get_first_node_in_group("player") as Node3D
+		if _player:
+			face_dir = _player.global_position - global_position
 	face_dir.y = 0.0
 	if face_dir.length() > 0.05:
 		var target_yaw := atan2(face_dir.x, face_dir.z)
@@ -242,7 +249,10 @@ func _stop() -> void:
 	if _nav_agent and _nav_agent.avoidance_enabled:
 		_nav_agent.velocity = Vector3.ZERO
 
-func _move_toward_target(_delta: float) -> void:
+const STUCK_TIMEOUT := 4.0
+
+func _move_toward_target(delta: float) -> void:
+	_check_stuck(delta)
 	var next := _target_pos
 	if _nav_agent and _nav_ready() and not _nav_agent.is_navigation_finished():
 		next = _nav_agent.get_next_path_position()
@@ -253,6 +263,7 @@ func _move_toward_target(_delta: float) -> void:
 		desired = dir.normalized() * profile.walk_speed
 	if _nav_agent and _nav_agent.avoidance_enabled and _nav_ready() and not _nav_agent.is_navigation_finished():
 		# The agent adjusts the velocity around other customers, then calls back.
+		_avoidance_requested = true
 		_nav_agent.velocity = desired
 	else:
 		# No navmesh yet, or the agent counts the path as done while we are still
@@ -260,8 +271,25 @@ func _move_toward_target(_delta: float) -> void:
 		_apply_velocity(desired)
 
 func _on_velocity_computed(safe_velocity: Vector3) -> void:
+	# The agent reports every physics frame; only act on frames where we asked.
+	if not _avoidance_requested:
+		return
+	_avoidance_requested = false
 	if state == State.WALKING_TO_REGISTER or state == State.WALKING_TO_PICKUP or (state == State.LEAVING and not _leave_pending):
 		_apply_velocity(safe_velocity)
+
+## If a walking customer makes no progress for a few seconds (pinned on a prop or
+## another customer), put them on the spot so the day can't stall behind them.
+func _check_stuck(delta: float) -> void:
+	if global_position.distance_to(_last_progress_pos) > 0.25:
+		_last_progress_pos = global_position
+		_stuck_time = 0.0
+		return
+	_stuck_time += delta
+	if _stuck_time > STUCK_TIMEOUT:
+		_stuck_time = 0.0
+		global_position = Vector3(_target_pos.x, global_position.y, _target_pos.z)
+		_last_progress_pos = global_position
 
 func _apply_velocity(v: Vector3) -> void:
 	velocity = Vector3(v.x, velocity.y, v.z)

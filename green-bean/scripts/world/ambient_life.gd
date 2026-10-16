@@ -13,10 +13,13 @@ const CAR_SCENES := [
 
 # Sidewalk lanes: z position and walking direction along x.
 const WALK_LANES := [
-	{"z": 15.15, "dir": 1.0, "weight": 1.0},
-	{"z": 15.85, "dir": -1.0, "weight": 1.0},
-	{"z": 5.85, "dir": 1.0, "weight": 0.35},
-	{"z": 5.85, "dir": -1.0, "weight": 0.35},
+	# Far sidewalk: the planters sit at z 15.3, so walkers pass in front of and behind them.
+	{"z": 14.6, "dir": 1.0, "weight": 1.0},
+	{"z": 16.4, "dir": -1.0, "weight": 1.0},
+	# Near sidewalk, between the seating/stalls (z < 3.9) and the customer
+	# entry point at z 5.5.
+	{"z": 4.4, "dir": 1.0, "weight": 0.35},
+	{"z": 4.4, "dir": -1.0, "weight": 0.35},
 ]
 # Road lanes: the near lane is kept clear of parked cars.
 const DRIVE_LANES := [
@@ -41,11 +44,9 @@ func _ready() -> void:
 		_spawn_pedestrian(randf_range(-WALK_EXTENT * 0.8, WALK_EXTENT * 0.8))
 
 func _process(delta: float) -> void:
-	var alive: Array[Node3D] = []
-	for walker in _pedestrians:
-		if is_instance_valid(walker):
-			alive.append(walker)
-	_pedestrians = alive
+	for i in range(_pedestrians.size() - 1, -1, -1):
+		if not is_instance_valid(_pedestrians[i]):
+			_pedestrians.remove_at(i)
 	_pedestrian_timer -= delta
 	if _pedestrian_timer <= 0.0:
 		_pedestrian_timer = randf_range(PEDESTRIAN_INTERVAL.x, PEDESTRIAN_INTERVAL.y)
@@ -78,7 +79,7 @@ func _spawn_pedestrian(start_x: float = INF) -> void:
 	walker.end_x = WALK_EXTENT * dir
 	add_child(walker)
 	var x := -WALK_EXTENT * dir if start_x == INF else start_x
-	walker.global_position = Vector3(x, 0, float(lane["z"]) + randf_range(-0.15, 0.15))
+	walker.global_position = Vector3(x, 0, float(lane["z"]) + randf_range(-0.1, 0.1))
 	_pedestrians.append(walker)
 
 func _spawn_car(lane: Dictionary) -> void:

@@ -45,14 +45,15 @@ func _ready() -> void:
 	if not skeletons.is_empty():
 		_skeleton = skeletons[0] as Skeleton3D
 
+	# Accessories are measured on the rest pose, so build them before animating.
+	_build_accessories()
+
 	_anim = AnimationPlayer.new()
 	character.add_child(_anim)
 	_anim.add_animation_library("character", _get_anim_library())
 	_anim.animation_finished.connect(_on_animation_finished)
 	_anim.play(ANIM_IDLE)
 	_anim.seek(randf() * 1.0, true)
-
-	_build_accessories()
 
 ## Walking speed in metres per second; 0 means stand idle.
 func set_moving(speed: float) -> void:
@@ -92,10 +93,7 @@ static func make_phone() -> Node3D:
 	phone.size = Vector3(0.07, 0.13, 0.012)
 	phone.position = Vector3(0, 0.02, 0.06)
 	phone.rotation_degrees = Vector3(-50, 0, 0)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.08, 0.08, 0.1)
-	mat.roughness = 0.3
-	phone.material = mat
+	phone.material = _mat(Color(0.08, 0.08, 0.1), 0.3)
 	return phone
 
 static func make_takeaway_cup() -> Node3D:
@@ -105,26 +103,20 @@ static func make_takeaway_cup() -> Node3D:
 	cup.radius = 0.045
 	cup.height = 0.13
 	cup.sides = 12
-	var paper := StandardMaterial3D.new()
-	paper.albedo_color = Color(0.95, 0.95, 0.9)
-	cup.material = paper
+	cup.material = _mat(Color(0.95, 0.95, 0.9), 0.85)
 	root.add_child(cup)
 	var sleeve := CSGCylinder3D.new()
 	sleeve.radius = 0.047
 	sleeve.height = 0.045
 	sleeve.sides = 12
-	var kraft := StandardMaterial3D.new()
-	kraft.albedo_color = Color(0.62, 0.45, 0.3)
-	sleeve.material = kraft
+	sleeve.material = _mat(Color(0.62, 0.45, 0.3), 0.95)
 	root.add_child(sleeve)
 	var lid := CSGCylinder3D.new()
 	lid.radius = 0.049
 	lid.height = 0.012
 	lid.position.y = 0.07
 	lid.sides = 12
-	var lid_mat := StandardMaterial3D.new()
-	lid_mat.albedo_color = Color(0.2, 0.15, 0.12)
-	lid.material = lid_mat
+	lid.material = _mat(Color(0.2, 0.15, 0.12), 0.4)
 	root.add_child(lid)
 	return root
 
@@ -141,8 +133,9 @@ func _make_bone_holder(bone: String) -> Node3D:
 	var bone_index := _skeleton.find_bone(bone)
 	# The attachment only follows the bone after the next skeleton update, so
 	# place it by hand now; it keeps the same local transform afterwards.
-	attach.transform = _skeleton.get_bone_global_pose(bone_index)
-	var bone_world: Vector3 = (_skeleton.global_transform * _skeleton.get_bone_global_pose(bone_index)).origin
+	var rest := _skeleton.get_bone_global_rest(bone_index)
+	attach.transform = rest
+	var bone_world: Vector3 = (_skeleton.global_transform * rest).origin
 	var holder := Node3D.new()
 	attach.add_child(holder)
 	var basis := global_transform.basis.orthonormalized().scaled(Vector3.ONE * profile.height_scale)
@@ -166,10 +159,17 @@ func _build_accessories() -> void:
 	if chest and profile.backpack:
 		chest.add_child(_make_backpack(profile.accessory_color_2))
 
+static var _material_cache := {}
+
+## Shared material per colour, so a crowd doesn't create hundreds of materials.
 static func _mat(color: Color, roughness: float = 0.8) -> StandardMaterial3D:
+	var key := "%s/%.2f" % [color.to_html(), roughness]
+	if _material_cache.has(key):
+		return _material_cache[key]
 	var m := StandardMaterial3D.new()
 	m.albedo_color = color
 	m.roughness = roughness
+	_material_cache[key] = m
 	return m
 
 # Head holder origin is the neck joint (about 1.22 m). The head is a big

@@ -14,6 +14,7 @@ var _filling_kettle: Kettle = null
 var _filling := false
 var _fill_frame := -1
 var _fill_cam: Marker3D = null
+var _stream: PourStream = null
 
 func _ready() -> void:
 	add_to_group("station")
@@ -50,6 +51,25 @@ func _ready() -> void:
 	add_child(_fill_label)
 
 	_update_label()
+
+	# Water from the dispenser spout into whatever the player is holding.
+	_stream = PourStream.new(Color(0.85, 0.92, 0.97, 0.6), 0.004)
+	_stream.source = self
+	_stream.source_offset = Vector3(0, 0.05, 0.11)
+	_stream.flow_check = _is_dispensing
+	add_child(_stream)
+
+func _is_dispensing() -> bool:
+	var target: Node3D = null
+	if _filling and _filling_kettle and is_instance_valid(_filling_kettle):
+		target = _filling_kettle
+	elif _pour_game.is_pouring() and _player_ref and is_instance_valid(_player_ref):
+		target = _player_ref.get_held_item()
+	if target == null or not is_instance_valid(target):
+		return false
+	_stream.target_node = target
+	_stream.target_offset = Vector3(0, 0.05, 0)
+	return true
 
 func _spawn_shelf_kettle() -> void:
 	_shelf_kettle = Kettle.new()

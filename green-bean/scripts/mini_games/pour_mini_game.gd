@@ -292,6 +292,9 @@ func _calculate_fill_quality() -> float:
 	var distance := absf(_fill_level - _fill_target)
 	return clampf(1.0 - distance * 5.0, 0.0, 1.0)
 
+func is_pouring() -> bool:
+	return _active and _pouring
+
 func is_bloom_waiting() -> bool:
 	return phase == Phase.BLOOM_WAIT
 

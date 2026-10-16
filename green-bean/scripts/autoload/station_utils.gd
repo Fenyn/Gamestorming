@@ -6,11 +6,24 @@ func set_item_collision(item: Node3D, enabled: bool) -> void:
 			child.disabled = not enabled
 
 func place_at_slot(item: Node3D, slot_position: Vector3) -> void:
-	item.global_position = slot_position
 	item.global_rotation = Vector3.ZERO
 	if item is RigidBody3D:
 		(item as RigidBody3D).freeze = true
 	set_item_collision(item, false)
+	# Drop the last few centimetres with a small bounce so placing feels physical.
+	cancel_settle(item)
+	item.global_position = slot_position + Vector3(0, 0.04, 0)
+	var tween := item.create_tween()
+	tween.tween_property(item, "global_position", slot_position, 0.18).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	item.set_meta("settle_tween", tween)
+
+## Stops a placement bounce, e.g. when the item is picked up again straight away.
+func cancel_settle(item: Node3D) -> void:
+	if item and item.has_meta("settle_tween"):
+		var tween: Tween = item.get_meta("settle_tween")
+		if tween and tween.is_valid():
+			tween.kill()
+		item.remove_meta("settle_tween")
 
 func is_item_removed(item: Node3D, slot_position: Vector3, threshold: float = 0.5) -> bool:
 	if not item or not is_instance_valid(item):
@@ -73,7 +86,12 @@ func _model_front_z(parent: Node3D, model: Node3D) -> float:
 func is_same_frame(stored_frame: int) -> bool:
 	return Engine.get_process_frames() == stored_frame
 
-func start_kettle_pour(player: Player, kettle: Node3D, target_position: Vector3, offset: Vector3) -> Tween:
+const KETTLE_SPOUT_TIP := Vector3(0.04, 0.04, -0.06)
+
+var _pour_streams := {}
+
+## flow_check: optional Callable returning true while water is actually flowing.
+func start_kettle_pour(player: Player, kettle: Node3D, target_position: Vector3, offset: Vector3, flow_check: Callable = Callable()) -> Tween:
 	player.detach_held_item()
 	var pour_pos := target_position + offset
 	kettle.global_position = pour_pos
@@ -81,12 +99,41 @@ func start_kettle_pour(player: Player, kettle: Node3D, target_position: Vector3,
 	var tween := player.create_tween().set_loops()
 	tween.tween_property(kettle, "global_rotation_degrees:z", -45.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(kettle, "global_rotation_degrees:z", -30.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_start_stream(kettle, target_position, flow_check)
 	return tween
 
 func stop_kettle_pour(tween: Tween, kettle: Node3D, player: Player) -> void:
 	if tween and tween.is_valid():
 		tween.kill()
+	_stop_stream(kettle)
 	if kettle and is_instance_valid(kettle):
 		kettle.global_rotation_degrees = Vector3.ZERO
 		if player and is_instance_valid(player):
 			player.pickup_item(kettle)
+
+func _start_stream(kettle: Node3D, target_position: Vector3, flow_check: Callable) -> void:
+	_stop_stream(kettle)
+	# Drop entries whose stream already freed itself (its kettle was freed mid-pour).
+	for key in _pour_streams.keys():
+		if not is_instance_valid(_pour_streams[key]):
+			_pour_streams.erase(key)
+	var stream := PourStream.new()
+	stream.source = kettle
+	stream.source_offset = KETTLE_SPOUT_TIP
+	stream.target_point = target_position
+	stream.flow_check = flow_check
+	var parent: Node = get_tree().current_scene
+	if parent == null:
+		parent = get_tree().root
+	parent.add_child(stream)
+	_pour_streams[kettle.get_instance_id()] = stream
+
+func _stop_stream(kettle: Node3D) -> void:
+	if kettle == null or not is_instance_valid(kettle):
+		return
+	var key := kettle.get_instance_id()
+	if _pour_streams.has(key):
+		var stream: Node = _pour_streams[key]
+		if is_instance_valid(stream):
+			stream.queue_free()
+		_pour_streams.erase(key)

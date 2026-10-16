@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://co8sxqwrtl33k"]
 
 [ext_resource type="Script" uid="uid://eporcxjwrhh4" path="res://scripts/shops/espresso_stand_scene.gd" id="1_c26ee"]
+[ext_resource type="Script" path="res://scripts/shops/day_lighting.gd" id="2_daylight"]
 [ext_resource type="PackedScene" uid="uid://bj6yjp8w1k5f5" path="res://scenes/stations/grinder.tscn" id="2_t2fld"]
 [ext_resource type="PackedScene" uid="uid://uo86utug3rju" path="res://scenes/stations/cup_stack.tscn" id="3_jxr28"]
 [ext_resource type="PackedScene" uid="uid://brh6nem8kt5gu" path="res://scenes/stations/pour_over.tscn" id="4_f7yp2"]
@@ -39,12 +40,33 @@
 [ext_resource type="PackedScene" path="res://assets/models/kenney/donutChocolate.glb" id="k_donutChocolate"]
 [ext_resource type="PackedScene" path="res://assets/models/kenney/cookieChocolate.glb" id="k_cookieChocolate"]
 
+[sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
+sky_top_color = Color(0.38, 0.55, 0.78, 1)
+sky_horizon_color = Color(0.72, 0.82, 0.9, 1)
+ground_bottom_color = Color(0.32, 0.3, 0.27, 1)
+ground_horizon_color = Color(0.72, 0.82, 0.9, 1)
+sun_angle_max = 20.0
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_mat")
+
 [sub_resource type="Environment" id="env"]
-background_mode = 1
-background_color = Color(0.6, 0.75, 0.85, 1)
+background_mode = 2
+sky = SubResource("sky")
 ambient_light_source = 2
 ambient_light_color = Color(0.9, 0.85, 0.8, 1)
-ambient_light_energy = 0.35
+ambient_light_energy = 0.45
+tonemap_mode = 2
+tonemap_white = 6.0
+ssao_enabled = true
+ssao_radius = 0.6
+ssao_intensity = 1.6
+glow_enabled = true
+glow_intensity = 0.5
+glow_bloom = 0.04
+glow_hdr_threshold = 1.1
+adjustment_enabled = true
+adjustment_saturation = 1.08
 
 [sub_resource type="StandardMaterial3D" id="floor_mat"]
 albedo_color = Color(0.4, 0.45, 0.4, 1)
@@ -81,6 +103,7 @@ environment = SubResource("env")
 transform = Transform3D(0.8660254, 0.35355338, -0.35355338, 0, 0.70710677, 0.70710677, 0.5, -0.6123724, 0.6123724, 0, 5, 0)
 light_energy = 1.2
 shadow_enabled = true
+script = ExtResource("2_daylight")
 
 [node name="Floor" type="CSGBox3D" parent="." unique_id=115178902]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)

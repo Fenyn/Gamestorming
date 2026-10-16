@@ -111,7 +111,7 @@ func interact(player: Player) -> void:
 			if held is Kettle and (held as Kettle).has_water:
 				_pouring_player = player
 				_pour_kettle = held as Kettle
-				_pour_tween = StationUtils.start_kettle_pour(player, _pour_kettle, _device_slot.global_position, Vector3(-0.12, 0.10, 0.08))
+				_pour_tween = StationUtils.start_kettle_pour(player, _pour_kettle, _device_slot.global_position, Vector3(-0.12, 0.10, 0.08), _water_game.is_pouring)
 				_water_game.start(player)
 			elif _status_label:
 				_status_label.text = "Hold filled kettle!\n[E] Pour water"

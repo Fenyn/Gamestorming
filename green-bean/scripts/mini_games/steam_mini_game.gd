@@ -293,6 +293,9 @@ func reset_steam() -> void:
 	_stretch_progress = 0.0
 	_has_been_started = false
 
+func is_steaming() -> bool:
+	return _active and _steaming
+
 func is_scalded() -> bool:
 	return steam_phase == SteamPhase.SCALDED
 

@@ -28,19 +28,39 @@ var _body_mesh: CSGBox3D = null
 var _speech_label: Label3D = null
 var _patience_bar_bg: CSGBox3D = null
 var _patience_bar_fill: CSGBox3D = null
+var _visual_root: Node3D = null
+var _anim_time := 0.0
+var _patience_ratio := 1.0
+var _bar_shake := 0.0
 
 func _ready() -> void:
 	_build_visual()
 	_randomize_order()
 
 func _build_visual() -> void:
+	# Body parts hang off a root node so walking can bob and lean them
+	# without moving the collision shape.
+	_visual_root = Node3D.new()
+	add_child(_visual_root)
+	_anim_time = randf() * TAU
+
 	_body_mesh = CSGBox3D.new()
 	_body_mesh.size = Vector3(0.4, 1.6, 0.3)
 	_body_mesh.position.y = 0.8
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(randf_range(0.4, 0.9), randf_range(0.3, 0.7), randf_range(0.3, 0.7))
 	_body_mesh.material = mat
-	add_child(_body_mesh)
+	_visual_root.add_child(_body_mesh)
+
+	# Simple face on the front (+Z) so it is clear which way a customer is looking.
+	var eye_mat := StandardMaterial3D.new()
+	eye_mat.albedo_color = Color(0.08, 0.06, 0.05)
+	for side in [-1.0, 1.0]:
+		var eye := CSGBox3D.new()
+		eye.size = Vector3(0.05, 0.07, 0.02)
+		eye.position = Vector3(0.08 * float(side), 1.42, 0.155)
+		eye.material = eye_mat
+		_visual_root.add_child(eye)
 
 	var col := CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
@@ -111,6 +131,45 @@ func setup(register: Vector3, pickup: Vector3, exit: Vector3) -> void:
 	_exit_pos = exit
 	_target_pos = _register_pos
 	state = State.WALKING_TO_REGISTER
+
+func _process(delta: float) -> void:
+	_animate(delta)
+
+func _animate(delta: float) -> void:
+	if _visual_root == null:
+		return
+	var moving := velocity.length() > 0.1
+	_anim_time += delta * (10.0 if moving else 2.0)
+
+	# Face the walk direction, or the player while waiting at the counter.
+	var face_dir := Vector3.ZERO
+	if moving:
+		face_dir = velocity
+	elif state == State.WAITING_TO_ORDER or state == State.PAYING or state == State.WAITING_FOR_DRINK:
+		var player := get_tree().get_first_node_in_group("player") as Node3D
+		if player:
+			face_dir = player.global_position - global_position
+	face_dir.y = 0.0
+	if face_dir.length() > 0.05:
+		var target_yaw := atan2(face_dir.x, face_dir.z)
+		rotation.y = lerp_angle(rotation.y, target_yaw, 1.0 - exp(-8.0 * delta))
+
+	if moving:
+		# Hop and waddle.
+		_visual_root.position.y = absf(sin(_anim_time)) * 0.05
+		_visual_root.rotation.z = sin(_anim_time) * 0.06
+		_visual_root.scale = Vector3.ONE
+	else:
+		# Idle breathing, plus foot-tapping sway when patience is low.
+		_visual_root.position.y = 0.0
+		var impatience := clampf((0.35 - _patience_ratio) / 0.35, 0.0, 1.0)
+		_visual_root.rotation.z = sin(_anim_time * 3.0) * 0.04 * impatience
+		_visual_root.scale = Vector3(1.0, 1.0 + sin(_anim_time) * 0.012, 1.0)
+
+	if _patience_bar_fill and _patience_bar_bg:
+		_bar_shake = sin(Time.get_ticks_msec() * 0.06) * 0.012 if _patience_ratio < 0.25 else 0.0
+		_patience_bar_bg.position.x = _bar_shake
+		_patience_bar_fill.position.x = -0.25 * (1.0 - _patience_ratio) + _bar_shake
 
 func _physics_process(delta: float) -> void:
 	match state:
@@ -225,14 +284,22 @@ func _update_patience_bar(ratio: float) -> void:
 	if ratio < 0.25 and not _warned_impatient:
 		_warned_impatient = true
 		SoundManager.play("customer_impatient")
+	_patience_ratio = ratio
 	if _patience_bar_fill:
 		_patience_bar_fill.size.x = 0.5 * ratio
-		_patience_bar_fill.position.x = -0.25 * (1.0 - ratio)
+		_patience_bar_fill.position.x = -0.25 * (1.0 - ratio) + _bar_shake
 		var mat := _patience_bar_fill.material as StandardMaterial3D
 		if mat:
+			# Smooth green -> yellow -> red instead of three hard steps.
+			var green := Color(0.2, 0.9, 0.2)
+			var yellow := Color(0.95, 0.85, 0.2)
+			var red := Color(0.95, 0.2, 0.15)
 			if ratio > 0.5:
-				mat.albedo_color = Color(0.2, 0.9, 0.2)
-			elif ratio > 0.25:
-				mat.albedo_color = Color(0.9, 0.9, 0.2)
+				mat.albedo_color = yellow.lerp(green, (ratio - 0.5) / 0.5)
 			else:
-				mat.albedo_color = Color(0.9, 0.2, 0.2)
+				mat.albedo_color = red.lerp(yellow, ratio / 0.5)
+			if ratio < 0.25:
+				mat.emission_enabled = true
+				mat.emission = red * (0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.012))
+			else:
+				mat.emission_enabled = false

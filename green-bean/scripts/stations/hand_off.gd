@@ -49,6 +49,15 @@ func receive_item(item: Node3D) -> bool:
 	if _label:
 		_label.text = _format_review(stars, tip)
 		_label.modulate = _star_color(stars)
+		_label.scale = Vector3.ONE
+		Fx.pop(_label, 1.6, 0.35)
+
+	var top := global_position + Vector3(0, 0.2, 0)
+	if stars >= 4.5:
+		Fx.sparkle_burst(top, _star_color(stars))
+	if tip > 0.0:
+		Fx.coin_burst(top)
+		Fx.float_text(top + Vector3(0, 0.15, 0), "+$%.2f tip" % tip, Fx.COIN_COLOR)
 
 	var tween := create_tween()
 	tween.tween_interval(2.5)

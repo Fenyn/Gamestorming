@@ -14,7 +14,7 @@ var target_offset := Vector3.ZERO
 var flow_check: Callable = Callable()
 var radius := 0.003
 
-func _init(color: Color = Color(0.82, 0.9, 0.95, 0.55), stream_radius: float = 0.003) -> void:
+func _init(color: Color = Color(0.82, 0.9, 0.95, 0.75), stream_radius: float = 0.0045) -> void:
 	radius = stream_radius
 	var cylinder := CylinderMesh.new()
 	cylinder.top_radius = 1.0

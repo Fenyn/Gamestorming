@@ -24,6 +24,6 @@ void fragment() {
 	float foam_start = half_height - foam_fraction * 2.0 * half_height;
 	float foam = foam_fraction > 0.001 ? smoothstep(foam_start - 0.002, foam_start + 0.002, local_y) : 0.0;
 	ALBEDO = mix(liquid_color.rgb, foam_color.rgb, foam);
-	ROUGHNESS = mix(0.12, 0.75, foam);
-	SPECULAR = 0.6;
+	ROUGHNESS = mix(0.35, 0.75, foam);
+	SPECULAR = 0.35;
 }

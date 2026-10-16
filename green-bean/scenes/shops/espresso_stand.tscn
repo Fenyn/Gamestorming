@@ -135,6 +135,84 @@ size = Vector3(0.1, 2.5, 2.5)
 [sub_resource type="BoxShape3D" id="shape_FrontCounter"]
 size = Vector3(3.5, 1, 0.2)
 
+[sub_resource type="CylinderShape3D" id="col_0"]
+radius = 0.45
+height = 0.75
+
+[sub_resource type="BoxShape3D" id="col_1"]
+size = Vector3(0.4, 0.94, 0.4)
+
+[sub_resource type="CylinderShape3D" id="col_2"]
+radius = 0.22
+height = 1.3
+
+[sub_resource type="CylinderShape3D" id="col_3"]
+radius = 0.22
+height = 0.86
+
+[sub_resource type="BoxShape3D" id="col_4"]
+size = Vector3(2.1, 1.9, 3.6)
+
+[sub_resource type="BoxShape3D" id="col_5"]
+size = Vector3(2.1, 2.0, 3.9)
+
+[sub_resource type="BoxShape3D" id="col_6"]
+size = Vector3(2.1, 1.9, 3.9)
+
+[sub_resource type="BoxShape3D" id="col_7"]
+size = Vector3(2.1, 2.4, 4.7)
+
+[sub_resource type="CylinderShape3D" id="col_8"]
+radius = 0.18
+height = 3.0
+
+[sub_resource type="CylinderShape3D" id="col_9"]
+radius = 0.3
+height = 3.0
+
+[sub_resource type="CylinderShape3D" id="col_10"]
+radius = 0.35
+height = 3.0
+
+[sub_resource type="CylinderShape3D" id="col_11"]
+radius = 0.4
+height = 3.0
+
+[sub_resource type="CylinderShape3D" id="col_12"]
+radius = 0.75
+height = 1.0
+
+[sub_resource type="CylinderShape3D" id="col_13"]
+radius = 0.5
+height = 0.8
+
+[sub_resource type="CylinderShape3D" id="col_14"]
+radius = 0.45
+height = 0.8
+
+[sub_resource type="BoxShape3D" id="col_15"]
+size = Vector3(1.0, 0.5, 0.88)
+
+[sub_resource type="BoxShape3D" id="col_16"]
+size = Vector3(2.0, 2.4, 2.0)
+
+[sub_resource type="BoxShape3D" id="col_17"]
+size = Vector3(0.52, 0.45, 1.88)
+
+[sub_resource type="BoxShape3D" id="nav_ground"]
+size = Vector3(60, 0.1, 60)
+
+[sub_resource type="NavigationMesh" id="navmesh"]
+geometry_parsed_geometry_type = 1
+geometry_source_geometry_mode = 1
+geometry_source_group_name = &"nav_geometry"
+cell_size = 0.25
+cell_height = 0.1
+agent_height = 1.8
+agent_radius = 0.25
+agent_max_climb = 0.2
+filter_baking_aabb = AABB(-22, -1, -12, 44, 5, 32)
+
 [node name="EspressoStand" type="Node3D" unique_id=1798764539]
 script = ExtResource("1_c26ee")
 
@@ -153,7 +231,7 @@ use_collision = true
 size = Vector3(60, 0.1, 60)
 material = SubResource("floor_mat")
 
-[node name="Platform" type="StaticBody3D" parent="." unique_id=1789400797]
+[node name="Platform" type="StaticBody3D" parent="." groups=["nav_geometry"] unique_id=1789400797]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
 
 [node name="Collision" type="CollisionShape3D" parent="Platform"]
@@ -162,7 +240,7 @@ shape = SubResource("shape_Platform")
 [node name="Model" parent="Platform" instance=ExtResource("k_floorFull")]
 transform = Transform3D(1.75, 0, 0, 0, 1, 0, 0, 0, 1.25, 0, -0.05, 0)
 
-[node name="BackWall" type="StaticBody3D" parent="." unique_id=690085353]
+[node name="BackWall" type="StaticBody3D" parent="." groups=["nav_geometry"] unique_id=690085353]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -1.25)
 
 [node name="Collision" type="CollisionShape3D" parent="BackWall"]
@@ -171,7 +249,7 @@ shape = SubResource("shape_BackWall")
 [node name="Model" parent="BackWall" instance=ExtResource("k_wall")]
 transform = Transform3D(1.75, 0, 0, 0, 0.969, 0, 0, 0, 1, 0, -1.25, 0)
 
-[node name="LeftWall" type="StaticBody3D" parent="." unique_id=1612186131]
+[node name="LeftWall" type="StaticBody3D" parent="." groups=["nav_geometry"] unique_id=1612186131]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.75, 1.25, 0)
 
 [node name="Collision" type="CollisionShape3D" parent="LeftWall"]
@@ -180,7 +258,7 @@ shape = SubResource("shape_LeftWall")
 [node name="Model" parent="LeftWall" instance=ExtResource("k_wallWindow")]
 transform = Transform3D(0, 0, 1, 0, 0.969, 0, -1.25, 0, 0, 0, -1.25, 0)
 
-[node name="RightWall" type="StaticBody3D" parent="." unique_id=564288447]
+[node name="RightWall" type="StaticBody3D" parent="." groups=["nav_geometry"] unique_id=564288447]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 1.25, 0)
 
 [node name="Collision" type="CollisionShape3D" parent="RightWall"]
@@ -189,7 +267,7 @@ shape = SubResource("shape_RightWall")
 [node name="Model" parent="RightWall" instance=ExtResource("k_wallWindow")]
 transform = Transform3D(0, 0, -1, 0, 0.969, 0, 1.25, 0, 0, 0, -1.25, 0)
 
-[node name="FrontCounter" type="StaticBody3D" parent="." unique_id=1559282005]
+[node name="FrontCounter" type="StaticBody3D" parent="." groups=["nav_geometry"] unique_id=1559282005]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 1.15)
 
 [node name="Collision" type="CollisionShape3D" parent="FrontCounter"]
@@ -333,67 +411,67 @@ size = Vector3(40, 0.02, 2.6)
 material = SubResource("sidewalk_mat")
 
 [node name="LaneDash1" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash2" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash3" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash4" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash5" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash6" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash7" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash8" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash9" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash10" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash11" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash12" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
 [node name="LaneDash13" type="CSGBox3D" parent="Street"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.006, 10.45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.006, 11.7)
 size = Vector3(1.5, 0.025, 0.15)
 material = SubResource("paint_mat")
 
@@ -404,10 +482,10 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -6.5, 0, 8.2)
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 5.5, 0, 8.2)
 
 [node name="ParkedVan" parent="Street" instance=ExtResource("k_van")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -1.5, 0, 12.7)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 12.5, 0, 8.2)
 
 [node name="DeliveryTruck" parent="Street" instance=ExtResource("k_delivery")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9.5, 0, 12.6)
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -13, 0, 8.2)
 
 [node name="StreetLamp1" parent="Street" instance=ExtResource("k_lantern")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 6.35)
@@ -531,6 +609,179 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.6, 0, 1.6)
 
 [node name="Bench" parent="Street" instance=ExtResource("k_stallBench")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -8.5, 0, 5.9)
+
+[node name="Colliders" type="StaticBody3D" parent="." groups=["nav_geometry"]]
+
+[node name="NavGround" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
+shape = SubResource("nav_ground")
+
+[node name="Decor_Table1" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.95, 0.375, 2.4)
+shape = SubResource("col_0")
+
+[node name="Decor_Table1ChairA" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3.6, 0.47, 2.4)
+shape = SubResource("col_1")
+
+[node name="Decor_Table1ChairB" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -2.3, 0.47, 2.4)
+shape = SubResource("col_1")
+
+[node name="Decor_Table2" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.95, 0.375, 0.3)
+shape = SubResource("col_0")
+
+[node name="Decor_Table2ChairA" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3.6, 0.47, 0.3)
+shape = SubResource("col_1")
+
+[node name="Decor_Table2ChairB" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -2.3, 0.47, 0.3)
+shape = SubResource("col_1")
+
+[node name="Decor_PlantLeft" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.05, 0.65, 1.45)
+shape = SubResource("col_2")
+
+[node name="Decor_PlantRight" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 0.65, 1.45)
+shape = SubResource("col_2")
+
+[node name="Decor_TrashCan" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 2.15, 0.43, 0.7)
+shape = SubResource("col_3")
+
+[node name="Street_ParkedSedan" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -6.5, 0.95, 8.2)
+shape = SubResource("col_4")
+
+[node name="Street_ParkedTaxi" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 5.5, 1, 8.2)
+shape = SubResource("col_5")
+
+[node name="Street_ParkedVan" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 12.5, 0.95, 8.2)
+shape = SubResource("col_6")
+
+[node name="Street_DeliveryTruck" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -13, 1.2, 8.2)
+shape = SubResource("col_7")
+
+[node name="Street_StreetLamp1" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 1.5, 6.35)
+shape = SubResource("col_8")
+
+[node name="Street_StreetLamp2" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 1.5, 6.35)
+shape = SubResource("col_8")
+
+[node name="Street_StreetLamp3" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 1.5, 6.35)
+shape = SubResource("col_8")
+
+[node name="Street_StreetLamp4" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 1.5, 6.35)
+shape = SubResource("col_8")
+
+[node name="Street_Tree1" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.5, 1.5, -4.5)
+shape = SubResource("col_9")
+
+[node name="Street_Tree2" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0.681998, 0, 0.731354, 0, 1, 0, -0.731354, 0, 0.681998, -6, 1.5, -5)
+shape = SubResource("col_9")
+
+[node name="Street_Tree3" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(-0.0697565, 0, 0.997564, 0, 1, 0, -0.997564, 0, -0.0697565, -2.5, 1.5, -4.3)
+shape = SubResource("col_9")
+
+[node name="Street_Tree4" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(-0.777146, 0, 0.62932, 0, 1, 0, -0.62932, 0, -0.777146, 1.2, 1.5, -5.2)
+shape = SubResource("col_10")
+
+[node name="Street_Tree5" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(-0.990268, 0, -0.139173, 0, 1, 0, 0.139173, 0, -0.990268, 4.8, 1.5, -4.4)
+shape = SubResource("col_9")
+
+[node name="Street_Tree6" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(-0.573576, 0, -0.819152, 0, 1, 0, 0.819152, 0, -0.573576, 8.5, 1.5, -5)
+shape = SubResource("col_9")
+
+[node name="Street_Tree7" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0.207912, 0, -0.978148, 0, 1, 0, 0.978148, 0, 0.207912, -11, 1.5, -8.5)
+shape = SubResource("col_11")
+
+[node name="Street_Tree8" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0.857167, 0, -0.515038, 0, 1, 0, 0.515038, 0, 0.857167, -4, 1.5, -9)
+shape = SubResource("col_11")
+
+[node name="Street_Tree9" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0.961262, 0, 0.275637, 0, 1, 0, -0.275637, 0, 0.961262, 3, 1.5, -8.8)
+shape = SubResource("col_11")
+
+[node name="Street_Tree10" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0.45399, 0, 0.891007, 0, 1, 0, -0.891007, 0, 0.45399, 10, 1.5, -8.2)
+shape = SubResource("col_11")
+
+[node name="Street_Tree11" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(-0.34202, 0, 0.939693, 0, 1, 0, -0.939693, 0, -0.34202, -8, 1.5, 0.5)
+shape = SubResource("col_9")
+
+[node name="Street_Tree12" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(-0.920505, 0, 0.390731, 0, 1, 0, -0.390731, 0, -0.920505, 8.5, 1.5, 0)
+shape = SubResource("col_10")
+
+[node name="Street_Bush1" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0.5, -1.9)
+shape = SubResource("col_12")
+
+[node name="Street_Bush2" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0.48481, 0, 0.87462, 0, 1, 0, -0.87462, 0, 0.48481, 0.2, 0.4, -2)
+shape = SubResource("col_13")
+
+[node name="Street_Bush3" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(-0.529919, 0, 0.848048, 0, 1, 0, -0.848048, 0, -0.529919, 2.5, 0.5, -1.8)
+shape = SubResource("col_12")
+
+[node name="Street_Bush4" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(-0.99863, 0, -0.052336, 0, 1, 0, 0.052336, 0, -0.99863, 2.5, 0.4, 0)
+shape = SubResource("col_14")
+
+[node name="Street_Bush5" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(-0.438371, 0, -0.898794, 0, 1, 0, 0.898794, 0, -0.438371, -5.2, 0.4, -1.2)
+shape = SubResource("col_14")
+
+[node name="Street_Planter1" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -4.6, 0.25, 1.4)
+shape = SubResource("col_15")
+
+[node name="Street_Planter2" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -4.6, 0.25, 3.4)
+shape = SubResource("col_15")
+
+[node name="Street_Planter3" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0.25, 15.3)
+shape = SubResource("col_15")
+
+[node name="Street_Planter4" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.25, 15.3)
+shape = SubResource("col_15")
+
+[node name="Street_StallGreen" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 1.2, 2.6)
+shape = SubResource("col_16")
+
+[node name="Street_StallRed" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.6, 1.2, 1.6)
+shape = SubResource("col_16")
+
+[node name="Street_Bench" type="CollisionShape3D" parent="Colliders"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -8.5, 0.225, 5.9)
+shape = SubResource("col_17")
+
+[node name="NavRegion" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("navmesh")
 
 [node name="PlayerSpawn" type="Marker3D" parent="." unique_id=964056624]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)

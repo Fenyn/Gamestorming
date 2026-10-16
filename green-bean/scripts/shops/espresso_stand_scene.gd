@@ -18,11 +18,27 @@ const STATION_EQUIPMENT_MAP := {
 }
 
 func _ready() -> void:
+	# CSG and collision shapes finish setting up at the end of this frame, so bake then.
+	call_deferred("_bake_navigation")
 	_spawn_player()
 	_setup_customers()
+	_setup_ambient_life()
 	_gate_stations()
 	_spawn_sauce_bottles()
 	GameManager.start_prep()
+
+## Bakes the walkable area for customers from every static collider in the shop
+## (stand, street props, seating). Runs once at startup; it takes a few milliseconds.
+func _bake_navigation() -> void:
+	var region := get_node_or_null("NavRegion") as NavigationRegion3D
+	if region == null:
+		return
+	# The navmesh uses finer height cells than the default map so paths sit close
+	# to the ground; the map must match or Godot warns and offsets the paths.
+	var map := region.get_navigation_map()
+	NavigationServer3D.map_set_cell_size(map, region.navigation_mesh.cell_size)
+	NavigationServer3D.map_set_cell_height(map, region.navigation_mesh.cell_height)
+	region.bake_navigation_mesh(false)
 
 func _spawn_player() -> void:
 	var spawn := $PlayerSpawn as Marker3D
@@ -38,6 +54,11 @@ func _setup_customers() -> void:
 	var reg_pos := ($RegisterPos as Marker3D).position
 	var pickup_pos := ($PickupPos as Marker3D).position
 	spawner.setup(reg_pos, pickup_pos)
+
+func _setup_ambient_life() -> void:
+	var life := AmbientLife.new()
+	life.name = "AmbientLife"
+	add_child(life)
 
 func _gate_stations() -> void:
 	for node_name in STATION_EQUIPMENT_MAP:

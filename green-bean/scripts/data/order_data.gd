@@ -4,6 +4,8 @@ extends RefCounted
 var drink_type: DrinkData.DrinkType
 var cup_size: DrinkData.CupSize
 var ticket_code: String
+## Name written on the cup, filled in when a customer pays for this order.
+var customer_name := ""
 var requested_syrup: int = -1
 var requested_sauce: int = -1
 

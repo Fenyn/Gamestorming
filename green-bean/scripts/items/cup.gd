@@ -121,7 +121,7 @@ func _ready() -> void:
 func _add_ticket_sticker(radius: float) -> void:
 	var sticker := MeshInstance3D.new()
 	var quad := QuadMesh.new()
-	quad.size = Vector2(0.045, 0.026)
+	quad.size = Vector2(0.05, 0.034)
 	sticker.mesh = quad
 	var paper := StandardMaterial3D.new()
 	paper.albedo_color = Color(0.98, 0.97, 0.92)
@@ -131,7 +131,7 @@ func _add_ticket_sticker(radius: float) -> void:
 	sticker.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(sticker)
 	var code := Label3D.new()
-	code.text = order.ticket_code
+	code.text = order.ticket_code if order.customer_name.is_empty() else "%s\n%s" % [order.customer_name, order.ticket_code]
 	code.font_size = 32
 	code.pixel_size = 0.0005
 	code.modulate = Color(0.15, 0.1, 0.08)

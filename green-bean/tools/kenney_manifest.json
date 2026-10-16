@@ -1,48 +1,307 @@
 {
   "out_dir": "assets/models/kenney",
   "packs": {
-    "furniture": {"dir": "furniturekit_updated/Models/GLTF format", "scale": 2.0},
-    "food": {"dir": "foodKit_v1.2/Models/GLTF format", "scale": 0.4}
+    "furniture": {
+      "dir": "furniturekit_updated/Models/GLTF format",
+      "scale": 2.0
+    },
+    "food": {
+      "dir": "foodKit_v1.2/Models/GLTF format",
+      "scale": 0.4
+    },
+    "nature": {
+      "dir": "kenney_natureKit_2.1/Models/GLTF format",
+      "scale": 3.0
+    },
+    "cars": {
+      "dir": "carkit_v1.4/Models/GLTF format",
+      "scale": 1.5
+    },
+    "town": {
+      "dir": "fantasy-town-kit-1.0/Models/GLTF format",
+      "scale": 2.0
+    }
   },
   "models": [
-    {"name": "floorFull", "pack": "furniture", "colors": {"wood": "#b07a4f"}},
-    {"name": "wall", "pack": "furniture", "colors": {"_defaultMat": "#e6d5bb"}},
-    {"name": "wallWindow", "pack": "furniture", "colors": {"_defaultMat": "#e6d5bb"}},
-    {"name": "wallDoorway", "pack": "furniture", "colors": {"_defaultMat": "#e6d5bb"}},
-    {"name": "kitchenBar", "pack": "furniture", "colors": {"metal": "#cfc6b8"}},
-    {"name": "kitchenBarEnd", "pack": "furniture", "colors": {"metal": "#cfc6b8"}},
-    {"name": "kitchenCabinet", "pack": "furniture", "colors": {"metal": "#cfc6b8"}},
-    {"name": "kitchenCabinetDrawer", "pack": "furniture", "colors": {"metal": "#cfc6b8"}},
-    {"name": "kitchenCabinetUpper", "pack": "furniture"},
-    {"name": "kitchenFridgeSmall", "pack": "furniture"},
-    {"name": "kitchenCoffeeMachine", "pack": "furniture"},
-    {"name": "lampSquareCeiling", "pack": "furniture"},
-    {"name": "lampWall", "pack": "furniture"},
-    {"name": "pottedPlant", "pack": "furniture"},
-    {"name": "plantSmall1", "pack": "furniture"},
-    {"name": "plantSmall2", "pack": "furniture"},
-    {"name": "plantSmall3", "pack": "furniture"},
-    {"name": "tableRound", "pack": "furniture"},
-    {"name": "chair", "pack": "furniture"},
-    {"name": "chairRounded", "pack": "furniture"},
-    {"name": "stoolBar", "pack": "furniture"},
-    {"name": "trashcan", "pack": "furniture"},
-    {"name": "cardboardBoxClosed", "pack": "furniture"},
-    {"name": "cardboardBoxOpen", "pack": "furniture"},
-    {"name": "radio", "pack": "furniture"},
-    {"name": "rugDoormat", "pack": "furniture"},
-    {"name": "carton", "pack": "food"},
-    {"name": "cartonSmall", "pack": "food"},
-    {"name": "bag", "pack": "food", "colors": {"brownLight": "#8a5a3c"}},
-    {"name": "bagFlat", "pack": "food"},
-    {"name": "croissant", "pack": "food", "scale": 0.7},
-    {"name": "muffin", "pack": "food", "scale": 0.8},
-    {"name": "donut", "pack": "food"},
-    {"name": "donutChocolate", "pack": "food"},
-    {"name": "cupcake", "pack": "food", "scale": 0.6},
-    {"name": "cookieChocolate", "pack": "food", "scale": 1.5},
-    {"name": "plate", "pack": "food", "scale": 0.6},
-    {"name": "cupSaucer", "pack": "food"},
-    {"name": "glass", "pack": "food"}
+    {
+      "name": "floorFull",
+      "pack": "furniture",
+      "colors": {
+        "wood": "#b07a4f"
+      }
+    },
+    {
+      "name": "wall",
+      "pack": "furniture",
+      "colors": {
+        "_defaultMat": "#e6d5bb"
+      }
+    },
+    {
+      "name": "wallWindow",
+      "pack": "furniture",
+      "colors": {
+        "_defaultMat": "#e6d5bb"
+      }
+    },
+    {
+      "name": "wallDoorway",
+      "pack": "furniture",
+      "colors": {
+        "_defaultMat": "#e6d5bb"
+      }
+    },
+    {
+      "name": "kitchenBar",
+      "pack": "furniture",
+      "colors": {
+        "metal": "#cfc6b8"
+      }
+    },
+    {
+      "name": "kitchenBarEnd",
+      "pack": "furniture",
+      "colors": {
+        "metal": "#cfc6b8"
+      }
+    },
+    {
+      "name": "kitchenCabinet",
+      "pack": "furniture",
+      "colors": {
+        "metal": "#cfc6b8"
+      }
+    },
+    {
+      "name": "kitchenCabinetDrawer",
+      "pack": "furniture",
+      "colors": {
+        "metal": "#cfc6b8"
+      }
+    },
+    {
+      "name": "kitchenCabinetUpper",
+      "pack": "furniture"
+    },
+    {
+      "name": "kitchenFridgeSmall",
+      "pack": "furniture"
+    },
+    {
+      "name": "kitchenCoffeeMachine",
+      "pack": "furniture"
+    },
+    {
+      "name": "lampSquareCeiling",
+      "pack": "furniture"
+    },
+    {
+      "name": "lampWall",
+      "pack": "furniture"
+    },
+    {
+      "name": "pottedPlant",
+      "pack": "furniture"
+    },
+    {
+      "name": "plantSmall1",
+      "pack": "furniture"
+    },
+    {
+      "name": "plantSmall2",
+      "pack": "furniture"
+    },
+    {
+      "name": "plantSmall3",
+      "pack": "furniture"
+    },
+    {
+      "name": "tableRound",
+      "pack": "furniture"
+    },
+    {
+      "name": "chair",
+      "pack": "furniture"
+    },
+    {
+      "name": "chairRounded",
+      "pack": "furniture"
+    },
+    {
+      "name": "stoolBar",
+      "pack": "furniture"
+    },
+    {
+      "name": "trashcan",
+      "pack": "furniture"
+    },
+    {
+      "name": "cardboardBoxClosed",
+      "pack": "furniture"
+    },
+    {
+      "name": "cardboardBoxOpen",
+      "pack": "furniture"
+    },
+    {
+      "name": "radio",
+      "pack": "furniture"
+    },
+    {
+      "name": "rugDoormat",
+      "pack": "furniture"
+    },
+    {
+      "name": "carton",
+      "pack": "food"
+    },
+    {
+      "name": "cartonSmall",
+      "pack": "food"
+    },
+    {
+      "name": "bag",
+      "pack": "food",
+      "colors": {
+        "brownLight": "#8a5a3c"
+      }
+    },
+    {
+      "name": "bagFlat",
+      "pack": "food"
+    },
+    {
+      "name": "croissant",
+      "pack": "food",
+      "scale": 0.7
+    },
+    {
+      "name": "muffin",
+      "pack": "food",
+      "scale": 0.8
+    },
+    {
+      "name": "donut",
+      "pack": "food"
+    },
+    {
+      "name": "donutChocolate",
+      "pack": "food"
+    },
+    {
+      "name": "cupcake",
+      "pack": "food",
+      "scale": 0.6
+    },
+    {
+      "name": "cookieChocolate",
+      "pack": "food",
+      "scale": 1.5
+    },
+    {
+      "name": "plate",
+      "pack": "food",
+      "scale": 0.6
+    },
+    {
+      "name": "cupSaucer",
+      "pack": "food"
+    },
+    {
+      "name": "glass",
+      "pack": "food"
+    },
+    {
+      "name": "tree_default",
+      "pack": "nature"
+    },
+    {
+      "name": "tree_oak",
+      "pack": "nature"
+    },
+    {
+      "name": "tree_detailed",
+      "pack": "nature"
+    },
+    {
+      "name": "tree_fat",
+      "pack": "nature"
+    },
+    {
+      "name": "tree_pineRoundA",
+      "pack": "nature"
+    },
+    {
+      "name": "plant_bush",
+      "pack": "nature"
+    },
+    {
+      "name": "plant_bushDetailed",
+      "pack": "nature"
+    },
+    {
+      "name": "plant_bushLarge",
+      "pack": "nature"
+    },
+    {
+      "name": "flower_redA",
+      "pack": "nature",
+      "scale": 0.5
+    },
+    {
+      "name": "flower_yellowA",
+      "pack": "nature",
+      "scale": 0.5
+    },
+    {
+      "name": "flower_purpleA",
+      "pack": "nature",
+      "scale": 0.5
+    },
+    {
+      "name": "grass_large",
+      "pack": "nature"
+    },
+    {
+      "name": "pot_large",
+      "pack": "nature",
+      "scale": 0.6
+    },
+    {
+      "name": "sedan",
+      "pack": "cars"
+    },
+    {
+      "name": "taxi",
+      "pack": "cars"
+    },
+    {
+      "name": "van",
+      "pack": "cars"
+    },
+    {
+      "name": "delivery",
+      "pack": "cars"
+    },
+    {
+      "name": "lantern",
+      "pack": "town"
+    },
+    {
+      "name": "stallRed",
+      "pack": "town"
+    },
+    {
+      "name": "stallGreen",
+      "pack": "town"
+    },
+    {
+      "name": "stallBench",
+      "pack": "town"
+    },
+    {
+      "name": "hedge",
+      "pack": "town"
+    }
   ]
 }

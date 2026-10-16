@@ -2,6 +2,18 @@ class_name Customer
 extends CharacterBody3D
 
 const MOVE_SPEED := 2.0
+const CHARACTER_SCENE := preload("res://assets/models/characters/characterMedium.fbx")
+const IDLE_ANIM_SCENE := preload("res://assets/models/characters/idle.fbx")
+const RUN_ANIM_SCENE := preload("res://assets/models/characters/run.fbx")
+const SKIN_PATH := "res://assets/models/characters/skins/customer_%02d.png"
+const SKIN_COUNT := 10
+# characterMedium.fbx imports 3.76 units tall; this makes customers 1.7 m.
+const CHARACTER_SCALE := 0.4516
+# There is no walk animation in the pack, so walking is the run played slowly.
+const WALK_ANIM_SPEED := 0.55
+const ANIM_IDLE := "customer/idle"
+const ANIM_WALK := "customer/run"
+
 const ORDER_PATIENCE := 300.0
 const PICKUP_PATIENCE := 300.0
 
@@ -24,7 +36,10 @@ var _exit_pos := Vector3.ZERO
 var _leave_reason := ""
 var _warned_impatient := false
 
-var _body_mesh: CSGBox3D = null
+static var _anim_library: AnimationLibrary = null
+static var _skin_materials: Array[StandardMaterial3D] = []
+
+var _anim_player: AnimationPlayer = null
 var _speech_label: Label3D = null
 var _patience_bar_bg: CSGBox3D = null
 var _patience_bar_fill: CSGBox3D = null
@@ -44,23 +59,18 @@ func _build_visual() -> void:
 	add_child(_visual_root)
 	_anim_time = randf() * TAU
 
-	_body_mesh = CSGBox3D.new()
-	_body_mesh.size = Vector3(0.4, 1.6, 0.3)
-	_body_mesh.position.y = 0.8
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(randf_range(0.4, 0.9), randf_range(0.3, 0.7), randf_range(0.3, 0.7))
-	_body_mesh.material = mat
-	_visual_root.add_child(_body_mesh)
-
-	# Simple face on the front (+Z) so it is clear which way a customer is looking.
-	var eye_mat := StandardMaterial3D.new()
-	eye_mat.albedo_color = Color(0.08, 0.06, 0.05)
-	for side in [-1.0, 1.0]:
-		var eye := CSGBox3D.new()
-		eye.size = Vector3(0.05, 0.07, 0.02)
-		eye.position = Vector3(0.08 * float(side), 1.42, 0.155)
-		eye.material = eye_mat
-		_visual_root.add_child(eye)
+	# Kenney animated character with a random skin. Faces +Z like the rest of the code expects.
+	var character: Node3D = CHARACTER_SCENE.instantiate()
+	character.scale = Vector3.ONE * CHARACTER_SCALE
+	_visual_root.add_child(character)
+	var skin := _get_skin_material(randi() % SKIN_COUNT)
+	for node in character.find_children("*", "MeshInstance3D", true, false):
+		(node as MeshInstance3D).material_override = skin
+	_anim_player = AnimationPlayer.new()
+	character.add_child(_anim_player)
+	_anim_player.add_animation_library("customer", _get_anim_library())
+	_anim_player.play(ANIM_IDLE)
+	_anim_player.seek(randf() * 1.0, true)
 
 	var col := CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
@@ -154,17 +164,17 @@ func _animate(delta: float) -> void:
 		var target_yaw := atan2(face_dir.x, face_dir.z)
 		rotation.y = lerp_angle(rotation.y, target_yaw, 1.0 - exp(-8.0 * delta))
 
+	if _anim_player:
+		var wanted := ANIM_WALK if moving else ANIM_IDLE
+		if _anim_player.current_animation != wanted:
+			_anim_player.play(wanted, 0.25)
+		_anim_player.speed_scale = WALK_ANIM_SPEED if moving else 1.0
 	if moving:
-		# Hop and waddle.
-		_visual_root.position.y = absf(sin(_anim_time)) * 0.05
-		_visual_root.rotation.z = sin(_anim_time) * 0.06
-		_visual_root.scale = Vector3.ONE
+		_visual_root.rotation.z = 0.0
 	else:
-		# Idle breathing, plus foot-tapping sway when patience is low.
-		_visual_root.position.y = 0.0
+		# Impatient customers sway from side to side.
 		var impatience := clampf((0.35 - _patience_ratio) / 0.35, 0.0, 1.0)
 		_visual_root.rotation.z = sin(_anim_time * 3.0) * 0.04 * impatience
-		_visual_root.scale = Vector3(1.0, 1.0 + sin(_anim_time) * 0.012, 1.0)
 
 	if _patience_bar_fill and _patience_bar_bg:
 		_bar_shake = sin(Time.get_ticks_msec() * 0.06) * 0.012 if _patience_ratio < 0.25 else 0.0
@@ -303,3 +313,38 @@ func _update_patience_bar(ratio: float) -> void:
 				mat.emission = red * (0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.012))
 			else:
 				mat.emission_enabled = false
+
+
+static func _get_skin_material(index: int) -> StandardMaterial3D:
+	if _skin_materials.is_empty():
+		for i in range(SKIN_COUNT):
+			var mat := StandardMaterial3D.new()
+			mat.albedo_texture = load(SKIN_PATH % (i + 1))
+			mat.roughness = 0.9
+			_skin_materials.append(mat)
+	return _skin_materials[index % _skin_materials.size()]
+
+## Idle and run come from separate FBX files that share the character's skeleton.
+## Copy their animations into one looping library, once.
+static func _get_anim_library() -> AnimationLibrary:
+	if _anim_library:
+		return _anim_library
+	_anim_library = AnimationLibrary.new()
+	_anim_library.add_animation("idle", _extract_animation(IDLE_ANIM_SCENE, "Idle"))
+	_anim_library.add_animation("run", _extract_animation(RUN_ANIM_SCENE, "Run"))
+	return _anim_library
+
+static func _extract_animation(scene: PackedScene, name_suffix: String) -> Animation:
+	var root := scene.instantiate()
+	var found: Animation = null
+	for node in root.find_children("*", "AnimationPlayer", true, false):
+		var player := node as AnimationPlayer
+		for anim_name in player.get_animation_list():
+			if String(anim_name).ends_with(name_suffix):
+				found = player.get_animation(anim_name).duplicate() as Animation
+	root.free()
+	if found == null:
+		push_warning("Customer: no '%s' animation found" % name_suffix)
+		return Animation.new()
+	found.loop_mode = Animation.LOOP_LINEAR
+	return found

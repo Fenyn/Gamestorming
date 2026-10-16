@@ -10,6 +10,7 @@ var grind_target := BASE_GRIND_TARGET
 var _last_mouse_angle := 0.0
 var _total_rotation := 0.0
 var _size_multiplier := 1.0
+var _last_crank_msec := -100000
 
 var _level_label: Label3D = null
 var _bar_bg: CSGBox3D = null
@@ -88,6 +89,8 @@ func _handle_input(event: InputEvent) -> void:
 		_last_mouse_angle = angle
 
 		grind_progress += absf(delta_angle) * CRANK_SPEED
+		if absf(delta_angle) > 0.01:
+			_last_crank_msec = Time.get_ticks_msec()
 		_update_label()
 		_update_progress_bar()
 		if grind_progress >= grind_target:
@@ -99,6 +102,14 @@ func _handle_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			toggle_grind_level()
+
+## True while the player has cranked in the last fraction of a second.
+func is_cranking() -> bool:
+	return _active and Time.get_ticks_msec() - _last_crank_msec < 150
+
+## Total crank rotation in radians, for animating a handle.
+func get_crank_rotation() -> float:
+	return _total_rotation
 
 func _update_mini_game(_delta: float) -> void:
 	_update_label()

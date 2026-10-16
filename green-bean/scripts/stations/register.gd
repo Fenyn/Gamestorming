@@ -745,6 +745,7 @@ func _on_change_made(_amount: float) -> void:
 		"ticket_code": _pending_order.ticket_code,
 	})
 	_status_label_ui.text = "ORDER SENT!\nTicket printed."
+	Fx.float_text(global_position + Vector3(0, 0.55, 0), "+$%.2f" % _pending_order.base_price)
 	var timer := get_tree().create_timer(1.5)
 	timer.timeout.connect(_clear_order)
 

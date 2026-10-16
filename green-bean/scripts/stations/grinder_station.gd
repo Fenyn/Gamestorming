@@ -7,6 +7,8 @@ var _mini_game: GrindMiniGame = null
 var _placed_device: Node3D = null
 var _device_slot: Marker3D = null
 var _status_label: Label3D = null
+var _dust: GPUParticles3D = null
+var _crank_pivot: Node3D = null
 
 func _ready() -> void:
 	add_to_group("station")
@@ -29,6 +31,36 @@ func _ready() -> void:
 
 	_status_label = StationUtils.create_status_label(self)
 	_update_label()
+	_build_fx()
+
+func _build_fx() -> void:
+	# Grounds falling into the device while the player cranks.
+	_dust = Fx.make_specks(Color(0.32, 0.2, 0.1), 0.006, -1.5, 0.45, 30)
+	_dust.position = _device_slot.position + Vector3(0, 0.09, 0)
+	add_child(_dust)
+
+	# Crank handle on the right side that turns with the player's mouse circles.
+	_crank_pivot = Node3D.new()
+	_crank_pivot.position = Vector3(0.14, 0.08, 0)
+	add_child(_crank_pivot)
+	var crank_mat := StandardMaterial3D.new()
+	crank_mat.albedo_color = Color(0.25, 0.25, 0.27)
+	crank_mat.metallic = 0.6
+	crank_mat.roughness = 0.35
+	var arm := CSGBox3D.new()
+	arm.size = Vector3(0.012, 0.09, 0.012)
+	arm.position = Vector3(0, 0.045, 0)
+	arm.material = crank_mat
+	_crank_pivot.add_child(arm)
+	var knob_mat := StandardMaterial3D.new()
+	knob_mat.albedo_color = Color(0.45, 0.28, 0.16)
+	var knob := CSGCylinder3D.new()
+	knob.radius = 0.012
+	knob.height = 0.03
+	knob.rotation_degrees = Vector3(0, 0, 90)
+	knob.position = Vector3(0.02, 0.09, 0)
+	knob.material = knob_mat
+	_crank_pivot.add_child(knob)
 
 func interact(player: Player) -> void:
 	match state:
@@ -100,6 +132,11 @@ func _input(event: InputEvent) -> void:
 			_update_label()
 
 func _process(_delta: float) -> void:
+	if _dust:
+		_dust.emitting = _mini_game.is_cranking()
+	if _crank_pivot:
+		_crank_pivot.rotation.x = -_mini_game.get_crank_rotation() * 0.35
+
 	if state == State.GRINDING and not _mini_game.is_active():
 		state = State.DEVICE_PLACED
 		_update_label()

@@ -7,6 +7,14 @@ const ACCEL := 30.0
 const FRICTION := 20.0
 const MOUSE_SENSITIVITY := 0.002
 const INTERACT_DISTANCE := 2.5
+const HOVER_SHADER := preload("res://assets/shaders/hover_rim.gdshader")
+const CAMERA_ENTER_TIME := 0.25
+const CAMERA_EXIT_TIME := 0.15
+const SWAY_AMOUNT := 5.0
+const SWAY_MAX := 0.35
+const SWAY_SMOOTH := 12.0
+const BOB_FREQ := 9.0
+const BOB_HEIGHT := 0.012
 
 enum InteractMode { FREE, MINI_GAME, SCREEN, INFO }
 
@@ -21,6 +29,14 @@ var _saved_pitch := 0.0
 var _screen_look_range := 0.35
 var _exit_frame := -1
 const EXIT_COOLDOWN_FRAMES := 10
+
+var _camera_tween: Tween = null
+var _hover_material: ShaderMaterial = null
+var _hovered: Node = null
+var _sway := Vector2.ZERO
+var _prev_yaw := 0.0
+var _prev_pitch := 0.0
+var _bob_time := 0.0
 
 @onready var camera: Camera3D = $Camera3D
 @onready var interact_ray: RayCast3D = $Camera3D/InteractRay
@@ -42,7 +58,10 @@ var _day_ended := false
 var _active_order: OrderData = null
 
 func _ready() -> void:
+	add_to_group("player")
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	_hover_material = ShaderMaterial.new()
+	_hover_material.shader = HOVER_SHADER
 	_build_hud()
 	EventBus.day_ended.connect(_on_day_ended)
 	EventBus.ticket_printed.connect(_on_ticket_printed)
@@ -69,7 +88,7 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if _mode == InteractMode.SCREEN:
-		if event is InputEventMouseMotion:
+		if event is InputEventMouseMotion and not _is_camera_easing():
 			var m := event as InputEventMouseMotion
 			camera.rotation.y -= m.relative.x * MOUSE_SENSITIVITY
 			camera.rotation.x -= m.relative.y * MOUSE_SENSITIVITY
@@ -79,7 +98,7 @@ func _input(event: InputEvent) -> void:
 			exit_screen_mode()
 		return
 
-	var in_cooldown := Engine.get_process_frames() - _exit_frame <= EXIT_COOLDOWN_FRAMES
+	var in_cooldown := Engine.get_process_frames() - _exit_frame <= EXIT_COOLDOWN_FRAMES or _is_camera_easing()
 
 	if event is InputEventMouseMotion and not in_cooldown:
 		var m := event as InputEventMouseMotion
@@ -112,7 +131,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, FRICTION * delta)
 		velocity.z = move_toward(velocity.z, 0.0, FRICTION * delta)
 		move_and_slide()
-		_update_held_item()
+		_update_held_item(delta)
 		_update_hud()
 		return
 
@@ -134,7 +153,7 @@ func _physics_process(delta: float) -> void:
 			velocity.y = JUMP_VELOCITY
 
 	move_and_slide()
-	_update_held_item()
+	_update_held_item(delta)
 	_update_hud()
 
 func _build_hud() -> void:
@@ -240,6 +259,8 @@ func _update_hud() -> void:
 		else:
 			_money_label.text = "$%.2f" % GameManager.total_earned
 
+	_update_hover_highlight()
+
 	if _interact_label:
 		if interact_ray.is_colliding():
 			var collider := interact_ray.get_collider()
@@ -261,11 +282,77 @@ func _update_hud() -> void:
 	_update_recipe_display()
 	_process_info_hover()
 
-func _update_held_item() -> void:
+func _update_held_item(delta: float) -> void:
+	# Look sway: the held item lags behind fast turns, then settles.
+	var yaw_delta := wrapf(_yaw - _prev_yaw, -PI, PI)
+	var pitch_delta := _pitch - _prev_pitch
+	_prev_yaw = _yaw
+	_prev_pitch = _pitch
+	var sway_target := Vector2(-yaw_delta, -pitch_delta) * SWAY_AMOUNT
+	sway_target = sway_target.limit_length(SWAY_MAX)
+	_sway = _sway.lerp(sway_target, 1.0 - exp(-SWAY_SMOOTH * delta))
+
+	# Walk bob, scaled by how fast the player is moving.
+	var speed_ratio := clampf(Vector2(velocity.x, velocity.z).length() / MOVE_SPEED, 0.0, 1.0)
+	if _mode != InteractMode.FREE or not is_on_floor():
+		speed_ratio = 0.0
+	_bob_time += delta * BOB_FREQ * speed_ratio
+
 	if _held_item and is_instance_valid(_held_item):
+		var cam_basis := camera.global_transform.basis
 		var target := hold_point.global_transform.origin
-		_held_item.global_position = _held_item.global_position.lerp(target, 0.2)
-		_held_item.global_rotation = camera.global_rotation
+		target += cam_basis.x * (_sway.x * 0.06 + cos(_bob_time * 0.5) * BOB_HEIGHT * 0.6 * speed_ratio)
+		target += cam_basis.y * (_sway.y * 0.04 + absf(sin(_bob_time * 0.5)) * BOB_HEIGHT * speed_ratio)
+		var pos := _held_item.global_position.lerp(target, 0.2)
+		var tilt := Basis.from_euler(Vector3(_sway.y * 0.6, _sway.x * 0.5, _sway.x * 0.9))
+		_held_item.global_transform = Transform3D(cam_basis.orthonormalized() * tilt, pos)
+
+func _update_hover_highlight() -> void:
+	var target: Node = null
+	if _mode == InteractMode.FREE and interact_ray.is_colliding():
+		var collider := interact_ray.get_collider()
+		if collider and _is_actionable(collider):
+			target = collider
+	if target == _hovered:
+		return
+	_set_overlay(_hovered, null)
+	_hovered = target
+	_set_overlay(_hovered, _hover_material)
+
+func _is_actionable(collider: Object) -> bool:
+	if _held_item is Pitcher and collider is Cup:
+		return true
+	if _held_item is MilkJug and collider is Pitcher:
+		return true
+	if collider.has_method("interact"):
+		return true
+	if collider.has_method("receive_item") and _held_item:
+		return true
+	if collider is Node and (collider as Node).is_in_group("carriable") and not _held_item:
+		return true
+	return false
+
+func _set_overlay(root: Node, mat: Material) -> void:
+	if root == null or not is_instance_valid(root):
+		return
+	for geo in _collect_highlight_geometry(root):
+		geo.material_overlay = mat
+
+func _collect_highlight_geometry(root: Node) -> Array[GeometryInstance3D]:
+	var found: Array[GeometryInstance3D] = []
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			# Skip nested items (a pitcher sitting on a station) and effects.
+			if child is PhysicsBody3D or child is BaseMiniGame:
+				continue
+			if child is Label3D or child is GPUParticles3D or child is PourStream:
+				continue
+			if child is GeometryInstance3D:
+				found.append(child as GeometryInstance3D)
+			stack.append(child)
+	return found
 
 func _try_interact() -> void:
 	if not interact_ray.is_colliding():
@@ -294,10 +381,13 @@ func pickup_item(item: Node3D) -> void:
 	if _held_item:
 		return
 	_held_item = item
+	StationUtils.cancel_settle(item)
 	if item is RigidBody3D:
 		(item as RigidBody3D).freeze = true
 	StationUtils.set_item_collision(item, false)
-	item.global_position = hold_point.global_transform.origin
+	# Let the item fly into the hand from where it was, unless it is far away.
+	if item.global_position.distance_to(hold_point.global_transform.origin) > 1.5:
+		item.global_position = hold_point.global_transform.origin
 	SoundManager.play("item_pickup")
 
 func _try_place_item() -> void:
@@ -408,10 +498,17 @@ func _show_review_popup(stars: float, tip: float, order: OrderData = null) -> vo
 			container.add_child(detail)
 
 	hud.add_child(container)
+	container.modulate.a = 0.0
+	# Scale around the top-centre: the container is 320 px wide (offsets above).
+	container.pivot_offset = Vector2(160, 30)
+	container.scale = Vector2(0.5, 0.5)
 	var tween := create_tween()
-	tween.tween_interval(2.5)
-	tween.tween_property(container, "modulate:a", 0.0, 1.0)
-	tween.tween_callback(container.queue_free)
+	tween.set_parallel(true)
+	tween.tween_property(container, "scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(container, "modulate:a", 1.0, 0.15)
+	tween.chain().tween_interval(2.3)
+	tween.chain().tween_property(container, "modulate:a", 0.0, 1.0)
+	tween.chain().tween_callback(container.queue_free)
 
 func _build_quality_breakdown(order: OrderData) -> String:
 	var lines: Array[String] = []
@@ -603,7 +700,7 @@ func enter_mini_game(cam_transform: Transform3D) -> void:
 	_mode = InteractMode.MINI_GAME
 	_saved_yaw = _yaw
 	_saved_pitch = _pitch
-	camera.global_transform = cam_transform
+	_ease_camera_to(cam_transform)
 	_set_world_labels_visible(false)
 
 func enter_screen_mode(look_target: Vector3, cam_pos: Vector3, look_range: float = 0.35) -> void:
@@ -613,10 +710,14 @@ func enter_screen_mode(look_target: Vector3, cam_pos: Vector3, look_range: float
 	_saved_yaw = _yaw
 	_saved_pitch = _pitch
 	_screen_look_range = look_range
+	var start := camera.global_transform
 	camera.global_position = cam_pos
 	camera.look_at(look_target, Vector3.UP)
 	_screen_yaw_center = camera.rotation.y
 	_screen_pitch_center = camera.rotation.x
+	var target := camera.global_transform
+	camera.global_transform = start
+	_ease_camera_to(target)
 	_set_world_labels_visible(false)
 
 func _restore_camera() -> void:
@@ -626,10 +727,29 @@ func _restore_camera() -> void:
 	_exit_frame = Engine.get_process_frames()
 	_yaw = _saved_yaw
 	_pitch = _saved_pitch
+	_prev_yaw = _yaw
+	_prev_pitch = _pitch
+	var from := camera.global_transform
 	rotation.y = _yaw
-	camera.position = Vector3(0, 1.7, 0)
-	camera.rotation = Vector3(_pitch, 0, 0)
+	camera.global_transform = from
+	var rest := Transform3D(Basis.from_euler(Vector3(_pitch, 0, 0)), Vector3(0, 1.7, 0))
+	_kill_camera_tween()
+	_camera_tween = create_tween()
+	_camera_tween.tween_property(camera, "transform", rest, CAMERA_EXIT_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_set_world_labels_visible(true)
+
+func _ease_camera_to(target: Transform3D) -> void:
+	_kill_camera_tween()
+	_camera_tween = create_tween()
+	_camera_tween.tween_property(camera, "global_transform", target, CAMERA_ENTER_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+func _kill_camera_tween() -> void:
+	if _camera_tween and _camera_tween.is_valid():
+		_camera_tween.kill()
+	_camera_tween = null
+
+func _is_camera_easing() -> bool:
+	return _camera_tween != null and _camera_tween.is_running()
 
 func exit_screen_mode() -> void:
 	_restore_camera()

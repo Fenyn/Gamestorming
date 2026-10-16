@@ -28,6 +28,7 @@ var _cup_slot: Marker3D = null
 var _dripper_slot: Marker3D = null
 var _status_label: Label3D = null
 var _pour_tween: Tween = null
+var _drips: GPUParticles3D = null
 
 func _ready() -> void:
 	add_to_group("station")
@@ -58,6 +59,11 @@ func _ready() -> void:
 
 	_status_label = StationUtils.create_status_label(self)
 	_update_label()
+
+	# Coffee dripping from the dripper into the cup during draw-down.
+	_drips = Fx.make_specks(Color(0.22, 0.12, 0.05), 0.007, -4.0, 0.2, 5)
+	_drips.position = (_dripper_slot.position + _cup_slot.position) * 0.5 + Vector3(0, 0.02, 0)
+	add_child(_drips)
 
 func _spawn_shelf_dripper() -> void:
 	_shelf_dripper = Dripper.new()
@@ -129,7 +135,7 @@ func _start_pour_animation() -> void:
 		return
 	if _pour_tween and _pour_tween.is_valid():
 		_pour_tween.kill()
-	_pour_tween = StationUtils.start_kettle_pour(_pouring_player, _pour_kettle, _dripper_slot.global_position, Vector3(-0.10, 0.12, 0.06))
+	_pour_tween = StationUtils.start_kettle_pour(_pouring_player, _pour_kettle, _dripper_slot.global_position, Vector3(-0.10, 0.12, 0.06), _pour_game.is_pouring)
 
 func _set_dripper_opacity(alpha: float) -> void:
 	if not _placed_dripper:
@@ -231,6 +237,11 @@ func _process(_delta: float) -> void:
 			_update_label()
 		elif _status_label:
 			_status_label.text = "Bloom... %.0fs\n[E] when ready (hold kettle)" % _pour_game.get_bloom_timer()
+
+	if _drips:
+		_drips.emitting = state == State.DRAINING
+	if (state == State.READY or state == State.STALE) and _placed_cup:
+		_placed_cup.heat = _pour_game.get_coffee_freshness()
 
 	# Show drain countdown
 	if state == State.DRAINING:

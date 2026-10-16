@@ -23,6 +23,7 @@ UnlockManager="*res://scripts/autoload/unlock_manager.gd"
 GameManager="*res://scripts/autoload/game_manager.gd"
 StationUtils="*res://scripts/autoload/station_utils.gd"
 SoundManager="*res://scripts/autoload/sound_manager.gd"
+Fx="*res://scripts/autoload/fx.gd"
 
 [display]
 
@@ -41,6 +42,10 @@ enabled=PackedStringArray("res://addons/godot_base/plugin.cfg")
 [global_group]
 
 world_label=""
+
+[rendering]
+
+anti_aliasing/quality/msaa_3d=2
 
 [input]
 

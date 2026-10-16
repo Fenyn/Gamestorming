@@ -9,6 +9,7 @@ var _shelf_pitcher: Pitcher = null
 
 var _pitcher_slot: Marker3D = null
 var _status_label: Label3D = null
+var _steam_puffs: SteamPuffs = null
 
 func _ready() -> void:
 	add_to_group("station")
@@ -30,6 +31,12 @@ func _ready() -> void:
 	_steam_game.mini_game_completed.connect(_on_steam_complete)
 
 	_spawn_shelf_pitcher()
+
+	# Steam rises from the pitcher. It gets thicker as the milk heats and turns
+	# harsh and grey when the milk scalds, so the warning reads from across the shop.
+	_steam_puffs = SteamPuffs.new(40, 0.07, 0.16)
+	_steam_puffs.position = Vector3(0, 0.22, 0)
+	add_child(_steam_puffs)
 
 	_status_label = StationUtils.create_status_label(self)
 	_update_label()
@@ -136,7 +143,26 @@ func _process(_delta: float) -> void:
 			state = State.SCALDED
 			_update_label()
 
+	_update_steam_fx()
 	_check_removed_items()
+
+func _update_steam_fx() -> void:
+	var temp_ratio := clampf((_steam_game.get_temperature() - 20.0) / (SteamMiniGame.TARGET_TEMP - 20.0), 0.0, 1.0)
+	match state:
+		State.STRETCHING:
+			_steam_puffs.set_level(0.9 if _steam_game.is_steaming() else 0.1)
+		State.TEXTURING:
+			_steam_puffs.set_level(0.4 + 0.4 * temp_ratio)
+		State.READY:
+			# Past target and still heating: steam starts to get aggressive.
+			var over := clampf((_steam_game.get_temperature() - SteamMiniGame.TARGET_TEMP) / (SteamMiniGame.SCALD_TEMP - SteamMiniGame.TARGET_TEMP), 0.0, 1.0)
+			_steam_puffs.set_level(0.8 + 0.2 * over, over > 0.6)
+		State.SCALDED:
+			_steam_puffs.set_level(1.0, true)
+		_:
+			_steam_puffs.set_level(0.0)
+	if _placed_pitcher and _placed_pitcher.has_milk and state != State.MILK_DONE:
+		_placed_pitcher.update_milk_visual(temp_ratio, _steam_game.foam_level, state == State.SCALDED)
 
 func _check_removed_items() -> void:
 	if _placed_pitcher and StationUtils.is_item_removed(_placed_pitcher, _pitcher_slot.global_position):

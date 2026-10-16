@@ -19,6 +19,23 @@ Collision shapes and station positions did not move. Gameplay geometry is the sa
 
 Decor sits under the `Decor` node in `espresso_stand.tscn` and has no collision. Outdoor seating is on the left (x ≈ -3) so it stays out of the customer walk path from (3, 0, 5) to the register and pickup spots.
 
+## Customers
+
+Customers are Kenney Animated Characters (CC0): one rigged model with idle and run animations, in `assets/models/characters/`.
+
+- `customer.gd` picks one of 10 skins at random, plays idle while standing and the run animation at 55% speed while walking.
+- The 10 skins in `assets/models/characters/skins/` are made by `tools/make_customer_skins.py` from three Kenney skins (`skaterMaleA`, `skaterFemaleA`, `criminalMaleA`). It changes skin tone, hair, shirt and trouser colours by atlas region. The other Kenney skins are zombies, a cyborg, or have dirt and blood stains, so they are left out.
+- Customers now enter and leave 8 m to the right along the sidewalk (`customer_spawner.gd`), so they walk into view instead of appearing next to the stand. This adds about 4 s of walking each way.
+
+## Street
+
+The 8 m grey ground is now a 60 m grass field with a sidewalk, curbs and a two-lane road in front of the stand. All of it is under the `Street` node in `espresso_stand.tscn` and has no collision.
+
+- Kenney Car Kit: parked sedan and taxi on the near side, van and delivery truck on the far side.
+- Kenney Nature Kit: a tree line behind the stand, trees at the sides, bushes around the stand, flower planters.
+- Kenney Fantasy Town Kit: street lamps along the curb, two market stalls and a bench.
+- Light fog in the Environment so distant trees fade.
+
 ## Files
 
 - `assets/models/kenney/*.glb` — baked models. 1 unit = 1 m, origin at bottom centre, front faces +Z.
@@ -77,8 +94,8 @@ These are made with CSG in `_ready()`. Swapping one needs a small script change 
 
 ### Other placeholders
 
-- Customers are CSG boxes built in `customer.gd`. The Kenney mirror has animated characters (`animated-characters-1`, `kenney_blockycharacters_updated`) but only as FBX. Godot 4.6 can import FBX, but wiring the walk and idle animations into the customer state machine is a separate job.
-- Outdoor ground (`Floor`) and `Roof` are still CSG boxes. The furniture kit has no roof or awning pieces.
+- `Roof` is still a CSG box. None of the imported packs has a roof that fits the stand.
+- Customers walk with the run animation slowed to 55%, because the pack has no walk animation.
 - No textures anywhere. All Kenney models are flat-coloured.
 
 ## Not verified in Godot

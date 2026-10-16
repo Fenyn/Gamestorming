@@ -137,6 +137,10 @@ func _run() -> void:
 	Fx.float_text(hand_off.global_position + Vector3(0, 0.35, 0), "+$0.92 tip", Fx.COIN_COLOR)
 	await _shot("08_tip_coins", Vector3(-0.6, 1.5, 0.2), Vector3(-1.0, 1.15, 1.2), 3)
 
+	await _shot("15_customers_close", Vector3(0.0, 1.5, 4.2), Vector3(0.6, 1.0, 2.0))
+	await _shot("16_street_wide", Vector3(-3.0, 3.2, 16.5), Vector3(0.0, 0.8, 2.0), 30)
+	await _shot("17_street_side", Vector3(11.0, 2.2, 9.0), Vector3(0.0, 1.0, 1.5), 30)
+
 	# Morning and golden hour from outside.
 	_set_day(0.0)
 	await _shot("09_morning_outside", Vector3(1.8, 1.7, 5.0), Vector3(-0.3, 1.0, 0.0), 30)

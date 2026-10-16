@@ -21,7 +21,8 @@ func _ready() -> void:
 func setup(register: Vector3, pickup: Vector3) -> void:
 	_register_pos = register
 	_pickup_pos = pickup
-	_exit_pos = register + Vector3(2, 0, 3)
+	# Off to the right along the sidewalk, so customers walk in and out of view.
+	_exit_pos = register + Vector3(8, 0, 3.5)
 
 func _on_day_started() -> void:
 	_spawn_timer = 3.0

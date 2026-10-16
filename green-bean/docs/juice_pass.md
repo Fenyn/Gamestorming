@@ -2,7 +2,21 @@
 
 Visual feedback added on top of the grey-box gameplay. None of it changes scoring or timing. Sound was left out on purpose.
 
-Written without a running Godot. Every number below is a first guess meant to be tuned in the editor.
+Every number below is a first guess meant to be tuned in the editor. The project was checked with Godot 4.6 in a cloud session: assets import cleanly, the shop scene runs headless with no script errors, and the screenshot tour below renders. That session had no GPU, so it used the Compatibility renderer, which has no SSAO and draws glow differently from Forward+.
+
+## Screenshot tour
+
+`scenes/debug/screenshot_tour.tscn` stages a scene and saves PNGs from fixed camera spots. It sets up customers, tickets, filled cups, a scalding pitcher, a kettle pour and a tip. It unlocks all stations in memory only and never saves.
+
+```
+godot --path . --resolution 1280x720 res://scenes/debug/screenshot_tour.tscn -- --out=/some/folder
+```
+
+On Linux without a GPU, run it under Xvfb with Mesa's software OpenGL:
+
+```
+xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --rendering-method gl_compatibility --resolution 1280x720 res://scenes/debug/screenshot_tour.tscn -- --out=/some/folder
+```
 
 ## Where things live
 

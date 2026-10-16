@@ -2,7 +2,7 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_disabled;
 
-uniform vec4 stream_color : source_color = vec4(0.82, 0.9, 0.95, 0.55);
+uniform vec4 stream_color : source_color = vec4(0.82, 0.9, 0.95, 0.75);
 uniform float flow_speed = 3.0;
 
 void vertex() {

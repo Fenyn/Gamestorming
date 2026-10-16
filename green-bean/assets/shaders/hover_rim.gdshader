@@ -3,9 +3,9 @@ shader_type spatial;
 render_mode unshaded, blend_add, depth_draw_never, cull_back;
 
 uniform vec4 rim_color : source_color = vec4(1.0, 0.82, 0.5, 1.0);
-uniform float strength = 0.55;
+uniform float strength = 0.9;
 uniform float rim_power = 2.2;
-uniform float base_glow = 0.05;
+uniform float base_glow = 0.12;
 
 void fragment() {
 	float facing = clamp(dot(NORMAL, VIEW), 0.0, 1.0);

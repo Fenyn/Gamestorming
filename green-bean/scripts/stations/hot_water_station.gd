@@ -53,7 +53,7 @@ func _ready() -> void:
 	_update_label()
 
 	# Water from the dispenser spout into whatever the player is holding.
-	_stream = PourStream.new(Color(0.85, 0.92, 0.97, 0.6), 0.004)
+	_stream = PourStream.new(Color(0.85, 0.92, 0.97, 0.75), 0.005)
 	_stream.source = self
 	_stream.source_offset = Vector3(0, 0.05, 0.11)
 	_stream.flow_check = _is_dispensing

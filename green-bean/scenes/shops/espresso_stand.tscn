@@ -18,6 +18,26 @@
 [ext_resource type="PackedScene" path="res://scenes/stations/sauce_prep.tscn" id="16_prep"]
 [ext_resource type="PackedScene" path="res://scenes/stations/mocha_prep.tscn" id="17_mocha_prep"]
 [ext_resource type="PackedScene" path="res://scenes/stations/bottle_rack.tscn" id="18_rack"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/floorFull.glb" id="k_floorFull"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/wall.glb" id="k_wall"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/wallWindow.glb" id="k_wallWindow"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/kitchenBar.glb" id="k_kitchenBar"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/kitchenCabinet.glb" id="k_kitchenCabinet"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/kitchenCabinetDrawer.glb" id="k_kitchenCabinetDrawer"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/kitchenCabinetUpper.glb" id="k_kitchenCabinetUpper"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/lampSquareCeiling.glb" id="k_lampSquareCeiling"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/pottedPlant.glb" id="k_pottedPlant"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/tableRound.glb" id="k_tableRound"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/chair.glb" id="k_chair"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/chairRounded.glb" id="k_chairRounded"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/trashcan.glb" id="k_trashcan"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/cardboardBoxClosed.glb" id="k_cardboardBoxClosed"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/plate.glb" id="k_plate"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/croissant.glb" id="k_croissant"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/muffin.glb" id="k_muffin"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/donut.glb" id="k_donut"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/donutChocolate.glb" id="k_donutChocolate"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney/cookieChocolate.glb" id="k_cookieChocolate"]
 
 [sub_resource type="Environment" id="env"]
 background_mode = 1
@@ -29,20 +49,27 @@ ambient_light_energy = 0.35
 [sub_resource type="StandardMaterial3D" id="floor_mat"]
 albedo_color = Color(0.4, 0.45, 0.4, 1)
 
-[sub_resource type="StandardMaterial3D" id="platform_mat"]
-albedo_color = Color(0.55, 0.45, 0.35, 1)
-
-[sub_resource type="StandardMaterial3D" id="wall_mat"]
-albedo_color = Color(0.65, 0.55, 0.45, 1)
-
-[sub_resource type="StandardMaterial3D" id="counter_front_mat"]
-albedo_color = Color(0.5, 0.4, 0.3, 1)
-
 [sub_resource type="StandardMaterial3D" id="roof_mat"]
 albedo_color = Color(0.3, 0.5, 0.3, 1)
 
 [sub_resource type="StandardMaterial3D" id="counter_back_mat"]
-albedo_color = Color(0.45, 0.38, 0.3, 1)
+albedo_color = Color(0.81, 0.776, 0.722, 1)
+roughness = 0.85
+
+[sub_resource type="BoxShape3D" id="shape_Platform"]
+size = Vector3(3.5, 0.1, 2.5)
+
+[sub_resource type="BoxShape3D" id="shape_BackWall"]
+size = Vector3(3.5, 2.5, 0.1)
+
+[sub_resource type="BoxShape3D" id="shape_LeftWall"]
+size = Vector3(0.1, 2.5, 2.5)
+
+[sub_resource type="BoxShape3D" id="shape_RightWall"]
+size = Vector3(0.1, 2.5, 2.5)
+
+[sub_resource type="BoxShape3D" id="shape_FrontCounter"]
+size = Vector3(3.5, 1, 0.2)
 
 [node name="EspressoStand" type="Node3D" unique_id=1798764539]
 script = ExtResource("1_c26ee")
@@ -61,35 +88,59 @@ use_collision = true
 size = Vector3(8, 0.1, 8)
 material = SubResource("floor_mat")
 
-[node name="Platform" type="CSGBox3D" parent="." unique_id=1789400797]
+[node name="Platform" type="StaticBody3D" parent="." unique_id=1789400797]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-use_collision = true
-size = Vector3(3.5, 0.1, 2.5)
-material = SubResource("platform_mat")
 
-[node name="BackWall" type="CSGBox3D" parent="." unique_id=690085353]
+[node name="Collision" type="CollisionShape3D" parent="Platform"]
+shape = SubResource("shape_Platform")
+
+[node name="Model" parent="Platform" instance=ExtResource("k_floorFull")]
+transform = Transform3D(1.75, 0, 0, 0, 1, 0, 0, 0, 1.25, 0, -0.05, 0)
+
+[node name="BackWall" type="StaticBody3D" parent="." unique_id=690085353]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -1.25)
-use_collision = true
-size = Vector3(3.5, 2.5, 0.1)
-material = SubResource("wall_mat")
 
-[node name="LeftWall" type="CSGBox3D" parent="." unique_id=1612186131]
+[node name="Collision" type="CollisionShape3D" parent="BackWall"]
+shape = SubResource("shape_BackWall")
+
+[node name="Model" parent="BackWall" instance=ExtResource("k_wall")]
+transform = Transform3D(1.75, 0, 0, 0, 0.969, 0, 0, 0, 1, 0, -1.25, 0)
+
+[node name="LeftWall" type="StaticBody3D" parent="." unique_id=1612186131]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.75, 1.25, 0)
-use_collision = true
-size = Vector3(0.1, 2.5, 2.5)
-material = SubResource("wall_mat")
 
-[node name="RightWall" type="CSGBox3D" parent="." unique_id=564288447]
+[node name="Collision" type="CollisionShape3D" parent="LeftWall"]
+shape = SubResource("shape_LeftWall")
+
+[node name="Model" parent="LeftWall" instance=ExtResource("k_wallWindow")]
+transform = Transform3D(0, 0, 1, 0, 0.969, 0, -1.25, 0, 0, 0, -1.25, 0)
+
+[node name="RightWall" type="StaticBody3D" parent="." unique_id=564288447]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 1.25, 0)
-use_collision = true
-size = Vector3(0.1, 2.5, 2.5)
-material = SubResource("wall_mat")
 
-[node name="FrontCounter" type="CSGBox3D" parent="." unique_id=1559282005]
+[node name="Collision" type="CollisionShape3D" parent="RightWall"]
+shape = SubResource("shape_RightWall")
+
+[node name="Model" parent="RightWall" instance=ExtResource("k_wallWindow")]
+transform = Transform3D(0, 0, -1, 0, 0.969, 0, 1.25, 0, 0, 0, -1.25, 0)
+
+[node name="FrontCounter" type="StaticBody3D" parent="." unique_id=1559282005]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 1.15)
-use_collision = true
-size = Vector3(3.5, 1, 0.2)
-material = SubResource("counter_front_mat")
+
+[node name="Collision" type="CollisionShape3D" parent="FrontCounter"]
+shape = SubResource("shape_FrontCounter")
+
+[node name="Model1" parent="FrontCounter" instance=ExtResource("k_kitchenBar")]
+transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 0.476, -1.3125, -0.5, 0)
+
+[node name="Model2" parent="FrontCounter" instance=ExtResource("k_kitchenBar")]
+transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 0.476, -0.4375, -0.5, 0)
+
+[node name="Model3" parent="FrontCounter" instance=ExtResource("k_kitchenBar")]
+transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 0.476, 0.4375, -0.5, 0)
+
+[node name="Model4" parent="FrontCounter" instance=ExtResource("k_kitchenBar")]
+transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 0.476, 1.3125, -0.5, 0)
 
 [node name="Roof" type="CSGBox3D" parent="." unique_id=1937764883]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0065526366, 2.5311909, 0.386293)
@@ -102,6 +153,92 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00026845932, 0.85, -0.8373
 use_collision = true
 size = Vector3(3.4125488, 0.08, 0.7815796)
 material = SubResource("counter_back_mat")
+
+[node name="Decor" type="Node3D" parent="."]
+
+[node name="BackCabinet1" parent="Decor" instance=ExtResource("k_kitchenCabinet")]
+transform = Transform3D(0.992, 0, 0, 0, 0.789, 0, 0, 0, 0.867, -0.4265, 0.1, -0.837)
+
+[node name="BackCabinet2" parent="Decor" instance=ExtResource("k_kitchenCabinetDrawer")]
+transform = Transform3D(0.992, 0, 0, 0, 0.789, 0, 0, 0, 0.867, 0.4265, 0.1, -0.837)
+
+[node name="BackCabinet3" parent="Decor" instance=ExtResource("k_kitchenCabinet")]
+transform = Transform3D(0.992, 0, 0, 0, 0.789, 0, 0, 0, 0.867, 1.2795, 0.1, -0.837)
+
+[node name="UpperCabinetLeft" parent="Decor" instance=ExtResource("k_kitchenCabinetUpper")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 1.6, -0.98)
+
+[node name="UpperCabinetRight" parent="Decor" instance=ExtResource("k_kitchenCabinetUpper")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 1.6, -0.98)
+
+[node name="BackstockBox" parent="Decor" instance=ExtResource("k_cardboardBoxClosed")]
+transform = Transform3D(0.772741, 0, 0.207055, 0, 0.8, 0, -0.207055, 0, 0.772741, -1.06, 0.1, -0.95)
+
+[node name="CeilingLamp1" parent="Decor" instance=ExtResource("k_lampSquareCeiling")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 2.03, -0.15)
+
+[node name="LampLight1" type="OmniLight3D" parent="Decor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 1.95, -0.15)
+light_color = Color(1, 0.86, 0.68, 1)
+light_energy = 0.9
+omni_range = 3.0
+
+[node name="CeilingLamp2" parent="Decor" instance=ExtResource("k_lampSquareCeiling")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 2.03, -0.15)
+
+[node name="LampLight2" type="OmniLight3D" parent="Decor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 1.95, -0.15)
+light_color = Color(1, 0.86, 0.68, 1)
+light_energy = 0.9
+omni_range = 3.0
+
+[node name="PastryPlate1" parent="Decor" instance=ExtResource("k_plate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48, 1, 1.15)
+
+[node name="Croissant" parent="Decor" instance=ExtResource("k_croissant")]
+transform = Transform3D(0.766044, 0, 0.642788, 0, 1, 0, -0.642788, 0, 0.766044, 0.44, 1.02, 1.15)
+
+[node name="Muffin" parent="Decor" instance=ExtResource("k_muffin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.53, 1.02, 1.17)
+
+[node name="Cookie" parent="Decor" instance=ExtResource("k_cookieChocolate")]
+transform = Transform3D(0.939693, 0, 0.34202, 0, 1, 0, -0.34202, 0, 0.939693, 0.5, 1.02, 1.09)
+
+[node name="PastryPlate2" parent="Decor" instance=ExtResource("k_plate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1, 1.15)
+
+[node name="Donut" parent="Decor" instance=ExtResource("k_donut")]
+transform = Transform3D(0.984808, 0, 0.173648, 0, 1, 0, -0.173648, 0, 0.984808, -1.54, 1.02, 1.15)
+
+[node name="DonutChocolate" parent="Decor" instance=ExtResource("k_donutChocolate")]
+transform = Transform3D(0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866025, -1.45, 1.02, 1.17)
+
+[node name="Table1" parent="Decor" instance=ExtResource("k_tableRound")]
+transform = Transform3D(0.6, 0, 0, 0, 1, 0, 0, 0, 0.6, -2.95, 0, 2.4)
+
+[node name="Table1ChairA" parent="Decor" instance=ExtResource("k_chair")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3.6, 0, 2.4)
+
+[node name="Table1ChairB" parent="Decor" instance=ExtResource("k_chair")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -2.3, 0, 2.4)
+
+[node name="Table2" parent="Decor" instance=ExtResource("k_tableRound")]
+transform = Transform3D(0.6, 0, 0, 0, 1, 0, 0, 0, 0.6, -2.95, 0, 0.3)
+
+[node name="Table2ChairA" parent="Decor" instance=ExtResource("k_chairRounded")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -3.6, 0, 0.3)
+
+[node name="Table2ChairB" parent="Decor" instance=ExtResource("k_chairRounded")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -2.3, 0, 0.3)
+
+[node name="PlantLeft" parent="Decor" instance=ExtResource("k_pottedPlant")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.05, 0, 1.45)
+
+[node name="PlantRight" parent="Decor" instance=ExtResource("k_pottedPlant")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 0, 1.45)
+
+[node name="TrashCan" parent="Decor" instance=ExtResource("k_trashcan")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 2.15, 0, 0.7)
 
 [node name="PlayerSpawn" type="Marker3D" parent="." unique_id=964056624]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)

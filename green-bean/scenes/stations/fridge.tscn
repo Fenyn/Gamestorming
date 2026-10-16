@@ -1,9 +1,7 @@
 [gd_scene format=3 uid="uid://dchyeal4br6un"]
 
 [ext_resource type="Script" uid="uid://4lkd0kwavdqw" path="res://scripts/stations/fridge_station.gd" id="1"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_001"]
-albedo_color = Color(0.65, 0.8, 0.92, 1)
+[ext_resource type="PackedScene" path="res://assets/models/kenney/kitchenFridgeSmall.glb" id="2_model"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_001"]
 size = Vector3(0.35, 0.5010376, 0.35)
@@ -11,9 +9,8 @@ size = Vector3(0.35, 0.5010376, 0.35)
 [node name="Fridge" type="StaticBody3D" unique_id=918174343]
 script = ExtResource("1")
 
-[node name="Mesh" type="CSGBox3D" parent="." unique_id=1233293075]
-size = Vector3(0.35, 0.5, 0.35)
-material = SubResource("StandardMaterial3D_001")
+[node name="Model" parent="." unique_id=1233293075 instance=ExtResource("2_model")]
+transform = Transform3D(0.417, 0, 0, 0, 0.417, 0, 0, 0, 0.417, 0, -0.25, 0.05)
 
 [node name="Collision" type="CollisionShape3D" parent="." unique_id=913765205]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0015563965, 0)

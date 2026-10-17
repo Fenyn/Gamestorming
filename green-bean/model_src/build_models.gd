@@ -16,6 +16,10 @@ const MODELS := {
 	"shot_press_station": preload("res://model_src/shot_press_station.gd"),
 	"cone_dripper": preload("res://model_src/cone_dripper.gd"),
 	"pour_over_stand": preload("res://model_src/pour_over_stand.gd"),
+	"paper_cup_small": [preload("res://model_src/paper_cup.gd"), "small"],
+	"paper_cup_medium": [preload("res://model_src/paper_cup.gd"), "medium"],
+	"paper_cup_large": [preload("res://model_src/paper_cup.gd"), "large"],
+	"paper_cup_extra_large": [preload("res://model_src/paper_cup.gd"), "extra_large"],
 }
 
 func _initialize() -> void:
@@ -31,8 +35,15 @@ func _initialize() -> void:
 		if FileAccess.file_exists(path) and not (forced.has(key) or forced.has("all")):
 			print("%s: %s exists, skipped (use --force %s to rebuild)" % [key, path, key])
 			continue
-		var builder: GDScript = MODELS[model_name]
-		var root: Node3D = builder.build()
+		# An entry is a builder script, or [builder, args...] for one script that
+		# makes several scenes.
+		var entry: Variant = MODELS[model_name]
+		var root: Node3D
+		if entry is Array:
+			var builder: GDScript = entry[0]
+			root = builder.callv("build", entry.slice(1))
+		else:
+			root = (entry as GDScript).build()
 		get_root().add_child(root)
 		var err := ModelKit.save_scene(root, path)
 		print("%s -> %s (%s)" % [key, path, "ok" if err == OK else "error %d" % err])

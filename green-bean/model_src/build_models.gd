@@ -1,16 +1,9 @@
 extends SceneTree
 
-## Builds the custom models in model_src/ and saves each as an editable Godot
-## scene in scenes/props/.
-##
-## Run from the green-bean folder:
+## Saves each model_src builder as an editable scene in scenes/props/. Existing
+## scenes are skipped so editor changes survive; "-- --force <name>" or
+## "-- --force all" rebuilds (and loses editor changes).
 ##   godot --headless --path . --script res://model_src/build_models.gd
-##
-## Existing scenes are NOT overwritten, so changes you make in the editor are
-## safe. To regenerate one from its script (losing editor changes), pass its
-## name after "--":
-##   godot --headless --path . --script res://model_src/build_models.gd -- --force hand_grinder
-## or "--force all".
 
 const OUT_DIR := "res://scenes/props/"
 const MODELS := {

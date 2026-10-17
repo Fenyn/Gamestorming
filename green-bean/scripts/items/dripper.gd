@@ -1,8 +1,6 @@
 class_name Dripper
 extends RigidBody3D
 
-## Visual model lives in scenes/props/cone_dripper.tscn so it can be edited in
-## the editor. Its GroundsFloor marker and metadata size the grounds bed.
 const MODEL := preload("res://scenes/props/cone_dripper.tscn")
 const DRY_COLOR := Color(0.55, 0.38, 0.22)
 const WET_COLOR := Color(0.2, 0.12, 0.06)
@@ -12,7 +10,7 @@ var grounds: Grounds = null
 
 ## Underside of the base plate (local y). This rests on a ring or a saucer.
 var base_y := -0.05
-## Top of the grounds bed (local y). The pour-over grid is drawn here.
+## Top of the grounds bed (local y), where the pour-over grid is drawn.
 var grounds_top_y := 0.008
 var _slurry: MeshInstance3D = null
 var _slurry_mesh: CylinderMesh = null
@@ -49,7 +47,6 @@ func _ready() -> void:
 		add_child(col)
 	base_y = float(model.get_meta("base_y", base_y))
 
-	# Grounds bed: a cone-shaped layer in the bottom of the filter.
 	var bed := CylinderMesh.new()
 	bed.height = float(model.get_meta("grounds_height", 0.026))
 	bed.bottom_radius = float(model.get_meta("grounds_bottom_radius", 0.012))
@@ -71,8 +68,6 @@ func _ready() -> void:
 	_grounds_bed.visible = false
 	add_child(_grounds_bed)
 
-	# Water standing on the grounds while pouring and draining. It widens with
-	# the cone as it rises.
 	_cone_slope = float(model.get_meta("cone_slope", _cone_slope))
 	_cone_r_at_floor = float(model.get_meta("cone_radius_at_floor", _cone_r_at_floor))
 	_slurry_floor = grounds_top_y
@@ -101,7 +96,7 @@ func add_grounds(g: Grounds) -> void:
 	if _grounds_bed:
 		Fx.pop(_grounds_bed, 1.25, 0.25)
 
-## 0 = dry grounds, 1 = fully wet. The bed darkens as water reaches it.
+## 0 = dry, 1 = fully wet.
 func set_saturation(ratio: float) -> void:
 	_saturation = clampf(ratio, 0.0, 1.0)
 	_update_bed()
@@ -113,7 +108,7 @@ func _update_bed() -> void:
 	_grounds_mat.albedo_color = DRY_COLOR.lerp(WET_COLOR, _saturation)
 	_grounds_mat.roughness = lerpf(1.0, 0.45, _saturation)
 
-## How much water stands on the grounds, 0 = none, 1 = up near the rim.
+## Standing water on the grounds: 0 = none, 1 = near the rim.
 func set_water_level(ratio: float) -> void:
 	if not _slurry:
 		return

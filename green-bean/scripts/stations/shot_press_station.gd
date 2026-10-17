@@ -29,9 +29,6 @@ var _status_label: Label3D = null
 func _ready() -> void:
 	add_to_group("station")
 
-	# Positions come from the model scene (scenes/props/shot_press_station.tscn).
-	# The cup stands on CupSpot, the shot press sits on the cup's rim, and the
-	# spare shot press waits upright in the stand at DeviceRest.
 	_cup_spot = StationUtils.model_marker(self, "CupSpot", Vector3(-0.045, 0.005, 0.02))
 	_device_rest = StationUtils.model_marker(self, "DeviceRest", Vector3(0.09, 0.021, -0.02))
 	_gauge_anchor = StationUtils.model_marker(self, "GaugeAnchor", _cup_spot + Vector3(0.17, 0.26, 0.04))
@@ -87,9 +84,7 @@ func _ready() -> void:
 	_water_game._camera_point = cam3
 	_water_game.mini_game_completed.connect(_on_water_complete)
 
-	# The press gauges and pour readout are drawn beside the cup, at GaugeAnchor.
-	# Their nodes were laid out around the old grey box's origin, so shift the
-	# whole mini-game and pull its camera back by the same amount.
+	# Mini-game gauges are positioned relative to the game node, so move the node.
 	_offset_game(_press_game, _gauge_anchor - Vector3(0, 0.2, 0.18))
 	_offset_game(_water_game, Vector3.ZERO)
 	_water_game._status_label.position = _gauge_anchor
@@ -100,8 +95,7 @@ func _ready() -> void:
 	_status_label = StationUtils.create_status_label(self, _cup_spot + Vector3(0.06, 0.36, 0.05))
 	_update_label()
 
-## Moves a mini-game node (and its gauges) by offset, keeping its camera where
-## it was in station space.
+## Moves a mini-game node by offset while keeping its camera in place.
 func _offset_game(game: Node3D, offset: Vector3) -> void:
 	var cam_world_local: Vector3 = game.position + game._camera_point.position
 	game.position = offset
@@ -113,15 +107,13 @@ func _spawn_shelf_device() -> void:
 	add_child(_shelf_device)
 	_shelf_device.position = _rest_position(_shelf_device)
 
-## Where a device stands in the stand's cradle (station-local).
 func _rest_position(device: Node3D) -> Vector3:
 	return _device_rest + Vector3(0, StationUtils.item_half_height(device, 0.06), 0)
 
-## Where the cup stands (station-local), by its own height.
 func _cup_position(cup: Node3D) -> Vector3:
 	return _cup_spot + Vector3(0, StationUtils.item_half_height(cup, 0.06), 0)
 
-## Where the device sits on the placed cup: its flange on the cup rim.
+## Device centre with its flange on the placed cup's rim.
 func _device_on_cup_position(device: Node3D) -> Vector3:
 	var cup_top := _cup_spot.y + (StationUtils.item_half_height(_placed_cup, 0.06) * 2.0 if _placed_cup else 0.12)
 	var rim_offset := (device as ShotPress).rim_rest_y if device is ShotPress else -0.05
@@ -130,7 +122,6 @@ func _device_on_cup_position(device: Node3D) -> Vector3:
 func _stand_free() -> bool:
 	return _shelf_device == null or not is_instance_valid(_shelf_device)
 
-## Sends a device back to the stand, emptied.
 func _return_to_stand(device: ShotPress) -> void:
 	device.reset_device()
 	StationUtils.cancel_settle(device)
@@ -139,7 +130,6 @@ func _return_to_stand(device: ShotPress) -> void:
 	StationUtils.set_item_collision(device, true)
 	_shelf_device = device
 
-## Moves the stir mini-game so its paddle dips into the top of the device.
 func _place_stir_game() -> void:
 	if not _placed_device:
 		return
@@ -239,7 +229,6 @@ func receive_item(item: Node3D) -> bool:
 		return true
 	return false
 
-## Sits the device on the placed cup.
 func _mount_device(device: ShotPress) -> void:
 	_placed_device = device
 	_device_slot.position = _device_on_cup_position(device)
@@ -327,8 +316,7 @@ func _check_removed_items() -> void:
 	if _shelf_device and StationUtils.is_item_removed(_shelf_device, to_global(_rest_position(_shelf_device)), 0.15):
 		_shelf_device = null
 		_update_label()
-	# Only check items that are actually here. is_item_removed() is true for a
-	# null item, which used to knock DONE back to CUP_ONLY every frame.
+	# is_item_removed() is true for null, so only check items that are here.
 	if _placed_cup and StationUtils.is_item_removed(_placed_cup, _cup_slot.global_position):
 		_placed_cup = null
 		_recalculate_state()

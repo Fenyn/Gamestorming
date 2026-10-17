@@ -1,22 +1,11 @@
 extends RefCounted
 
-## Milk steaming pitcher: a 12 oz stainless pitcher like the ones on every bar.
+## 12 oz steaming pitcher: 7.5 cm base, 9.5 cm tall. Origin: centre (base at
+## y = -0.0475). Spout -Z, handle +Z.
 ##
-## Shape follows real 12 oz / 350 ml pitchers (about 7.5 cm across at the base,
-## 9.5 cm tall): a wide belly that narrows toward the top so the milk can spin, a
-## pointed pour spout, and a C handle opposite the spout.
-##
-## Origin is the middle of the pitcher, so the base sits at y = -0.0475 and the
-## rim at 0.0475. The Collision node is moved onto the Pitcher item at runtime,
-## so resize it here if you change the shape. The spout points along -Z and the
-## handle along +Z, so on the steamer pad the handle faces the barista and the
-## spout faces the wand, and when carried the spout points away from you.
-##
-## Nodes the Pitcher script uses:
-##   Collision     CylinderShape3D for the item. Moved onto the Pitcher body.
-##   MilkFloor     Marker3D on the inside floor. Milk is drawn up from here.
-##   Root metadata "inner_profile": (radius, y) points of the inside wall, low
-##                 to high. The milk narrows to follow it as it rises.
+## Read by pitcher.gd: Collision (moved onto the item), MilkFloor, and root
+## metadata "inner_profile" (inside wall as (radius, y), low to high) so the milk
+## narrows with the wall.
 
 const MK := preload("res://model_src/model_kit.gd")
 
@@ -25,7 +14,6 @@ const RIM_Y := 0.0475
 const FLOOR_Y := -0.043
 const STEEL := Color(0.8, 0.81, 0.83)
 
-## Outside wall, bottom to rim.
 const OUTER := [
 	Vector2(0.0, BASE_Y), Vector2(0.033, BASE_Y), Vector2(0.037, BASE_Y + 0.0025),
 	Vector2(0.0385, -0.035), Vector2(0.039, -0.02), Vector2(0.0375, 0.0),
@@ -66,7 +54,7 @@ static func build() -> Node3D:
 	floor_marker.position = Vector3(0, FLOOR_Y, 0)
 	root.add_child(floor_marker)
 
-	# Inside wall for the milk, low to high (reverse of INNER, without the floor centre).
+	# INNER reversed, without the floor centre point.
 	var inner_profile := PackedVector2Array()
 	for i in range(INNER.size() - 2, -1, -1):
 		inner_profile.append(INNER[i])
@@ -84,8 +72,6 @@ static func _spout(v: Vector3, angle: float) -> Vector3:
 
 static func _build_handle(root: Node3D, steel: Material) -> void:
 	var handle := MK.group(root, "Handle")
-	# C handle in the YZ plane: leaves the wall under the rim, runs out, curves
-	# down and tucks back into the belly. Edit the points to reshape it.
 	var path := PackedVector3Array([
 		Vector3(0, 0.035, 0.029), Vector3(0, 0.037, 0.043), Vector3(0, 0.035, 0.054),
 		Vector3(0, 0.028, 0.061), Vector3(0, 0.016, 0.063), Vector3(0, 0.0, 0.061),
@@ -93,5 +79,4 @@ static func _build_handle(root: Node3D, steel: Material) -> void:
 		Vector3(0, -0.028, 0.036),
 	])
 	MK.sweep(handle, "Grip", path, 0.0055, 0.003, steel)
-	# Thumb rest: a flat pad on top of the arm.
 	MK.box(handle, "ThumbRest", Vector3(0.013, 0.002, 0.011), Vector3(0, 0.0395, 0.046), steel)

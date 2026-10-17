@@ -1,27 +1,14 @@
 extends RefCounted
 
-## Cone dripper (the carriable pour-over brewer), at the size of a typical
-## "02" ceramic cone: 10.5 cm flat base plate, about 11.7 cm across the rim and
-## 10 cm tall. The inside is a 60 degree cone that ends in one large hole,
-## which you can see through the base. A short collar joins the cone to the base
-## plate, and a flat loop handle runs from the upper cone down to the plate.
+## Ceramic cone dripper, "02" size: 10.5 cm base plate, 11.7 cm rim, 10 cm tall,
+## 60 degree cone. The paper filter stands 1.4 cm proud of the rim; the inner ribs
+## are left out because the filter always hides them. Origin: centre (base plate
+## underside at y = -0.05). Handle +X.
 ##
-## A paper cone filter lines it. Like a real one, it stands about 1.4 cm proud
-## of the rim, with a slightly uneven top edge and a crimped seam down one side.
-##
-## Origin is the middle of the dripper, so the base plate's underside sits at
-## y = -0.05 and the rim at 0.05. The handle points along +X.
-##
-## Nodes and metadata the Dripper script and the pour-over station use:
-##   Collision      CylinderShape3D for the dripper. Moved onto the item at runtime.
-##   Filter         The paper filter.
-##   GroundsFloor   Marker3D at the bottom of the grounds bed inside the filter.
-##   Root metadata  "base_y": underside of the base plate. On a stand's ring or a
-##                  saucer, this is the point that rests on it.
-##                  "grounds_height", "grounds_bottom_radius", "grounds_top_radius"
-##                  size the grounds bed. "slurry_max_y" is the highest the water
-##                  stands in the cone during a pour. "cone_slope" and
-##                  "cone_radius_at_floor" let the water widen with the cone.
+## Read by dripper.gd and pour_over_station.gd: Collision (moved onto the item),
+## Filter, GroundsFloor, and root metadata: base_y (rests on ring or saucer),
+## grounds_height / grounds_bottom_radius / grounds_top_radius, slurry_max_y,
+## cone_slope, cone_radius_at_floor.
 
 const MK := preload("res://model_src/model_kit.gd")
 
@@ -51,8 +38,6 @@ static func build() -> Node3D:
 	root.name = "ConeDripper"
 	var ceramic: Material = MK.mat(CERAMIC, 0.0, 0.22)
 
-	# Outside: plate, collar, cone to the rolled rim; then the inside back down
-	# the cone to the hole, and down through the base.
 	var collar_top := HOLE_Y + (COLLAR_R - 0.0045 - HOLE_R) / SLOPE
 	var profile := PackedVector2Array([
 		Vector2(HOLE_R, BASE_Y), Vector2(0.051, BASE_Y), Vector2(0.0525, BASE_Y + 0.0015),
@@ -83,8 +68,7 @@ static func build() -> Node3D:
 	root.set_meta("cone_radius_at_floor", inner_radius(GROUNDS_BOTTOM_Y) - FILTER_GAP - 0.0006)
 	return root
 
-## Flat loop handle from the upper cone down to the base plate, on +X. Both
-## ends are sunk into the body so nothing floats.
+## Both ends are sunk into the body so the handle never floats.
 static func _build_handle(root: Node3D, ceramic: Material, collar_top: float) -> void:
 	var handle := MK.group(root, "Handle")
 	var top := Vector3(outer_radius(0.024) - 0.002, 0.024, 0)
@@ -93,7 +77,6 @@ static func _build_handle(root: Node3D, ceramic: Material, collar_top: float) ->
 	var path := PackedVector3Array()
 	for k in range(16):
 		var t := float(k) / 15.0
-		# Quadratic curve bulging out to the control point.
 		path.append(top.lerp(control, t).lerp(control.lerp(bottom, t), t))
 	MK.sweep(handle, "Loop", path, 0.0065, 0.0032, ceramic, Vector3.BACK, 10)
 	MK.sphere(handle, "JointTop", 0.006, top + Vector3(0.001, 0, 0), ceramic, 0.8, 10)
@@ -107,7 +90,6 @@ static func _build_filter(root: Node3D) -> void:
 	var filter := Node3D.new()
 	filter.name = "Filter"
 	root.add_child(filter)
-	# Paper cone from a closed tip just above the hole to above the rim.
 	var tip_y := HOLE_Y + 0.004
 	var top_y := RIM_Y + FILTER_PROUD
 	var profile := PackedVector2Array([
@@ -116,8 +98,6 @@ static func _build_filter(root: Node3D) -> void:
 		Vector2(inner_radius(top_y) - FILTER_GAP, top_y),
 	])
 	MK.lathe(filter, "Paper", profile, Vector3.ZERO, paper, 40, _paper_edge)
-	# Crimped seam: a folded strip of paper running from tip to top on the -X
-	# side, with crimp ridges across it.
 	var a := Vector3(-(inner_radius(tip_y + 0.004) - FILTER_GAP - 0.001), tip_y + 0.004, 0)
 	var b := Vector3(-(inner_radius(top_y) - FILTER_GAP - 0.001), top_y, 0)
 	var seam := MK.box(filter, "Seam", Vector3(0.0016, a.distance_to(b), 0.007), Vector3.ZERO, paper)
@@ -130,7 +110,7 @@ static func _build_filter(root: Node3D) -> void:
 		var c := MK.box(filter, "Crimp", Vector3(0.0018, 0.0012, 0.0072), Vector3.ZERO, crimp)
 		c.transform = Transform3D(Basis(up.cross(side).normalized(), up, side), a.lerp(b, t) + up.cross(side).normalized() * -0.0002)
 
-## Uneven top edge on the paper, like a real filter that has been pressed in.
+## Wavy top edge on the filter paper.
 static func _paper_edge(v: Vector3, angle: float) -> Vector3:
 	if v.y < RIM_Y:
 		return v

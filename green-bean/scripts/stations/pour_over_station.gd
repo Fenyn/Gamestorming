@@ -3,7 +3,7 @@ extends StaticBody3D
 # Player flow:
 # 1. Place cup on station
 # 2. Pick up dripper from shelf, carry to grinder, grind, carry back
-# 3. Place dripper on station (on top of cup)
+# 3. Place dripper on the stand's ring, over the cup
 # 4. Hold kettle with hot water, [E] → bloom pour (brief active)
 # 5. Bloom wait (passive ~20s — walk away!)
 # 6. Come back, [E] → main pour (active, saturation)
@@ -40,9 +40,6 @@ var _drips: GPUParticles3D = null
 func _ready() -> void:
 	add_to_group("station")
 
-	# Positions come from the model scene (scenes/props/pour_over_stand.tscn).
-	# The cup stands on the scale at CupSpot, the dripper hangs in the ring at
-	# RingSeat, and the spare dripper waits on the saucer at DripperRest.
 	_cup_spot = StationUtils.model_marker(self, "CupSpot", Vector3(-0.03, 0.032, 0))
 	_ring_seat = StationUtils.model_marker(self, "RingSeat", Vector3(-0.03, 0.235, 0))
 	_dripper_rest = StationUtils.model_marker(self, "DripperRest", Vector3(0.092, 0.008, 0.035))
@@ -54,7 +51,6 @@ func _ready() -> void:
 
 	_dripper_slot = Marker3D.new()
 	_dripper_slot.name = "DripperSlot"
-	# A dripper hangs with the outside of its cone in the ring.
 	_dripper_slot.position = _ring_seat - Vector3(0, DRIPPER_BASE_Y, 0)
 	add_child(_dripper_slot)
 
@@ -71,9 +67,6 @@ func _ready() -> void:
 	_pour_game.add_child(cam)
 	add_child(_pour_game)
 	_pour_game._camera_point = cam
-	# The saturation grid is drawn 0.24 above the mini-game's origin. Move the
-	# mini-game so the grid lies on the grounds in the hanging dripper, and keep
-	# the camera where the model's CameraView puts it.
 	_cam_xform = cam_xform
 	_pour_game.mini_game_completed.connect(_on_pour_complete)
 
@@ -97,17 +90,14 @@ func _spawn_shelf_dripper() -> void:
 func _base_y(dripper: Node3D) -> float:
 	return (dripper as Dripper).base_y if dripper is Dripper else DRIPPER_BASE_Y
 
-## Where a dripper stands on the saucer (station-local), on its base plate.
 func _rest_position(dripper: Node3D) -> Vector3:
 	return _dripper_rest - Vector3(0, _base_y(dripper), 0)
 
-## Where a dripper sits on the stand: its base plate on the ring.
 func _ring_position(dripper: Node3D) -> Vector3:
 	return _ring_seat - Vector3(0, _base_y(dripper), 0)
 
-## The pour game draws its saturation grid 0.24 above its origin. Move the
-## game so the grid lies on the grounds of a dripper in the ring, and keep its
-## camera where the model's CameraView puts it.
+## The saturation grid is drawn 0.24 above the game node: move the node so the
+## grid lies on the grounds, keeping the camera in place.
 func _place_pour_grid(dripper: Node3D) -> void:
 	var grounds_top := (dripper as Dripper).grounds_top_y if dripper is Dripper else DRIPPER_GROUNDS_TOP
 	var offset := _ring_position(dripper) + Vector3(0, grounds_top + 0.001 - 0.24, 0)
@@ -117,7 +107,6 @@ func _place_pour_grid(dripper: Node3D) -> void:
 func _saucer_free() -> bool:
 	return _shelf_dripper == null or not is_instance_valid(_shelf_dripper)
 
-## Sends the dripper back to the saucer, emptied.
 func _return_to_saucer(dripper: Dripper) -> void:
 	dripper.reset_device()
 	StationUtils.cancel_settle(dripper)
@@ -290,7 +279,6 @@ func _process(_delta: float) -> void:
 	if _drips:
 		_drips.emitting = state == State.DRAINING
 		if state == State.DRAINING:
-			# Drips fall from the dripper's hole toward the cup.
 			_drips.position = _dripper_slot.position + Vector3(0, -0.045, 0)
 	if (state == State.READY or state == State.STALE) and _placed_cup:
 		_placed_cup.heat = _pour_game.get_coffee_freshness()
@@ -314,8 +302,6 @@ func _process(_delta: float) -> void:
 
 	_check_removed_items()
 
-## Water standing on the grounds: it rises while pouring, sinks back during the
-## bloom wait, and drains away during the draw-down.
 func _update_water_level() -> void:
 	if not _placed_dripper:
 		return
@@ -357,8 +343,7 @@ func _finish_drip() -> void:
 	_update_label()
 
 func _check_removed_items() -> void:
-	# Only check items that are actually here: is_item_removed() is true for a
-	# null item, which used to knock READY back to CUP_ONLY every frame.
+	# is_item_removed() is true for null, so only check items that are here.
 	if _placed_cup and StationUtils.is_item_removed(_placed_cup, _cup_slot.global_position):
 		_placed_cup = null
 		_recalculate_state()

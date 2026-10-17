@@ -15,12 +15,10 @@ var _filling := false
 var _fill_frame := -1
 var _fill_cam: Marker3D = null
 var _stream: PourStream = null
-## Cup or kettle standing under the spout while it fills. It is taken from the
-## player's hand for the fill and handed back afterwards.
+## Cup or kettle taken from the player's hand to stand under the spout.
 var _under_spout: Node3D = null
 var _cup_start_fill := 0.0
 var _fill_point := Vector3.ZERO
-## Faucet lever in the model. It swings down while water runs.
 var _lever: Node3D = null
 var _lever_rest := 0.0
 const LEVER_PULL_DEG := 30.0
@@ -28,9 +26,6 @@ const LEVER_PULL_DEG := 30.0
 func _ready() -> void:
 	add_to_group("station")
 
-	# Camera, spout and fill positions come from the model scene
-	# (scenes/props/hot_water_dispenser.tscn). Its CameraView is placed so the
-	# held cup or kettle lands under the spout while filling.
 	var cam_xform := Transform3D(Basis.from_euler(FILL_CAM_ROT * PI / 180.0), FILL_CAM_POS)
 	var view := get_node_or_null("Model/CameraView") as Node3D
 	if view:
@@ -51,8 +46,7 @@ func _ready() -> void:
 	cam.transform = cam_xform
 	_pour_game.add_child(cam)
 	add_child(_pour_game)
-	# The pour game's prompt is laid flat for the pour-over; here it stands
-	# beside the cup, facing the camera.
+	# The pour game lays its prompt flat for the pour-over; stand it up here.
 	_pour_game._status_label.position = fill_point + Vector3(-0.13, 0.16, 0.0)
 	_pour_game._status_label.rotation_degrees = Vector3.ZERO
 	_pour_game._status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -78,7 +72,6 @@ func _ready() -> void:
 	if _lever:
 		_lever_rest = _lever.rotation_degrees.x
 
-	# Water from the dispenser spout into whatever the player is holding.
 	_stream = PourStream.new(Color(0.85, 0.92, 0.97, 0.75), 0.005)
 	_stream.source = self
 	_stream.source_offset = StationUtils.model_marker(self, "Spout", Vector3(0, 0.05, 0.11))
@@ -95,14 +88,12 @@ func _is_dispensing() -> bool:
 	_stream.target_offset = Vector3(0, StationUtils.item_half_height(target) * 0.6, 0)
 	return true
 
-## Stands the held item on the grate under the spout for the fill.
 func _take_under_spout(player: Player, item: Node3D) -> void:
 	player.detach_held_item()
 	_under_spout = item
 	StationUtils.place_at_slot(item, to_global(_fill_point + Vector3(0, StationUtils.item_half_height(item), 0)))
 	item.global_rotation = global_rotation
 
-## Hands the filled item back to the player.
 func _return_from_spout(player: Player) -> void:
 	var item := _under_spout
 	_under_spout = null
@@ -119,12 +110,10 @@ func _spawn_shelf_kettle() -> void:
 	_shelf_kettle.position = _rest_position(_shelf_kettle)
 	_shelf_kettle.global_basis = _rest_basis()
 
-## Where the kettle waits beside the unit: the model's KettleRest marker, raised
-## by half the kettle's height (station-local).
+## Station-local centre of the kettle standing on KettleRest.
 func _rest_position(kettle: Node3D) -> Vector3:
 	return StationUtils.model_marker(self, "KettleRest", Vector3(0.175, 0, 0.12)) + Vector3(0, StationUtils.item_half_height(kettle), 0)
 
-## Facing for the kettle at rest, from the KettleRest marker's rotation.
 func _rest_basis() -> Basis:
 	var marker := get_node_or_null("Model/KettleRest") as Node3D
 	return marker.global_basis if marker else global_basis
@@ -138,7 +127,7 @@ func receive_item(item: Node3D) -> bool:
 		return false
 	StationUtils.place_at_slot(item, to_global(_rest_position(item)))
 	item.global_basis = _rest_basis()
-	# Leave it clickable, like the kettle the station starts with.
+	# Keep its collider on so it can be clicked up again.
 	StationUtils.set_item_collision(item, true)
 	_shelf_kettle = item as Kettle
 	_update_label()
@@ -208,11 +197,9 @@ func _process(delta: float) -> void:
 		var flowing := _under_spout != null and (_filling or _pour_game.is_pouring())
 		var target := _lever_rest + (LEVER_PULL_DEG if flowing else 0.0)
 		_lever.rotation_degrees.x = lerpf(_lever.rotation_degrees.x, target, minf(delta * 14.0, 1.0))
-	# Show the cup filling as the player pours.
 	if _pour_game.is_active() and _under_spout is Cup:
 		var level := clampf(_pour_game._fill_level, 0.0, 1.0)
 		(_under_spout as Cup).set_fill(lerpf(_cup_start_fill, 0.85, level), Color(0.3, 0.2, 0.1))
-	# The kettle can be clicked up straight off its spot; forget it then.
 	if _shelf_kettle and StationUtils.is_item_removed(_shelf_kettle, to_global(_rest_position(_shelf_kettle)), 0.15):
 		_shelf_kettle = null
 		_update_label()

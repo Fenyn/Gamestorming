@@ -94,13 +94,13 @@ func _build_feedback() -> void:
 
 	_readout = _make_label(44, 0.00042)
 	_readout.name = "Readout"
-	_readout.position = Vector3(0, 0.15, 0.27)
+	_readout.position = Vector3(0, 0.2, 0.2)
 
 	_hint = _make_label(28, 0.00036)
 	_hint.name = "Hint"
 	_hint.modulate = Color(0.9, 0.9, 0.85)
 	_hint.text = "Click: hand over   Drag: place   Click on mat or right-click: take back   E: close"
-	_hint.position = Vector3(0, 0.08, -0.15)
+	_hint.position = Vector3(0, 0.115, -0.1)
 
 func _make_label(font_size: int, pixel: float) -> Label3D:
 	var l := Label3D.new()
@@ -197,7 +197,7 @@ func interact(player: Player) -> void:
 	_player = player
 	_slide_drawer(true)
 	_hint.visible = true
-	_player.enter_screen_mode(to_global(Vector3(0, -0.03, -0.17)), to_global(Vector3(0, 0.45, -0.34)), 0.6, 50.0)
+	_player.enter_screen_mode(to_global(Vector3(0, -0.03, -0.17)), to_global(Vector3(0, 0.5, -0.36)), 0.6, 50.0)
 
 func _slide_drawer(open: bool) -> void:
 	if _drawer == null:

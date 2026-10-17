@@ -133,7 +133,7 @@ size = Vector3(0.1, 2.5, 2.5)
 size = Vector3(0.1, 2.5, 2.5)
 
 [sub_resource type="BoxShape3D" id="shape_FrontCounter"]
-size = Vector3(3.5, 1, 0.2)
+size = Vector3(3.5, 1, 0.45)
 
 [sub_resource type="CylinderShape3D" id="col_0"]
 radius = 0.45
@@ -268,22 +268,22 @@ shape = SubResource("shape_RightWall")
 transform = Transform3D(0, 0, -1, 0, 0.969, 0, 1.25, 0, 0, 0, -1.25, 0)
 
 [node name="FrontCounter" type="StaticBody3D" parent="." groups=["nav_geometry"] unique_id=1559282005]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 1.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 1.025)
 
 [node name="Collision" type="CollisionShape3D" parent="FrontCounter"]
 shape = SubResource("shape_FrontCounter")
 
 [node name="Model1" parent="FrontCounter" instance=ExtResource("k_kitchenBar")]
-transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 0.476, -1.3125, -0.5, 0)
+transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 1.0714, -1.3125, -0.5, 0)
 
 [node name="Model2" parent="FrontCounter" instance=ExtResource("k_kitchenBar")]
-transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 0.476, -0.4375, -0.5, 0)
+transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 1.0714, -0.4375, -0.5, 0)
 
 [node name="Model3" parent="FrontCounter" instance=ExtResource("k_kitchenBar")]
-transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 0.476, 0.4375, -0.5, 0)
+transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 1.0714, 0.4375, -0.5, 0)
 
 [node name="Model4" parent="FrontCounter" instance=ExtResource("k_kitchenBar")]
-transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 0.476, 1.3125, -0.5, 0)
+transform = Transform3D(1.0174, 0, 0, 0, 1.1905, 0, 0, 0, 1.0714, 1.3125, -0.5, 0)
 
 [node name="Roof" type="CSGBox3D" parent="." unique_id=1937764883]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0065526366, 2.5311909, 0.386293)
@@ -827,7 +827,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0, 2.95)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1543847, 0.89, -1.0536677)
 
 [node name="CupStack" parent="." unique_id=848182892 instance=ExtResource("3_jxr28")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0.838878, 0.970632)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0.838878, 0.72)
 
 [node name="PourOver" parent="." unique_id=1693473021 instance=ExtResource("4_f7yp2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4873365, 0.89, -0.67978656)
@@ -854,13 +854,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.62, 0.89, -0.96)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, 1.15)
 
 [node name="CashDrawer" parent="." unique_id=417275188 instance=ExtResource("12_u3j1k")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9374628, 0.951, 0.896)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.9, 0.94)
 
 [node name="VanillaSyrup" parent="." unique_id=165157546 instance=ExtResource("13_syrup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13075483, 1.043428, -1.0869943)
 
 [node name="LidDispenser" parent="." unique_id=847908596 instance=ExtResource("14_lids")]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.61818236, 1.0, 1.1524439)
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -0.618182, 1, 0.95)
 
 [node name="MochaSauce" parent="." unique_id=800836284 instance=ExtResource("15_sauce")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 1.01424, -1.10228)
@@ -877,4 +877,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.42, 0.992216, -1.09806)
 sauce_type = 1
 
 [node name="Register" parent="." unique_id=1770249230 instance=ExtResource("10_vg725")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.369857, 1.0, 1.1263597)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.36986, 1, 1)

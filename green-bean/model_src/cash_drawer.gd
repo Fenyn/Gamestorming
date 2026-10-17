@@ -1,10 +1,12 @@
 extends RefCounted
 
-## Under-counter cash drawer, 34 x 9 x 30 cm, hung under the front counter's lip
-## on two brackets. The drawer opens 24 cm toward the barista (-Z). Back row:
+## Cash drawer built into the front counter under the top, beside the POS,
+## 34 x 9 x 30 cm. A trim frame sits on the cabinet face around the opening and
+## the drawer opens 24 cm toward the barista (-Z). Back row:
 ## four bill compartments ($20 $10 $5 $1 from the barista's left) with spring
 ## clips. Front row: four coin cups (25, 10, 5, 1 cents).
-## Origin: housing centre; the back (+Z) touches the counter face.
+## Origin: housing centre. The housing sits inside the cabinet; place the front
+## (-Z) 1 cm proud of the cabinet face.
 ##
 ## Read by cash_drawer.gd: Drawer (slid to DrawerOpen), Drawer/Slot_<key> at the
 ## top of each stack with metadata "half" (compartment half size, Vector2 x, z),
@@ -37,9 +39,11 @@ static func build() -> Node3D:
 		MK.box(root, "Side", Vector3(0.004, SIZE.y, SIZE.z), Vector3(float(sx) * (SIZE.x * 0.5 - 0.002), 0, 0), black)
 	MK.box(root, "Back", Vector3(SIZE.x, SIZE.y, 0.004), Vector3(0, 0, SIZE.z * 0.5 - 0.002), black)
 	var steel: Material = MK.mat(Color(0.6, 0.61, 0.63), 0.6, 0.4)
+	var trim_z := -SIZE.z * 0.5 + 0.004
+	for sy in [-1.0, 1.0]:
+		MK.box(root, "TrimH", Vector3(SIZE.x + 0.03, 0.012, 0.008), Vector3(0, float(sy) * (h + 0.006), trim_z), black)
 	for sx in [-1.0, 1.0]:
-		MK.box(root, "Bracket", Vector3(0.012, SIZE.y + 0.01, 0.025), Vector3(float(sx) * (SIZE.x * 0.5 + 0.006), 0.005, SIZE.z * 0.5 - 0.0125), steel)
-		MK.box(root, "BracketFlange", Vector3(0.03, 0.012, 0.004), Vector3(float(sx) * (SIZE.x * 0.5 + 0.006), 0.04, SIZE.z * 0.5 + 0.002), steel)
+		MK.box(root, "TrimV", Vector3(0.012, SIZE.y + 0.024, 0.008), Vector3(float(sx) * (SIZE.x * 0.5 + 0.009), 0, trim_z), black)
 
 	var drawer := MK.group(root, "Drawer")
 	var tray_w := SIZE.x - 0.012

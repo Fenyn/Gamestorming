@@ -9,7 +9,7 @@ First art pass on the espresso stand. Kenney CC0 models replace the room, counte
 | Floor inside the stand | `Platform` CSG box | Kenney `floorFull` (StaticBody3D collision unchanged) |
 | Back wall | CSG box | Kenney `wall`, recoloured cream |
 | Side walls | CSG boxes | Kenney `wallWindow`, recoloured cream |
-| Front counter | CSG box | 4× Kenney `kitchenBar`, squashed to 0.2 m deep |
+| Front counter | CSG box | 4× Kenney `kitchenBar`, 0.45 m deep (deepened toward the barista) |
 | Back counter | Floating CSG slab | Same slab (recoloured to match), with 3 Kenney base cabinets under it |
 | Fridge station | CSG box | Kenney `kitchenFridgeSmall` (mini fridge), node `Model` |
 | Milk jug item | CSG cylinder + handle | Kenney `carton` |
@@ -77,7 +77,7 @@ Blender can't be installed in the cloud session, so custom props are generated o
 | `scenes/props/cup_dispenser.tscn` | `cup_stack.tscn` | Four clear gravity tubes (S, M, L, XL from the barista's left) on a steel bracket under the front counter lip. Cups stack mouth-down and the bottom cup shows below a gripper ring. A grabbed cup appears at `Dispense_<size>`. |
 | `scenes/props/lid_caddy.tscn` | `lid_dispenser.tscn` | Two stacks of sip lids in a black caddy, origin at the base, on the front counter. |
 | `scenes/props/pos_terminal.tscn` | `register.tscn` | Tablet POS on a post, with a bezel sized to the SubViewport screen quad (tilted 15°) and a ticket printer beside it. |
-| `scenes/props/cash_drawer.tscn` | `cash_drawer.tscn` | Under-counter cash drawer (34 x 9 x 30 cm) hung under the front counter lip on brackets. `Drawer` slides 24 cm out to `DrawerOpen`. Back row: $20 $10 $5 $1 under hinged spring clips (`Clip_<key>`). Front row: 25¢ 10¢ 5¢ 1¢ cups. `Slot_<key>` markers carry each compartment's hit size. |
+| `scenes/props/cash_drawer.tscn` | `cash_drawer.tscn` | Cash drawer (34 x 9 x 30 cm) built into the front counter under the top, beside the POS, with a trim frame on the cabinet face. `Drawer` slides 24 cm out to `DrawerOpen`. Back row: $20 $10 $5 $1 under hinged spring clips (`Clip_<key>`). Front row: 25¢ 10¢ 5¢ 1¢ cups. `Slot_<key>` markers carry each compartment's hit size. |
 | `scenes/props/cash_pieces.tscn` | `cash_drawer.gd` (templates it duplicates) | One generic note per value (pale paper, printed frame, colour band, numerals, no real currency art) and one coin per value at real diameter and thickness. |
 | `scenes/props/change_mat.tscn` | `cash_drawer.tscn` (node `ChangeMat`, on the counter top behind the drawer) | Rubber change mat. The customer's bill lands on `TenderSpot`; counted change fans out from `BillSpot` and stacks on `Coin_<key>`. |
 | `scenes/props/pickup_shelf.tscn` | `hand_off.tscn` | Wooden pickup riser (36 x 13 cm, 5.3 cm tall) with a tented "PICK UP" chalkboard readable from both sides. Origin at the base. The finished drink stands on `DrinkSpot`. |
@@ -112,6 +112,6 @@ This pass was done in a cloud session with no Godot install and no Blender. Layo
 
 - The `.glb` files import as scenes and show shading (not flat colour).
 - `milk_jug.gd` preloads `carton.glb`. If the first open reports a missing resource, it should clear after the import finishes and the project reloads.
-- Window frames and the squashed front counter look right at play height.
+- Window frames and the front counter look right at play height.
 - The fridge status label sits in front of the fridge model.
 - OmniLight brightness under the roof.

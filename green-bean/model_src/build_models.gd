@@ -24,6 +24,8 @@ const MODELS := {
 	"lid_caddy": preload("res://model_src/lid_caddy.gd"),
 	"pos_terminal": preload("res://model_src/pos_terminal.gd"),
 	"cash_drawer": preload("res://model_src/cash_drawer.gd"),
+	"bar_mat": preload("res://model_src/bar_mat.gd"),
+	"pickup_shelf": preload("res://model_src/pickup_shelf.gd"),
 }
 
 func _initialize() -> void:

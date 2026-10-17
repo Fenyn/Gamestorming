@@ -1,0 +1,133 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rh672"]
+albedo_color = Color(0.678, 0.456, 0.299, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_br567"]
+size = Vector3(0.04, 0.035, 0.10999999)
+
+[sub_resource type="BoxMesh" id="BoxMesh_273ga"]
+size = Vector3(0.04, 0.035, 0.10999999)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5415r"]
+albedo_color = Color(0.896, 0.602, 0.393, 1)
+roughness = 0.65
+
+[sub_resource type="BoxMesh" id="BoxMesh_qkxrs"]
+size = Vector3(0.344, 0.018, 0.13)
+
+[sub_resource type="BoxMesh" id="BoxMesh_87giw"]
+size = Vector3(0.36, 0.018, 0.11399999)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_2xxyd"]
+top_radius = 0.008
+bottom_radius = 0.008
+height = 0.018
+radial_segments = 10
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_oqhpy"]
+top_radius = 0.008
+bottom_radius = 0.008
+height = 0.018
+radial_segments = 10
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_so62h"]
+top_radius = 0.008
+bottom_radius = 0.008
+height = 0.018
+radial_segments = 10
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_coeox"]
+top_radius = 0.008
+bottom_radius = 0.008
+height = 0.018
+radial_segments = 10
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5axak"]
+albedo_color = Color(0.15, 0.17, 0.16, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_bfea4"]
+size = Vector3(0.09, 0.075, 0.004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ibjwu"]
+size = Vector3(0.09, 0.075, 0.004)
+
+[node name="PickupShelf" type="Node3D" unique_id=2061220183]
+
+[node name="Block" type="MeshInstance3D" parent="." unique_id=1967872455]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14500001, 0.0175, 0)
+material_override = SubResource("StandardMaterial3D_rh672")
+mesh = SubResource("BoxMesh_br567")
+
+[node name="Block2" type="MeshInstance3D" parent="." unique_id=911741414]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14500001, 0.0175, 0)
+material_override = SubResource("StandardMaterial3D_rh672")
+mesh = SubResource("BoxMesh_273ga")
+
+[node name="Plank" type="MeshInstance3D" parent="." unique_id=1350209751]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.044, 0)
+material_override = SubResource("StandardMaterial3D_5415r")
+mesh = SubResource("BoxMesh_qkxrs")
+
+[node name="PlankSides" type="MeshInstance3D" parent="." unique_id=346428193]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.044, 0)
+material_override = SubResource("StandardMaterial3D_5415r")
+mesh = SubResource("BoxMesh_87giw")
+
+[node name="PlankEdge" type="MeshInstance3D" parent="." unique_id=1867415573]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.172, 0.044, -0.056999996)
+material_override = SubResource("StandardMaterial3D_5415r")
+mesh = SubResource("CylinderMesh_2xxyd")
+
+[node name="PlankEdge2" type="MeshInstance3D" parent="." unique_id=166736440]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.172, 0.044, 0.056999996)
+material_override = SubResource("StandardMaterial3D_5415r")
+mesh = SubResource("CylinderMesh_oqhpy")
+
+[node name="PlankEdge3" type="MeshInstance3D" parent="." unique_id=731955415]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.172, 0.044, -0.056999996)
+material_override = SubResource("StandardMaterial3D_5415r")
+mesh = SubResource("CylinderMesh_so62h")
+
+[node name="PlankEdge4" type="MeshInstance3D" parent="." unique_id=981241987]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.172, 0.044, 0.056999996)
+material_override = SubResource("StandardMaterial3D_5415r")
+mesh = SubResource("CylinderMesh_coeox")
+
+[node name="Sign" type="Node3D" parent="." unique_id=1182532132]
+
+[node name="Board" type="MeshInstance3D" parent="Sign" unique_id=887795351]
+transform = Transform3D(1, 0, 0, 0, 0.9563048, 0.2923717, 0, -0.2923717, 0.9563048, 0.125, 0.089, -0.011)
+material_override = SubResource("StandardMaterial3D_5axak")
+mesh = SubResource("BoxMesh_bfea4")
+
+[node name="Text" type="Label3D" parent="Sign/Board" unique_id=205515632]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, -0.0025)
+pixel_size = 0.0005
+modulate = Color(0.94, 0.93, 0.88, 1)
+text = "PICK UP"
+font_size = 40
+outline_size = 0
+
+[node name="Board2" type="MeshInstance3D" parent="Sign" unique_id=1638773644]
+transform = Transform3D(1, 0, 0, 0, 0.9563048, -0.2923717, 0, 0.2923717, 0.9563048, 0.125, 0.089, 0.011)
+material_override = SubResource("StandardMaterial3D_5axak")
+mesh = SubResource("BoxMesh_ibjwu")
+
+[node name="Text" type="Label3D" parent="Sign/Board2" unique_id=1437302398]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0025)
+pixel_size = 0.0005
+modulate = Color(0.94, 0.93, 0.88, 1)
+text = "PICK UP"
+font_size = 40
+outline_size = 0
+
+[node name="DrinkSpot" type="Marker3D" parent="." unique_id=105167567]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.04, 0.053, 0)
+gizmo_extents = 0.03

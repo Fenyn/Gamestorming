@@ -1,6 +1,6 @@
 # Art Pass — Kenney Base + Blender Gaps
 
-First art pass on the espresso stand. Kenney CC0 models replace the room, counters, fridge and milk jug. Every bench-top station and most carriable items are still grey-boxed and are listed below as specs for custom Blender models.
+First art pass on the espresso stand. Kenney CC0 models replace the room, counters, fridge and milk jug. Custom props for the starter stations and items are built in Godot (see Custom models). Upgrade stations are still grey-boxed and are listed below as specs.
 
 ## What changed
 
@@ -65,15 +65,21 @@ Blender can't be installed in the cloud session, so custom props are generated o
 | Scene | Used by | Notes |
 |---|---|---|
 | `scenes/props/hand_grinder.tscn` | `grinder.tscn` (instance named `Model`) | Modern hand burr grinder (steel, 5 cm × 17 cm, 13 cm crank, grip band, grind ring, screw-on catch cup) clamped in a wooden holder, with the device pad beside it. Grounds collect in the catch cup; when the grind finishes the station unscrews the cup, tips it into the device at `DumpPoint` and puts it back. `Crank` turns about the root's `crank_axis` (up), once per mouse circle. Markers: `DevicePad`, `DumpPoint`, `GaugeAnchor`, `CameraView`. The electric grinder upgrade can drop grounds straight into the device. |
-
 | `scenes/props/steam_station.tscn` | `steam.tscn` (instance named `Model`) | Compact standalone milk steamer modelled on real compact standalone steamers (about 10 cm wide, 37 cm deep, 24 cm tall): narrow tower at the back, a head that overhangs the pitcher with a control panel on top and a steam lever on the side, a wand angled down into the pitcher, an IR temperature sensor under the head, a small drip tray, and a mat for the spare pitcher. Depth is squeezed to fit the station footprint. The collision box in `steam.tscn` covers the tower, head and tray (0.12 x 0.245 x 0.195 m). The spare-pitcher mat has its own thin `MatArea` body (`scripts/stations/station_proxy.gd`), so a held pitcher can be clicked onto the mat. If the pad is taken, clicking the steamer parks the pitcher on the mat. Scalded milk is dumped onto the mat only when it is free; otherwise the empty pitcher stays on the pad. The mini-game gauges sit above the head, with the depth gauge on the right, away from the window. Markers: `PitcherPad`, `PitcherRest`, `SteamVent`, `CameraView`. The wand is one node, `Wand`. |
 | `scenes/props/milk_pitcher.tscn` | `Pitcher` item (`scripts/items/pitcher.gd` instances it as `Model`) | 12 oz stainless steaming pitcher at real size (about 7.5 cm across, 9.5 cm tall): belly that narrows toward the top, pointed spout toward -Z, C handle toward +Z, built from a lathed body (`ModelKit.lathe`) and a swept handle (`ModelKit.sweep`). Its `Collision` node is moved onto the Pitcher body at runtime, so the collider is edited in the prop scene with the model. `MilkFloor` marker and the root's `inner_profile` metadata place the milk, which narrows with the wall as it rises. The body and handle are ArrayMeshes, so reshape them by editing `model_src/milk_pitcher.gd` and rebuilding with `--force milk_pitcher`; the editor can still move, recolour or swap parts. |
 | `scenes/props/hot_water_dispenser.tscn` | `hot_water.tscn` (instance named `Model`) | Slim commercial hot water tower at real size, modelled on slim commercial hot water towers (about 19 cm wide, 43 cm deep, 56 cm tall here): stainless tower, a head overhanging about 21 cm of cup clearance, a black control panel with an LED readout and buttons, a faucet with a red lever, and a drip tray. No branding. Origin is the base, so the shop places it on the counter top (y 0.89), back against the wall. During a kettle fill or americano pour the station stands the cup or kettle on `FillPoint` under the spout and hands it back after. The `Faucet/Lever` node swings down while water runs. The kettle can be clicked back onto `KettleRest`. |
 | `scenes/props/gooseneck_kettle.tscn` | `Kettle` item (`scripts/items/kettle.gd` instances it as `Model`) | Gooseneck pour-over kettle at real size, modelled on a typical 1 litre stovetop gooseneck kettle (14.4 cm across, 13 cm tall, about 30 cm spout to handle): domed steel body, small lid with a black knob, S-curved gooseneck leaving low on the body, black handle opposite. Spout points -X, handle +X. `Collision` (body cylinder) is moved onto the item at runtime. `SpoutTip` drives pours: `StationUtils.start_kettle_pour` places the kettle so the tip sits above the target and sways the tilt about the tip; callers pick which side the body sits on (pour-over uses the left, away from the wall). `Lid` lifts off and hangs on the `LidClip` on the front of the body (`LidParked` marker) while the dispenser fills the kettle, then goes back. At the dispenser the kettle waits with its spout toward the wall. |
 | `scenes/props/shot_press.tscn` | `ShotPress` item (`scripts/items/shot_press.gd` instances it as `Model`) | Shot press at real size, like a typical single-cup plunger press (chamber 12.1 cm tall, plunger 13.4 cm with an 8.3 cm top): smoky translucent chamber, round flange with two grip tabs at the bottom, black filter cap with lugs, plain graduation ticks on the front, and a plunger (hidden until pressing). `RimRest` is the flange underside, which sits on the cup rim. `LiquidFloor` and the `liquid_max_height` metadata place the coffee; `PlungerTop`/`PlungerBottom` set the press travel, and the coffee level drops as the plunger reaches it. |
-| `scenes/props/shot_press_station.tscn` | `shot_press.tscn` (instance named `Model`) | Brew spot rather than a machine: a silicone brew mat with drip rings where the cup stands, a wooden stand with a cradle for the AeroPress, and a dish of paper filters. The AeroPress sits on the cup by its flange, so its height follows the cup size. A loaded AeroPress set down with no cup waits in the stand and goes onto the cup when one is placed. The press gauges sit at `GaugeAnchor`, right of the cup above the stand. |
+| `scenes/props/shot_press_station.tscn` | `shot_press.tscn` (instance named `Model`) | Brew spot rather than a machine: a silicone brew mat with drip rings where the cup stands, a wooden stand with a cradle for the shot press, and a dish of paper filters. The shot press sits on the cup by its flange, so its height follows the cup size. A loaded shot press set down with no cup waits in the stand and goes onto the cup when one is placed. The press gauges sit at `GaugeAnchor`, right of the cup above the stand. |
 | `scenes/props/cone_dripper.tscn` | `Dripper` item (`scripts/items/dripper.gd` instances it as `Model`) | Ceramic cone dripper at the size of a typical "02" cone (10.5 cm base plate, 11.7 cm rim, 10 cm tall): 60 degree cone ending in one large hole you can see through the base, a collar down to a flat base plate, and a flat loop handle from the upper cone to the plate. A paper filter lines it and stands 1.4 cm above the rim, with an uneven top edge and a crimped seam. The grounds bed (from `GroundsFloor` and the root metadata) darkens from dry to wet, and a layer of standing water rises while pouring, sinks during the bloom wait and drains during the draw-down. `base_y` is the base plate's underside, which rests on the stand's ring or the saucer. |
 | `scenes/props/pour_over_stand.tscn` | `pour_over.tscn` (instance named `Model`) | Wooden brew stand: base, post and a steel ring the dripper's base plate rests on, a brew scale with a lit readout under the cup, a saucer for the spare dripper, and a wooden slot holding folded paper filters. The ring is high enough for the extra large cup, so the dripper always sits in the same place. The saturation grid lies on the grounds, and the pour camera looks down into the dripper from the front. |
+| `scenes/props/paper_cup_<size>.tscn` | `Cup` item (`scripts/items/cup.gd` picks the scene by size) | Hot paper cups at common sizes (top / bottom diameter x height): small 8 oz 80/56 x 92 mm, medium 12 oz 90/60 x 112, large 16 oz 90/60 x 136, extra large 20 oz 90/60 x 155. Rolled rim, kraft sleeve, and a domed sip lid (`Lid`, hidden until lidded). The drink widens with the wall using the `inner_profile` metadata. The order sticker sits at `StickerSpot` and has captioned SIZE and DRINK rows (`scripts/items/order_label.gd`, also used for printed tickets). |
+| `scenes/props/cup_dispenser.tscn` | `cup_stack.tscn` | Four clear gravity tubes (S, M, L, XL from the barista's left) on a steel bracket under the front counter lip. Cups stack mouth-down and the bottom cup shows below a gripper ring. A grabbed cup appears at `Dispense_<size>`. |
+| `scenes/props/lid_caddy.tscn` | `lid_dispenser.tscn` | Two stacks of sip lids in a black caddy, origin at the base, on the front counter. |
+| `scenes/props/pos_terminal.tscn` | `register.tscn` | Tablet POS on a post, with a bezel sized to the SubViewport screen quad (tilted 15°) and a ticket printer beside it. |
+| `scenes/props/cash_drawer.tscn` | `cash_drawer.tscn` | Compact 30 x 9 x 20 cm cash drawer hung under the front counter lip on brackets, because the 20 cm counter is too shallow to stand it on. `Drawer` slides out to the `DrawerOpen` marker when the change mini-game opens. |
+| `scenes/props/pickup_shelf.tscn` | `hand_off.tscn` | Wooden pickup riser (36 x 13 cm, 5.3 cm tall) with a tented "PICK UP" chalkboard readable from both sides. Origin at the base. The finished drink stands on `DrinkSpot`. |
+| `scenes/props/bar_mat.tscn` | `counter_pad.tscn` | Black rubber bar mat (38 x 38 cm) with a rim and a nub grid. Items stand on the `Slot0`-`Slot3` markers. |
 
 Station scripts read markers with `StationUtils.model_marker(station, "Name", fallback)` and stand items on them with `StationUtils.item_half_height(item)`.
 
@@ -81,43 +87,20 @@ Any of these can be replaced by a Blender model later: keep the instance name `M
 
 ## Still grey-boxed: Blender specs
 
-Sizes are the current grey box and collision. Slot positions are local to the station origin and are set in the station scripts, so a model must leave those spots clear or the scripts need new numbers.
-
-### Stations
+Every starter station and item now uses a custom model. The upgrade stations below are still CSG boxes. Slot positions are local to the station origin and are set in the station scripts, so a model must leave those spots clear or the scripts need new numbers.
 
 | Station (scene) | Box W×H×D (m) | Slots and spawned items (local) | Notes |
 |---|---|---|---|
-| Shot Press (`shot_press.tscn`) | mat 0.3×0.2, origin at the base | from model markers: `CupSpot`, `DeviceRest`, `GaugeAnchor`, `CameraView` | Custom model, see below. Colliders cover the mat and the stand. |
-| Pour Over (`pour_over.tscn`) | base 0.15×0.16, origin at the base | from model markers: `CupSpot`, `RingSeat`, `DripperRest`, `CameraView` | Custom model, see below. Colliders cover the base, scale, post, ring and saucer. |
-| Hot Water (`hot_water.tscn`) | 0.19×0.56×0.43, origin at the base | from model markers: `Spout`, `FillPoint`, `KettleRest`, `CameraView` | Custom model, see below. Colliders are three boxes (tower, head, tray) with the cup space open. |
-| Register (`register.tscn`) | base 0.3×0.2×0.25, collision 0.45×0.45×0.3 | screen quad at (0, 0.36, 0), tilted, facing -Z | The SubViewport screen is built in `register.gd`. A model needs a screen bezel around that quad. |
-| Cash Drawer (`cash_drawer.tscn`) | 0.25×0.1×0.2 | screen (0, 0.08, -0.10) | Faces the customer side. |
-| Cup Stack (`cup_stack.tscn`) | 0.4×0.3×0.2 | cup spawn (0, 0.3, 0) | One stack per size is planned. |
-| Hand-off (`hand_off.tscn`) | 0.4×0.1×0.2 | drink (0, 0.15, 0) | |
-| Lid Dispenser (`lid_dispenser.tscn`) | 0.15×0.2×0.15 | none | Rotated 180° in the shop. |
-| Counter Pad (`counter_pad.tscn`) | 0.38×0.02×0.38 tray | 4 slots at (±0.08, 0.04, ±0.05) | A rubber bar mat would work. |
 | Syrup (`syrup.tscn`) | 0.2×0.3×0.15 | cup (0, 0.05, 0) | Pump bottle, cup sits in front at the base. |
 | Sauce (`sauce.tscn`) | 0.2×0.25×0.15 | cup (0, 0.05, 0.05), bottle (0.12, 0.1, 0) | |
 | Sauce Prep (`sauce_prep.tscn`) | 0.25×0.2×0.2 | bottle (0, 0.12, 0) | |
 | Mocha Prep (`mocha_prep.tscn`) | 0.3×0.2×0.25 | bottle (0.15, 0.12, 0); jug, bag and stir bar visuals built in `mocha_prep_station.gd` | Jug and powder bag are scripted CSG and would need code changes. |
 | Bottle Rack (`bottle_rack.tscn`) | 0.22×0.08×0.08 | 3 bottles at (-0.06/0/0.06, 0.06, 0) | |
-
-### Carriable items (built in code, `scripts/items/`)
-
-These are made with CSG in `_ready()`. Swapping one needs a small script change like the one in `milk_jug.gd`: preload the `.glb`, instantiate it, scale and offset it to match the collider.
-
-| Item | Collider | Animated parts that the model must keep or replace |
-|---|---|---|
-| Cup | cylinder r 0.035–0.046, h 0.10–0.16 by size | `_fill_visual` liquid cylinder, lid state |
-| Shot Press device | cylinder r 0.035, h 0.15 | `_plunger` moves, `_liquid` fills |
-| Dripper | cylinder r 0.05, h 0.08 | `_fill_visual` |
-| Kettle | cylinder r 0.035, h 0.12 + spout | tilted by the pour tween in `StationUtils` |
-| Pitcher | cylinder r 0.04, h 0.12 | none |
-| Sauce bottle | cylinder r 0.025, h 0.12 + cap | `_fill_mesh` |
+| Sauce bottle item (`scripts/items/sauce_bottle.gd`) | cylinder r 0.025, h 0.12 + cap | | `_fill_mesh` shows the level. |
 
 ### Other placeholders
 
-- `Roof` is still a CSG box. None of the imported packs has a roof that fits the stand.
+- `Roof` and the back counter slab are still CSG boxes. None of the imported packs has a roof that fits the stand.
 - Customers walk with the run animation slowed to 55%, because the pack has no walk animation.
 - No textures anywhere. All Kenney models are flat-coloured.
 

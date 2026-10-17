@@ -8,17 +8,13 @@ var _slots: Array[Marker3D] = []
 func _ready() -> void:
 	add_to_group("station")
 
-	var offsets := [
-		Vector3(-0.08, 0.04, -0.05),
-		Vector3(0.08, 0.04, -0.05),
-		Vector3(-0.08, 0.04, 0.05),
-		Vector3(0.08, 0.04, 0.05),
-	]
 	for i in range(MAX_SLOTS):
-		var slot := Marker3D.new()
-		slot.name = "Slot%d" % i
-		slot.position = offsets[i]
-		add_child(slot)
+		var slot := get_node_or_null("Model/Slot%d" % i) as Marker3D
+		if slot == null:
+			slot = Marker3D.new()
+			slot.name = "Slot%d" % i
+			slot.position = Vector3(0.16 * float(i % 2) - 0.08, 0.016, 0.16 * float(i / 2) - 0.08)
+			add_child(slot)
 		_slots.append(slot)
 
 func receive_item(item: Node3D) -> bool:
@@ -28,7 +24,7 @@ func receive_item(item: Node3D) -> bool:
 		return false
 	_placed_items.append(item)
 	var idx := _placed_items.size() - 1
-	StationUtils.place_at_slot(item, _slots[idx].global_position)
+	StationUtils.place_at_slot(item, _slot_position(idx, item))
 	return true
 
 func interact(player: Player) -> void:
@@ -61,13 +57,18 @@ func _reposition_items() -> void:
 	for i in range(_placed_items.size()):
 		var item := _placed_items[i]
 		if is_instance_valid(item):
-			item.global_position = _slots[i].global_position
+			item.global_position = _slot_position(i, item)
 
 func _process(_delta: float) -> void:
 	var changed := false
 	for i in range(_placed_items.size() - 1, -1, -1):
-		if StationUtils.is_item_removed(_placed_items[i], _slots[mini(i, _slots.size() - 1)].global_position):
+		var item := _placed_items[i]
+		if not item or StationUtils.is_item_removed(item, _slot_position(mini(i, _slots.size() - 1), item)):
 			_placed_items.remove_at(i)
 			changed = true
 	if changed:
 		_reposition_items()
+
+## Where an item's centre sits so its base rests on the mat.
+func _slot_position(i: int, item: Node3D) -> Vector3:
+	return _slots[i].global_position + Vector3(0, StationUtils.item_half_height(item), 0)

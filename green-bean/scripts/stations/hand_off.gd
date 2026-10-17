@@ -1,9 +1,11 @@
 extends StaticBody3D
 
 var _label: Label3D = null
+var _drink_spot := Vector3(0, 0.053, 0)
 
 func _ready() -> void:
 	add_to_group("station")
+	_drink_spot = StationUtils.model_marker(self, "DrinkSpot", _drink_spot)
 
 	_label = StationUtils.create_status_label(self, Vector3(0, 0.25, 0.12))
 	_label.text = "HAND OFF\n[Click] Place finished drink"
@@ -42,9 +44,7 @@ func receive_item(item: Node3D) -> bool:
 		"tip": tip,
 	})
 
-	item.global_position = global_position + Vector3(0, 0.15, 0)
-	if item is RigidBody3D:
-		(item as RigidBody3D).freeze = true
+	StationUtils.place_at_slot(item, to_global(_drink_spot) + Vector3(0, StationUtils.item_half_height(item), 0))
 
 	if _label:
 		_label.text = _format_review(stars, tip)
@@ -52,7 +52,7 @@ func receive_item(item: Node3D) -> bool:
 		_label.scale = Vector3.ONE
 		Fx.pop(_label, 1.6, 0.35)
 
-	var top := global_position + Vector3(0, 0.2, 0)
+	var top := to_global(_drink_spot) + Vector3(0, 0.2, 0)
 	if stars >= 4.5:
 		Fx.sparkle_burst(top, _star_color(stars))
 	if tip > 0.0:

@@ -226,7 +226,7 @@ Used as the base for espresso drinks. Not a traditional espresso machine — the
 Shot Press shot + hot water.
 
 **Steps:**
-1. Pull an shot press shot (steps above — shot dies if left too long)
+1. Pull a shot press shot (steps above — shot dies if left too long)
 2. Add hot water to the cup from dispenser — ACTIVE (water pour mini-game, fill to line, overflow risk)
 3. Lid and hand off
 
@@ -236,7 +236,7 @@ Shot Press shot + hot water.
 Shot Press shot + steamed milk. The most complex Phase 1 drink — multiple active and passive phases to juggle.
 
 **Steps:**
-1. Pull an shot press shot (steps above — shot dies if left too long)
+1. Pull a shot press shot (steps above — shot dies if left too long)
 2. Grab milk from fridge (walk to fridge, interact)
 3. Pour milk into steaming pitcher (interact)
 4. Steam milk — ACTIVE, FAILURE RISK (milk steaming mini-game, scalds if unattended)
@@ -398,7 +398,7 @@ scenes/
   stations/
     register.tscn            POS counter with in-world screen + ticket printer
     pour_over_station.tscn   Pour-over dripper + gooseneck kettle
-    shot_press_station.tscn   Shot Press setup
+    shot_press_station.tscn  Shot Press setup
     steam_station.tscn       Milk steaming wand + pitcher
     grinder.tscn             Coffee grinder
     hot_water.tscn           Hot water dispenser (for americanos)
@@ -427,7 +427,7 @@ scripts/
     ticket_printer.gd        Generates physical ticket from order data
     grinder.gd               Grinder station — grind level selection + hand-crank or auto
     pour_over.gd             Pour-over station — saturation-based pour
-    shot_press.gd             Shot Press station — pressure control
+    shot_press.gd            Shot Press station — pressure control
     steam_wand.gd            Steam station — wand depth control
     hot_water.gd             Hot water dispenser — fill-to-line pour
     hand_off.gd              Drink delivery + quality scoring

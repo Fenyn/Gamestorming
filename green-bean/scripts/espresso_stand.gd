@@ -55,7 +55,7 @@ func _build_stations() -> void:
 	_place(CASH_DRAWER_SCENE, Vector3(0.55, 0.95, 0.9), "CASH DRAWER")
 	_place(CUP_STACK_SCENE, Vector3(-0.2, 1.1, 0.9), "CUPS")
 	_place(GRINDER_SCENE, Vector3(-1.2, 1.1, -0.9), "GRINDER")
-	_place(AEROPRESS_SCENE, Vector3(-0.5, 1.0, -0.9), "AEROPRESS")
+	_place(AEROPRESS_SCENE, Vector3(-0.5, 0.85, -0.9), "AEROPRESS")
 	_place(POUR_OVER_SCENE, Vector3(0.2, 1.05, -0.9), "POUR OVER")
 	_place(COUNTER_PAD_SCENE, Vector3(0.8, 0.92, -0.7))
 	_place(HOT_WATER_SCENE, Vector3(0.8, 1.0, -1.1), "HOT WATER")

@@ -21,23 +21,37 @@ var _pour_tween: Tween = null
 
 var _cup_slot: Marker3D = null
 var _device_slot: Marker3D = null
+var _cup_spot := Vector3.ZERO
+var _device_rest := Vector3.ZERO
+var _gauge_anchor := Vector3.ZERO
 var _status_label: Label3D = null
 
 func _ready() -> void:
 	add_to_group("station")
 
+	# Positions come from the model scene (scenes/props/aeropress_station.tscn).
+	# The cup stands on CupSpot, the AeroPress sits on the cup's rim, and the
+	# spare AeroPress waits upright in the stand at DeviceRest.
+	_cup_spot = StationUtils.model_marker(self, "CupSpot", Vector3(-0.045, 0.005, 0.02))
+	_device_rest = StationUtils.model_marker(self, "DeviceRest", Vector3(0.09, 0.021, -0.02))
+	_gauge_anchor = StationUtils.model_marker(self, "GaugeAnchor", _cup_spot + Vector3(0.17, 0.26, 0.04))
+
 	_cup_slot = Marker3D.new()
 	_cup_slot.name = "CupSlot"
-	_cup_slot.position = Vector3(0, 0.15, 0)
+	_cup_slot.position = _cup_spot
 	add_child(_cup_slot)
 
 	_device_slot = Marker3D.new()
 	_device_slot.name = "DeviceSlot"
-	_device_slot.position = Vector3(0, 0.25, 0)
+	_device_slot.position = _cup_spot + Vector3(0, 0.18, 0)
 	add_child(_device_slot)
 
-	var cam_pos := Vector3(0, 0.4, 0.4)
-	var cam_rot := Vector3(-30, 0, 0)
+	var cam_xform := Transform3D(Basis.from_euler(Vector3(deg_to_rad(-30), 0, 0)), Vector3(0, 0.4, 0.4))
+	var view := get_node_or_null("Model/CameraView") as Node3D
+	if view:
+		cam_xform = global_transform.affine_inverse() * view.global_transform
+	var cam_pos := cam_xform.origin
+	var cam_rot := cam_xform.basis.get_euler() * 180.0 / PI
 
 	_press_game = PressMiniGame.new()
 	_press_game.name = "PressMiniGame"
@@ -73,15 +87,67 @@ func _ready() -> void:
 	_water_game._camera_point = cam3
 	_water_game.mini_game_completed.connect(_on_water_complete)
 
+	# The press gauges and pour readout are drawn beside the cup, at GaugeAnchor.
+	# Their nodes were laid out around the old grey box's origin, so shift the
+	# whole mini-game and pull its camera back by the same amount.
+	_offset_game(_press_game, _gauge_anchor - Vector3(0, 0.2, 0.18))
+	_offset_game(_water_game, Vector3.ZERO)
+	_water_game._status_label.position = _gauge_anchor
+	_water_game._status_label.rotation_degrees = Vector3.ZERO
+	_water_game._status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+
 	_spawn_shelf_device()
-	_status_label = StationUtils.create_status_label(self)
+	_status_label = StationUtils.create_status_label(self, _cup_spot + Vector3(0.06, 0.36, 0.05))
 	_update_label()
+
+## Moves a mini-game node (and its gauges) by offset, keeping its camera where
+## it was in station space.
+func _offset_game(game: Node3D, offset: Vector3) -> void:
+	var cam_world_local: Vector3 = game.position + game._camera_point.position
+	game.position = offset
+	game._camera_point.position = cam_world_local - offset
 
 func _spawn_shelf_device() -> void:
 	_shelf_device = AeropressDevice.new()
 	_shelf_device.name = "AeropressShelf"
 	add_child(_shelf_device)
-	_shelf_device.position = Vector3(0.15, 0.18, 0)
+	_shelf_device.position = _rest_position(_shelf_device)
+
+## Where a device stands in the stand's cradle (station-local).
+func _rest_position(device: Node3D) -> Vector3:
+	return _device_rest + Vector3(0, StationUtils.item_half_height(device, 0.06), 0)
+
+## Where the cup stands (station-local), by its own height.
+func _cup_position(cup: Node3D) -> Vector3:
+	return _cup_spot + Vector3(0, StationUtils.item_half_height(cup, 0.06), 0)
+
+## Where the device sits on the placed cup: its flange on the cup rim.
+func _device_on_cup_position(device: Node3D) -> Vector3:
+	var cup_top := _cup_spot.y + (StationUtils.item_half_height(_placed_cup, 0.06) * 2.0 if _placed_cup else 0.12)
+	var rim_offset := (device as AeropressDevice).rim_rest_y if device is AeropressDevice else -0.05
+	return Vector3(_cup_spot.x, cup_top - rim_offset, _cup_spot.z)
+
+func _stand_free() -> bool:
+	return _shelf_device == null or not is_instance_valid(_shelf_device)
+
+## Sends a device back to the stand, emptied.
+func _return_to_stand(device: AeropressDevice) -> void:
+	device.reset_device()
+	StationUtils.cancel_settle(device)
+	device.global_position = to_global(_rest_position(device))
+	device.global_basis = global_basis
+	StationUtils.set_item_collision(device, true)
+	_shelf_device = device
+
+## Moves the stir mini-game so its paddle dips into the top of the device.
+func _place_stir_game() -> void:
+	if not _placed_device:
+		return
+	var top := _device_on_cup_position(_placed_device).y + 0.0605
+	# The paddle's handle is drawn 0.33 above the stir node; dip it 1 cm in.
+	var offset := Vector3(_cup_spot.x, top - 0.01 - 0.33, _cup_spot.z)
+	_offset_game(_stir_game, offset)
+	_stir_game._status_label.position = _gauge_anchor - offset
 
 func _any_game_active() -> bool:
 	return _press_game.is_active() or _stir_game.is_active() or _water_game.is_active()
@@ -111,11 +177,12 @@ func interact(player: Player) -> void:
 			if held is Kettle and (held as Kettle).has_water:
 				_pouring_player = player
 				_pour_kettle = held as Kettle
-				_pour_tween = StationUtils.start_kettle_pour(player, _pour_kettle, _device_slot.global_position, Vector3(0, 0.10, 0), _water_game.is_pouring)
+				_pour_tween = StationUtils.start_kettle_pour(player, _pour_kettle, _placed_device.global_position, Vector3(0, 0.10, 0), _water_game.is_pouring)
 				_water_game.start(player)
 			elif _status_label:
 				_status_label.text = "Hold filled kettle!\n[E] Pour water"
 		State.HAS_WATER:
+			_place_stir_game()
 			_stir_game.start(player)
 		State.STEEPING:
 			pass
@@ -145,20 +212,42 @@ func receive_item(item: Node3D) -> bool:
 		if cup.has_shot:
 			return false
 		_placed_cup = cup
+		_cup_slot.position = _cup_position(cup)
 		StationUtils.place_at_slot(item, _cup_slot.global_position)
+		item.global_basis = global_basis
+		# A loaded AeroPress waiting in the stand goes straight onto the cup.
+		if not _placed_device and not _stand_free() and _shelf_device.has_grounds():
+			var waiting := _shelf_device
+			_shelf_device = null
+			_mount_device(waiting)
 		_recalculate_state()
 		return true
 	if item is AeropressDevice:
 		if _placed_device:
 			return false
-		_placed_device = item as AeropressDevice
-		StationUtils.place_at_slot(item, _device_slot.global_position)
-		if _placed_device.has_grounds():
-			_correct_grind = (_placed_device.grounds.grind_level == DrinkData.GrindLevel.FINE)
-			_grind_quality = _placed_device.grounds.grind_quality
+		if _placed_cup:
+			_mount_device(item as AeropressDevice)
+		elif _stand_free():
+			# No cup yet: stand it in the cradle until one arrives.
+			StationUtils.place_at_slot(item, to_global(_rest_position(item)))
+			item.global_basis = global_basis
+			StationUtils.set_item_collision(item, true)
+			_shelf_device = item as AeropressDevice
+		else:
+			return false
 		_recalculate_state()
 		return true
 	return false
+
+## Sits the device on the placed cup.
+func _mount_device(device: AeropressDevice) -> void:
+	_placed_device = device
+	_device_slot.position = _device_on_cup_position(device)
+	StationUtils.place_at_slot(device, _device_slot.global_position)
+	device.global_basis = global_basis
+	if device.has_grounds():
+		_correct_grind = (device.grounds.grind_level == DrinkData.GrindLevel.FINE)
+		_grind_quality = device.grounds.grind_quality
 
 func _recalculate_state() -> void:
 	if _placed_cup and _placed_device:
@@ -235,10 +324,15 @@ func _process(_delta: float) -> void:
 	_check_removed_items()
 
 func _check_removed_items() -> void:
-	if StationUtils.is_item_removed(_placed_cup, _cup_slot.global_position):
+	if _shelf_device and StationUtils.is_item_removed(_shelf_device, to_global(_rest_position(_shelf_device)), 0.15):
+		_shelf_device = null
+		_update_label()
+	# Only check items that are actually here. is_item_removed() is true for a
+	# null item, which used to knock DONE back to CUP_ONLY every frame.
+	if _placed_cup and StationUtils.is_item_removed(_placed_cup, _cup_slot.global_position):
 		_placed_cup = null
 		_recalculate_state()
-	if StationUtils.is_item_removed(_placed_device, _device_slot.global_position):
+	if _placed_device and StationUtils.is_item_removed(_placed_device, _device_slot.global_position):
 		_placed_device = null
 		_recalculate_state()
 
@@ -257,10 +351,12 @@ func _on_press_complete(quality: float) -> void:
 		_placed_cup.set_fill(0.3, Color(0.25, 0.15, 0.05))
 		StationUtils.set_item_collision(_placed_cup, true)
 	if _placed_device:
-		_placed_device.reset_device()
-		_placed_device.global_position = Vector3(global_position.x + 0.15, global_position.y + 0.18, global_position.z)
-		_shelf_device = _placed_device
+		var used := _placed_device
 		_placed_device = null
+		if _stand_free():
+			_return_to_stand(used)
+		else:
+			used.reset_device()
 	state = State.DONE
 	_update_label()
 
@@ -272,10 +368,12 @@ func _reset() -> void:
 	_correct_grind = true
 	_press_game.reset_phase()
 	if _placed_device:
-		_placed_device.reset_device()
-		_placed_device.global_position = Vector3(global_position.x + 0.15, global_position.y + 0.18, global_position.z)
-		_shelf_device = _placed_device
+		var used := _placed_device
 		_placed_device = null
+		if _stand_free():
+			_return_to_stand(used)
+		else:
+			used.reset_device()
 	_update_label()
 
 func _update_label() -> void:
@@ -283,8 +381,12 @@ func _update_label() -> void:
 		return
 	match state:
 		State.IDLE:
-			var has_shelf := _shelf_device != null and is_instance_valid(_shelf_device)
-			_status_label.text = "[E] Pick up aeropress" if has_shelf else "[Click] Place cup"
+			if not _stand_free() and _shelf_device.has_grounds():
+				_status_label.text = "[Click] Place cup"
+			elif not _stand_free():
+				_status_label.text = "[E] Pick up aeropress"
+			else:
+				_status_label.text = "[Click] Place cup"
 		State.CUP_ONLY:
 			var has_shelf := _shelf_device != null and is_instance_valid(_shelf_device)
 			_status_label.text = "[E] Pick up aeropress" if has_shelf else "Bring aeropress w/ grounds"

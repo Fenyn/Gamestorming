@@ -13,7 +13,7 @@ script = ExtResource("1")
 [node name="Model" parent="." instance=ExtResource("2_model")]
 
 [node name="ChangeMat" parent="." instance=ExtResource("3_mat")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.049, 0.254)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0.16)
 
 [node name="Collision" type="CollisionShape3D" parent="." unique_id=201614689]
 shape = SubResource("BoxShape3D_001")

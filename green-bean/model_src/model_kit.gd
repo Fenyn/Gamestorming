@@ -92,6 +92,60 @@ static func torus(parent: Node3D, name: String, inner_radius: float, outer_radiu
 	m.ring_segments = 8
 	return _add(parent, m, material, pos, rot_deg, name)
 
+## Surface of revolution around Y. profile is a list of (radius, y) points
+## traced in order, e.g. up the outside wall, over the rim and down the inside.
+## deform (optional) is called as deform(point: Vector3, angle: float) -> Vector3
+## to pinch a spout or flatten a side. Trace a closed profile (outside wall up,
+## inside wall down) so the wall has thickness: the faces are single-sided, and
+## drawing both sides of a thin wall makes the two surfaces z-fight.
+static func lathe(parent: Node3D, name: String, profile: PackedVector2Array, pos: Vector3, material: Material, sides := 24, deform := Callable()) -> MeshInstance3D:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rings: Array[PackedVector3Array] = []
+	for i in range(sides + 1):
+		var angle := TAU * float(i) / float(sides)
+		var ring := PackedVector3Array()
+		for p in profile:
+			var v := Vector3(sin(angle) * p.x, p.y, cos(angle) * p.x)
+			if deform.is_valid():
+				v = deform.call(v, angle)
+			ring.append(v)
+		rings.append(ring)
+	for i in range(sides):
+		var a := rings[i]
+		var b := rings[i + 1]
+		for j in range(profile.size() - 1):
+			st.add_vertex(a[j]); st.add_vertex(b[j]); st.add_vertex(b[j + 1])
+			st.add_vertex(a[j]); st.add_vertex(b[j + 1]); st.add_vertex(a[j + 1])
+	st.index()
+	st.generate_normals()
+	return _add(parent, st.commit(), material, pos, Vector3.ZERO, name)
+
+## Tube along a path of points, with an oval cross-section: half_width along
+## side_axis, half_depth across it. Good for handles and bent wire. The path
+## should not run parallel to side_axis.
+static func sweep(parent: Node3D, name: String, path: PackedVector3Array, half_width: float, half_depth: float, material: Material, side_axis := Vector3.RIGHT, sides := 10, pos := Vector3.ZERO) -> MeshInstance3D:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rings: Array[PackedVector3Array] = []
+	for i in range(path.size()):
+		var tangent := (path[mini(i + 1, path.size() - 1)] - path[maxi(i - 1, 0)]).normalized()
+		var normal := tangent.cross(side_axis).normalized()
+		var ring := PackedVector3Array()
+		for k in range(sides + 1):
+			var a := TAU * float(k) / float(sides)
+			ring.append(path[i] + side_axis * cos(a) * half_width + normal * sin(a) * half_depth)
+		rings.append(ring)
+	for i in range(path.size() - 1):
+		for k in range(sides):
+			var a := rings[i]
+			var b := rings[i + 1]
+			st.add_vertex(a[k]); st.add_vertex(a[k + 1]); st.add_vertex(b[k + 1])
+			st.add_vertex(a[k]); st.add_vertex(b[k + 1]); st.add_vertex(b[k])
+	st.index()
+	st.generate_normals()
+	return _add(parent, st.commit(), material, pos, Vector3.ZERO, name)
+
 ## Saves the node tree under root as a Godot scene (.tscn). Meshes and materials
 ## are stored inside the scene, so every part can be selected and edited in the
 ## editor (sizes, colours, positions).

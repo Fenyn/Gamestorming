@@ -82,16 +82,10 @@ func receive_item(item: Node3D) -> bool:
 	if not (item is AeropressDevice or item is Dripper):
 		return false
 	_placed_device = item
-	StationUtils.place_at_slot(item, _device_slot.global_position + Vector3(0, _half_height(item), 0))
+	StationUtils.place_at_slot(item, _device_slot.global_position + Vector3(0, StationUtils.item_half_height(item), 0))
 	state = State.DEVICE_PLACED
 	_update_label()
 	return true
-
-func _half_height(item: Node3D) -> float:
-	for child in item.get_children():
-		if child is CollisionShape3D and (child as CollisionShape3D).shape is CylinderShape3D:
-			return ((child as CollisionShape3D).shape as CylinderShape3D).height * 0.5
-	return 0.05
 
 func _on_grind_complete(quality: float) -> void:
 	if not _placed_device:

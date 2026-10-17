@@ -66,7 +66,11 @@ Blender can't be installed in the cloud session, so custom props are generated o
 |---|---|---|
 | `scenes/props/hand_grinder.tscn` | `grinder.tscn` (instance named `Model`) | Grouped as Base, Body, Spout, Hopper, CrankMount, plus `Crank` (the station rotates it about X while grinding), `DevicePad` (Marker3D where the dripper or aeropress is set down) and `SpoutTip` (Marker3D where grind dust falls). Move those three in the editor and the station follows. Devices are lifted by half their height so they sit on the pad. |
 
-Any of these can be replaced by a Blender model later: keep the instance name `Model`, the origin at the centre of the collision box, +Z as the front, and the `Crank`, `DevicePad` and `SpoutTip` nodes.
+| `scenes/props/steam_station.tscn` | `steam.tscn` (instance named `Model`) | Cream-and-chrome boiler with pressure gauge, steam knob, cup rail, drip tray and a steam wand that dips into the pitcher, plus a mat for the spare pitcher. Markers: `PitcherPad` (pitcher stands here), `PitcherRest` (spare pitcher), `SteamVent` (steam puffs), `CameraView` (steaming mini-game camera). The wand is one node, `Wand`, so it can be swung or tilted as a unit. |
+
+Station scripts read markers with `StationUtils.model_marker(station, "Name", fallback)` and stand items on them with `StationUtils.item_half_height(item)`.
+
+Any of these can be replaced by a Blender model later: keep the instance name `Model`, the origin at the centre of the collision box, +Z as the front, and the marker nodes listed above.
 
 ## Still grey-boxed: Blender specs
 
@@ -78,7 +82,6 @@ Sizes are the current grey box and collision. Slot positions are local to the st
 |---|---|---|---|
 | Aeropress (`aeropress.tscn`) | 0.2×0.3×0.2 | cup (0, 0.15, 0), device (0, 0.25, 0), shelf device (0.15, 0.18, 0) | Cup sits on top. Device sits above the cup. |
 | Pour Over (`pour_over.tscn`) | 0.25×0.25×0.25 | cup (0, 0.12, 0), dripper (0, 0.22, 0), shelf dripper (0.15, 0.15, 0) | Brew stand. Camera looks almost straight down. |
-| Steam (`steam.tscn`) | 0.2×0.25×0.2 | pitcher (0, 0.15, 0), shelf pitcher (0.15, 0.12, 0) | Needs a steam wand. Kenney has no espresso machine with a wand. |
 | Hot Water (`hot_water.tscn`) | 0.2×0.4×0.2 | shelf kettle (0.12, 0.2, 0) | Kenney `kitchenCoffeeMachine` is imported but not used, because the kettle spot overlaps it. |
 | Register (`register.tscn`) | base 0.3×0.2×0.25, collision 0.45×0.45×0.3 | screen quad at (0, 0.36, 0), tilted, facing -Z | The SubViewport screen is built in `register.gd`. A model needs a screen bezel around that quad. |
 | Cash Drawer (`cash_drawer.tscn`) | 0.25×0.1×0.2 | screen (0, 0.08, -0.10) | Faces the customer side. |

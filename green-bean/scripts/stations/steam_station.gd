@@ -16,15 +16,22 @@ func _ready() -> void:
 
 	_pitcher_slot = Marker3D.new()
 	_pitcher_slot.name = "PitcherSlot"
-	_pitcher_slot.position = Vector3(0, 0.15, 0)
+	# Marker positions come from the model scene (scenes/props/steam_station.tscn).
+	# Pitchers stand on them: they are lifted by half their height when placed.
+	_pitcher_slot.position = StationUtils.model_marker(self, "PitcherPad", Vector3(0, 0.125, 0))
 	add_child(_pitcher_slot)
 
 	_steam_game = SteamMiniGame.new()
 	_steam_game.name = "SteamMiniGame"
 	var cam: Marker3D = Marker3D.new()
 	cam.name = "CameraPoint"
-	cam.position = Vector3(0, 0.4, 0.4)
-	cam.rotation_degrees = Vector3(-25, 0, 0)
+	var view := get_node_or_null("Model/CameraView") as Node3D
+	if view:
+		# The mini-game node sits at the station origin, so station-local works here.
+		cam.transform = global_transform.affine_inverse() * view.global_transform
+	else:
+		cam.position = Vector3(0, 0.4, 0.4)
+		cam.rotation_degrees = Vector3(-25, 0, 0)
 	_steam_game.add_child(cam)
 	add_child(_steam_game)
 	_steam_game._camera_point = cam
@@ -35,7 +42,7 @@ func _ready() -> void:
 	# Steam rises from the pitcher. It gets thicker as the milk heats and turns
 	# harsh and grey when the milk scalds, so the warning reads from across the shop.
 	_steam_puffs = SteamPuffs.new(40, 0.07, 0.16)
-	_steam_puffs.position = Vector3(0, 0.22, 0)
+	_steam_puffs.position = StationUtils.model_marker(self, "SteamVent", Vector3(0, 0.22, 0))
 	add_child(_steam_puffs)
 
 	_status_label = StationUtils.create_status_label(self)
@@ -45,7 +52,11 @@ func _spawn_shelf_pitcher() -> void:
 	_shelf_pitcher = Pitcher.new()
 	_shelf_pitcher.name = "PitcherShelf"
 	add_child(_shelf_pitcher)
-	_shelf_pitcher.position = Vector3(0.15, 0.12, 0)
+	_shelf_pitcher.position = _rest_position()
+
+## Where the spare pitcher waits, standing on the model's PitcherRest marker.
+func _rest_position() -> Vector3:
+	return StationUtils.model_marker(self, "PitcherRest", Vector3(0.15, 0.06, 0)) + Vector3(0, 0.06, 0)
 
 func interact(player: Player) -> void:
 	if _steam_game.is_active():
@@ -95,7 +106,7 @@ func receive_item(item: Node3D) -> bool:
 	if _placed_pitcher:
 		return false
 	_placed_pitcher = item as Pitcher
-	StationUtils.place_at_slot(item, _pitcher_slot.global_position)
+	StationUtils.place_at_slot(item, _pitcher_slot.global_position + Vector3(0, StationUtils.item_half_height(item), 0))
 	state = State.PITCHER_PLACED
 	_update_label()
 	return true
@@ -175,7 +186,7 @@ func _reset() -> void:
 	_steam_game.reset_steam()
 	if _placed_pitcher:
 		_placed_pitcher.reset_pitcher()
-		_placed_pitcher.global_position = Vector3(global_position.x + 0.15, global_position.y + 0.12, global_position.z)
+		_placed_pitcher.global_position = to_global(_rest_position())
 		_shelf_pitcher = _placed_pitcher
 		_placed_pitcher = null
 	_update_label()

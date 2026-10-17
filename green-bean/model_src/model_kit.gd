@@ -37,14 +37,29 @@ static func metal(color: Color) -> StandardMaterial3D:
 
 static func _add(parent: Node3D, mesh: Mesh, material: Material, pos: Vector3, rot_deg: Vector3, name: String) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
-	mi.name = name
+	mi.name = unique_name(parent, name)
 	mi.mesh = mesh
 	mi.material_override = material
 	mi.position = pos
 	mi.rotation_degrees = rot_deg
 	parent.add_child(mi)
-	mi.owner = parent if parent.owner == null else parent.owner
 	return mi
+
+## Readable names for repeated parts: Foot, Foot2, Foot3...
+static func unique_name(parent: Node, base: String) -> String:
+	if not parent.has_node(NodePath(base)):
+		return base
+	var i := 2
+	while parent.has_node(NodePath("%s%d" % [base, i])):
+		i += 1
+	return "%s%d" % [base, i]
+
+## Empty node to group related parts in the scene tree.
+static func group(parent: Node3D, name: String) -> Node3D:
+	var g := Node3D.new()
+	g.name = unique_name(parent, name)
+	parent.add_child(g)
+	return g
 
 static func box(parent: Node3D, name: String, size: Vector3, pos: Vector3, material: Material, rot_deg := Vector3.ZERO) -> MeshInstance3D:
 	var m := BoxMesh.new()
@@ -76,6 +91,27 @@ static func torus(parent: Node3D, name: String, inner_radius: float, outer_radiu
 	m.rings = 16
 	m.ring_segments = 8
 	return _add(parent, m, material, pos, rot_deg, name)
+
+## Saves the node tree under root as a Godot scene (.tscn). Meshes and materials
+## are stored inside the scene, so every part can be selected and edited in the
+## editor (sizes, colours, positions).
+static func save_scene(root: Node3D, path: String) -> Error:
+	_own_children(root, root)
+	var packed := PackedScene.new()
+	var err := packed.pack(root)
+	if err != OK:
+		push_error("ModelKit: pack failed for %s (%d)" % [path, err])
+		return err
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(path.get_base_dir()))
+	err = ResourceSaver.save(packed, path)
+	if err != OK:
+		push_error("ModelKit: save failed for %s (%d)" % [path, err])
+	return err
+
+static func _own_children(node: Node, owner_node: Node) -> void:
+	for child in node.get_children():
+		child.owner = owner_node
+		_own_children(child, owner_node)
 
 ## Writes the node tree under root to a binary glTF file.
 static func export_glb(root: Node3D, path: String) -> Error:

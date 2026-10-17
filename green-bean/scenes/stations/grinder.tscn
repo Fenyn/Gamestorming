@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bj6yjp8w1k5f5"]
 
 [ext_resource type="Script" uid="uid://dkj0rwxkj3cu5" path="res://scripts/stations/grinder_station.gd" id="1"]
-[ext_resource type="PackedScene" path="res://assets/models/custom/hand_grinder.glb" id="2_model"]
+[ext_resource type="PackedScene" path="res://scenes/props/hand_grinder.tscn" id="2_model"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_001"]
 size = Vector3(0.25, 0.35, 0.25)

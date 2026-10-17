@@ -56,17 +56,17 @@ Station origin is the centre of the grey box (bottom at `-height/2`). The player
 
 ## Custom models (built in Godot)
 
-Blender can't be installed in the cloud session, so custom props are built from primitive meshes by scripts in `model_src/` and exported as .glb with Godot's glTF exporter.
+Blender can't be installed in the cloud session, so custom props are generated once from primitive meshes by scripts in `model_src/` and saved as normal Godot scenes in `scenes/props/`. Nothing is generated at runtime. Open the scene in the editor to move, resize or recolour any part: every piece is a MeshInstance3D with its mesh and material stored in the scene. Materials of the same colour are shared, so changing one recolours all parts that use it.
 
-- `model_src/model_kit.gd`: helpers (box, cylinder/cone, sphere, torus) and Kenney-matched colours.
+- `model_src/model_kit.gd`: helpers (box, cylinder/cone, sphere, torus, group) and Kenney-matched colours.
 - `model_src/<model>.gd`: one script per model with a static `build()`.
-- `model_src/build_models.gd`: builds them all into `assets/models/custom/`. Run it from the green-bean folder with `godot --headless --path . --script res://model_src/build_models.gd`, then let the editor import the files.
+- `model_src/build_models.gd`: writes any missing scenes. It never overwrites an existing scene unless you pass `-- --force <name>` (or `all`), so editor changes are safe. Run from the green-bean folder: `godot --headless --path . --script res://model_src/build_models.gd`.
 
-| Model | Used by | Notes |
+| Scene | Used by | Notes |
 |---|---|---|
-| `hand_grinder.glb` | `grinder.tscn` (node `Model`) | Wooden base and body, steel burr housing, bean hopper, spout over a dosing pad, back drawer, brass dial. The crank handle is still built by `grinder_station.gd` so it can turn. The device slot moved onto the dosing pad, and devices are lifted by half their height so they sit on it. |
+| `scenes/props/hand_grinder.tscn` | `grinder.tscn` (instance named `Model`) | Grouped as Base, Body, Spout, Hopper, CrankMount, plus `Crank` (the station rotates it about X while grinding), `DevicePad` (Marker3D where the dripper or aeropress is set down) and `SpoutTip` (Marker3D where grind dust falls). Move those three in the editor and the station follows. Devices are lifted by half their height so they sit on the pad. |
 
-Any of these can be replaced by a Blender model later: keep the node name `Model`, the origin at the centre of the collision box, and +Z as the front.
+Any of these can be replaced by a Blender model later: keep the instance name `Model`, the origin at the centre of the collision box, +Z as the front, and the `Crank`, `DevicePad` and `SpoutTip` nodes.
 
 ## Still grey-boxed: Blender specs
 

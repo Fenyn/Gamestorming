@@ -9,7 +9,9 @@ const ARRIVE_DISTANCE := 0.2
 const IDLE_BARK_MIN := 9.0
 const IDLE_BARK_MAX := 18.0
 
-enum State { WALKING_TO_REGISTER, WAITING_TO_ORDER, PAYING, WALKING_TO_PICKUP, WAITING_FOR_DRINK, LEAVING }
+## WALKING_TO_REGISTER means walking to the customer's spot in the register line.
+## QUEUED means standing in line behind someone. Only the front of the line orders.
+enum State { WALKING_TO_REGISTER, WAITING_TO_ORDER, PAYING, WALKING_TO_PICKUP, WAITING_FOR_DRINK, LEAVING, QUEUED }
 
 var state := State.WALKING_TO_REGISTER
 var order_data: OrderData = null
@@ -42,6 +44,12 @@ var _anim_time := 0.0
 var _patience_ratio := 1.0
 var _bar_shake := 0.0
 var _bark_timer := 0.0
+## Place in the register line, set by the spawner. 0 is at the register.
+## -1 means no line manager (e.g. debug scenes); the customer then acts as the front.
+var queue_index := -1
+var _line_look_target := Vector3.ZERO
+var _in_line := false
+var _greeted := false
 var _avoidance_requested := false
 var _stuck_time := 0.0
 var _last_progress_pos := Vector3.ZERO
@@ -170,6 +178,8 @@ func _animate(delta: float) -> void:
 	var face_dir := Vector3.ZERO
 	if moving:
 		face_dir = flat_velocity
+	elif state == State.QUEUED:
+		face_dir = _line_look_target - global_position
 	elif state == State.WAITING_TO_ORDER or state == State.PAYING or state == State.WAITING_FOR_DRINK:
 		if _player == null or not is_instance_valid(_player):
 			_player = get_tree().get_first_node_in_group("player") as Node3D
@@ -195,7 +205,7 @@ func _animate(delta: float) -> void:
 
 ## Occasional small talk while waiting for the drink.
 func _tick_barks(delta: float) -> void:
-	if state != State.WAITING_FOR_DRINK:
+	if state != State.WAITING_FOR_DRINK and state != State.QUEUED:
 		return
 	_bark_timer -= delta
 	if _bark_timer <= 0.0:
@@ -210,18 +220,29 @@ func _physics_process(delta: float) -> void:
 	match state:
 		State.WALKING_TO_REGISTER:
 			_move_toward_target(delta)
+			# Once in line, shuffling forward still counts as waiting.
+			if _in_line:
+				_tick_order_patience(delta)
+				if state == State.LEAVING:
+					return
 			if _at_target():
 				_stop()
-				state = State.WAITING_TO_ORDER
-				_show_order()
-				bark(CustomerProfile.pick(CustomerProfile.GREETINGS))
-				SoundManager.play("customer_arrive")
+				_in_line = true
+				if queue_index <= 0:
+					state = State.WAITING_TO_ORDER
+					_show_order()
+					if not _greeted:
+						_greeted = true
+						bark(CustomerProfile.pick(CustomerProfile.GREETINGS))
+					SoundManager.play("customer_arrive")
+				else:
+					state = State.QUEUED
+		State.QUEUED:
+			_stop()
+			_tick_order_patience(delta)
 		State.WAITING_TO_ORDER, State.PAYING:
 			_stop()
-			_order_patience -= delta
-			_update_patience_bar(_order_patience / _order_patience_max)
-			if _order_patience <= 0:
-				_leave("impatient_order")
+			_tick_order_patience(delta)
 		State.WALKING_TO_PICKUP:
 			_move_toward_target(delta)
 			if _at_target():
@@ -243,6 +264,35 @@ func _physics_process(delta: float) -> void:
 			if _at_target():
 				EventBus.customer_left.emit(self, _leave_reason)
 				queue_free()
+
+func _tick_order_patience(delta: float) -> void:
+	_order_patience -= delta
+	_update_patience_bar(_order_patience / _order_patience_max)
+	if _order_patience <= 0:
+		_leave("impatient_order")
+
+## Called by the spawner when this customer's place in line changes.
+## look_target is the spot they face while waiting (the person ahead, or the register).
+func assign_queue_spot(index: int, pos: Vector3, look_target: Vector3) -> void:
+	queue_index = index
+	_line_look_target = look_target
+	if index == 0:
+		_register_pos = pos
+	if state == State.WALKING_TO_REGISTER or state == State.QUEUED:
+		state = State.WALKING_TO_REGISTER
+		_set_target(pos)
+
+## Called by the spawner to give this customer their own spot at the pickup counter.
+func assign_pickup_spot(pos: Vector3) -> void:
+	_pickup_pos = pos
+	if state == State.WALKING_TO_PICKUP:
+		_set_target(pos)
+
+func is_in_register_line() -> bool:
+	return state == State.WALKING_TO_REGISTER or state == State.QUEUED or state == State.WAITING_TO_ORDER or state == State.PAYING
+
+func is_at_pickup() -> bool:
+	return state == State.WALKING_TO_PICKUP or state == State.WAITING_FOR_DRINK
 
 func _stop() -> void:
 	velocity = Vector3.ZERO

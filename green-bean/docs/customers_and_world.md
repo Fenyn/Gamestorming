@@ -39,8 +39,21 @@ Reactions:
 - The navmesh uses 0.1 m height cells. The shop script sets the navigation map to the same cell size and height before baking.
 - Customers use a NavigationAgent3D with avoidance, so they route around props and each other. If no navmesh is ready, they walk in a straight line as before.
 - If a walking customer makes no progress for 4 s, they are placed on their target spot, so one stuck customer can't stall the day.
-- Only one customer targets the register at a time today (`MAX_CUSTOMERS = 1`). Raising that will need queue spots, or the second customer will push against the first.
 - Pedestrians and cars do not use navigation. They follow fixed lanes that are kept clear of props.
+
+## Register line and pickup spots
+
+`customer_spawner.gd` manages where customers stand.
+
+- **Register line:** five Marker3D spots under `RegisterQueue` in `espresso_stand.tscn`, 0.85 m apart and trailing back toward the street. Spot0 is the register. You can move the markers in the editor and add more.
+- New customers join the back of the line. Only the front customer orders. When they pay, or someone in line gives up, everyone behind moves up a spot.
+- People in line face the person ahead, make small talk and lose order patience while they wait. That matches the order-patience rule in CLAUDE.md.
+- **Pickup:** four Marker3D spots under `PickupSpots`, each held by one customer until they get their drink. If more people are waiting than there are spots, the extras stand loosely behind the pickup point.
+- **Matching:** a handed-off drink goes to the customer who ordered it, matched by order. If that fails it goes to anyone waiting for the same drink, then to anyone waiting.
+- Two customers on screen at once never share a first name.
+- `MAX_CUSTOMERS` is still 1 for testing. For real days, raise it in `customer_spawner.gd` (up to the number of line spots) and lower the 999 s spawn intervals. Tests can set `max_customers` and `spawn_interval_*` on the spawner instance.
+
+Tested headless with 4 customers at once: 7 served, 1 forced to give up from line spot 2, and the line moved up behind them. Standing customers kept at least 0.86 m apart.
 
 ## Ambient life
 

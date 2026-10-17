@@ -175,3 +175,34 @@ func _run() -> void:
 	await _shot("09_morning_outside", Vector3(1.8, 1.7, 5.0), Vector3(-0.3, 1.0, 0.0), 30)
 	_set_day(0.98)
 	await _shot("10_golden_hour_outside", Vector3(1.8, 1.7, 5.0), Vector3(-0.3, 1.0, 0.0), 30)
+
+	# A full register line and a few people waiting at pickup.
+	_set_day(0.45)
+	for n in spawner.get_children():
+		if n is Customer:
+			n.queue_free()
+	# Remove the style line-up from the earlier shot.
+	for n in _shop.get_children():
+		if n is CharacterVisual:
+			n.queue_free()
+	spawner._active_customers.clear()
+	spawner._line.clear()
+	await _frames(2)
+	spawner.max_customers = 8
+	var spots: Array[Vector3] = spawner._queue_spots
+	for i in range(spots.size()):
+		spawner._spawn_customer()
+		var c: Customer = spawner._line[i]
+		c.global_position = spots[i] + Vector3(0.05, 0, 0.05)
+	for i in range(3):
+		spawner._spawn_customer()
+		var c: Customer = spawner._active_customers[spawner._active_customers.size() - 1]
+		c.order_taken(OrderData.new(c.drink_type, c.cup_size))
+	await _frames(4)
+	for i in range(3):
+		var c: Customer = spawner._active_customers[spawner._active_customers.size() - 1 - i]
+		c.global_position = c._pickup_pos + Vector3(0.05, 0, 0.05)
+	await _frames(90)
+	await _shot("20_register_line", Vector3(3.2, 2.2, 6.6), Vector3(0.6, 0.9, 2.4), 10)
+	await _shot("21_register_line_barista", Vector3(0.2, 1.7, 0.0), Vector3(1.6, 1.1, 3.0), 10)
+

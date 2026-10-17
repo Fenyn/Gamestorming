@@ -53,7 +53,17 @@ func _setup_customers() -> void:
 	add_child(spawner)
 	var reg_pos := ($RegisterPos as Marker3D).position
 	var pickup_pos := ($PickupPos as Marker3D).position
-	spawner.setup(reg_pos, pickup_pos)
+	# Line and pickup spots are Marker3D children, so they can be moved in the editor.
+	spawner.setup(reg_pos, pickup_pos, _marker_positions("RegisterQueue"), _marker_positions("PickupSpots"))
+
+func _marker_positions(parent_name: String) -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	var parent := get_node_or_null(parent_name)
+	if parent:
+		for child in parent.get_children():
+			if child is Marker3D:
+				out.append((child as Marker3D).position)
+	return out
 
 func _setup_ambient_life() -> void:
 	var life := AmbientLife.new()

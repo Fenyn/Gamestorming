@@ -854,7 +854,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4028236, 0.89, -1.005)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, 1.15)
 
 [node name="CashDrawer" parent="." unique_id=417275188 instance=ExtResource("12_u3j1k")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9374628, 0.951, 0.946)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9374628, 0.951, 0.896)
 
 [node name="VanillaSyrup" parent="." unique_id=165157546 instance=ExtResource("13_syrup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13075483, 1.043428, -1.0869943)

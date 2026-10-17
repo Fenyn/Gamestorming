@@ -1,0 +1,132 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0c8aa"]
+albedo_color = Color(0.16, 0.2, 0.17, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="BoxMesh_6sldo"]
+size = Vector3(0.23599999, 0.004, 0.17)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ciqpe"]
+size = Vector3(0.26, 0.004, 0.146)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_omtys"]
+top_radius = 0.012
+bottom_radius = 0.012
+height = 0.004
+radial_segments = 10
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_wmejm"]
+top_radius = 0.012
+bottom_radius = 0.012
+height = 0.004
+radial_segments = 10
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_mg2pr"]
+top_radius = 0.012
+bottom_radius = 0.012
+height = 0.004
+radial_segments = 10
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_iay35"]
+top_radius = 0.012
+bottom_radius = 0.012
+height = 0.004
+radial_segments = 10
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ofior"]
+albedo_color = Color(0.12, 0.15, 0.13, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_a5gq4"]
+size = Vector3(0.23599999, 0.0025, 0.004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_g2vls"]
+size = Vector3(0.23599999, 0.0025, 0.004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_giyqp"]
+size = Vector3(0.004, 0.0025, 0.146)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4skjq"]
+size = Vector3(0.004, 0.0025, 0.146)
+
+[node name="ChangeMat" type="Node3D" unique_id=2027267105]
+metadata/size = Vector2(0.26, 0.17)
+
+[node name="Mat" type="MeshInstance3D" parent="." unique_id=1107769841]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.002, 0)
+material_override = SubResource("StandardMaterial3D_0c8aa")
+mesh = SubResource("BoxMesh_6sldo")
+
+[node name="MatSides" type="MeshInstance3D" parent="." unique_id=997494600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.002, 0)
+material_override = SubResource("StandardMaterial3D_0c8aa")
+mesh = SubResource("BoxMesh_ciqpe")
+
+[node name="MatEdge" type="MeshInstance3D" parent="." unique_id=938952475]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11799999, 0.002, -0.073)
+material_override = SubResource("StandardMaterial3D_0c8aa")
+mesh = SubResource("CylinderMesh_omtys")
+
+[node name="MatEdge2" type="MeshInstance3D" parent="." unique_id=70329253]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11799999, 0.002, 0.073)
+material_override = SubResource("StandardMaterial3D_0c8aa")
+mesh = SubResource("CylinderMesh_wmejm")
+
+[node name="MatEdge3" type="MeshInstance3D" parent="." unique_id=802682031]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11799999, 0.002, -0.073)
+material_override = SubResource("StandardMaterial3D_0c8aa")
+mesh = SubResource("CylinderMesh_mg2pr")
+
+[node name="MatEdge4" type="MeshInstance3D" parent="." unique_id=1800804008]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11799999, 0.002, 0.073)
+material_override = SubResource("StandardMaterial3D_0c8aa")
+mesh = SubResource("CylinderMesh_iay35")
+
+[node name="LipX" type="MeshInstance3D" parent="." unique_id=1107804531]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.00525, -0.081)
+material_override = SubResource("StandardMaterial3D_ofior")
+mesh = SubResource("BoxMesh_a5gq4")
+
+[node name="LipX2" type="MeshInstance3D" parent="." unique_id=244474991]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.00525, 0.081)
+material_override = SubResource("StandardMaterial3D_ofior")
+mesh = SubResource("BoxMesh_g2vls")
+
+[node name="LipZ" type="MeshInstance3D" parent="." unique_id=355171913]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.126, 0.00525, 0)
+material_override = SubResource("StandardMaterial3D_ofior")
+mesh = SubResource("BoxMesh_giyqp")
+
+[node name="LipZ2" type="MeshInstance3D" parent="." unique_id=626921843]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.126, 0.00525, 0)
+material_override = SubResource("StandardMaterial3D_ofior")
+mesh = SubResource("BoxMesh_4skjq")
+
+[node name="BillSpot" type="Marker3D" parent="." unique_id=1984332241]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.085, 0.004, -0.004)
+gizmo_extents = 0.03
+
+[node name="Coin_c25" type="Marker3D" parent="." unique_id=2132477387]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.045, 0.004, -0.05)
+gizmo_extents = 0.03
+
+[node name="Coin_c10" type="Marker3D" parent="." unique_id=1723229180]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0.004, -0.05)
+gizmo_extents = 0.03
+
+[node name="Coin_c5" type="Marker3D" parent="." unique_id=662870815]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.045, 0.004, -0.005)
+gizmo_extents = 0.03
+
+[node name="Coin_c1" type="Marker3D" parent="." unique_id=516909446]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0.004, -0.005)
+gizmo_extents = 0.03
+
+[node name="TenderSpot" type="Marker3D" parent="." unique_id=869390921]
+transform = Transform3D(0.1391731, 0, 0.99026805, 0, 1, 0, -0.99026805, 0, 0.1391731, -0.06, 0.005, 0.055)
+gizmo_extents = 0.03

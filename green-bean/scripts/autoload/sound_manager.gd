@@ -51,6 +51,10 @@ const SFX_PATHS := {
 	"register_charge": "res://audio/sfx/register_charge.ogg",
 	"cash_collect": "res://audio/sfx/cash_collect.ogg",
 	"coin_clink": "res://audio/sfx/coin_clink.ogg",
+	"coin_pick": "res://audio/sfx/coin_pick.ogg",
+	"bill_pull": "res://audio/sfx/bill_pull.ogg",
+	"bill_drop": "res://audio/sfx/bill_drop.ogg",
+	"bill_clip_snap": "res://audio/sfx/bill_clip_snap.ogg",
 	"change_complete": "res://audio/sfx/change_complete.ogg",
 
 	# Hand-off / Review

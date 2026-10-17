@@ -82,7 +82,8 @@ static func get_ticket_code(drink_type: DrinkType, cup_size: CupSize) -> String:
 	return SIZE_CODES[cup_size] + " " + get_drink_code(drink_type)
 
 static func get_base_price(drink_type: DrinkType, cup_size: CupSize) -> float:
-	return RECIPES[drink_type]["base_price"] * PRICE_MULTIPLIERS[cup_size]
+	# Whole cents, so the register total and the change owed always agree.
+	return roundi(RECIPES[drink_type]["base_price"] * PRICE_MULTIPLIERS[cup_size] * 100.0) / 100.0
 
 static func get_size_multiplier(cup_size: CupSize) -> float:
 	return SIZE_MULTIPLIERS[cup_size]

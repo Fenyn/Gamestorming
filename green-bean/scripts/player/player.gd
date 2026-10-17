@@ -27,6 +27,7 @@ var _screen_pitch_center := 0.0
 var _saved_yaw := 0.0
 var _saved_pitch := 0.0
 var _screen_look_range := 0.35
+var _saved_fov := 75.0
 var _exit_frame := -1
 const EXIT_COOLDOWN_FRAMES := 10
 
@@ -703,10 +704,14 @@ func enter_mini_game(cam_transform: Transform3D) -> void:
 	_ease_camera_to(cam_transform)
 	_set_world_labels_visible(false)
 
-func enter_screen_mode(look_target: Vector3, cam_pos: Vector3, look_range: float = 0.35) -> void:
+## fov > 0 zooms the camera for close work; it goes back on exit.
+func enter_screen_mode(look_target: Vector3, cam_pos: Vector3, look_range: float = 0.35, fov: float = 0.0) -> void:
 	if _mode != InteractMode.FREE:
 		return
 	_mode = InteractMode.SCREEN
+	_saved_fov = camera.fov
+	if fov > 0.0:
+		create_tween().tween_property(camera, "fov", fov, CAMERA_ENTER_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_saved_yaw = _yaw
 	_saved_pitch = _pitch
 	_screen_look_range = look_range
@@ -736,6 +741,8 @@ func _restore_camera() -> void:
 	_kill_camera_tween()
 	_camera_tween = create_tween()
 	_camera_tween.tween_property(camera, "transform", rest, CAMERA_EXIT_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if not is_equal_approx(camera.fov, _saved_fov):
+		_camera_tween.parallel().tween_property(camera, "fov", _saved_fov, CAMERA_EXIT_TIME)
 	_set_world_labels_visible(true)
 
 func _ease_camera_to(target: Transform3D) -> void:
@@ -750,6 +757,9 @@ func _kill_camera_tween() -> void:
 
 func _is_camera_easing() -> bool:
 	return _camera_tween != null and _camera_tween.is_running()
+
+func is_in_screen_mode() -> bool:
+	return _mode == InteractMode.SCREEN
 
 func exit_screen_mode() -> void:
 	_restore_camera()

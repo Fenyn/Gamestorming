@@ -1,0 +1,105 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lnpdj"]
+albedo_color = Color(0.22, 0.42, 0.28, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_otka4"]
+size = Vector3(0.05, 0.26, 0.05)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mdfr8"]
+size = Vector3(0.04, 0.04, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_irfcy"]
+size = Vector3(0.05, 0.26, 0.05)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ff0jo"]
+size = Vector3(0.04, 0.04, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fwryw"]
+size = Vector3(2.3, 0.44, 0.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fg3wu"]
+albedo_color = Color(0.95, 0.92, 0.84, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_mqwim"]
+size = Vector3(2.24, 0.38, 0.004)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ywv5q"]
+albedo_color = Color(0.36, 0.2, 0.1, 1)
+roughness = 0.6
+
+[sub_resource type="SphereMesh" id="SphereMesh_if2vl"]
+radius = 0.1
+height = 0.2
+radial_segments = 16
+rings = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5p13x"]
+albedo_color = Color(0.2, 0.1, 0.05, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_c2lb5"]
+size = Vector3(0.012, 0.16, 0.01)
+
+[node name="RoofSign" type="Node3D" unique_id=927631308]
+
+[node name="Leg" type="MeshInstance3D" parent="." unique_id=1317039447]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.13, -0.08)
+material_override = SubResource("StandardMaterial3D_lnpdj")
+mesh = SubResource("BoxMesh_otka4")
+
+[node name="Brace" type="MeshInstance3D" parent="." unique_id=923990608]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.24, -0.03)
+material_override = SubResource("StandardMaterial3D_lnpdj")
+mesh = SubResource("BoxMesh_mdfr8")
+
+[node name="Leg2" type="MeshInstance3D" parent="." unique_id=1412430576]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.13, -0.08)
+material_override = SubResource("StandardMaterial3D_lnpdj")
+mesh = SubResource("BoxMesh_irfcy")
+
+[node name="Brace2" type="MeshInstance3D" parent="." unique_id=263150636]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.24, -0.03)
+material_override = SubResource("StandardMaterial3D_lnpdj")
+mesh = SubResource("BoxMesh_ff0jo")
+
+[node name="Back" type="MeshInstance3D" parent="." unique_id=977414866]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28, 0)
+material_override = SubResource("StandardMaterial3D_lnpdj")
+mesh = SubResource("BoxMesh_fwryw")
+
+[node name="Face" type="MeshInstance3D" parent="." unique_id=523479834]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28, 0.027)
+material_override = SubResource("StandardMaterial3D_fg3wu")
+mesh = SubResource("BoxMesh_mqwim")
+
+[node name="Bean" type="Node3D" parent="." unique_id=839623899]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.28, 0.045)
+
+[node name="Half" type="MeshInstance3D" parent="Bean" unique_id=21239874]
+transform = Transform3D(0.7047695, 0.34202012, 0, -0.2565151, 0.9396926, 0, 0, 0, 0.3, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_ywv5q")
+mesh = SubResource("SphereMesh_if2vl")
+
+[node name="Crease" type="MeshInstance3D" parent="Bean" unique_id=471641079]
+transform = Transform3D(0.9396926, 0.34202012, 0, -0.34202012, 0.9396926, 0, 0, 0, 1, 0, 0, 0.028)
+material_override = SubResource("StandardMaterial3D_5p13x")
+mesh = SubResource("BoxMesh_c2lb5")
+
+[node name="Text" type="Label3D" parent="." unique_id=1395762516]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.3152, 0.031)
+pixel_size = 0.0019
+modulate = Color(0.176, 0.336, 0.224, 1)
+text = "GREEN BEAN"
+font_size = 150
+outline_size = 0
+
+[node name="Text2" type="Label3D" parent="." unique_id=1415381513]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.1656, 0.031)
+pixel_size = 0.0013
+modulate = Color(0.36, 0.24, 0.14, 1)
+text = "COFFEE  ·  ESPRESSO  ·  POUR OVER"
+font_size = 64
+outline_size = 0

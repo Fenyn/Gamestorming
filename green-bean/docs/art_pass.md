@@ -33,7 +33,7 @@ The 8 m grey ground is now a 60 m grass field with a sidewalk, curbs and a two-l
 
 - Kenney Car Kit: parked sedan and taxi on the near side, van and delivery truck on the far side.
 - Kenney Nature Kit: a tree line behind the stand, trees at the sides, bushes around the stand, flower planters.
-- Kenney Fantasy Town Kit: street lamps along the curb, two market stalls and a bench.
+- Kenney Fantasy Town Kit: street lamps along the curb and a bench. (The two market stalls were removed in the environment pass.)
 - Light fog in the Environment so distant trees fade.
 
 ## Files
@@ -53,6 +53,23 @@ The importer exists because Kenney's glTF files have three problems in Godot:
 `StationUtils.create_status_label()` now also measures a child node named `Model`. Name the visual node `Model` when you swap a station's grey box, and the status label will sit in front of it like it does for grey boxes.
 
 Station origin is the centre of the grey box (bottom at `-height/2`). The player faces stations from +Z.
+
+## Site and street (environment pass)
+
+Custom models under the `Site` and `AcrossStreet` nodes in `espresso_stand.tscn`. None has a collider, so customer navigation is unchanged.
+
+| Scene | Placed at | Notes |
+|---|---|---|
+| `site_paving.tscn` | `Site/Paving` (shop origin) | Paver patio in front of the service window (customers queue and pick up here), paver seating area along the stand's left side, darker edging, and a 2.8 m sidewalk with control joints. Replaces the old 6.2 m concrete slab. |
+| `roof_sign.tscn` | `Site/RoofSign` on the roof's front edge | Name board: coffee bean, GREEN BEAN, and a line of what is served. |
+| `sign_order_here.tscn`, `sign_pick_up.tscn` | Hung from the header beam over the register and the hand-off | Lettered both sides, so they read from the street and from behind the counter. |
+| `menu_board.tscn` | `Site/MenuBoard` on the right wall facing the queue | `scripts/world/menu_board.gd` writes the active menu and small-size prices onto it at prep and day start. |
+| `a_frame_sign.tscn` | `Site/AFrameSign` at the patio's street corner | Chalkboard sidewalk sign facing customers coming from the right. |
+| `side_wall_left.tscn` (door variant) | `LeftWall` | Staff door between the two counters, with a glass lite, levers, kick plate and a step outside (the stand floor is 10 cm up). |
+| `stand_utilities.tscn` | `Site/Utilities` (shop origin) | Electric meter, panel and conduit on the back wall, a hose bib, a back gutter and two downspouts onto splash blocks. |
+| `string_lights.tscn`, `light_pole.tscn` | Over the seating area | Three festoon strands from two wood poles to the stand's left corners, warm emissive bulbs. |
+| `patio_umbrella.tscn`, `bike_rack_street.tscn`, `fire_hydrant.tscn`, `parking_meter.tscn` | `Site/...` | Umbrella over the back table, bike rack on the sidewalk past the seating, hydrant at the curb, a meter between each parked car. |
+| `storefront_*.tscn` | `AcrossStreet/*`, fronts at z 16.85 facing the road | Two-storey shops (bakery, books, laundry, florist, hardware) from one parametric model: shop glass with a dim interior, door, sign band, striped awning, upper windows, cornice. Generic shop names only. |
 
 ## Custom models (built in Godot)
 

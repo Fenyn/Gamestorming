@@ -1,0 +1,97 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aspox"]
+albedo_color = Color(0.16, 0.18, 0.17, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="BoxMesh_eact1"]
+size = Vector3(0.5, 0.8, 0.015)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yhdl0"]
+albedo_color = Color(0.678, 0.456, 0.299, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_2oel8"]
+size = Vector3(0.55, 0.03, 0.03)
+
+[sub_resource type="BoxMesh" id="BoxMesh_88j2f"]
+size = Vector3(0.55, 0.03, 0.03)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yimcn"]
+size = Vector3(0.03, 0.85, 0.03)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3sw85"]
+size = Vector3(0.03, 0.85, 0.03)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hvf7h"]
+albedo_color = Color(0.744, 0.736, 0.704, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_0n1vu"]
+size = Vector3(0.38, 0.003, 0.001)
+
+[node name="MenuBoard" type="Node3D" unique_id=1157680785]
+
+[node name="Slate" type="MeshInstance3D" parent="." unique_id=847487827]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0.0075)
+material_override = SubResource("StandardMaterial3D_aspox")
+mesh = SubResource("BoxMesh_eact1")
+
+[node name="FrameH" type="MeshInstance3D" parent="." unique_id=1353065436]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.015)
+material_override = SubResource("StandardMaterial3D_yhdl0")
+mesh = SubResource("BoxMesh_2oel8")
+
+[node name="FrameH2" type="MeshInstance3D" parent="." unique_id=353334691]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0.015)
+material_override = SubResource("StandardMaterial3D_yhdl0")
+mesh = SubResource("BoxMesh_88j2f")
+
+[node name="FrameV" type="MeshInstance3D" parent="." unique_id=549722822]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, 0.4, 0.015)
+material_override = SubResource("StandardMaterial3D_yhdl0")
+mesh = SubResource("BoxMesh_yimcn")
+
+[node name="FrameV2" type="MeshInstance3D" parent="." unique_id=1045498564]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0.4, 0.015)
+material_override = SubResource("StandardMaterial3D_yhdl0")
+mesh = SubResource("BoxMesh_3sw85")
+
+[node name="Text" type="Label3D" parent="." unique_id=976792120]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, 0.017)
+pixel_size = 0.0013
+modulate = Color(0.93, 0.92, 0.88, 1)
+text = "MENU"
+font_size = 72
+outline_size = 0
+
+[node name="Rule" type="MeshInstance3D" parent="." unique_id=1551652685]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.67, 0.016)
+material_override = SubResource("StandardMaterial3D_hvf7h")
+mesh = SubResource("BoxMesh_0n1vu")
+
+[node name="NameColumn" type="Label3D" parent="." unique_id=379917464]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.21, 0.64, 0.017)
+pixel_size = 0.0011
+modulate = Color(0.93, 0.92, 0.88, 1)
+font_size = 40
+outline_size = 0
+horizontal_alignment = 0
+vertical_alignment = 0
+line_spacing = 14.0
+
+[node name="PriceColumn" type="Label3D" parent="." unique_id=947442266]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.21, 0.64, 0.017)
+pixel_size = 0.0011
+modulate = Color(0.93, 0.92, 0.88, 1)
+font_size = 40
+outline_size = 0
+horizontal_alignment = 2
+vertical_alignment = 0
+line_spacing = 14.0
+
+[node name="Footer" type="Label3D" parent="." unique_id=2038582227]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0.017)
+pixel_size = 0.0011
+modulate = Color(0.79050004, 0.78200006, 0.748, 1)
+outline_size = 0

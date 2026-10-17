@@ -112,7 +112,7 @@ func _run() -> void:
 	var kettle := Kettle.new()
 	_shop.add_child(kettle)
 	player.pickup_item(kettle)
-	StationUtils.start_kettle_pour(player, kettle, pour.global_position + Vector3(0, 0.22, 0), Vector3(-0.10, 0.12, 0.06), func() -> bool: return true)
+	StationUtils.start_kettle_pour(player, kettle, pour.global_position + Vector3(0, 0.22, 0), Vector3(0, 0.09, 0), func() -> bool: return true, Vector3.LEFT)
 
 	# Hover glow on the grinder.
 	player._set_overlay(stations["Grinder"], player._hover_material)

@@ -102,7 +102,7 @@ static func lathe(parent: Node3D, name: String, profile: PackedVector2Array, pos
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var rings: Array[PackedVector3Array] = []
-	for i in range(sides + 1):
+	for i in range(sides):
 		var angle := TAU * float(i) / float(sides)
 		var ring := PackedVector3Array()
 		for p in profile:
@@ -111,12 +111,16 @@ static func lathe(parent: Node3D, name: String, profile: PackedVector2Array, pos
 				v = deform.call(v, angle)
 			ring.append(v)
 		rings.append(ring)
+	# Close the loop with the first ring itself, so the seam vertices weld and
+	# the shading has no line down the back.
+	rings.append(rings[0])
 	for i in range(sides):
 		var a := rings[i]
 		var b := rings[i + 1]
 		for j in range(profile.size() - 1):
-			st.add_vertex(a[j]); st.add_vertex(b[j]); st.add_vertex(b[j + 1])
-			st.add_vertex(a[j]); st.add_vertex(b[j + 1]); st.add_vertex(a[j + 1])
+			# Wound so a profile traced upward on the outside faces outward.
+			st.add_vertex(a[j]); st.add_vertex(b[j + 1]); st.add_vertex(b[j])
+			st.add_vertex(a[j]); st.add_vertex(a[j + 1]); st.add_vertex(b[j + 1])
 	st.index()
 	st.generate_normals()
 	return _add(parent, st.commit(), material, pos, Vector3.ZERO, name)

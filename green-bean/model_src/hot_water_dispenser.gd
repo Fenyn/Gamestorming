@@ -16,6 +16,7 @@ extends RefCounted
 ##   FillPoint    Marker3D on the grate under the spout. The cup or kettle is
 ##                stood here while it fills, then handed back.
 ##   KettleRest   Marker3D on the counter beside the unit where the kettle waits.
+##                Its rotation turns the kettle (spout -X) to face the wall.
 ##   CameraView   Marker3D for the fill camera, looking at the cup under the spout.
 ##   Lever        Node3D holding the faucet lever, pivoting at its base.
 ##
@@ -57,7 +58,8 @@ static func build() -> Node3D:
 
 	MK.marker(root, "Spout", SPOUT)
 	MK.marker(root, "FillPoint", FILL)
-	MK.marker(root, "KettleRest", KETTLE_REST)
+	# Kettle waits with its spout toward the wall and its handle toward the barista.
+	MK.marker(root, "KettleRest", KETTLE_REST, Vector3(0, -90, 0))
 	var cam_pos := FILL + CAMERA_OFFSET
 	var cam_basis := Basis.looking_at(FILL + CAMERA_LOOK_AT - cam_pos)
 	var cam_rot := cam_basis.get_euler()

@@ -27,4 +27,4 @@ func _refresh() -> void:
 	names.text = "\n".join(name_lines)
 	prices.text = "\n".join(price_lines)
 	if footer:
-		footer.text = "Sizes S  M  L  XL\nLarger sizes cost more"
+		footer.text = "S  M  L  XL"

@@ -146,6 +146,25 @@ static func sweep(parent: Node3D, name: String, path: PackedVector3Array, half_w
 	st.generate_normals()
 	return _add(parent, st.commit(), material, pos, Vector3.ZERO, name)
 
+## Rounded-edge slab: a box with its four vertical edges replaced by cylinders.
+static func rounded_box(parent: Node3D, name: String, size: Vector3, center: Vector3, radius: float, material: Material) -> void:
+	box(parent, name, Vector3(size.x - radius * 2.0, size.y, size.z), center, material)
+	box(parent, name + "Sides", Vector3(size.x, size.y, size.z - radius * 2.0), center, material)
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			var p := center + Vector3((size.x * 0.5 - radius) * float(sx), 0, (size.z * 0.5 - radius) * float(sz))
+			cyl(parent, name + "Edge", radius, radius, size.y, p, material, 10)
+
+## Named Marker3D that gameplay scripts read positions from.
+static func marker(parent: Node3D, name: String, pos: Vector3, rot_deg := Vector3.ZERO) -> Marker3D:
+	var m := Marker3D.new()
+	m.name = name
+	m.position = pos
+	m.rotation_degrees = rot_deg
+	m.gizmo_extents = 0.03
+	parent.add_child(m)
+	return m
+
 ## Saves the node tree under root as a Godot scene (.tscn). Meshes and materials
 ## are stored inside the scene, so every part can be selected and edited in the
 ## editor (sizes, colours, positions).

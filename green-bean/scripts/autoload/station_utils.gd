@@ -83,6 +83,23 @@ func _model_front_z(parent: Node3D, model: Node3D) -> float:
 		front_z = maxf(front_z, aabb.end.z)
 	return front_z
 
+## Half the height of a carriable item, from its cylinder collider. Used to stand
+## items on a surface marker instead of centring them on it.
+func item_half_height(item: Node3D, fallback: float = 0.05) -> float:
+	for child in item.get_children():
+		if child is CollisionShape3D and (child as CollisionShape3D).shape is CylinderShape3D:
+			return ((child as CollisionShape3D).shape as CylinderShape3D).height * 0.5
+	return fallback
+
+## Position of a marker inside a station's "Model" scene, in the station's local
+## space. Lets model scenes in scenes/props/ decide where items go. Returns
+## fallback when the model or marker is missing.
+func model_marker(station: Node3D, marker_name: String, fallback: Vector3) -> Vector3:
+	var marker := station.get_node_or_null("Model/" + marker_name) as Node3D
+	if marker == null:
+		return fallback
+	return station.to_local(marker.global_position)
+
 func is_same_frame(stored_frame: int) -> bool:
 	return Engine.get_process_frames() == stored_frame
 

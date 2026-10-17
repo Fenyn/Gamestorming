@@ -15,6 +15,7 @@ extends SceneTree
 const OUT_DIR := "res://scenes/props/"
 const MODELS := {
 	"hand_grinder": preload("res://model_src/hand_grinder.gd"),
+	"steam_station": preload("res://model_src/steam_station.gd"),
 }
 
 func _initialize() -> void:

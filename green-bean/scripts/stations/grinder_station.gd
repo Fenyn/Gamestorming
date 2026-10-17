@@ -1,5 +1,7 @@
 extends StaticBody3D
 
+const GrinderModel := preload("res://model_src/hand_grinder.gd")
+
 enum State { IDLE, DEVICE_PLACED, GRINDING, GROUNDS_READY }
 
 var state := State.IDLE
@@ -15,7 +17,9 @@ func _ready() -> void:
 
 	_device_slot = Marker3D.new()
 	_device_slot.name = "DeviceSlot"
-	_device_slot.position = Vector3(0, 0.2, 0)
+	# On the dosing pad in front of the spout. Devices are lifted by half their
+	# height when placed, so their base sits on the pad.
+	_device_slot.position = Vector3(0, GrinderModel.BASE_TOP, 0.055)
 	add_child(_device_slot)
 
 	_mini_game = GrindMiniGame.new()
@@ -36,20 +40,20 @@ func _ready() -> void:
 func _build_fx() -> void:
 	# Grounds falling into the device while the player cranks.
 	_dust = Fx.make_specks(Color(0.32, 0.2, 0.1), 0.006, -1.5, 0.45, 30)
-	_dust.position = _device_slot.position + Vector3(0, 0.09, 0)
+	_dust.position = GrinderModel.SPOUT_TIP
 	add_child(_dust)
 
 	# Crank handle on the right side that turns with the player's mouse circles.
 	_crank_pivot = Node3D.new()
-	_crank_pivot.position = Vector3(0.14, 0.08, 0)
+	_crank_pivot.position = GrinderModel.CRANK_PIVOT + Vector3(0.012, 0, 0)
 	add_child(_crank_pivot)
 	var crank_mat := StandardMaterial3D.new()
 	crank_mat.albedo_color = Color(0.25, 0.25, 0.27)
 	crank_mat.metallic = 0.6
 	crank_mat.roughness = 0.35
 	var arm := CSGBox3D.new()
-	arm.size = Vector3(0.012, 0.09, 0.012)
-	arm.position = Vector3(0, 0.045, 0)
+	arm.size = Vector3(0.01, 0.075, 0.016)
+	arm.position = Vector3(0, 0.0375, 0)
 	arm.material = crank_mat
 	_crank_pivot.add_child(arm)
 	var knob_mat := StandardMaterial3D.new()
@@ -58,7 +62,7 @@ func _build_fx() -> void:
 	knob.radius = 0.012
 	knob.height = 0.03
 	knob.rotation_degrees = Vector3(0, 0, 90)
-	knob.position = Vector3(0.02, 0.09, 0)
+	knob.position = Vector3(0.018, 0.075, 0)
 	knob.material = knob_mat
 	_crank_pivot.add_child(knob)
 
@@ -93,10 +97,16 @@ func receive_item(item: Node3D) -> bool:
 	if not (item is AeropressDevice or item is Dripper):
 		return false
 	_placed_device = item
-	StationUtils.place_at_slot(item, _device_slot.global_position)
+	StationUtils.place_at_slot(item, _device_slot.global_position + Vector3(0, _half_height(item), 0))
 	state = State.DEVICE_PLACED
 	_update_label()
 	return true
+
+func _half_height(item: Node3D) -> float:
+	for child in item.get_children():
+		if child is CollisionShape3D and (child as CollisionShape3D).shape is CylinderShape3D:
+			return ((child as CollisionShape3D).shape as CylinderShape3D).height * 0.5
+	return 0.05
 
 func _on_grind_complete(quality: float) -> void:
 	if not _placed_device:

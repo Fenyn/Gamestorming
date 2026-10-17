@@ -54,6 +54,20 @@ The importer exists because Kenney's glTF files have three problems in Godot:
 
 Station origin is the centre of the grey box (bottom at `-height/2`). The player faces stations from +Z.
 
+## Custom models (built in Godot)
+
+Blender can't be installed in the cloud session, so custom props are built from primitive meshes by scripts in `model_src/` and exported as .glb with Godot's glTF exporter.
+
+- `model_src/model_kit.gd`: helpers (box, cylinder/cone, sphere, torus) and Kenney-matched colours.
+- `model_src/<model>.gd`: one script per model with a static `build()`.
+- `model_src/build_models.gd`: builds them all into `assets/models/custom/`. Run it from the green-bean folder with `godot --headless --path . --script res://model_src/build_models.gd`, then let the editor import the files.
+
+| Model | Used by | Notes |
+|---|---|---|
+| `hand_grinder.glb` | `grinder.tscn` (node `Model`) | Wooden base and body, steel burr housing, bean hopper, spout over a dosing pad, back drawer, brass dial. The crank handle is still built by `grinder_station.gd` so it can turn. The device slot moved onto the dosing pad, and devices are lifted by half their height so they sit on it. |
+
+Any of these can be replaced by a Blender model later: keep the node name `Model`, the origin at the centre of the collision box, and +Z as the front.
+
 ## Still grey-boxed: Blender specs
 
 Sizes are the current grey box and collision. Slot positions are local to the station origin and are set in the station scripts, so a model must leave those spots clear or the scripts need new numbers.
@@ -62,7 +76,6 @@ Sizes are the current grey box and collision. Slot positions are local to the st
 
 | Station (scene) | Box W×H×D (m) | Slots and spawned items (local) | Notes |
 |---|---|---|---|
-| Grinder (`grinder.tscn`) | 0.25×0.35×0.25 | device slot (0, 0.2, 0) | Hand crank. Electric and auto tiers are planned. |
 | Aeropress (`aeropress.tscn`) | 0.2×0.3×0.2 | cup (0, 0.15, 0), device (0, 0.25, 0), shelf device (0.15, 0.18, 0) | Cup sits on top. Device sits above the cup. |
 | Pour Over (`pour_over.tscn`) | 0.25×0.25×0.25 | cup (0, 0.12, 0), dripper (0, 0.22, 0), shelf dripper (0.15, 0.15, 0) | Brew stand. Camera looks almost straight down. |
 | Steam (`steam.tscn`) | 0.2×0.25×0.2 | pitcher (0, 0.15, 0), shelf pitcher (0.15, 0.12, 0) | Needs a steam wand. Kenney has no espresso machine with a wand. |

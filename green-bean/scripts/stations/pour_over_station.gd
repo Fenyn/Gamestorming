@@ -135,7 +135,7 @@ func _start_pour_animation() -> void:
 		return
 	if _pour_tween and _pour_tween.is_valid():
 		_pour_tween.kill()
-	_pour_tween = StationUtils.start_kettle_pour(_pouring_player, _pour_kettle, _dripper_slot.global_position, Vector3(-0.10, 0.12, 0.06), _pour_game.is_pouring)
+	_pour_tween = StationUtils.start_kettle_pour(_pouring_player, _pour_kettle, _dripper_slot.global_position, Vector3(0, 0.09, 0), _pour_game.is_pouring, Vector3.LEFT)
 
 func _set_dripper_opacity(alpha: float) -> void:
 	if not _placed_dripper:

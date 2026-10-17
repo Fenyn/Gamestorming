@@ -117,11 +117,17 @@ func _spawn_shelf_kettle() -> void:
 	_shelf_kettle.name = "KettleShelf"
 	add_child(_shelf_kettle)
 	_shelf_kettle.position = _rest_position(_shelf_kettle)
+	_shelf_kettle.global_basis = _rest_basis()
 
 ## Where the kettle waits beside the unit: the model's KettleRest marker, raised
 ## by half the kettle's height (station-local).
 func _rest_position(kettle: Node3D) -> Vector3:
 	return StationUtils.model_marker(self, "KettleRest", Vector3(0.175, 0, 0.12)) + Vector3(0, StationUtils.item_half_height(kettle), 0)
+
+## Facing for the kettle at rest, from the KettleRest marker's rotation.
+func _rest_basis() -> Basis:
+	var marker := get_node_or_null("Model/KettleRest") as Node3D
+	return marker.global_basis if marker else global_basis
 
 func _kettle_on_rest() -> bool:
 	return _shelf_kettle != null and is_instance_valid(_shelf_kettle)
@@ -131,7 +137,7 @@ func receive_item(item: Node3D) -> bool:
 	if not item is Kettle or _kettle_on_rest() or _filling or _pour_game.is_active():
 		return false
 	StationUtils.place_at_slot(item, to_global(_rest_position(item)))
-	item.global_rotation = global_rotation
+	item.global_basis = _rest_basis()
 	# Leave it clickable, like the kettle the station starts with.
 	StationUtils.set_item_collision(item, true)
 	_shelf_kettle = item as Kettle
@@ -160,6 +166,7 @@ func interact(player: Player) -> void:
 		_filling_kettle = kettle
 		_player_ref = player
 		_take_under_spout(player, kettle)
+		kettle.set_lid_open(true)
 		_player_ref.enter_mini_game(_fill_cam.global_transform)
 		_fill_label.visible = true
 		SoundManager.play_loop("kettle_fill_loop")
@@ -221,6 +228,8 @@ func _stop_filling() -> void:
 	SoundManager.stop_loop("kettle_fill_loop")
 	if _filling_kettle and _filling_kettle.water_level >= Kettle.MAX_WATER - 0.01:
 		SoundManager.play("kettle_full")
+	if _filling_kettle and is_instance_valid(_filling_kettle):
+		_filling_kettle.set_lid_open(false)
 	_filling_kettle = null
 	_fill_label.visible = false
 	_return_from_spout(_player_ref)

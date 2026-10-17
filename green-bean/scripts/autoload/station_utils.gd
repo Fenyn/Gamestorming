@@ -103,21 +103,42 @@ func model_marker(station: Node3D, marker_name: String, fallback: Vector3) -> Ve
 func is_same_frame(stored_frame: int) -> bool:
 	return Engine.get_process_frames() == stored_frame
 
-const KETTLE_SPOUT_TIP := Vector3(0.04, 0.04, -0.06)
+## Fallback spout tip for kettles without a model marker.
+const KETTLE_SPOUT_TIP := Vector3(-0.17, 0.066, 0)
+## Kettle tilt while pouring, in degrees about +Z (the spout points along -X).
+const KETTLE_POUR_TILT := 40.0
+const KETTLE_POUR_SWAY := 6.0
 
 var _pour_streams := {}
 
+## Takes the kettle from the player's hand and tilts it so its spout tip sits
+## tip_offset above target_position (usually straight up). body_side is the
+## horizontal direction the kettle body sits in, away from walls and out of the
+## mini-game camera's way. The tilt sways gently while pouring.
 ## flow_check: optional Callable returning true while water is actually flowing.
-func start_kettle_pour(player: Player, kettle: Node3D, target_position: Vector3, offset: Vector3, flow_check: Callable = Callable()) -> Tween:
+func start_kettle_pour(player: Player, kettle: Node3D, target_position: Vector3, tip_offset: Vector3, flow_check: Callable = Callable(), body_side := Vector3.RIGHT) -> Tween:
 	player.detach_held_item()
-	var pour_pos := target_position + offset
-	kettle.global_position = pour_pos
-	kettle.global_rotation_degrees = Vector3(0, 0, -35)
+	var tip := _kettle_tip(kettle)
+	var tip_world := target_position + tip_offset
+	# Turn the kettle so its local +X (handle side) points along body_side.
+	var side := Vector3(body_side.x, 0, body_side.z).normalized()
+	var yaw := Basis(Vector3.UP, atan2(-side.z, side.x))
+	# Rotation about the spout tip keeps the stream on target as the kettle sways.
+	var rotation_at := func(deg: float) -> void:
+		var basis := yaw * Basis(Vector3.BACK, deg_to_rad(deg))
+		kettle.global_transform = Transform3D(basis, tip_world - basis * tip)
+	rotation_at.call(KETTLE_POUR_TILT)
 	var tween := player.create_tween().set_loops()
-	tween.tween_property(kettle, "global_rotation_degrees:z", -45.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tween.tween_property(kettle, "global_rotation_degrees:z", -30.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_method(rotation_at, KETTLE_POUR_TILT, KETTLE_POUR_TILT + KETTLE_POUR_SWAY, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_method(rotation_at, KETTLE_POUR_TILT + KETTLE_POUR_SWAY, KETTLE_POUR_TILT - KETTLE_POUR_SWAY * 0.5, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_method(rotation_at, KETTLE_POUR_TILT - KETTLE_POUR_SWAY * 0.5, KETTLE_POUR_TILT, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_start_stream(kettle, target_position, flow_check)
 	return tween
+
+func _kettle_tip(kettle: Node3D) -> Vector3:
+	if kettle is Kettle:
+		return (kettle as Kettle).spout_tip
+	return KETTLE_SPOUT_TIP
 
 func stop_kettle_pour(tween: Tween, kettle: Node3D, player: Player) -> void:
 	if tween and tween.is_valid():
@@ -136,7 +157,7 @@ func _start_stream(kettle: Node3D, target_position: Vector3, flow_check: Callabl
 			_pour_streams.erase(key)
 	var stream := PourStream.new()
 	stream.source = kettle
-	stream.source_offset = KETTLE_SPOUT_TIP
+	stream.source_offset = _kettle_tip(kettle)
 	stream.target_point = target_position
 	stream.flow_check = flow_check
 	var parent: Node = get_tree().current_scene

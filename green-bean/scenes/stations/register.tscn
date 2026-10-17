@@ -1,48 +1,29 @@
 [gd_scene format=3 uid="uid://dae8p6asdkrbh"]
 
 [ext_resource type="Script" uid="uid://rpttaekx5odk" path="res://scripts/stations/register.gd" id="1"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_base"]
-size = Vector3(0.3, 0.2, 0.25)
-
-[sub_resource type="StandardMaterial3D" id="Mat_base"]
-albedo_color = Color(0.22, 0.28, 0.42, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_screen"]
-size = Vector3(0.22, 0.16, 0.02)
-
-[sub_resource type="StandardMaterial3D" id="Mat_screen"]
-albedo_color = Color(0.1, 0.1, 0.12, 1)
+[ext_resource type="PackedScene" path="res://scenes/props/pos_terminal.tscn" id="2_model"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_001"]
 size = Vector2(0.4, 0.3)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_001"]
-size = Vector3(0.45, 0.45, 0.3)
+size = Vector3(0.45, 0.42, 0.18)
 
 [node name="Register" type="StaticBody3D" unique_id=1770249230]
 script = ExtResource("1")
 
-[node name="Base" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
-mesh = SubResource("BoxMesh_base")
-surface_material_override/0 = SubResource("Mat_base")
-
-[node name="Screen" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.966, -0.259, 0, 0.259, 0.966, 0, 0.26, -0.06)
-mesh = SubResource("BoxMesh_screen")
-surface_material_override/0 = SubResource("Mat_screen")
+[node name="Model" parent="." instance=ExtResource("2_model")]
 
 [node name="ScreenQuad" type="MeshInstance3D" parent="." unique_id=1859124591]
 transform = Transform3D(-1, 0, 0, 0, 1.1657912, 0.2731502, 0, 0.31235814, -1.0194582, 0, 0.36417472, 0.003215706)
 mesh = SubResource("QuadMesh_001")
 
 [node name="Collision" type="CollisionShape3D" parent="." unique_id=618147039]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.21, 0.02)
 shape = SubResource("BoxShape3D_001")
 
 [node name="Label3D" type="Label3D" parent="." unique_id=1668955086 groups=["world_label"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0.02)
 pixel_size = 0.002
 billboard = 2
 text = "REGISTER"

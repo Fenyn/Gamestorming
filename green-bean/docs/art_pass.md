@@ -66,7 +66,7 @@ Blender can't be installed in the cloud session, so custom props are generated o
 |---|---|---|
 | `scenes/props/hand_grinder.tscn` | `grinder.tscn` (instance named `Model`) | Grouped as Base, Body, Spout, Hopper, CrankMount, plus `Crank` (the station rotates it about X while grinding), `DevicePad` (Marker3D where the dripper or aeropress is set down) and `SpoutTip` (Marker3D where grind dust falls). Move those three in the editor and the station follows. Devices are lifted by half their height so they sit on the pad. |
 
-| `scenes/props/steam_station.tscn` | `steam.tscn` (instance named `Model`) | Cream-and-chrome boiler with pressure gauge, steam knob, cup rail, drip tray and a steam wand that dips into the pitcher, plus a mat for the spare pitcher. Markers: `PitcherPad` (pitcher stands here), `PitcherRest` (spare pitcher), `SteamVent` (steam puffs), `CameraView` (steaming mini-game camera). The wand is one node, `Wand`, so it can be swung or tilted as a unit. |
+| `scenes/props/steam_station.tscn` | `steam.tscn` (instance named `Model`) | Compact standalone milk steamer modelled on real units like the Morning Dream (about 10 cm wide, 37 cm deep, 24 cm tall): narrow tower at the back, a head that overhangs the pitcher with a control panel on top and a steam lever on the side, a wand angled down into the pitcher, an IR temperature sensor under the head, a small drip tray, and a mat for the spare pitcher. Depth is squeezed to fit the 0.2 m collision box. Markers: `PitcherPad`, `PitcherRest`, `SteamVent`, `CameraView`. The wand is one node, `Wand`. |
 
 Station scripts read markers with `StationUtils.model_marker(station, "Name", fallback)` and stand items on them with `StationUtils.item_half_height(item)`.
 

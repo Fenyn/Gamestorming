@@ -1,55 +1,81 @@
 class_name AeropressDevice
 extends RigidBody3D
 
+## Visual model lives in scenes/props/aeropress.tscn so it can be edited in the
+## editor. Its markers place the coffee, the plunger travel and how it sits on
+## a cup.
+const MODEL := preload("res://scenes/props/aeropress.tscn")
+const LIQUID_COLOR := Color(0.25, 0.15, 0.05)
+
 var grounds: Grounds = null
 var has_water := false
 var is_stirred := false
-var _plunger: CSGCylinder3D = null
-var _plunger_top := 0.075
-var _plunger_bottom := -0.03
-var _liquid: CSGCylinder3D = null
+
+## Flange underside in local space: this point sits on the cup rim.
+var rim_rest_y := -0.05
+var _plunger: Node3D = null
+var _plunger_top := Vector3(0, 0.0445, 0)
+var _plunger_bottom := Vector3(0, -0.046, 0)
+var _liquid: MeshInstance3D = null
+var _liquid_mesh: CylinderMesh = null
+var _liquid_floor := -0.047
+var _liquid_max := 0.082
 
 func _ready() -> void:
 	add_to_group("carriable")
 	add_to_group("aeropress_device")
 	freeze = true
 
-	var body := CSGCylinder3D.new()
-	body.radius = 0.035
-	body.height = 0.15
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.4, 0.4, 0.42, 0.5)
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	body.material = mat
-	add_child(body)
+	var model: Node3D = MODEL.instantiate()
+	model.name = "Model"
+	add_child(model)
+	var col := model.get_node_or_null("Collision") as CollisionShape3D
+	if col:
+		var xform := col.transform
+		model.remove_child(col)
+		col.owner = null
+		add_child(col)
+		col.transform = model.transform * xform
+	else:
+		col = CollisionShape3D.new()
+		var shape := CylinderShape3D.new()
+		shape.radius = 0.034
+		shape.height = 0.121
+		col.shape = shape
+		add_child(col)
 
-	_plunger = CSGCylinder3D.new()
-	_plunger.radius = 0.028
-	_plunger.height = 0.08
-	_plunger.position.y = _plunger_top
-	var plunger_mat := StandardMaterial3D.new()
-	plunger_mat.albedo_color = Color(0.3, 0.3, 0.32)
-	_plunger.material = plunger_mat
-	_plunger.visible = false
-	add_child(_plunger)
+	var rim := model.get_node_or_null("RimRest") as Node3D
+	if rim:
+		rim_rest_y = rim.position.y
+	_plunger = model.get_node_or_null("Plunger") as Node3D
+	var top := model.get_node_or_null("PlungerTop") as Node3D
+	if top:
+		_plunger_top = top.position
+	var bottom := model.get_node_or_null("PlungerBottom") as Node3D
+	if bottom:
+		_plunger_bottom = bottom.position
+	var floor_marker := model.get_node_or_null("LiquidFloor") as Node3D
+	if floor_marker:
+		_liquid_floor = floor_marker.position.y
+	_liquid_max = float(model.get_meta("liquid_max_height", 0.082))
 
-	_liquid = CSGCylinder3D.new()
-	_liquid.radius = 0.030
-	_liquid.height = 0.001
-	_liquid.position.y = -0.07
+	_liquid_mesh = CylinderMesh.new()
+	var r := float(model.get_meta("liquid_radius", 0.0295))
+	_liquid_mesh.top_radius = r
+	_liquid_mesh.bottom_radius = r
+	_liquid_mesh.radial_segments = 20
+	_liquid_mesh.rings = 1
+	_liquid_mesh.height = 0.001
+	_liquid = MeshInstance3D.new()
+	_liquid.name = "Coffee"
+	_liquid.mesh = _liquid_mesh
 	var liquid_mat := StandardMaterial3D.new()
-	liquid_mat.albedo_color = Color(0.25, 0.15, 0.05)
-	_liquid.material = liquid_mat
+	liquid_mat.albedo_color = LIQUID_COLOR
+	liquid_mat.roughness = 0.3
+	_liquid.material_override = liquid_mat
 	_liquid.visible = false
 	add_child(_liquid)
-
-	var col := CollisionShape3D.new()
-	var shape := CylinderShape3D.new()
-	shape.radius = 0.035
-	shape.height = 0.15
-	col.shape = shape
-	add_child(col)
+	hide_plunger()
 
 func has_grounds() -> bool:
 	return grounds != null
@@ -63,9 +89,8 @@ func set_liquid_level(ratio: float) -> void:
 	ratio = clampf(ratio, 0.0, 1.0)
 	if ratio > 0.01:
 		_liquid.visible = true
-		var max_height := 0.12
-		_liquid.height = max_height * ratio
-		_liquid.position.y = -0.07 + (_liquid.height / 2.0)
+		_liquid_mesh.height = _liquid_max * ratio
+		_liquid.position.y = _liquid_floor + _liquid_mesh.height * 0.5
 	else:
 		_liquid.visible = false
 
@@ -76,16 +101,23 @@ func hide_liquid() -> void:
 func show_plunger() -> void:
 	if _plunger:
 		_plunger.visible = true
-		_plunger.position.y = _plunger_top
+		_plunger.position = _plunger_top
 
 func hide_plunger() -> void:
 	if _plunger:
 		_plunger.visible = false
-		_plunger.position.y = _plunger_top
+		_plunger.position = _plunger_top
 
+## Pressing pushes the plunger down and the coffee level with it.
 func set_plunger_progress(ratio: float) -> void:
+	ratio = clampf(ratio, 0.0, 1.0)
 	if _plunger:
-		_plunger.position.y = lerpf(_plunger_top, _plunger_bottom, clampf(ratio, 0.0, 1.0))
+		_plunger.position = _plunger_top.lerp(_plunger_bottom, ratio)
+	if _liquid and _liquid.visible and _plunger:
+		var room := maxf(_plunger.position.y - _liquid_floor, 0.0)
+		if room < _liquid_mesh.height:
+			_liquid_mesh.height = maxf(room, 0.0005)
+			_liquid.position.y = _liquid_floor + _liquid_mesh.height * 0.5
 
 func reset_device() -> void:
 	grounds = null

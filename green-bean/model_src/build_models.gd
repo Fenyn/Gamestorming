@@ -17,6 +17,7 @@ const MODELS := {
 	"hand_grinder": preload("res://model_src/hand_grinder.gd"),
 	"steam_station": preload("res://model_src/steam_station.gd"),
 	"milk_pitcher": preload("res://model_src/milk_pitcher.gd"),
+	"hot_water_dispenser": preload("res://model_src/hot_water_dispenser.gd"),
 }
 
 func _initialize() -> void:

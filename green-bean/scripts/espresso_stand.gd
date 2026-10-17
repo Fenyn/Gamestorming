@@ -58,7 +58,7 @@ func _build_stations() -> void:
 	_place(AEROPRESS_SCENE, Vector3(-0.5, 1.0, -0.9), "AEROPRESS")
 	_place(POUR_OVER_SCENE, Vector3(0.2, 1.05, -0.9), "POUR OVER")
 	_place(COUNTER_PAD_SCENE, Vector3(0.8, 0.92, -0.7))
-	_place(HOT_WATER_SCENE, Vector3(0.8, 1.2, -1.1), "HOT WATER")
+	_place(HOT_WATER_SCENE, Vector3(0.8, 1.0, -1.1), "HOT WATER")
 	_place(STEAM_SCENE, Vector3(1.2, 1.0, -0.9), "STEAM")
 	_place(FRIDGE_SCENE, Vector3(1.5, 0.5, -0.3), "FRIDGE")
 	_place(HAND_OFF_SCENE, Vector3(-1.0, 1.05, 1.15), "HAND OFF")

@@ -848,7 +848,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5285844, 1.0150001, -0.597
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5143777, 0.34999996, -0.67556924)
 
 [node name="HotWater" parent="." unique_id=250269657 instance=ExtResource("9_jxr28")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4028236, 1.09, -1.1003928)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4028236, 0.89, -1.005)
 
 [node name="HandOff" parent="." unique_id=1692004057 instance=ExtResource("11_u3j1k")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.05, 1.21)

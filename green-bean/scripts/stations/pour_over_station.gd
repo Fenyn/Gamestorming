@@ -26,11 +26,13 @@ var _pour_kettle: Kettle = null
 
 var _cup_slot: Marker3D = null
 var _dripper_slot: Marker3D = null
+var _cam_xform := Transform3D.IDENTITY
 var _cup_spot := Vector3.ZERO
 var _ring_seat := Vector3.ZERO
 var _dripper_rest := Vector3.ZERO
-## Top of the grounds bed in a hanging dripper, relative to the dripper's centre.
-const GROUNDS_TOP := 0.004
+## Fallbacks for a dripper's shape, used before one exists.
+const DRIPPER_BASE_Y := -0.05
+const DRIPPER_GROUNDS_TOP := 0.008
 var _status_label: Label3D = null
 var _pour_tween: Tween = null
 var _drips: GPUParticles3D = null
@@ -53,7 +55,7 @@ func _ready() -> void:
 	_dripper_slot = Marker3D.new()
 	_dripper_slot.name = "DripperSlot"
 	# A dripper hangs with the outside of its cone in the ring.
-	_dripper_slot.position = _ring_seat + Vector3(0, 0.016, 0)
+	_dripper_slot.position = _ring_seat - Vector3(0, DRIPPER_BASE_Y, 0)
 	add_child(_dripper_slot)
 
 	var cam_xform := Transform3D(Basis.from_euler(Vector3(deg_to_rad(-70), 0, 0)), Vector3(0, 0.5, 0.1))
@@ -72,12 +74,11 @@ func _ready() -> void:
 	# The saturation grid is drawn 0.24 above the mini-game's origin. Move the
 	# mini-game so the grid lies on the grounds in the hanging dripper, and keep
 	# the camera where the model's CameraView puts it.
-	var grid_offset := _dripper_slot.position + Vector3(0, GROUNDS_TOP + 0.001 - 0.24, 0)
-	_pour_game.position = grid_offset
-	cam.transform = Transform3D(cam_xform.basis, cam_xform.origin - grid_offset)
+	_cam_xform = cam_xform
 	_pour_game.mini_game_completed.connect(_on_pour_complete)
 
 	_spawn_shelf_dripper()
+	_place_pour_grid(_shelf_dripper)
 
 	_status_label = StationUtils.create_status_label(self, _ring_seat + Vector3(0.08, 0.12, 0.04))
 	_update_label()
@@ -93,13 +94,25 @@ func _spawn_shelf_dripper() -> void:
 	add_child(_shelf_dripper)
 	_shelf_dripper.position = _rest_position(_shelf_dripper)
 
-## Where a dripper stands on the saucer (station-local), by its own height.
-func _rest_position(dripper: Node3D) -> Vector3:
-	return _dripper_rest + Vector3(0, StationUtils.item_half_height(dripper, 0.04), 0)
+func _base_y(dripper: Node3D) -> float:
+	return (dripper as Dripper).base_y if dripper is Dripper else DRIPPER_BASE_Y
 
+## Where a dripper stands on the saucer (station-local), on its base plate.
+func _rest_position(dripper: Node3D) -> Vector3:
+	return _dripper_rest - Vector3(0, _base_y(dripper), 0)
+
+## Where a dripper sits on the stand: its base plate on the ring.
 func _ring_position(dripper: Node3D) -> Vector3:
-	var contact := (dripper as Dripper).ring_contact_y if dripper is Dripper else -0.016
-	return _ring_seat - Vector3(0, contact, 0)
+	return _ring_seat - Vector3(0, _base_y(dripper), 0)
+
+## The pour game draws its saturation grid 0.24 above its origin. Move the
+## game so the grid lies on the grounds of a dripper in the ring, and keep its
+## camera where the model's CameraView puts it.
+func _place_pour_grid(dripper: Node3D) -> void:
+	var grounds_top := (dripper as Dripper).grounds_top_y if dripper is Dripper else DRIPPER_GROUNDS_TOP
+	var offset := _ring_position(dripper) + Vector3(0, grounds_top + 0.001 - 0.24, 0)
+	_pour_game.position = offset
+	_pour_game._camera_point.transform = Transform3D(_cam_xform.basis, _cam_xform.origin - offset)
 
 func _saucer_free() -> bool:
 	return _shelf_dripper == null or not is_instance_valid(_shelf_dripper)
@@ -297,8 +310,27 @@ func _process(_delta: float) -> void:
 	# Update dripper saturation visual during active pours
 	if (state == State.BLOOMING or state == State.MAIN_POUR) and _pour_game.is_active() and _placed_dripper:
 		_placed_dripper.set_saturation(_pour_game._get_avg_saturation())
+	_update_water_level()
 
 	_check_removed_items()
+
+## Water standing on the grounds: it rises while pouring, sinks back during the
+## bloom wait, and drains away during the draw-down.
+func _update_water_level() -> void:
+	if not _placed_dripper:
+		return
+	var level := 0.0
+	match state:
+		State.BLOOMING:
+			level = 0.25 * clampf(_pour_game._get_avg_saturation() / PourMiniGame.BLOOM_TARGET, 0.0, 1.0)
+		State.BLOOM_WAIT:
+			level = 0.25 * clampf(_pour_game.get_bloom_timer() / PourMiniGame.BLOOM_WAIT_TIME, 0.0, 1.0)
+		State.MAIN_POUR:
+			if _pour_game.is_active():
+				level = clampf(_pour_game._get_avg_saturation(), 0.0, 1.0) * 0.9
+		State.DRAINING:
+			level = 0.9 * clampf(_pour_game.phase_timer / PourMiniGame.DRAW_DOWN_TIME, 0.0, 1.0)
+	_placed_dripper.set_water_level(level)
 
 func _finish_drip() -> void:
 	SoundManager.stop_loop("drip_loop")

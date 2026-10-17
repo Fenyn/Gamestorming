@@ -384,12 +384,12 @@ func _update_label() -> void:
 			if not _stand_free() and _shelf_device.has_grounds():
 				_status_label.text = "[Click] Place cup"
 			elif not _stand_free():
-				_status_label.text = "[E] Pick up aeropress"
+				_status_label.text = "[E] Pick up shot press"
 			else:
 				_status_label.text = "[Click] Place cup"
 		State.CUP_ONLY:
 			var has_shelf := _shelf_device != null and is_instance_valid(_shelf_device)
-			_status_label.text = "[E] Pick up aeropress" if has_shelf else "Bring aeropress w/ grounds"
+			_status_label.text = "[E] Pick up shot press" if has_shelf else "Bring shot press w/ grounds"
 		State.DEVICE_ONLY:
 			if _placed_device and _placed_device.has_grounds():
 				_status_label.text = "[Click] Place cup"

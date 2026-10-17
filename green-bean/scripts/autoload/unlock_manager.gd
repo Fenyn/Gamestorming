@@ -8,7 +8,7 @@ const STARTER_EQUIPMENT := [
 ]
 
 const EQUIPMENT_SHOP := {
-	"aeropress": {"price": 100.0, "name": "Aeropress"},
+	"aeropress": {"price": 100.0, "name": "Shot Press"},
 	"fridge": {"price": 75.0, "name": "Fridge"},
 	"steam_station": {"price": 125.0, "name": "Steam Station"},
 	"syrup_rack": {"price": 100.0, "name": "Syrup Rack"},

@@ -209,7 +209,7 @@ const STEP_TOOLTIPS := {
 	Step.POUR_OVER_BREW:
 		"1.  Pick up dripper from shelf\n2.  Bring to grinder — grind coarse\n3.  Place dripper + cup at station\n4.  Hold filled kettle, [E] bloom pour\n5.  Walk away during bloom wait\n6.  Return with kettle, [E] main pour\n7.  Wait for draw-down",
 	Step.AEROPRESS_BREW:
-		"1.  Pick up aeropress from shelf\n2.  Bring to grinder — grind fine\n3.  Place device + cup at station\n4.  Hold filled kettle, [E] pour water\n5.  [E] to stir slurry\n6.  Walk away during steep\n7.  Return, [E] press (hold click, balance)",
+		"1.  Pick up the shot press from its stand\n2.  Bring to grinder — grind fine\n3.  Place device + cup at station\n4.  Hold filled kettle, [E] pour water\n5.  [E] to stir slurry\n6.  Walk away during steep\n7.  Return, [E] press (hold click, balance)",
 	Step.HOT_WATER:
 		"1.  Hold cup with shot\n2.  [E] at hot water station\n3.  Hold to pour, release at fill line",
 	Step.STEAM_MILK:

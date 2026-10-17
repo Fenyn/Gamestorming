@@ -9,7 +9,7 @@ size = Vector3(0.3, 0.01, 0.2)
 [sub_resource type="BoxShape3D" id="BoxShape3D_stand"]
 size = Vector3(0.095, 0.022, 0.095)
 
-[node name="Aeropress" type="StaticBody3D" unique_id=1496635561]
+[node name="ShotPress" type="StaticBody3D" unique_id=1496635561]
 script = ExtResource("1")
 
 [node name="Model" parent="." instance=ExtResource("2_model")]
@@ -26,5 +26,5 @@ shape = SubResource("BoxShape3D_stand")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, -0.02)
 pixel_size = 0.002
 billboard = 2
-text = "AEROPRESS"
+text = "SHOT PRESS"
 font_size = 24

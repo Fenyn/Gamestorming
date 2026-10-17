@@ -131,157 +131,157 @@ rings = 1
 height = 0.121
 radius = 0.034
 
-[node name="AeroPress" type="Node3D" unique_id=647700674]
+[node name="ShotPress" type="Node3D" unique_id=1080795661]
 metadata/liquid_max_height = 0.082
 metadata/liquid_radius = 0.029400000000000003
 
-[node name="Chamber" type="Node3D" parent="." unique_id=906777706]
+[node name="Chamber" type="Node3D" parent="." unique_id=1245995818]
 
-[node name="Tube" type="MeshInstance3D" parent="Chamber" unique_id=1098998255]
+[node name="Tube" type="MeshInstance3D" parent="Chamber" unique_id=1692245452]
 material_override = SubResource("StandardMaterial3D_3fcl2")
 mesh = SubResource("ArrayMesh_ur0em")
 
-[node name="Flange" type="MeshInstance3D" parent="Chamber" unique_id=371452590]
+[node name="Flange" type="MeshInstance3D" parent="Chamber" unique_id=1967576268]
 transform = Transform3D(0.8660254, 0, 0.5, 0, 1, 0, -0.5, 0, 0.8660254, 0, -0.047, 0)
 material_override = SubResource("StandardMaterial3D_3fcl2")
 mesh = SubResource("CylinderMesh_he8ss")
 
-[node name="Collar" type="MeshInstance3D" parent="Chamber" unique_id=856404094]
+[node name="Collar" type="MeshInstance3D" parent="Chamber" unique_id=1929545991]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.052, 0)
 material_override = SubResource("StandardMaterial3D_3fcl2")
 mesh = SubResource("CylinderMesh_bg538")
 
-[node name="FilterCap" type="Node3D" parent="." unique_id=1812965753]
+[node name="FilterCap" type="Node3D" parent="." unique_id=1936158547]
 
-[node name="Cap" type="MeshInstance3D" parent="FilterCap" unique_id=123151073]
+[node name="Cap" type="MeshInstance3D" parent="FilterCap" unique_id=1584383052]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05625, 0)
 material_override = SubResource("StandardMaterial3D_1qp8a")
 mesh = SubResource("CylinderMesh_2np50")
 
-[node name="Lug" type="MeshInstance3D" parent="FilterCap" unique_id=1866648481]
+[node name="Lug" type="MeshInstance3D" parent="FilterCap" unique_id=125825899]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05625, 0.0365)
 material_override = SubResource("StandardMaterial3D_1qp8a")
 mesh = SubResource("BoxMesh_438x7")
 
-[node name="Lug2" type="MeshInstance3D" parent="FilterCap" unique_id=629912250]
+[node name="Lug2" type="MeshInstance3D" parent="FilterCap" unique_id=277232793]
 transform = Transform3D(-0.50000006, 0, 0.8660254, 0, 1, 0, -0.8660254, 0, -0.50000006, 0.031609926, -0.05625, -0.01825)
 material_override = SubResource("StandardMaterial3D_1qp8a")
 mesh = SubResource("BoxMesh_rojwm")
 
-[node name="Lug3" type="MeshInstance3D" parent="FilterCap" unique_id=114056652]
+[node name="Lug3" type="MeshInstance3D" parent="FilterCap" unique_id=1453663545]
 transform = Transform3D(-0.4999999, 0, -0.86602545, 0, 1, 0, 0.86602545, 0, -0.4999999, -0.031609926, -0.05625, -0.01825)
 material_override = SubResource("StandardMaterial3D_1qp8a")
 mesh = SubResource("BoxMesh_fqfug")
 
-[node name="FilterPaper" type="MeshInstance3D" parent="FilterCap" unique_id=748979657]
+[node name="FilterPaper" type="MeshInstance3D" parent="FilterCap" unique_id=1149118523]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0545, 0)
 material_override = SubResource("StandardMaterial3D_m2acr")
 mesh = SubResource("CylinderMesh_4xenx")
 
-[node name="Marks" type="Node3D" parent="." unique_id=939908128]
+[node name="Marks" type="Node3D" parent="." unique_id=433463022]
 
-[node name="Tick" type="MeshInstance3D" parent="Marks" unique_id=760134212]
+[node name="Tick" type="MeshInstance3D" parent="Marks" unique_id=1913838]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.006, -0.029, 0.0323)
 material_override = SubResource("StandardMaterial3D_dxvlu")
 mesh = SubResource("BoxMesh_b8q8h")
 
-[node name="Level1" type="Label3D" parent="Marks" unique_id=1951770717]
+[node name="Level1" type="Label3D" parent="Marks" unique_id=886539379]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.004, -0.029, 0.0326)
 pixel_size = 0.00018
 modulate = Color(0.95, 0.95, 0.95, 1)
 text = "1"
 outline_size = 0
 
-[node name="Tick2" type="MeshInstance3D" parent="Marks" unique_id=2042063207]
+[node name="Tick2" type="MeshInstance3D" parent="Marks" unique_id=1588629605]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.006, -0.009, 0.0323)
 material_override = SubResource("StandardMaterial3D_dxvlu")
 mesh = SubResource("BoxMesh_18bta")
 
-[node name="Level2" type="Label3D" parent="Marks" unique_id=87703705]
+[node name="Level2" type="Label3D" parent="Marks" unique_id=1050470676]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.004, -0.009, 0.0326)
 pixel_size = 0.00018
 modulate = Color(0.95, 0.95, 0.95, 1)
 text = "2"
 outline_size = 0
 
-[node name="Tick3" type="MeshInstance3D" parent="Marks" unique_id=1210010505]
+[node name="Tick3" type="MeshInstance3D" parent="Marks" unique_id=333884169]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.006, 0.011, 0.0323)
 material_override = SubResource("StandardMaterial3D_dxvlu")
 mesh = SubResource("BoxMesh_qvxic")
 
-[node name="Level3" type="Label3D" parent="Marks" unique_id=1056298824]
+[node name="Level3" type="Label3D" parent="Marks" unique_id=51406417]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.004, 0.011, 0.0326)
 pixel_size = 0.00018
 modulate = Color(0.95, 0.95, 0.95, 1)
 text = "3"
 outline_size = 0
 
-[node name="Tick4" type="MeshInstance3D" parent="Marks" unique_id=1434465270]
+[node name="Tick4" type="MeshInstance3D" parent="Marks" unique_id=1479993971]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.006, 0.031, 0.0323)
 material_override = SubResource("StandardMaterial3D_dxvlu")
 mesh = SubResource("BoxMesh_i1mof")
 
-[node name="Level4" type="Label3D" parent="Marks" unique_id=715721798]
+[node name="Level4" type="Label3D" parent="Marks" unique_id=399556204]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.004, 0.031, 0.0326)
 pixel_size = 0.00018
 modulate = Color(0.95, 0.95, 0.95, 1)
 text = "4"
 outline_size = 0
 
-[node name="Dot" type="MeshInstance3D" parent="Marks" unique_id=808759057]
+[node name="Dot" type="MeshInstance3D" parent="Marks" unique_id=1927636955]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, -0.004, -0.019, 0.0323)
 material_override = SubResource("StandardMaterial3D_dxvlu")
 mesh = SubResource("CylinderMesh_oetqn")
 
-[node name="Dot2" type="MeshInstance3D" parent="Marks" unique_id=348140031]
+[node name="Dot2" type="MeshInstance3D" parent="Marks" unique_id=520946785]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, -0.004, 0.001, 0.0323)
 material_override = SubResource("StandardMaterial3D_dxvlu")
 mesh = SubResource("CylinderMesh_q1t78")
 
-[node name="Dot3" type="MeshInstance3D" parent="Marks" unique_id=830387781]
+[node name="Dot3" type="MeshInstance3D" parent="Marks" unique_id=478746584]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, -0.004, 0.021, 0.0323)
 material_override = SubResource("StandardMaterial3D_dxvlu")
 mesh = SubResource("CylinderMesh_7qrqr")
 
-[node name="Plunger" type="Node3D" parent="." unique_id=1176962087]
+[node name="Plunger" type="Node3D" parent="." unique_id=2057919815]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0445, 0)
 visible = false
 
-[node name="Seal" type="MeshInstance3D" parent="Plunger" unique_id=2080547768]
+[node name="Seal" type="MeshInstance3D" parent="Plunger" unique_id=2123911249]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.006, 0)
 material_override = SubResource("StandardMaterial3D_1qp8a")
 mesh = SubResource("CylinderMesh_3rhy5")
 
-[node name="Tube" type="MeshInstance3D" parent="Plunger" unique_id=1804284084]
+[node name="Tube" type="MeshInstance3D" parent="Plunger" unique_id=825892859]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.069, 0)
 material_override = SubResource("StandardMaterial3D_3fcl2")
 mesh = SubResource("CylinderMesh_kd0hm")
 
-[node name="TopFlare" type="MeshInstance3D" parent="Plunger" unique_id=926915712]
+[node name="TopFlare" type="MeshInstance3D" parent="Plunger" unique_id=2023435113]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0)
 material_override = SubResource("StandardMaterial3D_3fcl2")
 mesh = SubResource("CylinderMesh_j6pjk")
 
-[node name="TopCap" type="MeshInstance3D" parent="Plunger" unique_id=1711870939]
+[node name="TopCap" type="MeshInstance3D" parent="Plunger" unique_id=734811172]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.133, 0)
 material_override = SubResource("StandardMaterial3D_3fcl2")
 mesh = SubResource("CylinderMesh_r5agl")
 
-[node name="PlungerTop" type="Marker3D" parent="." unique_id=179029278]
+[node name="PlungerTop" type="Marker3D" parent="." unique_id=1709040068]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0445, 0)
 gizmo_extents = 0.03
 
-[node name="PlungerBottom" type="Marker3D" parent="." unique_id=205618767]
+[node name="PlungerBottom" type="Marker3D" parent="." unique_id=1577868961]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.046, 0)
 gizmo_extents = 0.03
 
-[node name="Collision" type="CollisionShape3D" parent="." unique_id=198727589]
+[node name="Collision" type="CollisionShape3D" parent="." unique_id=85922251]
 shape = SubResource("CylinderShape3D_falub")
 
-[node name="RimRest" type="Marker3D" parent="." unique_id=450987111]
+[node name="RimRest" type="Marker3D" parent="." unique_id=1679486987]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
 gizmo_extents = 0.03
 
-[node name="LiquidFloor" type="Marker3D" parent="." unique_id=479138574]
+[node name="LiquidFloor" type="Marker3D" parent="." unique_id=655556394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.047, 0)
 gizmo_extents = 0.03

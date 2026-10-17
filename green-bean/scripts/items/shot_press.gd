@@ -1,10 +1,10 @@
-class_name AeropressDevice
+class_name ShotPress
 extends RigidBody3D
 
-## Visual model lives in scenes/props/aeropress.tscn so it can be edited in the
+## Visual model lives in scenes/props/shot_press.tscn so it can be edited in the
 ## editor. Its markers place the coffee, the plunger travel and how it sits on
 ## a cup.
-const MODEL := preload("res://scenes/props/aeropress.tscn")
+const MODEL := preload("res://scenes/props/shot_press.tscn")
 const LIQUID_COLOR := Color(0.25, 0.15, 0.05)
 
 var grounds: Grounds = null
@@ -23,7 +23,7 @@ var _liquid_max := 0.082
 
 func _ready() -> void:
 	add_to_group("carriable")
-	add_to_group("aeropress_device")
+	add_to_group("shot_press")
 	freeze = true
 
 	var model: Node3D = MODEL.instantiate()

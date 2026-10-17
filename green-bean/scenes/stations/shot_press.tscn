@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://chj46v7dc8hoe"]
 
-[ext_resource type="Script" uid="uid://bb0wnxcmwdje2" path="res://scripts/stations/aeropress_station.gd" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/props/aeropress_station.tscn" id="2_model"]
+[ext_resource type="Script" uid="uid://bb0wnxcmwdje2" path="res://scripts/stations/shot_press_station.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/props/shot_press_station.tscn" id="2_model"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_mat"]
 size = Vector3(0.3, 0.01, 0.2)

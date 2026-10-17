@@ -516,7 +516,7 @@ func _build_quality_breakdown(order: OrderData) -> String:
 		lines.append("Grind: %s" % _quality_tag(order.grind_quality))
 	if not order.correct_grind_level:
 		lines.append("Wrong grind level!")
-	if order.brew_quality >= 0.0 and DrinkData.has_step(order.drink_type, DrinkData.Step.AEROPRESS_BREW):
+	if order.brew_quality >= 0.0 and DrinkData.has_step(order.drink_type, DrinkData.Step.SHOT_PRESS_BREW):
 		lines.append("Extraction: %s" % _quality_tag(order.brew_quality))
 	if order.pour_quality >= 0.0 and DrinkData.has_step(order.drink_type, DrinkData.Step.POUR_OVER_BREW):
 		lines.append("Pour: %s" % _quality_tag(order.pour_quality))
@@ -641,7 +641,7 @@ func _is_step_done(step: DrinkData.Step, cup: Cup) -> bool:
 	if cup == null:
 		return false
 	match step:
-		DrinkData.Step.AEROPRESS_BREW: return cup.has_shot
+		DrinkData.Step.SHOT_PRESS_BREW: return cup.has_shot
 		DrinkData.Step.POUR_OVER_BREW: return cup.has_pour_over_coffee
 		DrinkData.Step.HOT_WATER: return cup.has_hot_water
 		DrinkData.Step.STEAM_MILK: return cup.has_steamed_milk

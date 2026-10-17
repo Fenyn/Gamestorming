@@ -1,17 +1,17 @@
 extends RefCounted
 
-## AeroPress coffee maker (the carriable device), at real size.
+## Shot press: the carriable plunger brewer, at the size of a typical
+## single-cup plunger press.
 ##
-## Dimensions from AeroPress (Original / Clear): chamber 12.1 cm tall and
-## 10.7 cm across its hexagonal flange; plunger 13.4 cm tall with an 8.3 cm
-## top. The chamber is a smoky translucent tube with the hex flange at the
+## Chamber 12.1 cm tall with a 9.2 cm round flange and two grip tabs; plunger
+## 13.4 cm tall with an 8.3 cm top. The chamber is a smoky translucent tube with the flange at the
 ## bottom (it rests on the mug rim there) and a black filter cap screwed on
-## below it. Brew level marks 1-4 run up the front.
+## below it. Plain graduation ticks run up the front.
 ##
 ## Origin is the middle of the chamber, so the filter cap bottom sits at
 ## y = -0.0605 and the chamber top at 0.0605. Front (marks) faces +Z.
 ##
-## Nodes the AeropressDevice script and stations use:
+## Nodes the ShotPress script and stations use:
 ##   Collision      CylinderShape3D for the chamber. Moved onto the item at runtime.
 ##   RimRest        Marker3D on the underside of the flange. On a cup, this point
 ##                  sits on the cup rim.
@@ -75,9 +75,12 @@ static func _build_chamber(root: Node3D, smoke: Material) -> void:
 		Vector2(INNER_R, TOP), Vector2(INNER_R, FLANGE_TOP),
 	])
 	MK.lathe(chamber, "Tube", profile, Vector3.ZERO, smoke, 32)
-	# Hexagonal flange at the bottom: 10.7 cm across the corners.
-	var flange := MK.cyl(chamber, "Flange", 0.0535, 0.0535, FLANGE_TOP - FLANGE_BOTTOM, Vector3(0, (FLANGE_TOP + FLANGE_BOTTOM) * 0.5, 0), smoke, 6)
-	flange.rotation_degrees.y = 30.0
+	# Round flange at the bottom that rests on the cup, with two grip tabs.
+	var flange_h := FLANGE_TOP - FLANGE_BOTTOM
+	var flange_y := (FLANGE_TOP + FLANGE_BOTTOM) * 0.5
+	MK.cyl(chamber, "Flange", 0.046, 0.046, flange_h, Vector3(0, flange_y, 0), smoke, 32)
+	for sx in [-1.0, 1.0]:
+		MK.box(chamber, "GripTab", Vector3(0.018, flange_h, 0.026), Vector3(float(sx) * 0.05, flange_y, 0), smoke)
 	# Short collar under the flange that the filter cap twists onto.
 	MK.cyl(chamber, "Collar", OUTER_R + 0.001, OUTER_R + 0.001, 0.004, Vector3(0, FLANGE_BOTTOM - 0.002, 0), smoke, 24)
 
@@ -96,23 +99,11 @@ static func _build_filter_cap(root: Node3D, black: Material) -> void:
 static func _build_marks(root: Node3D) -> void:
 	var marks := MK.group(root, "Marks")
 	var white: Material = MK.mat(Color(0.95, 0.95, 0.95), 0.0, 0.6)
-	# Levels 1-4 from just above the filter to the top of the brew range.
-	for i in range(4):
-		var y := FLOOR_Y + 0.018 + float(i) * 0.02
-		MK.box(marks, "Tick", Vector3(0.008, 0.0012, 0.0006), Vector3(0.006, y, OUTER_R + 0.0003), white)
-		var digit := Label3D.new()
-		digit.name = "Level%d" % (i + 1)
-		digit.text = str(i + 1)
-		digit.font_size = 32
-		digit.pixel_size = 0.00018
-		digit.outline_size = 0
-		digit.modulate = Color(0.95, 0.95, 0.95)
-		digit.position = Vector3(-0.004, y, OUTER_R + 0.0006)
-		marks.add_child(digit)
-	# Circles between the numbers, like the real moulding.
-	for i in range(3):
-		var y := FLOOR_Y + 0.028 + float(i) * 0.02
-		MK.cyl(marks, "Dot", 0.0012, 0.0012, 0.0006, Vector3(-0.004, y, OUTER_R + 0.0003), white, 8, Vector3(90, 0, 0))
+	# Graduation ticks: a long one every 2 cm, short ones between.
+	for i in range(7):
+		var y := FLOOR_Y + 0.018 + float(i) * 0.01
+		var w := 0.01 if i % 2 == 0 else 0.005
+		MK.box(marks, "Tick", Vector3(w, 0.0012, 0.0006), Vector3(0.0, y, OUTER_R + 0.0003), white)
 
 static func _build_plunger(root: Node3D, smoke: Material, black: Material) -> void:
 	var plunger := Node3D.new()

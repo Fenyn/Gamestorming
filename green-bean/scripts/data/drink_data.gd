@@ -4,7 +4,7 @@ extends Resource
 enum DrinkType { POUR_OVER, AMERICANO, LATTE, CAPPUCCINO, RED_EYE, MACCHIATO, MOCHA }
 enum CupSize { SMALL, MEDIUM, LARGE, EXTRA_LARGE }
 enum GrindLevel { COARSE, FINE }
-enum Step { GRIND_COARSE, GRIND_FINE, POUR_OVER_BREW, AEROPRESS_BREW, HOT_WATER, STEAM_MILK, ADD_SYRUP, ADD_SAUCE, LID }
+enum Step { GRIND_COARSE, GRIND_FINE, POUR_OVER_BREW, SHOT_PRESS_BREW, HOT_WATER, STEAM_MILK, ADD_SYRUP, ADD_SAUCE, LID }
 enum SyrupType { VANILLA, CARAMEL, HAZELNUT, TOFFEE_NUT }
 enum SauceType { MOCHA, CARAMEL_SAUCE, WHITE_MOCHA }
 
@@ -35,37 +35,37 @@ const RECIPES := {
 		"name": "Americano",
 		"code": "A",
 		"base_price": 4.00,
-		"steps": [Step.GRIND_FINE, Step.AEROPRESS_BREW, Step.HOT_WATER],
+		"steps": [Step.GRIND_FINE, Step.SHOT_PRESS_BREW, Step.HOT_WATER],
 	},
 	DrinkType.LATTE: {
 		"name": "Latte",
 		"code": "L",
 		"base_price": 5.50,
-		"steps": [Step.GRIND_FINE, Step.AEROPRESS_BREW, Step.STEAM_MILK],
+		"steps": [Step.GRIND_FINE, Step.SHOT_PRESS_BREW, Step.STEAM_MILK],
 	},
 	DrinkType.CAPPUCCINO: {
 		"name": "Cappuccino",
 		"code": "CAP",
 		"base_price": 5.00,
-		"steps": [Step.GRIND_FINE, Step.AEROPRESS_BREW, Step.STEAM_MILK],
+		"steps": [Step.GRIND_FINE, Step.SHOT_PRESS_BREW, Step.STEAM_MILK],
 	},
 	DrinkType.RED_EYE: {
 		"name": "Red Eye",
 		"code": "RE",
 		"base_price": 6.50,
-		"steps": [Step.GRIND_COARSE, Step.POUR_OVER_BREW, Step.GRIND_FINE, Step.AEROPRESS_BREW],
+		"steps": [Step.GRIND_COARSE, Step.POUR_OVER_BREW, Step.GRIND_FINE, Step.SHOT_PRESS_BREW],
 	},
 	DrinkType.MACCHIATO: {
 		"name": "Macchiato",
 		"code": "EM",
 		"base_price": 3.00,
-		"steps": [Step.GRIND_FINE, Step.AEROPRESS_BREW],
+		"steps": [Step.GRIND_FINE, Step.SHOT_PRESS_BREW],
 	},
 	DrinkType.MOCHA: {
 		"name": "Mocha",
 		"code": "MO",
 		"base_price": 6.00,
-		"steps": [Step.ADD_SAUCE, Step.GRIND_FINE, Step.AEROPRESS_BREW, Step.STEAM_MILK],
+		"steps": [Step.ADD_SAUCE, Step.GRIND_FINE, Step.SHOT_PRESS_BREW, Step.STEAM_MILK],
 	},
 }
 
@@ -199,7 +199,7 @@ static func get_sauce_color(sauce: SauceType) -> Color:
 
 const STEP_DISPLAY := {
 	Step.POUR_OVER_BREW: "Brew pour over [coarse]",
-	Step.AEROPRESS_BREW: "Pull shot [fine]",
+	Step.SHOT_PRESS_BREW: "Pull shot [fine]",
 	Step.HOT_WATER: "Add hot water",
 	Step.STEAM_MILK: "Steam milk",
 	Step.ADD_SAUCE: "Add sauce",
@@ -208,7 +208,7 @@ const STEP_DISPLAY := {
 const STEP_TOOLTIPS := {
 	Step.POUR_OVER_BREW:
 		"1.  Pick up dripper from shelf\n2.  Bring to grinder — grind coarse\n3.  Place dripper + cup at station\n4.  Hold filled kettle, [E] bloom pour\n5.  Walk away during bloom wait\n6.  Return with kettle, [E] main pour\n7.  Wait for draw-down",
-	Step.AEROPRESS_BREW:
+	Step.SHOT_PRESS_BREW:
 		"1.  Pick up the shot press from its stand\n2.  Bring to grinder — grind fine\n3.  Place device + cup at station\n4.  Hold filled kettle, [E] pour water\n5.  [E] to stir slurry\n6.  Walk away during steep\n7.  Return, [E] press (hold click, balance)",
 	Step.HOT_WATER:
 		"1.  Hold cup with shot\n2.  [E] at hot water station\n3.  Hold to pour, release at fill line",

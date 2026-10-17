@@ -12,7 +12,7 @@ A tactile first-person barista simulator: ring up orders on an in-world POS, pri
 - Left click — pick up / place items, press POS buttons, drive mini-game inputs
 
 ## Notes
-- Fully diegetic design: one carried item at a time (Skyrim-style), SubViewport POS screen, physical tickets.
+- Fully diegetic design: one carried item at a time, held in front of the view, SubViewport POS screen, physical tickets.
 - Mini-games (grind, press, pour, steam, stir) have passive phases with unattended failure states (shot death, milk scald).
 - Customers have dual patience meters; drinks are graded with a star review, day ends with a letter grade.
 - Uses the shared `godot_base` addon (`addons/godot_base`). Multiplayer host/join is deferred to Phase 1c.

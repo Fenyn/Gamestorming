@@ -20,10 +20,10 @@ OGG Vorbis (`.ogg`) is recommended for file size. WAV works but is larger.
 | `grind_loop.ogg` | Loop | While player cranks the hand grinder | Crunchy, rhythmic grinding. Burr grinder texture |
 | `grind_complete.ogg` | One-shot | Grounds are done | Satisfying ding or wooden clunk |
 
-### Aeropress
+### Shot Press
 | File | Type | When | Character |
 |---|---|---|---|
-| `water_pour_loop.ogg` | Loop | Pouring water into aeropress chamber | Gentle water stream into container |
+| `water_pour_loop.ogg` | Loop | Pouring water into shot press chamber | Gentle water stream into container |
 | `stir_loop.ogg` | Loop | Stirring the slurry | Swishy liquid stirring, muted |
 | `steep_tick.ogg` | One-shot | (Reserved — not currently hooked) | Quiet tick for steep countdown |
 | `shot_ready.ogg` | One-shot | Shot done steeping, ready to press | Clear alert beep. Must be audible across the shop |

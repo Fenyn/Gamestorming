@@ -20,7 +20,7 @@ A first-person, low-poly 3D **barista simulator** with online multiplayer, built
 
 ## Vision
 
-Build a cozy, chaotic coffee shop game in the vein of Overcooked, Plate Up!, and TCG Shop Simulator — but first-person and with authentic barista mechanics drawn from real Starbucks experience. The cup-code system (abbreviations on printed tickets) is the core differentiator. The game should feel hands-on: players physically grind beans, press aeropresses, steam milk, and pour drinks with tactile mouse and keyboard interactions. Everything is diegetic — no abstract menus, just you, the shop, and the coffee.
+Build a cozy, chaotic coffee shop game that mixes co-op kitchen rush and shop management, but first-person and with authentic barista mechanics drawn from real coffee-shop experience. The cup-code system (abbreviations on printed tickets) is the core differentiator. The game should feel hands-on: players physically grind beans, press shot presses, steam milk, and pour drinks with tactile mouse and keyboard interactions. Everything is diegetic — no abstract menus, just you, the shop, and the coffee.
 
 ---
 
@@ -50,10 +50,10 @@ The player can **queue multiple orders** before making any drinks. Ring up sever
 Confirming the order sends it to the **ticket printer**. Incorrect entry = incorrect ticket = wrong drink downstream.
 
 ### 2. Ticket Printer & Cup Pickup
-The ticket prints with a cup code using Starbucks-style shorthand abbreviations. The player grabs a cup from the **cup stack** (one stack per size — infinite supply in Phase 1, eventually requires restocking from cup sleeves). Picking up a cup near the printer attaches the ticket automatically.
+The ticket prints with a cup code using coffee-shop shorthand abbreviations. The player grabs a cup from the **cup stack** (one stack per size — infinite supply in Phase 1, eventually requires restocking from cup sleeves). Picking up a cup near the printer attaches the ticket automatically.
 
 ### 3. Bar Station
-The player **carries one item at a time**, held in front of their viewport Skyrim-style. They carry the cup to each station, set it down, perform the mini-game, pick it up, and move to the next station. If a step requires a second item (e.g., steaming pitcher for a latte), the player must set down the cup, pick up the pitcher, do the task, set down the pitcher, pick up the cup, then pour.
+The player **carries one item at a time**, held in front of their viewport. They carry the cup to each station, set it down, perform the mini-game, pick it up, and move to the next station. If a step requires a second item (e.g., steaming pitcher for a latte), the player must set down the cup, pick up the pitcher, do the task, set down the pitcher, pick up the cup, then pour.
 
 Mini-games use a **camera lock** — pressing E at a station snaps the camera to a fixed POV for that task. The station checks that all prerequisite items are in place (cup positioned, grounds loaded, etc.) before starting. The same locked camera angle is used every time that task runs, giving the player consistent muscle memory.
 
@@ -64,7 +64,7 @@ Completed drink goes on the hand-off counter. Customer picks it up.
 
 ## Diegetic Design Principle
 
-Everything the player interacts with exists in the 3D world. No full-screen overlays, no floating menus, no mode-switched cursors. The register is a screen you aim your view at and click. Tickets are physical objects you pick up. Cups float in front of you Skyrim-style as you carry them. Mini-games lock to a fixed camera angle at the station. This is a core design principle, not a nice-to-have.
+Everything the player interacts with exists in the 3D world. No full-screen overlays, no floating menus, no mode-switched cursors. The register is a screen you aim your view at and click. Tickets are physical objects you pick up. Cups float in front of you as you carry them. Mini-games lock to a fixed camera angle at the station. This is a core design principle, not a nice-to-have.
 
 ---
 
@@ -78,7 +78,7 @@ Tasks left unattended past their safe window degrade or fail:
 
 | Task | Safe Window | Micro Failure | Consequence |
 |---|---|---|---|
-| **Aeropress shot** | Steeps for ~10s, then ready for ~8s | Shot over-extracts and becomes bitter, eventually "dies" (goes cold/stale) | Quality penalty → eventual total loss if ignored too long |
+| **Shot Press shot** | Steeps for ~10s, then ready for ~8s | Shot over-extracts and becomes bitter, eventually "dies" (goes cold/stale) | Quality penalty → eventual total loss if ignored too long |
 | **Milk steaming** | Reaches target temp, holds briefly | Milk scalds (burns) — visual cue: steam turns aggressive, milk discolors | Scalded milk must be dumped and restarted |
 | **Pour over draw-down** | Finishes draining in ~15s, coffee stays warm briefly | Coffee goes cold/stale if left sitting too long | Quality penalty — still servable but lower score |
 | **Grinder (hand)** | N/A — requires active input | No failure — just stops when you stop cranking | No penalty, just wasted time |
@@ -109,7 +109,7 @@ Actions should feel **tactile and satisfying**, not abstracted. The physicality 
 - **Additional keys** may be used within mini-games (e.g., holding a key while pressing)
 
 ### Carried Items
-- Player holds **one item at a time**, floating in front of the viewport (Skyrim-style)
+- Player holds **one item at a time**, floating in front of the viewport
 - **Left click** on a surface/station = set item down at that location
 - **Left click** on a placed item = pick it up
 - Items: cups (4 sizes), steaming pitcher, milk carton
@@ -124,7 +124,7 @@ Each station interaction is a self-contained mini-game. Quality scores from each
 ### Grinder Mini-Game
 The player must **set the grind level** before grinding. Different drinks require different grind settings:
 - **Coarse** — pour over
-- **Fine** — aeropress espresso
+- **Fine** — shot press espresso
 
 Wrong grind level = quality penalty on the final drink.
 
@@ -134,11 +134,11 @@ Wrong grind level = quality penalty on the final drink.
 
 **Upgrade — Auto Grinder (highest tier):** Automatically selects the correct grind level for the drink on the ticket. Player just presses start.
 
-### Aeropress Mini-Game
+### Shot Press Mini-Game
 Two phases:
 
 **Active — Press:** The player presses the plunger down by holding an input and controlling downward pressure/speed:
-- A pressure indicator on the aeropress (in-world, diegetic) shows a "green zone" for ideal press speed
+- A pressure indicator on the shot press (in-world, diegetic) shows a "green zone" for ideal press speed
 - Too fast = over-extracted, bitter (quality penalty)
 - Too slow = under-extracted, weak (quality penalty)
 - Smooth, steady pressure through the green zone = perfect shot
@@ -183,8 +183,8 @@ Two phases:
 - Overfill = spill = wasted cup, must restart with a new one
 - Simple but requires attention — can't just hold and walk away
 
-### Stir Mini-Game (Aeropress)
-**Active, brief.** Circular mouse motions to stir the aeropress slurry before pressing. A visual indicator shows mix evenness. Short and simple — just a few rotations. No failure state, just quality variation based on how evenly you stir.
+### Stir Mini-Game (Shot Press)
+**Active, brief.** Circular mouse motions to stir the shot press slurry before pressing. A visual indicator shows mix evenness. Short and simple — just a few rotations. No failure state, just quality variation based on how evenly you stir.
 
 ---
 
@@ -207,36 +207,36 @@ A single-origin drip coffee. The simplest drink and a good tutorial order.
 
 **Ticket code:** `S/M/L/XL` + `PO` (e.g., "L PO" = Large Pour Over)
 
-### Aeropress Espresso Shot
-Used as the base for espresso drinks. Not a traditional espresso machine — the aeropress is the Phase 1 equivalent.
+### Shot Press Espresso Shot
+Used as the base for espresso drinks. Not a traditional espresso machine — the shot press is the Phase 1 equivalent.
 
 **Steps:**
 1. Set grind level to **fine** at the grinder
 2. Grind beans — ACTIVE (hand grinder mini-game)
-3. Add grounds to aeropress chamber (interact)
+3. Add grounds to shot press chamber (interact)
 4. Pour hot water into chamber — ACTIVE (water pour mini-game, fill to line)
 5. Stir — ACTIVE, brief (stir mini-game, circular mouse motions)
 6. Steep — PASSIVE (~10s, can walk away)
 7. Ready window — ~8s to come back and press before over-extraction begins
 8. Attach filter cap and flip (interact)
-9. Press down — ACTIVE (aeropress mini-game, pressure control through green zone)
+9. Press down — ACTIVE (shot press mini-game, pressure control through green zone)
 10. Extract shot into cup — shot begins dying if not used promptly
 
 ### Americano
-Aeropress shot + hot water.
+Shot Press shot + hot water.
 
 **Steps:**
-1. Pull an aeropress shot (steps above — shot dies if left too long)
+1. Pull an shot press shot (steps above — shot dies if left too long)
 2. Add hot water to the cup from dispenser — ACTIVE (water pour mini-game, fill to line, overflow risk)
 3. Lid and hand off
 
 **Ticket code:** `S/M/L/XL` + `A` (e.g., "M A" = Medium Americano)
 
 ### Latte
-Aeropress shot + steamed milk. The most complex Phase 1 drink — multiple active and passive phases to juggle.
+Shot Press shot + steamed milk. The most complex Phase 1 drink — multiple active and passive phases to juggle.
 
 **Steps:**
-1. Pull an aeropress shot (steps above — shot dies if left too long)
+1. Pull an shot press shot (steps above — shot dies if left too long)
 2. Grab milk from fridge (walk to fridge, interact)
 3. Pour milk into steaming pitcher (interact)
 4. Steam milk — ACTIVE, FAILURE RISK (milk steaming mini-game, scalds if unattended)
@@ -247,11 +247,11 @@ Aeropress shot + steamed milk. The most complex Phase 1 drink — multiple activ
 
 ### Optimal Juggling Example
 A skilled player making a latte and a pour over simultaneously:
-1. Set grinder to fine, start grinding for the aeropress shot
+1. Set grinder to fine, start grinding for the shot press shot
 2. While grinding: set up pour-over filter (interact during cranking pauses? or a second player does this)
-3. Finish grinding, add grounds to aeropress, pour water, stir, start steep (PASSIVE ~10s)
+3. Finish grinding, add grounds to shot press, pour water, stir, start steep (PASSIVE ~10s)
 4. Walk to grinder, switch to coarse, grind for pour over
-5. Aeropress beeps — walk back, press the shot
+5. Shot Press beeps — walk back, press the shot
 6. Walk to pour-over, add grounds, start pouring (ACTIVE)
 7. Finish pour, draw-down starts (PASSIVE ~15s)
 8. Walk to steam station, start steaming milk for the latte (ACTIVE — don't walk away!)
@@ -275,7 +275,7 @@ Equipment upgrades are purchased with **money earned from serving drinks**. Upgr
 - **Tier 1:** Better equipment (faster, wider timing windows on mini-games)
 - **Tier 2:** Semi-automated (button press replaces mini-game — auto-steamer, etc.)
 - **Tier 3:** Fully automated (machine does it, player just places the cup)
-- **Traditional espresso machine** replaces aeropress as a major upgrade — portafilter, tamping, group head, shot timing
+- **Traditional espresso machine** replaces shot press as a major upgrade — portafilter, tamping, group head, shot timing
 
 ---
 
@@ -287,16 +287,16 @@ Three shop types that scale with player count. The shop itself changes identity 
 |---|---|---|---|
 | **Espresso Stand** | 1 (solo) | Roadside walk-up window | Tiny footprint — everything within arm's reach. One of each station. Cozy, efficient, intimate. Customers walk up to a window. Solo player can pivot between stations in a step or two. |
 | **Coffee Bar** | 2 (duo) | Small storefront | Counter seating, a bit more room. Stations deliberately spread so one player can't cover everything — the fridge might be at one end, the register at the other. Two players divide territory. |
-| **Cafe** | 3-4 (group) | Full cafe with lobby | Full floor plan. Register is at the front counter, grinder and aeropress on the back bar, fridge in a back corner, steam wand at the end of the bar. A single player running a latte end-to-end crosses the entire shop. Players must claim zones and hand off cups. |
+| **Cafe** | 3-4 (group) | Full cafe with lobby | Full floor plan. Register is at the front counter, grinder and shot press on the back bar, fridge in a back corner, steam wand at the end of the bar. A single player running a latte end-to-end crosses the entire shop. Players must claim zones and hand off cups. |
 
 ### Layout as Balance
 
 Station placement is the primary difficulty lever across shop sizes:
-- **Espresso Stand:** Grinder, aeropress, steam wand, pour-over, and register are all within a few steps. Fridge is under the counter. The challenge is speed, not movement.
+- **Espresso Stand:** Grinder, shot press, steam wand, pour-over, and register are all within a few steps. Fridge is under the counter. The challenge is speed, not movement.
 - **Coffee Bar:** Register and bar are separated. Fridge is behind the bar but not adjacent to the steam wand. Players need to walk, which creates natural task handoff points ("I'll steam, you press").
 - **Cafe:** Stations are spread across a large space. The fridge might be in a back room. A player walking milk from the fridge to the steam station is out of position for 5+ seconds. Leaving milk steaming to go grab a ticket off the printer is a real risk — will you make it back before it scalds?
 
-Extra bodies help cover the distance, but also create **physical congestion** — two players trying to use the same aeropress station or bumping into each other in a narrow bar area. The shop layouts should have intentional bottleneck points where players have to coordinate who goes where.
+Extra bodies help cover the distance, but also create **physical congestion** — two players trying to use the same shot press station or bumping into each other in a narrow bar area. The shop layouts should have intentional bottleneck points where players have to coordinate who goes where.
 
 Difficulty also scales via:
 - **Customer volume:** More customers per minute in larger shops
@@ -308,7 +308,7 @@ Difficulty also scales via:
 
 ## Day Structure & Scoring
 
-Each play session is a **timed day** (like Overcooked levels). The day has a fixed duration with a customer schedule that ramps up.
+Each play session is a **timed day** (like a timed level in an arcade cooking game). The day has a fixed duration with a customer schedule that ramps up.
 
 ### Day Timing
 - Default day length: **3 minutes** (180 seconds). Easily adjustable via a constant — this is a testing default.
@@ -398,7 +398,7 @@ scenes/
   stations/
     register.tscn            POS counter with in-world screen + ticket printer
     pour_over_station.tscn   Pour-over dripper + gooseneck kettle
-    aeropress_station.tscn   Aeropress setup
+    shot_press_station.tscn   Shot Press setup
     steam_station.tscn       Milk steaming wand + pitcher
     grinder.tscn             Coffee grinder
     hot_water.tscn           Hot water dispenser (for americanos)
@@ -427,16 +427,16 @@ scripts/
     ticket_printer.gd        Generates physical ticket from order data
     grinder.gd               Grinder station — grind level selection + hand-crank or auto
     pour_over.gd             Pour-over station — saturation-based pour
-    aeropress.gd             Aeropress station — pressure control
+    shot_press.gd             Shot Press station — pressure control
     steam_wand.gd            Steam station — wand depth control
     hot_water.gd             Hot water dispenser — fill-to-line pour
     hand_off.gd              Drink delivery + quality scoring
   mini_games/
     base_mini_game.gd        Shared interface for all mini-games
     pour_mini_game.gd        Mouse-guided pouring (gooseneck saturation + simple fill)
-    press_mini_game.gd       Active pressure control (aeropress plunger)
+    press_mini_game.gd       Active pressure control (shot press plunger)
     grind_mini_game.gd       Hand-crank grinding (circular mouse/key input) + grind level
-    stir_mini_game.gd        Circular mouse stirring (aeropress slurry)
+    stir_mini_game.gd        Circular mouse stirring (shot press slurry)
     steam_mini_game.gd       Wand depth control (mouse Y) + audio/visual feedback
   data/
     drink_data.gd            Resource class for drink definitions
@@ -496,7 +496,7 @@ Size affects the *duration* of tasks, not the *difficulty* of mini-games. A Larg
 - Sauces: M (mocha), CR (caramel drizzle), WM (white mocha)
 - Extras: WC (whipped cream), XH (extra hot)
 - Shots: number prefix for extra shots
-- New drink types: CM (caramel macchiato), M (mocha), WM (white mocha), F (frappuccino), CB (cold brew)
+- New drink types: CM (caramel macchiato), M (mocha), WM (white mocha), F (frappé), CB (cold brew)
 
 ---
 
@@ -505,7 +505,7 @@ Size affects the *duration* of tasks, not the *difficulty* of mini-games. A Larg
 ### Syrups
 Syrups are pre-bottled liquid flavorings stored at a **syrup rack** station. Each bottle sits in a pump holster. The player grabs a cup, holds it under a bottle, and pumps to dispense.
 
-**Syrup pump mini-game:** Player holds cup under the pump, clicks to pump. Each click = one pump. Different drinks require different pump counts (tall = 3, grande = 4, venti = 5). Over-pumping = too sweet (quality penalty). Under-pumping = too mild (quality penalty). The mini-game is quick and tactile — click rhythm, not duration.
+**Syrup pump mini-game:** Player holds cup under the pump, clicks to pump. Each click = one pump. Different drinks require different pump counts (small = 3, medium = 4, large = 5). Over-pumping = too sweet (quality penalty). Under-pumping = too mild (quality penalty). The mini-game is quick and tactile — click rhythm, not duration.
 
 **Available syrups (Phase 2):** Vanilla, Hazelnut, Toffee Nut, Caramel, Sugar-Free Vanilla.
 
@@ -514,7 +514,7 @@ Syrups are pre-bottled liquid flavorings stored at a **syrup rack** station. Eac
 ### Sauces
 Sauces are thicker, richer flavorings (mocha, caramel, white mocha) that require **preparation before the day starts**. Unlike syrups which come pre-bottled, sauces must be mixed or heated.
 
-**Mocha sauce prep:** Combine cocoa powder + hot water + sugar in a sauce pan. Stir mini-game (similar to aeropress stir but longer). Heat to target temp. Pour into a squeeze bottle. Each batch makes enough for ~15-20 drinks. Player decides how many batches to prep during morning setup.
+**Mocha sauce prep:** Combine cocoa powder + hot water + sugar in a sauce pan. Stir mini-game (similar to shot press stir but longer). Heat to target temp. Pour into a squeeze bottle. Each batch makes enough for ~15-20 drinks. Player decides how many batches to prep during morning setup.
 
 **Caramel sauce prep:** Heat sugar + butter + cream in a sauce pan. More temperature-sensitive than mocha — must hit the right temp window or it crystallizes (quality penalty) or burns (waste). Pour into squeeze bottle.
 
@@ -588,7 +588,7 @@ Each modifier adds a step to the drink recipe. A vanilla latte = latte recipe + 
 ### Equipment Upgrades
 Upgrades automate or speed up previously manual tasks:
 
-| Tier | Grinder | Aeropress | Steam | Pour-Over |
+| Tier | Grinder | Shot Press | Steam | Pour-Over |
 |---|---|---|---|---|
 | 1 (start) | Hand crank | Manual press | Manual wand | Manual gooseneck |
 | 2 | Electric (auto-grind, player sets level + starts) | Semi-auto (shorter press, wider green zone) | Auto-shutoff (prevents scald) | Electric kettle (auto-heat water) |
@@ -604,16 +604,16 @@ Higher tiers free up player time for other tasks. Tier 3 equipment is expensive 
 All geometry is grey-boxed (untextured primitives). Solo espresso stand only. Core mechanics proven.
 - First-person player controller with mouse look, WASD movement, jump
 - Hand-built espresso stand shop scene with editor-placed prefab stations
-- Item carry system (one item, Skyrim-style viewport float)
+- Item carry system (one item, floats in front of the viewport)
 - Camera-lock mini-game system with frame guards and input cooldown
-- Carriable items: Cup, AeropressDevice, Dripper, Pitcher, Kettle, MilkJug
+- Carriable items: Cup, ShotPress, Dripper, Pitcher, Kettle, MilkJug
 - 6 drink types: Pour Over, Americano, Latte, Cappuccino, Red Eye, Macchiato
 - 4 cup sizes: Small, Medium, Large, Extra Large
 - In-world register with SubViewport POS screen (3 tabs: SIZE, DRINK, MODS), keyboard + crosshair click input
 - Syrup modifier system: vanilla syrup station with hold-to-pump mini-game, $0.60 upcharge, per-size pump targets
 - Cash transaction flow: charge → collect from customer → cash drawer change-making mini-game
 - Grinder mini-game (hand crank, grind level toggle, progress bar)
-- Aeropress flow: grounds → water pour (kettle animation) → stir (paddle visual) → steep (passive countdown) → press (2D pressure balance, plunger visual, liquid fill)
+- Shot Press flow: grounds → water pour (kettle animation) → stir (paddle visual) → steep (passive countdown) → press (2D pressure balance, plunger visual, liquid fill)
 - Pour-over flow: bloom pour (top-down saturation painting) → bloom wait (passive) → main pour → draw-down (passive countdown) → coffee ready
 - Milk steaming with drink-specific foam targets (stretching phase with sinking sweet spot → texturing phase passive → finish). Latte=35% foam, Cappuccino=75% foam
 - Milk jug from fridge → pour into pitcher → steam → pour into cup
@@ -639,11 +639,11 @@ All geometry is grey-boxed (untextured primitives). Solo espresso stand only. Co
 All stations converted to `.tscn` prefab scenes, hand-placed in the editor.
 
 **Station prefabs (`scenes/stations/`):**
-register, cash_drawer, cup_stack, grinder, aeropress, pour_over, hot_water, steam, fridge, hand_off, counter_pad, syrup, lid_dispenser
+register, cash_drawer, cup_stack, grinder, shot press, pour_over, hot_water, steam, fridge, hand_off, counter_pad, syrup, lid_dispenser
 
 **Item prefabs to create (`scenes/items/`):**
 - `cup.tscn` — RigidBody3D + cup.gd (one per size, or parameterized)
-- `aeropress_device.tscn` — RigidBody3D + aeropress_device.gd
+- `shot_press.tscn` — RigidBody3D + shot_press.gd
 - `dripper.tscn` — RigidBody3D + dripper.gd
 - `pitcher.tscn` — RigidBody3D + pitcher.gd
 - `kettle.tscn` — RigidBody3D + kettle.gd
@@ -660,7 +660,7 @@ register, cash_drawer, cup_stack, grinder, aeropress, pour_over, hot_water, stea
 1. Each station script keeps its `_ready()` logic for creating mini-games, slots, and labels programmatically — these are gameplay elements, not visual mesh
 2. The grey-box mesh + collision currently added by `_build_station()` in espresso_stand.gd moves INTO each prefab's `.tscn` as child nodes
 3. When a real model is ready, replace the CSGBox3D mesh child with a MeshInstance3D pointing to the `.glb`/`.obj` — the script and collision stay the same
-4. Shelf items (aeropress device, dripper, pitcher, kettle, milk jug) are spawned by their station scripts as before, but can optionally be placed as scene children for editor visibility
+4. Shelf items (shot press device, dripper, pitcher, kettle, milk jug) are spawned by their station scripts as before, but can optionally be placed as scene children for editor visibility
 5. `espresso_stand.gd` is replaced by a simple scene with instances + a lightweight script that wires up customer spawner positions
 
 **Model replacement workflow:**
@@ -721,16 +721,16 @@ Once prefabs exist, swapping a grey box for a real model:
 **Done (Phase 1a):**
 - Full FPS controller with mouse look, movement, jump
 - Interaction system: RayCast3D, E to interact, crosshair click targeting
-- Item carry system: one item, Skyrim-style, click to pick up/place
+- Item carry system: one item, held in front of the view, click to pick up/place
 - Grey-box espresso stand with all stations procedurally placed
-- 6 carriable item types: Cup, AeropressDevice, Dripper, Pitcher, Kettle, MilkJug
-- 11 station types: Register, CashDrawer, CupStack, Grinder, Aeropress, PourOver, HotWater, Steam, Fridge, HandOff, CounterPad
+- 6 carriable item types: Cup, ShotPress, Dripper, Pitcher, Kettle, MilkJug
+- 11 station types: Register, CashDrawer, CupStack, Grinder, Shot Press, PourOver, HotWater, Steam, Fridge, HandOff, CounterPad
 - 5 mini-games: Grind (hand crank), Press (2D pressure balance), Pour (top-down saturation), Steam (sinking sweet spot), Stir (circular mouse)
 - Register with SubViewport POS, cash transaction flow, cash drawer change-making
 - Kettle water level system with per-use depletion
 - Milk jug → pitcher → steam → pour-into-cup physical flow
 - Bloom → bloom wait → main pour → draw-down pour-over flow
-- Passive phases: aeropress steep, milk texturing, bloom wait, draw-down
+- Passive phases: shot press steep, milk texturing, bloom wait, draw-down
 - Failure states: shot death, milk scald, coffee cooling
 - Visual feedback: progress bars, pressure balance, saturation painting, plunger/liquid animations, kettle pour tween
 - Customer AI with full state machine, dual patience, payment flow

@@ -1,6 +1,6 @@
 extends RefCounted
 
-## Gooseneck pour-over kettle, like the Hario V60 Buono 1.0 L.
+## Gooseneck pour-over kettle, the common 1 litre stovetop kind.
 ##
 ## Real size: about 14.4 cm across the base, 13 cm tall, 29.5 cm from spout tip
 ## to handle, with a 7.8 cm lid opening. The body is a squat dome that narrows

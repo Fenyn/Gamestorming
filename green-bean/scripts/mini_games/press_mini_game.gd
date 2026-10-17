@@ -34,7 +34,7 @@ var _needle_dot: CSGBox3D = null
 
 func _ready() -> void:
 	super._ready()
-	station_name = "aeropress"
+	station_name = "shot_press"
 
 	_indicator_label = Label3D.new()
 	_indicator_label.text = ""

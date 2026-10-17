@@ -49,7 +49,7 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
 - Each cup has a paper sticker with its ticket code.
 
 **Pours**
-- Kettle pours (pour-over bloom and main pour, aeropress water) draw a stream from the spout while the mouse is held.
+- Kettle pours (pour-over bloom and main pour, shot press water) draw a stream from the spout while the mouse is held.
 - The hot water station draws a stream into the held cup or kettle.
 - Pour-over draw-down drips coffee into the cup.
 

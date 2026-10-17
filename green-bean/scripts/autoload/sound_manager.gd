@@ -8,7 +8,7 @@ const SFX_PATHS := {
 	"grind_loop": "res://audio/sfx/grind_loop.ogg",
 	"grind_complete": "res://audio/sfx/grind_complete.ogg",
 
-	# Aeropress
+	# Shot Press
 	"water_pour_loop": "res://audio/sfx/water_pour_loop.ogg",
 	"stir_loop": "res://audio/sfx/stir_loop.ogg",
 	"steep_tick": "res://audio/sfx/steep_tick.ogg",

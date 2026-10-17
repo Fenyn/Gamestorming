@@ -74,7 +74,7 @@ func get_final_quality() -> float:
 
 	if grind_quality >= 0.0:
 		qualities.append(grind_quality)
-	if DrinkData.has_step(drink_type, DrinkData.Step.AEROPRESS_BREW) and brew_quality >= 0.0:
+	if DrinkData.has_step(drink_type, DrinkData.Step.SHOT_PRESS_BREW) and brew_quality >= 0.0:
 		qualities.append(brew_quality)
 	if DrinkData.has_step(drink_type, DrinkData.Step.POUR_OVER_BREW) and pour_quality >= 0.0:
 		qualities.append(pour_quality)

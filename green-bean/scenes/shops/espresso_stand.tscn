@@ -26,7 +26,7 @@
 [ext_resource type="PackedScene" uid="uid://bj6yjp8w1k5f5" path="res://scenes/stations/grinder.tscn" id="2_t2fld"]
 [ext_resource type="PackedScene" uid="uid://uo86utug3rju" path="res://scenes/stations/cup_stack.tscn" id="3_jxr28"]
 [ext_resource type="PackedScene" uid="uid://brh6nem8kt5gu" path="res://scenes/stations/pour_over.tscn" id="4_f7yp2"]
-[ext_resource type="PackedScene" uid="uid://chj46v7dc8hoe" path="res://scenes/stations/aeropress.tscn" id="5_vg725"]
+[ext_resource type="PackedScene" uid="uid://chj46v7dc8hoe" path="res://scenes/stations/shot_press.tscn" id="5_vg725"]
 [ext_resource type="PackedScene" uid="uid://og0lvr77r062" path="res://scenes/stations/counter_pad.tscn" id="6_u3j1k"]
 [ext_resource type="PackedScene" uid="uid://dchyeal4br6un" path="res://scenes/stations/fridge.tscn" id="7_3kx3p"]
 [ext_resource type="PackedScene" uid="uid://dw4u1fvpm2aam" path="res://scenes/stations/steam.tscn" id="8_vo8gi"]

@@ -18,7 +18,7 @@ func _ready() -> void:
 		if arg.begins_with("--out="):
 			_out = arg.substr(6)
 	DirAccess.make_dir_recursive_absolute(_out)
-	UnlockManager.owned_equipment = ["aeropress", "hot_water_station", "fridge", "steam_station", "syrup_rack", "sauce_station", "mocha_prep", "caramel_prep", "bottle_rack"]
+	UnlockManager.owned_equipment = ["shot_press", "hot_water_station", "fridge", "steam_station", "syrup_rack", "sauce_station", "mocha_prep", "caramel_prep", "bottle_rack"]
 	_shop = (load(SHOP) as PackedScene).instantiate()
 	add_child(_shop)
 	await _frames(10)

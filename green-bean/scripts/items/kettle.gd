@@ -3,7 +3,7 @@ extends RigidBody3D
 
 const MAX_WATER := 1.0
 const BLOOM_COST := 0.1
-const AEROPRESS_COST := 0.3
+const SHOT_PRESS_COST := 0.3
 const POUR_OVER_COST := 0.4
 const AMERICANO_COST := 0.3
 

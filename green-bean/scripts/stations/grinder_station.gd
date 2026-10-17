@@ -55,7 +55,7 @@ func interact(player: Player) -> void:
 	match state:
 		State.IDLE:
 			if _status_label:
-				_status_label.text = "Place device here\n(dripper or aeropress)"
+				_status_label.text = "Place device here\n(dripper or shot press)"
 		State.DEVICE_PLACED:
 			if _mini_game.is_active():
 				_mini_game.stop()
@@ -105,7 +105,7 @@ func _update_label() -> void:
 		return
 	match state:
 		State.IDLE:
-			_status_label.text = "Place device to grind\n[Click] with dripper/aeropress"
+			_status_label.text = "Place device to grind\n[Click] with dripper/shot press"
 		State.DEVICE_PLACED:
 			var level_str := "FINE" if _mini_game.grind_level == DrinkData.GrindLevel.FINE else "COARSE"
 			_status_label.text = "[E] Start grinding (%s)\nRClick: toggle level" % level_str

@@ -148,9 +148,16 @@ height = 0.008
 radial_segments = 24
 rings = 1
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j0fc3"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m2acr"]
 albedo_color = Color(0.97, 0.96, 0.93, 1)
 roughness = 0.9
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_j0fc3"]
+top_radius = 0.0335
+bottom_radius = 0.0335
+height = 0.0008
+radial_segments = 24
+rings = 1
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_xjwru"]
 top_radius = 0.0335
@@ -187,168 +194,161 @@ height = 0.0008
 radial_segments = 24
 rings = 1
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_pw0r6"]
-top_radius = 0.0335
-bottom_radius = 0.0335
-height = 0.0008
-radial_segments = 24
-rings = 1
+[node name="ShotPressStation" type="Node3D" unique_id=1775752455]
 
-[node name="AeroPressStation" type="Node3D" unique_id=390006250]
+[node name="BrewMat" type="Node3D" parent="." unique_id=701460178]
 
-[node name="BrewMat" type="Node3D" parent="." unique_id=2096662332]
-
-[node name="Mat" type="MeshInstance3D" parent="BrewMat" unique_id=88087976]
+[node name="Mat" type="MeshInstance3D" parent="BrewMat" unique_id=1909367797]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0025, 0)
 material_override = SubResource("StandardMaterial3D_0c437")
 mesh = SubResource("BoxMesh_mjhal")
 
-[node name="MatSides" type="MeshInstance3D" parent="BrewMat" unique_id=2120779092]
+[node name="MatSides" type="MeshInstance3D" parent="BrewMat" unique_id=1860970092]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0025, 0)
 material_override = SubResource("StandardMaterial3D_0c437")
 mesh = SubResource("BoxMesh_xdsrq")
 
-[node name="MatEdge" type="MeshInstance3D" parent="BrewMat" unique_id=1822399520]
+[node name="MatEdge" type="MeshInstance3D" parent="BrewMat" unique_id=1785546150]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13000001, 0.0025, -0.08)
 material_override = SubResource("StandardMaterial3D_0c437")
 mesh = SubResource("CylinderMesh_rcnj8")
 
-[node name="MatEdge2" type="MeshInstance3D" parent="BrewMat" unique_id=101640064]
+[node name="MatEdge2" type="MeshInstance3D" parent="BrewMat" unique_id=1204505135]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13000001, 0.0025, 0.08)
 material_override = SubResource("StandardMaterial3D_0c437")
 mesh = SubResource("CylinderMesh_dl7pi")
 
-[node name="MatEdge3" type="MeshInstance3D" parent="BrewMat" unique_id=1097140085]
+[node name="MatEdge3" type="MeshInstance3D" parent="BrewMat" unique_id=1577880909]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13000001, 0.0025, -0.08)
 material_override = SubResource("StandardMaterial3D_0c437")
 mesh = SubResource("CylinderMesh_6yb6w")
 
-[node name="MatEdge4" type="MeshInstance3D" parent="BrewMat" unique_id=2000201782]
+[node name="MatEdge4" type="MeshInstance3D" parent="BrewMat" unique_id=311514488]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13000001, 0.0025, 0.08)
 material_override = SubResource("StandardMaterial3D_0c437")
 mesh = SubResource("CylinderMesh_mnfti")
 
-[node name="DripRing" type="MeshInstance3D" parent="BrewMat" unique_id=634230388]
+[node name="DripRing" type="MeshInstance3D" parent="BrewMat" unique_id=256425750]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.045, 0.0055, 0.02)
 material_override = SubResource("StandardMaterial3D_0xwd5")
 mesh = SubResource("TorusMesh_1h62h")
 
-[node name="DripRing2" type="MeshInstance3D" parent="BrewMat" unique_id=435411908]
+[node name="DripRing2" type="MeshInstance3D" parent="BrewMat" unique_id=1161514159]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.045, 0.0055, 0.02)
 material_override = SubResource("StandardMaterial3D_0xwd5")
 mesh = SubResource("TorusMesh_tpkyh")
 
-[node name="DripRing3" type="MeshInstance3D" parent="BrewMat" unique_id=2102305484]
+[node name="DripRing3" type="MeshInstance3D" parent="BrewMat" unique_id=877576247]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.045, 0.0055, 0.02)
 material_override = SubResource("StandardMaterial3D_0xwd5")
 mesh = SubResource("TorusMesh_7yvf7")
 
-[node name="Stand" type="Node3D" parent="." unique_id=593248973]
+[node name="Stand" type="Node3D" parent="." unique_id=2055856130]
 
-[node name="Base" type="MeshInstance3D" parent="Stand" unique_id=139281141]
+[node name="Base" type="MeshInstance3D" parent="Stand" unique_id=61891710]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0.015999999, -0.02)
 material_override = SubResource("StandardMaterial3D_lvpqx")
 mesh = SubResource("BoxMesh_g1un3")
 
-[node name="BaseSides" type="MeshInstance3D" parent="Stand" unique_id=2021546756]
+[node name="BaseSides" type="MeshInstance3D" parent="Stand" unique_id=1473356770]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0.015999999, -0.02)
 material_override = SubResource("StandardMaterial3D_lvpqx")
 mesh = SubResource("BoxMesh_30k4l")
 
-[node name="BaseEdge" type="MeshInstance3D" parent="Stand" unique_id=521948082]
+[node name="BaseEdge" type="MeshInstance3D" parent="Stand" unique_id=1762521238]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.052500006, 0.015999999, -0.057499997)
 material_override = SubResource("StandardMaterial3D_lvpqx")
 mesh = SubResource("CylinderMesh_6t3a5")
 
-[node name="BaseEdge2" type="MeshInstance3D" parent="Stand" unique_id=1235492044]
+[node name="BaseEdge2" type="MeshInstance3D" parent="Stand" unique_id=1850433263]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.052500006, 0.015999999, 0.017499998)
 material_override = SubResource("StandardMaterial3D_lvpqx")
 mesh = SubResource("CylinderMesh_qi7qk")
 
-[node name="BaseEdge3" type="MeshInstance3D" parent="Stand" unique_id=540394651]
+[node name="BaseEdge3" type="MeshInstance3D" parent="Stand" unique_id=558906522]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1275, 0.015999999, -0.057499997)
 material_override = SubResource("StandardMaterial3D_lvpqx")
 mesh = SubResource("CylinderMesh_58fe0")
 
-[node name="BaseEdge4" type="MeshInstance3D" parent="Stand" unique_id=1161544970]
+[node name="BaseEdge4" type="MeshInstance3D" parent="Stand" unique_id=1507757796]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1275, 0.015999999, 0.017499998)
 material_override = SubResource("StandardMaterial3D_lvpqx")
 mesh = SubResource("CylinderMesh_d24cf")
 
-[node name="Cradle" type="MeshInstance3D" parent="Stand" unique_id=303099817]
+[node name="Cradle" type="MeshInstance3D" parent="Stand" unique_id=553706961]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0.021499999, -0.02)
 material_override = SubResource("StandardMaterial3D_hieew")
 mesh = SubResource("CylinderMesh_ynoy0")
 
-[node name="Foot" type="MeshInstance3D" parent="Stand" unique_id=776259057]
+[node name="Foot" type="MeshInstance3D" parent="Stand" unique_id=484390578]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.055000003, 0.0064999997, -0.055)
 material_override = SubResource("StandardMaterial3D_phkst")
 mesh = SubResource("CylinderMesh_7ewam")
 
-[node name="Foot2" type="MeshInstance3D" parent="Stand" unique_id=1487511227]
+[node name="Foot2" type="MeshInstance3D" parent="Stand" unique_id=583099888]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.055000003, 0.0064999997, 0.015000001)
 material_override = SubResource("StandardMaterial3D_phkst")
 mesh = SubResource("CylinderMesh_a2qx1")
 
-[node name="Foot3" type="MeshInstance3D" parent="Stand" unique_id=1312878544]
+[node name="Foot3" type="MeshInstance3D" parent="Stand" unique_id=1636119684]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.125, 0.0064999997, -0.055)
 material_override = SubResource("StandardMaterial3D_phkst")
 mesh = SubResource("CylinderMesh_doyeg")
 
-[node name="Foot4" type="MeshInstance3D" parent="Stand" unique_id=1933403324]
+[node name="Foot4" type="MeshInstance3D" parent="Stand" unique_id=77059451]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.125, 0.0064999997, 0.015000001)
 material_override = SubResource("StandardMaterial3D_phkst")
 mesh = SubResource("CylinderMesh_n52fx")
 
-[node name="Filters" type="Node3D" parent="." unique_id=1514537402]
+[node name="Filters" type="Node3D" parent="." unique_id=1329009570]
 
-[node name="Dish" type="MeshInstance3D" parent="Filters" unique_id=1059395207]
+[node name="Dish" type="MeshInstance3D" parent="Filters" unique_id=129936874]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.115, 0.009, -0.06)
 material_override = SubResource("StandardMaterial3D_lvpqx")
 mesh = SubResource("CylinderMesh_d8b8n")
 
-[node name="Filter" type="MeshInstance3D" parent="Filters" unique_id=849997343]
+[node name="Filter" type="MeshInstance3D" parent="Filters" unique_id=564035197]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.115, 0.013, -0.058799997)
-material_override = SubResource("StandardMaterial3D_j0fc3")
+material_override = SubResource("StandardMaterial3D_m2acr")
+mesh = SubResource("CylinderMesh_j0fc3")
+
+[node name="Filter2" type="MeshInstance3D" parent="Filters" unique_id=1684281428]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11381, 0.0141, -0.06079953)
+material_override = SubResource("StandardMaterial3D_m2acr")
 mesh = SubResource("CylinderMesh_xjwru")
 
-[node name="Filter2" type="MeshInstance3D" parent="Filters" unique_id=446807645]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11381, 0.0141, -0.06079953)
-material_override = SubResource("StandardMaterial3D_j0fc3")
+[node name="Filter3" type="MeshInstance3D" parent="Filters" unique_id=1358743674]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11530665, 0.0152, -0.060134582)
+material_override = SubResource("StandardMaterial3D_m2acr")
 mesh = SubResource("CylinderMesh_wfvrj")
 
-[node name="Filter3" type="MeshInstance3D" parent="Filters" unique_id=1415409250]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11530665, 0.0152, -0.060134582)
-material_override = SubResource("StandardMaterial3D_j0fc3")
+[node name="Filter4" type="MeshInstance3D" parent="Filters" unique_id=144428476]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11611098, 0.0163, -0.05902113)
+material_override = SubResource("StandardMaterial3D_m2acr")
 mesh = SubResource("CylinderMesh_ojjy8")
 
-[node name="Filter4" type="MeshInstance3D" parent="Filters" unique_id=1723685292]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11611098, 0.0163, -0.05902113)
-material_override = SubResource("StandardMaterial3D_j0fc3")
+[node name="Filter5" type="MeshInstance3D" parent="Filters" unique_id=1421538046]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11440706, 0.0174, -0.06116981)
+material_override = SubResource("StandardMaterial3D_m2acr")
 mesh = SubResource("CylinderMesh_bsaaj")
 
-[node name="Filter5" type="MeshInstance3D" parent="Filters" unique_id=1982516923]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11440706, 0.0174, -0.06116981)
-material_override = SubResource("StandardMaterial3D_j0fc3")
+[node name="Filter6" type="MeshInstance3D" parent="Filters" unique_id=738674139]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11404182, 0.0185, -0.059420034)
+material_override = SubResource("StandardMaterial3D_m2acr")
 mesh = SubResource("CylinderMesh_37k1d")
 
-[node name="Filter6" type="MeshInstance3D" parent="Filters" unique_id=1898614608]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11404182, 0.0185, -0.059420034)
-material_override = SubResource("StandardMaterial3D_j0fc3")
-mesh = SubResource("CylinderMesh_pw0r6")
-
-[node name="CupSpot" type="Marker3D" parent="." unique_id=1962572748]
+[node name="CupSpot" type="Marker3D" parent="." unique_id=1876561715]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.045, 0.005, 0.02)
 gizmo_extents = 0.03
 
-[node name="DeviceRest" type="Marker3D" parent="." unique_id=966547334]
+[node name="DeviceRest" type="Marker3D" parent="." unique_id=1574128041]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0.021, -0.02)
 gizmo_extents = 0.03
 
-[node name="GaugeAnchor" type="Marker3D" parent="." unique_id=1009675765]
+[node name="GaugeAnchor" type="Marker3D" parent="." unique_id=213492670]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.125, 0.265, 0.06)
 gizmo_extents = 0.03
 
-[node name="CameraView" type="Marker3D" parent="." unique_id=463484109]
+[node name="CameraView" type="Marker3D" parent="." unique_id=634364637]
 transform = Transform3D(0.9801293, -0.09059586, 0.17646216, 0, 0.88960767, 0.4567255, -0.19835953, -0.44765005, 0.87193054, 0.06, 0.42, 0.42)
 gizmo_extents = 0.03

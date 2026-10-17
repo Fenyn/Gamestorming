@@ -34,7 +34,7 @@ const CAMERA_LOOK_AT := Vector3(-0.025, 0.2, 0.0)
 
 static func build() -> Node3D:
 	var root := Node3D.new()
-	root.name = "AeroPressStation"
+	root.name = "ShotPressStation"
 	_build_mat(root)
 	_build_stand(root)
 	_build_filters(root)

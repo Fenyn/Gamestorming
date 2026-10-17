@@ -42,7 +42,7 @@ static func _smoke() -> StandardMaterial3D:
 
 static func build() -> Node3D:
 	var root := Node3D.new()
-	root.name = "AeroPress"
+	root.name = "ShotPress"
 	var smoke := _smoke()
 	var black: Material = MK.mat(Color(0.09, 0.09, 0.1), 0.0, 0.55)
 

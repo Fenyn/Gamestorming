@@ -1,8 +1,8 @@
 extends RefCounted
 
 ## Pour-over brew stand: a wooden base with a post and a ring arm that holds
-## the cone dripper over the cup, a flat brew scale under the cup, and a
-## ceramic saucer where the spare dripper waits.
+## the cone dripper over the cup, a flat brew scale under the cup, a ceramic
+## saucer where the spare dripper waits, and a holder of folded paper filters.
 ##
 ## The ring is high enough for the tallest cup, so the dripper always sits in
 ## the same place and the cup goes underneath on the scale.
@@ -12,7 +12,8 @@ extends RefCounted
 ##
 ## Nodes the station script uses (move them in the editor and the station follows):
 ##   CupSpot      Marker3D on top of the scale where the cup stands.
-##   RingSeat     Marker3D at the centre of the ring. The dripper hangs in it.
+##   RingSeat     Marker3D on top of the ring, at its centre. The dripper's base
+##                plate rests here, with its collar through the ring.
 ##   DripperRest  Marker3D on the saucer where the spare dripper stands.
 ##   CameraView   Marker3D for the pour camera, looking down into the dripper.
 ##
@@ -26,6 +27,7 @@ const SCALE_SIZE := Vector3(0.115, 0.014, 0.115)
 ## Ring height: the dripper's base clears the top of the extra large cup.
 const RING_Y := 0.235
 const POST_Z := -0.062
+const RING_TUBE := 0.0035
 const REST := Vector3(0.092, 0.0, 0.035)
 
 static func build() -> Node3D:
@@ -38,10 +40,11 @@ static func build() -> Node3D:
 	_build_frame(root, wood, wood_dark, black)
 	_build_scale(root, black)
 	_build_saucer(root)
+	_build_filter_holder(root, wood_dark)
 
 	var scale_top := BASE_SIZE.y + SCALE_SIZE.y
 	MK.marker(root, "CupSpot", Vector3(STAND_X, scale_top, 0))
-	MK.marker(root, "RingSeat", Vector3(STAND_X, RING_Y, 0))
+	MK.marker(root, "RingSeat", Vector3(STAND_X, RING_Y + RING_TUBE, 0))
 	MK.marker(root, "DripperRest", REST + Vector3(0, 0.008, 0))
 	var cam_pos := Vector3(STAND_X + 0.02, RING_Y + 0.3, 0.17)
 	var look := Vector3(STAND_X, RING_Y + 0.02, 0)
@@ -58,7 +61,7 @@ static func _build_frame(root: Node3D, wood: Material, wood_dark: Material, blac
 	var arm_len := -POST_Z - 0.04
 	MK.box(frame, "Arm", Vector3(0.02, 0.012, arm_len), Vector3(STAND_X, RING_Y, POST_Z + arm_len * 0.5), wood_dark)
 	# Black steel ring the dripper drops into.
-	MK.torus(frame, "Ring", 0.042, 0.049, Vector3(STAND_X, RING_Y, 0), black)
+	MK.torus(frame, "Ring", 0.042, 0.042 + RING_TUBE * 2.0, Vector3(STAND_X, RING_Y, 0), black)
 	MK.cyl(frame, "RingBolt", 0.004, 0.004, 0.016, Vector3(STAND_X, RING_Y, POST_Z + 0.014), black, 10, Vector3(90, 0, 0))
 
 static func _build_scale(root: Node3D, black: Material) -> void:
@@ -87,3 +90,48 @@ static func _build_saucer(root: Node3D) -> void:
 		Vector2(0.048, 0.01), Vector2(0.046, 0.0105), Vector2(0.034, 0.008), Vector2(0.0, 0.008),
 	])
 	MK.lathe(saucer, "Saucer", profile, REST, ceramic, 28)
+
+## Wooden slot holding a stack of cone filters folded flat, standing upright
+## behind the saucer.
+static func _build_filter_holder(root: Node3D, wood: Material) -> void:
+	var holder := MK.group(root, "FilterHolder")
+	var c := Vector3(REST.x, 0.0, -0.052)
+	MK.box(holder, "Slot", Vector3(0.07, 0.028, 0.022), c + Vector3(0, 0.014, 0), wood)
+	MK.box(holder, "SlotGap", Vector3(0.064, 0.002, 0.012), c + Vector3(0, 0.0285, 0), MK.mat(Color(0.2, 0.13, 0.08), 0.0, 0.9))
+	var paper := StandardMaterial3D.new()
+	paper.albedo_color = Color(0.96, 0.95, 0.91)
+	paper.roughness = 0.95
+	paper.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var edge: Material = MK.mat(Color(0.88, 0.87, 0.83), 0.0, 0.95)
+	var fan := _folded_filter_mesh()
+	for i in range(5):
+		var mi := MeshInstance3D.new()
+		mi.name = MK.unique_name(holder, "Filter")
+		mi.mesh = fan
+		mi.material_override = paper
+		# Tip down in the slot, leaning back a little more for each one.
+		mi.position = c + Vector3(0, 0.012, -0.004 + float(i) * 0.0018)
+		mi.rotation_degrees = Vector3(-8.0 - float(i) * 1.5, 0, 0)
+		holder.add_child(mi)
+		# Crimped edge of the folded filter, along its right side.
+		var crimp := MK.box(holder, "CrimpEdge", Vector3(0.0025, 0.098, 0.0012), Vector3.ZERO, edge)
+		crimp.transform = mi.transform * Transform3D(Basis(Vector3.BACK, deg_to_rad(-30.0)), Vector3(sin(deg_to_rad(30.0)) * 0.049, cos(deg_to_rad(30.0)) * 0.049, 0.0006))
+
+## A cone filter folded flat: a fan with its tip at the origin, about 10 cm
+## long, in the XY plane.
+static func _folded_filter_mesh() -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var r := 0.1
+	var half := deg_to_rad(30.0)
+	var steps := 12
+	for i in range(steps):
+		var a0 := -half + 2.0 * half * float(i) / float(steps)
+		var a1 := -half + 2.0 * half * float(i + 1) / float(steps)
+		st.set_normal(Vector3.BACK)
+		st.add_vertex(Vector3.ZERO)
+		st.set_normal(Vector3.BACK)
+		st.add_vertex(Vector3(sin(a1) * r, cos(a1) * r, 0))
+		st.set_normal(Vector3.BACK)
+		st.add_vertex(Vector3(sin(a0) * r, cos(a0) * r, 0))
+	return st.commit()

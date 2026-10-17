@@ -14,6 +14,8 @@ var spout_tip := Vector3(-0.17, 0.066, 0)
 var water_level := 0.0
 var _lid: Node3D = null
 var _lid_rest := Transform3D.IDENTITY
+var _lid_parked := Transform3D.IDENTITY
+var _lid_tween: Tween = null
 var has_water: bool:
 	get: return water_level > 0.01
 
@@ -47,6 +49,10 @@ func _ready() -> void:
 	_lid = model.get_node_or_null("Lid") as Node3D
 	if _lid:
 		_lid_rest = _lid.transform
+		_lid_parked = _lid_rest.translated(Vector3(0, 0.04, 0))
+	var parked := model.get_node_or_null("LidParked") as Node3D
+	if parked:
+		_lid_parked = parked.transform
 
 func fill() -> void:
 	water_level = MAX_WATER
@@ -63,12 +69,19 @@ func empty() -> void:
 func get_level_percent() -> float:
 	return water_level / MAX_WATER * 100.0
 
-## Lifts the lid off to one side while the kettle fills, and sets it back after.
+## Takes the lid off and hangs it on the clip on the side of the kettle while
+## it fills, then puts it back. The lid lifts straight up first so it clears
+## the opening.
 func set_lid_open(open: bool) -> void:
 	if _lid == null:
 		return
-	var target := _lid_rest
+	if _lid_tween and _lid_tween.is_valid():
+		_lid_tween.kill()
+	var lifted := _lid_rest.translated(Vector3(0, 0.03, 0))
+	_lid_tween = create_tween()
 	if open:
-		target = _lid_rest.translated(Vector3(0.045, 0.03, 0.0)).rotated_local(Vector3.BACK, deg_to_rad(-35))
-	var tween := create_tween()
-	tween.tween_property(_lid, "transform", target, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		_lid_tween.tween_property(_lid, "transform", lifted, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		_lid_tween.tween_property(_lid, "transform", _lid_parked, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	else:
+		_lid_tween.tween_property(_lid, "transform", lifted, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		_lid_tween.tween_property(_lid, "transform", _lid_rest, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)

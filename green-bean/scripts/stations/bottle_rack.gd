@@ -8,16 +8,13 @@ var _slots: Array[Marker3D] = []
 func _ready() -> void:
 	add_to_group("station")
 
-	var offsets := [
-		Vector3(-0.06, 0.06, 0),
-		Vector3(0.0, 0.06, 0),
-		Vector3(0.06, 0.06, 0),
-	]
 	for i in range(MAX_SLOTS):
-		var slot := Marker3D.new()
-		slot.name = "Slot%d" % i
-		slot.position = offsets[i]
-		add_child(slot)
+		var slot := get_node_or_null("Model/Slot%d" % i) as Marker3D
+		if slot == null:
+			slot = Marker3D.new()
+			slot.name = "Slot%d" % i
+			slot.position = Vector3((float(i) - 1.0) * 0.075, 0.004, 0)
+			add_child(slot)
 		_slots.append(slot)
 
 func receive_item(item: Node3D) -> bool:
@@ -27,7 +24,7 @@ func receive_item(item: Node3D) -> bool:
 		return false
 	_placed_bottles.append(item as SauceBottle)
 	var idx := _placed_bottles.size() - 1
-	StationUtils.place_at_slot(item, _slots[idx].global_position)
+	StationUtils.place_at_slot(item, _slot_position(idx, item))
 	return true
 
 func interact(player: Player) -> void:
@@ -59,13 +56,18 @@ func interact(player: Player) -> void:
 func _reposition() -> void:
 	for i in range(_placed_bottles.size()):
 		if is_instance_valid(_placed_bottles[i]):
-			_placed_bottles[i].global_position = _slots[i].global_position
+			_placed_bottles[i].global_position = _slot_position(i, _placed_bottles[i])
 
 func _process(_delta: float) -> void:
 	var changed := false
 	for i in range(_placed_bottles.size() - 1, -1, -1):
-		if StationUtils.is_item_removed(_placed_bottles[i], _slots[mini(i, _slots.size() - 1)].global_position):
+		var bottle := _placed_bottles[i]
+		if not bottle or StationUtils.is_item_removed(bottle, _slot_position(mini(i, _slots.size() - 1), bottle)):
 			_placed_bottles.remove_at(i)
 			changed = true
 	if changed:
 		_reposition()
+
+## Bottle centre so its base sits on the rack floor.
+func _slot_position(i: int, item: Node3D) -> Vector3:
+	return _slots[i].global_position + Vector3(0, StationUtils.item_half_height(item, 0.1), 0)

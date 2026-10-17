@@ -31,6 +31,12 @@ const MODELS := {
 	"back_counter": preload("res://model_src/back_counter.gd"),
 	"stand_roof": preload("res://model_src/stand_roof.gd"),
 	"stand_frame": preload("res://model_src/stand_frame.gd"),
+	"squeeze_bottle": preload("res://model_src/squeeze_bottle.gd"),
+	"syrup_pump_station": preload("res://model_src/syrup_pump_station.gd"),
+	"drizzle_station": preload("res://model_src/drizzle_station.gd"),
+	"bottle_rack": preload("res://model_src/bottle_rack.gd"),
+	"sauce_prep_station": preload("res://model_src/sauce_prep_station.gd"),
+	"mocha_prep_station": preload("res://model_src/mocha_prep_station.gd"),
 	"side_wall_left": [preload("res://model_src/side_wall.gd"), -1],
 	"side_wall_right": [preload("res://model_src/side_wall.gd"), 1],
 }

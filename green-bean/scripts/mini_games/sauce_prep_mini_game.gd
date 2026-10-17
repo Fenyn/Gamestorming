@@ -45,6 +45,8 @@ func _ready() -> void:
 	var lmat := StandardMaterial3D.new()
 	lmat.albedo_color = _powder_color
 	_liquid_visual.material = lmat
+	# In sleeve mode the sauce shows in the bottle being filled instead.
+	_liquid_visual.visible = prep_mode == PrepMode.STIR_MIX
 	add_child(_liquid_visual)
 
 func _make_bar(pos: Vector3, color: Color) -> CSGBox3D:
@@ -141,6 +143,12 @@ func _fill_bar(bar: CSGBox3D, ratio: float) -> void:
 	var w := BAR_WIDTH * ratio
 	bar.size.x = maxf(w, 0.001)
 	bar.position.x = -BAR_WIDTH / 2.0 + w / 2.0
+
+## 0..1 through the current prep.
+func progress() -> float:
+	if prep_mode == PrepMode.STIR_MIX:
+		return clampf(_mix_progress / MIX_TARGET, 0.0, 1.0)
+	return clampf(_fill_progress, 0.0, 1.0)
 
 func set_sauce_color(color: Color) -> void:
 	_sauce_color = color

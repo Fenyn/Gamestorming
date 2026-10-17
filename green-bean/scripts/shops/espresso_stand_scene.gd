@@ -95,4 +95,4 @@ func _spawn_sauce_bottles() -> void:
 		if rack and rack.has_method("receive_item"):
 			rack.receive_item(bottle)
 		else:
-			bottle.global_position = spare_spot + Vector3((i - 1) * 0.08, 0.05, 0)
+			bottle.global_position = spare_spot + Vector3((i - 1) * 0.08, StationUtils.item_half_height(bottle, 0.1), 0)

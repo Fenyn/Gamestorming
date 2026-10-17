@@ -86,23 +86,20 @@ Blender can't be installed in the cloud session, so custom props are generated o
 | `scenes/props/stand_roof.tscn` | `Roof` in `espresso_stand.tscn` (collider in the shop scene) | Flat roof: membrane deck, green fascia with a drip edge, wood plank soffits under the overhangs (1 m at the front), cream ceiling inside, and a green header beam over the service window. Origin at the wall tops so x and z match the shop. |
 | `scenes/props/stand_frame.tscn` | `Frame` in `espresso_stand.tscn` | Green corner boards where the back wall meets the side walls, green posts at the side walls' front ends carrying the header beam, and wood knee braces under the front overhang. Origin at the ground, shop x and z. |
 | `scenes/props/side_wall_left.tscn`, `side_wall_right.tscn` | `LeftWall`, `RightWall` in `espresso_stand.tscn` | 0.1 m walls, cream inside (face at x +-1.70) and dark grey-green outside, running from the back wall's outer face to the service window. One window each, sill casing at 0.96 m so the back counter runs underneath it (the stock Kenney window came down to 0.67 m and the counter cut through its trim). Wood casing on both faces, jambs, sash, sill and a glass pane. |
+| `scenes/props/syrup_pump_station.tscn` | `syrup.tscn` | 750 ml round glass syrup bottle with a dosing pump; the spout reaches 9.5 cm forward over a steel drip tray where the cup stands (`CupSpot`). The station tints `Syrup` and names `NameLabel` per flavour, and the pump mini-game pushes `PumpHead` down 2.5 cm per stroke. |
+| `scenes/props/squeeze_bottle.tscn` | `SauceBottle` item (`scripts/items/sauce_bottle.gd` instances it as `Model`) | 12 oz squeeze bottle, 20 cm tall. The sauce level shows through the body from `FillFloor`, and the cap takes the sauce colour. While a prep station fills it, `preview_level()` shows the rising level without changing the contents. |
+| `scenes/props/drizzle_station.tscn` | `sauce.tscn` (mocha and caramel) | Rubber mat with a printed cup ring (`CupSpot`), a wire holder that keeps the bottle upright (`BottleSpot`) and a tent card named per sauce. The drizzle grid is centred over the cup. |
+| `scenes/props/bottle_rack.tscn` | `bottle_rack.tscn` | Wire rack, three rings (`Slot0`-`Slot2`). |
+| `scenes/props/sauce_prep_station.tscn` | `sauce_prep.tscn` (caramel) | Prep board with a 1.9 L sauce pouch and a spot for the empty bottle. While filling, the pouch tips to `PouchPour` over the bottle and the bottle level rises. |
+| `scenes/props/mocha_prep_station.tscn` | `mocha_prep.tscn` | Prep board with a 2 L clear jug (the batch level rises inside it), a cocoa bag (`PowderBag`, hidden while its powder is in the jug; the cut line starts at `BagCut`), a whisk, and a spot for the empty bottle. |
 
 Station scripts read markers with `StationUtils.model_marker(station, "Name", fallback)` and stand items on them with `StationUtils.item_half_height(item)`.
 
 Any of these can be replaced by a Blender model later: keep the instance name `Model`, the origin at the centre of the collision box, +Z as the front, and the marker nodes listed above.
 
-## Still grey-boxed: Blender specs
+## Still grey-boxed
 
-Every starter station and item now uses a custom model. The upgrade stations below are still CSG boxes. Slot positions are local to the station origin and are set in the station scripts, so a model must leave those spots clear or the scripts need new numbers.
-
-| Station (scene) | Box W×H×D (m) | Slots and spawned items (local) | Notes |
-|---|---|---|---|
-| Syrup (`syrup.tscn`) | 0.2×0.3×0.15 | cup (0, 0.05, 0) | Pump bottle, cup sits in front at the base. |
-| Sauce (`sauce.tscn`) | 0.2×0.25×0.15 | cup (0, 0.05, 0.05), bottle (0.12, 0.1, 0) | |
-| Sauce Prep (`sauce_prep.tscn`) | 0.25×0.2×0.2 | bottle (0, 0.12, 0) | |
-| Mocha Prep (`mocha_prep.tscn`) | 0.3×0.2×0.25 | bottle (0.15, 0.12, 0); jug, bag and stir bar visuals built in `mocha_prep_station.gd` | Jug and powder bag are scripted CSG and would need code changes. |
-| Bottle Rack (`bottle_rack.tscn`) | 0.22×0.08×0.08 | 3 bottles at (-0.06/0/0.06, 0.06, 0) | |
-| Sauce bottle item (`scripts/items/sauce_bottle.gd`) | cylinder r 0.025, h 0.12 + cap | | `_fill_mesh` shows the level. |
+Every station and item now uses a custom model. Mini-game progress bars, drizzle grids and cut lines are still drawn with CSG; they are on-screen aids, not props.
 
 ### Other placeholders
 

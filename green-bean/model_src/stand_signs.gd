@@ -38,19 +38,37 @@ static func roof_sign() -> Node3D:
 	var green: Material = MK.mat(GREEN, 0.0, 0.6)
 	for sx in [-1.0, 1.0]:
 		MK.box(root, "Leg", Vector3(0.05, lift + 0.2, 0.05), Vector3(float(sx) * 0.8, (lift + 0.2) * 0.5, -0.08), green)
-		MK.box(root, "Brace", Vector3(0.04, 0.04, 0.12), Vector3(float(sx) * 0.8, lift + 0.18, -0.03), green)
+		MK.box(root, "Brace", Vector3(0.04, 0.04, 0.07), Vector3(float(sx) * 0.8, lift + 0.18, -0.06), green)
 	MK.box(root, "Back", size, Vector3(0, lift + size.y * 0.5, 0), green)
 	MK.box(root, "Face", Vector3(size.x - 0.06, size.y - 0.06, 0.004), Vector3(0, lift + size.y * 0.5, size.z * 0.5 + 0.002), MK.mat(CREAM, 0.0, 0.8))
+	# Lockup: bean, then the title with the subtitle under it, left-aligned to the
+	# title and stretched to its width. The block is centred on the face from
+	# measured text widths so the side margins match.
+	var face_y := lift + size.y * 0.5
+	var front := size.z * 0.5 + 0.006
+	var title := "GREEN BEAN"
+	var subtitle := "COFFEE  ·  ESPRESSO  ·  POUR OVER"
+	var title_px := 0.0017
+	var title_w := _text_width(title, 130) * title_px
+	var sub_px := title_w / _text_width(subtitle, 56)
+	var bean_w := 0.15
+	var gap := 0.09
+	var left := -(bean_w + gap + title_w) * 0.5
 	var bean := MK.group(root, "Bean")
-	bean.position = Vector3(-0.85, lift + size.y * 0.5, size.z * 0.5 + 0.02)
+	bean.position = Vector3(left + bean_w * 0.5, face_y, size.z * 0.5 + 0.02)
 	var brown: Material = MK.mat(Color(0.36, 0.2, 0.1), 0.0, 0.6)
 	var half := MK.sphere(bean, "Half", 0.1, Vector3.ZERO, brown, 1.0, 16)
 	half.scale = Vector3(0.75, 1.0, 0.3)
 	half.rotation_degrees = Vector3(0, 0, -20)
 	MK.box(bean, "Crease", Vector3(0.012, 0.16, 0.01), Vector3(0, 0, 0.028), MK.mat(Color(0.2, 0.1, 0.05), 0.0, 0.7), Vector3(0, 0, -20))
-	_text(root, "GREEN BEAN", Vector3(0.1, lift + size.y * 0.58, size.z * 0.5 + 0.006), 150, 0.0019, GREEN.darkened(0.2))
-	_text(root, "COFFEE  ·  ESPRESSO  ·  POUR OVER", Vector3(0.1, lift + size.y * 0.24, size.z * 0.5 + 0.006), 64, 0.0013, Color(0.36, 0.24, 0.14))
+	var text_x := left + bean_w + gap + title_w * 0.5
+	_text(root, title, Vector3(text_x, face_y + 0.055, front), 130, title_px, GREEN.darkened(0.2))
+	_text(root, subtitle, Vector3(text_x, face_y - 0.095, front), 56, sub_px, Color(0.36, 0.24, 0.14))
 	return root
+
+## Width of a single line in pixels, in the font Label3D uses by default.
+static func _text_width(text: String, font_size: int) -> float:
+	return ThemeDB.fallback_font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 
 static func hanging_sign(text: String) -> Node3D:
 	var root := Node3D.new()

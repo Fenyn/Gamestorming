@@ -852,7 +852,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.89, -0.650548)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 0.89, -0.681577)
 
 [node name="BottleRack" parent="." unique_id=995827367 instance=ExtResource("18_rack")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 0.9, -1.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 0.89, -1.14)
 
 [node name="Steam" parent="." unique_id=1879290999 instance=ExtResource("8_vo8gi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5285844, 1.0150001, -0.5977127)
@@ -870,23 +870,23 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, 1.15)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.9, 0.94)
 
 [node name="VanillaSyrup" parent="." unique_id=165157546 instance=ExtResource("13_syrup")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13075483, 1.043428, -1.0869943)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, 0.89, -1.1)
 
 [node name="LidDispenser" parent="." unique_id=847908596 instance=ExtResource("14_lids")]
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -0.618182, 1, 0.95)
 
 [node name="MochaSauce" parent="." unique_id=800836284 instance=ExtResource("15_sauce")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 1.01424, -1.10228)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0.89, -1.1)
 
 [node name="CaramelSauce" parent="." unique_id=661806952 instance=ExtResource("15_sauce")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.67, 1.01424, -1.10228)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.67, 0.89, -1.1)
 sauce_type = 1
 
 [node name="MochaPrep" parent="." unique_id=1947242462 instance=ExtResource("17_mocha_prep")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0185052, 0.9898257, -1.0762138)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.02, 0.89, -1.07)
 
 [node name="CaramelPrep" parent="." unique_id=50889276 instance=ExtResource("16_prep")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.42, 0.992216, -1.09806)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.42, 0.89, -1.08)
 sauce_type = 1
 
 [node name="Register" parent="." unique_id=1770249230 instance=ExtResource("10_vg725")]

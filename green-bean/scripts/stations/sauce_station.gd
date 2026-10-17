@@ -16,14 +16,15 @@ var _activate_frame := -1
 func _ready() -> void:
 	add_to_group("station")
 
+	# Floor spots from the model; items are stood on them by half their height.
 	_cup_slot = Marker3D.new()
 	_cup_slot.name = "CupSlot"
-	_cup_slot.position = Vector3(0, 0.05, 0.05)
+	_cup_slot.position = StationUtils.model_marker(self, "CupSpot", Vector3(-0.03, 0.005, 0.02))
 	add_child(_cup_slot)
 
 	_bottle_slot = Marker3D.new()
 	_bottle_slot.name = "BottleSlot"
-	_bottle_slot.position = Vector3(0.12, 0.1, 0)
+	_bottle_slot.position = StationUtils.model_marker(self, "BottleSpot", Vector3(0.085, 0.005, -0.02))
 	add_child(_bottle_slot)
 
 	_mini_game = SauceMiniGame.new()
@@ -34,12 +35,20 @@ func _ready() -> void:
 	cam.rotation_degrees = Vector3(-70, 0, 0)
 	_mini_game.add_child(cam)
 	add_child(_mini_game)
+	# The drizzle grid is centred on the mini-game, so centre it over the cup.
+	_mini_game.position = Vector3(_cup_slot.position.x, 0, _cup_slot.position.z)
 	_mini_game._camera_point = cam
 	_mini_game.mini_game_completed.connect(_on_drizzle_complete)
 	_mini_game.set_sauce_color(DrinkData.get_sauce_color(sauce_type))
 
+	var card := get_node_or_null("Model/NameCard") as Label3D
+	if card:
+		card.text = DrinkData.get_sauce_name(sauce_type)
 	_status_label = StationUtils.create_status_label(self)
 	_update_label()
+
+func _on_slot(slot: Marker3D, item: Node3D) -> Vector3:
+	return slot.global_position + Vector3(0, StationUtils.item_half_height(item), 0)
 
 func interact(player: Player) -> void:
 	if StationUtils.is_same_frame(_activate_frame):
@@ -92,7 +101,7 @@ func receive_item(item: Node3D) -> bool:
 		if cup.has_sauce:
 			return false
 		_placed_cup = cup
-		StationUtils.place_at_slot(item, _cup_slot.global_position)
+		StationUtils.place_at_slot(item, _on_slot(_cup_slot, item))
 		_recalc_state()
 		return true
 	if item is SauceBottle:
@@ -104,7 +113,7 @@ func receive_item(item: Node3D) -> bool:
 		if bottle.sauce_type != sauce_type:
 			return false
 		_placed_bottle = bottle
-		StationUtils.place_at_slot(item, _bottle_slot.global_position)
+		StationUtils.place_at_slot(item, _on_slot(_bottle_slot, item))
 		_recalc_state()
 		return true
 	return false
@@ -136,7 +145,7 @@ func _update_label() -> void:
 	var sauce_name := DrinkData.get_sauce_name(sauce_type)
 	match state:
 		State.IDLE:
-			_status_label.text = "%s Station\nPlace bottle + cup" % sauce_name
+			_status_label.text = "Place a %s bottle and a cup" % sauce_name.to_lower()
 		State.BOTTLE_ONLY:
 			var pct := "%.0f%%" % (_placed_bottle.fill_level * 100) if _placed_bottle else ""
 			_status_label.text = "%s bottle (%s)\nPlace cup to drizzle" % [sauce_name, pct]
@@ -155,9 +164,9 @@ func _update_label() -> void:
 func _process(_delta: float) -> void:
 	if state == State.DRIZZLING and not _mini_game.is_active():
 		_recalc_state()
-	if _placed_cup and StationUtils.is_item_removed(_placed_cup, _cup_slot.global_position):
+	if _placed_cup and StationUtils.is_item_removed(_placed_cup, _on_slot(_cup_slot, _placed_cup)):
 		_placed_cup = null
 		_recalc_state()
-	if _placed_bottle and StationUtils.is_item_removed(_placed_bottle, _bottle_slot.global_position):
+	if _placed_bottle and StationUtils.is_item_removed(_placed_bottle, _on_slot(_bottle_slot, _placed_bottle)):
 		_placed_bottle = null
 		_recalc_state()

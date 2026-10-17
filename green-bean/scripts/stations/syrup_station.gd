@@ -14,25 +14,49 @@ var _activate_frame := -1
 func _ready() -> void:
 	add_to_group("station")
 
+	# Cup spot on the drip tray under the spout; the cup is stood on it.
 	_cup_slot = Marker3D.new()
 	_cup_slot.name = "CupSlot"
-	_cup_slot.position = Vector3(0, 0.05, 0)
+	_cup_slot.position = StationUtils.model_marker(self, "CupSpot", Vector3(0, 0.012, 0.05))
 	add_child(_cup_slot)
 
 	_mini_game = SyrupMiniGame.new()
 	_mini_game.name = "SyrupMiniGame"
 	var cam := Marker3D.new()
 	cam.name = "CameraPoint"
-	cam.position = Vector3(0, 0.25, 0.3)
-	cam.rotation_degrees = Vector3(-20, 0, 0)
+	var view := get_node_or_null("Model/CameraView") as Node3D
+	if view:
+		cam.transform = view.transform
+	else:
+		cam.position = Vector3(0, 0.43, 0.36)
+		cam.rotation_degrees = Vector3(-28, 0, 0)
 	_mini_game.add_child(cam)
 	add_child(_mini_game)
 	_mini_game._camera_point = cam
 	_mini_game.mini_game_completed.connect(_on_pump_complete)
 	_mini_game.set_bottle_color(DrinkData.get_syrup_color(syrup_type))
+	var pump := get_node_or_null("Model/PumpHead") as Node3D
+	if pump:
+		_mini_game.set_pump(pump)
+	_dress_bottle()
 
 	_status_label = StationUtils.create_status_label(self)
 	_update_label()
+
+## Flavour name on the label and syrup colour in the bottle.
+func _dress_bottle() -> void:
+	var label := get_node_or_null("Model/NameLabel") as Label3D
+	if label:
+		label.text = DrinkData.get_syrup_name(syrup_type)
+	var syrup := get_node_or_null("Model/Syrup") as MeshInstance3D
+	if syrup:
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = DrinkData.get_syrup_color(syrup_type)
+		mat.roughness = 0.25
+		syrup.material_override = mat
+
+func _cup_position(item: Node3D) -> Vector3:
+	return _cup_slot.global_position + Vector3(0, StationUtils.item_half_height(item), 0)
 
 func interact(player: Player) -> void:
 	if StationUtils.is_same_frame(_activate_frame):
@@ -73,7 +97,7 @@ func receive_item(item: Node3D) -> bool:
 	if not item is Cup:
 		return false
 	_placed_cup = item as Cup
-	StationUtils.place_at_slot(item, _cup_slot.global_position)
+	StationUtils.place_at_slot(item, _cup_position(item))
 	state = State.CUP_PLACED
 	_update_label()
 	return true
@@ -92,7 +116,7 @@ func _update_label() -> void:
 	var syrup_name := DrinkData.get_syrup_name(syrup_type)
 	match state:
 		State.IDLE:
-			_status_label.text = "%s Syrup\n[Click] place cup" % syrup_name
+			_status_label.text = "[Click] Place cup under the pump"
 		State.CUP_PLACED:
 			if _placed_cup and _placed_cup.syrup_pumps > 0.0:
 				_status_label.text = "%s: %.1f pumps\n[E] pick up cup" % [syrup_name, _placed_cup.syrup_pumps]
@@ -106,7 +130,7 @@ func _process(_delta: float) -> void:
 		state = State.CUP_PLACED
 		_update_label()
 
-	if state != State.IDLE and StationUtils.is_item_removed(_placed_cup, _cup_slot.global_position):
+	if state != State.IDLE and (not _placed_cup or StationUtils.is_item_removed(_placed_cup, _cup_position(_placed_cup))):
 		_placed_cup = null
 		state = State.IDLE
 		_update_label()

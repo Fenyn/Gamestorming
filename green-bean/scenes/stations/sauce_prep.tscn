@@ -1,19 +1,16 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/stations/sauce_prep_station.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/props/sauce_prep_station.tscn" id="2_model"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_001"]
-albedo_color = Color(0.55, 0.2, 0.25, 1)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_001"]
-size = Vector3(0.25, 0.2, 0.2)
+[sub_resource type="BoxShape3D" id="Shape_board"]
+size = Vector3(0.25, 0.05, 0.2)
 
 [node name="SaucePrep" type="StaticBody3D"]
 script = ExtResource("1")
 
-[node name="Mesh" type="CSGBox3D" parent="."]
-size = Vector3(0.25, 0.2, 0.2)
-material = SubResource("StandardMaterial3D_001")
+[node name="Model" parent="." instance=ExtResource("2_model")]
 
 [node name="Collision" type="CollisionShape3D" parent="."]
-shape = SubResource("BoxShape3D_001")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+shape = SubResource("Shape_board")

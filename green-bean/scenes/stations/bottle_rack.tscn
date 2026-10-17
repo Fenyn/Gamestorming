@@ -1,20 +1,17 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/stations/bottle_rack.gd" id="1"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_001"]
-albedo_color = Color(0.15, 0.35, 0.2, 1)
+[ext_resource type="PackedScene" path="res://scenes/props/bottle_rack.tscn" id="2_model"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_001"]
-size = Vector3(0.22, 0.08, 0.08)
+size = Vector3(0.24, 0.075, 0.08)
 
 [node name="BottleRack" type="StaticBody3D"]
 script = ExtResource("1")
 metadata/display_name = "Bottle rack"
 
-[node name="Mesh" type="CSGBox3D" parent="."]
-size = Vector3(0.22, 0.08, 0.08)
-material = SubResource("StandardMaterial3D_001")
+[node name="Model" parent="." instance=ExtResource("2_model")]
 
 [node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0375, 0)
 shape = SubResource("BoxShape3D_001")

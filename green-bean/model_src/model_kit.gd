@@ -84,11 +84,11 @@ static func sphere(parent: Node3D, name: String, radius: float, pos: Vector3, ma
 	m.rings = maxi(segments / 2, 4)
 	return _add(parent, m, material, pos, Vector3.ZERO, name)
 
-static func torus(parent: Node3D, name: String, inner_radius: float, outer_radius: float, pos: Vector3, material: Material, rot_deg := Vector3.ZERO) -> MeshInstance3D:
+static func torus(parent: Node3D, name: String, inner_radius: float, outer_radius: float, pos: Vector3, material: Material, rot_deg := Vector3.ZERO, rings := 16) -> MeshInstance3D:
 	var m := TorusMesh.new()
 	m.inner_radius = inner_radius
 	m.outer_radius = outer_radius
-	m.rings = 16
+	m.rings = rings
 	m.ring_segments = 8
 	return _add(parent, m, material, pos, rot_deg, name)
 

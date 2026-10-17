@@ -77,7 +77,9 @@ Blender can't be installed in the cloud session, so custom props are generated o
 | `scenes/props/cup_dispenser.tscn` | `cup_stack.tscn` | Four clear gravity tubes (S, M, L, XL from the barista's left) on a steel bracket under the front counter lip. Cups stack mouth-down and the bottom cup shows below a gripper ring. A grabbed cup appears at `Dispense_<size>`. |
 | `scenes/props/lid_caddy.tscn` | `lid_dispenser.tscn` | Two stacks of sip lids in a black caddy, origin at the base, on the front counter. |
 | `scenes/props/pos_terminal.tscn` | `register.tscn` | Tablet POS on a post, with a bezel sized to the SubViewport screen quad (tilted 15°) and a ticket printer beside it. |
-| `scenes/props/cash_drawer.tscn` | `cash_drawer.tscn` | Compact 30 x 9 x 20 cm cash drawer hung under the front counter lip on brackets, because the 20 cm counter is too shallow to stand it on. `Drawer` slides out to the `DrawerOpen` marker when the change mini-game opens. |
+| `scenes/props/cash_drawer.tscn` | `cash_drawer.tscn` | Under-counter cash drawer (34 x 9 x 30 cm) hung under the front counter lip on brackets. `Drawer` slides 24 cm out to `DrawerOpen`. Back row: $20 $10 $5 $1 under hinged spring clips (`Clip_<key>`). Front row: 25¢ 10¢ 5¢ 1¢ cups. `Slot_<key>` markers carry each compartment's hit size. |
+| `scenes/props/cash_pieces.tscn` | `cash_drawer.gd` (templates it duplicates) | One generic note per value (pale paper, printed frame, colour band, numerals, no real currency art) and one coin per value at real diameter and thickness. |
+| `scenes/props/change_mat.tscn` | `cash_drawer.tscn` (node `ChangeMat`, on the counter top behind the drawer) | Rubber change mat. The customer's bill lands on `TenderSpot`; counted change fans out from `BillSpot` and stacks on `Coin_<key>`. |
 | `scenes/props/pickup_shelf.tscn` | `hand_off.tscn` | Wooden pickup riser (36 x 13 cm, 5.3 cm tall) with a tented "PICK UP" chalkboard readable from both sides. Origin at the base. The finished drink stands on `DrinkSpot`. |
 | `scenes/props/bar_mat.tscn` | `counter_pad.tscn` | Black rubber bar mat (38 x 38 cm) with a rim and a nub grid. Items stand on the `Slot0`-`Slot3` markers. |
 

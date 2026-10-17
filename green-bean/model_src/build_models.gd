@@ -25,6 +25,8 @@ const MODELS := {
 	"pos_terminal": preload("res://model_src/pos_terminal.gd"),
 	"cash_drawer": preload("res://model_src/cash_drawer.gd"),
 	"bar_mat": preload("res://model_src/bar_mat.gd"),
+	"cash_pieces": preload("res://model_src/cash_pieces.gd"),
+	"change_mat": preload("res://model_src/change_mat.gd"),
 	"pickup_shelf": preload("res://model_src/pickup_shelf.gd"),
 }
 

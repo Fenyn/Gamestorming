@@ -31,6 +31,8 @@ const MODELS := {
 	"back_counter": preload("res://model_src/back_counter.gd"),
 	"stand_roof": preload("res://model_src/stand_roof.gd"),
 	"stand_frame": preload("res://model_src/stand_frame.gd"),
+	"side_wall_left": [preload("res://model_src/side_wall.gd"), -1],
+	"side_wall_right": [preload("res://model_src/side_wall.gd"), 1],
 }
 
 func _initialize() -> void:

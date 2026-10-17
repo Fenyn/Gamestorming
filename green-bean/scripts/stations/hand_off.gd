@@ -96,6 +96,3 @@ func _reset_label() -> void:
 	if _label:
 		_label.text = "[Click] Place finished drink"
 		_label.modulate = Color.WHITE
-
-func interact(_player: Player) -> void:
-	pass

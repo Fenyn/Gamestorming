@@ -1,6 +1,6 @@
 extends RefCounted
 
-## Back bar counter top, wall to wall (3.32 x 0.78 m), with a 4 cm stone top and
+## Back bar counter top, wall to wall (3.40 x 0.78 m), with a 4 cm stone top and
 ## rounded front edge overhanging the cabinets by 2.5 cm, a recessed dark apron
 ## under it, and a 3-row tiled backsplash on the back wall.
 ## Origin: centre of the top surface (shop y 0.89). The wall is at -Z and the
@@ -8,7 +8,8 @@ extends RefCounted
 
 const MK := preload("res://model_src/model_kit.gd")
 
-const WIDTH := 3.322
+## Side walls' inner faces are at x +-1.70.
+const WIDTH := 3.4
 const DEPTH := 0.78
 const TOP := 0.04
 ## Deep enough to hide the cabinets' own top slabs behind it.

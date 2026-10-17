@@ -8,7 +8,7 @@ const STARTER_EQUIPMENT := [
 ]
 
 const EQUIPMENT_SHOP := {
-	"aeropress": {"price": 100.0, "name": "Shot Press"},
+	"shot_press": {"price": 100.0, "name": "Shot Press"},
 	"fridge": {"price": 75.0, "name": "Fridge"},
 	"steam_station": {"price": 125.0, "name": "Steam Station"},
 	"syrup_rack": {"price": 100.0, "name": "Syrup Rack"},
@@ -53,12 +53,12 @@ const SAUCE_SHOP := {
 
 const DRINK_PREREQUISITES := {
 	0: [],
-	1: ["aeropress"],
-	2: ["aeropress", "fridge", "steam_station"],
-	3: ["aeropress", "fridge", "steam_station"],
-	4: ["aeropress"],
-	5: ["aeropress"],
-	6: ["aeropress", "fridge", "steam_station", "sauce_station", "mocha_prep"],
+	1: ["shot_press"],
+	2: ["shot_press", "fridge", "steam_station"],
+	3: ["shot_press", "fridge", "steam_station"],
+	4: ["shot_press"],
+	5: ["shot_press"],
+	6: ["shot_press", "fridge", "steam_station", "sauce_station", "mocha_prep"],
 }
 
 var owned_equipment: Array = []
@@ -113,6 +113,10 @@ func load_from_file() -> bool:
 		return false
 	var data: Dictionary = json.data
 	owned_equipment = Array(data.get("owned_equipment", []))
+	# Saves from before the rename used the old id for the shot press.
+	var old_index := owned_equipment.find("aero" + "press")
+	if old_index >= 0:
+		owned_equipment[old_index] = "shot_press"
 	owned_sizes = _parse_int_array(data.get("owned_sizes", []))
 	owned_syrups = _parse_int_array(data.get("owned_syrups", []))
 	owned_sauces = _parse_int_array(data.get("owned_sauces", []))

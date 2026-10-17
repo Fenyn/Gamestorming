@@ -126,7 +126,7 @@ func interact(player: Player) -> void:
 		State.NEEDS_WATER:
 			var held := player.get_held_item()
 			if held is Kettle and (held as Kettle).has_water:
-				(held as Kettle).use_water(Kettle.AEROPRESS_COST)
+				(held as Kettle).use_water(Kettle.SHOT_PRESS_COST)
 				jug_level = 0.0
 				_update_jug_visual()
 				state = State.NEEDS_CUT

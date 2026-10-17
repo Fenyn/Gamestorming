@@ -7,12 +7,12 @@ extends RefCounted
 ##
 ## Layout: a two-tier wooden base on small feet; a wooden body at the back with
 ## corner posts, a burr housing and a bean hopper on top; a spout that points
-## forward over a ringed dosing pad where the dripper or aeropress sits.
+## forward over a ringed dosing pad where the dripper or shot press sits.
 ##
 ## The scene also holds the parts the station script uses, so they can be moved
 ## in the editor:
 ##   Crank       Node3D the station rotates about its X axis while grinding.
-##   DevicePad   Marker3D where the dripper or aeropress is set down.
+##   DevicePad   Marker3D where the dripper or shot press is set down.
 ##   SpoutTip    Marker3D where grind dust falls from.
 
 const BASE_TOP := -0.139

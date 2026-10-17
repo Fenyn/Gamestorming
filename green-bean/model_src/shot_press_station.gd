@@ -1,26 +1,26 @@
 extends RefCounted
 
-## AeroPress brew spot: a silicone brew mat on the counter with a wooden
-## stand for the AeroPress and a tray of paper filters.
+## Shot press brew spot: a silicone brew mat on the counter with a wooden
+## stand for the shot press and a tray of paper filters.
 ##
 ## There is no machine here in real life: you stand the cup on the counter and
-## the AeroPress on the cup. The mat marks the spot, and the stand holds the
+## the press on the cup. The mat marks the spot, and the stand holds the
 ## device upright in a round cradle when it is not in use.
 ##
 ## Origin is the middle of the mat's underside, so it sits on the counter at
 ## y = 0. Front faces +Z (the barista).
 ##
 ## Nodes the station script uses (move them in the editor and the station follows):
-##   CupSpot      Marker3D on the mat where the cup stands. The AeroPress goes
+##   CupSpot      Marker3D on the mat where the cup stands. The shot press goes
 ##                on top of the cup.
-##   DeviceRest   Marker3D in the stand's cradle where the AeroPress stands
+##   DeviceRest   Marker3D in the stand's cradle where the shot press stands
 ##                upright on its filter cap.
 ##   GaugeAnchor  Marker3D where the press and pour mini-game gauges are drawn,
 ##                beside the cup.
 ##   CameraView   Marker3D for the mini-game camera, framing the cup, the
-##                AeroPress on top and the plunger above it.
+##                shot press on top and the plunger above it.
 ##
-## Colliders live in scenes/stations/aeropress.tscn.
+## Colliders live in scenes/stations/shot_press.tscn.
 
 const MK := preload("res://model_src/model_kit.gd")
 

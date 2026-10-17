@@ -33,12 +33,12 @@ This means the player thinks about equipment, not recipes. "I want to serve latt
 | Drink | Auto-Unlocks When You Own | New Concept |
 |---|---|---|
 | **Pour Over** | *starter equipment* | Coarse grind, bloom pour, passive draw-down |
-| **Americano** | Aeropress + Hot Water Station | Fine grind, pressure extraction, hot water pour |
-| **Macchiato** | Aeropress | Quick espresso-only drink (no water/milk step) |
-| **Latte** | Aeropress + Fridge + Steam Station | Milk steaming, foam targets, pitcher workflow |
-| **Cappuccino** | Aeropress + Fridge + Steam Station | Same gear as latte — unlocks alongside it. High foam (75%) |
-| **Red Eye** | Pour-Over Station + Aeropress | Multi-method drink (pour-over base + espresso shot) |
-| **Mocha** | Aeropress + Fridge + Steam Station + Sauce Station + Mocha Prep Station | Sauce bottles, prep phase, bottle management |
+| **Americano** | Shot Press + Hot Water Station | Fine grind, pressure extraction, hot water pour |
+| **Macchiato** | Shot Press | Quick espresso-only drink (no water/milk step) |
+| **Latte** | Shot Press + Fridge + Steam Station | Milk steaming, foam targets, pitcher workflow |
+| **Cappuccino** | Shot Press + Fridge + Steam Station | Same gear as latte — unlocks alongside it. High foam (75%) |
+| **Red Eye** | Pour-Over Station + Shot Press | Multi-method drink (pour-over base + espresso shot) |
+| **Mocha** | Shot Press + Fridge + Steam Station + Sauce Station + Mocha Prep Station | Sauce bottles, prep phase, bottle management |
 
 Latte and Cappuccino unlock together since they need the same gear. The player picks which to put on the menu. This is a natural "two-for-one" reward for buying the milk setup.
 
@@ -46,15 +46,15 @@ Latte and Cappuccino unlock together since they need the same gear. The player p
 
 | Drink | Equipment Required | New Concept | Notes |
 |---|---|---|---|
-| **Flat White** | Aeropress + Fridge + Steam Station | Micro-foam precision (~20% foam target) | Tight quality bar, rewards steam mastery |
-| **Cortado** | Aeropress + Fridge + Steam Station | Small equal-ratio drink, speed/precision | Fixed small size only |
-| **Caramel Macchiato** | Aeropress + Fridge + Steam + Sauce Station + Caramel Prep | Layered build (milk first, shot on top, drizzle) | Reversed build order |
+| **Flat White** | Shot Press + Fridge + Steam Station | Micro-foam precision (~20% foam target) | Tight quality bar, rewards steam mastery |
+| **Cortado** | Shot Press + Fridge + Steam Station | Small equal-ratio drink, speed/precision | Fixed small size only |
+| **Caramel Macchiato** | Shot Press + Fridge + Steam + Sauce Station + Caramel Prep | Layered build (milk first, shot on top, drizzle) | Reversed build order |
 | **Hot Chocolate** | Fridge + Steam Station + Sauce Station + Mocha Prep | No coffee — steamed milk + mocha sauce | Expands customer base |
 | **Chai Latte** | Fridge + Steam Station + Chai Shelf | Chai concentrate (new supply type) | New inventory category |
 | **Matcha Latte** | Fridge + Steam Station + Matcha Prep Station | Matcha whisking mini-game | New prep station |
 | **Cold Brew** | Cold Brew Tower | Overnight batch prep (prep day before) | Time-shifted inventory planning |
-| **Frappuccino** | Blender Station + Fridge + Ice Bin | Blending mini-game, ice, whipped cream | Multiple new stations |
-| **Affogato** | Aeropress + Ice Cream Freezer | Espresso + ice cream scoop | Fun novelty drink |
+| **Frappé** | Blender Station + Fridge + Ice Bin | Blending mini-game, ice, whipped cream | Multiple new stations |
+| **Affogato** | Shot Press + Ice Cream Freezer | Espresso + ice cream scoop | Fun novelty drink |
 
 ### Size Unlocks
 
@@ -125,10 +125,10 @@ Money buys the base tier of every station and tool. This is how the player expan
 | **Register** | *starter* | Taking orders |
 | **Hand-Off Counter** | *starter* | Serving completed drinks |
 | **Counter Pad** | *starter* | Staging area (4 slots) |
-| **Aeropress** | $100 | Espresso extraction → unlocks Americano, Macchiato |
+| **Shot Press** | $100 | Espresso extraction → unlocks Americano, Macchiato |
 | **Hot Water Station** | $50 | Hot water for americanos → completes Americano unlock |
 | **Fridge** | $75 | Milk storage |
-| **Steam Station** | $125 | Milk steaming → with Fridge + Aeropress, unlocks Latte + Cappuccino |
+| **Steam Station** | $125 | Milk steaming → with Fridge + Shot Press, unlocks Latte + Cappuccino |
 | **Syrup Rack** | $100 | Syrup pump station, enables syrup modifiers |
 | **Sauce Station** | $125 | Sauce drizzle station + 3 empty bottles |
 | **Mocha Prep Station** | $150 | Mocha sauce production (jug + powder workflow) → with milk gear, unlocks Mocha |
@@ -194,7 +194,7 @@ Stars are earned from drink quality — every drink served adds its star rating 
 
 | Tier | Name | Stars | Behavior |
 |---|---|---|---|
-| 1 | **Aeropress** | *bought with $* | Full manual: grounds → water → stir → steep → press mini-game |
+| 1 | **Shot Press** | *bought with $* | Full manual: grounds → water → stir → steep → press mini-game |
 | 2 | **Semi-Auto Espresso** | 80 | Portafilter + tamp mini-game. Wider green zone on extraction. Faster. |
 | 3 | **Full Espresso Machine** | 200 | Tamp + lock portafilter. Machine pulls shot automatically. Dual group heads. |
 
@@ -228,7 +228,7 @@ Small upgrades that reward consistent quality with better tools.
 
 | Item | Stars | Effect |
 |---|---|---|
-| **Shot Timer** | 15 | Visual countdown on aeropress showing extraction state |
+| **Shot Timer** | 15 | Visual countdown on shot press showing extraction state |
 | **Temp Gauge** | 15 | Visual thermometer on steam wand showing exact temp |
 
 ---
@@ -358,9 +358,9 @@ A rough guide for how a new player's first ~10 days might flow. Drink unlocks ha
 | Day | Purchase (Money) | Auto-Unlocked Drinks | Stars Spent | Focus |
 |---|---|---|---|---|
 | 1 | — | Pour Over (starter) | — | Learn pour-over, serve Small/Medium |
-| 2 | Aeropress ($100) + Hot Water ($50) | Americano, Macchiato | — | Espresso workflow, two new drinks at once |
+| 2 | Shot Press ($100) + Hot Water ($50) | Americano, Macchiato | — | Espresso workflow, two new drinks at once |
 | 3 | Large size ($60) | — | — | Bigger drinks, more revenue per serve |
-| 4 | — | — | Shot Timer (15) | Aeropress gets easier, practice quality |
+| 4 | — | — | Shot Timer (15) | Shot Press gets easier, practice quality |
 | 5 | Fridge ($75) + Steam ($125) | Latte, Cappuccino | — | Milk steaming, two more drinks at once |
 | 6 | Syrup Rack ($100) + Vanilla ($40) | — | — | First modifier, pump mini-game |
 | 7 | Caramel Syrup ($40) | — | Electric Kettle (30) | Second flavor, kettle upgrade frees time |

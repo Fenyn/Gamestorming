@@ -230,7 +230,7 @@ func is_complete() -> bool:
 		match step:
 			DrinkData.Step.POUR_OVER_BREW:
 				if not has_pour_over_coffee: return false
-			DrinkData.Step.AEROPRESS_BREW:
+			DrinkData.Step.SHOT_PRESS_BREW:
 				if not has_shot: return false
 			DrinkData.Step.HOT_WATER:
 				if not has_hot_water: return false

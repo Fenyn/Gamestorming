@@ -4,8 +4,8 @@ enum State { IDLE, CUP_ONLY, DEVICE_ONLY, READY_FOR_WATER, HAS_WATER, STEEPING, 
 
 var state := State.IDLE
 var _placed_cup: Cup = null
-var _placed_device: AeropressDevice = null
-var _shelf_device: AeropressDevice = null
+var _placed_device: ShotPress = null
+var _shelf_device: ShotPress = null
 
 var _press_game: PressMiniGame = null
 var _stir_game: StirMiniGame = null
@@ -29,9 +29,9 @@ var _status_label: Label3D = null
 func _ready() -> void:
 	add_to_group("station")
 
-	# Positions come from the model scene (scenes/props/aeropress_station.tscn).
-	# The cup stands on CupSpot, the AeroPress sits on the cup's rim, and the
-	# spare AeroPress waits upright in the stand at DeviceRest.
+	# Positions come from the model scene (scenes/props/shot_press_station.tscn).
+	# The cup stands on CupSpot, the shot press sits on the cup's rim, and the
+	# spare shot press waits upright in the stand at DeviceRest.
 	_cup_spot = StationUtils.model_marker(self, "CupSpot", Vector3(-0.045, 0.005, 0.02))
 	_device_rest = StationUtils.model_marker(self, "DeviceRest", Vector3(0.09, 0.021, -0.02))
 	_gauge_anchor = StationUtils.model_marker(self, "GaugeAnchor", _cup_spot + Vector3(0.17, 0.26, 0.04))
@@ -108,8 +108,8 @@ func _offset_game(game: Node3D, offset: Vector3) -> void:
 	game._camera_point.position = cam_world_local - offset
 
 func _spawn_shelf_device() -> void:
-	_shelf_device = AeropressDevice.new()
-	_shelf_device.name = "AeropressShelf"
+	_shelf_device = ShotPress.new()
+	_shelf_device.name = "ShotPressShelf"
 	add_child(_shelf_device)
 	_shelf_device.position = _rest_position(_shelf_device)
 
@@ -124,14 +124,14 @@ func _cup_position(cup: Node3D) -> Vector3:
 ## Where the device sits on the placed cup: its flange on the cup rim.
 func _device_on_cup_position(device: Node3D) -> Vector3:
 	var cup_top := _cup_spot.y + (StationUtils.item_half_height(_placed_cup, 0.06) * 2.0 if _placed_cup else 0.12)
-	var rim_offset := (device as AeropressDevice).rim_rest_y if device is AeropressDevice else -0.05
+	var rim_offset := (device as ShotPress).rim_rest_y if device is ShotPress else -0.05
 	return Vector3(_cup_spot.x, cup_top - rim_offset, _cup_spot.z)
 
 func _stand_free() -> bool:
 	return _shelf_device == null or not is_instance_valid(_shelf_device)
 
 ## Sends a device back to the stand, emptied.
-func _return_to_stand(device: AeropressDevice) -> void:
+func _return_to_stand(device: ShotPress) -> void:
 	device.reset_device()
 	StationUtils.cancel_settle(device)
 	device.global_position = to_global(_rest_position(device))
@@ -215,24 +215,24 @@ func receive_item(item: Node3D) -> bool:
 		_cup_slot.position = _cup_position(cup)
 		StationUtils.place_at_slot(item, _cup_slot.global_position)
 		item.global_basis = global_basis
-		# A loaded AeroPress waiting in the stand goes straight onto the cup.
+		# A loaded shot press waiting in the stand goes straight onto the cup.
 		if not _placed_device and not _stand_free() and _shelf_device.has_grounds():
 			var waiting := _shelf_device
 			_shelf_device = null
 			_mount_device(waiting)
 		_recalculate_state()
 		return true
-	if item is AeropressDevice:
+	if item is ShotPress:
 		if _placed_device:
 			return false
 		if _placed_cup:
-			_mount_device(item as AeropressDevice)
+			_mount_device(item as ShotPress)
 		elif _stand_free():
 			# No cup yet: stand it in the cradle until one arrives.
 			StationUtils.place_at_slot(item, to_global(_rest_position(item)))
 			item.global_basis = global_basis
 			StationUtils.set_item_collision(item, true)
-			_shelf_device = item as AeropressDevice
+			_shelf_device = item as ShotPress
 		else:
 			return false
 		_recalculate_state()
@@ -240,7 +240,7 @@ func receive_item(item: Node3D) -> bool:
 	return false
 
 ## Sits the device on the placed cup.
-func _mount_device(device: AeropressDevice) -> void:
+func _mount_device(device: ShotPress) -> void:
 	_placed_device = device
 	_device_slot.position = _device_on_cup_position(device)
 	StationUtils.place_at_slot(device, _device_slot.global_position)
@@ -274,7 +274,7 @@ func _on_water_complete(quality: float) -> void:
 	StationUtils.stop_kettle_pour(_pour_tween, _pour_kettle, _pouring_player)
 	_pour_tween = null
 	if _pour_kettle and is_instance_valid(_pour_kettle):
-		_pour_kettle.use_water(Kettle.AEROPRESS_COST)
+		_pour_kettle.use_water(Kettle.SHOT_PRESS_COST)
 	_pouring_player = null
 	_pour_kettle = null
 	state = State.HAS_WATER

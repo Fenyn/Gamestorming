@@ -5,7 +5,7 @@ const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const BOTTLE_COUNT := 3
 
 const STATION_EQUIPMENT_MAP := {
-	"ShotPress": "aeropress",
+	"ShotPress": "shot_press",
 	"HotWater": "hot_water_station",
 	"Fridge": "fridge",
 	"Steam": "steam_station",

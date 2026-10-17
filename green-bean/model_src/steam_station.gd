@@ -2,7 +2,7 @@ extends RefCounted
 
 ## Steam station: a compact standalone milk steamer.
 ##
-## Proportions follow real standalone steamers such as the Morning Dream
+## Proportions follow real compact standalone milk steamers
 ## (about 10 cm wide, 37 cm deep, 24 cm tall): a narrow, deep body shaped like a
 ## capsule machine, with a tower at the back, a head that overhangs the pitcher,
 ## a steam wand angled down out of the head, and a small drip tray at the foot.

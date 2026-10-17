@@ -2,7 +2,7 @@ extends RefCounted
 
 ## Hot water dispenser: a slim commercial hot water tower.
 ##
-## Proportions follow countertop units like the Bunn H3X / H5X Element
+## Proportions follow slim commercial countertop hot water towers
 ## (about 19 cm wide, 43 cm deep, 56-72 cm tall): a tall stainless tower, an
 ## upper head that overhangs the dispense area, a faucet with a red lever under
 ## the head front, an LED temperature readout on a black control panel, and a

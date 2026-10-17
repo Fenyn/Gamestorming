@@ -79,7 +79,7 @@ func interact(player: Player) -> void:
 func receive_item(item: Node3D) -> bool:
 	if state != State.IDLE:
 		return false
-	if not (item is AeropressDevice or item is Dripper):
+	if not (item is ShotPress or item is Dripper):
 		return false
 	_placed_device = item
 	StationUtils.place_at_slot(item, _device_slot.global_position + Vector3(0, StationUtils.item_half_height(item), 0))
@@ -93,8 +93,8 @@ func _on_grind_complete(quality: float) -> void:
 	var g := Grounds.new()
 	g.grind_level = _mini_game.grind_level
 	g.grind_quality = quality
-	if _placed_device is AeropressDevice:
-		(_placed_device as AeropressDevice).add_grounds(g)
+	if _placed_device is ShotPress:
+		(_placed_device as ShotPress).add_grounds(g)
 	elif _placed_device is Dripper:
 		(_placed_device as Dripper).add_grounds(g)
 	state = State.GROUNDS_READY

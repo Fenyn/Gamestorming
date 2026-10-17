@@ -3,19 +3,41 @@
 [ext_resource type="Script" uid="uid://dkj0rwxkj3cu5" path="res://scripts/stations/grinder_station.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/props/hand_grinder.tscn" id="2_model"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_001"]
-size = Vector3(0.25, 0.35, 0.25)
+[sub_resource type="BoxShape3D" id="BoxShape3D_base"]
+size = Vector3(0.24, 0.025, 0.22)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_body"]
+size = Vector3(0.125, 0.26, 0.125)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hopper"]
+size = Vector3(0.165, 0.09, 0.165)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wheel"]
+size = Vector3(0.03, 0.25, 0.25)
 
 [node name="Grinder" type="StaticBody3D" unique_id=664047045]
 script = ExtResource("1")
 
 [node name="Model" parent="." unique_id=899110020 instance=ExtResource("2_model")]
 
-[node name="Collision" type="CollisionShape3D" parent="." unique_id=499802378]
-shape = SubResource("BoxShape3D_001")
+[node name="CollisionBase" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.02, 0.0125, 0)
+shape = SubResource("BoxShape3D_base")
+
+[node name="CollisionBody" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0225, 0.155, -0.05)
+shape = SubResource("BoxShape3D_body")
+
+[node name="CollisionHopper" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.322, -0.035)
+shape = SubResource("BoxShape3D_hopper")
+
+[node name="CollisionWheel" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.105, 0.235, -0.035)
+shape = SubResource("BoxShape3D_wheel")
 
 [node name="Label3D" type="Label3D" parent="." unique_id=1452254617 groups=["world_label"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, -0.002)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47, -0.03)
 pixel_size = 0.002
 billboard = 2
 text = "GRINDER"

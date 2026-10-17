@@ -824,7 +824,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, 0, 2.55)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0, 2.95)
 
 [node name="Grinder" parent="." unique_id=1432450160 instance=ExtResource("2_t2fld")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1543847, 1.0702872, -1.0536677)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1543847, 0.89, -1.0536677)
 
 [node name="CupStack" parent="." unique_id=848182892 instance=ExtResource("3_jxr28")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.044063404, 0.8388775, 0.9706317)

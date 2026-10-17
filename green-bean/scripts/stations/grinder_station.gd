@@ -32,9 +32,9 @@ func _ready() -> void:
 	_mini_game._camera_point = cam
 	_mini_game.mini_game_completed.connect(_on_grind_complete)
 
-	_status_label = StationUtils.create_status_label(self)
-	_update_label()
 	_build_fx()
+	_status_label = StationUtils.create_status_label(self, StationUtils.model_marker(self, "SpoutTip", Vector3(0, 0.17, 0.05)) + Vector3(0, 0.25, 0.02))
+	_update_label()
 
 ## The crank, device pad and spout tip live in the model scene
 ## (scenes/props/hand_grinder.tscn) so they can be moved in the editor.
@@ -45,6 +45,18 @@ func _build_fx() -> void:
 		_device_slot.global_position = pad.global_position
 	var spout := model.get_node_or_null("SpoutTip") as Node3D if model else null
 	_crank_pivot = model.get_node_or_null("Crank") as Node3D if model else null
+
+	# Grinding camera from the model's CameraView. The mini-game's bar and label
+	# were laid out around the old grey box's origin, so move the whole game to
+	# the model's GaugeAnchor and pull its camera back by the same amount.
+	var cam: Marker3D = _mini_game._camera_point
+	var view := model.get_node_or_null("CameraView") as Node3D if model else null
+	if view:
+		cam.transform = global_transform.affine_inverse() * view.global_transform
+	var anchor := StationUtils.model_marker(self, "GaugeAnchor", Vector3(-0.2, 0.3, 0.06))
+	var offset := anchor - Vector3(0, 0.125, 0.18)
+	_mini_game.position = offset
+	cam.position -= offset
 
 	# Grounds falling into the device while the player cranks.
 	_dust = Fx.make_specks(Color(0.32, 0.2, 0.1), 0.006, -1.5, 0.45, 30)

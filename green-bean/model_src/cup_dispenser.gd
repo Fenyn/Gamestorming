@@ -37,7 +37,8 @@ static func build() -> Node3D:
 	MK.box(root, "TopRail", Vector3(width, 0.008, 0.08), Vector3(0, TUBE_TOP + 0.004, TUBE_Z + 0.02), steel)
 
 	for i in range(4):
-		var x := (float(i) - 1.5) * SPACING
+		# S on the barista's left: the barista looks along +Z, so +X is their left.
+		var x := (1.5 - float(i)) * SPACING
 		var top_r: float = SIZES[i][1]
 		var bottom_r: float = SIZES[i][2]
 		var tube_r := top_r + 0.004

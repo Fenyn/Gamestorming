@@ -60,31 +60,14 @@ func _update_label() -> void:
 func _print_ticket(order: OrderData) -> void:
 	var ticket := Node3D.new()
 	ticket.rotation_degrees = Vector3(0, 180, 0)
-	var paper := MeshInstance3D.new()
-	var quad := QuadMesh.new()
-	quad.size = Vector2(0.065, 0.085)
-	paper.mesh = quad
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.98, 0.97, 0.92)
-	mat.roughness = 0.9
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	paper.material_override = mat
-	ticket.add_child(paper)
-	var code := Label3D.new()
-	code.text = order.ticket_code if order.customer_name.is_empty() else "%s\n%s" % [order.customer_name, order.ticket_code]
-	code.font_size = 34
-	code.pixel_size = 0.0007
-	code.modulate = Color(0.12, 0.08, 0.06)
-	code.outline_size = 0
-	code.position = Vector3(0, 0.012, 0.001)
-	ticket.add_child(code)
+	ticket.add_child(OrderLabel.build(order, Vector2(0.065, 0.085), 34, 0.0007))
 	var rule := Label3D.new()
 	rule.text = "- - - - -"
 	rule.font_size = 24
 	rule.pixel_size = 0.0007
 	rule.modulate = Color(0.4, 0.35, 0.3)
 	rule.outline_size = 0
-	rule.position = Vector3(0, -0.02, 0.001)
+	rule.position = Vector3(0, -0.034, 0.001)
 	ticket.add_child(rule)
 	add_child(ticket)
 	_tickets.append(ticket)

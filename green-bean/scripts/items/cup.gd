@@ -99,28 +99,12 @@ func _ready() -> void:
 	_last_position = global_position
 
 func _add_ticket_sticker(spot: Node3D) -> void:
-	var sticker := MeshInstance3D.new()
-	var quad := QuadMesh.new()
-	quad.size = Vector2(0.05, 0.034)
-	sticker.mesh = quad
-	var paper := StandardMaterial3D.new()
-	paper.albedo_color = Color(0.98, 0.97, 0.92)
-	paper.roughness = 0.9
-	sticker.material_override = paper
+	var sticker := OrderLabel.build(order, Vector2(0.036, 0.04), 26, 0.0005)
 	if spot:
 		sticker.transform = spot.transform
 	else:
 		sticker.position = Vector3(0, _height * 0.3, _radius + 0.001)
-	sticker.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(sticker)
-	var code := Label3D.new()
-	code.text = order.ticket_code if order.customer_name.is_empty() else "%s\n%s" % [order.customer_name, order.ticket_code]
-	code.font_size = 32
-	code.pixel_size = 0.0005
-	code.modulate = Color(0.15, 0.1, 0.08)
-	code.outline_size = 0
-	code.position = Vector3(0, 0, 0.001)
-	sticker.add_child(code)
 
 func _process(delta: float) -> void:
 	if delta <= 0.0:

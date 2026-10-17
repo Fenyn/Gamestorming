@@ -854,7 +854,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4028236, 0.89, -1.005)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.05, 1.21)
 
 [node name="CashDrawer" parent="." unique_id=417275188 instance=ExtResource("12_u3j1k")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9374628, 0.9746902, 1.0774028)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9374628, 0.951, 0.946)
 
 [node name="VanillaSyrup" parent="." unique_id=165157546 instance=ExtResource("13_syrup")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13075483, 1.043428, -1.0869943)
@@ -877,4 +877,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6288743, 0.99221563, -1.09
 sauce_type = 1
 
 [node name="Register" parent="." unique_id=1770249230 instance=ExtResource("10_vg725")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.369857, 1.0405036, 1.1263597)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.369857, 1.0, 1.1263597)

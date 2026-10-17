@@ -9,6 +9,8 @@ var _activate_frame := -1
 var _paying_customer: Node3D = null
 
 var _status_label: Label3D = null
+var _drawer: Node3D = null
+var _drawer_tween: Tween = null
 
 var _viewport: SubViewport = null
 var _screen_mesh: MeshInstance3D = null
@@ -36,6 +38,7 @@ func _ready() -> void:
 	_build_viewport()
 	_build_screen()
 	_build_drawer_ui()
+	_drawer = get_node_or_null("Model/Drawer") as Node3D
 
 	_status_label = null
 
@@ -52,7 +55,8 @@ func _build_screen() -> void:
 	var quad := QuadMesh.new()
 	quad.size = SCREEN_SIZE
 	_screen_mesh.mesh = quad
-	_screen_mesh.position = Vector3(0, 0.08, -0.10)
+	# Over the open drawer's tray, tilted up toward the camera.
+	_screen_mesh.position = Vector3(0, 0.06, -0.19)
 	_screen_mesh.rotation_degrees = Vector3(-60, 180, 0)
 	_screen_mesh.visible = false
 	add_child(_screen_mesh)
@@ -140,15 +144,26 @@ func interact(player: Player) -> void:
 	_player = player
 	_selected_amount = 0.0
 	_screen_mesh.visible = true
+	_slide_drawer(true)
 	_update_drawer_display()
-	var cam_pos := global_position + Vector3(0, 0.35, -0.30)
+	var cam_pos := _screen_mesh.global_position + Vector3(0, 0.3, -0.22)
 	_player.enter_screen_mode(_screen_mesh.global_position, cam_pos, 0.6)
+
+func _slide_drawer(open: bool) -> void:
+	if _drawer == null:
+		return
+	var target := StationUtils.model_marker(self, "DrawerOpen", Vector3(0, 0, -0.13)) if open else Vector3.ZERO
+	if _drawer_tween and _drawer_tween.is_valid():
+		_drawer_tween.kill()
+	_drawer_tween = create_tween()
+	_drawer_tween.tween_property(_drawer, "position", target, 0.25 if open else 0.2).set_trans(Tween.TRANS_BACK if open else Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 func _close_drawer() -> void:
 	if not _active:
 		return
 	_active = false
 	_screen_mesh.visible = false
+	_slide_drawer(false)
 	if _player and is_instance_valid(_player):
 		_player.exit_screen_mode()
 		_player = null

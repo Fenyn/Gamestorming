@@ -3,6 +3,12 @@ extends StaticBody3D
 const TICKET_SPACING := 0.075
 const TICKET_REST_Y := 0.21
 const MAX_VISIBLE_TICKETS := 5
+const SIZE_KEYS := {
+	DrinkData.CupSize.SMALL: "small",
+	DrinkData.CupSize.MEDIUM: "medium",
+	DrinkData.CupSize.LARGE: "large",
+	DrinkData.CupSize.EXTRA_LARGE: "extra_large",
+}
 
 var _pending_orders: Array[OrderData] = []
 var _label: Label3D = null
@@ -36,7 +42,8 @@ func interact(player: Player) -> void:
 
 	var cup := Cup.create(size, order)
 	get_tree().current_scene.add_child(cup)
-	cup.global_position = global_position + Vector3(0, 0.3, 0)
+	# The cup comes out of its size's tube, then floats up to the hand.
+	cup.global_position = to_global(StationUtils.model_marker(self, "Dispense_" + SIZE_KEYS[size], Vector3(0, 0.3, 0)))
 	player.pickup_item(cup)
 	_update_label()
 

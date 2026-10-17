@@ -20,6 +20,8 @@ const MODELS := {
 	"paper_cup_medium": [preload("res://model_src/paper_cup.gd"), "medium"],
 	"paper_cup_large": [preload("res://model_src/paper_cup.gd"), "large"],
 	"paper_cup_extra_large": [preload("res://model_src/paper_cup.gd"), "extra_large"],
+	"cup_dispenser": preload("res://model_src/cup_dispenser.gd"),
+	"lid_caddy": preload("res://model_src/lid_caddy.gd"),
 }
 
 func _initialize() -> void:

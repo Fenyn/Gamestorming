@@ -2,20 +2,18 @@
 
 [ext_resource type="Script" uid="uid://bqud0ke8ku8b3" path="res://scripts/stations/cup_stack.gd" id="1"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_001"]
-albedo_color = Color(0.7, 0.9, 0.75, 1)
+[ext_resource type="PackedScene" path="res://scenes/props/cup_dispenser.tscn" id="2_model"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_001"]
-size = Vector3(0.4, 0.3, 0.2)
+size = Vector3(0.45, 0.33, 0.11)
 
 [node name="CupStack" type="StaticBody3D" unique_id=938508310]
 script = ExtResource("1")
 
-[node name="Mesh" type="CSGBox3D" parent="." unique_id=1929791563]
-size = Vector3(0.4, 0.3, 0.2)
-material = SubResource("StandardMaterial3D_001")
+[node name="Model" parent="." instance=ExtResource("2_model")]
 
 [node name="Collision" type="CollisionShape3D" parent="." unique_id=615742096]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.005, -0.005)
 shape = SubResource("BoxShape3D_001")
 
 [node name="Label3D" type="Label3D" parent="." unique_id=1772868887 groups=["world_label"]]

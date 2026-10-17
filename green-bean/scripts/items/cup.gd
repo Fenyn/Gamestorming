@@ -27,9 +27,22 @@ var sauce_type: int = -1
 var heat := 0.0
 
 var _fill_level := 0.0
-var _fill_visual: CSGCylinder3D = null
+const MODEL_PATHS := {
+	DrinkData.CupSize.SMALL: "res://scenes/props/paper_cup_small.tscn",
+	DrinkData.CupSize.MEDIUM: "res://scenes/props/paper_cup_medium.tscn",
+	DrinkData.CupSize.LARGE: "res://scenes/props/paper_cup_large.tscn",
+	DrinkData.CupSize.EXTRA_LARGE: "res://scenes/props/paper_cup_extra_large.tscn",
+}
+
+var _fill_visual: MeshInstance3D = null
+var _fill_mesh: CylinderMesh = null
 var _liquid_mat: ShaderMaterial = null
-var _lid_visual: CSGCylinder3D = null
+var _lid_visual: Node3D = null
+var _radius := 0.045
+var _height := 0.112
+var _liquid_floor := -0.048
+## Inside wall as (radius, y), bottom to rim.
+var _inner_profile := PackedVector2Array([Vector2(0.029, -0.048), Vector2(0.044, 0.054)])
 var _steam: SteamPuffs = null
 var _slosh := Vector2.ZERO
 var _slosh_velocity := Vector2.ZERO
@@ -40,85 +53,52 @@ func _ready() -> void:
 	add_to_group("carriable")
 	add_to_group("cup")
 	freeze = true
-	var radius := _get_radius()
-	var height := _get_height()
+	var model: Node3D = (load(MODEL_PATHS[cup_size]) as PackedScene).instantiate()
+	model.name = "Model"
+	add_child(model)
+	var col := model.get_node_or_null("Collision") as CollisionShape3D
+	if col:
+		# A body needs its collider as a direct child.
+		var xform := col.transform
+		model.remove_child(col)
+		col.owner = null
+		add_child(col)
+		col.transform = model.transform * xform
+		var shape := col.shape as CylinderShape3D
+		_radius = shape.radius
+		_height = shape.height
+	_lid_visual = model.get_node_or_null("Lid") as Node3D
+	if _lid_visual:
+		_lid_visual.visible = has_lid
+	var floor_marker := model.get_node_or_null("LiquidFloor") as Node3D
+	if floor_marker:
+		_liquid_floor = floor_marker.position.y
+	if model.has_meta("inner_profile"):
+		_inner_profile = model.get_meta("inner_profile")
 
-	# Paper cup, hollowed out so the drink inside is visible.
-	var body := CSGCylinder3D.new()
-	body.radius = radius
-	body.height = height
-	body.sides = 16
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.95, 0.95, 0.9)
-	mat.roughness = 0.85
-	body.material = mat
-	add_child(body)
-	var hollow := CSGCylinder3D.new()
-	hollow.operation = CSGShape3D.OPERATION_SUBTRACTION
-	hollow.radius = radius * 0.9
-	hollow.height = height * 0.9 + 0.002
-	hollow.position.y = height * 0.05 + 0.001
-	hollow.sides = 16
-	body.add_child(hollow)
-
-	# Kraft sleeve band for a bit of colour.
-	var sleeve := CSGCylinder3D.new()
-	sleeve.radius = radius * 1.04
-	sleeve.height = height * 0.35
-	sleeve.position.y = -height * 0.05
-	sleeve.sides = 16
-	var sleeve_mat := StandardMaterial3D.new()
-	sleeve_mat.albedo_color = Color(0.62, 0.45, 0.3)
-	sleeve_mat.roughness = 0.95
-	sleeve.material = sleeve_mat
-	add_child(sleeve)
-
-	_fill_visual = CSGCylinder3D.new()
-	_fill_visual.radius = radius * 0.88
-	_fill_visual.height = 0.001
-	_fill_visual.position.y = -height * 0.4
-	_fill_visual.sides = 16
+	_fill_mesh = CylinderMesh.new()
+	_fill_mesh.radial_segments = 20
+	_fill_mesh.rings = 1
+	_fill_visual = MeshInstance3D.new()
+	_fill_visual.name = "Drink"
+	_fill_visual.mesh = _fill_mesh
 	_liquid_mat = ShaderMaterial.new()
 	_liquid_mat.shader = LIQUID_SHADER
 	_liquid_mat.set_shader_parameter("liquid_color", Color(0.3, 0.2, 0.1))
-	_fill_visual.material = _liquid_mat
+	_fill_visual.material_override = _liquid_mat
 	_fill_visual.visible = false
 	add_child(_fill_visual)
 
-	_lid_visual = CSGCylinder3D.new()
-	_lid_visual.radius = radius * 1.06
-	_lid_visual.height = 0.012
-	_lid_visual.position.y = height * 0.5 + 0.005
-	_lid_visual.sides = 16
-	var lid_mat := StandardMaterial3D.new()
-	lid_mat.albedo_color = Color(0.2, 0.15, 0.12)
-	lid_mat.roughness = 0.4
-	_lid_visual.material = lid_mat
-	var sip := CSGBox3D.new()
-	sip.size = Vector3(0.012, 0.01, 0.006)
-	sip.position = Vector3(0, 0.006, radius * 0.7)
-	sip.material = lid_mat
-	_lid_visual.add_child(sip)
-	_lid_visual.visible = has_lid
-	add_child(_lid_visual)
-
 	if order:
-		_add_ticket_sticker(radius)
+		_add_ticket_sticker(model.get_node_or_null("StickerSpot") as Node3D)
 
 	_steam = SteamPuffs.new(10, 0.035, 0.06)
-	_steam.position.y = height * 0.5
+	_steam.position.y = _height * 0.5
 	add_child(_steam)
-
-	var col := CollisionShape3D.new()
-	var shape := CylinderShape3D.new()
-	shape.radius = radius
-	shape.height = height
-	col.shape = shape
-	add_child(col)
 
 	_last_position = global_position
 
-func _add_ticket_sticker(radius: float) -> void:
+func _add_ticket_sticker(spot: Node3D) -> void:
 	var sticker := MeshInstance3D.new()
 	var quad := QuadMesh.new()
 	quad.size = Vector2(0.05, 0.034)
@@ -127,7 +107,10 @@ func _add_ticket_sticker(radius: float) -> void:
 	paper.albedo_color = Color(0.98, 0.97, 0.92)
 	paper.roughness = 0.9
 	sticker.material_override = paper
-	sticker.position = Vector3(0, _get_height() * 0.3, radius * 0.98 + 0.002)
+	if spot:
+		sticker.transform = spot.transform
+	else:
+		sticker.position = Vector3(0, _height * 0.3, _radius + 0.001)
 	sticker.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(sticker)
 	var code := Label3D.new()
@@ -176,29 +159,29 @@ func _update_lid_visual() -> void:
 		Fx.pop(_lid_visual, 1.4, 0.3)
 
 func _get_radius() -> float:
-	match cup_size:
-		DrinkData.CupSize.SMALL: return 0.035
-		DrinkData.CupSize.MEDIUM: return 0.038
-		DrinkData.CupSize.LARGE: return 0.042
-		DrinkData.CupSize.EXTRA_LARGE: return 0.046
-	return 0.038
+	return _radius
 
 func _get_height() -> float:
-	match cup_size:
-		DrinkData.CupSize.SMALL: return 0.1
-		DrinkData.CupSize.MEDIUM: return 0.12
-		DrinkData.CupSize.LARGE: return 0.14
-		DrinkData.CupSize.EXTRA_LARGE: return 0.16
-	return 0.12
+	return _height
+
+## Inside radius at local height y, from the model's inner_profile.
+func _inner_radius(y: float) -> float:
+	var a := _inner_profile[0]
+	var b := _inner_profile[_inner_profile.size() - 1]
+	return lerpf(a.x, b.x, clampf((y - a.y) / (b.y - a.y), 0.0, 1.0))
 
 func set_fill(amount: float, color: Color = Color(0.3, 0.2, 0.1)) -> void:
 	_fill_level = clampf(amount, 0.0, 1.0)
 	if _fill_level > 0.01:
 		_fill_visual.visible = true
-		_fill_visual.height = _get_height() * 0.8 * _fill_level
-		_fill_visual.position.y = -_get_height() * 0.4 + (_fill_visual.height * 0.5)
+		var rim := _inner_profile[_inner_profile.size() - 1].y
+		var h := (rim - 0.008 - _liquid_floor) * _fill_level
+		_fill_mesh.height = h
+		_fill_mesh.bottom_radius = _inner_radius(_liquid_floor) - 0.0005
+		_fill_mesh.top_radius = _inner_radius(_liquid_floor + h) - 0.0005
+		_fill_visual.position.y = _liquid_floor + h * 0.5
 		_liquid_mat.set_shader_parameter("liquid_color", color)
-		_liquid_mat.set_shader_parameter("half_height", _fill_visual.height * 0.5)
+		_liquid_mat.set_shader_parameter("half_height", h * 0.5)
 		heat = 1.0
 	else:
 		_fill_visual.visible = false

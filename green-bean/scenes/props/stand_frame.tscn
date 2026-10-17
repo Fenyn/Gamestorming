@@ -1,0 +1,75 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7ctma"]
+albedo_color = Color(0.22, 0.42, 0.28, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_8jirh"]
+size = Vector3(0.115, 2.5, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jcnw4"]
+size = Vector3(0.2, 2.34, 0.13)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pcv32"]
+albedo_color = Color(0.678, 0.456, 0.299, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_cj3ki"]
+size = Vector3(0.07, 0.8284179, 0.07)
+
+[sub_resource type="BoxMesh" id="BoxMesh_iqcc0"]
+size = Vector3(0.09, 0.03, 0.14)
+
+[sub_resource type="BoxMesh" id="BoxMesh_iyn42"]
+size = Vector3(0.115, 2.5, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hym1g"]
+size = Vector3(0.2, 2.34, 0.13)
+
+[sub_resource type="BoxMesh" id="BoxMesh_p6lgs"]
+size = Vector3(0.07, 0.8284179, 0.07)
+
+[sub_resource type="BoxMesh" id="BoxMesh_p81ih"]
+size = Vector3(0.09, 0.03, 0.14)
+
+[node name="StandFrame" type="Node3D" unique_id=1933775975]
+
+[node name="CornerBoard" type="MeshInstance3D" parent="." unique_id=317129480]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7925, 1.25, -1.25)
+material_override = SubResource("StandardMaterial3D_7ctma")
+mesh = SubResource("BoxMesh_8jirh")
+
+[node name="FrontPost" type="MeshInstance3D" parent="." unique_id=265468285]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.75, 1.17, 1.245)
+material_override = SubResource("StandardMaterial3D_7ctma")
+mesh = SubResource("BoxMesh_jcnw4")
+
+[node name="KneeBrace" type="MeshInstance3D" parent="." unique_id=1383393270]
+transform = Transform3D(1, 0, 0, 0, 0.6349453, -0.7725571, 0, 0.7725571, 0.6349453, -1.75, 2.213, 1.63)
+material_override = SubResource("StandardMaterial3D_pcv32")
+mesh = SubResource("BoxMesh_cj3ki")
+
+[node name="BraceBlock" type="MeshInstance3D" parent="." unique_id=967993655]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.75, 2.481, 1.95)
+material_override = SubResource("StandardMaterial3D_pcv32")
+mesh = SubResource("BoxMesh_iqcc0")
+
+[node name="CornerBoard2" type="MeshInstance3D" parent="." unique_id=491001068]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7925, 1.25, -1.25)
+material_override = SubResource("StandardMaterial3D_7ctma")
+mesh = SubResource("BoxMesh_iyn42")
+
+[node name="FrontPost2" type="MeshInstance3D" parent="." unique_id=709214324]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 1.17, 1.245)
+material_override = SubResource("StandardMaterial3D_7ctma")
+mesh = SubResource("BoxMesh_hym1g")
+
+[node name="KneeBrace2" type="MeshInstance3D" parent="." unique_id=131622330]
+transform = Transform3D(1, 0, 0, 0, 0.6349453, -0.7725571, 0, 0.7725571, 0.6349453, 1.75, 2.213, 1.63)
+material_override = SubResource("StandardMaterial3D_pcv32")
+mesh = SubResource("BoxMesh_p6lgs")
+
+[node name="BraceBlock2" type="MeshInstance3D" parent="." unique_id=815288830]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 2.481, 1.95)
+material_override = SubResource("StandardMaterial3D_pcv32")
+mesh = SubResource("BoxMesh_p81ih")

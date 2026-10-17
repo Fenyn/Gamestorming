@@ -1,9 +1,6 @@
 class_name ShotPress
 extends RigidBody3D
 
-## Visual model lives in scenes/props/shot_press.tscn so it can be edited in the
-## editor. Its markers place the coffee, the plunger travel and how it sits on
-## a cup.
 const MODEL := preload("res://scenes/props/shot_press.tscn")
 const LIQUID_COLOR := Color(0.25, 0.15, 0.05)
 
@@ -108,7 +105,6 @@ func hide_plunger() -> void:
 		_plunger.visible = false
 		_plunger.position = _plunger_top
 
-## Pressing pushes the plunger down and the coffee level with it.
 func set_plunger_progress(ratio: float) -> void:
 	ratio = clampf(ratio, 0.0, 1.0)
 	if _plunger:

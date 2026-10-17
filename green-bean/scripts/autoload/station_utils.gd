@@ -83,17 +83,14 @@ func _model_front_z(parent: Node3D, model: Node3D) -> float:
 		front_z = maxf(front_z, aabb.end.z)
 	return front_z
 
-## Half the height of a carriable item, from its cylinder collider. Used to stand
-## items on a surface marker instead of centring them on it.
+## Half an item's height, from its cylinder collider.
 func item_half_height(item: Node3D, fallback: float = 0.05) -> float:
 	for child in item.get_children():
 		if child is CollisionShape3D and (child as CollisionShape3D).shape is CylinderShape3D:
 			return ((child as CollisionShape3D).shape as CylinderShape3D).height * 0.5
 	return fallback
 
-## Position of a marker inside a station's "Model" scene, in the station's local
-## space. Lets model scenes in scenes/props/ decide where items go. Returns
-## fallback when the model or marker is missing.
+## Station-local position of Model/<marker_name>, or fallback if missing.
 func model_marker(station: Node3D, marker_name: String, fallback: Vector3) -> Vector3:
 	var marker := station.get_node_or_null("Model/" + marker_name) as Node3D
 	if marker == null:
@@ -111,16 +108,13 @@ const KETTLE_POUR_SWAY := 6.0
 
 var _pour_streams := {}
 
-## Takes the kettle from the player's hand and tilts it so its spout tip sits
-## tip_offset above target_position (usually straight up). body_side is the
-## horizontal direction the kettle body sits in, away from walls and out of the
-## mini-game camera's way. The tilt sways gently while pouring.
-## flow_check: optional Callable returning true while water is actually flowing.
+## Tilts the kettle so its spout tip sits at target_position + tip_offset, with
+## the body toward body_side (pick the side away from walls). flow_check returns
+## true while water is flowing.
 func start_kettle_pour(player: Player, kettle: Node3D, target_position: Vector3, tip_offset: Vector3, flow_check: Callable = Callable(), body_side := Vector3.RIGHT) -> Tween:
 	player.detach_held_item()
 	var tip := _kettle_tip(kettle)
 	var tip_world := target_position + tip_offset
-	# Turn the kettle so its local +X (handle side) points along body_side.
 	var side := Vector3(body_side.x, 0, body_side.z).normalized()
 	var yaw := Basis(Vector3.UP, atan2(-side.z, side.x))
 	# Rotation about the spout tip keeps the stream on target as the kettle sways.

@@ -31,8 +31,6 @@ func _ready() -> void:
 	add_to_group("pitcher")
 	freeze = true
 
-	# Visual model lives in scenes/props/milk_pitcher.tscn so it can be edited
-	# in the editor. Its MilkFloor marker and inner_profile metadata place the milk.
 	var model: Node3D = MODEL.instantiate()
 	model.name = "Model"
 	add_child(model)
@@ -57,7 +55,7 @@ func _ready() -> void:
 	add_child(_milk_visual)
 	_set_milk_height(MILK_HEIGHT)
 
-	# The collision shape is authored in the model scene; move it onto this body.
+	# Collider is authored in the model scene; a body needs it as a direct child.
 	var col := model.get_node_or_null("Collision") as CollisionShape3D
 	if col:
 		var xform := col.transform
@@ -90,14 +88,12 @@ func update_milk_visual(heat_ratio: float, foam: float, scalded: bool) -> void:
 	_milk_mat.set_shader_parameter("foam_fraction", clampf(foam * 0.7, 0.0, 0.7))
 	_milk_mat.set_shader_parameter("foam_color", Color(0.9, 0.82, 0.66) if scalded else Color(1.0, 0.99, 0.96))
 	var height := MILK_HEIGHT * (1.0 + clampf(foam, 0.0, 1.0) * 0.6)
-	# Rebuilding the mesh every frame is wasteful, so skip tiny changes.
 	if absf(height - _milk_mesh.height) < 0.0005:
 		return
 	_set_milk_height(height)
 
 func _set_milk_height(height: float) -> void:
 	_milk_mesh.height = height
-	# Follow the wall so the milk never pokes through where the pitcher narrows.
 	_milk_mesh.bottom_radius = _inner_radius(_milk_floor + 0.002) - 0.001
 	_milk_mesh.top_radius = _inner_radius(_milk_floor + height) - 0.001
 	_milk_visual.position.y = _milk_floor + height * 0.5

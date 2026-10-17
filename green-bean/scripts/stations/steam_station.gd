@@ -16,8 +16,7 @@ func _ready() -> void:
 
 	_pitcher_slot = Marker3D.new()
 	_pitcher_slot.name = "PitcherSlot"
-	# Marker positions come from the model scene (scenes/props/steam_station.tscn).
-	# Pitchers stand on them: they are lifted by half their height when placed.
+	# Pitchers are lifted by half their height to stand on the model's markers.
 	_pitcher_slot.position = StationUtils.model_marker(self, "PitcherPad", Vector3(0, 0.125, 0))
 	add_child(_pitcher_slot)
 
@@ -39,8 +38,6 @@ func _ready() -> void:
 
 	_spawn_shelf_pitcher()
 
-	# Steam rises from the pitcher. It gets thicker as the milk heats and turns
-	# harsh and grey when the milk scalds, so the warning reads from across the shop.
 	_steam_puffs = SteamPuffs.new(40, 0.07, 0.16)
 	_steam_puffs.position = StationUtils.model_marker(self, "SteamVent", Vector3(0, 0.22, 0))
 	add_child(_steam_puffs)
@@ -54,8 +51,7 @@ func _spawn_shelf_pitcher() -> void:
 	add_child(_shelf_pitcher)
 	_shelf_pitcher.position = _rest_position(_shelf_pitcher)
 
-## Where a pitcher stands on the mat: the model's PitcherRest marker, raised by
-## half the pitcher's height (station-local).
+## Station-local centre of a pitcher standing on the mat.
 func _rest_position(pitcher: Node3D) -> Vector3:
 	return StationUtils.model_marker(self, "PitcherRest", Vector3(0.12, -0.12, 0.03)) + Vector3(0, StationUtils.item_half_height(pitcher), 0)
 
@@ -114,13 +110,13 @@ func receive_item(item: Node3D) -> bool:
 	_update_label()
 	return true
 
-## Sets a pitcher down on the spare-pitcher mat (clicked through the MatArea).
+## Called through MatArea when a pitcher is clicked onto the mat.
 func receive_on_mat(item: Node3D) -> bool:
 	if not item is Pitcher or _mat_occupied():
 		return false
 	StationUtils.place_at_slot(item, to_global(_rest_position(item)))
 	item.global_rotation = global_rotation
-	# Leave it clickable, like the spare the station starts with.
+	# Keep its collider on so it can be clicked up again.
 	StationUtils.set_item_collision(item, true)
 	_shelf_pitcher = item as Pitcher
 	if state == State.IDLE:
@@ -195,8 +191,6 @@ func _update_steam_fx() -> void:
 		_placed_pitcher.update_milk_visual(temp_ratio, _steam_game.foam_level, state == State.SCALDED)
 
 func _check_removed_items() -> void:
-	# The spare pitcher can be clicked up directly from the mat; forget it then,
-	# so the label stops offering to pick it up.
 	if _shelf_pitcher and StationUtils.is_item_removed(_shelf_pitcher, to_global(_rest_position(_shelf_pitcher)), 0.15):
 		_shelf_pitcher = null
 		if state == State.IDLE:

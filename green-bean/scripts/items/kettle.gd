@@ -24,8 +24,6 @@ func _ready() -> void:
 	add_to_group("kettle")
 	freeze = true
 
-	# Visual model lives in scenes/props/gooseneck_kettle.tscn so it can be
-	# edited in the editor. Its collider is moved onto this body.
 	var model: Node3D = MODEL.instantiate()
 	model.name = "Model"
 	add_child(model)
@@ -69,9 +67,7 @@ func empty() -> void:
 func get_level_percent() -> float:
 	return water_level / MAX_WATER * 100.0
 
-## Takes the lid off and hangs it on the clip on the side of the kettle while
-## it fills, then puts it back. The lid lifts straight up first so it clears
-## the opening.
+## Moves the lid to its clip (LidParked) and back, lifting it clear of the opening first.
 func set_lid_open(open: bool) -> void:
 	if _lid == null:
 		return

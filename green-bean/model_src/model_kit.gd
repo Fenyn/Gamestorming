@@ -1,9 +1,8 @@
 class_name ModelKit
 extends RefCounted
 
-## Helpers for building low-poly props from primitive meshes and exporting them
-## as .glb. Colours follow the Kenney palette so custom props sit next to the
-## Kenney furniture without looking out of place.
+## Helpers for building low-poly props from primitive meshes. Colours are sRGB in
+## the Kenney palette so custom props match the Kenney furniture.
 
 const WOOD := Color(0.896, 0.602, 0.393)
 const WOOD_DARK := Color(0.678, 0.456, 0.299)
@@ -20,7 +19,6 @@ const GLASS := Color(0.698, 0.827, 0.769)
 
 static var _materials := {}
 
-## Colours are written in sRGB like the Kenney palette.
 static func mat(color: Color, metallic: float = 0.0, roughness: float = 0.85) -> StandardMaterial3D:
 	var key := "%s/%.2f/%.2f" % [color.to_html(), metallic, roughness]
 	if _materials.has(key):
@@ -45,7 +43,6 @@ static func _add(parent: Node3D, mesh: Mesh, material: Material, pos: Vector3, r
 	parent.add_child(mi)
 	return mi
 
-## Readable names for repeated parts: Foot, Foot2, Foot3...
 static func unique_name(parent: Node, base: String) -> String:
 	if not parent.has_node(NodePath(base)):
 		return base
@@ -54,7 +51,6 @@ static func unique_name(parent: Node, base: String) -> String:
 		i += 1
 	return "%s%d" % [base, i]
 
-## Empty node to group related parts in the scene tree.
 static func group(parent: Node3D, name: String) -> Node3D:
 	var g := Node3D.new()
 	g.name = unique_name(parent, name)
@@ -66,7 +62,7 @@ static func box(parent: Node3D, name: String, size: Vector3, pos: Vector3, mater
 	m.size = size
 	return _add(parent, m, material, pos, rot_deg, name)
 
-## Cylinder along Y. Different top/bottom radii make a cone or a funnel.
+## Cylinder along Y; unequal radii make a cone.
 static func cyl(parent: Node3D, name: String, bottom_radius: float, top_radius: float, height: float, pos: Vector3, material: Material, sides := 16, rot_deg := Vector3.ZERO) -> MeshInstance3D:
 	var m := CylinderMesh.new()
 	m.bottom_radius = bottom_radius
@@ -92,12 +88,9 @@ static func torus(parent: Node3D, name: String, inner_radius: float, outer_radiu
 	m.ring_segments = 8
 	return _add(parent, m, material, pos, rot_deg, name)
 
-## Surface of revolution around Y. profile is a list of (radius, y) points
-## traced in order, e.g. up the outside wall, over the rim and down the inside.
-## deform (optional) is called as deform(point: Vector3, angle: float) -> Vector3
-## to pinch a spout or flatten a side. Trace a closed profile (outside wall up,
-## inside wall down) so the wall has thickness: the faces are single-sided, and
-## drawing both sides of a thin wall makes the two surfaces z-fight.
+## Surface of revolution around Y from (radius, y) points. Trace the outside
+## upward and the inside downward: faces are single-sided and wound for that,
+## and double-sided thin walls z-fight. deform(point, angle) -> point is optional.
 static func lathe(parent: Node3D, name: String, profile: PackedVector2Array, pos: Vector3, material: Material, sides := 24, deform := Callable()) -> MeshInstance3D:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -111,8 +104,7 @@ static func lathe(parent: Node3D, name: String, profile: PackedVector2Array, pos
 				v = deform.call(v, angle)
 			ring.append(v)
 		rings.append(ring)
-	# Close the loop with the first ring itself, so the seam vertices weld and
-	# the shading has no line down the back.
+	# Reuse ring 0 so the seam welds and leaves no shading line.
 	rings.append(rings[0])
 	for i in range(sides):
 		var a := rings[i]
@@ -125,9 +117,8 @@ static func lathe(parent: Node3D, name: String, profile: PackedVector2Array, pos
 	st.generate_normals()
 	return _add(parent, st.commit(), material, pos, Vector3.ZERO, name)
 
-## Tube along a path of points, with an oval cross-section: half_width along
-## side_axis, half_depth across it. Good for handles and bent wire. The path
-## should not run parallel to side_axis.
+## Oval tube along a path (half_width along side_axis). The path must never run
+## parallel to side_axis.
 static func sweep(parent: Node3D, name: String, path: PackedVector3Array, half_width: float, half_depth: float, material: Material, side_axis := Vector3.RIGHT, sides := 10, pos := Vector3.ZERO) -> MeshInstance3D:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -150,7 +141,7 @@ static func sweep(parent: Node3D, name: String, path: PackedVector3Array, half_w
 	st.generate_normals()
 	return _add(parent, st.commit(), material, pos, Vector3.ZERO, name)
 
-## Rounded-edge slab: a box with its four vertical edges replaced by cylinders.
+## Box with its four vertical edges rounded.
 static func rounded_box(parent: Node3D, name: String, size: Vector3, center: Vector3, radius: float, material: Material) -> void:
 	box(parent, name, Vector3(size.x - radius * 2.0, size.y, size.z), center, material)
 	box(parent, name + "Sides", Vector3(size.x, size.y, size.z - radius * 2.0), center, material)
@@ -159,7 +150,6 @@ static func rounded_box(parent: Node3D, name: String, size: Vector3, center: Vec
 			var p := center + Vector3((size.x * 0.5 - radius) * float(sx), 0, (size.z * 0.5 - radius) * float(sz))
 			cyl(parent, name + "Edge", radius, radius, size.y, p, material, 10)
 
-## Named Marker3D that gameplay scripts read positions from.
 static func marker(parent: Node3D, name: String, pos: Vector3, rot_deg := Vector3.ZERO) -> Marker3D:
 	var m := Marker3D.new()
 	m.name = name
@@ -169,9 +159,8 @@ static func marker(parent: Node3D, name: String, pos: Vector3, rot_deg := Vector
 	parent.add_child(m)
 	return m
 
-## Saves the node tree under root as a Godot scene (.tscn). Meshes and materials
-## are stored inside the scene, so every part can be selected and edited in the
-## editor (sizes, colours, positions).
+## Saves the tree as a .tscn with meshes and materials inline, so every part is
+## editable in the editor.
 static func save_scene(root: Node3D, path: String) -> Error:
 	_own_children(root, root)
 	var packed := PackedScene.new()
@@ -190,7 +179,6 @@ static func _own_children(node: Node, owner_node: Node) -> void:
 		child.owner = owner_node
 		_own_children(child, owner_node)
 
-## Writes the node tree under root to a binary glTF file.
 static func export_glb(root: Node3D, path: String) -> Error:
 	var doc := GLTFDocument.new()
 	var state := GLTFState.new()

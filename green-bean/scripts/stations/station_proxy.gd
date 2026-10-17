@@ -1,7 +1,6 @@
 extends StaticBody3D
-## Extra clickable area for a station, e.g. the steamer's spare-pitcher mat.
-## Items placed here go to the parent station's method named in receive_method.
-## It has no interact(), so empty-handed players get no prompt here.
+## Extra clickable area for a station (e.g. the steamer's mat). Placed items go
+## to the parent's receive_method. No interact(), so no prompt when empty-handed.
 
 @export var receive_method: StringName = &"receive_item"
 

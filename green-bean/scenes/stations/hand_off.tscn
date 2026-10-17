@@ -8,16 +8,10 @@ size = Vector3(0.36, 0.053, 0.13)
 
 [node name="HandOff" type="StaticBody3D" unique_id=1692004057]
 script = ExtResource("1")
+metadata/display_name = "Hand-off"
 
 [node name="Model" parent="." instance=ExtResource("2_model")]
 
 [node name="Collision" type="CollisionShape3D" parent="." unique_id=269581052]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0265, 0)
 shape = SubResource("BoxShape3D_001")
-
-[node name="Label3D" type="Label3D" parent="." unique_id=1713235414 groups=["world_label"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
-pixel_size = 0.002
-billboard = 2
-text = "HAND OFF"
-font_size = 24

@@ -28,6 +28,8 @@ const MODELS := {
 	"cash_pieces": preload("res://model_src/cash_pieces.gd"),
 	"change_mat": preload("res://model_src/change_mat.gd"),
 	"pickup_shelf": preload("res://model_src/pickup_shelf.gd"),
+	"back_counter": preload("res://model_src/back_counter.gd"),
+	"stand_roof": preload("res://model_src/stand_roof.gd"),
 }
 
 func _initialize() -> void:

@@ -26,4 +26,4 @@ func interact(player: Player) -> void:
 
 func _update_label(_held: Node3D) -> void:
 	if _status_label:
-		_status_label.text = "LID DISPENSER\n[E] Hold cup to lid"
+		_status_label.text = "[E] Hold cup to lid"

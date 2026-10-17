@@ -9,16 +9,10 @@ size = Vector3(0.45, 0.33, 0.11)
 
 [node name="CupStack" type="StaticBody3D" unique_id=938508310]
 script = ExtResource("1")
+metadata/display_name = "Cups"
 
 [node name="Model" parent="." instance=ExtResource("2_model")]
 
 [node name="Collision" type="CollisionShape3D" parent="." unique_id=615742096]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.005, -0.005)
 shape = SubResource("BoxShape3D_001")
-
-[node name="Label3D" type="Label3D" parent="." unique_id=1772868887 groups=["world_label"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
-pixel_size = 0.002
-billboard = 2
-text = "CUP STACK"
-font_size = 24

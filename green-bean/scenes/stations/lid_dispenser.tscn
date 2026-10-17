@@ -9,16 +9,10 @@ size = Vector3(0.23, 0.11, 0.11)
 
 [node name="LidDispenser" type="StaticBody3D"]
 script = ExtResource("1")
+metadata/display_name = "Lids"
 
 [node name="Model" parent="." instance=ExtResource("2_model")]
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.055, 0)
 shape = SubResource("BoxShape3D_001")
-
-[node name="Label3D" type="Label3D" parent="." groups=["world_label"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
-pixel_size = 0.002
-billboard = 2
-text = "LIDS"
-font_size = 24

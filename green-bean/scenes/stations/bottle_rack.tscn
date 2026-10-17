@@ -10,6 +10,7 @@ size = Vector3(0.22, 0.08, 0.08)
 
 [node name="BottleRack" type="StaticBody3D"]
 script = ExtResource("1")
+metadata/display_name = "Bottle rack"
 
 [node name="Mesh" type="CSGBox3D" parent="."]
 size = Vector3(0.22, 0.08, 0.08)
@@ -17,10 +18,3 @@ material = SubResource("StandardMaterial3D_001")
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 shape = SubResource("BoxShape3D_001")
-
-[node name="Label3D" type="Label3D" parent="." groups=["world_label"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
-pixel_size = 0.002
-billboard = 2
-text = "BOTTLES"
-font_size = 10

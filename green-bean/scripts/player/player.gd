@@ -28,6 +28,7 @@ var _saved_yaw := 0.0
 var _saved_pitch := 0.0
 var _screen_look_range := 0.35
 var _saved_fov := 75.0
+const STATUS_ALERT_MS := 3000
 var _exit_frame := -1
 const EXIT_COOLDOWN_FRAMES := 10
 
@@ -270,9 +271,9 @@ func _update_hud() -> void:
 			elif _held_item is MilkJug and collider is Pitcher:
 				_interact_label.text = "[Click] Pour into pitcher"
 			elif collider and collider.has_method("interact"):
-				_interact_label.text = "[E] " + collider.name
+				_interact_label.text = "%s\n[E] Use" % StationUtils.display_name(collider)
 			elif collider and collider.has_method("receive_item") and _held_item:
-				_interact_label.text = "[Click] Place"
+				_interact_label.text = "%s\n[Click] Place" % StationUtils.display_name(collider)
 			elif collider and collider.is_in_group("carriable") and not _held_item:
 				_interact_label.text = "[Click] Pick up"
 			else:
@@ -280,8 +281,26 @@ func _update_hud() -> void:
 		else:
 			_interact_label.text = ""
 
+	_update_station_status()
 	_update_recipe_display()
 	_process_info_hover()
+
+## Station status text shows only on the station you are looking at, or for
+## STATUS_ALERT_MS after it changes so alerts ("Shot ready!") still pop.
+func _update_station_status() -> void:
+	var now := Time.get_ticks_msec()
+	var looked_at: Object = interact_ray.get_collider() if interact_ray.is_colliding() else null
+	for node in get_tree().get_nodes_in_group("station_status"):
+		var label := node as Label3D
+		if label.text != str(label.get_meta("last_text", "")):
+			if label.has_meta("last_text"):
+				label.set_meta("alert_until", now + STATUS_ALERT_MS)
+			label.set_meta("last_text", label.text)
+		if _mode != InteractMode.FREE:
+			continue
+		var show := label.text != "" and (label.get_parent() == looked_at or int(label.get_meta("alert_until", 0)) > now)
+		label.transparency = move_toward(label.transparency, 0.0 if show else 1.0, 0.12)
+		label.visible = label.transparency < 0.99
 
 func _update_held_item(delta: float) -> void:
 	# Look sway: the held item lags behind fast turns, then settles.

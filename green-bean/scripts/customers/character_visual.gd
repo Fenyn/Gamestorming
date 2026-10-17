@@ -173,7 +173,8 @@ static func _mat(color: Color, roughness: float = 0.8) -> StandardMaterial3D:
 	return m
 
 # Head holder origin is the neck joint (about 1.22 m). The head is a big
-# cartoon head: roughly 0.5 m tall and 0.5 m wide.
+# cartoon head: roughly 0.5 m tall and 0.5 m wide, centred about 0.22 m up.
+const HEAD_CENTER_Y := 0.22
 
 static func _make_beanie(color: Color) -> Node3D:
 	var root := Node3D.new()
@@ -220,34 +221,45 @@ static func _make_glasses() -> Node3D:
 		lens.height = 0.015
 		lens.sides = 12
 		lens.rotation_degrees = Vector3(90, 0, 0)
-		lens.position = Vector3(0.1 * float(side), 0.2, 0.25)
+		lens.position = Vector3(0.1 * float(side), 0.2, 0.235)
 		lens.material = frame
 		root.add_child(lens)
 	var bridge := CSGBox3D.new()
 	bridge.size = Vector3(0.08, 0.015, 0.015)
-	bridge.position = Vector3(0, 0.21, 0.255)
+	bridge.position = Vector3(0, 0.21, 0.24)
 	bridge.material = frame
 	root.add_child(bridge)
 	return root
 
 static func _make_headphones(color: Color) -> Node3D:
 	var root := Node3D.new()
+	var dark := _mat(Color(0.12, 0.12, 0.14), 0.5)
+	# Headband: the top half of a ring running ear to ear over the crown.
+	# CSGTorus3D lies flat around Y; turning it 90 degrees about X stands it up
+	# facing forward, so it spans left-right. A box below the centre cuts off
+	# the lower half so nothing crosses the face or chin.
 	var band := CSGTorus3D.new()
-	band.inner_radius = 0.255
-	band.outer_radius = 0.29
-	band.sides = 16
+	band.inner_radius = 0.27
+	band.outer_radius = 0.31
+	band.sides = 20
 	band.ring_sides = 6
-	band.rotation_degrees = Vector3(0, 0, 90)
-	band.position = Vector3(0, 0.25, -0.02)
-	band.material = _mat(Color(0.12, 0.12, 0.14), 0.5)
+	band.rotation_degrees = Vector3(90, 0, 0)
+	band.position = Vector3(0, HEAD_CENTER_Y, -0.02)
+	band.material = dark
+	var cut := CSGBox3D.new()
+	cut.operation = CSGShape3D.OPERATION_SUBTRACTION
+	cut.size = Vector3(0.8, 0.8, 0.4)
+	# In the band's own space, Z points down after the X rotation.
+	cut.position = Vector3(0, 0, 0.2)
+	band.add_child(cut)
 	root.add_child(band)
 	for side in [-1.0, 1.0]:
 		var cup := CSGCylinder3D.new()
 		cup.radius = 0.08
-		cup.height = 0.06
-		cup.sides = 12
+		cup.height = 0.07
+		cup.sides = 14
 		cup.rotation_degrees = Vector3(0, 0, 90)
-		cup.position = Vector3(0.26 * float(side), 0.2, -0.02)
+		cup.position = Vector3(0.28 * float(side), HEAD_CENTER_Y, -0.02)
 		cup.material = _mat(color, 0.5)
 		root.add_child(cup)
 	return root

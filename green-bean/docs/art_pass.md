@@ -61,7 +61,7 @@ Custom models under the `Site` and `AcrossStreet` nodes in `espresso_stand.tscn`
 | Scene | Placed at | Notes |
 |---|---|---|
 | `site_paving.tscn` | `Site/Paving` (shop origin) | Paver patio in front of the service window (customers queue and pick up here), paver seating area along the stand's left side, darker edging, and a 2.8 m sidewalk with control joints. Replaces the old 6.2 m concrete slab. |
-| `roof_sign.tscn` | `Site/RoofSign` on the roof's front edge | Name board: coffee bean, GREEN BEAN, and a line of what is served. |
+| `roof_sign.tscn` | `Site/RoofSign` on the roof's front edge | Name board, 1.7 x 0.38 m: cream face in a dark green frame, coffee bean and GREEN BEAN centred from the measured text width. No tagline. |
 | `sign_order_here.tscn`, `sign_pick_up.tscn` | Hung from the header beam over the register and the hand-off | Lettered both sides, so they read from the street and from behind the counter. |
 | `menu_board.tscn` | `Site/MenuBoard` on the right wall facing the queue | `scripts/world/menu_board.gd` writes the active menu and small-size prices onto it at prep and day start. |
 | `a_frame_sign.tscn` | `Site/AFrameSign` at the patio's street corner | Chalkboard sidewalk sign facing customers coming from the right. |

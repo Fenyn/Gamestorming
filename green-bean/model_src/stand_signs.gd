@@ -1,8 +1,8 @@
 extends RefCounted
 
 ## Signage for the stand, one builder per piece:
-## - roof_sign(): name board standing on the roof's front edge, 2.3 x 0.44 m,
-##   cream face with a green frame, a coffee bean and the stand's name.
+## - roof_sign(): name board standing on the roof's front edge, 1.7 x 0.38 m,
+##   cream face in a dark green frame with a coffee bean and the stand's name.
 ##   Origin: base centre on the roof deck. Faces +Z.
 ## - hanging_sign(text): 62 x 15 cm board on two chains, lettered both sides.
 ##   Origin: the hang point (top centre). Faces +Z.
@@ -33,37 +33,30 @@ static func build(kind := "roof", text := "") -> Node3D:
 static func roof_sign() -> Node3D:
 	var root := Node3D.new()
 	root.name = "RoofSign"
-	var size := Vector3(2.3, 0.44, 0.05)
+	var size := Vector3(1.7, 0.38, 0.05)
 	var lift := 0.06
-	var green: Material = MK.mat(GREEN, 0.0, 0.6)
+	var frame_color := GREEN.darkened(0.2)
+	var frame: Material = MK.mat(frame_color, 0.0, 0.6)
 	for sx in [-1.0, 1.0]:
-		MK.box(root, "Leg", Vector3(0.05, lift + 0.2, 0.05), Vector3(float(sx) * 0.8, (lift + 0.2) * 0.5, -0.08), green)
-		MK.box(root, "Brace", Vector3(0.04, 0.04, 0.07), Vector3(float(sx) * 0.8, lift + 0.18, -0.06), green)
-	MK.box(root, "Back", size, Vector3(0, lift + size.y * 0.5, 0), green)
-	MK.box(root, "Face", Vector3(size.x - 0.06, size.y - 0.06, 0.004), Vector3(0, lift + size.y * 0.5, size.z * 0.5 + 0.002), MK.mat(CREAM, 0.0, 0.8))
-	# Lockup: bean, then the title with the subtitle under it, left-aligned to the
-	# title and stretched to its width. The block is centred on the face from
-	# measured text widths so the side margins match.
+		MK.box(root, "Leg", Vector3(0.05, lift + 0.15, 0.05), Vector3(float(sx) * 0.6, (lift + 0.15) * 0.5, -0.05), frame)
 	var face_y := lift + size.y * 0.5
-	var front := size.z * 0.5 + 0.006
+	MK.box(root, "Board", size, Vector3(0, face_y, 0), frame)
+	MK.box(root, "Face", Vector3(size.x - 0.08, size.y - 0.08, 0.004), Vector3(0, face_y, size.z * 0.5 + 0.002), MK.mat(CREAM, 0.0, 0.8))
+	# Bean and name as one block, centred from the measured text width.
 	var title := "GREEN BEAN"
-	var subtitle := "COFFEE  ·  ESPRESSO  ·  POUR OVER"
-	var title_px := 0.0017
-	var title_w := _text_width(title, 130) * title_px
-	var sub_px := title_w / _text_width(subtitle, 56)
-	var bean_w := 0.15
-	var gap := 0.09
+	var title_px := 0.0016
+	var title_w := _text_width(title, 120) * title_px
+	var bean_w := 0.135
+	var gap := 0.07
 	var left := -(bean_w + gap + title_w) * 0.5
 	var bean := MK.group(root, "Bean")
 	bean.position = Vector3(left + bean_w * 0.5, face_y, size.z * 0.5 + 0.02)
 	var brown: Material = MK.mat(Color(0.36, 0.2, 0.1), 0.0, 0.6)
-	var half := MK.sphere(bean, "Half", 0.1, Vector3.ZERO, brown, 1.0, 16)
+	var half := MK.sphere(bean, "Half", 0.09, Vector3.ZERO, brown, 1.0, 16)
 	half.scale = Vector3(0.75, 1.0, 0.3)
 	half.rotation_degrees = Vector3(0, 0, -20)
-	MK.box(bean, "Crease", Vector3(0.012, 0.16, 0.01), Vector3(0, 0, 0.028), MK.mat(Color(0.2, 0.1, 0.05), 0.0, 0.7), Vector3(0, 0, -20))
-	var text_x := left + bean_w + gap + title_w * 0.5
-	_text(root, title, Vector3(text_x, face_y + 0.055, front), 130, title_px, GREEN.darkened(0.2))
-	_text(root, subtitle, Vector3(text_x, face_y - 0.095, front), 56, sub_px, Color(0.36, 0.24, 0.14))
+	MK.box(bean, "Crease", Vector3(0.011, 0.145, 0.01), Vector3(0, 0, 0.025), MK.mat(Color(0.2, 0.1, 0.05), 0.0, 0.7), Vector3(0, 0, -20))
+	_text(root, title, Vector3(left + bean_w + gap + title_w * 0.5, face_y, size.z * 0.5 + 0.006), 120, title_px, frame_color)
 	return root
 
 ## Width of a single line in pixels, in the font Label3D uses by default.

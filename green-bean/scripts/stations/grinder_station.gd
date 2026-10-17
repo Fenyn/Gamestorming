@@ -1,6 +1,5 @@
 extends StaticBody3D
 
-const GrinderModel := preload("res://model_src/hand_grinder.gd")
 
 enum State { IDLE, DEVICE_PLACED, GRINDING, GROUNDS_READY }
 
@@ -17,9 +16,9 @@ func _ready() -> void:
 
 	_device_slot = Marker3D.new()
 	_device_slot.name = "DeviceSlot"
-	# On the dosing pad in front of the spout. Devices are lifted by half their
-	# height when placed, so their base sits on the pad.
-	_device_slot.position = Vector3(0, GrinderModel.BASE_TOP, 0.055)
+	# Moved onto the model's DevicePad marker in _build_fx. Devices are lifted by
+	# half their height when placed, so their base sits on the pad.
+	_device_slot.position = Vector3(0, 0.2, 0)
 	add_child(_device_slot)
 
 	_mini_game = GrindMiniGame.new()
@@ -37,34 +36,20 @@ func _ready() -> void:
 	_update_label()
 	_build_fx()
 
+## The crank, device pad and spout tip live in the model scene
+## (scenes/props/hand_grinder.tscn) so they can be moved in the editor.
 func _build_fx() -> void:
+	var model := get_node_or_null("Model")
+	var pad := model.get_node_or_null("DevicePad") as Node3D if model else null
+	if pad:
+		_device_slot.global_position = pad.global_position
+	var spout := model.get_node_or_null("SpoutTip") as Node3D if model else null
+	_crank_pivot = model.get_node_or_null("Crank") as Node3D if model else null
+
 	# Grounds falling into the device while the player cranks.
 	_dust = Fx.make_specks(Color(0.32, 0.2, 0.1), 0.006, -1.5, 0.45, 30)
-	_dust.position = GrinderModel.SPOUT_TIP
 	add_child(_dust)
-
-	# Crank handle on the right side that turns with the player's mouse circles.
-	_crank_pivot = Node3D.new()
-	_crank_pivot.position = GrinderModel.CRANK_PIVOT + Vector3(0.012, 0, 0)
-	add_child(_crank_pivot)
-	var crank_mat := StandardMaterial3D.new()
-	crank_mat.albedo_color = Color(0.25, 0.25, 0.27)
-	crank_mat.metallic = 0.6
-	crank_mat.roughness = 0.35
-	var arm := CSGBox3D.new()
-	arm.size = Vector3(0.01, 0.075, 0.016)
-	arm.position = Vector3(0, 0.0375, 0)
-	arm.material = crank_mat
-	_crank_pivot.add_child(arm)
-	var knob_mat := StandardMaterial3D.new()
-	knob_mat.albedo_color = Color(0.45, 0.28, 0.16)
-	var knob := CSGCylinder3D.new()
-	knob.radius = 0.012
-	knob.height = 0.03
-	knob.rotation_degrees = Vector3(0, 0, 90)
-	knob.position = Vector3(0.018, 0.075, 0)
-	knob.material = knob_mat
-	_crank_pivot.add_child(knob)
+	_dust.global_position = spout.global_position if spout else _device_slot.global_position + Vector3(0, 0.1, 0)
 
 func interact(player: Player) -> void:
 	match state:

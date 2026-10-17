@@ -4,14 +4,14 @@ extends RefCounted
 ## wood plank soffits under the overhangs (1 m over the customers at the front),
 ## a cream ceiling inside, and a header beam over the open service window.
 ## Origin: top of the walls at the stand's centre (shop (0, 2.5, 0)), so x and z
-## match the shop. Walls' inner faces: x +-1.661, back z -1.2; window at z 1.25.
+## match the shop. Walls' inner faces: x +-1.70, back z -1.2; window at z 1.25.
 ## The collider is in the shop scene.
 
 const MK := preload("res://model_src/model_kit.gd")
 
 const EAVE := Rect2(-2.1, -1.45, 4.2, 3.67)
-const INNER := Rect2(-1.661, -1.2, 3.322, 2.45)
-const OUTER_WALL := Rect2(-1.839, -1.3, 3.678, 2.55)
+const INNER := Rect2(-1.7, -1.2, 3.4, 2.45)
+const OUTER_WALL := Rect2(-1.8, -1.3, 3.6, 2.55)
 const DECK := 0.1
 const FASCIA_H := 0.2
 const GREEN := Color(0.22, 0.42, 0.28)

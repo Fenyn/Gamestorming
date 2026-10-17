@@ -42,7 +42,6 @@
 [ext_resource type="PackedScene" path="res://scenes/stations/bottle_rack.tscn" id="18_rack"]
 [ext_resource type="PackedScene" path="res://assets/models/kenney/floorFull.glb" id="k_floorFull"]
 [ext_resource type="PackedScene" path="res://assets/models/kenney/wall.glb" id="k_wall"]
-[ext_resource type="PackedScene" path="res://assets/models/kenney/wallWindow.glb" id="k_wallWindow"]
 [ext_resource type="PackedScene" path="res://assets/models/kenney/kitchenBar.glb" id="k_kitchenBar"]
 [ext_resource type="PackedScene" path="res://assets/models/kenney/kitchenCabinet.glb" id="k_kitchenCabinet"]
 [ext_resource type="PackedScene" path="res://assets/models/kenney/kitchenCabinetDrawer.glb" id="k_kitchenCabinetDrawer"]
@@ -64,6 +63,8 @@
 [ext_resource type="PackedScene" path="res://scenes/props/stand_roof.tscn" id="p_roof"]
 [ext_resource type="PackedScene" path="res://scenes/props/back_counter.tscn" id="p_back_counter"]
 [ext_resource type="PackedScene" path="res://scenes/props/stand_frame.tscn" id="p_frame"]
+[ext_resource type="PackedScene" path="res://scenes/props/side_wall_left.tscn" id="p_wall_l"]
+[ext_resource type="PackedScene" path="res://scenes/props/side_wall_right.tscn" id="p_wall_r"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.38, 0.55, 0.78, 1)
@@ -259,8 +260,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.75, 1.25, 0)
 [node name="Collision" type="CollisionShape3D" parent="LeftWall"]
 shape = SubResource("shape_LeftWall")
 
-[node name="Model" parent="LeftWall" instance=ExtResource("k_wallWindow")]
-transform = Transform3D(0, 0, 1, 0, 0.969, 0, -1.25, 0, 0, 0, -1.25, 0)
+[node name="Model" parent="LeftWall" instance=ExtResource("p_wall_l")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.25, 0)
 
 [node name="RightWall" type="StaticBody3D" parent="." groups=["nav_geometry"] unique_id=564288447]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 1.25, 0)
@@ -268,8 +269,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.75, 1.25, 0)
 [node name="Collision" type="CollisionShape3D" parent="RightWall"]
 shape = SubResource("shape_RightWall")
 
-[node name="Model" parent="RightWall" instance=ExtResource("k_wallWindow")]
-transform = Transform3D(0, 0, -1, 0, 0.969, 0, 1.25, 0, 0, 0, -1.25, 0)
+[node name="Model" parent="RightWall" instance=ExtResource("p_wall_r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.25, 0)
 
 [node name="FrontCounter" type="StaticBody3D" parent="." groups=["nav_geometry"] unique_id=1559282005]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 1.025)
@@ -321,10 +322,10 @@ transform = Transform3D(0.992, 0, 0, 0, 0.789, 0, 0, 0, 0.867, 0.4265, 0.1, -0.8
 transform = Transform3D(0.992, 0, 0, 0, 0.789, 0, 0, 0, 0.867, 1.2795, 0.1, -0.837)
 
 [node name="UpperCabinetLeft" parent="Decor" instance=ExtResource("k_kitchenCabinetUpper")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 1.6, -0.98)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.27, 1.6, -0.98)
 
 [node name="UpperCabinetRight" parent="Decor" instance=ExtResource("k_kitchenCabinetUpper")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 1.6, -0.98)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.27, 1.6, -0.98)
 
 [node name="BackstockBox" parent="Decor" instance=ExtResource("k_cardboardBoxClosed")]
 transform = Transform3D(0.772741, 0, 0.207055, 0, 0.8, 0, -0.207055, 0, 0.772741, -1.06, 0.1, -0.95)

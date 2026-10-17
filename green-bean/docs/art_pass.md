@@ -8,7 +8,7 @@ First art pass on the espresso stand. Kenney CC0 models replace the room, counte
 |---|---|---|
 | Floor inside the stand | `Platform` CSG box | Kenney `floorFull` (StaticBody3D collision unchanged) |
 | Back wall | CSG box | Kenney `wall`, recoloured cream |
-| Side walls | CSG boxes | Kenney `wallWindow`, recoloured cream |
+| Side walls | CSG boxes | Custom `side_wall_left/right.tscn` with the window sill above the back counter |
 | Front counter | CSG box | 4× Kenney `kitchenBar`, 0.45 m deep (deepened toward the barista) |
 | Back counter | Floating CSG slab | Custom stone top with tiled backsplash (`back_counter.tscn`) on 3 Kenney base cabinets |
 | Fridge station | CSG box | Kenney `kitchenFridgeSmall` (mini fridge), node `Model` |
@@ -82,9 +82,10 @@ Blender can't be installed in the cloud session, so custom props are generated o
 | `scenes/props/change_mat.tscn` | `cash_drawer.tscn` (node `ChangeMat`, on the counter top behind the drawer) | Rubber change mat. The customer's bill lands on `TenderSpot`; counted change fans out from `BillSpot` and stacks on `Coin_<key>`. |
 | `scenes/props/pickup_shelf.tscn` | `hand_off.tscn` | Wooden pickup riser (36 x 13 cm, 5.3 cm tall) with a tented "PICK UP" chalkboard readable from both sides. Origin at the base. The finished drink stands on `DrinkSpot`. |
 | `scenes/props/bar_mat.tscn` | `counter_pad.tscn` | Black rubber bar mat (38 x 38 cm) with a rim and a nub grid. Items stand on the `Slot0`-`Slot3` markers. |
-| `scenes/props/back_counter.tscn` | `BackCounter` in `espresso_stand.tscn` (collider in the shop scene) | Wall-to-wall stone top (3.32 x 0.78 m, 4 cm) with a rounded front edge 2.5 cm past the cabinets, a dark apron that hides the cabinets' own tops, and three rows of running-bond tiles on the back wall. Back-row stations must stay in front of the tiles (z > -1.188). |
+| `scenes/props/back_counter.tscn` | `BackCounter` in `espresso_stand.tscn` (collider in the shop scene) | Wall-to-wall stone top (3.40 x 0.78 m, 4 cm) with a rounded front edge 2.5 cm past the cabinets, a dark apron that hides the cabinets' own tops, and three rows of running-bond tiles on the back wall. Back-row stations must stay in front of the tiles (z > -1.188). |
 | `scenes/props/stand_roof.tscn` | `Roof` in `espresso_stand.tscn` (collider in the shop scene) | Flat roof: membrane deck, green fascia with a drip edge, wood plank soffits under the overhangs (1 m at the front), cream ceiling inside, and a green header beam over the service window. Origin at the wall tops so x and z match the shop. |
 | `scenes/props/stand_frame.tscn` | `Frame` in `espresso_stand.tscn` | Green corner boards where the back wall meets the side walls, green posts at the side walls' front ends carrying the header beam, and wood knee braces under the front overhang. Origin at the ground, shop x and z. |
+| `scenes/props/side_wall_left.tscn`, `side_wall_right.tscn` | `LeftWall`, `RightWall` in `espresso_stand.tscn` | 0.1 m walls, cream inside (face at x +-1.70) and dark grey-green outside, running from the back wall's outer face to the service window. One window each, sill casing at 0.96 m so the back counter runs underneath it (the stock Kenney window came down to 0.67 m and the counter cut through its trim). Wood casing on both faces, jambs, sash, sill and a glass pane. |
 
 Station scripts read markers with `StationUtils.model_marker(station, "Name", fallback)` and stand items on them with `StationUtils.item_half_height(item)`.
 

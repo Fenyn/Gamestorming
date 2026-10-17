@@ -176,6 +176,12 @@ func _update_steam_fx() -> void:
 		_placed_pitcher.update_milk_visual(temp_ratio, _steam_game.foam_level, state == State.SCALDED)
 
 func _check_removed_items() -> void:
+	# The spare pitcher can be clicked up directly from the mat; forget it then,
+	# so the label stops offering to pick it up.
+	if _shelf_pitcher and StationUtils.is_item_removed(_shelf_pitcher, to_global(_rest_position()), 0.15):
+		_shelf_pitcher = null
+		if state == State.IDLE:
+			_update_label()
 	if _placed_pitcher and StationUtils.is_item_removed(_placed_pitcher, _pitcher_slot.global_position):
 		_placed_pitcher = null
 		if state != State.IDLE:

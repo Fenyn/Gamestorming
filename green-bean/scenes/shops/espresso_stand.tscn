@@ -836,7 +836,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4873365, 0.89, -0.67978656)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.48098433, 0.89, -0.6505481)
 
 [node name="CounterPad" parent="." unique_id=1468109494 instance=ExtResource("6_u3j1k")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.581631, 0.90000004, -0.6815772)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.581631, 0.89, -0.6815772)
 
 [node name="BottleRack" parent="." unique_id=995827367 instance=ExtResource("18_rack")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.83252275, 0.9, -1.154326)
@@ -851,7 +851,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5143777, 0.34999996, -0.67
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4028236, 0.89, -1.005)
 
 [node name="HandOff" parent="." unique_id=1692004057 instance=ExtResource("11_u3j1k")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.05, 1.21)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, 1.15)
 
 [node name="CashDrawer" parent="." unique_id=417275188 instance=ExtResource("12_u3j1k")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9374628, 0.951, 0.946)

@@ -2,8 +2,9 @@ extends RefCounted
 
 ## Cone dripper (the carriable pour-over brewer), at the size of a typical
 ## one-to-two cup ceramic cone: about 11.5 cm across the rim and 8 cm tall,
-## with a 60 degree cone, spiral ribs inside, a single drain hole, a flat
-## base ring that sits on a cup, and a flat loop handle on one side.
+## with a 60 degree cone, a single drain hole, a base ring that sits on a cup,
+## and a loop handle on one side whose ends are joined into the wall. The paper
+## filter is always in, so the ribs a real cone has inside are left out.
 ##
 ## Origin is the middle of the dripper, so the base ring sits at y = -0.04 and
 ## the rim at 0.04. The handle points along +X.
@@ -46,7 +47,6 @@ static func build() -> Node3D:
 	for p in PROFILE:
 		profile.append(p)
 	MK.lathe(root, "Body", profile, Vector3.ZERO, ceramic, 32)
-	_build_ribs(root, ceramic)
 	_build_handle(root, ceramic)
 	_build_filter(root)
 
@@ -71,37 +71,27 @@ static func build() -> Node3D:
 	root.set_meta("ring_contact_y", lerpf(outer_low_y, outer_high_y, (0.045 - 0.040) / (0.058 - 0.040)))
 	return root
 
-## Slanted ribs on the inside wall, from near the hole up toward the rim. Each
-## rib twists a little around the cone as it climbs, like a spiral rib.
-static func _build_ribs(root: Node3D, ceramic: Material) -> void:
-	var ribs := MK.group(root, "Ribs")
-	var count := 12
-	var low_y := FOOT_TOP + 0.01
-	var high_y := RIM_Y - 0.008
-	var inner_low := FOOT_TOP + 0.004
-	var inner_high := RIM_Y - 0.001
-	for i in range(count):
-		var a0 := TAU * float(i) / float(count)
-		var a1 := a0 + deg_to_rad(35.0)
-		var r0 := _radius_at(low_y, 0.0065, inner_low, 0.0545, inner_high) - 0.0008
-		var r1 := _radius_at(high_y, 0.0065, inner_low, 0.0545, inner_high) - 0.0008
-		var p0 := Vector3(sin(a0) * r0, low_y, cos(a0) * r0)
-		var p1 := Vector3(sin(a1) * r1, high_y, cos(a1) * r1)
-		var rib := MK.box(ribs, "Rib", Vector3(0.0018, p0.distance_to(p1), 0.0018), Vector3.ZERO, ceramic)
-		# Point the box's Y axis from p0 to p1.
-		var up := (p1 - p0).normalized()
-		var side := up.cross(Vector3(p0.x + p1.x, 0, p0.z + p1.z).normalized()).normalized()
-		var fwd := side.cross(up).normalized()
-		rib.transform = Transform3D(Basis(side, up, fwd), (p0 + p1) * 0.5)
-
 static func _build_handle(root: Node3D, ceramic: Material) -> void:
 	var handle := MK.group(root, "Handle")
-	# Flat loop handle: a ring of ceramic standing out from the side of the cone.
+	# Loop handle on the +X side. Both ends are sunk 2 mm into the cone wall, and
+	# the loop follows the wall's slant, so it is joined to the body all the way.
+	var y_low := -0.018
+	var y_high := 0.028
+	var reach := 0.019
 	var path := PackedVector3Array()
-	for k in range(13):
-		var a := deg_to_rad(-100.0 + 200.0 * float(k) / 12.0)
-		path.append(Vector3(0.056 + 0.02 + cos(a) * 0.02, 0.006 + sin(a) * 0.022, 0))
-	MK.sweep(handle, "Loop", path, 0.0035, 0.006, ceramic, Vector3.BACK, 10)
+	for k in range(15):
+		var a := deg_to_rad(-90.0 + 180.0 * float(k) / 14.0)
+		var y := lerpf(y_low, y_high, (sin(a) + 1.0) * 0.5)
+		var wall := _outer_radius(y) - 0.002
+		path.append(Vector3(wall + cos(a) * reach, y, 0))
+	MK.sweep(handle, "Loop", path, 0.0035, 0.0055, ceramic, Vector3.BACK, 10)
+	# Rounded joints where the loop meets the cone.
+	MK.sphere(handle, "JointTop", 0.0052, Vector3(_outer_radius(y_high) - 0.001, y_high, 0), ceramic, 0.9, 10)
+	MK.sphere(handle, "JointLow", 0.0052, Vector3(_outer_radius(y_low) - 0.001, y_low, 0), ceramic, 0.9, 10)
+
+## Radius of the outside of the cone at local height y.
+static func _outer_radius(y: float) -> float:
+	return _radius_at(y, 0.040, FOOT_TOP + 0.002, 0.058, RIM_Y - 0.004)
 
 static func _build_filter(root: Node3D) -> void:
 	# Paper cone filter lining the inside, with its seam fold standing above the rim.

@@ -104,12 +104,30 @@ func receive_item(item: Node3D) -> bool:
 	if not item is Pitcher:
 		return false
 	if _placed_pitcher:
-		return false
+		# Pad is taken: park the pitcher on the mat if it is free.
+		return receive_on_mat(item)
 	_placed_pitcher = item as Pitcher
 	StationUtils.place_at_slot(item, _pitcher_slot.global_position + Vector3(0, StationUtils.item_half_height(item), 0))
+	item.global_rotation = global_rotation
 	state = State.PITCHER_PLACED
 	_update_label()
 	return true
+
+## Sets a pitcher down on the spare-pitcher mat (clicked through the MatArea).
+func receive_on_mat(item: Node3D) -> bool:
+	if not item is Pitcher or _mat_occupied():
+		return false
+	StationUtils.place_at_slot(item, to_global(_rest_position()))
+	item.global_rotation = global_rotation
+	# Leave it clickable, like the spare the station starts with.
+	StationUtils.set_item_collision(item, true)
+	_shelf_pitcher = item as Pitcher
+	if state == State.IDLE:
+		_update_label()
+	return true
+
+func _mat_occupied() -> bool:
+	return _shelf_pitcher != null and is_instance_valid(_shelf_pitcher)
 
 func _on_steam_complete(quality: float) -> void:
 	if quality > 0 and _placed_pitcher:
@@ -192,9 +210,15 @@ func _reset() -> void:
 	_steam_game.reset_steam()
 	if _placed_pitcher:
 		_placed_pitcher.reset_pitcher()
-		_placed_pitcher.global_position = to_global(_rest_position())
-		_shelf_pitcher = _placed_pitcher
-		_placed_pitcher = null
+		if _mat_occupied():
+			# The mat already has a pitcher, so the emptied one stays on the pad.
+			state = State.PITCHER_PLACED
+		else:
+			StationUtils.cancel_settle(_placed_pitcher)
+			_placed_pitcher.global_position = to_global(_rest_position())
+			StationUtils.set_item_collision(_placed_pitcher, true)
+			_shelf_pitcher = _placed_pitcher
+			_placed_pitcher = null
 	_update_label()
 
 func _update_label() -> void:
@@ -202,8 +226,7 @@ func _update_label() -> void:
 		return
 	match state:
 		State.IDLE:
-			var has_shelf: bool = _shelf_pitcher != null and is_instance_valid(_shelf_pitcher)
-			if has_shelf:
+			if _mat_occupied():
 				_status_label.text = "[E] Pick up pitcher"
 			else:
 				_status_label.text = "Bring pitcher with milk"

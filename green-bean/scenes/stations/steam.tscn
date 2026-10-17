@@ -4,8 +4,13 @@
 
 [ext_resource type="PackedScene" path="res://scenes/props/steam_station.tscn" id="2_model"]
 
+[ext_resource type="Script" path="res://scripts/stations/station_proxy.gd" id="3_proxy"]
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_001"]
 size = Vector3(0.12, 0.245, 0.195)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_mat"]
+size = Vector3(0.1, 0.012, 0.1)
 
 [node name="Steam" type="StaticBody3D" unique_id=1034356511]
 script = ExtResource("1")
@@ -22,3 +27,11 @@ pixel_size = 0.002
 billboard = 2
 text = "STEAMER"
 font_size = 24
+
+[node name="MatArea" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, -0.119, 0.03)
+script = ExtResource("3_proxy")
+receive_method = &"receive_on_mat"
+
+[node name="Collision" type="CollisionShape3D" parent="MatArea"]
+shape = SubResource("BoxShape3D_mat")

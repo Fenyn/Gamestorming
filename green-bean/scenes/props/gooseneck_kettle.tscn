@@ -114,87 +114,117 @@ height = 0.0135
 radial_segments = 12
 rings = 6
 
-[sub_resource type="CylinderShape3D" id="CylinderShape3D_8rv6w"]
+[sub_resource type="BoxMesh" id="BoxMesh_8rv6w"]
+size = Vector3(0.018, 0.014, 0.002)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tlduq"]
+size = Vector3(0.024, 0.0025, 0.012)
+
+[sub_resource type="BoxMesh" id="BoxMesh_chka6"]
+size = Vector3(0.024, 0.007, 0.002)
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_3ht4v"]
 height = 0.12
 radius = 0.072
 
-[node name="GooseneckKettle" type="Node3D" unique_id=1026224480]
+[node name="GooseneckKettle" type="Node3D" unique_id=922853725]
 
-[node name="Body" type="MeshInstance3D" parent="." unique_id=1653244624]
+[node name="Body" type="MeshInstance3D" parent="." unique_id=2119535079]
 material_override = SubResource("StandardMaterial3D_5yeye")
 mesh = SubResource("ArrayMesh_nbgbb")
 
-[node name="BaseSeam" type="MeshInstance3D" parent="." unique_id=1061333332]
+[node name="BaseSeam" type="MeshInstance3D" parent="." unique_id=1334300605]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.056, 0)
 material_override = SubResource("StandardMaterial3D_0ilks")
 mesh = SubResource("TorusMesh_j6mbb")
 
-[node name="Spout" type="Node3D" parent="." unique_id=436901360]
+[node name="Spout" type="Node3D" parent="." unique_id=776636894]
 
-[node name="SpoutBase" type="MeshInstance3D" parent="Spout" unique_id=637489630]
+[node name="SpoutBase" type="MeshInstance3D" parent="Spout" unique_id=780856291]
 material_override = SubResource("StandardMaterial3D_5yeye")
 mesh = SubResource("ArrayMesh_e7dju")
 
-[node name="Neck" type="MeshInstance3D" parent="Spout" unique_id=1637949376]
+[node name="Neck" type="MeshInstance3D" parent="Spout" unique_id=36920095]
 material_override = SubResource("StandardMaterial3D_5yeye")
 mesh = SubResource("ArrayMesh_qjt7m")
 
-[node name="Collar" type="MeshInstance3D" parent="Spout" unique_id=213701529]
+[node name="Collar" type="MeshInstance3D" parent="Spout" unique_id=542449018]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.055999998, -0.04, 0)
 material_override = SubResource("StandardMaterial3D_5yeye")
 mesh = SubResource("SphereMesh_06o38")
 
-[node name="SpoutTip" type="Marker3D" parent="." unique_id=1232876098]
+[node name="SpoutTip" type="Marker3D" parent="." unique_id=1168753382]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.17171499, 0.06497101, 0)
 gizmo_extents = 0.03
 
-[node name="Handle" type="Node3D" parent="." unique_id=298194075]
+[node name="Handle" type="Node3D" parent="." unique_id=898604539]
 
-[node name="TopBracket" type="MeshInstance3D" parent="Handle" unique_id=1288359124]
+[node name="TopBracket" type="MeshInstance3D" parent="Handle" unique_id=59188791]
 transform = Transform3D(0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 0, 0, 1, 0.05, 0.036, 0)
 material_override = SubResource("StandardMaterial3D_5yeye")
 mesh = SubResource("BoxMesh_xxa1i")
 
-[node name="LowBracket" type="MeshInstance3D" parent="Handle" unique_id=797000177]
+[node name="LowBracket" type="MeshInstance3D" parent="Handle" unique_id=135131845]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.071, -0.03, 0)
 material_override = SubResource("StandardMaterial3D_5yeye")
 mesh = SubResource("BoxMesh_lnudd")
 
-[node name="Grip" type="MeshInstance3D" parent="Handle" unique_id=842765549]
+[node name="Grip" type="MeshInstance3D" parent="Handle" unique_id=1037250609]
 material_override = SubResource("StandardMaterial3D_3vxy8")
 mesh = SubResource("ArrayMesh_e5e7v")
 
-[node name="Ridge" type="MeshInstance3D" parent="Handle" unique_id=413169472]
+[node name="Ridge" type="MeshInstance3D" parent="Handle" unique_id=1466674793]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.113, 0.03, 0)
 material_override = SubResource("StandardMaterial3D_3vxy8")
 mesh = SubResource("BoxMesh_lspw3")
 
-[node name="Ridge2" type="MeshInstance3D" parent="Handle" unique_id=856559121]
+[node name="Ridge2" type="MeshInstance3D" parent="Handle" unique_id=1429712204]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.111, 0.016, 0)
 material_override = SubResource("StandardMaterial3D_3vxy8")
 mesh = SubResource("BoxMesh_4bde3")
 
-[node name="Ridge3" type="MeshInstance3D" parent="Handle" unique_id=385971026]
+[node name="Ridge3" type="MeshInstance3D" parent="Handle" unique_id=1706997487]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.109, 0.002, 0)
 material_override = SubResource("StandardMaterial3D_3vxy8")
 mesh = SubResource("BoxMesh_i4xu1")
 
-[node name="Lid" type="Node3D" parent="." unique_id=1915426907]
+[node name="Lid" type="Node3D" parent="." unique_id=1840345292]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.048, 0)
 
-[node name="LidDome" type="MeshInstance3D" parent="Lid" unique_id=149805519]
+[node name="LidDome" type="MeshInstance3D" parent="Lid" unique_id=866196196]
 material_override = SubResource("StandardMaterial3D_5yeye")
 mesh = SubResource("ArrayMesh_0xbfg")
 
-[node name="KnobStem" type="MeshInstance3D" parent="Lid" unique_id=176373585]
+[node name="KnobStem" type="MeshInstance3D" parent="Lid" unique_id=524441369]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.012, 0)
 material_override = SubResource("StandardMaterial3D_3vxy8")
 mesh = SubResource("CylinderMesh_ru6yn")
 
-[node name="Knob" type="MeshInstance3D" parent="Lid" unique_id=621131403]
+[node name="Knob" type="MeshInstance3D" parent="Lid" unique_id=92462051]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.019, 0)
 material_override = SubResource("StandardMaterial3D_3vxy8")
 mesh = SubResource("SphereMesh_scwml")
 
-[node name="Collision" type="CollisionShape3D" parent="." unique_id=1011659698]
-shape = SubResource("CylinderShape3D_8rv6w")
+[node name="LidClip" type="Node3D" parent="." unique_id=1927847947]
+
+[node name="Plate" type="MeshInstance3D" parent="LidClip" unique_id=39067937]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.012, 0.0712)
+material_override = SubResource("StandardMaterial3D_5yeye")
+mesh = SubResource("BoxMesh_8rv6w")
+
+[node name="Shelf" type="MeshInstance3D" parent="LidClip" unique_id=230738408]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0185, 0.0772)
+material_override = SubResource("StandardMaterial3D_5yeye")
+mesh = SubResource("BoxMesh_tlduq")
+
+[node name="Lip" type="MeshInstance3D" parent="LidClip" unique_id=548130289]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0155, 0.0827)
+material_override = SubResource("StandardMaterial3D_5yeye")
+mesh = SubResource("BoxMesh_chka6")
+
+[node name="LidParked" type="Marker3D" parent="." unique_id=1838253062]
+transform = Transform3D(1, 0, 0, 0, 0.20791166, -0.9781476, 0, 0.9781476, 0.20791166, 0, 0.022125904, 0.06888353)
+gizmo_extents = 0.03
+
+[node name="Collision" type="CollisionShape3D" parent="." unique_id=771085715]
+shape = SubResource("CylinderShape3D_3ht4v")

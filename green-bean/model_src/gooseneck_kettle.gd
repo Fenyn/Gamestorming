@@ -16,7 +16,10 @@ extends RefCounted
 ##               runtime, so resize it here if you change the shape.
 ##   SpoutTip    Marker3D at the mouth of the spout. Water streams from here,
 ##               and pours place the kettle so this lands over the target.
-##   Lid         Node3D holding the lid and knob. Lifted while the kettle fills.
+##   Lid         Node3D holding the lid and knob. Moved to LidParked while the
+##               kettle fills.
+##   LidParked   Marker3D for the lid's parked spot: hung on the LidClip on the
+##               front (+Z) of the body, dome out, like a fuel cap on its holder.
 
 const MK := preload("res://model_src/model_kit.gd")
 
@@ -57,6 +60,7 @@ static func build() -> Node3D:
 	_build_spout(root, steel)
 	_build_handle(root, steel)
 	_build_lid(root, steel)
+	_build_lid_clip(root, steel)
 
 	var col := CollisionShape3D.new()
 	col.name = "Collision"
@@ -116,3 +120,19 @@ static func _build_lid(root: Node3D, steel: Material) -> void:
 	var black: Material = MK.mat(HANDLE_BLACK, 0.0, 0.6)
 	MK.cyl(lid, "KnobStem", 0.005, 0.006, 0.006, Vector3(0, 0.012, 0), black, 12)
 	MK.sphere(lid, "Knob", 0.009, Vector3(0, 0.019, 0), black, 0.75, 12)
+
+## Small steel holder on the front of the body. While filling, the lid hangs
+## here upright with its lower rim on the shelf, so it is not left floating.
+static func _build_lid_clip(root: Node3D, steel: Material) -> void:
+	var clip := MK.group(root, "LidClip")
+	var wall_z := 0.0712
+	# Back plate spot-welded to the body, a shelf sticking out, and a lip.
+	MK.box(clip, "Plate", Vector3(0.018, 0.014, 0.002), Vector3(0, -0.012, wall_z), steel)
+	MK.box(clip, "Shelf", Vector3(0.024, 0.0025, 0.012), Vector3(0, -0.0185, wall_z + 0.006), steel)
+	MK.box(clip, "Lip", Vector3(0.024, 0.007, 0.002), Vector3(0, -0.0155, wall_z + 0.0115), steel)
+	# Lid stands on the shelf between plate and lip, dome facing out, leaning
+	# back against the body's curve. Its rim radius is 0.04, so its centre sits
+	# about 0.04 up the tilted lid from the shelf.
+	var lean := deg_to_rad(12.0)
+	var centre := Vector3(0, -0.017 + 0.04 * cos(lean), wall_z + 0.006 - 0.04 * sin(lean))
+	MK.marker(root, "LidParked", centre, Vector3(90.0 - 12.0, 0, 0))

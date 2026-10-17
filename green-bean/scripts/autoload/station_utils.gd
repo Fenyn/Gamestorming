@@ -67,8 +67,24 @@ func create_status_label(parent: Node3D, offset := Vector3(-999, 0, 0)) -> Label
 	label.position = pos
 	label.pixel_size = 0.002
 	label.add_to_group("world_label")
+	label.add_to_group("station_status")
 	parent.add_child(label)
 	return label
+
+## Name for the HUD prompt: the node's "display_name" metadata, else its node
+## name split into words ("MochaSauce" -> "Mocha sauce").
+func display_name(node: Node) -> String:
+	if node.has_meta("display_name"):
+		return str(node.get_meta("display_name"))
+	var raw := String(node.name)
+	var out := ""
+	for i in raw.length():
+		var ch := raw[i]
+		if i > 0 and ch != ch.to_lower():
+			out += " " + ch.to_lower()
+		else:
+			out += ch
+	return out
 
 # Front (+Z) edge of an imported model, in the station's local space.
 # Stations name their visual model node "Model" so labels clear it like a grey box.

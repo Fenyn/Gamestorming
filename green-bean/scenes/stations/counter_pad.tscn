@@ -8,16 +8,10 @@ size = Vector3(0.38, 0.016, 0.38)
 
 [node name="CounterPad" type="StaticBody3D" unique_id=1893169287]
 script = ExtResource("1")
+metadata/display_name = "Bar mat"
 
 [node name="Model" parent="." instance=ExtResource("2_model")]
 
 [node name="Collision" type="CollisionShape3D" parent="." unique_id=2925598]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.008, 0)
 shape = SubResource("BoxShape3D_001")
-
-[node name="Label3D" type="Label3D" parent="." unique_id=2037799620 groups=["world_label"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
-pixel_size = 0.002
-billboard = 2
-text = "COUNTER PAD"
-font_size = 24

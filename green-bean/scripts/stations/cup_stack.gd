@@ -20,7 +20,7 @@ func _ready() -> void:
 	EventBus.ticket_printed.connect(_on_ticket_printed)
 
 	_label = StationUtils.create_status_label(self, Vector3(0, 0.25, 0.12))
-	_label.text = "CUPS\n[E] Grab cup"
+	_label.text = "[E] Grab cup"
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 
 func _on_ticket_printed(data: Dictionary) -> void:
@@ -50,9 +50,9 @@ func interact(player: Player) -> void:
 func _update_label() -> void:
 	if _label:
 		if _pending_orders.is_empty():
-			_label.text = "CUPS\n[E] Grab cup"
+			_label.text = "[E] Grab cup"
 		else:
-			_label.text = "CUPS (%d orders)\n[E] Grab cup" % _pending_orders.size()
+			_label.text = "%d orders waiting\n[E] Grab cup" % _pending_orders.size()
 
 
 # ── Ticket rail: printed tickets pop up above the cups, oldest on the left ──

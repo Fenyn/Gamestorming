@@ -15,10 +15,3 @@ transform = Transform3D(0.417, 0, 0, 0, 0.417, 0, 0, 0, 0.417, 0, -0.25, 0.05)
 [node name="Collision" type="CollisionShape3D" parent="." unique_id=913765205]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0015563965, 0)
 shape = SubResource("BoxShape3D_001")
-
-[node name="Label3D" type="Label3D" parent="." unique_id=297514828 groups=["world_label"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.29569983, 0)
-pixel_size = 0.002
-billboard = 2
-text = "FRIDGE"
-font_size = 24

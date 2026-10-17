@@ -14,6 +14,7 @@ size = Vector3(0.19, 0.03, 0.215)
 
 [node name="HotWater" type="StaticBody3D" unique_id=250269657]
 script = ExtResource("1")
+metadata/display_name = "Hot water"
 
 [node name="Model" parent="." instance=ExtResource("2_model")]
 
@@ -28,10 +29,3 @@ shape = SubResource("BoxShape3D_head")
 [node name="CollisionTray" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 0.1075)
 shape = SubResource("BoxShape3D_tray")
-
-[node name="Label3D" type="Label3D" parent="." unique_id=1842233314 groups=["world_label"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
-pixel_size = 0.002
-billboard = 2
-text = "HOT WATER"
-font_size = 24

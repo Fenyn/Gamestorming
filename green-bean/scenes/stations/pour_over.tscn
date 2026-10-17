@@ -20,6 +20,7 @@ size = Vector3(0.096, 0.012, 0.096)
 
 [node name="PourOver" type="StaticBody3D" unique_id=573714123]
 script = ExtResource("1")
+metadata/display_name = "Pour-over"
 
 [node name="Model" parent="." instance=ExtResource("2_model")]
 
@@ -42,10 +43,3 @@ shape = SubResource("BoxShape3D_ring")
 [node name="CollisionSaucer" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.092, 0.006, 0.035)
 shape = SubResource("BoxShape3D_saucer")
-
-[node name="Label3D" type="Label3D" parent="." unique_id=1494061965 groups=["world_label"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03, 0.36, -0.04)
-pixel_size = 0.002
-billboard = 2
-text = "POUR OVER"
-font_size = 24

@@ -830,7 +830,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1543847, 1.0702872, -1.0536
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.044063404, 0.8388775, 0.9706317)
 
 [node name="PourOver" parent="." unique_id=1693473021 instance=ExtResource("4_f7yp2")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4873365, 1.0150001, -0.67978656)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4873365, 0.89, -0.67978656)
 
 [node name="ShotPress" parent="." unique_id=1312929384 instance=ExtResource("5_vg725")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.48098433, 0.89, -0.6505481)

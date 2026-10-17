@@ -5,7 +5,8 @@ const LIQUID_SHADER := preload("res://assets/shaders/liquid.gdshader")
 const MILK_COLOR := Color(0.96, 0.95, 0.91)
 const HOT_MILK_COLOR := Color(0.97, 0.93, 0.85)
 const SCALDED_COLOR := Color(0.82, 0.68, 0.45)
-const MILK_HEIGHT := 0.06
+## Milk depth before foaming. Foam raises it by up to 60%.
+const MILK_HEIGHT := 0.04
 
 var has_milk := false:
 	set(value):
@@ -21,9 +22,9 @@ const MODEL := preload("res://scenes/props/milk_pitcher.tscn")
 var _milk_visual: MeshInstance3D = null
 var _milk_mesh: CylinderMesh = null
 var _milk_mat: ShaderMaterial = null
-var _milk_floor := -0.054
+var _milk_floor := -0.043
 ## Inside wall of the model as (radius, y), low to high.
-var _inner_profile := PackedVector2Array([Vector2(0.035, -0.054), Vector2(0.032, 0.06)])
+var _inner_profile := PackedVector2Array([Vector2(0.034, -0.043), Vector2(0.0315, 0.0475)])
 
 func _ready() -> void:
 	add_to_group("carriable")
@@ -56,12 +57,21 @@ func _ready() -> void:
 	add_child(_milk_visual)
 	_set_milk_height(MILK_HEIGHT)
 
-	var col := CollisionShape3D.new()
-	var shape := CylinderShape3D.new()
-	shape.radius = 0.04
-	shape.height = 0.12
-	col.shape = shape
-	add_child(col)
+	# The collision shape is authored in the model scene; move it onto this body.
+	var col := model.get_node_or_null("Collision") as CollisionShape3D
+	if col:
+		var xform := col.transform
+		model.remove_child(col)
+		col.owner = null
+		add_child(col)
+		col.transform = model.transform * xform
+	else:
+		col = CollisionShape3D.new()
+		var shape := CylinderShape3D.new()
+		shape.radius = 0.039
+		shape.height = 0.095
+		col.shape = shape
+		add_child(col)
 
 func fill_milk() -> void:
 	has_milk = true

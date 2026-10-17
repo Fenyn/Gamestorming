@@ -52,11 +52,12 @@ func _spawn_shelf_pitcher() -> void:
 	_shelf_pitcher = Pitcher.new()
 	_shelf_pitcher.name = "PitcherShelf"
 	add_child(_shelf_pitcher)
-	_shelf_pitcher.position = _rest_position()
+	_shelf_pitcher.position = _rest_position(_shelf_pitcher)
 
-## Where the spare pitcher waits, standing on the model's PitcherRest marker.
-func _rest_position() -> Vector3:
-	return StationUtils.model_marker(self, "PitcherRest", Vector3(0.15, 0.06, 0)) + Vector3(0, 0.06, 0)
+## Where a pitcher stands on the mat: the model's PitcherRest marker, raised by
+## half the pitcher's height (station-local).
+func _rest_position(pitcher: Node3D) -> Vector3:
+	return StationUtils.model_marker(self, "PitcherRest", Vector3(0.12, -0.12, 0.03)) + Vector3(0, StationUtils.item_half_height(pitcher), 0)
 
 func interact(player: Player) -> void:
 	if _steam_game.is_active():
@@ -117,7 +118,7 @@ func receive_item(item: Node3D) -> bool:
 func receive_on_mat(item: Node3D) -> bool:
 	if not item is Pitcher or _mat_occupied():
 		return false
-	StationUtils.place_at_slot(item, to_global(_rest_position()))
+	StationUtils.place_at_slot(item, to_global(_rest_position(item)))
 	item.global_rotation = global_rotation
 	# Leave it clickable, like the spare the station starts with.
 	StationUtils.set_item_collision(item, true)
@@ -196,7 +197,7 @@ func _update_steam_fx() -> void:
 func _check_removed_items() -> void:
 	# The spare pitcher can be clicked up directly from the mat; forget it then,
 	# so the label stops offering to pick it up.
-	if _shelf_pitcher and StationUtils.is_item_removed(_shelf_pitcher, to_global(_rest_position()), 0.15):
+	if _shelf_pitcher and StationUtils.is_item_removed(_shelf_pitcher, to_global(_rest_position(_shelf_pitcher)), 0.15):
 		_shelf_pitcher = null
 		if state == State.IDLE:
 			_update_label()
@@ -215,7 +216,7 @@ func _reset() -> void:
 			state = State.PITCHER_PLACED
 		else:
 			StationUtils.cancel_settle(_placed_pitcher)
-			_placed_pitcher.global_position = to_global(_rest_position())
+			_placed_pitcher.global_position = to_global(_rest_position(_placed_pitcher))
 			StationUtils.set_item_collision(_placed_pitcher, true)
 			_shelf_pitcher = _placed_pitcher
 			_placed_pitcher = null

@@ -28,14 +28,15 @@ const HEAD_BOTTOM := 0.07
 const TRAY_TOP := BOTTOM + 0.02
 const PAD := Vector3(0, TRAY_TOP, 0.042)
 const REST := Vector3(0.12, BOTTOM + 0.004, 0.03)
-## The pitcher is 0.12 tall; steam comes out of its mouth.
-const VENT := Vector3(0, TRAY_TOP + 0.125, 0.042)
+## The 12 oz pitcher is 0.095 tall; steam comes out of its mouth.
+const VENT := Vector3(0, TRAY_TOP + 0.1, 0.042)
 ## Where the wand leaves the underside of the head.
 const WAND_JOINT := Vector3(0.0, HEAD_BOTTOM - 0.004, 0.035)
 ## Wand leans forward from vertical, like real steamers, so it enters the
 ## pitcher off-centre and the milk can spin.
 const WAND_LEAN := 8.0
-const WAND_LENGTH := 0.09
+## Long enough that the tip sits about 1 cm under the milk in a 12 oz pitcher.
+const WAND_LENGTH := 0.115
 
 const SHELL := Color(0.93, 0.92, 0.89)
 const SHELL_SHADE := Color(0.84, 0.83, 0.8)

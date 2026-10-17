@@ -860,7 +860,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9374628, 0.9746902, 1.07740
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13075483, 1.043428, -1.0869943)
 
 [node name="LidDispenser" parent="." unique_id=847908596 instance=ExtResource("14_lids")]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.61818236, 1.1001937, 1.1524439)
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.61818236, 1.0, 1.1524439)
 
 [node name="MochaSauce" parent="." unique_id=800836284 instance=ExtResource("15_sauce")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.18132281, 1.0142392, -1.1022829)

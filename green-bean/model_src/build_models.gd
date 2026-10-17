@@ -30,6 +30,7 @@ const MODELS := {
 	"pickup_shelf": preload("res://model_src/pickup_shelf.gd"),
 	"back_counter": preload("res://model_src/back_counter.gd"),
 	"stand_roof": preload("res://model_src/stand_roof.gd"),
+	"stand_frame": preload("res://model_src/stand_frame.gd"),
 }
 
 func _initialize() -> void:

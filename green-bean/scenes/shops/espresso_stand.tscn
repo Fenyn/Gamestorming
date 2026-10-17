@@ -63,6 +63,7 @@
 
 [ext_resource type="PackedScene" path="res://scenes/props/stand_roof.tscn" id="p_roof"]
 [ext_resource type="PackedScene" path="res://scenes/props/back_counter.tscn" id="p_back_counter"]
+[ext_resource type="PackedScene" path="res://scenes/props/stand_frame.tscn" id="p_frame"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.38, 0.55, 0.78, 1)
@@ -296,6 +297,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
 [node name="Collision" type="CollisionShape3D" parent="Roof"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0.385)
 shape = SubResource("shape_roof")
+
+[node name="Frame" parent="." instance=ExtResource("p_frame")]
 
 [node name="BackCounter" type="StaticBody3D" parent="." unique_id=160933405]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.89, -0.81)

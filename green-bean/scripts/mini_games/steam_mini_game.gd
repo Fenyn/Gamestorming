@@ -46,32 +46,32 @@ func _ready() -> void:
 	_status_label = Label3D.new()
 	_status_label.text = ""
 	_status_label.font_size = 14
-	_status_label.position = Vector3(0, 0.28, 0.18)
+	_status_label.position = Vector3(0, 0.31, 0.18)
 	_status_label.pixel_size = 0.001
 	_status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	add_child(_status_label)
 
 	# Temperature bar (horizontal, top)
-	_temp_bar_bg = _make_hbar(Vector3(0, 0.22, 0.18), Color(0.2, 0.2, 0.2))
-	_temp_bar_fill = _make_hbar(Vector3(-BAR_WIDTH / 2.0, 0.22, 0.18), Color(0.9, 0.5, 0.2))
+	_temp_bar_bg = _make_hbar(Vector3(0, 0.26, 0.18), Color(0.2, 0.2, 0.2))
+	_temp_bar_fill = _make_hbar(Vector3(-BAR_WIDTH / 2.0, 0.26, 0.18), Color(0.9, 0.5, 0.2))
 
 	# Foam bar (horizontal, below temp)
-	_foam_bar_bg = _make_hbar(Vector3(0, 0.18, 0.18), Color(0.2, 0.2, 0.2))
-	_foam_bar_fill = _make_hbar(Vector3(-BAR_WIDTH / 2.0, 0.18, 0.18), Color(0.85, 0.85, 0.9))
+	_foam_bar_bg = _make_hbar(Vector3(0, 0.225, 0.18), Color(0.2, 0.2, 0.2))
+	_foam_bar_fill = _make_hbar(Vector3(-BAR_WIDTH / 2.0, 0.225, 0.18), Color(0.85, 0.85, 0.9))
 
 	# Foam target marker (vertical line on foam bar)
 	_foam_target_marker = CSGBox3D.new()
 	_foam_target_marker.size = Vector3(0.004, 0.018, 0.014)
-	_foam_target_marker.position = Vector3(-BAR_WIDTH / 2.0 + BAR_WIDTH * target_foam, 0.18, 0.18)
+	_foam_target_marker.position = Vector3(-BAR_WIDTH / 2.0 + BAR_WIDTH * target_foam, 0.225, 0.18)
 	var ftm := StandardMaterial3D.new()
 	ftm.albedo_color = Color(0.2, 1.0, 0.4)
 	_foam_target_marker.material = ftm
 	add_child(_foam_target_marker)
 
-	# Depth gauge (vertical bar on left side)
+	# Depth gauge (vertical bar on right side, clear of the window)
 	_depth_bar_bg = CSGBox3D.new()
 	_depth_bar_bg.size = Vector3(0.015, 0.14, 0.015)
-	_depth_bar_bg.position = Vector3(-0.14, 0.15, 0.18)
+	_depth_bar_bg.position = Vector3(0.2, 0.15, 0.18)
 	var dbg := StandardMaterial3D.new()
 	dbg.albedo_color = Color(0.15, 0.15, 0.15)
 	_depth_bar_bg.material = dbg
@@ -80,7 +80,7 @@ func _ready() -> void:
 	# Sweet spot zone (green band on the depth gauge)
 	_zone_marker = CSGBox3D.new()
 	_zone_marker.size = Vector3(0.018, 0.02, 0.012)
-	_zone_marker.position = Vector3(-0.14, 0.20, 0.18)
+	_zone_marker.position = Vector3(0.2, 0.20, 0.18)
 	var zm := StandardMaterial3D.new()
 	zm.albedo_color = Color(0.2, 0.7, 0.2, 0.6)
 	_zone_marker.material = zm
@@ -89,7 +89,7 @@ func _ready() -> void:
 	# Wand position indicator (player's current depth)
 	_depth_indicator = CSGBox3D.new()
 	_depth_indicator.size = Vector3(0.022, 0.012, 0.016)
-	_depth_indicator.position = Vector3(-0.14, 0.20, 0.18)
+	_depth_indicator.position = Vector3(0.2, 0.20, 0.18)
 	var di := StandardMaterial3D.new()
 	di.albedo_color = Color(0.9, 0.9, 0.2)
 	_depth_indicator.material = di

@@ -827,19 +827,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0, 2.95)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1543847, 0.89, -1.0536677)
 
 [node name="CupStack" parent="." unique_id=848182892 instance=ExtResource("3_jxr28")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.044063404, 0.8388775, 0.9706317)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0.838878, 0.970632)
 
 [node name="PourOver" parent="." unique_id=1693473021 instance=ExtResource("4_f7yp2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4873365, 0.89, -0.67978656)
 
 [node name="ShotPress" parent="." unique_id=1312929384 instance=ExtResource("5_vg725")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.48098433, 0.89, -0.6505481)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.89, -0.650548)
 
 [node name="CounterPad" parent="." unique_id=1468109494 instance=ExtResource("6_u3j1k")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.581631, 0.89, -0.6815772)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 0.89, -0.681577)
 
 [node name="BottleRack" parent="." unique_id=995827367 instance=ExtResource("18_rack")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.83252275, 0.9, -1.154326)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 0.9, -1.15)
 
 [node name="Steam" parent="." unique_id=1879290999 instance=ExtResource("8_vo8gi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5285844, 1.0150001, -0.5977127)
@@ -848,7 +848,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5285844, 1.0150001, -0.597
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5143777, 0.34999996, -0.67556924)
 
 [node name="HotWater" parent="." unique_id=250269657 instance=ExtResource("9_jxr28")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4028236, 0.89, -1.005)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.62, 0.89, -0.96)
 
 [node name="HandOff" parent="." unique_id=1692004057 instance=ExtResource("11_u3j1k")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, 1.15)
@@ -863,17 +863,17 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13075483, 1.043428, -1.086
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.61818236, 1.0, 1.1524439)
 
 [node name="MochaSauce" parent="." unique_id=800836284 instance=ExtResource("15_sauce")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.18132281, 1.0142392, -1.1022829)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 1.01424, -1.10228)
 
 [node name="CaramelSauce" parent="." unique_id=661806952 instance=ExtResource("15_sauce")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 1.0142392, -1.1022829)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.67, 1.01424, -1.10228)
 sauce_type = 1
 
 [node name="MochaPrep" parent="." unique_id=1947242462 instance=ExtResource("17_mocha_prep")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0185052, 0.9898257, -1.0762138)
 
 [node name="CaramelPrep" parent="." unique_id=50889276 instance=ExtResource("16_prep")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6288743, 0.99221563, -1.098061)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.42, 0.992216, -1.09806)
 sauce_type = 1
 
 [node name="Register" parent="." unique_id=1770249230 instance=ExtResource("10_vg725")]

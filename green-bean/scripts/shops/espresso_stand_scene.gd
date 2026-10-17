@@ -85,9 +85,9 @@ func _gate_stations() -> void:
 func _spawn_sauce_bottles() -> void:
 	if "sauce_station" not in UnlockManager.owned_equipment:
 		return
-	var rack := get_node_or_null("BottleRack")
-	if rack and not rack.visible:
-		rack = null
+	var rack_node := get_node_or_null("BottleRack") as Node3D
+	var rack := rack_node if rack_node and rack_node.visible else null
+	var spare_spot := rack_node.global_position if rack_node else Vector3(0.12, 0.9, -1.15)
 	for i in range(BOTTLE_COUNT):
 		var bottle := SauceBottle.create_empty()
 		bottle.name = "SauceBottle%d" % i
@@ -95,4 +95,4 @@ func _spawn_sauce_bottles() -> void:
 		if rack and rack.has_method("receive_item"):
 			rack.receive_item(bottle)
 		else:
-			bottle.global_position = Vector3(0.6 + i * 0.08, 0.95, -1.1)
+			bottle.global_position = spare_spot + Vector3((i - 1) * 0.08, 0.05, 0)

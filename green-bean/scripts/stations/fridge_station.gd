@@ -57,4 +57,4 @@ func _update_label() -> void:
 	if _jug_in_fridge:
 		_status_label.text = "[E] Take out milk"
 	else:
-		_status_label.text = "Milk jug is out"
+		_status_label.text = ""

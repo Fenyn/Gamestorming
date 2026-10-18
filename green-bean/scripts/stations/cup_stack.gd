@@ -52,7 +52,7 @@ func _update_label() -> void:
 		if _pending_orders.is_empty():
 			_label.text = "[E] Grab cup"
 		else:
-			_label.text = "%d orders waiting\n[E] Grab cup" % _pending_orders.size()
+			_label.text = "%d tickets waiting\n[E] Grab cup" % _pending_orders.size()
 
 
 # ── Ticket rail: printed tickets pop up above the cups, oldest on the left ──

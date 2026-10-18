@@ -193,7 +193,7 @@ func interact(player: Player) -> void:
 				_water_game.overflow_level = _placed_device.rim_ratio
 				_water_game.start(player)
 			elif _status_label:
-				_status_label.text = "Hold filled kettle!\n[E] Pour water"
+				_status_label.text = "Hold a filled kettle\n[E] Pour water"
 		State.HAS_WATER:
 			_place_stir_game()
 			_stir_game.start(player)
@@ -493,21 +493,21 @@ func _update_label() -> void:
 	match state:
 		State.IDLE:
 			if not _stand_free() and _shelf_device.has_grounds():
-				_status_label.text = "[Click] Place cup"
+				_status_label.text = "[Click] Set down a cup"
 			elif not _stand_free():
 				_status_label.text = "[E] Pick up shot press"
 			else:
-				_status_label.text = "[Click] Place cup"
+				_status_label.text = "[Click] Set down a cup"
 		State.CUP_ONLY:
 			var has_shelf := _shelf_device != null and is_instance_valid(_shelf_device)
-			_status_label.text = "[E] Pick up shot press" if has_shelf else "Bring shot press w/ grounds"
+			_status_label.text = "[E] Pick up shot press" if has_shelf else "Needs a shot press with grounds"
 		State.DEVICE_ONLY:
 			if _placed_device and _placed_device.has_grounds():
-				_status_label.text = "[Click] Place cup"
+				_status_label.text = "[Click] Set down a cup"
 			else:
-				_status_label.text = "[E] Pick up device\n(needs grounds)"
+				_status_label.text = "No grounds in it\n[E] Pick up shot press"
 		State.READY_FOR_WATER:
-			_status_label.text = "[E] Pour water\n(hold filled kettle)"
+			_status_label.text = "Hold a filled kettle\n[E] Pour water"
 		State.HAS_WATER:
 			_status_label.text = "[E] Stir"
 		State.STEEPING:

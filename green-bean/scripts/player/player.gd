@@ -47,23 +47,10 @@ var _bob_time := 0.0
 @onready var hold_point: Marker3D = $Camera3D/HoldPoint
 @onready var crosshair: CenterContainer = $HUD/Crosshair
 
-var _timer_label: Label = null
-var _money_label: Label = null
-var _interact_label: Label = null
-var _recipe_container: VBoxContainer = null
-var _recipe_title: Label = null
-var _recipe_step_labels: Array[Label] = []
-var _recipe_step_data: Array[Dictionary] = []
-var _recipe_built_for := ""
-var _tooltip_panel: PanelContainer = null
-var _tooltip_label: Label = null
-var _end_panel: PanelContainer = null
-## Mini-game helper UI: controls strip and the optional assist readout. The
-## source is the mini-game (or station) that entered the camera lock; it answers
-## get_controls_hint() and get_assist_readout().
-var _hint_panel: PanelContainer = null
-var _hint_label: Label = null
-var _readout_label: Label = null
+const HUD_SCENE := preload("res://scenes/ui/hud.tscn")
+var hud: Hud = null
+## The mini-game (or station) that locked the camera; it answers
+## get_controls_hint() and get_assist_readout() for the HUD.
 var _hud_source: Object = null
 ## Camera shake from shake(): lens offset that decays, so it never moves the
 ## camera's transform (mini-game cameras are tweened).
@@ -79,7 +66,8 @@ func _ready() -> void:
 	_base_fov = camera.fov
 	_hover_material = ShaderMaterial.new()
 	_hover_material.shader = HOVER_SHADER
-	_build_hud()
+	hud = HUD_SCENE.instantiate()
+	$HUD.add_child(hud)
 	EventBus.day_ended.connect(_on_day_ended)
 	EventBus.ticket_printed.connect(_on_ticket_printed)
 	EventBus.drink_handed_off.connect(_on_drink_handed_off)
@@ -173,130 +161,6 @@ func _physics_process(delta: float) -> void:
 	_update_held_item(delta)
 	_update_hud()
 
-func _build_hud() -> void:
-	var hud := $HUD
-
-	_timer_label = Label.new()
-	_timer_label.text = "3:00"
-	_timer_label.anchor_left = 0.0
-	_timer_label.anchor_top = 0.0
-	_timer_label.offset_left = 20
-	_timer_label.offset_top = 10
-	_timer_label.add_theme_font_size_override("font_size", 36)
-	_timer_label.add_theme_color_override("font_color", Color.WHITE)
-	_timer_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud.add_child(_timer_label)
-
-	_money_label = Label.new()
-	_money_label.text = "$0.00"
-	_money_label.anchor_left = 0.0
-	_money_label.anchor_top = 0.0
-	_money_label.offset_left = 20
-	_money_label.offset_top = 52
-	_money_label.add_theme_font_size_override("font_size", 28)
-	_money_label.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5))
-	_money_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud.add_child(_money_label)
-
-	_interact_label = Label.new()
-	_interact_label.text = ""
-	_interact_label.anchor_left = 0.5
-	_interact_label.anchor_right = 0.5
-	_interact_label.anchor_top = 0.55
-	_interact_label.anchor_bottom = 0.55
-	_interact_label.offset_left = -200
-	_interact_label.offset_right = 200
-	_interact_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_interact_label.add_theme_font_size_override("font_size", 24)
-	_interact_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
-	_interact_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud.add_child(_interact_label)
-
-	_recipe_container = VBoxContainer.new()
-	_recipe_container.anchor_left = 1.0
-	_recipe_container.anchor_right = 1.0
-	_recipe_container.anchor_bottom = 0.5
-	_recipe_container.offset_left = -260
-	_recipe_container.offset_right = -20
-	_recipe_container.offset_top = 10
-	_recipe_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud.add_child(_recipe_container)
-
-	_recipe_title = Label.new()
-	_recipe_title.add_theme_font_size_override("font_size", 15)
-	_recipe_title.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
-	_recipe_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_recipe_container.add_child(_recipe_title)
-
-	_tooltip_panel = PanelContainer.new()
-	_tooltip_panel.visible = false
-	_tooltip_panel.anchor_left = 1.0
-	_tooltip_panel.anchor_right = 1.0
-	_tooltip_panel.offset_left = -580
-	_tooltip_panel.offset_right = -275
-	_tooltip_panel.offset_top = 10
-	_tooltip_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var tip_style := StyleBoxFlat.new()
-	tip_style.bg_color = Color(0.08, 0.06, 0.04, 0.92)
-	tip_style.set_corner_radius_all(8)
-	tip_style.content_margin_left = 16
-	tip_style.content_margin_right = 16
-	tip_style.content_margin_top = 14
-	tip_style.content_margin_bottom = 14
-	_tooltip_panel.add_theme_stylebox_override("panel", tip_style)
-	_tooltip_label = Label.new()
-	_tooltip_label.add_theme_font_size_override("font_size", 14)
-	_tooltip_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.78))
-	_tooltip_label.add_theme_constant_override("line_spacing", 6)
-	_tooltip_panel.add_child(_tooltip_label)
-	hud.add_child(_tooltip_panel)
-	_build_mini_game_hud(hud)
-
-func _build_mini_game_hud(hud: Node) -> void:
-	_hint_panel = PanelContainer.new()
-	_hint_panel.anchor_left = 0.5
-	_hint_panel.anchor_right = 0.5
-	_hint_panel.anchor_top = 1.0
-	_hint_panel.anchor_bottom = 1.0
-	_hint_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_hint_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_hint_panel.offset_bottom = -28
-	_hint_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_hint_panel.visible = false
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.05, 0.04, 0.55)
-	style.set_corner_radius_all(14)
-	style.content_margin_left = 18
-	style.content_margin_right = 18
-	style.content_margin_top = 6
-	style.content_margin_bottom = 7
-	_hint_panel.add_theme_stylebox_override("panel", style)
-	_hint_label = Label.new()
-	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_hint_label.add_theme_font_size_override("font_size", 20)
-	_hint_label.add_theme_color_override("font_color", Color(0.97, 0.94, 0.86, 0.92))
-	_hint_panel.add_child(_hint_label)
-	hud.add_child(_hint_panel)
-
-	_readout_label = Label.new()
-	_readout_label.anchor_left = 0.5
-	_readout_label.anchor_right = 0.5
-	_readout_label.anchor_top = 1.0
-	_readout_label.anchor_bottom = 1.0
-	_readout_label.offset_left = -300
-	_readout_label.offset_right = 300
-	_readout_label.offset_top = -110
-	_readout_label.offset_bottom = -72
-	_readout_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_readout_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	_readout_label.add_theme_font_size_override("font_size", 26)
-	_readout_label.add_theme_color_override("font_color", Color(1.0, 0.93, 0.7))
-	_readout_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	_readout_label.add_theme_constant_override("outline_size", 6)
-	_readout_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_readout_label.visible = false
-	hud.add_child(_readout_label)
-
 ## Short camera jolt in metres of lens offset, for thumps and completions.
 func shake(amount: float = 0.004, duration: float = 0.18) -> void:
 	_shake_amount = maxf(_shake_amount if _shake_left > 0.0 else 0.0, amount)
@@ -315,8 +179,64 @@ func _update_shake(delta: float) -> void:
 	camera.h_offset = randf_range(-1.0, 1.0) * _shake_amount * k
 	camera.v_offset = randf_range(-1.0, 1.0) * _shake_amount * k
 
-func _update_mini_game_hud() -> void:
-	var source := _hud_source if _mode == InteractMode.MINI_GAME and is_instance_valid(_hud_source) else null
+func _update_hud() -> void:
+	if GameManager.prep_active:
+		hud.set_prep(true)
+	else:
+		hud.set_prep(false)
+		hud.set_clock(GameManager.get_time_remaining())
+	hud.set_till(GameManager.total_earned)
+
+	_update_hover_highlight()
+	_update_station_status()
+	_update_prompt()
+	_update_mini_game_help()
+	_update_shake(get_physics_process_delta_time())
+	hud.ticket.show_order(_active_order)
+	hud.ticket.refresh(_find_active_cup())
+
+## The prompt under the crosshair: the looked-at thing's name and what the
+## keys do there. A station's own status line is more specific than a generic
+## verb, so it is used when the station has one.
+func _update_prompt() -> void:
+	if not interact_ray.is_colliding():
+		hud.clear_prompt()
+		return
+	var collider := interact_ray.get_collider()
+	var title := StationUtils.display_name(collider) if collider else ""
+	var hint := ""
+	var status := _status_text(collider)
+	if collider and collider.has_method("get_prompt"):
+		status = str(collider.call("get_prompt"))
+		if collider is Customer:
+			title = (collider as Customer).profile.display_name
+	if _held_item is Pitcher and collider is Cup:
+		hint = "[Click] Pour milk"
+	elif _held_item is MilkJug and collider is Pitcher:
+		hint = "[Click] Pour milk in"
+	elif not status.is_empty():
+		hint = status
+	elif collider and collider.has_method("interact"):
+		hint = "[E] Use"
+	elif collider and collider.has_method("receive_item") and _held_item:
+		hint = "[Click] Set down"
+	elif collider and collider.is_in_group("carriable") and not _held_item:
+		hint = "[Click] Pick up"
+	else:
+		title = ""
+	hud.set_prompt(title, hint)
+
+func _status_text(node: Object) -> String:
+	if not (node is Node):
+		return ""
+	for child in (node as Node).get_children():
+		if child is Label3D and child.is_in_group("station_status"):
+			return (child as Label3D).text
+	return ""
+
+func _update_mini_game_help() -> void:
+	var locked := _mode == InteractMode.MINI_GAME or _mode == InteractMode.SCREEN
+	var source := _hud_source if locked and is_instance_valid(_hud_source) else null
 	var hint := ""
 	var readout := ""
 	if source:
@@ -324,64 +244,11 @@ func _update_mini_game_hud() -> void:
 			hint = str(source.call("get_controls_hint"))
 		if GameSettings.assist_readouts and source.has_method("get_assist_readout"):
 			readout = str(source.call("get_assist_readout"))
-	_hint_label.text = hint
-	_hint_panel.visible = hint != ""
-	_readout_label.text = readout
-	_readout_label.visible = readout != ""
+	hud.set_mini_game_help(hint, readout)
 
-func _update_hud() -> void:
-	if _timer_label:
-		if GameManager.prep_active:
-			_timer_label.text = "PREP"
-			_timer_label.add_theme_color_override("font_color", Color(0.9, 0.8, 0.4))
-		else:
-			var t := GameManager.get_time_remaining()
-			var mins := int(t) / 60
-			var secs := int(t) % 60
-			_timer_label.text = "%d:%02d" % [mins, secs]
-			if t < 30:
-				_timer_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
-			else:
-				_timer_label.add_theme_color_override("font_color", Color.WHITE)
-
-	if _money_label:
-		if GameManager.prep_active:
-			_money_label.text = "Bank: $%.2f | Stars: %d\n[Enter] Open shop" % [UnlockManager.money, UnlockManager.stars]
-		elif _day_ended:
-			_money_label.text = ""
-		elif GameManager.total_tips > 0.0:
-			_money_label.text = "$%.2f (+$%.2f tips)" % [GameManager.total_earned, GameManager.total_tips]
-		else:
-			_money_label.text = "$%.2f" % GameManager.total_earned
-
-	_update_hover_highlight()
-
-	if _interact_label:
-		if interact_ray.is_colliding():
-			var collider := interact_ray.get_collider()
-			if _held_item is Pitcher and collider is Cup:
-				_interact_label.text = "[Click] Pour milk"
-			elif _held_item is MilkJug and collider is Pitcher:
-				_interact_label.text = "[Click] Pour into pitcher"
-			elif collider and collider.has_method("interact"):
-				_interact_label.text = "%s\n[E] Use" % StationUtils.display_name(collider)
-			elif collider and collider.has_method("receive_item") and _held_item:
-				_interact_label.text = "%s\n[Click] Place" % StationUtils.display_name(collider)
-			elif collider and collider.is_in_group("carriable") and not _held_item:
-				_interact_label.text = "[Click] Pick up"
-			else:
-				_interact_label.text = ""
-		else:
-			_interact_label.text = ""
-
-	_update_station_status()
-	_update_mini_game_hud()
-	_update_shake(get_physics_process_delta_time())
-	_update_recipe_display()
-	_process_info_hover()
-
-## Station status text shows only on the station you are looking at, or for
-## STATUS_ALERT_MS after it changes so alerts ("Shot ready!") still pop.
+## A station's status shows in the HUD prompt while you look at it. Elsewhere
+## its world label pops up for STATUS_ALERT_MS when the text changes, so
+## alerts ("[E] Press") reach you from across the shop.
 func _update_station_status() -> void:
 	var now := Time.get_ticks_msec()
 	var looked_at: Object = interact_ray.get_collider() if interact_ray.is_colliding() else null
@@ -391,11 +258,11 @@ func _update_station_status() -> void:
 			if label.has_meta("last_text"):
 				label.set_meta("alert_until", now + STATUS_ALERT_MS)
 			label.set_meta("last_text", label.text)
-		if _mode != InteractMode.FREE:
-			# Locked to a station: its gauges and the controls strip take over.
+		if _mode != InteractMode.FREE or label.get_parent() == looked_at:
 			label.visible = false
+			label.transparency = 1.0
 			continue
-		var show := label.text != "" and (label.get_parent() == looked_at or int(label.get_meta("alert_until", 0)) > now)
+		var show := label.text != "" and int(label.get_meta("alert_until", 0)) > now
 		label.transparency = move_toward(label.transparency, 0.0 if show else 1.0, 0.12)
 		label.visible = label.transparency < 0.99
 
@@ -560,9 +427,7 @@ func get_active_order() -> OrderData:
 func _set_world_labels_visible(vis: bool) -> void:
 	for label in get_tree().get_nodes_in_group("world_label"):
 		(label as Node3D).visible = vis
-	if _interact_label:
-		_interact_label.visible = vis
-
+	hud.set_prompt_visible(vis)
 
 func _on_ticket_printed(data: Dictionary) -> void:
 	_active_order = data["order"] as OrderData
@@ -572,200 +437,32 @@ func _on_drink_handed_off(data: Dictionary) -> void:
 	var order: OrderData = data.get("order")
 	var stars: float = data.get("stars", 0.0)
 	var tip: float = data.get("tip", 0.0)
-	_show_review_popup(stars, tip, order)
+	hud.show_review(stars, tip, _review_issues(order))
 
-func _show_review_popup(stars: float, tip: float, order: OrderData = null) -> void:
-	var hud := $HUD
-
-	var container := VBoxContainer.new()
-	container.anchors_preset = Control.PRESET_CENTER
-	container.anchor_left = 0.5
-	container.anchor_right = 0.5
-	container.anchor_top = 0.4
-	container.anchor_bottom = 0.4
-	container.offset_left = -160
-	container.offset_right = 160
-	container.add_theme_constant_override("separation", 4)
-	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var star_label := Label.new()
-	star_label.text = "%.1f / 5" % stars
-	if tip > 0.0:
-		star_label.text += "   +$%.2f tip!" % tip
-	star_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	star_label.add_theme_font_size_override("font_size", 42)
-	star_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var star_color := Color(1.0, 0.2, 0.2)
-	if stars >= 5.0: star_color = Color(1.0, 0.85, 0.0)
-	elif stars >= 4.0: star_color = Color(0.3, 0.9, 0.3)
-	elif stars >= 3.0: star_color = Color(1.0, 1.0, 1.0)
-	elif stars >= 2.0: star_color = Color(1.0, 0.6, 0.2)
-	star_label.add_theme_color_override("font_color", star_color)
-	container.add_child(star_label)
-
-	if order:
-		var breakdown := _build_quality_breakdown(order)
-		if not breakdown.is_empty():
-			var detail := Label.new()
-			detail.text = breakdown
-			detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			detail.add_theme_font_size_override("font_size", 16)
-			detail.add_theme_color_override("font_color", Color(0.85, 0.82, 0.7))
-			detail.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			container.add_child(detail)
-
-	hud.add_child(container)
-	container.modulate.a = 0.0
-	# Scale around the top-centre: the container is 320 px wide (offsets above).
-	container.pivot_offset = Vector2(160, 30)
-	container.scale = Vector2(0.5, 0.5)
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(container, "scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(container, "modulate:a", 1.0, 0.15)
-	tween.chain().tween_interval(2.3)
-	tween.chain().tween_property(container, "modulate:a", 0.0, 1.0)
-	tween.chain().tween_callback(container.queue_free)
-
-func _build_quality_breakdown(order: OrderData) -> String:
-	var lines: Array[String] = []
-	if order.grind_quality >= 0.0:
-		lines.append("Grind: %s" % _quality_tag(order.grind_quality))
+## Steps that went wrong, for the review toast. Fine steps are not listed.
+func _review_issues(order: OrderData) -> PackedStringArray:
+	var out: PackedStringArray = []
+	if order == null:
+		return out
 	if not order.correct_grind_level:
-		lines.append("Wrong grind level!")
-	if order.brew_quality >= 0.0 and DrinkData.has_step(order.drink_type, DrinkData.Step.SHOT_PRESS_BREW):
-		lines.append("Extraction: %s" % _quality_tag(order.brew_quality))
-	if order.pour_quality >= 0.0 and DrinkData.has_step(order.drink_type, DrinkData.Step.POUR_OVER_BREW):
-		lines.append("Pour: %s" % _quality_tag(order.pour_quality))
-	if order.pour_quality >= 0.0 and DrinkData.has_step(order.drink_type, DrinkData.Step.HOT_WATER):
-		lines.append("Water: %s" % _quality_tag(order.pour_quality))
-	if order.steam_quality >= 0.0 and DrinkData.has_step(order.drink_type, DrinkData.Step.STEAM_MILK):
-		lines.append("Steam: %s" % _quality_tag(order.steam_quality))
-	if order.syrup_quality >= 0.0 and order.requested_syrup >= 0:
-		lines.append("Syrup: %s" % _quality_tag(order.syrup_quality))
-	if order.sauce_quality >= 0.0 and order.has_sauce():
-		lines.append("Sauce: %s" % _quality_tag(order.sauce_quality))
-	return "  |  ".join(lines)
-
-func _quality_tag(q: float) -> String:
-	var pct := int(q * 100)
-	if q >= 0.95: return "%d%% perfect" % pct
-	if q >= 0.80: return "%d%% good" % pct
-	if q >= 0.60: return "%d%% ok" % pct
-	if q >= 0.40: return "%d%% rough" % pct
-	return "%d%% bad" % pct
-
-func _update_recipe_display() -> void:
-	if not _active_order:
-		if not _recipe_built_for.is_empty():
-			_clear_recipe_labels()
-			_recipe_title.text = ""
-			_recipe_built_for = ""
-		_tooltip_panel.visible = false
-		return
-
-	var order_key := _active_order.ticket_code
-	if order_key != _recipe_built_for:
-		_rebuild_recipe_labels()
-		_recipe_built_for = order_key
-
-	_refresh_recipe_checks()
-
-func _clear_recipe_labels() -> void:
-	for lbl in _recipe_step_labels:
-		lbl.queue_free()
-	_recipe_step_labels.clear()
-	_recipe_step_data.clear()
-
-func _rebuild_recipe_labels() -> void:
-	_clear_recipe_labels()
-
-	var drink_name := DrinkData.get_drink_name(_active_order.drink_type)
-	_recipe_title.text = "[%s] %s  (Tab: info)" % [_active_order.ticket_code, drink_name]
-
-	_recipe_step_data = []
-	_recipe_step_data.append({"name": "Grab cup", "step": -1, "tip": ""})
-
-	var recipe_steps: Array = DrinkData.get_recipe(_active_order.drink_type)["steps"]
-	for s in recipe_steps:
-		var step := s as DrinkData.Step
-		var sname := DrinkData.get_step_name(step, _active_order.drink_type)
-		if sname.is_empty():
-			continue
-		_recipe_step_data.append({
-			"name": sname,
-			"step": step,
-			"tip": DrinkData.get_step_tooltip(step),
-		})
-
-	if _active_order.has_syrup():
-		var syn := DrinkData.get_syrup_name(_active_order.requested_syrup as DrinkData.SyrupType)
-		_recipe_step_data.append({
-			"name": "Add %s syrup" % syn,
-			"step": DrinkData.Step.ADD_SYRUP,
-			"tip": "1.  Place cup at syrup station\n2.  [E] to start pumping\n3.  Hold click ~0.8s per pump\n4.  Match target pump count for size",
-		})
-
-	if _active_order.requested_sauce >= 0 and not DrinkData.has_step(_active_order.drink_type, DrinkData.Step.ADD_SAUCE):
-		var san := DrinkData.get_sauce_name(_active_order.requested_sauce as DrinkData.SauceType)
-		_recipe_step_data.append({
-			"name": "Add %s sauce" % san,
-			"step": DrinkData.Step.ADD_SAUCE,
-			"tip": DrinkData.get_step_tooltip(DrinkData.Step.ADD_SAUCE),
-		})
-
-	_recipe_step_data.append({"name": "Add lid", "step": DrinkData.Step.LID, "tip": "Hold cup, [E] at lid dispenser"})
-	_recipe_step_data.append({"name": "Hand off", "step": -2, "tip": "Place finished cup on hand-off counter"})
-
-	var in_info := _mode == InteractMode.INFO
-	for entry in _recipe_step_data:
-		var lbl := Label.new()
-		lbl.text = "  [ ] %s" % entry["name"]
-		lbl.add_theme_font_size_override("font_size", 13)
-		lbl.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
-		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		lbl.mouse_filter = Control.MOUSE_FILTER_PASS if in_info else Control.MOUSE_FILTER_IGNORE
-		if not (entry["tip"] as String).is_empty():
-			lbl.set_meta("step_tooltip", entry["tip"])
-		_recipe_container.add_child(lbl)
-		_recipe_step_labels.append(lbl)
-
-func _refresh_recipe_checks() -> void:
-	var cup := _find_active_cup()
-	var checks: Array[bool] = []
-	for entry in _recipe_step_data:
-		var step_id: int = entry["step"]
-		var done := false
-		match step_id:
-			-1: done = cup != null
-			-2: done = false
-			_: done = _is_step_done(step_id as DrinkData.Step, cup)
-		checks.append(done)
-
-	var highest := -1
-	for i in range(checks.size()):
-		if checks[i]:
-			highest = i
-
-	for i in range(_recipe_step_labels.size()):
-		var done := i <= highest
-		var check := "x" if done else " "
-		_recipe_step_labels[i].text = "  [%s] %s" % [check, _recipe_step_data[i]["name"]]
-		var color := Color(0.5, 0.7, 0.5) if done else Color(1, 0.95, 0.8)
-		_recipe_step_labels[i].add_theme_color_override("font_color", color)
-
-func _is_step_done(step: DrinkData.Step, cup: Cup) -> bool:
-	if cup == null:
-		return false
-	match step:
-		DrinkData.Step.SHOT_PRESS_BREW: return cup.has_shot
-		DrinkData.Step.POUR_OVER_BREW: return cup.has_pour_over_coffee
-		DrinkData.Step.HOT_WATER: return cup.has_hot_water
-		DrinkData.Step.STEAM_MILK: return cup.has_steamed_milk
-		DrinkData.Step.ADD_SAUCE: return cup.has_sauce
-		DrinkData.Step.ADD_SYRUP: return cup.syrup_pumps > 0.0
-		DrinkData.Step.LID: return cup.has_lid
-	return false
+		out.append("Wrong grind setting")
+	elif order.grind_quality >= 0.0 and order.grind_quality < 0.6:
+		out.append("Uneven grind")
+	var checks := [
+		[order.brew_quality, DrinkData.Step.SHOT_PRESS_BREW, "Weak shot"],
+		[order.pour_quality, DrinkData.Step.POUR_OVER_BREW, "Uneven pour"],
+		[order.pour_quality, DrinkData.Step.HOT_WATER, "Off the fill line"],
+		[order.steam_quality, DrinkData.Step.STEAM_MILK, "Milk off"],
+	]
+	for c in checks:
+		var q: float = c[0]
+		if q >= 0.0 and q < 0.6 and DrinkData.has_step(order.drink_type, c[1] as DrinkData.Step):
+			out.append(str(c[2]))
+	if order.requested_syrup >= 0 and order.syrup_quality >= 0.0 and order.syrup_quality < 0.6:
+		out.append("Pump count off")
+	if order.has_sauce() and order.sauce_quality >= 0.0 and order.sauce_quality < 0.6:
+		out.append("Patchy drizzle")
+	return out
 
 func _find_active_cup() -> Cup:
 	for node in get_tree().get_nodes_in_group("cup"):
@@ -778,38 +475,14 @@ func _enter_info_mode() -> void:
 		return
 	_mode = InteractMode.INFO
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	for lbl in _recipe_step_labels:
-		lbl.mouse_filter = Control.MOUSE_FILTER_PASS
-	_recipe_container.mouse_filter = Control.MOUSE_FILTER_PASS
+	hud.set_info_mode(true)
 
 func _exit_info_mode() -> void:
 	if _mode != InteractMode.INFO:
 		return
 	_mode = InteractMode.FREE
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	_tooltip_panel.visible = false
-	for lbl in _recipe_step_labels:
-		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_recipe_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-func _process_info_hover() -> void:
-	if _mode != InteractMode.INFO:
-		return
-	var mouse_pos := get_viewport().get_mouse_position()
-	var found_tip := false
-	for lbl in _recipe_step_labels:
-		if not lbl.has_meta("step_tooltip"):
-			continue
-		var rect := lbl.get_global_rect()
-		if rect.has_point(mouse_pos):
-			var tip_text: String = lbl.get_meta("step_tooltip")
-			_tooltip_label.text = tip_text
-			_tooltip_panel.offset_top = lbl.global_position.y
-			_tooltip_panel.visible = true
-			found_tip = true
-			break
-	if not found_tip:
-		_tooltip_panel.visible = false
+	hud.set_info_mode(false)
 
 ## hud_source answers get_controls_hint() and get_assist_readout() for the
 ## helper UI. fov > 0 zooms the camera; it goes back on exit.
@@ -824,11 +497,13 @@ func enter_mini_game(cam_transform: Transform3D, hud_source: Object = null, fov:
 	_ease_camera_to(cam_transform)
 	_set_world_labels_visible(false)
 
-## fov > 0 zooms the camera for close work; it goes back on exit.
-func enter_screen_mode(look_target: Vector3, cam_pos: Vector3, look_range: float = 0.35, fov: float = 0.0) -> void:
+## fov > 0 zooms the camera for close work; it goes back on exit. hud_source
+## works as in enter_mini_game.
+func enter_screen_mode(look_target: Vector3, cam_pos: Vector3, look_range: float = 0.35, fov: float = 0.0, hud_source: Object = null) -> void:
 	if _mode != InteractMode.FREE:
 		return
 	_mode = InteractMode.SCREEN
+	_hud_source = hud_source
 	_tween_fov(fov if fov > 0.0 else _base_fov, CAMERA_ENTER_TIME)
 	_saved_yaw = _yaw
 	_saved_pitch = _pitch
@@ -896,103 +571,4 @@ func exit_mini_game() -> void:
 
 func _on_day_ended() -> void:
 	_day_ended = true
-	var hud := $HUD
-
-	_end_panel = PanelContainer.new()
-	_end_panel.anchors_preset = Control.PRESET_CENTER
-	_end_panel.anchor_left = 0.5
-	_end_panel.anchor_top = 0.5
-	_end_panel.anchor_right = 0.5
-	_end_panel.anchor_bottom = 0.5
-	_end_panel.offset_left = -200
-	_end_panel.offset_top = -150
-	_end_panel.offset_right = 200
-	_end_panel.offset_bottom = 150
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.08, 0.06, 0.92)
-	style.corner_radius_top_left = 12
-	style.corner_radius_top_right = 12
-	style.corner_radius_bottom_left = 12
-	style.corner_radius_bottom_right = 12
-	style.content_margin_left = 30
-	style.content_margin_right = 30
-	style.content_margin_top = 30
-	style.content_margin_bottom = 30
-	_end_panel.add_theme_stylebox_override("panel", style)
-
-	var vbox := VBoxContainer.new()
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-
-	var title := Label.new()
-	title.text = "DAY OVER"
-	title.add_theme_font_size_override("font_size", 36)
-	title.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6))
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
-
-	var spacer := Control.new()
-	spacer.custom_minimum_size.y = 20
-	vbox.add_child(spacer)
-
-	var grade := Label.new()
-	grade.text = "Grade: %s" % GameManager.get_grade()
-	grade.add_theme_font_size_override("font_size", 48)
-	grade.add_theme_color_override("font_color", Color.WHITE)
-	grade.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(grade)
-
-	var avg_stars := GameManager.get_average_stars()
-	var stars_label := Label.new()
-	stars_label.text = "%.1f / 5 avg  (%d drinks)" % [avg_stars, GameManager.drinks_reviewed]
-	stars_label.add_theme_font_size_override("font_size", 22)
-	stars_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))
-	stars_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(stars_label)
-
-	var revenue := GameManager.total_earned
-	var spent := GameManager.total_spent
-	var profit := GameManager.get_profit()
-	var profit_parts: Array[String] = []
-	profit_parts.append("Revenue: $%.2f" % revenue)
-	if GameManager.total_tips > 0.0:
-		profit_parts[-1] += " (incl $%.2f tips)" % GameManager.total_tips
-	if spent > 0.0:
-		profit_parts.append("Supplies: -$%.2f" % spent)
-	profit_parts.append("Profit: $%.2f" % profit)
-
-	var earnings := Label.new()
-	earnings.text = "\n".join(profit_parts)
-	earnings.add_theme_font_size_override("font_size", 16)
-	earnings.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5) if profit >= 0 else Color(1.0, 0.3, 0.3))
-	earnings.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(earnings)
-
-	var customers := Label.new()
-	customers.text = "%d served / %d lost" % [GameManager.customers_served, GameManager.customers_lost]
-	customers.add_theme_font_size_override("font_size", 16)
-	customers.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-	customers.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(customers)
-
-	var star_earned := int(GameManager.total_stars)
-	var bank := Label.new()
-	bank.text = "+%d stars earned | Bank: $%.2f | Stars: %d" % [star_earned, UnlockManager.money, UnlockManager.stars]
-	bank.add_theme_font_size_override("font_size", 14)
-	bank.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))
-	bank.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(bank)
-
-	var spacer2 := Control.new()
-	spacer2.custom_minimum_size.y = 10
-	vbox.add_child(spacer2)
-
-	var cont := Label.new()
-	cont.text = "[Enter] Next Day"
-	cont.add_theme_font_size_override("font_size", 18)
-	cont.add_theme_color_override("font_color", Color(0.5, 0.8, 0.5))
-	cont.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(cont)
-
-	_end_panel.add_child(vbox)
-	hud.add_child(_end_panel)
+	hud.show_day_summary()

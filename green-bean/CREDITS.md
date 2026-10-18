@@ -24,6 +24,10 @@ They were taken from the CC0 mirror at https://github.com/ETdoFresh/kenney.nl an
 
 CC0 1.0: http://creativecommons.org/publicdomain/zero/1.0/
 
+## Fonts
+
+**Nunito** by The Nunito Project Authors (https://github.com/googlefonts/nunito), from Google Fonts. SIL Open Font License 1.1; the licence is kept at `assets/fonts/nunito/OFL.txt`. Used for all HUD, menu and POS text and the station status labels.
+
 ## Audio
 
 None yet. `audio/SOUND_GUIDE.md` lists the sounds the game expects.

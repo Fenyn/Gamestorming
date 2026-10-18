@@ -199,32 +199,38 @@ static func get_sauce_color(sauce: SauceType) -> Color:
 	return SAUCE_COLORS[sauce]
 
 const STEP_DISPLAY := {
-	Step.POUR_OVER_BREW: "Brew pour over [coarse]",
-	Step.SHOT_PRESS_BREW: "Pull shot [fine]",
-	Step.HOT_WATER: "Add hot water",
+	Step.POUR_OVER_BREW: "Pour over, coarse grind",
+	Step.SHOT_PRESS_BREW: "Shot, fine grind",
+	Step.HOT_WATER: "Hot water",
 	Step.STEAM_MILK: "Steam milk",
-	Step.ADD_SAUCE: "Add sauce",
+	Step.ADD_SAUCE: "Sauce",
+}
+
+## Names of the etched lines inside the pitcher, for drinks that have one.
+const FOAM_LINE_NAMES := {
+	DrinkType.LATTE: "latte",
+	DrinkType.CAPPUCCINO: "cap",
 }
 
 const STEP_TOOLTIPS := {
 	Step.POUR_OVER_BREW:
-		"1.  Pick up dripper from shelf\n2.  Bring to grinder — grind coarse\n3.  Place dripper + cup at station\n4.  Hold filled kettle, [E] bloom pour\n5.  Walk away during bloom wait\n6.  Return with kettle, [E] main pour\n7.  Wait for draw-down",
+		"Grind coarse into the dripper, set it on the stand over the cup, then bloom pour with a full kettle. Come back for the main pour once the bloom settles.",
 	Step.SHOT_PRESS_BREW:
-		"1.  Pick up the shot press from its stand\n2.  Bring to grinder — grind fine\n3.  Place device + cup at station\n4.  Hold filled kettle, [E] pour water\n5.  [E] to stir slurry\n6.  Walk away during steep\n7.  Return, [E] press (hold click, balance)",
+		"Grind fine into the shot press, set it on the cup, pour to the FILL line and stir. Press when the timer flashes, keeping the bubble in the ring.",
 	Step.HOT_WATER:
-		"1.  Hold cup with shot\n2.  [E] at hot water station\n3.  Hold to pour, release at fill line",
+		"Hold the cup with its shot at the hot water tower and pour to the ring inside the cup.",
 	Step.STEAM_MILK:
-		"1.  Get milk jug from fridge\n2.  Pour into pitcher (click pitcher)\n3.  Place pitcher at steam station\n4.  [E] stretch — hold click, track zone\n5.  Walk away during texturing\n6.  Return, [E] finish steaming\n7.  Pour into cup (hold pitcher, click cup)",
+		"Milk from the fridge into the pitcher, pitcher on the steamer. Keep the wand tip just under the surface until it stops stretching, then come back before the dial goes red.",
 	Step.ADD_SAUCE:
-		"1.  Place cup at sauce station\n2.  [E] to start drizzle\n3.  Hold click + steer with mouse\n4.  Cover cup surface evenly",
+		"Cup and bottle at the drizzle station, then squeeze and draw across the whole cup.",
 }
 
 static func get_step_name(step: Step, drink: DrinkType = DrinkType.POUR_OVER) -> String:
 	if step not in STEP_DISPLAY:
 		return ""
 	var base: String = STEP_DISPLAY[step]
-	if step == Step.STEAM_MILK and drink in FOAM_TARGETS:
-		base += " [%.0f%% foam]" % (FOAM_TARGETS[drink] * 100)
+	if step == Step.STEAM_MILK and drink in FOAM_LINE_NAMES:
+		base += " to the %s line" % FOAM_LINE_NAMES[drink]
 	return base
 
 static func get_step_tooltip(step: Step) -> String:

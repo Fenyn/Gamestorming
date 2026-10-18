@@ -629,7 +629,7 @@ All geometry is grey-boxed (untextured primitives). Solo espresso stand only. Co
 - Cash drawer with denomination trays, right-click to put back
 - Money earned at register (full price on order submission), tips earned on 5-star handoff
 - Day timer + star-based grading (S=4.5+, A=4.0+, B=3.0+) + end-of-day panel with revenue/tips/profit breakdown
-- HUD: timer, money + tips, interaction prompts, crosshair, procedural recipe step tracker with waterfall completion
+- HUD: clock and till chip, crosshair prompt with key caps, cup ticket with step tracker (see docs/ui.md)
 - Recipe-based drink data system (step arrays per drink, step-driven cup completion, foam targets per drink)
 - StationUtils autoload (shared item collision, placement, pickup, label creation, pour animation, frame guards)
 - World label visibility system (hidden during camera lock, shown in free mode)
@@ -735,7 +735,7 @@ Once prefabs exist, swapping a grey box for a real model:
 - Visual feedback on the props themselves (see docs/art_pass.md "Mini-game feedback"); a HUD controls strip and an optional F1 numbers readout are the only screen aids
 - Customer AI with full state machine, dual patience, payment flow
 - Day timer, money tracking, letter grade, end-of-day panel
-- HUD: timer, money, interact prompts, recipe step tracker
+- HUD: clock and till chip, crosshair prompt with key caps, cup ticket with step tracker, controls strip (see docs/ui.md)
 - Recipe-based DrinkData with Step enum arrays
 - StationUtils autoload for shared patterns
 - World label visibility toggle during camera lock

@@ -49,7 +49,6 @@ var _press_aim := {}
 var _highlight: MeshInstance3D = null
 var _hover_label: Label3D = null
 var _readout: Label3D = null
-var _hint: Label3D = null
 
 func _ready() -> void:
 	add_to_group("station")
@@ -96,18 +95,17 @@ func _build_feedback() -> void:
 	_readout.name = "Readout"
 	_readout.position = Vector3(0, 0.2, 0.2)
 
-	_hint = _make_label(28, 0.00036)
-	_hint.name = "Hint"
-	_hint.modulate = Color(0.9, 0.9, 0.85)
-	_hint.text = "Click: hand over   Drag: place   Click on mat or right-click: take back   E: close"
-	_hint.position = Vector3(0, 0.115, -0.1)
+
+## Controls strip while the drawer is open.
+func get_controls_hint() -> String:
+	return "[Click] Hand over   [Drag] Place   [Right-click] Take back   [E] Close"
 
 func _make_label(font_size: int, pixel: float) -> Label3D:
 	var l := Label3D.new()
 	l.font_size = font_size
 	l.pixel_size = pixel
-	l.outline_size = 8
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	UiStyle.world_label(l)
 	l.no_depth_test = true
 	l.visible = false
 	add_child(l)
@@ -196,8 +194,7 @@ func interact(player: Player) -> void:
 	_activate_frame = Engine.get_process_frames()
 	_player = player
 	_slide_drawer(true)
-	_hint.visible = true
-	_player.enter_screen_mode(to_global(Vector3(0, -0.03, -0.17)), to_global(Vector3(0, 0.5, -0.36)), 0.6, 50.0)
+	_player.enter_screen_mode(to_global(Vector3(0, -0.03, -0.17)), to_global(Vector3(0, 0.5, -0.36)), 0.6, 50.0, self)
 
 func _slide_drawer(open: bool) -> void:
 	if _drawer == null:
@@ -216,7 +213,6 @@ func _close_drawer(leave_screen := true) -> void:
 	_active = false
 	_highlight.visible = false
 	_hover_label.visible = false
-	_hint.visible = false
 	_slide_drawer(false)
 	if leave_screen and _player and is_instance_valid(_player):
 		_player.exit_screen_mode()
@@ -573,14 +569,14 @@ func _name(key: String) -> String:
 func _update_readout() -> void:
 	if not _has_transaction:
 		_readout.text = "Change given"
-		_readout.modulate = Color(0.6, 1.0, 0.6)
+		_readout.modulate = UiStyle.GREEN
 		return
 	var counted := _counted()
 	var lines := ["Change due  $%.2f" % (_due / 100.0), "On the mat  $%.2f" % (counted / 100.0)]
-	var color := Color(1.0, 0.92, 0.6)
+	var color := UiStyle.CREMA
 	if counted > _due:
-		lines.append("Too much: take some back")
-		color = Color(1.0, 0.55, 0.5)
+		lines.append("Too much, take some back")
+		color = UiStyle.RED
 	elif not _tender_filed:
 		lines.append("Put the customer's %s in the drawer" % _name(_tender_key))
 	_readout.text = "\n".join(lines)

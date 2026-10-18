@@ -63,9 +63,11 @@ func create_status_label(parent: Node3D, offset := Vector3(-999, 0, 0)) -> Label
 		pos = Vector3(0, 0.12, front_z + 0.03)
 	var label := Label3D.new()
 	label.text = ""
-	label.font_size = 12
+	label.font_size = 28
 	label.position = pos
-	label.pixel_size = 0.002
+	label.pixel_size = 0.0009
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	UiStyle.world_label(label)
 	label.add_to_group("world_label")
 	label.add_to_group("station_status")
 	parent.add_child(label)

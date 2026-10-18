@@ -8,7 +8,7 @@ func _ready() -> void:
 	_drink_spot = StationUtils.model_marker(self, "DrinkSpot", _drink_spot)
 
 	_label = StationUtils.create_status_label(self, Vector3(0, 0.25, 0.12))
-	_label.text = "[Click] Place finished drink"
+	_label.text = "[Click] Set down a finished drink"
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 
 func receive_item(item: Node3D) -> bool:
@@ -17,7 +17,7 @@ func receive_item(item: Node3D) -> bool:
 	var cup := item as Cup
 	if not cup.is_complete():
 		if _label:
-			_label.text = "Drink not finished!\nComplete all steps first"
+			_label.text = "Not finished yet"
 		return false
 	if not cup.order:
 		return false
@@ -94,5 +94,5 @@ func _star_color(stars: float) -> Color:
 
 func _reset_label() -> void:
 	if _label:
-		_label.text = "[Click] Place finished drink"
+		_label.text = "[Click] Set down a finished drink"
 		_label.modulate = Color.WHITE

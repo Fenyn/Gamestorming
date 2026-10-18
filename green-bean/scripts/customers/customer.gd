@@ -83,27 +83,31 @@ func _build_visual() -> void:
 
 	_speech_label = Label3D.new()
 	_speech_label.text = ""
-	_speech_label.font_size = 16
-	_speech_label.position = Vector3(0, 2.0, 0)
-	_speech_label.pixel_size = 0.003
+	_speech_label.font_size = 40
+	_speech_label.position = Vector3(0, 2.02, 0)
+	_speech_label.pixel_size = 0.0012
 	_speech_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	UiStyle.world_label(_speech_label, UiStyle.W_BLACK)
 	_speech_label.visible = false
 	_speech_label.add_to_group("world_label")
 	add_child(_speech_label)
 
+	# Patience: a slim roast track with a fill that runs green, amber, red.
 	_patience_bar_bg = CSGBox3D.new()
-	_patience_bar_bg.size = Vector3(0.5, 0.05, 0.02)
-	_patience_bar_bg.position = Vector3(0, 1.85, 0)
+	_patience_bar_bg.size = Vector3(0.5, 0.04, 0.02)
+	_patience_bar_bg.position = Vector3(0, 1.88, 0)
 	var bg_mat := StandardMaterial3D.new()
-	bg_mat.albedo_color = Color(0.2, 0.2, 0.2)
+	bg_mat.albedo_color = UiStyle.ROAST
+	bg_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_patience_bar_bg.material = bg_mat
 	add_child(_patience_bar_bg)
 
 	_patience_bar_fill = CSGBox3D.new()
-	_patience_bar_fill.size = Vector3(0.5, 0.05, 0.03)
-	_patience_bar_fill.position = Vector3(0, 1.85, 0)
+	_patience_bar_fill.size = Vector3(0.5, 0.028, 0.03)
+	_patience_bar_fill.position = Vector3(0, 1.88, 0)
 	var fill_mat := StandardMaterial3D.new()
-	fill_mat.albedo_color = Color(0.2, 0.9, 0.2)
+	fill_mat.albedo_color = UiStyle.GREEN
+	fill_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_patience_bar_fill.material = fill_mat
 	add_child(_patience_bar_fill)
 
@@ -213,8 +217,14 @@ func _tick_barks(delta: float) -> void:
 		if _patience_ratio > 0.25:
 			bark(CustomerProfile.pick(CustomerProfile.WAITING))
 
-func bark(text: String, color: Color = Color(1, 0.97, 0.9)) -> void:
+func bark(text: String, color: Color = UiStyle.CREMA) -> void:
 	Fx.float_text(global_position + Vector3(0, 2.2, 0), text, color, 36)
+
+## HUD prompt when the crosshair is on this customer.
+func get_prompt() -> String:
+	if state == State.PAYING:
+		return "[E] Take $%.0f" % _payment_amount
+	return ""
 
 func _physics_process(delta: float) -> void:
 	match state:
@@ -366,7 +376,7 @@ func _show_order() -> void:
 		if sauce_type >= 0 and not DrinkData.has_step(drink_type, DrinkData.Step.ADD_SAUCE):
 			parts.append(DrinkData.get_sauce_name(sauce_type as DrinkData.SauceType))
 		parts.append(DrinkData.get_drink_name(drink_type))
-		_speech_label.text = "%s: %s" % [profile.display_name, " ".join(parts)]
+		_speech_label.text = " ".join(parts)
 		_speech_label.visible = true
 		Fx.pop(_speech_label, 1.4, 0.3)
 
@@ -388,8 +398,7 @@ func interact(_player: Player) -> void:
 		SoundManager.play("cash_collect")
 		EventBus.cash_collected.emit(self, _payment_amount)
 		if _speech_label:
-			_speech_label.text = "waiting..."
-			_speech_label.visible = true
+			_speech_label.visible = false
 
 func order_taken(order: OrderData = null) -> void:
 	order_data = order
@@ -399,13 +408,9 @@ func order_taken(order: OrderData = null) -> void:
 	_pickup_patience = _pickup_patience_max
 
 func drink_received(stars: float = 0.0) -> void:
-	if _speech_label and stars > 0.0:
-		_speech_label.text = "%.1f / 5" % stars
-		_speech_label.visible = true
-	else:
-		_speech_label.visible = false
+	_speech_label.visible = false
 	_visual.hold_in_hand(CharacterVisual.make_takeaway_cup())
-	bark(profile.review_line(stars), Color(1.0, 0.9, 0.4) if stars >= 4.5 else Color(1, 0.97, 0.9))
+	bark(profile.review_line(stars), UiStyle.AMBER if stars >= 4.5 else UiStyle.CREMA)
 	if stars >= 4.5:
 		# Happy hop, then head off.
 		_leave("satisfied")
@@ -429,14 +434,14 @@ func _leave(reason: String) -> void:
 		SoundManager.play("customer_happy")
 	else:
 		_visual.hold_in_hand(null)
-		bark(CustomerProfile.pick(CustomerProfile.ANGRY), Color(1.0, 0.45, 0.35))
+		bark(CustomerProfile.pick(CustomerProfile.ANGRY), UiStyle.RED)
 		SoundManager.play("customer_angry")
 
 func _update_patience_bar(ratio: float) -> void:
 	ratio = clampf(ratio, 0.0, 1.0)
 	if ratio < 0.25 and not _warned_impatient:
 		_warned_impatient = true
-		bark(CustomerProfile.pick(CustomerProfile.IMPATIENT), Color(1.0, 0.7, 0.4))
+		bark(CustomerProfile.pick(CustomerProfile.IMPATIENT), UiStyle.AMBER)
 		SoundManager.play("customer_impatient")
 	_patience_ratio = ratio
 	if _patience_bar_fill:
@@ -444,10 +449,10 @@ func _update_patience_bar(ratio: float) -> void:
 		_patience_bar_fill.position.x = -0.25 * (1.0 - ratio) + _bar_shake
 		var mat := _patience_bar_fill.material as StandardMaterial3D
 		if mat:
-			# Smooth green -> yellow -> red instead of three hard steps.
-			var green := Color(0.2, 0.9, 0.2)
-			var yellow := Color(0.95, 0.85, 0.2)
-			var red := Color(0.95, 0.2, 0.15)
+			# Smooth green -> amber -> red instead of three hard steps.
+			var green := UiStyle.GREEN
+			var yellow := UiStyle.AMBER
+			var red := UiStyle.RED
 			if ratio > 0.5:
 				mat.albedo_color = yellow.lerp(green, (ratio - 0.5) / 0.5)
 			else:

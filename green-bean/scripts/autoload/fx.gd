@@ -188,9 +188,8 @@ func float_text(world_pos: Vector3, text: String, color: Color = Color(0.55, 1.0
 	label.text = text
 	label.font_size = font_size
 	label.pixel_size = 0.0015
-	label.modulate = color
+	UiStyle.world_label(label, UiStyle.W_BLACK, color)
 	label.outline_size = 10
-	label.outline_modulate = Color(0.1, 0.07, 0.04, 0.9)
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.no_depth_test = true
 	_scene_root().add_child(label)

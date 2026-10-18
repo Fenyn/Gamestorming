@@ -102,7 +102,7 @@ func _start_drizzle(player: Player) -> void:
 		return
 	if not _placed_bottle or _placed_bottle.is_empty():
 		if _status_label:
-			_status_label.text = "Bottle empty!\nRefill at prep station"
+			_status_label.text = "Bottle's empty\nRefill it at prep"
 		return
 	_mini_game.start(player)
 	if _mini_game.is_active():
@@ -253,17 +253,16 @@ func _update_label() -> void:
 	var sauce_name := DrinkData.get_sauce_name(sauce_type)
 	match state:
 		State.IDLE:
-			_status_label.text = "Place a %s bottle and a cup" % sauce_name.to_lower()
+			_status_label.text = "[Click] Set down a %s bottle and a cup" % sauce_name.to_lower()
 		State.BOTTLE_ONLY:
-			var pct := "%.0f%%" % (_placed_bottle.fill_level * 100) if _placed_bottle else ""
-			_status_label.text = "%s bottle (%s)\nPlace cup to drizzle" % [sauce_name, pct]
+			_status_label.text = "[Click] Set down a cup"
 		State.CUP_ONLY:
-			_status_label.text = "Cup placed\nNeeds %s bottle" % sauce_name
+			_status_label.text = "Needs a %s bottle" % sauce_name.to_lower()
 		State.READY:
 			if _placed_cup and _placed_cup.has_sauce:
-				_status_label.text = "%s added!\n[E] pick up cup" % sauce_name
+				_status_label.text = "[E] Pick up cup"
 			elif _placed_bottle and _placed_bottle.is_empty():
-				_status_label.text = "Bottle empty!\n[E] pick up, refill"
+				_status_label.text = "Bottle's empty\n[E] Pick up bottle"
 			else:
 				_status_label.text = "[E] Drizzle %s" % sauce_name
 		State.DRIZZLING:

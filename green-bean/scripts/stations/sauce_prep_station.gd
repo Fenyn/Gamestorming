@@ -166,7 +166,7 @@ func _update_label() -> void:
 	var is_mix := sauce_type in [DrinkData.SauceType.MOCHA, DrinkData.SauceType.WHITE_MOCHA]
 	match state:
 		State.IDLE:
-			_status_label.text = "Place an empty bottle"
+			_status_label.text = "[Click] Set down an empty bottle"
 		State.BOTTLE_PLACED:
 			if _placed_bottle and _placed_bottle.is_filled():
 				_status_label.text = "[E] Pick up bottle"

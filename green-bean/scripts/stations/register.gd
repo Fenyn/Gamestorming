@@ -27,7 +27,7 @@ var _sauce_buttons: Array[Button] = []
 var _tab_buttons: Array[Button] = []
 var _tab_panels: Array[PanelContainer] = []
 var _order_label: Label = null
-var _status_label_ui: Label = null
+var _status_box: VBoxContainer = null
 var _charge_btn: Button = null
 var _clear_btn: Button = null
 var _panel_area: Control = null
@@ -46,6 +46,16 @@ var _shop_status_label: Label = null
 var _shop_buttons: Array[Button] = []
 
 const VIEWPORT_SIZE := Vector2i(480, 360)
+## POS screen type sizes (the screen is 480 x 360 pixels).
+## Index of the menu tab in the prep shop.
+const MENU_TAB := 4
+const POS_SMALL := 14
+const POS_BODY := 17
+const POS_LEAD := 20
+const POS_BIG := 34
+var _status_title: Label = null
+var _status_amount: Label = null
+var _status_note: Label = null
 const SCREEN_SIZE := Vector2(0.40, 0.30)
 
 func _ready() -> void:
@@ -59,6 +69,7 @@ func _ready() -> void:
 	EventBus.prep_started.connect(_on_prep_started)
 	EventBus.day_started.connect(_on_day_started)
 	_set_shop_mode(true)
+	_update_screen_texture()
 
 func _on_prep_started() -> void:
 	_set_shop_mode(true)
@@ -106,36 +117,25 @@ func _build_screen_mesh() -> void:
 func _build_day_ui() -> void:
 	_day_root = Panel.new()
 	_day_root.size = Vector2(VIEWPORT_SIZE)
-	var root_style := StyleBoxFlat.new()
-	root_style.bg_color = Color(0.08, 0.1, 0.12)
-	_day_root.add_theme_stylebox_override("panel", root_style)
+	_day_root.add_theme_stylebox_override("panel", StyleFactory.flat_no_border(UiStyle.ROAST, 0, 0))
 	_viewport.add_child(_day_root)
 
-	var title := Label.new()
-	title.text = "GREEN BEAN POS"
-	title.position = Vector2(140, 4)
-	title.add_theme_font_size_override("font_size", 22)
-	title.add_theme_color_override("font_color", Color(0.4, 0.85, 0.4))
-	_day_root.add_child(title)
-
 	var tab_bar := HBoxContainer.new()
-	tab_bar.position = Vector2(10, 30)
-	tab_bar.size = Vector2(460, 32)
+	tab_bar.position = Vector2(10, 12)
+	tab_bar.size = Vector2(460, 36)
+	tab_bar.add_theme_constant_override("separation", 6)
 	_day_root.add_child(tab_bar)
-	var tab_names := ["SIZE", "DRINK", "SYRUP", "SAUCE"]
+	var tab_names := ["Size", "Drink", "Syrup", "Sauce"]
 	for i in range(tab_names.size()):
-		var btn := Button.new()
-		btn.text = tab_names[i]
-		btn.custom_minimum_size = Vector2(108, 30)
-		btn.add_theme_font_size_override("font_size", 14)
+		var btn := _make_tab_button(tab_names[i])
 		var idx := i
 		btn.pressed.connect(func(): _switch_tab(idx))
 		_tab_buttons.append(btn)
 		tab_bar.add_child(btn)
 
 	_panel_area = Control.new()
-	_panel_area.position = Vector2(10, 68)
-	_panel_area.size = Vector2(460, 140)
+	_panel_area.position = Vector2(10, 58)
+	_panel_area.size = Vector2(460, 150)
 	_day_root.add_child(_panel_area)
 
 	var size_panel := _make_tab_panel()
@@ -166,38 +166,41 @@ func _build_day_ui() -> void:
 	_sauce_grid = _make_button_grid()
 	sauce_panel.add_child(_sauce_grid)
 
-	_order_label = Label.new()
-	_order_label.text = "Select size, then drink"
-	_order_label.position = Vector2(15, 215)
-	_order_label.size = Vector2(450, 60)
-	_order_label.add_theme_font_size_override("font_size", 16)
-	_order_label.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
+	_order_label = _pos_label("", POS_LEAD, UiStyle.W_BOLD, UiStyle.CREMA)
+	_order_label.position = Vector2(14, 218)
+	_order_label.size = Vector2(452, 64)
 	_order_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_day_root.add_child(_order_label)
 
-	_status_label_ui = Label.new()
-	_status_label_ui.text = ""
-	_status_label_ui.position = Vector2(15, 215)
-	_status_label_ui.size = Vector2(450, 70)
-	_status_label_ui.add_theme_font_size_override("font_size", 18)
-	_status_label_ui.add_theme_color_override("font_color", Color(0.5, 1.0, 0.5))
-	_status_label_ui.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_status_label_ui.visible = false
-	_day_root.add_child(_status_label_ui)
+	# Charged / change / sent screens: what, how much, what to do next.
+	var status_box := VBoxContainer.new()
+	status_box.position = Vector2(14, 70)
+	status_box.size = Vector2(452, 220)
+	status_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	status_box.add_theme_constant_override("separation", 6)
+	status_box.visible = false
+	_day_root.add_child(status_box)
+	_status_title = _pos_label("", POS_LEAD, UiStyle.W_BOLD, UiStyle.STEAM)
+	_status_amount = _pos_label("", POS_BIG + 12, UiStyle.W_BLACK, UiStyle.CREMA)
+	_status_note = _pos_label("", POS_BODY, UiStyle.W_BOLD, UiStyle.GREEN)
+	for l in [_status_title, _status_amount, _status_note]:
+		(l as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		status_box.add_child(l)
+	_status_box = status_box
 
 	_clear_btn = Button.new()
-	_clear_btn.text = "CLEAR"
-	_clear_btn.position = Vector2(15, 295)
-	_clear_btn.size = Vector2(140, 50)
-	_clear_btn.add_theme_font_size_override("font_size", 16)
+	_clear_btn.text = "Clear"
+	_clear_btn.position = Vector2(14, 292)
+	_clear_btn.size = Vector2(150, 54)
+	_style_button(_clear_btn, UiStyle.ROAST_RAISED, POS_LEAD)
 	_clear_btn.pressed.connect(_clear_order)
 	_day_root.add_child(_clear_btn)
 
 	_charge_btn = Button.new()
-	_charge_btn.text = "CHARGE"
-	_charge_btn.position = Vector2(240, 295)
-	_charge_btn.size = Vector2(220, 50)
-	_charge_btn.add_theme_font_size_override("font_size", 18)
+	_charge_btn.text = "Charge"
+	_charge_btn.position = Vector2(176, 292)
+	_charge_btn.size = Vector2(290, 54)
+	_style_button(_charge_btn, UiStyle.GREEN_DEEP, POS_LEAD)
 	_charge_btn.pressed.connect(_charge_order)
 	_day_root.add_child(_charge_btn)
 
@@ -210,7 +213,7 @@ func _rebuild_day_buttons() -> void:
 	_clear_button_array(_sauce_buttons, _sauce_grid)
 
 	for size in UnlockManager.owned_sizes:
-		var btn := _make_pos_button(DrinkData.get_size_name(size as DrinkData.CupSize), Color(0.2, 0.35, 0.5))
+		var btn := _make_pos_button(DrinkData.get_size_name(size as DrinkData.CupSize))
 		btn.set_meta("value", size)
 		var s: int = size
 		btn.pressed.connect(func(): _select_size(s))
@@ -218,35 +221,35 @@ func _rebuild_day_buttons() -> void:
 		_size_grid.add_child(btn)
 
 	for drink in UnlockManager.get_menu_drinks():
-		var btn := _make_pos_button(DrinkData.get_drink_name(drink as DrinkData.DrinkType), Color(0.4, 0.25, 0.15))
-		btn.custom_minimum_size.y = 38
+		var btn := _make_pos_button(DrinkData.get_drink_name(drink as DrinkData.DrinkType))
+		btn.custom_minimum_size.y = 40
 		btn.set_meta("value", drink)
 		var d: int = drink
 		btn.pressed.connect(func(): _select_drink(d))
 		_drink_buttons.append(btn)
 		_drink_grid.add_child(btn)
 
-	var none_syrup := _make_pos_button("None", Color(0.3, 0.3, 0.3))
+	var none_syrup := _make_pos_button("None")
 	none_syrup.set_meta("value", -1)
 	none_syrup.pressed.connect(func(): _select_syrup(-1))
 	_syrup_buttons.append(none_syrup)
 	_syrup_grid.add_child(none_syrup)
 	for syrup in UnlockManager.owned_syrups:
-		var btn := _make_pos_button(DrinkData.get_syrup_name(syrup as DrinkData.SyrupType), Color(0.35, 0.3, 0.15))
+		var btn := _make_pos_button(DrinkData.get_syrup_name(syrup as DrinkData.SyrupType))
 		btn.set_meta("value", syrup)
 		var sy: int = syrup
 		btn.pressed.connect(func(): _select_syrup(sy))
 		_syrup_buttons.append(btn)
 		_syrup_grid.add_child(btn)
 
-	var none_sauce := _make_pos_button("None", Color(0.3, 0.3, 0.3))
+	var none_sauce := _make_pos_button("None")
 	none_sauce.set_meta("value", -1)
 	none_sauce.pressed.connect(func(): _select_sauce(-1))
 	_sauce_buttons.append(none_sauce)
 	_sauce_grid.add_child(none_sauce)
 	for sauce in UnlockManager.owned_sauces:
-		var btn := _make_pos_button(DrinkData.get_sauce_name(sauce as DrinkData.SauceType), Color(0.25, 0.15, 0.08))
-		btn.custom_minimum_size.y = 38
+		var btn := _make_pos_button(DrinkData.get_sauce_name(sauce as DrinkData.SauceType))
+		btn.custom_minimum_size.y = 40
 		btn.set_meta("value", sauce)
 		var sa: int = sauce
 		btn.pressed.connect(func(): _select_sauce(sa))
@@ -269,57 +272,52 @@ func _clear_button_array(arr: Array[Button], grid: GridContainer) -> void:
 func _build_shop_ui() -> void:
 	_shop_root = Panel.new()
 	_shop_root.size = Vector2(VIEWPORT_SIZE)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.08, 0.06)
-	_shop_root.add_theme_stylebox_override("panel", style)
+	_shop_root.add_theme_stylebox_override("panel", StyleFactory.flat_no_border(UiStyle.ROAST, 0, 0))
 	_shop_root.visible = false
 	_viewport.add_child(_shop_root)
 
-	_shop_money_label = Label.new()
-	_shop_money_label.position = Vector2(10, 4)
-	_shop_money_label.size = Vector2(230, 24)
-	_shop_money_label.add_theme_font_size_override("font_size", 16)
-	_shop_money_label.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5))
+	# Bank and stars on one line: money left, stars right.
+	_shop_money_label = _pos_label("", POS_LEAD, UiStyle.W_BLACK, UiStyle.CREMA)
+	_shop_money_label.position = Vector2(14, 8)
+	_shop_money_label.size = Vector2(220, 28)
 	_shop_root.add_child(_shop_money_label)
-
-	_shop_stars_label = Label.new()
-	_shop_stars_label.position = Vector2(250, 4)
-	_shop_stars_label.size = Vector2(220, 24)
-	_shop_stars_label.add_theme_font_size_override("font_size", 16)
-	_shop_stars_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))
-	_shop_stars_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_shop_root.add_child(_shop_stars_label)
+	var stars_row := HBoxContainer.new()
+	stars_row.position = Vector2(250, 8)
+	stars_row.size = Vector2(216, 28)
+	stars_row.alignment = BoxContainer.ALIGNMENT_END
+	stars_row.add_theme_constant_override("separation", 4)
+	stars_row.add_child(UiIcon.make(UiIcon.Kind.STAR_FULL, UiStyle.AMBER, 20))
+	_shop_stars_label = _pos_label("", POS_LEAD, UiStyle.W_BLACK, UiStyle.CREMA)
+	stars_row.add_child(_shop_stars_label)
+	_shop_root.add_child(stars_row)
 
 	var tab_bar := HBoxContainer.new()
-	tab_bar.position = Vector2(10, 28)
-	tab_bar.size = Vector2(460, 28)
+	tab_bar.position = Vector2(10, 44)
+	tab_bar.size = Vector2(460, 32)
+	tab_bar.add_theme_constant_override("separation", 6)
 	_shop_root.add_child(tab_bar)
-	var tab_names := ["EQUIP", "UPGRADE", "MODS", "MENU"]
+	var tab_names := ["Equipment", "Upgrades", "Cups, syrups", "Sauces", "Menu"]
 	for i in range(tab_names.size()):
-		var btn := Button.new()
-		btn.text = tab_names[i]
-		btn.custom_minimum_size = Vector2(108, 26)
-		btn.add_theme_font_size_override("font_size", 13)
+		var btn := _make_tab_button(tab_names[i], POS_SMALL + 1)
 		var idx := i
 		btn.pressed.connect(func(): _switch_shop_tab(idx))
 		_shop_tab_buttons.append(btn)
 		tab_bar.add_child(btn)
 
 	var content_area := Control.new()
-	content_area.position = Vector2(10, 60)
-	content_area.size = Vector2(460, 270)
+	content_area.position = Vector2(10, 84)
+	content_area.size = Vector2(460, 246)
 	_shop_root.add_child(content_area)
 
 	_build_equip_tab(content_area)
 	_build_upgrade_tab(content_area)
 	_build_mods_tab(content_area)
+	_build_sauce_tab(content_area)
 	_build_menu_tab(content_area)
 
-	_shop_status_label = Label.new()
-	_shop_status_label.position = Vector2(10, 336)
+	_shop_status_label = _pos_label("", POS_SMALL, UiStyle.W_BOLD, UiStyle.STEAM)
+	_shop_status_label.position = Vector2(10, 334)
 	_shop_status_label.size = Vector2(460, 20)
-	_shop_status_label.add_theme_font_size_override("font_size", 13)
-	_shop_status_label.add_theme_color_override("font_color", Color(0.8, 0.7, 0.5))
 	_shop_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_shop_root.add_child(_shop_status_label)
 
@@ -354,8 +352,8 @@ func _build_upgrade_tab(parent: Control) -> void:
 	panel.add_child(grid)
 	for id in UnlockManager.UPGRADE_SHOP:
 		var entry: Dictionary = UnlockManager.UPGRADE_SHOP[id]
-		var btn := _make_shop_button(entry["name"], "%d *" % entry["stars"])
-		btn.custom_minimum_size.x = 220
+		var btn := _make_shop_button(entry["name"], "%d stars" % entry["stars"])
+		btn.custom_minimum_size.x = 224
 		btn.set_meta("shop_type", "upgrade")
 		btn.set_meta("shop_id", id)
 		var uid: String = id
@@ -374,7 +372,7 @@ func _build_mods_tab(parent: Control) -> void:
 
 	for size in UnlockManager.SIZE_SHOP:
 		var entry: Dictionary = UnlockManager.SIZE_SHOP[size]
-		var btn := _make_shop_button(entry["name"] + " Size", "$%.0f" % entry["price"])
+		var btn := _make_shop_button("%s cups" % entry["name"], "$%.0f" % entry["price"])
 		btn.set_meta("shop_type", "size")
 		btn.set_meta("shop_id", size)
 		var sid: int = size
@@ -382,14 +380,10 @@ func _build_mods_tab(parent: Control) -> void:
 		_shop_buttons.append(btn)
 		vbox.add_child(btn)
 
-	var syrup_hdr := Label.new()
-	syrup_hdr.text = "  Syrups (requires Syrup Rack)"
-	syrup_hdr.add_theme_font_size_override("font_size", 11)
-	syrup_hdr.add_theme_color_override("font_color", Color(0.6, 0.55, 0.3))
-	vbox.add_child(syrup_hdr)
+	vbox.add_child(_shop_header("Syrups, for the syrup rack"))
 	for syrup in UnlockManager.SYRUP_SHOP:
 		var entry: Dictionary = UnlockManager.SYRUP_SHOP[syrup]
-		var btn := _make_shop_button(entry["name"] + " Syrup", "$%.0f" % entry["price"])
+		var btn := _make_shop_button("%s syrup" % entry["name"], "$%.0f" % entry["price"])
 		btn.set_meta("shop_type", "syrup")
 		btn.set_meta("shop_id", syrup)
 		var syid: int = syrup
@@ -397,15 +391,21 @@ func _build_mods_tab(parent: Control) -> void:
 		_shop_buttons.append(btn)
 		vbox.add_child(btn)
 
-	var sauce_hdr := Label.new()
-	sauce_hdr.text = "  Sauces (requires Sauce Station)"
-	sauce_hdr.add_theme_font_size_override("font_size", 11)
-	sauce_hdr.add_theme_color_override("font_color", Color(0.5, 0.35, 0.2))
-	vbox.add_child(sauce_hdr)
+
+func _build_sauce_tab(parent: Control) -> void:
+	var panel := _make_shop_tab_panel()
+	panel.visible = false
+	parent.add_child(panel)
+	_shop_tab_panels.append(panel)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 2)
+	panel.add_child(vbox)
+	vbox.add_child(_shop_header("For the drizzle station"))
 	for sauce in UnlockManager.SAUCE_SHOP:
 		var entry: Dictionary = UnlockManager.SAUCE_SHOP[sauce]
-		var label_text: String = str(entry["name"]) + " Sauce"
-		var cost_text: String = "$%.0f" % entry["price"] if entry["price"] > 0 else "bundled"
+		var sauce_name: String = str(entry["name"])
+		var label_text := "%s sauce" % sauce_name.trim_suffix(" Sauce")
+		var cost_text: String = "$%.0f" % entry["price"] if entry["price"] > 0 else "Included"
 		var btn := _make_shop_button(label_text, cost_text)
 		btn.set_meta("shop_type", "sauce")
 		btn.set_meta("shop_id", sauce)
@@ -423,33 +423,43 @@ func _build_menu_tab(parent: Control) -> void:
 func _make_shop_tab_panel() -> PanelContainer:
 	var p := PanelContainer.new()
 	p.position = Vector2.ZERO
-	p.size = Vector2(460, 270)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.1, 0.08)
-	style.set_corner_radius_all(4)
-	p.add_theme_stylebox_override("panel", style)
+	p.size = Vector2(460, 246)
+	p.add_theme_stylebox_override("panel", StyleFactory.flat_no_border(Color.TRANSPARENT, 0, 0))
 	return p
 
+func _shop_header(text: String) -> Label:
+	var l := _pos_label(text, POS_SMALL, UiStyle.W_BOLD, UiStyle.STEAM)
+	l.custom_minimum_size.y = 22
+	l.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	return l
+
+## Shop row: the item on the left, its price (or Owned) on the right.
 func _make_shop_button(item_name: String, cost_text: String) -> Button:
 	var btn := Button.new()
-	btn.text = "%s  [%s]" % [item_name, cost_text]
-	btn.custom_minimum_size = Vector2(450, 24)
-	btn.add_theme_font_size_override("font_size", 12)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.14, 0.16, 0.14)
-	style.set_corner_radius_all(3)
-	btn.add_theme_stylebox_override("normal", style)
-	var hover := StyleBoxFlat.new()
-	hover.bg_color = Color(0.2, 0.25, 0.2)
-	hover.set_corner_radius_all(3)
-	btn.add_theme_stylebox_override("hover", hover)
+	btn.custom_minimum_size = Vector2(458, 28)
+	_style_button(btn, UiStyle.ROAST_RAISED, POS_BODY)
+	var row := HBoxContainer.new()
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 10
+	row.offset_right = -10
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var n := _pos_label(item_name, POS_BODY, UiStyle.W_BOLD, UiStyle.CREMA)
+	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	n.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var c := _pos_label(cost_text, POS_BODY, UiStyle.W_BLACK, UiStyle.GREEN)
+	c.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(n)
+	row.add_child(c)
+	btn.add_child(row)
+	btn.set_meta("cost_label", c)
+	btn.set_meta("cost_text", cost_text)
 	return btn
 
 func _refresh_shop() -> void:
 	if _shop_money_label:
-		_shop_money_label.text = "Money: $%.2f" % UnlockManager.money
+		_shop_money_label.text = "$%.2f" % UnlockManager.money
 	if _shop_stars_label:
-		_shop_stars_label.text = "Stars: %d" % UnlockManager.stars
+		_shop_stars_label.text = str(UnlockManager.stars)
 
 	for btn in _shop_buttons:
 		var shop_type: String = btn.get_meta("shop_type", "")
@@ -461,50 +471,48 @@ func _refresh_shop() -> void:
 			"size": owned = shop_id in UnlockManager.owned_sizes
 			"syrup": owned = shop_id in UnlockManager.owned_syrups
 			"sauce": owned = shop_id in UnlockManager.owned_sauces
-		if owned:
-			btn.text = btn.text.split("  [")[0] + "  [OWNED]"
-			btn.disabled = true
-			btn.modulate = Color(0.5, 0.6, 0.5)
-		else:
-			btn.disabled = false
-			btn.modulate = Color(1, 1, 1)
+		var cost := btn.get_meta("cost_label") as Label
+		btn.disabled = owned
+		cost.text = "Owned" if owned else str(btn.get_meta("cost_text"))
+		cost.add_theme_color_override("font_color", UiStyle.STEAM if owned else UiStyle.GREEN)
+		btn.modulate = Color(1, 1, 1, 0.6) if owned else Color.WHITE
 
 	_rebuild_menu_tab()
 
 func _rebuild_menu_tab() -> void:
-	if _shop_tab_panels.size() < 4:
+	if _shop_tab_panels.size() <= MENU_TAB:
 		return
-	var panel := _shop_tab_panels[3]
+	var panel := _shop_tab_panels[MENU_TAB]
 	for child in panel.get_children():
 		child.queue_free()
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 3)
 	panel.add_child(vbox)
 
-	var hdr := Label.new()
-	hdr.text = "  Toggle drinks on your menu:"
-	hdr.add_theme_font_size_override("font_size", 12)
-	hdr.add_theme_color_override("font_color", Color(0.7, 0.7, 0.6))
-	vbox.add_child(hdr)
+	vbox.add_child(_shop_header("On the menu today"))
 
 	for drink in UnlockManager.get_unlocked_drinks():
 		var active := UnlockManager.is_drink_active(drink)
-		var check := "X" if active else " "
-		var dname := DrinkData.get_drink_name(drink as DrinkData.DrinkType)
 		var btn := Button.new()
-		btn.text = " [%s] %s" % [check, dname]
-		btn.custom_minimum_size = Vector2(450, 28)
-		btn.add_theme_font_size_override("font_size", 13)
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		var color := Color(0.2, 0.3, 0.2) if active else Color(0.15, 0.15, 0.15)
-		var style := StyleBoxFlat.new()
-		style.bg_color = color
-		style.set_corner_radius_all(3)
-		btn.add_theme_stylebox_override("normal", style)
-		var hover := StyleBoxFlat.new()
-		hover.bg_color = color.lightened(0.15)
-		hover.set_corner_radius_all(3)
-		btn.add_theme_stylebox_override("hover", hover)
+		btn.custom_minimum_size = Vector2(458, 30)
+		_style_button(btn, UiStyle.ROAST_RAISED, POS_BODY)
+		var row := HBoxContainer.new()
+		row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		row.offset_left = 10
+		row.add_theme_constant_override("separation", 10)
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var box := PanelContainer.new()
+		box.custom_minimum_size = Vector2(20, 20)
+		box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_theme_stylebox_override("panel", StyleFactory.flat(UiStyle.GREEN_DEEP if active else Color.TRANSPARENT, UiStyle.GREEN if active else UiStyle.STEAM, 2, 5, 0))
+		if active:
+			box.add_child(UiIcon.make(UiIcon.Kind.CHECK, UiStyle.CREMA, 16))
+		row.add_child(box)
+		var n := _pos_label(DrinkData.get_drink_name(drink as DrinkData.DrinkType), POS_BODY, UiStyle.W_BOLD, UiStyle.CREMA if active else UiStyle.STEAM)
+		n.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		row.add_child(n)
+		btn.add_child(row)
 		var did: int = drink
 		btn.pressed.connect(func(): _toggle_menu(did))
 		vbox.add_child(btn)
@@ -514,7 +522,7 @@ func _switch_shop_tab(idx: int) -> void:
 	for i in range(_shop_tab_panels.size()):
 		_shop_tab_panels[i].visible = (i == idx)
 	for i in range(_shop_tab_buttons.size()):
-		_shop_tab_buttons[i].modulate = Color(1, 1, 1) if i == idx else Color(0.6, 0.6, 0.6)
+		_set_tab_active(_shop_tab_buttons[i], i == idx)
 
 # ──────────────────────────────────────────────
 # SHOP PURCHASE ACTIONS
@@ -523,49 +531,49 @@ func _switch_shop_tab(idx: int) -> void:
 func _buy_equipment(id: String) -> void:
 	if UnlockManager.buy_equipment(id):
 		var entry: Dictionary = UnlockManager.EQUIPMENT_SHOP[id]
-		_shop_status("Bought %s!" % entry["name"])
+		_shop_status("Bought %s" % entry["name"])
 	else:
-		_shop_status("Can't afford that.")
+		_shop_status("Not enough money")
 	_refresh_shop()
 
 func _buy_upgrade(id: String) -> void:
 	if UnlockManager.buy_upgrade(id):
 		var entry: Dictionary = UnlockManager.UPGRADE_SHOP[id]
-		_shop_status("Upgraded to %s!" % entry["name"])
+		_shop_status("Upgraded to %s" % entry["name"])
 	else:
-		_shop_status("Not enough stars.")
+		_shop_status("Not enough stars")
 	_refresh_shop()
 
 func _buy_size(size: int) -> void:
 	if UnlockManager.buy_size(size):
-		_shop_status("Unlocked new size!")
+		_shop_status("New cup size unlocked")
 	else:
-		_shop_status("Can't afford that.")
+		_shop_status("Not enough money")
 	_refresh_shop()
 
 func _buy_syrup(syrup: int) -> void:
 	if "syrup_rack" not in UnlockManager.owned_equipment:
-		_shop_status("Need Syrup Rack first!")
+		_shop_status("Buy the syrup rack first")
 		return
 	if UnlockManager.buy_syrup(syrup):
 		var entry: Dictionary = UnlockManager.SYRUP_SHOP[syrup]
-		_shop_status("Unlocked %s syrup!" % entry["name"])
+		_shop_status("%s syrup unlocked" % entry["name"])
 	else:
-		_shop_status("Can't afford that.")
+		_shop_status("Not enough money")
 	_refresh_shop()
 
 func _buy_sauce(sauce: int) -> void:
 	var entry: Dictionary = UnlockManager.SAUCE_SHOP[sauce]
 	if entry.get("bundled", "") != "":
-		_shop_status("Bundled with %s." % entry["bundled"].replace("_", " ").capitalize())
+		_shop_status("Comes with the %s" % entry["bundled"].replace("_", " ").capitalize())
 		return
 	if "sauce_station" not in UnlockManager.owned_equipment:
-		_shop_status("Need Sauce Station first!")
+		_shop_status("Buy the sauce station first")
 		return
 	if UnlockManager.buy_sauce(sauce):
-		_shop_status("Unlocked %s!" % entry["name"])
+		_shop_status("%s unlocked" % entry["name"])
 	else:
-		_shop_status("Can't afford that.")
+		_shop_status("Not enough money")
 	_refresh_shop()
 
 func _toggle_menu(drink: int) -> void:
@@ -585,7 +593,7 @@ func _switch_tab(idx: int) -> void:
 	for i in range(_tab_panels.size()):
 		_tab_panels[i].visible = (i == idx)
 	for i in range(_tab_buttons.size()):
-		_tab_buttons[i].modulate = Color(1, 1, 1) if i == idx else Color(0.6, 0.6, 0.6)
+		_set_tab_active(_tab_buttons[i], i == idx)
 
 func _select_size(size: int) -> void:
 	_size_selected = size
@@ -615,10 +623,9 @@ func _select_sauce(sauce: int) -> void:
 
 func _highlight_selected(buttons: Array[Button], selected_value: int) -> void:
 	for btn in buttons:
-		if btn.get_meta("value", -99) == selected_value:
-			btn.modulate = Color(1.3, 1.3, 1.3)
-		else:
-			btn.modulate = Color(1, 1, 1)
+		var on: bool = btn.get_meta("value", -99) == selected_value
+		btn.add_theme_stylebox_override("normal", _pos_box(UiStyle.GREEN_DEEP if on else UiStyle.ROAST_RAISED))
+		btn.add_theme_stylebox_override("hover", _pos_box(UiStyle.GREEN_DEEP if on else UiStyle.ROAST_RAISED.lightened(0.08)))
 
 func _clear_order() -> void:
 	_size_selected = -1
@@ -640,7 +647,7 @@ func _update_display() -> void:
 	if not _order_label:
 		return
 	if _size_selected < 0 and _drink_selected < 0:
-		_order_label.text = "Select size, then drink"
+		_order_label.text = ""
 		return
 	var parts: Array[String] = []
 	if _size_selected >= 0:
@@ -664,7 +671,7 @@ func _update_display() -> void:
 			price += DrinkData.SAUCE_UPCHARGE
 		if _sauce_selected >= 0:
 			code += " " + DrinkData.get_sauce_code(_sauce_selected as DrinkData.SauceType)
-		text += "\n[%s]  Total: $%.2f" % [code, price]
+		text += "\n%s      $%.2f" % [code, price]
 	_order_label.text = text
 
 func _charge_order() -> void:
@@ -691,7 +698,7 @@ func _show_order_screen() -> void:
 	_order_label.visible = true
 	_charge_btn.visible = true
 	_clear_btn.visible = true
-	_status_label_ui.visible = false
+	_status_box.visible = false
 	for btn in _tab_buttons:
 		btn.visible = true
 
@@ -700,7 +707,7 @@ func _show_charged_screen() -> void:
 	_order_label.visible = false
 	_charge_btn.visible = false
 	_clear_btn.visible = false
-	_status_label_ui.visible = true
+	_status_box.visible = true
 	for btn in _tab_buttons:
 		btn.visible = false
 	var price := _pending_order.base_price
@@ -711,9 +718,7 @@ func _show_charged_screen() -> void:
 	if _sauce_selected >= 0:
 		drink_desc += " " + DrinkData.get_sauce_name(_sauce_selected as DrinkData.SauceType)
 	drink_desc += " " + DrinkData.get_drink_name(_drink_selected as DrinkData.DrinkType)
-	_status_label_ui.text = "%s\nTotal: $%.2f\n\nCollect $%.2f from customer" % [
-		drink_desc, price, bill
-	]
+	_set_status(drink_desc, "$%.2f" % price, "Customer pays with $%.0f" % bill)
 
 func _get_bill_amount(price: float) -> float:
 	if price <= 5.0: return 5.0
@@ -726,9 +731,7 @@ func _on_cash_collected(_customer: Node3D, amount: float) -> void:
 	_cash_tendered = amount
 	_screen_state = Screen.WAITING_CASH
 	var change := _cash_tendered - _pending_order.base_price
-	_status_label_ui.text = "Cash: $%.2f\nTotal: $%.2f\nChange: $%.2f\n\nUse cash drawer to make change" % [
-		_cash_tendered, _pending_order.base_price, change
-	]
+	_set_status("Change from $%.2f" % _cash_tendered, "$%.2f" % change, "Count it out at the drawer")
 
 func _on_change_made(_amount: float) -> void:
 	if _screen_state != Screen.WAITING_CASH or not _pending_order:
@@ -744,7 +747,7 @@ func _on_change_made(_amount: float) -> void:
 		"order": _pending_order,
 		"ticket_code": _pending_order.ticket_code,
 	})
-	_status_label_ui.text = "ORDER SENT!\nTicket printed."
+	_set_status("", "Ticket printed", "")
 	Fx.float_text(global_position + Vector3(0, 0.55, 0), "+$%.2f" % _pending_order.base_price)
 	var timer := get_tree().create_timer(1.5)
 	timer.timeout.connect(_clear_order)
@@ -756,11 +759,8 @@ func _on_change_made(_amount: float) -> void:
 func _make_tab_panel() -> PanelContainer:
 	var p := PanelContainer.new()
 	p.position = Vector2.ZERO
-	p.size = Vector2(460, 140)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.13, 0.15, 0.18)
-	style.set_corner_radius_all(4)
-	p.add_theme_stylebox_override("panel", style)
+	p.size = Vector2(460, 150)
+	p.add_theme_stylebox_override("panel", StyleFactory.flat_no_border(Color.TRANSPARENT, 0, 0))
 	return p
 
 func _make_button_grid() -> GridContainer:
@@ -770,28 +770,69 @@ func _make_button_grid() -> GridContainer:
 	g.add_theme_constant_override("v_separation", 10)
 	return g
 
-func _make_pos_button(text: String, color: Color) -> Button:
+func _pos_label(text: String, size: int, weight: int, color: Color) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_override("font", UiStyle.font(weight))
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", color)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return l
+
+func _pos_box(bg: Color) -> StyleBoxFlat:
+	return StyleFactory.flat_no_border(bg, 8, 8)
+
+func _style_button(btn: Button, bg: Color, size: int) -> void:
+	btn.add_theme_font_override("font", UiStyle.font(UiStyle.W_BOLD))
+	btn.add_theme_font_size_override("font_size", size)
+	btn.add_theme_stylebox_override("normal", _pos_box(bg))
+	btn.add_theme_stylebox_override("hover", _pos_box(bg.lightened(0.08)))
+	btn.add_theme_stylebox_override("pressed", _pos_box(UiStyle.GREEN_DEEP))
+	btn.add_theme_stylebox_override("disabled", _pos_box(Color(bg, 0.6)))
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+func _make_pos_button(text: String) -> Button:
 	var btn := Button.new()
 	btn.text = text
-	btn.custom_minimum_size = Vector2(210, 55)
-	btn.add_theme_font_size_override("font_size", 16)
-	var style := StyleBoxFlat.new()
-	style.bg_color = color
-	style.set_corner_radius_all(6)
-	btn.add_theme_stylebox_override("normal", style)
-	var hover := StyleBoxFlat.new()
-	hover.bg_color = color.lightened(0.2)
-	hover.set_corner_radius_all(6)
-	btn.add_theme_stylebox_override("hover", hover)
-	var pressed_s := StyleBoxFlat.new()
-	pressed_s.bg_color = color.lightened(0.4)
-	pressed_s.set_corner_radius_all(6)
-	btn.add_theme_stylebox_override("pressed", pressed_s)
+	btn.custom_minimum_size = Vector2(225, 60)
+	_style_button(btn, UiStyle.ROAST_RAISED, POS_LEAD)
 	return btn
+
+## Tabs are flat text; the open one is crema with a green underline.
+func _make_tab_button(text: String, font_size: int = POS_BODY) -> Button:
+	var btn := Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(0, 32)
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.add_theme_font_override("font", UiStyle.font(UiStyle.W_BOLD))
+	btn.add_theme_font_size_override("font_size", font_size)
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	_set_tab_active(btn, false)
+	return btn
+
+func _set_tab_active(btn: Button, on: bool) -> void:
+	var box := StyleFactory.flat(Color.TRANSPARENT, UiStyle.GREEN if on else Color(UiStyle.STEAM, 0.25), 0, 0, 4)
+	box.border_width_bottom = 3 if on else 1
+	for state in ["normal", "hover", "pressed"]:
+		btn.add_theme_stylebox_override(state, box)
+	var color := UiStyle.CREMA if on else UiStyle.STEAM
+	btn.add_theme_color_override("font_color", color)
+	btn.add_theme_color_override("font_hover_color", UiStyle.CREMA)
+	btn.add_theme_color_override("font_pressed_color", color)
+
+func _set_status(title: String, amount: String, note: String) -> void:
+	_status_title.text = title
+	_status_title.visible = not title.is_empty()
+	_status_amount.text = amount
+	_status_note.text = note
+	_status_note.visible = not note.is_empty()
 
 # ──────────────────────────────────────────────
 # INTERACTION & INPUT
 # ──────────────────────────────────────────────
+
+func get_controls_hint() -> String:
+	return "[E] Done"
 
 func interact(player: Player) -> void:
 	if _active:
@@ -801,7 +842,7 @@ func interact(player: Player) -> void:
 	_activate_frame = Engine.get_process_frames()
 	_player = player
 	var look_range := 0.55 if _shop_mode else 0.35
-	_player.enter_screen_mode(_screen_mesh.global_position, global_position + Vector3(0, 0.30, -0.40), look_range)
+	_player.enter_screen_mode(_screen_mesh.global_position, global_position + Vector3(0, 0.30, -0.40), look_range, 0.0, self)
 
 func _deactivate() -> void:
 	if not _active:
@@ -843,14 +884,13 @@ func _update_screen_texture() -> void:
 	if _screen_mesh and _viewport:
 		var mat := _screen_mesh.get_surface_override_material(0)
 		if not mat:
+			# A lit screen: shown at its own colours whatever the shop lighting.
 			mat = StandardMaterial3D.new()
 			mat.albedo_color = Color.WHITE
-			mat.emission_enabled = true
-			mat.emission = Color(0.3, 0.3, 0.3)
+			mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 			_screen_mesh.set_surface_override_material(0, mat)
 		if mat is StandardMaterial3D:
 			mat.albedo_texture = _viewport.get_texture()
-			mat.emission_texture = _viewport.get_texture()
 
 func _get_crosshair_pixel() -> Vector2:
 	if not _player or not _screen_mesh:
@@ -923,8 +963,8 @@ func _click_at_shop(pixel: Vector2) -> void:
 		if btn.is_visible_in_tree() and not btn.disabled and btn.get_global_rect().has_point(pixel):
 			btn.emit_signal("pressed")
 			return
-	if _shop_tab_panels.size() >= 4 and _shop_current_tab == 3:
-		var menu_panel := _shop_tab_panels[3]
+	if _shop_tab_panels.size() > MENU_TAB and _shop_current_tab == MENU_TAB:
+		var menu_panel := _shop_tab_panels[MENU_TAB]
 		for child in menu_panel.get_children():
 			if child is VBoxContainer:
 				for sub in child.get_children():

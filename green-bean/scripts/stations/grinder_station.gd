@@ -141,7 +141,7 @@ func interact(player: Player) -> void:
 	match state:
 		State.IDLE:
 			if _status_label:
-				_status_label.text = "Place device here\n(dripper or shot press)"
+				_status_label.text = "[Click] Set down dripper or shot press"
 		State.DEVICE_PLACED:
 			if _mini_game.is_active():
 				_mini_game.stop()

@@ -20,10 +20,10 @@ func interact(player: Player) -> void:
 	cup.has_lid = true
 	SoundManager.play("lid_snap")
 	if _status_label:
-		_status_label.text = "Lid added!"
+		_status_label.text = ""
 	var timer := get_tree().create_timer(1.5)
 	timer.timeout.connect(func(): _update_label(null))
 
 func _update_label(_held: Node3D) -> void:
 	if _status_label:
-		_status_label.text = "[E] Hold cup to lid"
+		_status_label.text = "Hold a cup\n[E] Lid it"

@@ -313,7 +313,7 @@ func _update_label() -> void:
 			if _mat_occupied():
 				_status_label.text = "[E] Pick up pitcher"
 			else:
-				_status_label.text = "Bring pitcher with milk"
+				_status_label.text = "Needs a pitcher of milk"
 		State.PITCHER_PLACED:
 			if _placed_pitcher and _placed_pitcher.has_milk:
 				_status_label.text = "[E] Start steaming"

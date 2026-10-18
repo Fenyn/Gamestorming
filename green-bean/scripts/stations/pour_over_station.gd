@@ -251,7 +251,7 @@ func _recalculate_state() -> void:
 		if not _placed_dripper.has_grounds():
 			state = State.CUP_ONLY
 			if _status_label:
-				_status_label.text = "Dripper needs grounds!\n[E] Pick up dripper"
+				_status_label.text = "No grounds in it\n[E] Pick up dripper"
 			return
 		else:
 			state = State.READY_TO_POUR
@@ -392,10 +392,10 @@ func _update_label() -> void:
 	match state:
 		State.IDLE:
 			var has_shelf := _shelf_dripper != null and is_instance_valid(_shelf_dripper)
-			_status_label.text = "[E] Pick up dripper" if has_shelf else "[Click] Place cup"
+			_status_label.text = "[E] Pick up dripper" if has_shelf else "[Click] Set down a cup"
 		State.CUP_ONLY:
 			var has_shelf := _shelf_dripper != null and is_instance_valid(_shelf_dripper)
-			_status_label.text = "[E] Pick up dripper" if has_shelf else "Bring dripper w/ grounds"
+			_status_label.text = "[E] Pick up dripper" if has_shelf else "Needs a dripper with grounds"
 		State.READY_TO_POUR:
 			_status_label.text = "[E] Bloom pour\nHold a filled kettle"
 		State.BLOOMING:

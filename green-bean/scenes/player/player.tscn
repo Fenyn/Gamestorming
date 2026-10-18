@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/ui_icon.gd" id="2"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_001"]
 radius = 0.3
@@ -34,7 +35,10 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Dot" type="ColorRect" parent="HUD/Crosshair"]
-custom_minimum_size = Vector2(4, 4)
-color = Color(1, 1, 1, 0.8)
+[node name="Dot" type="Control" parent="HUD/Crosshair"]
+custom_minimum_size = Vector2(9, 9)
+layout_mode = 2
 mouse_filter = 2
+script = ExtResource("2")
+kind = 7
+color = Color(0.952941, 0.913725, 0.843137, 0.95)

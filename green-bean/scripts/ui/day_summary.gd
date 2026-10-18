@@ -39,7 +39,7 @@ func _ready() -> void:
 	if GameManager.total_spent > 0.0:
 		_row("Supplies", "-$%.2f" % GameManager.total_spent)
 	var profit := GameManager.get_profit()
-	_row("Profit", "$%.2f" % profit, UiStyle.GREEN if profit >= 0.0 else UiStyle.RED, true)
+	_row("Profit", "$%.2f" % profit, UiStyle.SAGE if profit >= 0.0 else UiStyle.RED, true)
 
 	_bank.text = "Bank $%.2f      %d stars" % [UnlockManager.money, UnlockManager.stars]
 	_next.add_child(KeyHint.make("Enter", "Next day", UiStyle.HUD_VALUE))

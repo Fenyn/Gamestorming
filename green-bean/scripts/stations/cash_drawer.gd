@@ -569,7 +569,7 @@ func _name(key: String) -> String:
 func _update_readout() -> void:
 	if not _has_transaction:
 		_readout.text = "Change given"
-		_readout.modulate = UiStyle.GREEN
+		_readout.modulate = UiStyle.SAGE
 		return
 	var counted := _counted()
 	var lines := ["Change due  $%.2f" % (_due / 100.0), "On the mat  $%.2f" % (counted / 100.0)]

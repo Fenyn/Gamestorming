@@ -15,7 +15,7 @@ roughness = 0.9
 size = Vector3(3.4, 0.012, 2.45)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aae7j"]
-albedo_color = Color(0.22, 0.42, 0.28, 1)
+albedo_color = Color(0.37, 0.41, 0.24, 1)
 roughness = 0.6
 
 [sub_resource type="BoxMesh" id="BoxMesh_hwvjf"]
@@ -124,171 +124,171 @@ size = Vector3(0.091999985, 0.008, 2.55)
 [sub_resource type="BoxMesh" id="BoxMesh_p1ycg"]
 size = Vector3(3.76, 0.16, 0.12)
 
-[node name="StandRoof" type="Node3D" unique_id=305217180]
+[node name="StandRoof" type="Node3D" unique_id=2090386001]
 
-[node name="Deck" type="MeshInstance3D" parent="." unique_id=1911801835]
+[node name="Deck" type="MeshInstance3D" parent="." unique_id=1505793933]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0.385)
 material_override = SubResource("StandardMaterial3D_fs2lc")
 mesh = SubResource("BoxMesh_lhkx4")
 
-[node name="Ceiling" type="MeshInstance3D" parent="." unique_id=1572597092]
+[node name="Ceiling" type="MeshInstance3D" parent="." unique_id=961369341]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.006, 0.024999976)
 material_override = SubResource("StandardMaterial3D_lvw78")
 mesh = SubResource("BoxMesh_ric0i")
 
-[node name="Fascia" type="MeshInstance3D" parent="." unique_id=2142236853]
+[node name="Fascia" type="MeshInstance3D" parent="." unique_id=1765763021]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 2.2350001)
 material_override = SubResource("StandardMaterial3D_aae7j")
 mesh = SubResource("BoxMesh_hwvjf")
 
-[node name="DripEdge" type="MeshInstance3D" parent="." unique_id=1332278864]
+[node name="DripEdge" type="MeshInstance3D" parent="." unique_id=1037404576]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.126, 2.2350001)
 material_override = SubResource("StandardMaterial3D_fiwv2")
 mesh = SubResource("BoxMesh_r3k7e")
 
-[node name="Fascia2" type="MeshInstance3D" parent="." unique_id=495348630]
+[node name="Fascia2" type="MeshInstance3D" parent="." unique_id=474958080]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -1.465)
 material_override = SubResource("StandardMaterial3D_aae7j")
 mesh = SubResource("BoxMesh_mkbl1")
 
-[node name="DripEdge2" type="MeshInstance3D" parent="." unique_id=191759601]
+[node name="DripEdge2" type="MeshInstance3D" parent="." unique_id=580509444]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.126, -1.465)
 material_override = SubResource("StandardMaterial3D_fiwv2")
 mesh = SubResource("BoxMesh_f7y5o")
 
-[node name="Fascia3" type="MeshInstance3D" parent="." unique_id=1093848936]
+[node name="Fascia3" type="MeshInstance3D" parent="." unique_id=1359540735]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.115, 0.02, 0.385)
 material_override = SubResource("StandardMaterial3D_aae7j")
 mesh = SubResource("BoxMesh_14vsm")
 
-[node name="DripEdge3" type="MeshInstance3D" parent="." unique_id=1134769615]
+[node name="DripEdge3" type="MeshInstance3D" parent="." unique_id=456143674]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.115, 0.126, 0.385)
 material_override = SubResource("StandardMaterial3D_fiwv2")
 mesh = SubResource("BoxMesh_x162t")
 
-[node name="Fascia4" type="MeshInstance3D" parent="." unique_id=845561491]
+[node name="Fascia4" type="MeshInstance3D" parent="." unique_id=2117858121]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.115, 0.02, 0.385)
 material_override = SubResource("StandardMaterial3D_aae7j")
 mesh = SubResource("BoxMesh_mp5s2")
 
-[node name="DripEdge4" type="MeshInstance3D" parent="." unique_id=195076290]
+[node name="DripEdge4" type="MeshInstance3D" parent="." unique_id=735044191]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.115, 0.126, 0.385)
 material_override = SubResource("StandardMaterial3D_fiwv2")
 mesh = SubResource("BoxMesh_dtuwl")
 
-[node name="Soffit" type="Node3D" parent="." unique_id=937109023]
+[node name="Soffit" type="Node3D" parent="." unique_id=1922487339]
 
-[node name="Backing" type="MeshInstance3D" parent="Soffit" unique_id=1366295522]
+[node name="Backing" type="MeshInstance3D" parent="Soffit" unique_id=1597873212]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.003, 1.735)
 material_override = SubResource("StandardMaterial3D_kafy0")
 mesh = SubResource("BoxMesh_ieo0r")
 
-[node name="Plank" type="MeshInstance3D" parent="Soffit" unique_id=1594398152]
+[node name="Plank" type="MeshInstance3D" parent="Soffit" unique_id=1521541824]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 1.2985001)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_4o2l5")
 
-[node name="Plank2" type="MeshInstance3D" parent="Soffit" unique_id=848122084]
+[node name="Plank2" type="MeshInstance3D" parent="Soffit" unique_id=2103141261]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 1.3955)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_4hr15")
 
-[node name="Plank3" type="MeshInstance3D" parent="Soffit" unique_id=117418577]
+[node name="Plank3" type="MeshInstance3D" parent="Soffit" unique_id=1492990781]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 1.4925001)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_roavq")
 
-[node name="Plank4" type="MeshInstance3D" parent="Soffit" unique_id=474706207]
+[node name="Plank4" type="MeshInstance3D" parent="Soffit" unique_id=145058038]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 1.5895)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_8avu8")
 
-[node name="Plank5" type="MeshInstance3D" parent="Soffit" unique_id=1114577712]
+[node name="Plank5" type="MeshInstance3D" parent="Soffit" unique_id=1384036483]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 1.6865001)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_eupys")
 
-[node name="Plank6" type="MeshInstance3D" parent="Soffit" unique_id=450220665]
+[node name="Plank6" type="MeshInstance3D" parent="Soffit" unique_id=1732442892]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 1.7835)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_ve0yj")
 
-[node name="Plank7" type="MeshInstance3D" parent="Soffit" unique_id=630130519]
+[node name="Plank7" type="MeshInstance3D" parent="Soffit" unique_id=1180779762]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 1.8805001)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_s55y2")
 
-[node name="Plank8" type="MeshInstance3D" parent="Soffit" unique_id=1367583890]
+[node name="Plank8" type="MeshInstance3D" parent="Soffit" unique_id=1973615125]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 1.9775)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_il6in")
 
-[node name="Plank9" type="MeshInstance3D" parent="Soffit" unique_id=595138143]
+[node name="Plank9" type="MeshInstance3D" parent="Soffit" unique_id=119469963]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 2.0745)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_s4ctl")
 
-[node name="Plank10" type="MeshInstance3D" parent="Soffit" unique_id=947066217]
+[node name="Plank10" type="MeshInstance3D" parent="Soffit" unique_id=1584701798]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 2.1715)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_6s1s4")
 
-[node name="Backing2" type="MeshInstance3D" parent="Soffit" unique_id=1246668021]
+[node name="Backing2" type="MeshInstance3D" parent="Soffit" unique_id=965802564]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.003, -1.375)
 material_override = SubResource("StandardMaterial3D_kafy0")
 mesh = SubResource("BoxMesh_h2xfi")
 
-[node name="Plank11" type="MeshInstance3D" parent="Soffit" unique_id=1313664584]
+[node name="Plank11" type="MeshInstance3D" parent="Soffit" unique_id=694702714]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, -1.4125)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_vhi8o")
 
-[node name="Plank12" type="MeshInstance3D" parent="Soffit" unique_id=345320847]
+[node name="Plank12" type="MeshInstance3D" parent="Soffit" unique_id=48883670]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, -1.3375)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_v02la")
 
-[node name="Backing3" type="MeshInstance3D" parent="Soffit" unique_id=1306095313]
+[node name="Backing3" type="MeshInstance3D" parent="Soffit" unique_id=1681180354]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9499999, -0.003, -0.024999976)
 material_override = SubResource("StandardMaterial3D_kafy0")
 mesh = SubResource("BoxMesh_d75fa")
 
-[node name="Plank13" type="MeshInstance3D" parent="Soffit" unique_id=765408388]
+[node name="Plank13" type="MeshInstance3D" parent="Soffit" unique_id=1864780047]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8499999, -0.008, -0.024999976)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_mbdnk")
 
-[node name="Plank14" type="MeshInstance3D" parent="Soffit" unique_id=994838505]
+[node name="Plank14" type="MeshInstance3D" parent="Soffit" unique_id=897763444]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9499999, -0.008, -0.024999976)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_mu2kw")
 
-[node name="Plank15" type="MeshInstance3D" parent="Soffit" unique_id=1437734014]
+[node name="Plank15" type="MeshInstance3D" parent="Soffit" unique_id=1101807313]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.05, -0.008, -0.024999976)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_v5a53")
 
-[node name="Backing4" type="MeshInstance3D" parent="Soffit" unique_id=916665668]
+[node name="Backing4" type="MeshInstance3D" parent="Soffit" unique_id=1688134696]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9499999, -0.003, -0.024999976)
 material_override = SubResource("StandardMaterial3D_kafy0")
 mesh = SubResource("BoxMesh_r5bbj")
 
-[node name="Plank16" type="MeshInstance3D" parent="Soffit" unique_id=1147901595]
+[node name="Plank16" type="MeshInstance3D" parent="Soffit" unique_id=1770207720]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.05, -0.008, -0.024999976)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_xouc5")
 
-[node name="Plank17" type="MeshInstance3D" parent="Soffit" unique_id=2107538239]
+[node name="Plank17" type="MeshInstance3D" parent="Soffit" unique_id=1660988829]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9499999, -0.008, -0.024999976)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_6lrsj")
 
-[node name="Plank18" type="MeshInstance3D" parent="Soffit" unique_id=2112432155]
+[node name="Plank18" type="MeshInstance3D" parent="Soffit" unique_id=1398752482]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8499999, -0.008, -0.024999976)
 material_override = SubResource("StandardMaterial3D_86jhr")
 mesh = SubResource("BoxMesh_lc7id")
 
-[node name="Header" type="MeshInstance3D" parent="." unique_id=459959694]
+[node name="Header" type="MeshInstance3D" parent="." unique_id=116107443]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.08, 1.25)
 material_override = SubResource("StandardMaterial3D_aae7j")
 mesh = SubResource("BoxMesh_p1ycg")

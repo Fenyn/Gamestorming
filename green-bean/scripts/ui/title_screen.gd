@@ -20,7 +20,7 @@ func _on_menu_ready() -> void:
 	title.remove_theme_font_size_override("font_size")
 	title.theme_type_variation = UiStyle.TITLE
 	var box := title.get_parent()
-	var bean := UiIcon.make(UiIcon.Kind.BEAN, UiStyle.GREEN, 88)
+	var bean := UiIcon.make(UiIcon.Kind.BEAN, UiStyle.SAGE, 88)
 	bean.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(bean)
 	box.move_child(bean, title.get_index())

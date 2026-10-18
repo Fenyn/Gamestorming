@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lnpdj"]
-albedo_color = Color(0.176, 0.336, 0.224, 1)
+albedo_color = Color(0.296, 0.328, 0.192, 1)
 roughness = 0.6
 
 [sub_resource type="BoxMesh" id="BoxMesh_otka4"]
@@ -37,45 +37,45 @@ roughness = 0.7
 [sub_resource type="BoxMesh" id="BoxMesh_if2vl"]
 size = Vector3(0.011, 0.145, 0.01)
 
-[node name="RoofSign" type="Node3D" unique_id=1799593818]
+[node name="RoofSign" type="Node3D" unique_id=1058487580]
 
-[node name="Leg" type="MeshInstance3D" parent="." unique_id=1983768508]
+[node name="Leg" type="MeshInstance3D" parent="." unique_id=500361845]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0.105, -0.05)
 material_override = SubResource("StandardMaterial3D_lnpdj")
 mesh = SubResource("BoxMesh_otka4")
 
-[node name="Leg2" type="MeshInstance3D" parent="." unique_id=1704013565]
+[node name="Leg2" type="MeshInstance3D" parent="." unique_id=1568403899]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.105, -0.05)
 material_override = SubResource("StandardMaterial3D_lnpdj")
 mesh = SubResource("BoxMesh_mdfr8")
 
-[node name="Board" type="MeshInstance3D" parent="." unique_id=1900772874]
+[node name="Board" type="MeshInstance3D" parent="." unique_id=1198596220]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 material_override = SubResource("StandardMaterial3D_lnpdj")
 mesh = SubResource("BoxMesh_irfcy")
 
-[node name="Face" type="MeshInstance3D" parent="." unique_id=1834025433]
+[node name="Face" type="MeshInstance3D" parent="." unique_id=1823861376]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0.027)
 material_override = SubResource("StandardMaterial3D_ff0jo")
 mesh = SubResource("BoxMesh_fwryw")
 
-[node name="Bean" type="Node3D" parent="." unique_id=1800071276]
+[node name="Bean" type="Node3D" parent="." unique_id=14444750]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6294, 0.25, 0.045)
 
-[node name="Half" type="MeshInstance3D" parent="Bean" unique_id=16376542]
+[node name="Half" type="MeshInstance3D" parent="Bean" unique_id=1804306197]
 transform = Transform3D(0.7047695, 0.34202012, 0, -0.2565151, 0.9396926, 0, 0, 0, 0.3, 0, 0, 0)
 material_override = SubResource("StandardMaterial3D_fg3wu")
 mesh = SubResource("SphereMesh_mqwim")
 
-[node name="Crease" type="MeshInstance3D" parent="Bean" unique_id=869594937]
+[node name="Crease" type="MeshInstance3D" parent="Bean" unique_id=242562749]
 transform = Transform3D(0.9396926, 0.34202012, 0, -0.34202012, 0.9396926, 0, 0, 0, 1, 0, 0, 0.025)
 material_override = SubResource("StandardMaterial3D_ywv5q")
 mesh = SubResource("BoxMesh_if2vl")
 
-[node name="Text" type="Label3D" parent="." unique_id=2071483612]
+[node name="Text" type="Label3D" parent="." unique_id=1585808602]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1025, 0.25, 0.031)
 pixel_size = 0.0016
-modulate = Color(0.176, 0.336, 0.224, 1)
+modulate = Color(0.296, 0.328, 0.192, 1)
 text = "GREEN BEAN"
 font_size = 120
 outline_size = 0

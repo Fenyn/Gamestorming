@@ -128,7 +128,7 @@ func show_review(stars: float, tip: float, issues: PackedStringArray) -> void:
 		var t := Label.new()
 		t.text = "+$%.2f tip" % tip
 		t.theme_type_variation = UiStyle.HUD_VALUE
-		t.add_theme_color_override("font_color", UiStyle.GREEN)
+		t.add_theme_color_override("font_color", UiStyle.SAGE)
 		row.add_child(t)
 	box.add_child(row)
 	if not issues.is_empty():

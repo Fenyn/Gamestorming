@@ -83,7 +83,7 @@ func refresh(cup: Cup) -> void:
 		var l := _rows[i].get_child(1) as Label
 		if i <= highest:
 			icon.kind = UiIcon.Kind.CHECK
-			icon.color = UiStyle.GREEN_DEEP
+			icon.color = UiStyle.OLIVE
 			l.theme_type_variation = UiStyle.TICKET_MUTED
 		elif i == highest + 1:
 			icon.kind = UiIcon.Kind.NEXT

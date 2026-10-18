@@ -27,9 +27,9 @@ func receive_item(item: Node3D) -> bool:
 	StationUtils.place_at_slot(item, _slot_position(idx, item))
 	return true
 
-func interact(player: Player) -> void:
+func take_item(player: Player) -> bool:
 	if _placed_bottles.is_empty() or player.has_held_item():
-		return
+		return false
 	var closest: SauceBottle = null
 	var closest_dist := 999.0
 	var ray_origin := player.camera.global_position
@@ -52,6 +52,8 @@ func interact(player: Player) -> void:
 		StationUtils.set_item_collision(closest, true)
 		player.pickup_item(closest)
 		_reposition()
+		return true
+	return false
 
 func _reposition() -> void:
 	for i in range(_placed_bottles.size()):

@@ -156,6 +156,14 @@ func interact(player: Player) -> void:
 					_placed_cup = null
 					_recalculate_state()
 
+## In these states E only ever hands something over, so Click does the same.
+func take_item(player: Player) -> bool:
+	if _pour_game.is_active() or player.has_held_item():
+		return false
+	if state in [State.IDLE, State.CUP_ONLY, State.READY, State.STALE]:
+		interact(player)
+	return player.has_held_item()
+
 func _try_start_bloom(player: Player) -> void:
 	var held := player.get_held_item()
 	if held is Kettle and (held as Kettle).has_water:
@@ -251,7 +259,7 @@ func _recalculate_state() -> void:
 		if not _placed_dripper.has_grounds():
 			state = State.CUP_ONLY
 			if _status_label:
-				_status_label.text = "No grounds in it\n[E] Pick up dripper"
+				_status_label.text = "No grounds in it\n[Click] Pick up dripper"
 			return
 		else:
 			state = State.READY_TO_POUR
@@ -302,6 +310,16 @@ func _process(_delta: float) -> void:
 			_pour_kettle = null
 			_pouring_player = null
 			_update_label()
+
+	# Left a pour part-way: the kettle comes back to the hand and that pour
+	# can be started again.
+	if _pour_tween and not _pour_game.is_active():
+		_stop_pour_animation()
+		_pour_kettle = null
+		_pouring_player = null
+		if state == State.BLOOMING:
+			state = State.READY_TO_POUR
+		_update_label()
 
 	if state == State.BLOOM_WAIT and _pour_game.is_ready_for_main_pour():
 		state = State.MAIN_POUR
@@ -392,10 +410,10 @@ func _update_label() -> void:
 	match state:
 		State.IDLE:
 			var has_shelf := _shelf_dripper != null and is_instance_valid(_shelf_dripper)
-			_status_label.text = "[E] Pick up dripper" if has_shelf else "[Click] Set down a cup"
+			_status_label.text = "[Click] Pick up dripper" if has_shelf else "[Click] Set down a cup"
 		State.CUP_ONLY:
 			var has_shelf := _shelf_dripper != null and is_instance_valid(_shelf_dripper)
-			_status_label.text = "[E] Pick up dripper" if has_shelf else "Needs a dripper with grounds"
+			_status_label.text = "[Click] Pick up dripper" if has_shelf else "Needs a dripper with grounds"
 		State.READY_TO_POUR:
 			_status_label.text = "[E] Bloom pour\nHold a filled kettle"
 		State.BLOOMING:
@@ -407,6 +425,6 @@ func _update_label() -> void:
 		State.DRAINING:
 			_status_label.text = "Draining"
 		State.READY:
-			_status_label.text = "[E] Pick up cup"
+			_status_label.text = "[Click] Pick up cup"
 		State.STALE:
-			_status_label.text = "Going cold\n[E] Pick up cup"
+			_status_label.text = "Going cold\n[Click] Pick up cup"

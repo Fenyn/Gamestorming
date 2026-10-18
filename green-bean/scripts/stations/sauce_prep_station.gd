@@ -95,6 +95,17 @@ func interact(player: Player) -> void:
 					state = State.IDLE
 					_update_label()
 
+func take_item(player: Player) -> bool:
+	if player.has_held_item() or _placed_bottle == null:
+		return false
+	var takeable := state == State.DONE or (state == State.BOTTLE_PLACED and not _mini_game.is_active())
+	if not takeable or not StationUtils.try_pickup_placed(player, _placed_bottle):
+		return false
+	_placed_bottle = null
+	state = State.IDLE
+	_update_label()
+	return true
+
 func receive_item(item: Node3D) -> bool:
 	if state != State.IDLE:
 		return false
@@ -169,7 +180,7 @@ func _update_label() -> void:
 			_status_label.text = "[Click] Set down an empty bottle"
 		State.BOTTLE_PLACED:
 			if _placed_bottle and _placed_bottle.is_filled():
-				_status_label.text = "[E] Pick up bottle"
+				_status_label.text = "[Click] Pick up bottle"
 			elif is_mix:
 				_status_label.text = "[E] Mix %s" % sauce_name.to_lower()
 			else:
@@ -177,4 +188,4 @@ func _update_label() -> void:
 		State.PREPPING:
 			_status_label.text = ""
 		State.DONE:
-			_status_label.text = "[E] Pick up bottle"
+			_status_label.text = "[Click] Pick up bottle"

@@ -218,7 +218,8 @@ func _start_dump() -> void:
 		if _pending_grounds and _placed_device:
 			_give_grounds(_pending_grounds)
 			state = State.DUMPING
-		_pending_grounds = null)
+		_pending_grounds = null
+		_update_label())
 	_dump_tween.tween_method(_set_jar_level, _jar_level, 0.0, 0.6)
 	_dump_tween.tween_callback(func() -> void:
 		if _dust:
@@ -254,14 +255,29 @@ func _update_label() -> void:
 		State.GRINDING:
 			_status_label.text = ""
 		State.DUMPING:
-			_status_label.text = ""
+			_status_label.text = "Emptying" if _pending_grounds else "[Click] Pick up device"
 		State.GROUNDS_READY:
-			_status_label.text = "[E] Pick up device"
+			_status_label.text = "[Click] Pick up device"
 
-func _input(event: InputEvent) -> void:
+## Right-click while looking at the grinder.
+func alt_interact(_player: Player) -> void:
 	if state == State.DEVICE_PLACED and not _mini_game.is_active():
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			_mini_game.toggle_grind_level()
+		_mini_game.toggle_grind_level()
+
+## The device can be taken as soon as its grounds are in, without waiting for
+## the catch cup to screw back on.
+func take_item(player: Player) -> bool:
+	var grounds_in := state == State.GROUNDS_READY or (state == State.DUMPING and _pending_grounds == null)
+	if not grounds_in:
+		return false
+	if not StationUtils.try_pickup_placed(player, _placed_device):
+		return false
+	if state == State.DUMPING:
+		_cancel_dump()
+	_placed_device = null
+	state = State.IDLE
+	_update_label()
+	return true
 
 func _process(delta: float) -> void:
 	if _dust and not _catch_cup:

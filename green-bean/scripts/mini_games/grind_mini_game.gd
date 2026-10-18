@@ -48,7 +48,7 @@ func _on_stop() -> void:
 	SoundManager.stop_loop("grind_loop")
 
 func get_controls_hint() -> String:
-	return hint([["Circle mouse", "Crank"], ["Right-click", "Fine / coarse"], ["E", "Stop"]])
+	return hint([["Circle mouse", "Crank"], ["Right-click", "Fine / coarse"], ["E", "Leave"]])
 
 func get_assist_readout() -> String:
 	return "%s   %d%%" % ["FINE" if grind_level == DrinkData.GrindLevel.FINE else "COARSE", roundi(get_grind_ratio() * 100.0)]
@@ -73,9 +73,8 @@ func _handle_input(event: InputEvent) -> void:
 			SoundManager.play("grind_complete")
 			complete(1.0)
 
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			toggle_grind_level()
+	if event.is_action_pressed("alt_use"):
+		toggle_grind_level()
 
 ## True while the player has cranked in the last fraction of a second.
 func is_cranking() -> bool:

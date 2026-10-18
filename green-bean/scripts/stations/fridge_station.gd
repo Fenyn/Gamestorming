@@ -16,28 +16,16 @@ func _ready() -> void:
 	_status_label = StationUtils.create_status_label(self)
 	_update_label()
 
-func interact(player: Player) -> void:
-	var held := player.get_held_item()
-
-	if held is MilkJug:
-		player.drop_held_item()
-		held.visible = false
-		held.global_position = global_position + Vector3(0, 0.3, 0)
-		if held is RigidBody3D:
-			(held as RigidBody3D).freeze = true
-		_milk_jug = held
-		_jug_in_fridge = true
-		_update_label()
-		return
-
-	if not held and _jug_in_fridge and _milk_jug and is_instance_valid(_milk_jug):
-		_milk_jug.visible = true
-		_milk_jug.global_position = global_position + Vector3(0, 0.5, 0.3)
-		StationUtils.set_item_collision(_milk_jug, true)
-		player.pickup_item(_milk_jug)
-		_jug_in_fridge = false
-		_update_label()
-		return
+func take_item(player: Player) -> bool:
+	if player.has_held_item() or not _jug_in_fridge or not _milk_jug or not is_instance_valid(_milk_jug):
+		return false
+	_milk_jug.visible = true
+	_milk_jug.global_position = global_position + Vector3(0, 0.5, 0.3)
+	StationUtils.set_item_collision(_milk_jug, true)
+	player.pickup_item(_milk_jug)
+	_jug_in_fridge = false
+	_update_label()
+	return true
 
 func receive_item(item: Node3D) -> bool:
 	if item is MilkJug:
@@ -55,6 +43,6 @@ func _update_label() -> void:
 	if not _status_label:
 		return
 	if _jug_in_fridge:
-		_status_label.text = "[E] Take out milk"
+		_status_label.text = "[Click] Take out milk"
 	else:
 		_status_label.text = ""

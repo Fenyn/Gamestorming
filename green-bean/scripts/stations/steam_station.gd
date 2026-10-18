@@ -121,6 +121,16 @@ func interact(player: Player) -> void:
 		State.SCALDED:
 			_reset()
 
+func take_item(player: Player) -> bool:
+	if _steam_game.is_active() or player.has_held_item():
+		return false
+	match state:
+		State.IDLE:
+			_try_pickup_shelf_pitcher(player)
+		State.PITCHER_PLACED, State.MILK_DONE:
+			_try_pickup_placed_pitcher(player)
+	return player.has_held_item()
+
 func _try_pickup_shelf_pitcher(player: Player) -> void:
 	if StationUtils.try_pickup_shelf(player, _shelf_pitcher):
 		_shelf_pitcher = null
@@ -311,21 +321,21 @@ func _update_label() -> void:
 	match state:
 		State.IDLE:
 			if _mat_occupied():
-				_status_label.text = "[E] Pick up pitcher"
+				_status_label.text = "[Click] Pick up pitcher"
 			else:
 				_status_label.text = "Needs a pitcher of milk"
 		State.PITCHER_PLACED:
 			if _placed_pitcher and _placed_pitcher.has_milk:
 				_status_label.text = "[E] Start steaming"
 			else:
-				_status_label.text = "No milk in it\n[E] Pick up pitcher"
+				_status_label.text = "No milk in it\n[Click] Pick up pitcher"
 		State.STRETCHING:
 			_status_label.text = ""
 		State.TEXTURING:
 			_status_label.text = "Heating\n[E] Watch it"
 		State.READY:
-			_status_label.text = "Milk's hot\n[E] Steam off"
+			_status_label.text = "Milk's hot\n[E] Finish steaming"
 		State.MILK_DONE:
-			_status_label.text = "[E] Pick up pitcher"
+			_status_label.text = "[Click] Pick up pitcher"
 		State.SCALDED:
 			_status_label.text = "Scalded\n[E] Dump and reset"

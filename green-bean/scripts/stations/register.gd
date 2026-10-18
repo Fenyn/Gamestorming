@@ -4,7 +4,6 @@ enum Screen { ORDER, CHARGED, WAITING_CASH, COMPLETE }
 
 var _active := false
 var _player: Player = null
-var _activate_frame := -1
 var _screen_state := Screen.ORDER
 var _shop_mode := true
 
@@ -686,12 +685,28 @@ func _charge_order() -> void:
 		_pending_order.set_sauce(_sauce_selected as DrinkData.SauceType)
 	_screen_state = Screen.CHARGED
 	SoundManager.play("register_charge")
+	_show_charged_screen()
+	# The customer at the front takes the order and lays their cash down at
+	# once, so the view goes straight to the drawer.
 	EventBus.order_charged.emit({
 		"order": _pending_order,
 		"drink_type": drink_enum,
 		"cup_size": size_enum,
 	})
-	_show_charged_screen()
+	if _screen_state == Screen.CHARGED:
+		# Nobody at the counter took it: back to the order as it was.
+		_pending_order = null
+		_screen_state = Screen.ORDER
+		_show_order_screen()
+	elif _screen_state == Screen.WAITING_CASH and _active:
+		var player := _player
+		_deactivate()
+		_open_drawer(player)
+
+func _open_drawer(player: Player) -> void:
+	var drawer := get_tree().get_first_node_in_group("cash_drawer")
+	if drawer:
+		drawer.interact(player)
 
 func _show_order_screen() -> void:
 	_panel_area.visible = true
@@ -731,7 +746,7 @@ func _on_cash_collected(_customer: Node3D, amount: float) -> void:
 	_cash_tendered = amount
 	_screen_state = Screen.WAITING_CASH
 	var change := _cash_tendered - _pending_order.base_price
-	_set_status("Change from $%.2f" % _cash_tendered, "$%.2f" % change, "Count it out at the drawer")
+	_set_status("Change from $%.2f" % _cash_tendered, "$%.2f" % change, "")
 
 func _on_change_made(_amount: float) -> void:
 	if _screen_state != Screen.WAITING_CASH or not _pending_order:
@@ -832,17 +847,28 @@ func _set_status(title: String, amount: String, note: String) -> void:
 # ──────────────────────────────────────────────
 
 func get_controls_hint() -> String:
-	return "[E] Done"
+	if _shop_mode:
+		return "[Click] Select   [E] Leave"
+	return "[Click] Select   [Enter] Charge   [Backspace] Clear   [E] Leave"
 
 func interact(player: Player) -> void:
 	if _active:
 		_deactivate()
 		return
+	# Change is still owed: the drawer is where the work is.
+	if _screen_state == Screen.WAITING_CASH:
+		_open_drawer(player)
+		return
 	_active = true
-	_activate_frame = Engine.get_process_frames()
 	_player = player
-	var look_range := 0.55 if _shop_mode else 0.35
-	_player.enter_screen_mode(_screen_mesh.global_position, global_position + Vector3(0, 0.30, -0.40), look_range, 0.0, self)
+	# Shop mode has a taller screen of rows; the order screen needs Charge and
+	# Clear along its bottom edge in reach.
+	var yaw := Vector2(-0.55, 0.55) if _shop_mode else Vector2(-0.45, 0.45)
+	var pitch := Vector2(-0.55, 0.35) if _shop_mode else Vector2(-0.42, 0.3)
+	_player.enter_screen_mode(_screen_mesh.global_position, to_global(Vector3(0, 0.30, -0.40)), yaw, pitch, 0.0, self)
+
+func leave() -> void:
+	_deactivate()
 
 func _deactivate() -> void:
 	if not _active:
@@ -856,13 +882,7 @@ func _input(event: InputEvent) -> void:
 	if not _active:
 		return
 
-	if event.is_action_pressed("interact"):
-		if Engine.get_process_frames() != _activate_frame:
-			_deactivate()
-			get_viewport().set_input_as_handled()
-		return
-
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+	if event.is_action_pressed("use"):
 		var pixel := _get_crosshair_pixel()
 		if pixel.x >= 0:
 			if _shop_mode:
@@ -870,12 +890,11 @@ func _input(event: InputEvent) -> void:
 			else:
 				_click_at(pixel)
 		get_viewport().set_input_as_handled()
-
-	if not _shop_mode and event is InputEventKey and event.pressed and not event.echo:
-		if _screen_state == Screen.ORDER:
-			match event.keycode:
-				KEY_ENTER: _charge_order()
-				KEY_BACKSPACE: _clear_order()
+	elif not _shop_mode and _screen_state == Screen.ORDER:
+		if event.is_action_pressed("confirm"):
+			_charge_order()
+		elif event.is_action_pressed("clear"):
+			_clear_order()
 
 func _process(_delta: float) -> void:
 	_update_screen_texture()
@@ -910,13 +929,11 @@ func _get_crosshair_pixel() -> Vector2:
 		return Vector2(-1, -1)
 	var hit_point := ray_origin + ray_dir * t
 
-	var screen_right := _screen_mesh.global_transform.basis.x.normalized()
-	var screen_up := _screen_mesh.global_transform.basis.y.normalized()
-	var offset := hit_point - screen_pos
-	var u := offset.dot(screen_right)
-	var v := offset.dot(screen_up)
-	var uv_x := u / SCREEN_SIZE.x + 0.5
-	var uv_y := 0.5 - v / SCREEN_SIZE.y
+	# Through the quad's own transform, so its scale (the screen is stretched
+	# taller in the model) maps to the right pixel.
+	var local := _screen_mesh.global_transform.affine_inverse() * hit_point
+	var uv_x := local.x / SCREEN_SIZE.x + 0.5
+	var uv_y := 0.5 - local.y / SCREEN_SIZE.y
 
 	if uv_x < 0 or uv_x > 1 or uv_y < 0 or uv_y > 1:
 		return Vector2(-1, -1)

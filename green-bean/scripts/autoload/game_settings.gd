@@ -32,8 +32,7 @@ func _ready() -> void:
 	_loading = false
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	var key := event as InputEventKey
-	if key and key.pressed and not key.echo and key.keycode == KEY_F1:
+	if event.is_action_pressed("readout"):
 		assist_readouts = not assist_readouts
 
 func _save() -> void:

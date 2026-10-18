@@ -20,7 +20,7 @@ func _ready() -> void:
 	EventBus.ticket_printed.connect(_on_ticket_printed)
 
 	_label = StationUtils.create_status_label(self, Vector3(0, 0.25, 0.12))
-	_label.text = "[E] Grab cup"
+	_label.text = "[Click] Grab cup"
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 
 func _on_ticket_printed(data: Dictionary) -> void:
@@ -29,9 +29,9 @@ func _on_ticket_printed(data: Dictionary) -> void:
 	_update_label()
 	_print_ticket(order)
 
-func interact(player: Player) -> void:
+func take_item(player: Player) -> bool:
 	if player.has_held_item():
-		return
+		return false
 
 	var order: OrderData = null
 	var size := DrinkData.CupSize.MEDIUM
@@ -46,13 +46,14 @@ func interact(player: Player) -> void:
 	cup.global_position = to_global(StationUtils.model_marker(self, "Dispense_" + SIZE_KEYS[size], Vector3(0, 0.3, 0)))
 	player.pickup_item(cup)
 	_update_label()
+	return true
 
 func _update_label() -> void:
 	if _label:
 		if _pending_orders.is_empty():
-			_label.text = "[E] Grab cup"
+			_label.text = "[Click] Grab cup"
 		else:
-			_label.text = "%d tickets waiting\n[E] Grab cup" % _pending_orders.size()
+			_label.text = "%d tickets waiting\n[Click] Grab cup" % _pending_orders.size()
 
 
 # ── Ticket rail: printed tickets pop up above the cups, oldest on the left ──

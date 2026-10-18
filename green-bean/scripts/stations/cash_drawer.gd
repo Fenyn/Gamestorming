@@ -30,7 +30,6 @@ var _has_transaction := false
 var _completing := false
 var _active := false
 var _player: Player = null
-var _activate_frame := -1
 var _paying_customer: Node3D = null
 
 var _drawer: Node3D = null
@@ -52,6 +51,7 @@ var _readout: Label3D = null
 
 func _ready() -> void:
 	add_to_group("station")
+	add_to_group("cash_drawer")
 	EventBus.cash_collected.connect(_on_cash_collected)
 	_drawer = get_node_or_null("Model/Drawer") as Node3D
 	var model := get_node_or_null("Model")
@@ -98,7 +98,7 @@ func _build_feedback() -> void:
 
 ## Controls strip while the drawer is open.
 func get_controls_hint() -> String:
-	return "[Click] Hand over   [Drag] Place   [Right-click] Take back   [E] Close"
+	return "[Click] Hand over   [Right-click] Take back   [E] Leave"
 
 func _make_label(font_size: int, pixel: float) -> Label3D:
 	var l := Label3D.new()
@@ -159,14 +159,18 @@ func _complete_change() -> void:
 		if c.state == Customer.State.PAYING:
 			c.order_taken(c.order_data)
 	_paying_customer = null
-	# The customer slides the change off the mat toward themselves.
+	# The customer slides the change off the mat toward themselves, once the
+	# last pieces have landed (number keys can finish while coins are in the air).
 	var away := _mat.global_basis.z * 0.2 if _mat else Vector3.ZERO
-	for p in _mat_pieces:
-		var tw := _fly(p, p.global_transform.translated(away), 0.4, 0.01)
-		tw.tween_callback(p.queue_free)
+	var pieces := _mat_pieces.duplicate()
 	_mat_pieces.clear()
 	_update_readout()
-	get_tree().create_timer(0.9).timeout.connect(_finish_complete)
+	get_tree().create_timer(0.3).timeout.connect(func() -> void:
+		for p in pieces:
+			if is_instance_valid(p):
+				var tw := _fly(p, p.global_transform.translated(away), 0.4, 0.01)
+				tw.tween_callback(p.queue_free))
+	get_tree().create_timer(1.2).timeout.connect(_finish_complete)
 
 func _finish_complete() -> void:
 	_completing = false
@@ -191,10 +195,14 @@ func interact(player: Player) -> void:
 	if not _has_transaction or _completing:
 		return
 	_active = true
-	_activate_frame = Engine.get_process_frames()
 	_player = player
 	_slide_drawer(true)
-	_player.enter_screen_mode(to_global(Vector3(0, -0.03, -0.17)), to_global(Vector3(0, 0.5, -0.36)), 0.6, 50.0, self)
+	# Far enough back that the trays, the change mat and the readout share one
+	# frame; the look range only has to reach the outer coin cups.
+	_player.enter_screen_mode(to_global(Vector3(0, -0.07, 0)), to_global(Vector3(0, 0.55, -0.55)), Vector2(-0.3, 0.3), Vector2(-0.4, 0.25), 60.0, self)
+
+func leave() -> void:
+	_close_drawer()
 
 func _slide_drawer(open: bool) -> void:
 	if _drawer == null:
@@ -221,39 +229,29 @@ func _close_drawer(leave_screen := true) -> void:
 # ── Input ────────────────────────────────────
 
 func _input(event: InputEvent) -> void:
-	if not _active:
+	if not _active or _completing:
 		return
-	if event.is_action_pressed("interact"):
-		if Engine.get_process_frames() != _activate_frame:
-			_close_drawer()
-			get_viewport().set_input_as_handled()
+	if event.is_action_pressed("use"):
+		_on_press()
+	elif event.is_action_released("use"):
+		_on_release()
+	elif event.is_action_pressed("alt_use"):
+		_on_right_click()
+	elif event.is_action_pressed("file_tender"):
+		_file_tender()
+	elif event.is_action_pressed("clear"):
+		for p in _mat_pieces.duplicate():
+			_return_to_slot(p)
+	else:
+		for i in range(KEY_ORDER.size()):
+			if event.is_action_pressed("tender_%d" % (i + 1)):
+				if (event as InputEventWithModifiers).shift_pressed:
+					_take_back_one(KEY_ORDER[i])
+				else:
+					_hand_over_from_slot(KEY_ORDER[i])
+				break
 		return
-	if _completing:
-		return
-	if event is InputEventMouseButton:
-		var mb := event as InputEventMouseButton
-		if mb.button_index == MOUSE_BUTTON_LEFT:
-			if mb.pressed:
-				_on_press()
-			else:
-				_on_release()
-		elif mb.button_index == MOUSE_BUTTON_RIGHT and mb.pressed:
-			_on_right_click()
-		get_viewport().set_input_as_handled()
-	elif event is InputEventKey and event.pressed and not event.echo:
-		var k := event as InputEventKey
-		var idx := k.keycode - KEY_1
-		if idx >= 0 and idx < KEY_ORDER.size():
-			if k.shift_pressed:
-				_take_back_one(KEY_ORDER[idx])
-			else:
-				_hand_over_from_slot(KEY_ORDER[idx])
-		elif k.keycode == KEY_F:
-			if _tender_piece:
-				_file_tender()
-		elif k.keycode == KEY_BACKSPACE:
-			for p in _mat_pieces.duplicate():
-				_return_to_slot(p)
+	get_viewport().set_input_as_handled()
 
 func _on_press() -> void:
 	if _held:
@@ -263,6 +261,7 @@ func _on_press() -> void:
 	_press_time = Time.get_ticks_msec() / 1000.0
 	if aim["kind"] == "slot":
 		var key: String = aim["key"]
+		_file_tender()
 		_held = _spawn_piece(key, (_slots[key] as Node3D).global_transform)
 		_held_from = "slot"
 		_set_clip(key, true)
@@ -329,6 +328,7 @@ func _spawn_piece(key: String, xform: Transform3D) -> Node3D:
 func _hand_over_from_slot(key: String) -> void:
 	if not _slots.has(key) or _held:
 		return
+	_file_tender()
 	var piece := _spawn_piece(key, (_slots[key] as Node3D).global_transform)
 	_set_clip(key, true)
 	_play_pick(key)
@@ -572,13 +572,13 @@ func _update_readout() -> void:
 		_readout.modulate = UiStyle.SAGE
 		return
 	var counted := _counted()
-	var lines := ["Change due  $%.2f" % (_due / 100.0), "On the mat  $%.2f" % (counted / 100.0)]
+	var lines := ["Change due  $%.2f" % (_due / 100.0)]
+	if GameSettings.assist_readouts:
+		lines.append("On the mat  $%.2f" % (counted / 100.0))
 	var color := UiStyle.CREMA
 	if counted > _due:
-		lines.append("Too much, take some back")
+		lines.append("Too much")
 		color = UiStyle.RED
-	elif not _tender_filed:
-		lines.append("Put the customer's %s in the drawer" % _name(_tender_key))
 	_readout.text = "\n".join(lines)
 	_readout.modulate = color
 	_readout.visible = true

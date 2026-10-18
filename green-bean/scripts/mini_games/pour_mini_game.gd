@@ -114,8 +114,8 @@ func _handle_input(event: InputEvent) -> void:
 	if phase == Phase.BLOOM_WAIT or phase == Phase.DRAW_DOWN or phase == Phase.COOLING:
 		return
 
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		_pouring = event.pressed
+	if event.is_action("use"):
+		_pouring = event.is_pressed()
 
 	if event is InputEventMouseMotion and pour_mode == PourMode.SATURATION:
 		# The kettle can be aimed before the water starts.

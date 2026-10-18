@@ -18,6 +18,8 @@ func receive_item(item: Node3D) -> bool:
 	if not cup.is_complete():
 		if _label:
 			_label.text = "Not finished yet"
+			get_tree().create_timer(1.5).timeout.connect(func() -> void:
+				_label.text = "[Click] Set down a finished drink")
 		return false
 	if not cup.order:
 		return false

@@ -66,8 +66,8 @@ func _handle_stir_input(event: InputEvent) -> void:
 	_has_prev = true
 
 func _handle_fill_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		_holding = event.pressed
+	if event.is_action("use"):
+		_holding = event.is_pressed()
 
 func _update_mini_game(delta: float) -> void:
 	match prep_mode:

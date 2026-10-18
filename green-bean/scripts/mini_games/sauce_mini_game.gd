@@ -61,8 +61,8 @@ func get_assist_readout() -> String:
 	return "Covered  %d%%      Even  %d%%" % [roundi(_get_coverage() * 100.0), roundi(_calc_evenness() * 100.0)]
 
 func _handle_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		_squeezing = event.pressed
+	if event.is_action("use"):
+		_squeezing = event.is_pressed()
 		if _squeezing:
 			SoundManager.play_loop("sauce_drizzle_loop")
 		else:

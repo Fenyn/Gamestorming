@@ -21,7 +21,6 @@ var _pour_game: PourMiniGame = null
 var _player_ref: Player = null
 var _filling_kettle: Kettle = null
 var _filling := false
-var _fill_frame := -1
 var _fill_cam: Marker3D = null
 var _stream: PourStream = null
 ## Cup or kettle taken from the player's hand to stand under the spout.
@@ -152,7 +151,6 @@ func interact(player: Player) -> void:
 				_status_label.text = "Kettle already full"
 			return
 		_filling = true
-		_fill_frame = Engine.get_process_frames()
 		_filling_kettle = kettle
 		_player_ref = player
 		_take_under_spout(player, kettle)
@@ -182,13 +180,19 @@ func interact(player: Player) -> void:
 		if _status_label:
 			_status_label.text = "Hold the kettle or a cup with a shot"
 
-func _input(event: InputEvent) -> void:
-	if not _filling:
-		return
-	if StationUtils.is_same_frame(_fill_frame):
-		return
-	if event.is_action_pressed("interact") or event.is_action_pressed("move_left") or event.is_action_pressed("move_right") or event.is_action_pressed("move_back"):
+## Player calls this for the leave keys while the kettle fill holds the camera.
+func leave() -> void:
+	if _filling:
 		_stop_filling()
+
+func take_item(player: Player) -> bool:
+	if _pour_game.is_active() or _filling:
+		return false
+	if StationUtils.try_pickup_shelf(player, _shelf_kettle):
+		_shelf_kettle = null
+		_update_label()
+		return true
+	return false
 
 func _process(delta: float) -> void:
 	# The cup pour ended (finished, spilled or the player left): hand the cup back.
@@ -245,7 +249,7 @@ func _update_readout() -> void:
 
 ## Helper UI while the kettle fills (the dispenser is the HUD source then).
 func get_controls_hint() -> String:
-	return BaseMiniGame.hint([["E", "Stop filling"]])
+	return BaseMiniGame.hint([["E", "Leave"]])
 
 func get_assist_readout() -> String:
 	if _filling_kettle and is_instance_valid(_filling_kettle):
@@ -270,6 +274,6 @@ func _update_label() -> void:
 	if not _status_label:
 		return
 	if _kettle_on_rest():
-		_status_label.text = "[E] Pick up kettle"
+		_status_label.text = "[Click] Pick up kettle"
 	else:
 		_status_label.text = "[E] Fill kettle or top up a shot"

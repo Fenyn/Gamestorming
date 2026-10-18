@@ -132,8 +132,8 @@ func _update_mini_game(delta: float) -> void:
 
 func _handle_input(event: InputEvent) -> void:
 	if phase == Phase.READY or phase == Phase.OVER_EXTRACTING:
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
+		if event.is_action("use"):
+			if event.is_pressed():
 				_started_phase = phase
 				phase = Phase.PRESSING
 				_pressing = true
@@ -143,8 +143,8 @@ func _handle_input(event: InputEvent) -> void:
 				SoundManager.stop_loop("press_loop")
 
 	if phase == Phase.PRESSING:
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-			_pressing = event.pressed
+		if event.is_action("use"):
+			_pressing = event.is_pressed()
 
 		if event is InputEventMouseMotion and _pressing:
 			_needle_x += event.relative.x * NEEDLE_CORRECTION

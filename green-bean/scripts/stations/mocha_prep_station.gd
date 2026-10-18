@@ -211,6 +211,29 @@ func _fill_bottle() -> void:
 	state = State.JUG_READY
 	_update_label()
 
+## Player calls this for the leave keys while cutting or whisking.
+func leave() -> void:
+	match state:
+		State.CUTTING:
+			_exit_cam()
+			_cut_line.visible = false
+			state = State.NEEDS_CUT
+			_update_label()
+		State.STIRRING:
+			SoundManager.stop_loop("sauce_prep_loop")
+			_whisk_in(false)
+			_exit_cam()
+			state = State.NEEDS_STIR
+			_update_label()
+
+func take_item(player: Player) -> bool:
+	if state == State.JUG_READY and _placed_bottle and _placed_bottle.is_filled():
+		if StationUtils.try_pickup_placed(player, _placed_bottle):
+			_placed_bottle = null
+			_update_label()
+			return true
+	return false
+
 func _exit_cam() -> void:
 	_stir_game_active = false
 	if _player_ref and is_instance_valid(_player_ref):
@@ -219,22 +242,6 @@ func _exit_cam() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not _stir_game_active:
-		return
-
-	if event.is_action_pressed("interact"):
-		if not StationUtils.is_same_frame(_activate_frame):
-			match state:
-				State.CUTTING:
-					_exit_cam()
-					_cut_line.visible = false
-					state = State.NEEDS_CUT
-					_update_label()
-				State.STIRRING:
-					SoundManager.stop_loop("sauce_prep_loop")
-					_whisk_in(false)
-					_exit_cam()
-					state = State.NEEDS_STIR
-					_update_label()
 		return
 
 	if state == State.CUTTING:
@@ -364,7 +371,7 @@ func _update_label() -> void:
 			if _placed_bottle and _placed_bottle.is_empty() and jug_level >= BOTTLE_FILL_COST:
 				_status_label.text = "[E] Fill the bottle"
 			elif _placed_bottle and _placed_bottle.is_filled():
-				_status_label.text = "[E] Pick up bottle"
+				_status_label.text = "[Click] Pick up bottle"
 			else:
 				_status_label.text = "[Click] Set down an empty bottle"
 		State.FILLING_BOTTLE:

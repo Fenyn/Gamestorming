@@ -24,7 +24,7 @@ func _on_start() -> void:
 	_hold_time = 0.0
 
 func get_controls_hint() -> String:
-	return hint([["Hold click", "Push the pump (all the way = 1 pump)"], ["E", "Done"]])
+	return hint([["Hold click", "Pump"], ["E", "Done"]])
 
 func get_assist_readout() -> String:
 	var in_stroke := minf(_hold_time / FULL_PUMP_DURATION, 1.0) if _holding else 0.0
@@ -51,8 +51,8 @@ func _on_stop() -> void:
 	mini_game_completed.emit(_quality)
 
 func _handle_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed:
+	if event.is_action("use"):
+		if event.is_pressed():
 			_holding = true
 			_hold_time = 0.0
 		elif _holding:

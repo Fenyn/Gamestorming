@@ -97,6 +97,29 @@ func interact(player: Player) -> void:
 			_mini_game.stop()
 			_recalc_state()
 
+## The cup when it is done or there is nothing to drizzle with, else the
+## bottle on its own.
+func take_item(player: Player) -> bool:
+	if _mini_game.is_active() or player.has_held_item():
+		return false
+	var bottle_empty := _placed_bottle != null and _placed_bottle.is_empty()
+	var item: Node3D = null
+	match state:
+		State.BOTTLE_ONLY:
+			item = _placed_bottle
+		State.CUP_ONLY:
+			item = _placed_cup
+		State.READY:
+			item = _placed_bottle if bottle_empty and not _placed_cup.has_sauce else _placed_cup
+	if item == null or not StationUtils.try_pickup_placed(player, item):
+		return false
+	if item == _placed_cup:
+		_placed_cup = null
+	else:
+		_placed_bottle = null
+	_recalc_state()
+	return true
+
 func _start_drizzle(player: Player) -> void:
 	if player.has_held_item():
 		return
@@ -260,9 +283,9 @@ func _update_label() -> void:
 			_status_label.text = "Needs a %s bottle" % sauce_name.to_lower()
 		State.READY:
 			if _placed_cup and _placed_cup.has_sauce:
-				_status_label.text = "[E] Pick up cup"
+				_status_label.text = "[Click] Pick up cup"
 			elif _placed_bottle and _placed_bottle.is_empty():
-				_status_label.text = "Bottle's empty\n[E] Pick up bottle"
+				_status_label.text = "Bottle's empty\n[Click] Pick up bottle"
 			else:
 				_status_label.text = "[E] Drizzle %s" % sauce_name
 		State.DRIZZLING:

@@ -102,16 +102,19 @@ Actions should feel **tactile and satisfying**, not abstracted. The physicality 
 ### Player Controls
 - **WASD** — movement (disabled during camera-locked mini-games)
 - **Mouse look** — camera control; also acts as cursor for in-world screens (center of view = pointer)
-- **Left click** — primary interaction (click POS buttons, pick up items, activate mini-game inputs)
-- **E** — interact with stations (locks camera to station POV and starts mini-game if prerequisites met)
-- **Esc / E again** — exit camera-locked mini-game, return to free movement
+- **Left click is the hand** — take, set down, pour into; inside a locked view it is the mini-game's input. It never locks the camera. Stations hand items over through `take_item(player) -> bool`.
+- **E is the work** — start or resume a station's task (locks the camera if prerequisites are met). A station with no task but something to take hands it over.
+- **E, Esc, A, S, D** — leave any locked view (`Player._leave_lock` calls the lock source's `leave()`). W does not, because it is often still held from walking up.
+- **Right click** — the alternate action on the looked-at station (`alt_interact`), e.g. the grind setting.
 - **Space** — jump (if needed for movement)
-- **Additional keys** may be used within mini-games (e.g., holding a key while pressing)
+- All keys are InputMap actions in project.godot (`use`, `alt_use`, `interact`, `leave`, `confirm`, `clear`, `tender_1`..`tender_7`, ...). Do not read raw keycodes.
+- Player sees input first and marks any event that changes the mode as handled, so stations need no frame guards. A lock that ends hands over in the same frame if another starts (Charge goes straight to the cash drawer, water pour straight to stir).
 
 ### Carried Items
 - Player holds **one item at a time**, floating in front of the viewport
-- **Left click** on a surface/station = set item down at that location
+- **Left click** on a surface/station = set item down at that location. A station that refuses the item leaves it in your hand.
 - **Left click** on a placed item = pick it up
+- **Left click** with a cup on the lid dispenser = lid it (`use_held`); the cup stays in hand
 - Items: cups (4 sizes), steaming pitcher, milk carton
 - Cup stacks (one per size) provide infinite cups in Phase 1; restocking from cup sleeves is a later feature
 

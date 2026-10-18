@@ -9,7 +9,8 @@ const MOUSE_SENSITIVITY := 0.002
 const INTERACT_DISTANCE := 2.5
 const HOVER_SHADER := preload("res://assets/shaders/hover_rim.gdshader")
 const CAMERA_ENTER_TIME := 0.25
-const CAMERA_EXIT_TIME := 0.15
+const CAMERA_EXIT_TIME := 0.25
+const LEAVE_ACTIONS: Array[StringName] = [&"interact", &"leave", &"move_back", &"move_left", &"move_right"]
 const SWAY_AMOUNT := 5.0
 const SWAY_MAX := 0.35
 const SWAY_SMOOTH := 12.0
@@ -22,17 +23,23 @@ var _yaw := 0.0
 var _pitch := 0.0
 var _mode: InteractMode = InteractMode.FREE
 var _held_item: Node3D = null
-var _screen_yaw_center := 0.0
-var _screen_pitch_center := 0.0
+## Screen mode looks around a fixed view: the offset (yaw, pitch) is applied
+## in that view's own frame, so the picture never rolls at steep angles.
+var _screen_basis := Basis.IDENTITY
+var _screen_offset := Vector2.ZERO
+var _screen_yaw_range := Vector2(-0.35, 0.35)
+var _screen_pitch_range := Vector2(-0.35, 0.35)
 var _saved_yaw := 0.0
 var _saved_pitch := 0.0
-var _screen_look_range := 0.35
+## A lock that ends defers its camera restore to the end of the frame, so a
+## station can hand straight over to the next view (Charge to the drawer,
+## water pour to stir) without the camera swinging back in between.
+var _restore_pending := false
+var _click_queued := false
 ## Field of view outside close-up work; zooms always return to this.
 var _base_fov := 75.0
 var _fov_tween: Tween = null
 const STATUS_ALERT_MS := 3000
-var _exit_frame := -1
-const EXIT_COOLDOWN_FRAMES := 10
 
 var _camera_tween: Tween = null
 var _hover_material: ShaderMaterial = null
@@ -72,8 +79,11 @@ func _ready() -> void:
 	EventBus.ticket_printed.connect(_on_ticket_printed)
 	EventBus.drink_handed_off.connect(_on_drink_handed_off)
 
+## Player sees every event before the stations (it is added last). Anything
+## that changes the mode is marked handled here, so the press that opens a
+## station never also lands inside it.
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_TAB:
+	if event.is_action_pressed("info"):
 		if _mode == InteractMode.FREE:
 			_enter_info_mode()
 		elif _mode == InteractMode.INFO:
@@ -89,53 +99,77 @@ func _input(event: InputEvent) -> void:
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		return
 
-	if _mode == InteractMode.MINI_GAME:
-		return
-
-	if _mode == InteractMode.SCREEN:
-		if event is InputEventMouseMotion and not _is_camera_easing():
+	if _mode == InteractMode.MINI_GAME or _mode == InteractMode.SCREEN:
+		if _is_leave_event(event):
+			get_viewport().set_input_as_handled()
+			_leave_lock()
+			return
+		# Stations aim from the camera, which is still swinging in.
+		if _is_camera_easing() and event.is_action_pressed("use"):
+			get_viewport().set_input_as_handled()
+			return
+		if _mode == InteractMode.SCREEN and event is InputEventMouseMotion:
 			var m := event as InputEventMouseMotion
-			camera.rotation.y -= m.relative.x * MOUSE_SENSITIVITY
-			camera.rotation.x -= m.relative.y * MOUSE_SENSITIVITY
-			camera.rotation.y = clampf(camera.rotation.y, _screen_yaw_center - _screen_look_range, _screen_yaw_center + _screen_look_range)
-			camera.rotation.x = clampf(camera.rotation.x, _screen_pitch_center - _screen_look_range, _screen_pitch_center + _screen_look_range)
-		if event.is_action_pressed("move_left") or event.is_action_pressed("move_right") or event.is_action_pressed("move_back"):
-			exit_screen_mode()
+			_screen_offset.x = clampf(_screen_offset.x - m.relative.x * MOUSE_SENSITIVITY, _screen_yaw_range.x, _screen_yaw_range.y)
+			_screen_offset.y = clampf(_screen_offset.y - m.relative.y * MOUSE_SENSITIVITY, _screen_pitch_range.x, _screen_pitch_range.y)
+			_apply_screen_look()
 		return
 
-	var in_cooldown := Engine.get_process_frames() - _exit_frame <= EXIT_COOLDOWN_FRAMES or _is_camera_easing()
-
-	if event is InputEventMouseMotion and not in_cooldown:
+	if event is InputEventMouseMotion:
 		var m := event as InputEventMouseMotion
 		_yaw -= m.relative.x * MOUSE_SENSITIVITY
-		_pitch -= m.relative.y * MOUSE_SENSITIVITY
-		_pitch = clampf(_pitch, -1.4, 1.4)
+		_pitch = clampf(_pitch - m.relative.y * MOUSE_SENSITIVITY, -1.4, 1.4)
 		rotation.y = _yaw
-		camera.rotation.x = _pitch
+		if not _is_camera_easing():
+			camera.rotation.x = _pitch
+		return
 
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ENTER:
+	if event.is_action_pressed("confirm"):
 		if GameManager.prep_active:
 			GameManager.start_day()
+			get_viewport().set_input_as_handled()
 			return
 		if _day_ended:
 			get_tree().reload_current_scene()
 			return
 
 	if event.is_action_pressed("interact"):
+		get_viewport().set_input_as_handled()
 		_try_interact()
+	elif event.is_action_pressed("use"):
+		get_viewport().set_input_as_handled()
+		# A click while the view is still settling back runs once it lands.
+		if _is_camera_easing():
+			_click_queued = true
+		else:
+			_try_click()
+	elif event.is_action_pressed("alt_use"):
+		_try_alt()
 
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and not in_cooldown:
-		_try_click()
+## E, Esc and the back and strafe keys leave any locked view. W does not,
+## because it is often still held from walking up.
+func _is_leave_event(event: InputEvent) -> bool:
+	for action in LEAVE_ACTIONS:
+		if event.is_action_pressed(action):
+			return true
+	return false
+
+func _leave_lock() -> void:
+	if is_instance_valid(_hud_source) and _hud_source.has_method("leave"):
+		_hud_source.call("leave")
+	else:
+		_restore_camera()
 
 func _physics_process(delta: float) -> void:
 	var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
+	# The camera is a child of the body, so a body still falling from a jump
+	# would drag a locked view off its station.
 	if _mode != InteractMode.FREE:
-		velocity.x = move_toward(velocity.x, 0.0, FRICTION * delta)
-		velocity.z = move_toward(velocity.z, 0.0, FRICTION * delta)
-		move_and_slide()
+		velocity = Vector3.ZERO
+		_apply_screen_look()
 		_update_held_item(delta)
 		_update_hud()
 		return
@@ -218,6 +252,8 @@ func _update_prompt() -> void:
 		hint = status
 	elif collider and collider.has_method("interact"):
 		hint = "[E] Use"
+	elif collider and collider.has_method("take_item") and not _held_item:
+		hint = "[Click] Pick up"
 	elif collider and collider.has_method("receive_item") and _held_item:
 		hint = "[Click] Set down"
 	elif collider and collider.is_in_group("carriable") and not _held_item:
@@ -310,7 +346,9 @@ func _is_actionable(collider: Object) -> bool:
 		return true
 	if collider.has_method("interact"):
 		return true
-	if collider.has_method("receive_item") and _held_item:
+	if (collider.has_method("receive_item") or collider.has_method("use_held")) and _held_item:
+		return true
+	if collider.has_method("take_item") and not _held_item:
 		return true
 	if collider is Node and (collider as Node).is_in_group("carriable") and not _held_item:
 		return true
@@ -338,25 +376,38 @@ func _collect_highlight_geometry(root: Node) -> Array[GeometryInstance3D]:
 			stack.append(child)
 	return found
 
+## E is the work: start or resume a station's task. A station with nothing to
+## work on but something to take hands it over, so E never does nothing there.
 func _try_interact() -> void:
 	if not interact_ray.is_colliding():
 		return
 	var collider := interact_ray.get_collider()
 	if collider and collider.has_method("interact"):
 		collider.interact(self)
+	elif collider and collider.has_method("take_item") and not _held_item:
+		collider.take_item(self)
 
+## Click is the hand: take, set down, pour into. It never locks the camera.
 func _try_click() -> void:
 	if _held_item:
 		_try_place_item()
 	else:
 		_try_pickup_item()
 
+func _try_alt() -> void:
+	if not interact_ray.is_colliding():
+		return
+	var collider := interact_ray.get_collider()
+	if collider and collider.has_method("alt_interact"):
+		collider.alt_interact(self)
+		get_viewport().set_input_as_handled()
+
 func _try_pickup_item() -> void:
 	if not interact_ray.is_colliding():
 		return
 	var collider := interact_ray.get_collider()
-	if collider and collider.has_method("interact"):
-		collider.interact(self)
+	if collider and collider.has_method("take_item"):
+		collider.take_item(self)
 		return
 	if collider and collider.is_in_group("carriable"):
 		pickup_item(collider)
@@ -390,11 +441,17 @@ func _try_place_item() -> void:
 			if not pitcher.has_milk:
 				pitcher.fill_milk()
 				return
+		# Stations that work on the held item without taking it (the lids).
+		if collider and collider.has_method("use_held") and collider.use_held(self):
+			return
+		# A station that says no keeps the item in your hand.
 		if collider and collider.has_method("receive_item"):
 			if collider.receive_item(_held_item):
 				_held_item = null
 				SoundManager.play("item_place")
-				return
+			else:
+				shake(0.003, 0.12)
+			return
 	var place_pos := hold_point.global_transform.origin + (-camera.global_transform.basis.z * 0.3)
 	_held_item.global_position = place_pos
 	if _held_item is RigidBody3D:
@@ -487,43 +544,56 @@ func _exit_info_mode() -> void:
 ## hud_source answers get_controls_hint() and get_assist_readout() for the
 ## helper UI. fov > 0 zooms the camera; it goes back on exit.
 func enter_mini_game(cam_transform: Transform3D, hud_source: Object = null, fov: float = 0.0) -> void:
-	if _mode != InteractMode.FREE:
+	if not _begin_lock(InteractMode.MINI_GAME, hud_source):
 		return
-	_mode = InteractMode.MINI_GAME
-	_hud_source = hud_source
 	_tween_fov(fov if fov > 0.0 else _base_fov, CAMERA_ENTER_TIME)
-	_saved_yaw = _yaw
-	_saved_pitch = _pitch
-	_ease_camera_to(cam_transform)
-	_set_world_labels_visible(false)
+	_ease_camera(func() -> Transform3D: return cam_transform, CAMERA_ENTER_TIME, false)
 
-## fov > 0 zooms the camera for close work; it goes back on exit. hud_source
-## works as in enter_mini_game.
-func enter_screen_mode(look_target: Vector3, cam_pos: Vector3, look_range: float = 0.35, fov: float = 0.0, hud_source: Object = null) -> void:
-	if _mode != InteractMode.FREE:
+## The camera moves to cam_pos facing look_target; the mouse then looks
+## around that view within yaw_range and pitch_range (min, max radians,
+## positive is left and up). fov > 0 zooms; it goes back on exit.
+func enter_screen_mode(look_target: Vector3, cam_pos: Vector3, yaw_range: Vector2, pitch_range: Vector2, fov: float = 0.0, hud_source: Object = null) -> void:
+	if not _begin_lock(InteractMode.SCREEN, hud_source):
 		return
-	_mode = InteractMode.SCREEN
-	_hud_source = hud_source
 	_tween_fov(fov if fov > 0.0 else _base_fov, CAMERA_ENTER_TIME)
-	_saved_yaw = _yaw
-	_saved_pitch = _pitch
-	_screen_look_range = look_range
-	var start := camera.global_transform
-	camera.global_position = cam_pos
-	camera.look_at(look_target, Vector3.UP)
-	_screen_yaw_center = camera.rotation.y
-	_screen_pitch_center = camera.rotation.x
-	var target := camera.global_transform
-	camera.global_transform = start
-	_ease_camera_to(target)
-	_set_world_labels_visible(false)
+	_screen_yaw_range = yaw_range
+	_screen_pitch_range = pitch_range
+	_screen_offset = Vector2.ZERO
+	_screen_basis = Transform3D.IDENTITY.looking_at(look_target - cam_pos, Vector3.UP).basis
+	_ease_camera(func() -> Transform3D: return Transform3D(_screen_look_basis(), cam_pos), CAMERA_ENTER_TIME, false)
+
+## False when another lock is active. A lock that ended this frame is taken
+## over in place, keeping the free-look direction saved by the first lock.
+func _begin_lock(mode: InteractMode, hud_source: Object) -> bool:
+	if _restore_pending:
+		_restore_pending = false
+	elif _mode != InteractMode.FREE:
+		return false
+	else:
+		_saved_yaw = _yaw
+		_saved_pitch = _pitch
+		_set_world_labels_visible(false)
+	_mode = mode
+	_hud_source = hud_source
+	return true
+
+func _request_restore() -> void:
+	if _mode == InteractMode.FREE or _restore_pending:
+		return
+	_restore_pending = true
+	_finish_restore.call_deferred()
+
+func _finish_restore() -> void:
+	if not _restore_pending:
+		return
+	_restore_pending = false
+	_restore_camera()
 
 func _restore_camera() -> void:
 	if _mode == InteractMode.FREE:
 		return
 	_mode = InteractMode.FREE
 	_hud_source = null
-	_exit_frame = Engine.get_process_frames()
 	_yaw = _saved_yaw
 	_pitch = _saved_pitch
 	_prev_yaw = _yaw
@@ -531,12 +601,23 @@ func _restore_camera() -> void:
 	var from := camera.global_transform
 	rotation.y = _yaw
 	camera.global_transform = from
-	var rest := Transform3D(Basis.from_euler(Vector3(_pitch, 0, 0)), Vector3(0, 1.7, 0))
-	_kill_camera_tween()
-	_camera_tween = create_tween()
-	_camera_tween.tween_property(camera, "transform", rest, CAMERA_EXIT_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	# Mouse look keeps turning the body and pitch during the ease.
+	_ease_camera(func() -> Transform3D: return Transform3D(Basis.from_euler(Vector3(_pitch, 0, 0)), Vector3(0, 1.7, 0)), CAMERA_EXIT_TIME, true)
+	_camera_tween.tween_callback(_run_queued_click)
 	_tween_fov(_base_fov, CAMERA_EXIT_TIME)
 	_set_world_labels_visible(true)
+
+func _run_queued_click() -> void:
+	if _click_queued and _mode == InteractMode.FREE:
+		_try_click()
+	_click_queued = false
+
+func _screen_look_basis() -> Basis:
+	return _screen_basis * Basis.from_euler(Vector3(_screen_offset.y, _screen_offset.x, 0.0))
+
+func _apply_screen_look() -> void:
+	if _mode == InteractMode.SCREEN and not _is_camera_easing():
+		camera.global_basis = _screen_look_basis()
 
 func _tween_fov(fov: float, time: float) -> void:
 	if _fov_tween and _fov_tween.is_valid():
@@ -547,10 +628,20 @@ func _tween_fov(fov: float, time: float) -> void:
 	_fov_tween = create_tween()
 	_fov_tween.tween_property(camera, "fov", fov, time).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
-func _ease_camera_to(target: Transform3D) -> void:
+## Eases the camera toward target(), asked again every step, so mouse look
+## during the ease is followed instead of landing in one jump at the end.
+## local eases camera.transform (relative to the body) instead of global.
+func _ease_camera(target: Callable, duration: float, local: bool) -> void:
 	_kill_camera_tween()
+	var from := camera.transform if local else camera.global_transform
+	var step := func(t: float) -> void:
+		var xf := from.interpolate_with(target.call() as Transform3D, t)
+		if local:
+			camera.transform = xf
+		else:
+			camera.global_transform = xf
 	_camera_tween = create_tween()
-	_camera_tween.tween_property(camera, "global_transform", target, CAMERA_ENTER_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_camera_tween.tween_method(step, 0.0, 1.0, duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 func _kill_camera_tween() -> void:
 	if _camera_tween and _camera_tween.is_valid():
@@ -561,13 +652,13 @@ func _is_camera_easing() -> bool:
 	return _camera_tween != null and _camera_tween.is_running()
 
 func is_in_screen_mode() -> bool:
-	return _mode == InteractMode.SCREEN
+	return _mode == InteractMode.SCREEN and not _restore_pending
 
 func exit_screen_mode() -> void:
-	_restore_camera()
+	_request_restore()
 
 func exit_mini_game() -> void:
-	_restore_camera()
+	_request_restore()
 
 func _on_day_ended() -> void:
 	_day_ended = true

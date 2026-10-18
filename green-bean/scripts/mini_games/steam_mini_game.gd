@@ -109,13 +109,13 @@ func _handle_input(event: InputEvent) -> void:
 	if steam_phase == SteamPhase.SCALDED:
 		return
 	if steam_phase == SteamPhase.READY:
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if event.is_action_pressed("use"):
 			_finish_steaming()
 		return
 
 	if steam_phase == SteamPhase.STRETCHING:
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-			_steaming = event.pressed
+		if event.is_action("use"):
+			_steaming = event.is_pressed()
 		if event is InputEventMouseMotion:
 			lift = clampf(lift - event.relative.y * LIFT_PER_PIXEL, 0.0, LIFT_MAX)
 

@@ -99,6 +99,7 @@ func _ready() -> void:
 	add_child(_water_game)
 	_water_game._camera_point = cam3
 	_water_game.mini_game_completed.connect(_on_water_complete)
+	_water_game.stopped.connect(_on_water_stopped)
 	_water_game.camera_fov = 55.0
 
 	_timer_display = get_node_or_null("Model/BrewTimer/Body/Display") as Label3D
@@ -214,6 +215,26 @@ func interact(player: Player) -> void:
 					_recalculate_state()
 		State.DEAD:
 			_reset()
+
+## In these states E only ever hands something over, so Click does the same.
+func take_item(player: Player) -> bool:
+	if _any_game_active() or player.has_held_item():
+		return false
+	if state in [State.IDLE, State.CUP_ONLY, State.DEVICE_ONLY, State.DONE]:
+		interact(player)
+	return player.has_held_item()
+
+## Water pour finished: straight into the stir in the same camera. Left early:
+## the kettle comes back to the hand.
+func _on_water_stopped(player: Player) -> void:
+	if _pour_tween:
+		StationUtils.stop_kettle_pour(_pour_tween, _pour_kettle, _pouring_player)
+		_pour_tween = null
+		_pouring_player = null
+		_pour_kettle = null
+	elif state == State.HAS_WATER and not _water_game.player_left and player and is_instance_valid(player):
+		_place_stir_game()
+		_stir_game.start(player)
 
 func receive_item(item: Node3D) -> bool:
 	if _any_game_active():
@@ -495,17 +516,17 @@ func _update_label() -> void:
 			if not _stand_free() and _shelf_device.has_grounds():
 				_status_label.text = "[Click] Set down a cup"
 			elif not _stand_free():
-				_status_label.text = "[E] Pick up shot press"
+				_status_label.text = "[Click] Pick up shot press"
 			else:
 				_status_label.text = "[Click] Set down a cup"
 		State.CUP_ONLY:
 			var has_shelf := _shelf_device != null and is_instance_valid(_shelf_device)
-			_status_label.text = "[E] Pick up shot press" if has_shelf else "Needs a shot press with grounds"
+			_status_label.text = "[Click] Pick up shot press" if has_shelf else "Needs a shot press with grounds"
 		State.DEVICE_ONLY:
 			if _placed_device and _placed_device.has_grounds():
 				_status_label.text = "[Click] Set down a cup"
 			else:
-				_status_label.text = "No grounds in it\n[E] Pick up shot press"
+				_status_label.text = "No grounds in it\n[Click] Pick up shot press"
 		State.READY_FOR_WATER:
 			_status_label.text = "Hold a filled kettle\n[E] Pour water"
 		State.HAS_WATER:
@@ -517,6 +538,6 @@ func _update_label() -> void:
 		State.PRESSING:
 			_status_label.text = ""
 		State.DONE:
-			_status_label.text = "[E] Pick up cup"
+			_status_label.text = "[Click] Pick up cup"
 		State.DEAD:
 			_status_label.text = "Shot went cold\n[E] Dump and reset"

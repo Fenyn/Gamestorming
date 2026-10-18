@@ -2,6 +2,9 @@ class_name BaseMiniGame
 extends Node3D
 
 signal mini_game_completed(quality: float)
+## After the game lets go of the camera, finished or left. A station can start
+## its next game from here and the camera goes straight across.
+signal stopped(player: Player)
 
 @export var station_name := ""
 @export var camera_point_path: NodePath
@@ -10,9 +13,11 @@ var _active := false
 var _player: Player = null
 var _camera_point: Marker3D = null
 var _quality := 1.0
-var _start_frame := -1
 ## True between complete(quality, linger) and the camera letting go.
 var _lingering := false
+## True when the player pressed a leave key, so a station does not chain
+## straight into its next game.
+var player_left := false
 var _session := 0
 ## Camera field of view while playing; 0 keeps the player's.
 var camera_fov := 0.0
@@ -39,7 +44,7 @@ func start(player_ref: Player) -> void:
 	_active = true
 	_session += 1
 	_lingering = false
-	_start_frame = Engine.get_process_frames()
+	player_left = false
 	_player = player_ref
 	_quality = 1.0
 	if _camera_point:
@@ -58,7 +63,9 @@ func stop() -> void:
 		_player.exit_mini_game()
 	EventBus.mini_game_ended.emit(station_name, _quality)
 	_on_stop()
+	var player := _player
 	_player = null
+	stopped.emit(player)
 
 ## linger keeps the camera on the finished result for that many seconds, with
 ## input off, so the player sees it land before the view lets go.
@@ -118,12 +125,14 @@ func _set_ui_visible(vis: bool) -> void:
 func is_active() -> bool:
 	return _active
 
+## Player calls this for the leave keys while this game holds the camera.
+## During the linger on a finished result it cuts the linger short.
+func leave() -> void:
+	player_left = true
+	stop()
+
 func _input(event: InputEvent) -> void:
 	if not _active or _lingering:
-		return
-	if event.is_action_pressed("interact"):
-		if Engine.get_process_frames() != _start_frame:
-			stop()
 		return
 	_handle_input(event)
 

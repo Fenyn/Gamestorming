@@ -103,6 +103,16 @@ func interact(player: Player) -> void:
 			state = State.CUP_PLACED
 			_update_label()
 
+func take_item(player: Player) -> bool:
+	if state != State.CUP_PLACED or _mini_game.is_active():
+		return false
+	if StationUtils.try_pickup_placed(player, _placed_cup):
+		_placed_cup = null
+		state = State.IDLE
+		_update_label()
+		return true
+	return false
+
 func _start_pumping(player: Player) -> void:
 	if player.has_held_item():
 		return
@@ -144,7 +154,7 @@ func _update_label() -> void:
 			_status_label.text = "[Click] Set a cup under the pump"
 		State.CUP_PLACED:
 			if _placed_cup and _placed_cup.syrup_pumps > 0.0:
-				_status_label.text = "[E] Pick up cup"
+				_status_label.text = "[Click] Pick up cup"
 			else:
 				_status_label.text = "[E] Pump %s" % syrup_name.to_lower()
 		State.PUMPING:

@@ -222,8 +222,6 @@ func bark(text: String, color: Color = UiStyle.CREMA) -> void:
 
 ## HUD prompt when the crosshair is on this customer.
 func get_prompt() -> String:
-	if state == State.PAYING:
-		return "[E] Take $%.0f" % _payment_amount
 	return ""
 
 func _physics_process(delta: float) -> void:
@@ -388,17 +386,11 @@ func start_paying(price: float) -> void:
 		_payment_amount = 10.0
 	else:
 		_payment_amount = 20.0
+	# The bill goes straight onto the change mat; the drawer takes it from there.
+	SoundManager.play("cash_collect")
 	if _speech_label:
-		_speech_label.text = "$%.0f" % _payment_amount
-		_speech_label.visible = true
-		Fx.pop(_speech_label, 1.4, 0.3)
-
-func interact(_player: Player) -> void:
-	if state == State.PAYING:
-		SoundManager.play("cash_collect")
-		EventBus.cash_collected.emit(self, _payment_amount)
-		if _speech_label:
-			_speech_label.visible = false
+		_speech_label.visible = false
+	EventBus.cash_collected.emit(self, _payment_amount)
 
 func order_taken(order: OrderData = null) -> void:
 	order_data = order

@@ -117,10 +117,15 @@ public partial class TreeProp : Node3D
             _occluderMaterial = new ShaderMaterial { Shader = OccluderShader };
             _occluderMaterial.SetShaderParameter("sprite_tex", _sprite.Texture);
             _occluderMaterial.SetShaderParameter("tint", _sprite.Modulate);
+            if (GhostAlpha is { } alpha) _occluderMaterial.SetShaderParameter("fade_alpha", alpha);
             SetBattlefield(_battlefield);
         }
         _sprite.MaterialOverride = _occluderMaterial;
     }
+
+    /// <summary>Alpha of the ghosted canopy, where a scene wants other than the shader's own. The
+    /// crawl's rooms are seen whole, so their foreground trees thin out further than a fight's.</summary>
+    public float? GhostAlpha { get; set; }
 
     private float _light = 1f;
 

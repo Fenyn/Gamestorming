@@ -106,7 +106,7 @@ func _block_sentence(tag: String, price: int) -> String:
 		AdventureShop.BLOCK_MANA:
 			return "%d Mana short." % (price - Session.run.mana)
 		AdventureShop.BLOCK_LIMIT:
-			return "Your deck already holds as many copies as this card allows."
+			return "Your deck holds as many copies as this card allows."
 		AdventureShop.BLOCK_FULL:
 			return "The deck is at %d cards, the most it can hold." % AdventureForge.max_size(Session.run)
 		AdventureShop.BLOCK_ILLEGAL:

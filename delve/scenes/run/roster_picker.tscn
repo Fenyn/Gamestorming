@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/screen_frame.tscn" id="frame"]
+[ext_resource type="Script" path="res://scripts/flow/RosterPicker.cs" id="1_picker"]
+[ext_resource type="PackedScene" path="res://scenes/ui/member_tile.tscn" id="2_tile"]
+
+[node name="RosterPicker" instance=ExtResource("frame")]
+visible = false
+script = ExtResource("1_picker")
+Title = "Companions"
+CompactWidth = 880.0
+TileScene = ExtResource("2_tile")
+
+[node name="Tiles" type="GridContainer" parent="Frame/Box/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 4
+
+[node name="PickerVacate" type="Button" parent="Frame/Box/Footer"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(280, 44)
+layout_mode = 2
+text = "Send back to town"
+
+[node name="PickerDetails" type="Button" parent="Frame/Box/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 44)
+layout_mode = 2
+text = "Character details"

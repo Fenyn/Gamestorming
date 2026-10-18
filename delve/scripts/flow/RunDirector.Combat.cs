@@ -80,14 +80,13 @@ public partial class RunDirector
         if (_pendingRecruit is { } survivor)
         {
             PresetCharacters.LevelUpInPlace(survivor.Character, _state.Party.Level);
-            notes.Add($"{survivor.Character.Name} survived. Choose whether to swap a companion next.");
+            notes.Add($"{survivor.Character.Name} survived.");
         }
         if (_state.CurrentNode?.Kind == NodeKind.Boss)
         {
             int wardBefore = _state.Wardstone.Ward;
             var attune = WardAttunement.Roll(_state.Party, _state.Wardstone, GuardianLevel());
-            if (attune != null) notes.Add($"{attune.Actor} attunes the Wardstone to the ward engine: {attune.Skill} {attune.Total} vs DC {attune.Dc}, "
-                + $"{attune.Degree}. The stone regains {attune.RefillPercent}% of its missing ward.");
+            if (attune != null) notes.Add($"{attune.Actor} attunes the Wardstone: {attune.Skill} {attune.Total} vs DC {attune.Dc}, {attune.Degree}");
             if (CombatResults.Ward(wardBefore, _state.Wardstone.Ward) is { } ward) figures.Add(ward);
         }
         notes.AddRange(CampaignSummary.Gains(campaignBefore, _campaign));
@@ -167,7 +166,7 @@ public partial class RunDirector
         string name = _pendingRecruit?.Character.Name ?? "The Wayfarer";
         _pendingRecruit = null;
         GoToMap();
-        _dungeon?.ShowPartyNotice($"{name} parts ways with the party. Your meeting remains in the unlock journal.");
+        _dungeon?.ShowPartyNotice($"{name} parts ways with the party.");
     }
 
     /// <summary>Pay out the won fight's XP (stabilized party first) and queue promotions on a

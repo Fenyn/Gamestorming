@@ -174,7 +174,7 @@ func _refresh() -> void:
 	motes_label.tooltip_text = "Motes"
 	mote_icon.tooltip_text = "Motes"
 	mana_label.text = str(run.mana)
-	mana_label.tooltip_text = "Mana, spent at Shops during this run"
+	mana_label.tooltip_text = "Mana buys cards at Shops. It is lost when the run ends."
 	mana_icon.tooltip_text = mana_label.tooltip_text
 	match run.status:
 		"won":
@@ -341,10 +341,10 @@ func _show_run_over(run: AdventureRun, map: AdventureMap) -> void:
 	_node_icon.visible = _node_icon.texture != null
 	if run.status == "won":
 		run_over_heading.text = "Tournament conquered"
-		run_over_reached.text = "Cleared all %d acts." % map.acts
+		run_over_reached.text = "You cleared all %d acts." % map.acts
 	else:
-		run_over_heading.text = "Your ascent ends here"
-		run_over_reached.text = "Fell at %s." % map.place_of(run.node_id)
+		run_over_heading.text = "Run over"
+		run_over_reached.text = "You fell at %s." % map.place_of(run.node_id)
 
 
 func _on_duel() -> void:

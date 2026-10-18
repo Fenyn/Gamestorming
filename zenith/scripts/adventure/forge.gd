@@ -18,13 +18,10 @@ const BLOCKED_TINT: Color = Color(0.42, 0.42, 0.42)
 @onready var choice_step: CenterContainer = $Body/ChoiceStep
 @onready var choice_title: Label = $Body/ChoiceStep/Column/Title
 @onready var tile_buttons: Array[Button] = [$Body/ChoiceStep/Column/Tiles/Cut, $Body/ChoiceStep/Column/Tiles/Copy]
-@onready var description_label: Label = $Body/ChoiceStep/Column/Description
-@onready var constraint_label: Label = $Body/ChoiceStep/Column/Constraint
 @onready var leave_button: Button = $Body/ChoiceStep/Column/Leave
 @onready var pick_step: VBoxContainer = $Body/PickStep
 @onready var pick_title: Label = $Body/PickStep/Title
 @onready var grid_panel: PanelContainer = $Body/PickStep/Center/Group/GridPanel
-@onready var grid_caption: Label = $Body/PickStep/Center/Group/GridPanel/Column/Caption
 @onready var grid: GridContainer = $Body/PickStep/Center/Group/GridPanel/Column/Scroll/Grid
 @onready var preview_panel: PanelContainer = $Body/PickStep/Center/Group/PreviewPanel
 @onready var preview_face: TextureRect = $Body/PickStep/Center/Group/PreviewPanel/Column/Face
@@ -75,8 +72,6 @@ func _ready() -> void:
 		icon.texture = MapArt.ui("card_remove" if ACTIONS[i] == AdventureForge.ACTION_CUT else "card_add")
 		var action: String = ACTIONS[i]
 		tile.pressed.connect(func() -> void: _open_pick(action))
-		tile.mouse_entered.connect(func() -> void: _describe(action))
-		tile.focus_entered.connect(func() -> void: _describe(action))
 	leave_button.pressed.connect(_on_leave)
 	back_button.pressed.connect(_show_choice)
 	act_button.pressed.connect(_on_act)
@@ -105,36 +100,24 @@ func _show_choice() -> void:
 	_hide_inspect()
 	choice_step.visible = true
 	pick_step.visible = false
-	var first_open: String = ""
 	for i in range(ACTIONS.size()):
 		var reason: String = _action_block(ACTIONS[i])
 		var tile: Button = tile_buttons[i]
 		tile.disabled = reason != "" or _busy
-		tile.tooltip_text = reason
+		tile.tooltip_text = reason if reason != "" else _action_hover(ACTIONS[i])
 		var icon: TextureRect = tile.get_node("Content/Icon")
 		var name_label: Label = tile.get_node("Content/Name")
 		var tint: Color = ZenithTheme.TEXT_DISABLED if reason != "" else ZenithTheme.ACCENT
 		icon.self_modulate = tint
 		name_label.add_theme_color_override("font_color", tint)
-		if reason == "" and first_open == "":
-			first_open = ACTIONS[i]
-	_describe(first_open if first_open != "" else ACTIONS[0])
 
 
-## The hovered tile's line and its limit under the pair. A closed tile says why in the limit's place.
-func _describe(action: String) -> void:
+## An open tile's hover: what the action does and the deck-size limit it stops at.
+func _action_hover(action: String) -> String:
 	var run: AdventureRun = Session.run
-	var reason: String = _action_block(action)
 	if action == AdventureForge.ACTION_CUT:
-		description_label.text = "Remove one card from your deck."
-		constraint_label.text = "The deck can go no lower than %d cards." % AdventureForge.floor_size(run)
-	else:
-		description_label.text = "Add one more copy of a card already in your deck."
-		constraint_label.text = "The deck can hold no more than %d cards." % AdventureForge.max_size(run)
-	if reason != "":
-		constraint_label.text = reason
-	constraint_label.theme_type_variation = &"WarnLabel" if reason != "" else &"MutedLabel"
-	constraint_label.add_theme_font_size_override("font_size", ZenithTheme.SIZE_CAPTION)
+		return "Removes one card from your deck. The deck can go no lower than %d cards." % AdventureForge.floor_size(run)
+	return "Adds one copy of a card already in your deck. The deck can hold no more than %d cards." % AdventureForge.max_size(run)
 
 
 func _action_block(action: String) -> String:
@@ -165,8 +148,6 @@ func _open_pick(action: String) -> void:
 	var cut: bool = action == AdventureForge.ACTION_CUT
 	pick_title.text = "Cut a card" if cut else "Copy a card"
 	act_button.text = "Cut it" if cut else "Copy it"
-	grid_caption.text = "Right-click a card to inspect it." if cut \
-		else "A greyed card cannot take another copy. Right-click a card to inspect it."
 	await _fill_grid()
 	_pick(-1)
 
@@ -225,6 +206,7 @@ func _build_cell(def: CardDef, index: int) -> Control:
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.self_modulate = BLOCKED_TINT if blocked else Color.WHITE
 	button.mouse_default_cursor_shape = Control.CURSOR_ARROW if blocked else Control.CURSOR_POINTING_HAND
+	button.tooltip_text = _block_sentence(_blocks[index]) if blocked else ""
 	button.pressed.connect(func() -> void: _pick(index))
 	button.mouse_entered.connect(func() -> void: _show_preview(index))
 	button.mouse_exited.connect(func() -> void: _show_preview(_picked))
@@ -267,13 +249,13 @@ func _pick(index: int) -> void:
 	_show_preview(_picked)
 
 
-## The large face and, in words, what the action would do with it. With `index` -1 the panel asks
-## for a pick.
+## The large face and the copy and deck counts before and after the action. With `index` -1 the
+## panel is empty.
 func _show_preview(index: int) -> void:
 	preview_face.visible = index >= 0 and index < _ids.size()
 	if not preview_face.visible:
 		preview_face.texture = null
-		preview_name.text = "Pick a card to cut" if _action == AdventureForge.ACTION_CUT else "Pick a card to copy"
+		preview_name.text = ""
 		preview_change.text = ""
 		preview_size.text = ""
 		return
@@ -284,27 +266,22 @@ func _show_preview(index: int) -> void:
 	var copies: int = Session.run.cards.count(id)
 	var size: int = AdventureForge.deck_size(Session.run)
 	if reason != "":
-		preview_change.text = _block_sentence(reason)
-		preview_change.add_theme_color_override("font_color", ZenithTheme.WARN)
+		preview_change.text = ""
 		preview_size.text = ""
 	elif _action == AdventureForge.ACTION_COPY:
-		preview_change.text = "From %s to %d in your deck" % [_copies_text(copies), copies + 1]
+		preview_change.text = "In deck: %d → %d" % [copies, copies + 1]
 		preview_change.add_theme_color_override("font_color", ZenithTheme.ENERGY)
-		preview_size.text = "Deck grows from %d to %d cards" % [size, size + 1]
+		preview_size.text = "Deck: %d → %d cards" % [size, size + 1]
 	else:
-		preview_change.text = "From %s to %d in your deck" % [_copies_text(copies), copies - 1]
+		preview_change.text = "In deck: %d → %d" % [copies, copies - 1]
 		preview_change.add_theme_color_override("font_color", ZenithTheme.WARN)
-		preview_size.text = "Deck shrinks from %d to %d cards" % [size, size - 1]
+		preview_size.text = "Deck: %d → %d cards" % [size, size - 1]
 	var tex: Texture2D = await faces.render_face(def)
 	if preview_name.text == def.title:
 		preview_face.texture = tex
 
 
-static func _copies_text(count: int) -> String:
-	return "1 copy" if count == 1 else "%d copies" % count
-
-
-## The grid's short tag as a sentence for the preview.
+## The grid's short tag as a sentence for the blocked card's hover.
 func _block_sentence(tag: String) -> String:
 	match tag:
 		AdventureForge.BLOCK_PERSONALITY:
@@ -400,12 +377,12 @@ func _dev_setup() -> void:
 				break
 
 
-## `--dev-forge-hover=cut|copy` shows that tile's lines, `--dev-forge-step=cut|copy` opens step
+## `--dev-forge-hover=cut|copy` focuses that tile, `--dev-forge-step=cut|copy` opens step
 ## two for it, and `--dev-forge-pick=N` picks the Nth card of the grid.
 func _dev_after_layout() -> void:
 	var hover: String = AdventureDev.flag("--dev-forge-hover=")
 	if hover in ACTIONS:
-		_describe(hover)
+		tile_buttons[ACTIONS.find(hover)].grab_focus()
 	var step: String = AdventureDev.flag("--dev-forge-step=")
 	if step in ACTIONS:
 		await _open_pick(step)

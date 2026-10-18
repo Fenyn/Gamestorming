@@ -57,6 +57,10 @@ public sealed class GodotPresenter3D
     /// </summary>
     public ICameraFocus? Focus { get; set; }
 
+    /// <summary>Multiplier on the beats between board events and on the damage numbers: 1.25 plays
+    /// them a quarter slower. Walking and a swing clip's impact frame keep their own timing.</summary>
+    public float Pace { get; set; } = 1f;
+
     /// <summary>
     /// Where the board's surface is. Tokens are tweened to — and snapped to — the tile centre height
     /// from here. <see cref="TerrainHeightMap.Flat"/> reproduces the flat board exactly (every Y is 0).
@@ -178,12 +182,14 @@ public sealed class GodotPresenter3D
                 // the clip's STRIKE frame — so the DamageDealt that follows spawns its spark and its
                 // number exactly as the axe bites, instead of ahead of the animation that caused them.
                 float gate = AttackDuration;
+                bool clipGate = false;
                 if (TryGet(evt.Source, out var attacker))
                 {
                     FaceToward(attacker, evt.Source, evt.Target);
                     if (attacker.PlayAttack(out float impactDelay))
                     {
                         gate = impactDelay;
+                        clipGate = true;
                         attacker.FlashAttack(HeroLungeDistance, gate, HeroLungeRecovery);
                     }
                     else
@@ -191,7 +197,8 @@ public sealed class GodotPresenter3D
                         attacker.FlashAttack();
                     }
                 }
-                await Delay(gate);
+                // The clip's STRIKE frame keeps the clip's own time, or the spark would trail the bite.
+                await Delay(gate, paced: !clipGate);
                 if (TryGet(evt.Source, out var strikingUnit))
                     PlayAttackAccent(strikingUnit, HorizontalDirection(evt.Source, evt.Target));
 
@@ -406,6 +413,7 @@ public sealed class GodotPresenter3D
         // Just above THIS unit's own HP bar rather than a fixed height: a rat's bar sits at 0.9 m, so
         // the old constant 1.9 left its numbers floating a metre over its head.
         popup.Position = on.Position + new Vector3(0f, on.HpBarHeight + PopupClearance, 0f);
+        popup.Pace = Pace;
         _popupLayer.AddChild(popup);
     }
 
@@ -415,8 +423,9 @@ public sealed class GodotPresenter3D
         return character != null && _units.TryGetValue(character.UniqueId, out visual!);
     }
 
-    private async Task Delay(float seconds)
+    private async Task Delay(float seconds, bool paced = true)
     {
+        if (paced) seconds *= Pace;
         if (seconds <= 0) return;
         // A scene exit cancels the token: the delay throws OperationCanceled, which propagates up
         // through the AI plan / Emit chain to the turn loop's cancellation handler.

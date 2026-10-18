@@ -11,15 +11,12 @@ public static class WardLines
     /// <summary>What the next ten-minute block does to the ward.</summary>
     public static string RestPreview(Wardstone ward)
     {
-        if (ward.IsSpent)
-            return "The ward is out.";
-        if (ward.ShortRestWouldSpend)
-            return $"Only {ward.Ward} ward is left. A rest costs {ward.Rules.ShortRestBurn} and would "
-                   + "put the ward out, so there is no resting from here.";
+        if (ward.IsSpent || ward.ShortRestWouldSpend)
+            return RestUnavailable(ward);
 
-        string line = $"Ward after rest: {ward.WardAfterShortRest} / {ward.Rules.MaxWard}.";
+        string line = $"Ward after rest: {ward.WardAfterShortRest} / {ward.Rules.MaxWard}";
         return ward.UpshiftAfterShortRest > ward.Upshift
-            ? line + $" Encounter threat rises to +{ward.UpshiftAfterShortRest}."
+            ? line + $"\nDanger after rest: +{ward.UpshiftAfterShortRest}"
             : line;
     }
 

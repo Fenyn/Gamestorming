@@ -178,6 +178,7 @@ public partial class RunFlowSpike : SpikeBase
 
         // A ward that does reach 0 (passive burn, once NodeBurn is on) ends the run on the next
         // node. Burned here directly, because no rest can take it there.
+        var campTime = director.Campaign.CampTime;
         while (!ward.IsSpent) ward.BurnShortRest();
         int? step = null;
         foreach (int id in state.Reachable()) { step = id; break; }
@@ -191,6 +192,8 @@ public partial class RunFlowSpike : SpikeBase
         director.EndRun(RunOutcome.Victory);
         Check("(7) ending the run shows the summary", director.Phase == RunPhase.RunEnd);
         Check("(7) the outcome is recorded", state.Outcome == RunOutcome.Victory);
+        Check("(7) the camp's day moves on once per run, however often the run is ended",
+            director.Campaign.CampTime == TownMilestones.Next(campTime));
 
         director.NewRun();
         Check("(7) a new run reopens hero select", director.Phase == RunPhase.HeroSelect);

@@ -18,6 +18,24 @@ public partial class UnitVisual3D
     [Export] public float DodgeLeanMetres { get; set; } = 0.12f;
     [Export] public Vector2 DodgeLeanSeconds { get; set; } = new(0.07f, 0.11f);
 
+    private float _pace = 1f;
+
+    /// <summary>Stretch the hit, dodge and death beats and the HP bar's slide to <paramref name="pace"/>
+    /// times their authored length (1.25 plays them a quarter slower). Safe to call again when the
+    /// Combat speed option changes; call it after the token enters the tree.</summary>
+    public void ApplyPace(float pace)
+    {
+        float ratio = pace / _pace;
+        _pace = pace;
+        HitFlashSeconds *= ratio;
+        ShieldFlashSeconds *= ratio;
+        HurtShakeStepSeconds *= ratio;
+        DodgeLeanSeconds *= ratio;
+        DeathFadeDuration *= ratio;
+        DeathRingFadeDuration *= ratio;
+        _hpBar.TweenDuration *= ratio;
+    }
+
     public void FlashHit() => FlashModulate(Delve.UI.UiColors.BoardFlashHit, HitFlashSeconds.X, HitFlashSeconds.Y);
 
     public void FlashShield() => FlashModulate(Delve.UI.UiColors.BoardFlashShield, ShieldFlashSeconds.X, ShieldFlashSeconds.Y);

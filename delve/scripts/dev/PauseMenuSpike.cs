@@ -80,11 +80,23 @@ public partial class PauseMenuSpike : SpikeBase
             && saved.GetValue("options", nameof(UserSettings.DiceReveal)).AsBool() == !diceBefore
             && saved.GetValue("options", nameof(UserSettings.Fullscreen)).AsBool() == (toggleWindow ? !fullBefore : fullBefore)
             && UserSettings.DiceReveal == !diceBefore);
+        var speed = menu.GetNode<OptionButton>("%CombatSpeed");
+        var speedBefore = UserSettings.CombatSpeed;
+        Check($"the Combat speed row shows the saved choice ('{speed.Text}')", speed.GetSelectedId() == (int)speedBefore);
+        var picked = speedBefore == CombatSpeed.Fast ? CombatSpeed.Slow : CombatSpeed.Fast;
+        speed.Select(speed.GetItemIndex((int)picked));
+        speed.EmitSignal(OptionButton.SignalName.ItemSelected, speed.Selected);
+        saved.Load(UserSettings.Path);
+        Check($"picking {picked} sets and saves the Combat speed",
+            UserSettings.CombatSpeed == picked && saved.GetValue("options", nameof(UserSettings.CombatSpeed)).AsString() == picked.ToString());
         await Frames(3);
         Capture("pause_menu_options.png");
         dice.ButtonPressed = diceBefore;
         if (toggleWindow) full.ButtonPressed = fullBefore;
-        Check("options restore", UserSettings.DiceReveal == diceBefore && UserSettings.Fullscreen == fullBefore);
+        speed.Select(speed.GetItemIndex((int)speedBefore));
+        speed.EmitSignal(OptionButton.SignalName.ItemSelected, speed.Selected);
+        Check("options restore", UserSettings.DiceReveal == diceBefore && UserSettings.Fullscreen == fullBefore
+            && UserSettings.CombatSpeed == speedBefore);
         menu.GetNode<Button>("%OptionsBack").EmitSignal(BaseButton.SignalName.Pressed);
 
         menu.GetNode<Button>("%Quit").EmitSignal(BaseButton.SignalName.Pressed);

@@ -28,12 +28,7 @@ public sealed record CrawlWords
     public required string GoalLeave { get; init; }
 
     public required string ExitAction { get; init; }
-    public required string ExitTip { get; init; }
-    public required string ExitBlockedTip { get; init; }
     public required string FloorComplete { get; init; }
-
-    /// <summary>The line shown while the party arrives on this floor from the one above.</summary>
-    public required string ArrivalCaption { get; init; }
 
     /// <summary>Prop the guardian's reveal focuses on, and the prop the party leaves by.</summary>
     public required string RevealProp { get; init; }

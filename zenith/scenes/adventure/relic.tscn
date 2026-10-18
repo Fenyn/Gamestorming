@@ -87,14 +87,14 @@ texture_filter = 1
 custom_minimum_size = Vector2(36, 36)
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "Mana, spent at Shops during this run"
+tooltip_text = "Mana buys cards at Shops. It is lost when the run ends."
 expand_mode = 1
 stretch_mode = 5
 
 [node name="ManaValue" type="Label" parent="Strip/Row/ManaBox"]
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "Mana, spent at Shops during this run"
+tooltip_text = "Mana buys cards at Shops. It is lost when the run ends."
 mouse_filter = 1
 theme_type_variation = &"HeaderLabel"
 text = "0"
@@ -135,23 +135,6 @@ theme_type_variation = &"TitleLabel"
 text = "Choose a Relic"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -900.0
-offset_top = -348.0
-offset_right = 900.0
-offset_bottom = -312.0
-grow_horizontal = 2
-theme_type_variation = &"BodyLabel"
-text = ""
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="Row" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = -1
@@ -180,6 +163,8 @@ theme_override_constants/separation = 14
 
 [node name="Heading" type="Label" parent="Row/Held/Column"]
 layout_mode = 2
+tooltip_text = "A Relic holds a Reserve. Reserve cards swap into your Life Deck at the start of a duel."
+mouse_filter = 1
 theme_type_variation = &"GroupLabel"
 text = "Your Relic"
 horizontal_alignment = 1
@@ -193,17 +178,11 @@ stretch_mode = 5
 
 [node name="Reserve" type="Label" parent="Row/Held/Column"]
 layout_mode = 2
+tooltip_text = "Reserve cards swap into your Life Deck at the start of a duel."
+mouse_filter = 1
 theme_type_variation = &"HeaderLabel"
 text = ""
 horizontal_alignment = 1
-
-[node name="Note" type="Label" parent="Row/Held/Column"]
-custom_minimum_size = Vector2(270, 0)
-layout_mode = 2
-theme_type_variation = &"BodyLabel"
-text = ""
-horizontal_alignment = 1
-autowrap_mode = 3
 
 [node name="Gap" type="Control" parent="Row/Held/Column"]
 layout_mode = 2
@@ -224,24 +203,6 @@ layout_mode = 2
 
 [node name="Offer2" parent="Row" instance=ExtResource("4_offer")]
 layout_mode = 2
-
-[node name="Help" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -900.0
-offset_top = 440.0
-offset_right = 900.0
-offset_bottom = 480.0
-grow_horizontal = 2
-theme_type_variation = &"MutedLabel"
-theme_override_font_sizes/font_size = 24
-text = "Click an offer to take it."
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="Preview" type="Panel" parent="."]
 visible = false

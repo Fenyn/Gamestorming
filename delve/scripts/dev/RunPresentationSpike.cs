@@ -52,9 +52,14 @@ public partial class RunPresentationSpike : SpikeBase
         campaign.RecordMeeting(recruit, PresetCharacters.ElaraId);
         foreach (int n in Enumerable.Range(0, 20))
             campaign.RecordVictory($"presentation/{n}", PresetCharacters.ElaraId, new[] { recruit }, true);
-        string progress = CampaignSummary.Describe(departure, campaign);
-        Check("campaign summary reports ready invitations without unlocking", progress.Contains("ready to join") && !campaign.Unlocks.IsUnlocked(recruit));
-        Check("campaign summary does not repeat old step gains", !CampaignSummary.Describe(campaign.Capture(), campaign).Contains("1/1"));
+        var progress = CampaignSummary.Describe(departure, campaign);
+        Check($"campaign summary reports ready invitations without unlocking ({string.Join(" | ", progress.Select(l => l.Sentence))})",
+            progress.Any(l => l.Status == CampaignSummary.Ready && l.What == CampaignSummary.ReadyToJoin) && !campaign.Unlocks.IsUnlocked(recruit));
+        Check("campaign lines carry who, what and a short status",
+            progress.All(l => l.Who.Length > 0 && l.What.Length > 0)
+            && progress.Where(l => l.Status.Length > 0).All(l => l.Status is CampaignSummary.Done or CampaignSummary.Ready or CampaignSummary.Milestone || l.Status.Contains(" of ")));
+        Check("campaign summary does not repeat old step gains",
+            CampaignSummary.Describe(campaign.Capture(), campaign).All(l => l.Status == CampaignSummary.Ready));
 
         var surface = new Control { Theme = UiTheme };
         surface.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
@@ -68,14 +73,16 @@ public partial class RunPresentationSpike : SpikeBase
         state.Outcome = RunOutcome.Defeat;
         end.Show(state, true, progress);
         await Capture("polish_campaign_return");
-        Check("campaign summary is present after defeat", end.DetailText.Contains("ready to join"));
+        Check($"campaign progress shows as banded rows after defeat ({end.Campaign.Rows.Count} rows, {end.Campaign.Rules} rules)",
+            end.Campaign.Rows.Count == progress.Count && end.Campaign.Rules == progress.Count - 1
+            && end.Campaign.Text.Contains(CampaignSummary.ReadyToJoin));
         var endFigures = end.Figures.FigureLabels;
         Check($"the run end reads as figures and drops gold ({string.Join(", ", endFigures.Select(f => $"{f.CaptionText} {f.ValueText}"))})",
             endFigures.Count == 2 && endFigures[0].CaptionText == "Floor"
             && endFigures[0].ValueText == $"{state.Stratum + 1} of {Delve.Data.FloorThemes.Count}"
             && endFigures[1].CaptionText == "Day" && !end.DetailText.Contains("Gold"));
-        Check($"a defeat names its cause ('{end.DetailText.Split('\n')[0]}')",
-            end.DetailText.StartsWith(state.Wardstone.IsSpent ? RunEndPanel.WardOut : RunEndPanel.PartyFell));
+        Check($"a defeat names its cause ('{end.DetailText}')",
+            end.DetailText == (state.Wardstone.IsSpent ? RunEndPanel.WardOut : RunEndPanel.PartyFell));
         surface.QueueFree();
 
         var transition = TransitionScene.Instantiate<SceneTransition>();

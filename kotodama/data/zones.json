@@ -1,0 +1,143 @@
+{
+ "zones": [
+  {
+   "id": "pond",
+   "name": "Pond",
+   "tint": "#4a8cdc"
+  },
+  {
+   "id": "sky",
+   "name": "Sky field",
+   "tint": "#ecba3c"
+  },
+  {
+   "id": "hearth",
+   "name": "Hearth",
+   "tint": "#e25834"
+  },
+  {
+   "id": "grove",
+   "name": "Grove",
+   "tint": "#60a854"
+  },
+  {
+   "id": "path",
+   "name": "Path",
+   "tint": "#c8b494"
+  },
+  {
+   "id": "hill",
+   "name": "Hill",
+   "tint": "#a47c54"
+  },
+  {
+   "id": "hall",
+   "name": "Hall",
+   "tint": "#9664c8"
+  },
+  {
+   "id": "forge",
+   "name": "Forge",
+   "tint": "#8c98a8"
+  },
+  {
+   "id": "house",
+   "name": "House",
+   "tint": "#e07896"
+  },
+  {
+   "id": "body",
+   "name": "Body",
+   "tint": "#f0a888"
+  },
+  {
+   "id": "beasts",
+   "name": "Beasts",
+   "tint": "#7c9c5c"
+  },
+  {
+   "id": "loom",
+   "name": "Loom",
+   "tint": "#48a8a0"
+  },
+  {
+   "id": "meadow",
+   "name": "Meadow",
+   "tint": "#8c9c74"
+  }
+ ],
+ "radical_zone": {
+  "85": "pond",
+  "15": "pond",
+  "195": "pond",
+  "137": "pond",
+  "72": "sky",
+  "74": "sky",
+  "173": "sky",
+  "84": "sky",
+  "36": "sky",
+  "182": "sky",
+  "86": "hearth",
+  "184": "hearth",
+  "75": "grove",
+  "140": "grove",
+  "118": "grove",
+  "115": "grove",
+  "119": "grove",
+  "199": "grove",
+  "9": "path",
+  "60": "path",
+  "162": "path",
+  "157": "path",
+  "156": "path",
+  "77": "path",
+  "46": "hill",
+  "32": "hill",
+  "112": "hill",
+  "170": "hill",
+  "163": "hill",
+  "102": "hill",
+  "149": "hall",
+  "30": "hall",
+  "61": "hall",
+  "180": "hall",
+  "147": "hall",
+  "113": "hall",
+  "167": "forge",
+  "18": "forge",
+  "57": "forge",
+  "111": "forge",
+  "62": "forge",
+  "159": "forge",
+  "69": "forge",
+  "40": "house",
+  "169": "house",
+  "38": "house",
+  "39": "house",
+  "53": "house",
+  "63": "house",
+  "116": "house",
+  "64": "body",
+  "109": "body",
+  "128": "body",
+  "130": "body",
+  "158": "body",
+  "132": "body",
+  "181": "body",
+  "185": "body",
+  "176": "body",
+  "94": "beasts",
+  "187": "beasts",
+  "196": "beasts",
+  "142": "beasts",
+  "93": "beasts",
+  "123": "beasts",
+  "152": "beasts",
+  "198": "beasts",
+  "120": "loom",
+  "145": "loom",
+  "50": "loom",
+  "107": "loom",
+  "177": "loom"
+ }
+}

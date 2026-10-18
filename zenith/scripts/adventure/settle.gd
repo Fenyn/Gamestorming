@@ -69,7 +69,7 @@ func _fill_header() -> void:
 	var won: bool = AdventureSettlement.won(run)
 	var place: String = Session.map.place_of(run.node_id) if Session.map != null else "the start"
 	outcome_label.text = "Run complete" if won else "Run over"
-	reached_label.text = "Won all %d duels" % run.stage if won else "Fell at %s after %d duels won" % [
+	reached_label.text = "You won all %d duels." % run.stage if won else "You fell at %s after winning %d duels." % [
 		place, run.stage]
 	var deck: DeckList = run.deck()
 	var duelist: CardDef = Session.library.defs.get(deck.duelist_face_id()) if deck != null else null
@@ -79,7 +79,9 @@ func _fill_header() -> void:
 	discount_label.visible = won
 	if won:
 		var percent: int = int(round(float(AdventureEconomy.data().get("discount_fraction", 0.0)) * 100.0))
-		discount_label.text = "Winner's price: %d%% off every card in your deck this once" % percent
+		discount_label.text = "Winner's price: %d%% off" % percent
+		discount_label.tooltip_text = ("Every card the run finished with costs %d%% less to keep. " +
+			"The discount applies only on this screen.") % percent
 		ZenithTheme.chip(discount_label, ZenithTheme.MOTES)
 
 
@@ -129,8 +131,7 @@ func _fill_offers() -> void:
 		_offered.append(int(row["count"]))
 		grid.add_child(await _build_cell(def, row))
 	var total: int = AdventureSettlement.total_price(rows)
-	caption_label.text = "%d cards on offer  ·  keeping every copy would cost %d Motes" % [
-		rows.size(), total]
+	caption_label.text = "On offer: %d cards   ·   Keep all: %d Motes" % [rows.size(), total]
 
 
 ## One offered card: its face, an "xN" badge for a stack of copies, the unit price as a Mote chip

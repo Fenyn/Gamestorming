@@ -81,7 +81,7 @@ public partial class CombatScene
             IsDelayed = delayed,
             IsPickable = _delayPickIds.Contains(c.UniqueId),
             Initiative = entry.Initiative,
-            Hp = c.Health?.CurrentHP ?? 0,
+            Hp = ShownHp(c) ?? c.Health?.CurrentHP ?? 0,
             MaxHp = c.Health?.MaxHP ?? 0,
             Conditions = ConditionMarks.For(c),
         };
@@ -113,7 +113,7 @@ public partial class CombatScene
     {
         if (_tacticalOrder.Count == 0) return;
         var views = _tacticalOrder.Select(v => _tacticalUnits.TryGetValue(v.Id, out var unit)
-            ? v with { Conditions = ConditionMarks.For(unit.Character), Hp = unit.Character.Health?.CurrentHP ?? v.Hp }
+            ? v with { Conditions = ConditionMarks.For(unit.Character), Hp = unit.ShownHp }
             : v).ToList();
         string signature = RowSignature(views);
         if (signature == _turnSignature) return;
@@ -129,7 +129,7 @@ public partial class CombatScene
     /// hero, the action economy.</summary>
     private UnitInspectView InspectFor(ICharacter character)
     {
-        var view = UnitInspectFactory.BuildInspectView(character) with
+        var view = UnitInspectFactory.BuildInspectView(character, ShownHp(character)) with
         {
             Letter = _session.Letters.LetterFor(character),
             BaseName = _session.Letters.BaseNameFor(character),

@@ -13,6 +13,13 @@ public partial class RunDirector
     [Export] public string CampaignSavePath { get; set; } = "";
     /// <summary>Session-only full roster for playtesting. Campaign saves are not loaded or written.</summary>
     [Export] public bool TestFullRoster { get; set; }
+
+    /// <summary>Session-only town tier (1 Camp, 2 Outpost, 3 Hamlet) for playtesting the village; 0 uses the campaign's. Never saved.</summary>
+    [Export(PropertyHint.Range, "0,3")] public int TestTownTier { get; set; }
+
+    private const string OutpostCaption = "The Outpost";
+    private const string ExpeditionCompleteCaption = "Expedition complete";
+
     private CampaignProgress _campaign = new();
     private CampaignProgressData _campaignAtDeparture = new();
     private string _runId = "";
@@ -20,7 +27,7 @@ public partial class RunDirector
     private void ReturnToOutpost()
     {
         if (_transition.Busy) return;
-        _ = PlayRunTransition("Returning to the outpost", ResetToOutpost);
+        _ = PlayRunTransition(OutpostCaption, ResetToOutpost);
     }
 
     private bool _campaignSaveFailed;

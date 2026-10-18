@@ -10,6 +10,8 @@ public partial class CampTerrain : MeshInstance3D
     // Bank center X/Z, radius, rise. Broad slopes keep the camp floor usable.
     [Export] public Vector4[] Banks { get; set; } = System.Array.Empty<Vector4>();
     [Export] public NodePath[] GroundedProps { get; set; } = System.Array.Empty<NodePath>();
+    /// <summary>Normals from the height field instead of each triangle; low lamps band flat triangles into stripes.</summary>
+    [Export] public bool SmoothNormals { get; set; }
 
     public float HeightAt(Vector3 point)
     {
@@ -61,12 +63,19 @@ public partial class CampTerrain : MeshInstance3D
         return point + Vector3.Up * HeightAt(point);
     }
 
-    private static void Triangle(SurfaceTool surface, Vector3 a, Vector3 b, Vector3 c)
+    private Vector3 FieldNormal(Vector3 p)
+    {
+        float dx = HeightAt(p + Vector3.Right * 0.5f) - HeightAt(p + Vector3.Left * 0.5f);
+        float dz = HeightAt(p + Vector3.Back * 0.5f) - HeightAt(p + Vector3.Forward * 0.5f);
+        return new Vector3(-dx, 1f, -dz).Normalized();
+    }
+
+    private void Triangle(SurfaceTool surface, Vector3 a, Vector3 b, Vector3 c)
     {
         Vector3 normal = (c - a).Cross(b - a).Normalized();
         foreach (var point in new[] { a, b, c })
         {
-            surface.SetNormal(normal);
+            surface.SetNormal(SmoothNormals ? FieldNormal(point) : normal);
             surface.SetUV(new Vector2(point.X, point.Z));
             surface.AddVertex(point);
         }

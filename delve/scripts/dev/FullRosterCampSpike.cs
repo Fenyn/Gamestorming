@@ -21,8 +21,8 @@ public partial class FullRosterCampSpike : SpikeBase
         AddChild(run);
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var panel = run.FindChildren("*", "", true, false).OfType<HeroSelectPanel>().Single();
-        var residents = HeroSelectChecks.Cards(panel);
-        Check("all 18 residents appear", residents.Count == CharacterCatalog.All.Count && residents.Count == 18);
+        var residents = HeroSelectChecks.Residents(panel);
+        Check("all 18 residents appear in the village", residents.Count == CharacterCatalog.All.Count && residents.Count == 18);
         Check("all 18 can be selected", CharacterCatalog.All.All(def => panel.CanPick(def.Id)));
         Check("normal campaigns still start with four unlocks", new CampaignProgress().Unlocks.UnlockedIds.Count == 4);
         foreach (string id in new[] { "arkus", "sera", "hilde", "flick" }) panel.Pick(id);
@@ -39,7 +39,7 @@ public partial class FullRosterCampSpike : SpikeBase
         Check("recruit party embarks into the dungeon", run.State != null && run.Phase == RunPhase.Map
             && run.State.Party.Members.Select(member => member.Id).ToHashSet().SetEquals(new[] { "arkus", "sera", "hilde", "flick" }));
         run.NewRun();
-        Check("returning to camp retains all 18 and clears selection", HeroSelectChecks.Cards(panel).Count == 18
+        Check("returning to camp retains all 18 and clears selection", HeroSelectChecks.Residents(panel).Count == 18
             && panel.SelectedIds.Count == 0);
         run.QueueFree();
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);

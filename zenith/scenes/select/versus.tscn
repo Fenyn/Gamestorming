@@ -78,18 +78,19 @@ text = "Back"
 [node name="Advanced" type="CheckButton" parent="Margin/Column/Footer"]
 layout_mode = 2
 text = "Advanced"
-tooltip_text = "Set a seed to replay the same initial shuffle."
+tooltip_text = "The same seed deals the same opening shuffle."
 
 [node name="SeedLabel" type="Label" parent="Margin/Column/Footer"]
 visible = false
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Seed (0 = random)"
+text = "Seed"
 
 [node name="Seed" type="LineEdit" parent="Margin/Column/Footer"]
 visible = false
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
+tooltip_text = "A seed of 0 deals a random shuffle."
 text = "0"
 
 [node name="AiLabel" type="Label" parent="Margin/Column/Footer"]

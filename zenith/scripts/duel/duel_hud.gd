@@ -124,6 +124,9 @@ const ORDER_LINES: int = 4             # description lines shown under an order 
 const ORDER_GHOST: float = 0.55        # the dragged face's scale under the pointer
 ## The tray only ever opens for the seat at the table, so its header needs no name.
 const TRAY_WHO: String = "YOUR DECISION"
+## The hover on a card whose only action is a Final Strike, and on the Final Strike tray's title.
+const ONLY_FINAL_RULE: String = "This card cannot be played now, only discarded for a Final Strike. After a Final Strike you pass for the rest of this Combat."
+const FINAL_STRIKE_RULE: String = "A Final Strike is a bare Strike from the Strike Table, plus your Drills and modifiers. After it you pass for the rest of this Combat."
 ## The over-bright flash a face takes for a beat that happened on it, bone rather than warm.
 const PULSE_BRIGHT: Color = Color(1.6, 1.58, 1.5, 1)
 ## The beat banner across the ring. A hand-over sweeps in, an outcome pops, and a quiet line never
@@ -352,6 +355,7 @@ var _button_actions: Dictionary = {}   # result button node name -> the action i
 var _away_line: String = ""
 var _rejoined: bool = false
 var _hint_base: String = ""            # the prompt hint before either line is added
+var _rule_hover: String = ""           # the decision's hidden rule, the hover on its title
 var _title_base: String = ""           # the waiting panel's own title, "" when the panel is not waiting
 var _menu_action: StringName = &""     # the menu item waiting on its confirm, &"" when none
 var _banner: Tween = null
@@ -412,9 +416,6 @@ func _ready() -> void:
 	resonance_tip_effect.add_theme_color_override("font_color", ZenithTheme.TEXT)
 	resonance_tip_penalty.add_theme_color_override("font_color", ZenithTheme.PENALTY)
 	history_open.pressed.connect(func() -> void: set_log_expanded(not _log_expanded))
-	var inspect_hint: Label = $Root/Inspect/Center/Column/Hint
-	inspect_hint.add_theme_stylebox_override("normal", ZenithTheme.panel(24))
-	inspect_hint.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	focus_caption.add_theme_stylebox_override("normal", ZenithTheme.box(ZenithTheme.BG, Color(0, 0, 0, 0), ZenithTheme.RADIUS, 0, 6, 0))
 	table = get_parent()
 	for scrim: ColorRect in [tray, pile, modal]:
@@ -1445,6 +1446,7 @@ func show_prompt(p: PromptView, view: SeatView) -> void:
 	_show_attack(view, p)
 	show_focus(_focus_uid(p), _focus_caption(p))
 	_hint_base = _hint_for(p)
+	_set_rule_hover(_rule_for(p))
 	_title_base = ""
 	prompt_hint.text = _hint_base
 	prompt_hint.visible = prompt_hint.text != ""
@@ -1549,7 +1551,7 @@ func _show_attack(view: SeatView, p: PromptView = null) -> void:
 			resolving.append(card.title)
 	if source.is_empty() and not resolving.is_empty():
 		# `resolving` carries no order; the pending pile shows a run of them in order.
-		source = resolving[0] if resolving.size() == 1 else "Resolving, in order on the right"
+		source = resolving[0] if resolving.size() == 1 else "%d cards" % resolving.size()
 	if source.is_empty() and p != null:
 		var pending: SeatCard = view.card(int(p.context.get("source", p.context.get("card", -1))))
 		if pending != null and not pending.hidden():
@@ -1762,69 +1764,64 @@ func _damage_text(view: SeatView) -> String:
 	return "\n".join(lines)
 
 
+## The line under the question: only the words of an optional effect, which are the choice itself.
 func _hint_for(p: PromptView) -> String:
-	var card_options: int = p.card_uids().size()
+	if p.kind == &"pick_option" and bool(p.context.get("may", false)) and str(p.context.get("purpose", "")) != "wild_might":
+		return str(p.context.get("text", ""))
+	return ""
+
+
+## The rule behind a decision that the table does not show, for the hover on its question. "" when
+## there is none.
+func _rule_for(p: PromptView) -> String:
 	match p.kind:
 		&"reserve":
-			return "Each one swaps with a random card from your Life Deck."
-		&"non_combat":
-			return "Click a highlighted card, then Done." if card_options > 0 else ""
-		&"combat_end":
-			return "Combat is over. These may still be used."
-		&"start_play":
-			return "This may start the game on the table."
+			return "Each card brought in swaps with a random card from your Life Deck."
 		&"keep":
-			return "Everything else goes to the discard pile."
-		&"endurance":
-			return "Spending it removes it from the game."
+			return "Every other card in your hand goes to the discard pile."
 		&"defense":
 			if bool(p.context.get("try", false)):
 				return "Some of these cards cannot stop this attack. Played anyway, they resolve their other effects and the attack still lands."
-			return ""
 		&"order":
 			if str(p.context.get("purpose", "")) == "shields":
-				return "The Shield on the left stops the attack first and is spent. Drag a card to a new place, or use its arrows."
-			return "The card on the left resolves first. Drag a card to a new place, or use its arrows."
+				return "The Shield on the left stops the attack first and is spent."
 		&"follow_up":
 			if bool(p.context.get(DuelEngine.USE_WHEN_NEEDED, false)):
 				return "A use-when-needed card may be used here, between the steps of the attack or outside Combat."
-			return ""
 		&"recover":
-			return "One discard card may go back under the deck."
-		&"respond":
-			if str(p.context.get("mode", "")) == "declare":
-				return "Use a card before they decide on Combat."
-			return "Counter it now, or let it resolve."
+			return "The recovered card goes back under your Life Deck."
 		&"pay":
 			if bool(p.context.get("life_cost", false)):
 				return "The extra damage costs the top card of your Life Deck."
 			return "Each step paid adds to the wounds."
 		&"discard_choice":
-			var whose: String = "your opponent's hand" if int(p.context.get("target", p.player)) != p.player else "your hand"
-			return "Pick the cards that leave %s." % whose if p.has_batch() else "Pick the card that leaves %s." % whose
-		&"pick_in_play":
-			return "Pick the card in play the effect hits."
+			if int(p.context.get("target", p.player)) != p.player:
+				return "These cards are in your opponent's hand."
 		&"pick_discard":
-			return "Cards removed here are out of the game for good."
+			return "Cards removed here stay out of the game."
 		&"name_card":
-			return "It cannot be played while the Drill stays out."
+			return "The named card cannot be played while the Drill stays in play."
 		&"pick_option":
 			if str(p.context.get("purpose", "")) == "wild_might":
 				var line: String = str(p.context.get("text", ""))
 				var counted: String = "higher" if str(p.context.get("runs_on", "higher")) == "higher" else "not higher"
 				if line == "":
-					return "Wild Might has no number, so you decide. Counted as higher, the card's Might bonuses apply."
-				return "Wild Might has no number, so you decide. Counted as %s, the card does this: %s" % [counted, line]
+					return "Wild Might has no number, so you choose how it counts. Counted as higher, the card's Might bonuses apply."
+				return "Wild Might has no number, so you choose how it counts. Counted as %s, the card does this: %s" % [counted, line]
 			if bool(p.context.get("may", false)):
-				var text: String = str(p.context.get("text", ""))
-				return "%s\nSkip it and the rest of the card still resolves." % text if text != "" else "Skip it and the rest of the card still resolves."
-			return ""
-		_:
-			return ""
+				return "If you skip it, the rest of the card still resolves."
+	return ""
 
 
-## Online: the other player is deciding. The panel says who and roughly what, with no options.
-func show_waiting(player_name: String, kind: StringName, view: SeatView) -> void:
+## The hover on the decision's question, in the panel and in the tray.
+func _set_rule_hover(rule: String) -> void:
+	_rule_hover = rule
+	prompt_title.tooltip_text = rule
+	tray_title.tooltip_text = rule
+
+
+## Online: the other player is deciding. The panel says who, with no options.
+func show_waiting(player_name: String, _kind: StringName, view: SeatView) -> void:
 	prompt_panel.show()
 	_center_prompt_text(true)
 	_view = view
@@ -1840,44 +1837,13 @@ func show_waiting(player_name: String, kind: StringName, view: SeatView) -> void
 		prompt_title.text = "Opponent deciding"
 	_title_base = prompt_title.text
 	show_focus(_focus_uid(null), _focus_caption(null))
-	_hint_base = _waiting_hint(kind)
-	prompt_hint.text = _hint_base
-	prompt_hint.visible = prompt_hint.text != ""
+	_hint_base = ""
+	_set_rule_hover("")
+	prompt_hint.text = ""
+	prompt_hint.visible = false
 	_compact_prompt()
 	_hide_tray()
 	_fill_buttons([], primary_box, true)
-
-
-## What the other player is doing, in terms that give nothing hidden away.
-func _waiting_hint(kind: StringName) -> String:
-	match kind:
-		&"reserve":
-			return "They are setting up their Reserve."
-		&"non_combat":
-			return "They may place cards before Combat."
-		&"combat_end":
-			return "They may use a card as Combat ends."
-		&"start_play":
-			return "They are setting up the table."
-		&"declare":
-			return "They are deciding whether to enter Combat."
-		&"attack_action":
-			return "They are choosing an attack, or passing."
-		&"endurance":
-			# The flipped card is in a public pile, so naming the decision gives nothing away.
-			return "They are deciding whether to spend it and prevent the rest."
-		&"defense", &"redirect", &"control":
-			return "They are answering your attack."
-		&"respond":
-			return "They may respond before your card resolves."
-		&"order":
-			return "They are choosing the order of their effects."
-		&"keep", &"discard_choice":
-			return "They are choosing what to keep."
-		&"recover":
-			return "They may return a card to their Life Deck."
-		_:
-			return "They are resolving a card."
 
 
 ## A panel with nothing to choose (waiting on the other player, or on the host) centres its text;
@@ -1903,6 +1869,7 @@ func show_sending() -> void:
 	prompt_title.text = "…"
 	_rejoined = false
 	_title_base = ""
+	_set_rule_hover("")
 	_hint_base = "Sending your choice to the host."
 	prompt_hint.text = _hint_base
 	prompt_hint.visible = true
@@ -1917,14 +1884,13 @@ func show_card_choice(options: Array[OptionView]) -> void:
 	for o in options:
 		if o.type != &"final_strike":
 			only_final = false
-	var hint: String = ""
+	await _show_tray(TRAY_WHO, c.title if c != null else "Choose an action", "", single, options, true, null, not only_final)
+	tray_hint.remove_theme_color_override("font_color")
 	if only_final:
-		hint = "This card cannot be played right now. A Final Strike discards it for a bare Strike from the Strike Table, and you pass for the rest of this Combat."
-	await _show_tray(TRAY_WHO, c.title if c != null else "Choose an action", hint, single, options, true, null, not only_final)
-	if only_final:
-		tray_hint.add_theme_color_override("font_color", ZenithTheme.WARN)
-	else:
-		tray_hint.remove_theme_color_override("font_color")
+		for child in tray_buttons.get_children():
+			var final_button: Button = child as Button
+			if final_button != null and not final_button.disabled:
+				final_button.tooltip_text = ONLY_FINAL_RULE
 	if c == null or c.hidden():
 		return
 	var def: CardDef = _def(c.def_id)
@@ -1941,7 +1907,8 @@ func show_card_choice(options: Array[OptionView]) -> void:
 
 ## Every hand card as Final Strike fodder, with Back. Reached only through its button.
 func _show_final_strike(finals: Array[OptionView]) -> void:
-	await _show_tray(TRAY_WHO, "Final Strike: discard a card", "A bare Strike from the Strike Table, plus your Drills and modifiers. Afterwards you pass for the rest of this Combat.", finals, [], false)
+	await _show_tray(TRAY_WHO, "Final Strike: discard a card", "", finals, [], false)
+	tray_title.tooltip_text = FINAL_STRIKE_RULE
 	var back: Button = Button.new()
 	back.text = "Back"
 	back.custom_minimum_size = Vector2(140, 60)
@@ -1959,6 +1926,7 @@ func clear_prompt() -> void:
 	hide_peek()
 	prompt_who.text = ""
 	prompt_title.text = "…"
+	_set_rule_hover("")
 	exchange_rail.hide()
 	prompt_hint.visible = false
 	hide_focus()
@@ -2062,6 +2030,7 @@ func show_replay_decision(p: PromptView, view: SeatView, entry: Dictionary, who:
 	_show_attack(view, p)
 	show_focus(_focus_uid(p), _focus_caption(p))
 	_hint_base = "Took %.1f s" % (gap_ms / 1000.0) if gap_ms > 0 else ""
+	_set_rule_hover(_rule_for(p))
 	prompt_hint.text = _hint_base
 	_reserve_outcome = false
 	_preview_outcome({})
@@ -2124,8 +2093,10 @@ func show_replay_result(title: String, reason: String) -> void:
 	prompt_who.text = "RESULT"
 	prompt_who.add_theme_color_override("font_color", ZenithTheme.MUTED)
 	prompt_title.text = title
+	_set_rule_hover("")
 	_hint_base = reason
 	prompt_hint.text = reason
+	prompt_hint.visible = reason != ""
 	# A duel can end with wounds still owed; the attack left pending is not shown.
 	hide_focus()
 
@@ -2184,6 +2155,7 @@ func _show_tray(who: String, title: String, hint: String, cards: Array[OptionVie
 	tray_who.text = who
 	tray_who.add_theme_color_override("font_color", _who_color)
 	tray_title.text = title
+	tray_title.tooltip_text = _rule_hover
 	if batch != null:
 		var rule: String = "Pick %d." % batch.batch_max if batch.batch_min == batch.batch_max else "Pick up to %d." % batch.batch_max
 		hint = (hint + "  " + rule).strip_edges()
@@ -2339,8 +2311,9 @@ func _show_tray_source(p: PromptView, view: SeatView) -> void:
 	var ask: String = str(p.context.get("yes_label", "")).trim_suffix(".")
 	if ask != "":
 		tray_title.text = ask + "?"
-	tray_hint.text = "%s's Power." % def.title if def.is_personality() else "From %s. Skip it and the rest of the card still resolves." % def.title
-	tray_hint.visible = true
+	# The lit words on the face say what the yes does.
+	tray_hint.text = ""
+	tray_hint.visible = false
 	var mark: StyleBoxFlat = ZenithTheme.box(Color(SOURCE_GLOW, 0.1), SOURCE_GLOW, 6, 4, 0, 0)
 	mark.shadow_color = Color(SOURCE_GLOW, 0.45)
 	mark.shadow_size = 12
@@ -2651,7 +2624,6 @@ func _order_entry(id: int, uid: int, title: String, line: String, face_size: Vec
 	face.custom_minimum_size = face_size
 	face.mouse_filter = Control.MOUSE_FILTER_STOP
 	face.mouse_default_cursor_shape = Control.CURSOR_DRAG
-	face.tooltip_text = "Drag %s to a new place in the order." % (title if title != "" else "this card")
 	var dropped: Callable = func(_at: Vector2, data: Variant) -> void: _order_drop(id, data)
 	var droppable: Callable = func(_at: Vector2, data: Variant) -> bool: return _order_can_drop(id, data)
 	face.set_drag_forwarding(func(_at: Vector2) -> Variant: return _order_drag(id, face), droppable, dropped)
@@ -2674,18 +2646,17 @@ func _order_entry(id: int, uid: int, title: String, line: String, face_size: Vec
 	column.add_child(text)
 	var arrows: HBoxContainer = HBoxContainer.new()
 	arrows.add_theme_constant_override("separation", ZenithTheme.GAP_XS)
-	var earlier: Button = _order_arrow("‹ Earlier", "Resolve %s one place earlier." % title, func() -> void: _order_move(id, -1))
-	var later: Button = _order_arrow("Later ›", "Resolve %s one place later." % title, func() -> void: _order_move(id, 1))
+	var earlier: Button = _order_arrow("‹ Earlier", func() -> void: _order_move(id, -1))
+	var later: Button = _order_arrow("Later ›", func() -> void: _order_move(id, 1))
 	arrows.add_child(earlier)
 	arrows.add_child(later)
 	column.add_child(arrows)
 	return {"entry": column, "frame": frame, "rank": rank, "earlier": earlier, "later": later}
 
 
-func _order_arrow(text: String, tip: String, pressed: Callable) -> Button:
+func _order_arrow(text: String, pressed: Callable) -> Button:
 	var b: Button = Button.new()
 	b.text = text
-	b.tooltip_text = tip
 	b.theme_type_variation = &"CompactButton"
 	b.custom_minimum_size = Vector2(0.0, 40.0)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -2824,13 +2795,8 @@ func show_pile(view: SeatView, player: int, zone: StringName) -> void:
 	elif zone == &"relic":
 		pile_hint.text = _relic_pile_hint(view, p)
 	else:
-		pile_hint.text = "%d card%s, top of the pile first.  Right-click a card to read it." % [n, "" if n == 1 else "s"]
-		var playable: int = 0
-		for uid in _pile_uids:
-			if _pile_playable(uid):
-				playable += 1
-		if playable > 0:
-			pile_hint.text += "  %s can be played with Transform. Click it to play it." % ("1 card" if playable == 1 else "%d cards" % playable)
+		pile_hint.text = "%d card%s" % [n, "" if n == 1 else "s"]
+	pile_hint.visible = pile_hint.text != ""
 	pile.visible = true
 	await _fill_pile()
 
@@ -2863,24 +2829,19 @@ func pile_contents(p: SeatPlayer, zone: StringName) -> Array[int]:
 	return uids
 
 
-## What the Relic pile holds, in words. Reserve cards the view keeps hidden are not drawn in the
-## browser, so the hint counts them instead of naming them.
+## Reserve cards the view keeps hidden are not drawn in the browser, so the hint counts them; ""
+## when every card is shown.
 func _relic_pile_hint(view: SeatView, p: SeatPlayer) -> String:
 	var face_down: int = 0
 	for uid in p.reserve:
 		var c: SeatCard = view.card(uid)
 		if c == null or c.hidden():
 			face_down += 1
-	var parts: PackedStringArray = PackedStringArray()
-	parts.append("The Relic first" if p.relic >= 0 else "No Relic")
-	if p.reserve.is_empty():
-		parts.append("no Reserve")
-	else:
-		parts.append("then %d Reserve card%s" % [p.reserve.size(), "" if p.reserve.size() == 1 else "s"])
-	var text: String = ", ".join(parts) + "."
-	if face_down > 0:
-		text += "  %d face down, not shown." % face_down
-	return text + "  Right-click a card to read it."
+	if face_down == 0:
+		return ""
+	if face_down == 1:
+		return "1 face-down Reserve card is not shown."
+	return "%d face-down Reserve cards are not shown." % face_down
 
 
 ## A usable Relic's pile, clicked: the action sub-choice a hand card opens, with a single use
@@ -2962,7 +2923,6 @@ func _pile_entry(c: SeatCard, is_top: bool) -> Control:
 	if _pile_playable(uid):
 		caption.text = "Play (Transform)"
 		caption.add_theme_color_override("font_color", ZenithTheme.DEFEND)
-		face.tooltip_text = "Click to play this card from your discard pile."
 		face.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		face.gui_input.connect(func(event: InputEvent) -> void:
 			if event is InputEventMouseButton and (event as InputEventMouseButton).pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:

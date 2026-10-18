@@ -1,69 +1,117 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Delve.Flow;
 using Delve.Presets;
 using Delve.Run;
 using Delve.UI;
+using Delve.Village;
 using Godot;
 
 namespace Delve.Dev;
 
+/// <summary>
+/// The outpost as the player meets it: the village with its residents, the Delve trail opening
+/// party assembly, a slot filled from the roster with the pick walking in, a pick sent back to
+/// town, Esc keeping the picks, and G embarking only at four.
+/// </summary>
 internal static class CampSelectChecks
 {
     internal static async Task Run(HeroSelectPanel panel, Action<string, bool> check)
     {
         var unlocks = new UnlockState();
         panel.Setup(unlocks);
-        await panel.ToSignal(panel.GetTree(), SceneTree.SignalName.ProcessFrame);
-        await panel.ToSignal(panel.GetTree(), SceneTree.SignalName.ProcessFrame);
-        var stage = panel.GetNode<CampStage>("%CampStage");
-        check("camp reserves a distinct place for every Bulwark concept", stage.SeatIds.Length == 18
-            && stage.SeatIds.Distinct().Count() == 18 && stage.Seats.Length == 18);
-        check("current roster placement is keyed by character identity", CharacterCatalog.All.All(def => stage.SeatFor(def.Id) >= 0));
+        await Frames(panel, 2);
+        var village = panel.Village;
         var accents = CharacterCatalog.All.Select(def => UiColors.CharacterAccent(def.Id)).ToArray();
         check("every roster member has a unique identity color", accents.Distinct().Count() == accents.Length);
         check("no roster member uses the fallback accent", accents.All(color => color != UiColors.Accent && color.A == 1f));
-        var aldric = HeroSelectChecks.Card(HeroSelectChecks.Cards(panel), PresetCharacters.PlayerId)!;
-        check("unselected residents start seated", aldric.Resting && !aldric.Selected);
-        check("transparent sprite corners do not intercept camp clicks", !aldric._HasPoint(Vector2.Zero));
-        aldric.EmitSignal(Button.SignalName.Pressed);
-        check("clicking a resident adds a party member", panel.SelectedIds.Contains(aldric.Id) && aldric.Selected);
-        await Wait(panel);
-        check("selected resident reaches the ready pose", aldric.IsReady);
-        aldric.EmitSignal(Button.SignalName.Pressed);
-        check("deselection clears the highlight immediately", !aldric.Selected);
-        await Wait(panel);
-        check("deselection returns to seated idle", aldric.Resting);
-        aldric.EmitSignal(Button.SignalName.Pressed);
-        aldric.EmitSignal(Button.SignalName.Pressed);
-        aldric.EmitSignal(Button.SignalName.Pressed);
-        await Wait(panel);
-        check("rapid toggles settle to the final selection", aldric.IsReady && panel.SelectedIds.Contains(aldric.Id));
-        Vector2 position = aldric.Position;
+        check("every unlocked resident is at home in the village", HeroSelectChecks.Residents(panel).Count == unlocks.UnlockedIds.Count
+            && village.Residents.Unplaced.Count == 0);
+        check("the camp opens in town", !panel.Assembling && village.Camera.Stop?.Id == village.HomeStop);
+
+        var trail = village.Stations.First(s => s.Id == "delve");
+        trail.EmitSignal(VillageStation.SignalName.Pressed, trail.Id);
+        check("clicking the Delve trail enters party assembly", panel.Assembling && village.Camera.Stop?.Id == village.AssemblyStop);
+        check("Q and E stop moving the camera during assembly", !village.Browsing || await BrowsingAfterFrame(panel) == false);
+
+        panel.OpenPicker(0);
+        check("a slot opens the roster on every free resident", panel.Picker.Visible
+            && panel.Picker.Offered.Count == unlocks.UnlockedIds.Count);
+        PressTile(panel, 0);
+        string first = panel.SelectedIds.FirstOrDefault() ?? "";
+        check("choosing from the roster fills the slot and closes it", panel.SelectedIds.Count == 1 && !panel.Picker.Visible);
+        check("the pick leaves their spot in the village", HeroSelectChecks.Residents(panel).All(id => id != first));
+        check("the pick is called from offscreen", village.Lineup.IsCalled(first) && !village.Lineup.HasArrived(first));
+        await Wait(panel, 4.5);
+        check("the pick walks in and takes slot 1", village.Lineup.HasArrived(first) && village.Lineup.SlotOf(first) == 0);
+
+        panel.OpenPicker(2);
+        check("the roster leaves out who is already in the party", !panel.Picker.Offered.Contains(first));
+        PressTile(panel, 0);
+        string second = panel.SelectedIds.FirstOrDefault(id => id != first) ?? "";
+        check("the roster fills the slot it was opened on", village.Lineup.SlotOf(second) == 2);
+
+        panel.OpenPicker(2);
+        panel.Picker.GetNode<Button>("%PickerVacate").EmitSignal(Button.SignalName.Pressed);
+        check("sending a pick back empties the slot", panel.SelectedIds.Count == 1 && !village.Lineup.IsCalled(second));
+        check("the sent-back pick walks out and is home again", village.Lineup.Leaving == 1
+            && HeroSelectChecks.Residents(panel).Contains(second));
+
+        panel._Input(new InputEventAction { Action = InputNames.UiCancel, Pressed = true });
+        check("Esc goes back to town and keeps the picks", !panel.Assembling && panel.SelectedIds.SequenceEqual(new[] { first }));
+        check("the party waits at the trailhead while the camera is in town", village.Lineup.HasArrived(first));
+        panel._Input(new InputEventAction { Action = InputNames.ExploreDescend, Pressed = true });
+        check("G walks to the trail", panel.Assembling);
+
+        IReadOnlyList<string>? embarked = null;
+        void OnConfirmed(IReadOnlyList<string> members) => embarked = members;
+        panel.Confirmed += OnConfirmed;
+        foreach (var id in unlocks.UnlockedIds.Where(id => id != first).Take(2)) panel.Pick(id);
+        panel._Input(new InputEventAction { Action = InputNames.ExploreDescend, Pressed = true });
+        check("G does not embark with three", embarked == null && !panel.CanEmbark);
+        panel.Pick(unlocks.UnlockedIds.First(id => !panel.SelectedIds.Contains(id)));
+        panel._Input(new InputEventAction { Action = InputNames.ExploreDescend, Pressed = true });
+        panel.Confirmed -= OnConfirmed;
+        check("G embarks at four", embarked is { Count: 4 });
+
+        panel.Unpick();
+        panel.Pick(PresetCharacters.PlayerId);
         unlocks.Unlock(PresetCharacters.RavenId);
         panel.RefreshRecruitment();
-        await Wait(panel);
-        var residents = HeroSelectChecks.Cards(panel);
-        check("a permanent unlock adds one resident", residents.Count == 5 && residents.Any(r => r.Id == PresetCharacters.RavenId));
-        check("unlock refresh preserves selected residents and their place", aldric.Selected && aldric.Position.IsEqualApprox(position));
+        check("a permanent unlock moves one resident into the village", HeroSelectChecks.Residents(panel).Count(id => id == PresetCharacters.RavenId) == 1);
         panel.RefreshRecruitment();
-        check("repeated refresh never duplicates residents", HeroSelectChecks.Cards(panel).Count == 5);
+        check("repeated refresh never duplicates residents", HeroSelectChecks.Residents(panel).Count == unlocks.UnlockedIds.Count - 1);
+        check("unlock refresh keeps the party", panel.SelectedIds.SequenceEqual(new[] { PresetCharacters.PlayerId }));
+
         panel.OpenDetails();
         panel.Pick(PresetCharacters.ElaraId);
         panel.Unpick();
-        check("character details block formation changes", panel.SelectedIds.Contains(aldric.Id) && panel.SelectedIds.Count == 1);
+        check("character details block formation changes", panel.SelectedIds.SequenceEqual(new[] { PresetCharacters.PlayerId }));
         panel.CloseDetails();
         panel.Setup(new UnlockState());
-        check("a fresh setup removes residents outside its unlock state", HeroSelectChecks.Cards(panel).Count == 4 && panel.SelectedIds.Count == 0);
-        panel._Input(new InputEventAction { Action = InputNames.UiDown, Pressed = true });
-        panel._Input(new InputEventAction { Action = InputNames.Confirm, Pressed = true });
-        check("keyboard navigation selects a resident", panel.SelectedIds.Contains(PresetCharacters.PlayerId));
-        panel._Input(new InputEventAction { Action = InputNames.Confirm, Pressed = true });
-        check("keyboard confirmation can deselect the same resident", panel.SelectedIds.Count == 0);
-        panel.Setup(new UnlockState());
+        check("a fresh setup sends everyone home and leaves town", panel.SelectedIds.Count == 0 && !panel.Assembling
+            && HeroSelectChecks.Residents(panel).Count == 4);
     }
 
-    private static async Task Wait(Node node)
-        => await node.ToSignal(node.GetTree().CreateTimer(0.85), SceneTreeTimer.SignalName.Timeout);
+    private static void PressTile(HeroSelectPanel panel, int index)
+    {
+        var tiles = panel.Picker.GetNode<GridContainer>("%Tiles");
+        tiles.GetChild<Button>(index).EmitSignal(Button.SignalName.Pressed);
+    }
+
+    private static async Task<bool> BrowsingAfterFrame(HeroSelectPanel panel)
+    {
+        await Frames(panel, 1);
+        return panel.Village.Browsing;
+    }
+
+    private static async Task Frames(Node node, int count)
+    {
+        for (int i = 0; i < count; i++) await node.ToSignal(node.GetTree(), SceneTree.SignalName.ProcessFrame);
+    }
+
+    private static async Task Wait(Node node, double seconds)
+        => await node.ToSignal(node.GetTree().CreateTimer(seconds), SceneTreeTimer.SignalName.Timeout);
 }

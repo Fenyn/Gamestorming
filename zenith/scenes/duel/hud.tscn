@@ -267,6 +267,7 @@ show_percentage = false
 
 [node name="Title" type="Label" parent="Root/PromptPanel/Column"]
 layout_mode = 2
+mouse_filter = 1
 theme_type_variation = &"HeaderLabel"
 theme_override_font_sizes/font_size = 24
 text = "Waiting"
@@ -566,6 +567,7 @@ show_percentage = false
 
 [node name="Title" type="Label" parent="Root/Tray/Center/Panel/Column"]
 layout_mode = 2
+mouse_filter = 1
 theme_type_variation = &"HeaderLabel"
 theme_override_font_sizes/font_size = 30
 text = "Choose a card"
@@ -827,13 +829,6 @@ layout_mode = 2
 theme_override_constants/separation = 14
 mouse_filter = 2
 
-[node name="Hint" type="Label" parent="Root/Inspect/Center/Column"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Hover a coloured word for what it means. Click outside the card or press Esc to close."
-horizontal_alignment = 1
-mouse_filter = 2
-
 [node name="Face" parent="Root/Inspect/Center/Column" instance=ExtResource("3_face")]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -880,12 +875,6 @@ theme_override_constants/separation = 18
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
 text = "Pass the table to Player 2"
-horizontal_alignment = 1
-
-[node name="Sub" type="Label" parent="Root/Handoff/Center/Column"]
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = "Their hand stays hidden until they are ready."
 horizontal_alignment = 1
 
 [node name="Ready" type="Button" parent="Root/Handoff/Center/Column"]
@@ -1208,7 +1197,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Reduced motion"
 flat = true
-tooltip_text = "Keep resource changes readable with less movement and fewer impact effects."
+tooltip_text = "Turns off screen shake, hit pauses, card particles and background motion."
 
 [node name="Fullscreen" type="CheckButton" parent="Root/OptionsMenu/Column/Items"]
 layout_mode = 2

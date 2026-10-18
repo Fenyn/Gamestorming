@@ -30,8 +30,12 @@ public partial class GladeSpike
         for (float waited = 0; crawl.WalkingIn && waited < ArrivalTimeout; waited += 0.1f) await Wait(0.1f);
         var centre = new Vector3(view.Width / 2f, 0, view.Width / 2f);
         var party = crawl.GetNode<Node3D>("%TravelParty").GetChildren().OfType<Node3D>().ToArray();
-        Check($"the walk in ends with the party in the middle of the glade",
-            !crawl.WalkingIn && party.Length > 0 && party.All(t => (t.Position with { Y = 0 }).DistanceTo(centre) < 3));
+        var mouth = view.DoorPosition(crawl.Floor.ArrivalSide);
+        var tiles = party.Select(t => Delve.Terrain.GridSpace.WorldToGrid(t.Position)).ToArray();
+        Check($"the walk in ends with the party a few steps inside the mouth, each hero on its own tile ({string.Join(", ", party.Select(t => (t.Position with { Y = 0 }).DistanceTo(mouth).ToString("0.0")))} m from the mouth; {tiles.Distinct().Count()} tiles)",
+            !crawl.WalkingIn && party.Length > 0 && tiles.Distinct().Count() == party.Length
+            && party.All(t => (t.Position with { Y = 0 }).DistanceTo(mouth) < (t.Position with { Y = 0 }).DistanceTo(mouth + (centre - mouth) * 2)
+                && (t.Position with { Y = 0 }).DistanceTo(mouth) is > 1.5f and < 9));
         if (DisplayServer.GetName() != "headless")
         {
             var rig = crawl.GetNode<Delve.Combat.OrbitCameraRig>("ExploreCamera");

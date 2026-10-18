@@ -36,14 +36,14 @@ public static class CommandPrompts
         new Dictionary<PlayerTurnMode, CommandPrompt>
         {
             [PlayerTurnMode.Idle] = Idle,
-            [PlayerTurnMode.Moving] = new("Select a tile to move.", new[] { new KeyHint(Click, "Move here", false), Cancel, Rotate }),
-            [PlayerTurnMode.SelectingMove] = new("Select a tile to move.", new[] { new KeyHint(Click, "Move here", false), Cancel, Rotate }),
-            [PlayerTurnMode.SelectingStrike] = new("Select a target to Strike.", new[] { new KeyHint(Click, "Strike", false), Cancel, Rotate }),
-            [PlayerTurnMode.SelectingSpellTarget] = new("Select a target.", new[] { new KeyHint(Click, "Cast", false), Cancel, Rotate }),
-            [PlayerTurnMode.SelectingSpellTargets] = new("Select the targets, then confirm.", new[] { new KeyHint(Click, "Add target", false), new KeyHint(Delve.UI.InputNames.Confirm, "Cast"), Cancel }),
-            [PlayerTurnMode.SelectingAreaOrigin] = new("Select where to aim.", new[] { new KeyHint(Click, "Cast", false), Cancel, Rotate }),
-            [PlayerTurnMode.SelectingSkillTarget] = new("Select a target.", new[] { new KeyHint(Click, "Use", false), Cancel, Rotate }),
-            [PlayerTurnMode.SelectingDelaySlot] = new("Pick whom to act after on the timeline.", new[] { new KeyHint(Click, "Delay", false), Cancel }),
+            [PlayerTurnMode.Moving] = new("Move", new[] { new KeyHint(Click, "Move here", false), Cancel, Rotate }),
+            [PlayerTurnMode.SelectingMove] = new("Move", new[] { new KeyHint(Click, "Move here", false), Cancel, Rotate }),
+            [PlayerTurnMode.SelectingStrike] = new("Strike", new[] { new KeyHint(Click, "Strike", false), Cancel, Rotate }),
+            [PlayerTurnMode.SelectingSpellTarget] = new("Cast", new[] { new KeyHint(Click, "Cast", false), Cancel, Rotate }),
+            [PlayerTurnMode.SelectingSpellTargets] = new("Cast", new[] { new KeyHint(Click, "Add target", false), new KeyHint(Delve.UI.InputNames.Confirm, "Cast"), Cancel }),
+            [PlayerTurnMode.SelectingAreaOrigin] = new("Cast", new[] { new KeyHint(Click, "Cast", false), Cancel, Rotate }),
+            [PlayerTurnMode.SelectingSkillTarget] = new("Skill", new[] { new KeyHint(Click, "Use", false), Cancel, Rotate }),
+            [PlayerTurnMode.SelectingDelaySlot] = new("Delay", new[] { new KeyHint(Click, "Act after", false), Cancel }),
         };
 
     public static CommandPrompt For(PlayerTurnMode mode) => Table.TryGetValue(mode, out var prompt) ? prompt : Idle;

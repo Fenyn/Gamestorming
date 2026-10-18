@@ -57,6 +57,7 @@ public partial class PairReport : VBoxContainer
         if (RowScene != null)
             foreach (var row in rows)
             {
+                if (_members.GetChildCount() > 0) _members.AddChild(RuledRows.Rule());
                 var view = RowScene.Instantiate<ResultMemberRowView>();
                 _members.AddChild(view);
                 view.Render(row, offerFeat: false);

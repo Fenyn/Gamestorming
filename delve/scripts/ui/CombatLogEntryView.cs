@@ -110,8 +110,7 @@ public partial class CombatLogEntryView : VBoxContainer
     private void Refresh()
     {
         _toggle.Text = DetailsExpanded ? "-" : "+";
-        string hint = _toggle.Disabled ? "Details appear as the action resolves."
-            : DetailsExpanded ? "Collapse details" : "Expand details";
+        string hint = _toggle.Disabled ? "" : DetailsExpanded ? "Collapse details" : "Expand details";
         _toggle.TooltipText = hint;
         _header.Text = IsTurn ? _title : OneLine(_compact);
         _details.Visible = DetailsExpanded;

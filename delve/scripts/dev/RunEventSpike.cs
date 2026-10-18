@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Delve.Autoload;
 using Delve.Presets;
@@ -107,18 +108,26 @@ public partial class RunEventSpike : SpikeBase
         var choices = panel.GetNode<VBoxContainer>("%OptionBox");
         var first = choices.GetChild<Button>(0);
         string automatic = first.Text;
-        Check("preview names the skill, DC and base success chance", automatic.Contains("Athletics")
-            && automatic.Contains("DC 15") && automatic.Contains("% base success"));
+        var heading = panel.GetNode<Label>("%PreviewHeading");
+        Check($"each option carries its chance at a glance ('{automatic.Replace('\n', '/')}'), and the first opens its check ('{heading.Text}')",
+            automatic.StartsWith(definition.Options[0].Label) && automatic.EndsWith('%')
+            && panel.SelectedOption == 0 && heading.Text.Contains("Athletics") && heading.Text.Contains("DC 15")
+            && heading.TooltipText.Contains("Athletics"));
         var actors = panel.GetNode<Container>("%ActorRow");
-        var lastActor = actors.GetChild<Button>(actors.GetChildCount() - 1);
-        Check($"each member shows their odds on the previewed check before any click ('{lastActor.Text}')",
-            lastActor.Text.Contains('%') && lastActor.Text.Contains('·') && actors.GetChild<Button>(0).Text.StartsWith("Best suited: "));
-        lastActor.ButtonPressed = true;
-        Check("changing actor updates the check preview", first.Text != automatic);
-        Check("success and critical failure explain their effects",
-            panel.GetNode<Label>("%CheckPreview").Text.Contains("Heal 10%")
-            && panel.GetNode<Label>("%CheckPreview").Text.Contains("Wounded +1"));
-        string previewText = panel.GetNode<Label>("%CheckPreview").Text;
+        var chips = actors.GetChildren().OfType<Button>().ToList();
+        Check($"who tries lists every member with their odds, best suited first and already picked ({string.Join(", ", chips.Select(c => c.Text))})",
+            chips.Count == previewRun.Party.Living().Count() && chips.All(c => c.Text.EndsWith('%')) && chips[0].ButtonPressed
+            && automatic.EndsWith(chips[0].Text));
+        string attemptBefore = panel.AttemptButton.Text;
+        chips[^1].ButtonPressed = true;
+        Check($"picking another member updates the option's chance and the Attempt button ('{panel.AttemptButton.Text}')",
+            first.Text != automatic && panel.AttemptButton.Text != attemptBefore && first.Text.EndsWith(chips[^1].Text));
+        Check($"the outcome rows explain success and critical failure ('{panel.OutcomeText.Replace('\n', '/')}')",
+            panel.OutcomeText.Contains("Heal 10%") && panel.OutcomeText.Contains("Wounded +1")
+            && panel.OutcomeText.Contains("Success: ") && panel.OutcomeText.Contains("Critical failure: "));
+        int rows = panel.OutcomeText.Split('\n').Length;
+        Check($"a thin rule separates each degree from the next ({panel.OutcomeRules} rules, {rows} rows)", panel.OutcomeRules == rows - 1);
+        string previewText = panel.OutcomeText;
         Check("the preview shows effects only and keeps each outcome's prose for after the roll",
             definition.Options[0] is var option && !previewText.Contains(option.Success.Text)
             && (option.Failure == null || !previewText.Contains(option.Failure.Text)));
@@ -130,26 +139,36 @@ public partial class RunEventSpike : SpikeBase
             Check("event preview screenshot saved", SaveViewportCapture("user://dev_shots/event_preview.png") == Error.Ok);
         }
         int requests = 0;
-        panel.OptionPicked += (_, _) => requests++;
+        var picked = new List<int>();
+        panel.OptionPicked += (index, _) => { requests++; picked.Add(index); };
+        var second = choices.GetChild<Button>(1);
+        second.EmitSignal(BaseButton.SignalName.Pressed);
+        Check("a click on another option selects it without committing", requests == 0 && panel.SelectedOption == 1);
         first.EmitSignal(BaseButton.SignalName.Pressed);
+        panel.AttemptButton.EmitSignal(BaseButton.SignalName.Pressed);
+        panel.AttemptButton.EmitSignal(BaseButton.SignalName.Pressed);
         first.EmitSignal(BaseButton.SignalName.Pressed);
-        Check("repeated selection cannot resolve twice", requests == 1);
+        Check($"Attempt commits the selected option once, however often it is pressed ({string.Join(",", picked)})",
+            requests == 1 && picked[0] == 0);
         panel.ShowResult(around);
         int continued = 0;
         panel.Continued += () => continued++;
         panel._Input(new InputEventAction { Action = Delve.UI.InputNames.UiCancel, Pressed = true });
         Check("after the result, Esc continues like the button", continued == 1);
-        Check("resolved event replaces choices with its outcome", !choices.Visible
+        Check("resolved event replaces choices with its outcome", !choices.Visible && !panel.AttemptButton.Visible
             && panel.GetNode<Label>("%ResultLabel").Visible
-            && panel.GetNode<Label>("%PreviewHeading").Text == "OUTCOME");
+            && panel.GetNode<Label>("%PreviewHeading").Text == "Outcome");
         panel.Show(definition, previewRun);
-        Check("next event restores choices", choices.Visible && !panel.GetNode<Label>("%ResultLabel").Visible);
+        Check("next event restores choices", choices.Visible && !panel.GetNode<Label>("%ResultLabel").Visible && panel.SelectedOption == 0);
         var noRoll = choices.GetChild<Button>(1);
         noRoll.EmitSignal(Control.SignalName.FocusEntered);
-        Check("no-roll preview avoids duplicate choice and success labels",
-            noRoll.Text == definition.Options[1].Label
-            && panel.GetNode<Label>("%PreviewHeading").Text == "WHAT HAPPENS · NO ROLL"
-            && !panel.GetNode<Label>("%CheckPreview").Text.StartsWith("Success:"));
+        Check($"a no-roll option says so once and shows a single result row ('{noRoll.Text.Replace('\n', '/')}', '{panel.OutcomeText}')",
+            noRoll.Text == $"{definition.Options[1].Label}\n{EventCheckPreview.NoRoll}"
+            && panel.GetNode<Label>("%PreviewHeading").Text == EventCheckPreview.NoRoll
+            && panel.OutcomeText.StartsWith("Result: ") && !actors.Visible && panel.AttemptButton.Text == "Choose");
+        int requestsBefore = requests;
+        noRoll.EmitSignal(BaseButton.SignalName.Pressed);
+        Check("pressing the selected option again commits it, as Enter on the focused option does", requests == requestsBefore + 1);
         panel.QueueFree();
         CheckRoomEffects();
     }

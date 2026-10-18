@@ -44,6 +44,8 @@ public partial class CombatShotSpike
         dying.Health.SetCurrentHP(0);
         dying.Conditions.AddCondition(db.Dying, value: 2);
         dying.Conditions.AddCondition(db.Unconscious);
+        // The board follows the presenter, and this staged drop has no damage event: show it as the hit would.
+        Tokens(scene).First(t => t.Character == dying).UpdateHealthBar();
         scene.ClearHover();
         await WaitSeconds(PoseSeconds);
 

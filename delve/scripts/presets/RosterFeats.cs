@@ -88,7 +88,7 @@ public static class RosterFeats
         ["quick-shield-block"]="At the start of each turn, gain one extra reaction usable only to Shield Block.",
         ["healing-hands"]="Heal uses d10s instead of d8s, including variable-action casts.",
         ["steady-spellcasting"]="When a reaction would disrupt your spellcasting, a DC 15 flat check prevents disruption.",
-        ["cantrip-expansion"]="Add two cantrips to this authored daily loadout.",
+        ["cantrip-expansion"]="Adds two cantrips to your daily loadout.",
         ["reach-spell"]="One action: your next spell's range increases by 30 feet; touch becomes 30 feet. An intervening action loses this benefit.",
         ["basic-lesson"]="Lesson of Life grants Life Boost and increases your focus pool by 1 (maximum 3).",
         ["mental-buffer"]="Resist mental damage equal to half your level (minimum 1), or your level while Unleash Psyche is active.",

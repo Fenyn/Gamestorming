@@ -3,6 +3,12 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/screen_frame.tscn" id="frame"]
 [ext_resource type="Script" path="res://scripts/flow/EventPanel.cs" id="1_ev"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pair_report.tscn" id="2_report"]
+[ext_resource type="Script" path="res://scripts/ui/RuledRows.cs" id="3_rows"]
+
+; Event layout (2026-10-01, after Our Adventurer Guild and Slay the Spire): the scene's prose, then
+; the options, each with its chance at a glance ("Elara 55%" or "No roll"). Only the selected
+; option opens below: its check, who tries (best first, already picked) and what each degree does.
+; Attempt, or the selected option pressed again, commits. Where a bonus comes from is in hovers.
 
 [node name="EventPanel" instance=ExtResource("frame")]
 visible = false
@@ -17,48 +23,38 @@ layout_mode = 2
 autowrap_mode = 3
 theme_type_variation = &"EventBody"
 
-[node name="ActorHeading" type="Label" parent="Frame/Box/Body"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"EventCaption"
-text = "WHO TRIES?"
-
-[node name="ActorRow" type="GridContainer" parent="Frame/Box/Body"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
-columns = 2
-
-[node name="ChoiceHeading" type="Label" parent="Frame/Box/Body"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"EventCaption"
-text = "CHOOSE AN ACTION"
-
 [node name="OptionBox" type="VBoxContainer" parent="Frame/Box/Body"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="OutcomePanel" type="PanelContainer" parent="Frame/Box/Body"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"EventOutcomePanel"
 
 [node name="Content" type="VBoxContainer" parent="Frame/Box/Body/OutcomePanel"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="PreviewHeading" type="Label" parent="Frame/Box/Body/OutcomePanel/Content"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 1
 theme_type_variation = &"EventCaption"
+uppercase = true
 
-[node name="CheckPreview" type="Label" parent="Frame/Box/Body/OutcomePanel/Content"]
+[node name="ActorRow" type="HFlowContainer" parent="Frame/Box/Body/OutcomePanel/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-autowrap_mode = 3
-theme_type_variation = &"EventBody"
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="OutcomeRows" type="VBoxContainer" parent="Frame/Box/Body/OutcomePanel/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+script = ExtResource("3_rows")
 
 [node name="ResultLabel" type="Label" parent="Frame/Box/Body/OutcomePanel/Content"]
 unique_name_in_owner = true
@@ -71,6 +67,13 @@ theme_type_variation = &"EventBody"
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
+
+[node name="AttemptButton" type="Button" parent="Frame/Box/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 44)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Attempt"
 
 [node name="ContinueButton" type="Button" parent="Frame/Box/Footer"]
 unique_name_in_owner = true

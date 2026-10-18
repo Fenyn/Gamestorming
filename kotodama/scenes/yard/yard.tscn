@@ -1,0 +1,46 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/yard/yard.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/yard/spirit.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/yard/flower.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/yard/gate_light.tscn" id="4"]
+[ext_resource type="FontFile" path="res://assets/fonts/NotoSansJP-Bold.ttf" id="5"]
+
+[node name="Yard" type="Node2D"]
+script = ExtResource("1")
+spirit_scene = ExtResource("2")
+flower_scene = ExtResource("3")
+light_scene = ExtResource("4")
+name_font = ExtResource("5")
+
+[node name="Ground" type="TileMapLayer" parent="."]
+unique_name_in_owner = true
+z_index = -1
+
+[node name="Woods" type="TileMapLayer" parent="."]
+unique_name_in_owner = true
+modulate = Color(0.42, 0.48, 0.4, 1)
+z_index = -1
+
+[node name="Water" type="TileMapLayer" parent="."]
+unique_name_in_owner = true
+z_index = -1
+
+[node name="Beds" type="TileMapLayer" parent="."]
+unique_name_in_owner = true
+z_index = -1
+
+[node name="Trees" type="Node2D" parent="."]
+unique_name_in_owner = true
+y_sort_enabled = true
+
+[node name="Flowers" type="Node2D" parent="."]
+unique_name_in_owner = true
+y_sort_enabled = true
+
+[node name="Spirits" type="Node2D" parent="."]
+unique_name_in_owner = true
+y_sort_enabled = true
+
+[node name="Lights" type="Node2D" parent="."]
+unique_name_in_owner = true

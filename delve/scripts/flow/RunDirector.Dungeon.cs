@@ -61,8 +61,8 @@ public partial class RunDirector
         if (_state == null || Phase != RunPhase.Map || _dungeon?.Phase != DungeonPhase.End) return;
         if (_transition.Busy) return;
         bool final = _state.OnFinalStratum;
-        _ = PlayRunTransition(final ? "The last guardian has fallen.\nThe expedition is complete."
-            : CrawlWordsTable.For(Delve.Data.FloorThemes.ForStratum(_state.Stratum + 1).Id).ArrivalCaption, () =>
+        _ = PlayRunTransition(final ? ExpeditionCompleteCaption
+            : Delve.Data.FloorThemes.ForStratum(_state.Stratum + 1).DisplayName, () =>
         {
             if (final) EndRun(RunOutcome.Victory);
             else { _state.AdvanceStratum(); StartDungeonFloor(); }

@@ -99,9 +99,7 @@ internal static class HeroSheetGearTips
     internal static SheetTip Unarmoured() => new(
         "Unarmoured",
         "no armour worn",
-        "Nothing adds to AC and nothing caps your Dexterity, so your full Dexterity modifier and "
-        + "your unarmoured proficiency carry the whole defence. No check penalty and no Speed "
-        + "penalty either.");
+        "AC uses your full Dexterity modifier and unarmoured proficiency. No check or Speed penalty.");
 
     /// <summary>A carried shield: what raising it buys and how much punishment it takes.</summary>
     internal static SheetTip Shield(ShieldDefinition shield) => new(
@@ -268,7 +266,7 @@ internal static class HeroSheetGearTips
                 new SheetMetaRow("Castings", $"{slots} per day, on top of your prepared slots"),
                 new SheetMetaRow("Spell", spellText),
             },
-            Footer: "Granted by your deity - they cannot be traded for other spells.");
+            Footer: "Granted by your deity. These castings hold only this spell.");
     }
 
     // ---------------------------------------------------------------- Parts

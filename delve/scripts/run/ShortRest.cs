@@ -67,8 +67,8 @@ public static partial class ShortRest
                 Kind = kind,
                 Performed = false,
                 Reason = wardstone.IsSpent
-                    ? "The ward is out. There is nothing left to burn."
-                    : $"Only {wardstone.Ward} ward is left. Resting would put it out.",
+                    ? "Unavailable: the ward is out."
+                    : $"Unavailable: only {wardstone.Ward} ward is left, and a rest costs {wardstone.Rules.ShortRestBurn}.",
             };
         }
 

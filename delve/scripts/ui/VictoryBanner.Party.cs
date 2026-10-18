@@ -73,6 +73,7 @@ public partial class VictoryBanner
             {
                 // A row shown only for its feat goes once the feat is chosen.
                 if (member.Figures.All(f => !f.IsChange) && !CombatResults.HasFeatChoice(member.Member)) continue;
+                if (_members.GetChildCount() > 0) _members.AddChild(RuledRows.Rule());
                 var row = RowScene.Instantiate<ResultMemberRowView>();
                 _members.AddChild(row);
                 row.Render(member);

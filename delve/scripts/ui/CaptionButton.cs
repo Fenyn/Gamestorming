@@ -37,6 +37,13 @@ public partial class CaptionButton : Button
     [Export] public StringName DisabledLabelVariation { get; set; } = "";
     [Export] public StringName KeyVariation { get; set; } = "";
 
+    /// <summary>A white glyph before the caption, drawn in the caption's colour so it greys with it.</summary>
+    [Export] public Texture2D? CaptionIcon { get; set; }
+
+    [Export] public float CaptionIconSize { get; set; } = 28f;
+
+    private TextureRect? _icon;
+
     /// <summary>Enable or grey the button and restyle its labels to match; a Label child does not
     /// follow its Button's disabled colour on its own.</summary>
     public void SetEnabled(bool enabled)
@@ -50,6 +57,7 @@ public partial class CaptionButton : Button
         if (ActionLabel != null && !LabelVariation.IsEmpty)
             ActionLabel.ThemeTypeVariation = Disabled && !DisabledLabelVariation.IsEmpty ? DisabledLabelVariation : LabelVariation;
         if (KeyLabel != null && !KeyVariation.IsEmpty) KeyLabel.ThemeTypeVariation = KeyVariation;
+        if (_icon != null && ActionLabel != null) _icon.Modulate = ActionLabel.GetThemeColor("font_color");
     }
 
     private Control? _content;
@@ -72,6 +80,20 @@ public partial class CaptionButton : Button
             ActionLabel.Text = ActionText;
         if (KeyLabel != null && !InputAction.IsEmpty)
             KeyLabel.Text = InputNames.KeyLabelFor(InputAction);
+        if (CaptionIcon != null && _content != null)
+        {
+            _icon = new TextureRect
+            {
+                Texture = CaptionIcon,
+                CustomMinimumSize = Vector2.One * CaptionIconSize,
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                SizeFlagsVertical = SizeFlags.ShrinkCenter,
+                MouseFilter = MouseFilterEnum.Ignore,
+            };
+            _content.AddChild(_icon);
+            _content.MoveChild(_icon, 0);
+        }
 
         ApplyLabelStyles();
         if (_content == null) return;

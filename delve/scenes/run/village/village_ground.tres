@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/village_ground.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://assets/textures/terrain/grass_a.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/textures/terrain/dirt_b.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/textures/terrain/rock_b.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/textures/village/water.png" id="5"]
+
+[resource]
+shader = ExtResource("1")
+shader_parameter/grass_texture = ExtResource("2")
+shader_parameter/dirt_texture = ExtResource("3")
+shader_parameter/rock_texture = ExtResource("4")
+shader_parameter/water_texture = ExtResource("5")

@@ -13,7 +13,6 @@ const FACE_SIZE: Vector2 = Vector2(176, 246)
 @onready var shelf_tab: Button = $Margin/Column/Tabs/Shelf
 @onready var collection_tab: Button = $Margin/Column/Tabs/Collection
 @onready var shelf_page: VBoxContainer = $Margin/Column/Body/ShelfPage
-@onready var shelf_caption: Label = $Margin/Column/Body/ShelfPage/Caption
 @onready var shelf_row: HBoxContainer = $Margin/Column/Body/ShelfPage/Center/Row
 @onready var shelf_empty: Label = $Margin/Column/Body/ShelfPage/Empty
 @onready var collection_page: VBoxContainer = $Margin/Column/Body/CollectionPage
@@ -83,7 +82,6 @@ func _fill_shelf() -> void:
 		if def == null:
 			continue
 		shelf_row.add_child(await _build_stall(def))
-	shelf_caption.text = "%d cards on the shelf  ·  a run ends and the shelf rolls over" % _stock.size()
 
 
 ## One card on the shelf: its face, title, band chip, price, how many the collection holds of the
@@ -242,13 +240,13 @@ func _refresh() -> void:
 			continue
 		var cap: int = AdventureCollection.cap(def.id, Session.library)
 		var held: int = Session.collection.copies(def.id)
-		_owned_labels[i].text = "Owned %d/%d%s" % [held, cap, "  ·  %d max" % cap if held >= cap else ""]
+		_owned_labels[i].text = "Owned %d/%d" % [held, cap]
 		var price: int = AdventureEconomy.price(def)
 		var button: Button = _buy_buttons[i]
 		if held >= cap:
 			button.disabled = true
 			button.text = "Owned"
-			button.tooltip_text = "The collection already holds every copy it may: %d max." % cap
+			button.tooltip_text = "The collection already holds every copy it may."
 		elif not Session.wallet.can_afford(price):
 			button.disabled = true
 			button.text = "Buy"

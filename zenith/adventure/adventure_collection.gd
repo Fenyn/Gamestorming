@@ -143,8 +143,8 @@ static func report_line(report: Dictionary) -> String:
 	var copies_value: int = int(report.get("copies", 0))
 	if copies_value <= 0:
 		return ""
-	return "%d %s dissolved for %d Motes" % [
-		copies_value, "copy" if copies_value == 1 else "copies", int(report.get("motes", 0))]
+	return "%d %s past the collection limit %s dissolved for %d Motes." % [copies_value,
+		"copy" if copies_value == 1 else "copies", "was" if copies_value == 1 else "were", int(report.get("motes", 0))]
 
 
 ## Every id held, sorted, so a screen lists the collection the same way twice.

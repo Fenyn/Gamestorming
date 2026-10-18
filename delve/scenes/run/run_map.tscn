@@ -164,14 +164,14 @@ text = "Next destination"
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MapHeading"
-text = "Choose your path"
+text = ""
 autowrap_mode = 2
 
 [node name="DetailBody" type="Label" parent="Margin/Layout/Body/DecisionScroll/Decisions/RouteDetail/Content" unique_id=116255468]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MapBody"
-text = "Choose a lit destination to travel. Hover or focus a node to inspect it."
+text = ""
 autowrap_mode = 2
 
 [node name="DetailState" type="Label" parent="Margin/Layout/Body/DecisionScroll/Decisions/RouteDetail/Content" unique_id=1278798673]

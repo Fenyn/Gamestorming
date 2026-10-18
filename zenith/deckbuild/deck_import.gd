@@ -31,7 +31,7 @@ static func read(text: String, library: CardLibrary, index: SourceIndex) -> Impo
 	var lines: Array[ImportLine] = parse(text)
 	var result: ImportResult = resolve(lines, library, index)
 	if lines.is_empty():
-		result.error = "No card lines were found. Paste the CSV of a decklist form, a list of quantities and names, or an exported .o8d deck."
+		result.error = "No card lines were found."
 	return result
 
 
@@ -418,7 +418,7 @@ static func _resolve_duelist(deck: DeckList, open: Array[ImportLine], candidates
 		if character == "":
 			character = def.character
 		if def.character != character:
-			_refuse(line, id, "Not the same character as the Duelist.")
+			_refuse(line, id, "This is not the same character as the Duelist.")
 		elif taken.has(def.aspect):
 			_refuse(line, id, "The Duelist already has an Aspect %d card." % def.aspect)
 		else:

@@ -18,8 +18,6 @@ public partial class PartyChip : Button
     /// <summary>Show the head-and-shoulders face crop instead of the full-body portrait.</summary>
     [Export] public bool UseFace { get; set; }
 
-    private const string OpenSheetHint = "\nClick to open the character sheet.";
-
     private TextureRect _portrait = null!;
     private Label _name = null!;
     private Control _reactionSlot = null!;
@@ -77,8 +75,7 @@ public partial class PartyChip : Button
         _reactionSlot.Visible = member.Reaction != ReactionMark.None;
         _reaction.ThemeTypeVariation = member.Reaction == ReactionMark.Ready ? ThemeNames.ReactionReady : ThemeNames.ReactionSpent;
 
-        TooltipText = member.Tooltip + string.Concat(member.Conditions.Select(c => $"\n{c.Label}: {c.Description}"))
-            + OpenSheetHint;
+        TooltipText = member.Tooltip + string.Concat(member.Conditions.Select(c => $"\n{c.Label}: {c.Description}"));
         RenderConditions(member);
     }
 

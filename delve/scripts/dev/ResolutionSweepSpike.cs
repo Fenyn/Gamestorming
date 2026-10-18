@@ -59,7 +59,12 @@ public partial class ResolutionSweepSpike : SpikeBase
         foreach (var size in Sizes)
         {
             if (!await Resize(size)) continue;
-            CheckLayout("camp", size, panel, "%EmbarkButton", "%ClearPartyButton", "%DetailsButton", "%RecruitmentButton");
+            panel.LeaveAssembly();
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            CheckLayout("camp town", size, panel, "%AssembleButton", "%RecruitmentButton", "%BestiaryButton");
+            panel.EnterAssembly();
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            CheckLayout("camp", size, panel, "%EmbarkButton", "%ClearPartyButton", "%BackToTownButton", "%Squad", "%RecruitmentButton");
             Capture("camp", size);
             await SweepFrame("journal", size, panel.Journal, () => panel.OpenJournal(JournalScreen.BestiaryPage));
             await SweepFrame("party screen", size, panel.Details, () => panel.OpenDetails());
@@ -90,7 +95,7 @@ public partial class ResolutionSweepSpike : SpikeBase
             var hud = scene.GetNode<Control>("%HudRoot");
             CheckLayout("combat HUD", size, hud, bar.BarPanel, scene.GetNode<Control>("%UnitInspect"),
                 scene.GetNode<TurnOrderBar>("%TurnOrderBar").Row, scene.GetNode<CombatLogPanel>("%CombatLog"),
-                scene.GetNode<Control>("%JournalButton"));
+                scene.JournalButton);
             CheckMenuBesideActor(scene, bar, size);
             Capture("combat_hud", size);
 
@@ -122,10 +127,12 @@ public partial class ResolutionSweepSpike : SpikeBase
         {
             if (!await Resize(size)) continue;
             CheckLayout("dungeon HUD", size, hud, hud.PartyStrip, hud.GetNode<Control>("%Expedition"));
-            var menu = hud.PartyMenu.GetGlobalRect();
-            Check($"{size.X}x{size.Y} the party menu is on screen and clear of the party cards ({menu})",
-                hud.PartyMenu.IsVisibleInTree() && GetViewport().GetVisibleRect().Grow(1).Encloses(menu)
-                && !menu.Intersects(hud.PartyStrip.GetGlobalRect()));
+            var prompts = hud.GetNode<Control>("%Rest").GetGlobalRect();
+            var bar = hud.MenuBar.GetGlobalRect();
+            var screen = GetViewport().GetVisibleRect().Grow(1);
+            Check($"{size.X}x{size.Y} the prompts and menu bar are on screen and clear of the party cards and floor plan ({prompts}, {bar})",
+                hud.Prompts.IsVisibleInTree() && hud.MenuBar.IsVisibleInTree() && screen.Encloses(prompts) && screen.Encloses(bar)
+                && !prompts.Intersects(hud.PartyStrip.GetGlobalRect()) && !prompts.Intersects(hud.GetNode<Control>("%Plan").GetGlobalRect()));
             Capture("dungeon_hud", size);
         }
         dungeon.QueueFree();

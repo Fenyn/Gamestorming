@@ -102,8 +102,8 @@ public partial class PromotionPanel : PanelContainer
             && options.All(f => PromotionFeats.LockReason(c, f, target) != null);
         if (_save.Visible)
         {
-            _summary.Text += "\nNo unlearned feat is available at this level. You can promote and keep the choice for later.";
             _save.Text = $"Promote to level {target} · Keep feat choice";
+            _save.TooltipText = "No feat is available at this level. The choice is saved for a later level.";
         }
         // The detail pane opens on the first feat the player can take, read but not picked.
         if (_choosable.FirstOrDefault() is { } first) first.EmitSignal(Control.SignalName.FocusEntered);
@@ -169,10 +169,11 @@ public partial class PromotionPanel : PanelContainer
             label.Render(figure);
         }
 
-        _summary.Text = c.Health.IsDead ? "This character cannot be promoted while dead."
-            : pending > 0 ? (pending == 1 ? "Pick one feat, then promote." : $"{pending} promotions wait. Pick one feat for each.")
-            : saved > 0 ? $"Unspent feat choices: {saved}. Your level stays the same."
-            : "Your build is up to date. Earn XP to unlock the next promotion.";
+        _summary.Text = c.Health.IsDead ? "Dead: cannot be promoted"
+            : pending > 1 ? $"Promotions pending: {pending}"
+            : saved > 0 ? $"Unspent feat choices: {saved}"
+            : "";
+        _summary.Visible = _summary.Text.Length > 0;
     }
 
     /// <summary>The same character built fresh at <paramref name="level"/>, for the level-up pairs.</summary>
@@ -188,9 +189,9 @@ public partial class PromotionPanel : PanelContainer
     private void ShowDetail(string? title, string meta, string rules, string? note)
     {
         _shown = title;
-        GetNode<Label>("%FeatTitle").Text = title ?? "Choose a feat";
+        GetNode<Label>("%FeatTitle").Text = title ?? "";
         GetNode<Label>("%FeatMeta").Text = meta;
-        GetNode<Label>("%FeatPreview").Text = title == null ? "Select a feat to read its rules. Nothing changes until you promote." : rules;
+        GetNode<Label>("%FeatPreview").Text = title == null ? "" : rules;
         var reason = GetNode<Label>("%FeatReason");
         reason.Text = note ?? "";
         reason.Visible = !string.IsNullOrEmpty(note);

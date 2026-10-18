@@ -1,18 +1,18 @@
 [gd_scene load_steps=23 format=3]
 [ext_resource type="Script" path="res://scripts/dungeon/FloorPlan.cs" id="5_plan"]
-[ext_resource type="Texture2D" path="res://assets/ui/map_icons/flag_triangle.png" id="6_entrance"]
-[ext_resource type="Texture2D" path="res://assets/ui/map_icons/sword.png" id="7_fight"]
-[ext_resource type="Texture2D" path="res://assets/ui/map_icons/book_open.png" id="8_event"]
-[ext_resource type="Texture2D" path="res://assets/ui/map_icons/skull.png" id="9_lair"]
-[ext_resource type="Texture2D" path="res://assets/ui/map_icons/character.png" id="10_wayfarer"]
-[ext_resource type="Texture2D" path="res://assets/ui/map_icons/campfire.png" id="11_refuge"]
-[ext_resource type="Texture2D" path="res://assets/ui/map_icons/crown_a.png" id="12_guardian"]
-[ext_resource type="Texture2D" path="res://assets/ui/map_icons/hexagon_question.png" id="13_unknown"]
+[ext_resource type="Resource" path="res://assets/ui/room_icons.tres" id="6_icons"]
 [ext_resource type="Script" path="res://scripts/dungeon/DungeonHud.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/ThresholdTicks.cs" id="4_ticks"]
 [ext_resource type="PackedScene" path="res://scenes/ui/party_row.tscn" id="2_squad"]
 [ext_resource type="PackedScene" path="res://scenes/ui/sheet_tooltip.tscn" id="3_tip"]
 [ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="14_cap"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud_icons/pawns.png" id="15_party"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud_icons/book_open.png" id="16_journal"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud_icons/flask_full.png" id="17_potion"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud_icons/pouch.png" id="18_gold"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud_icons/hourglass.png" id="19_rest"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud_icons/campfire.png" id="20_camp"]
+[ext_resource type="Texture2D" path="res://assets/ui/hud_icons/arrow_right.png" id="21_exit"]
 [sub_resource type="InputEventAction" id="key_rest"]
 action = &"explore_rest"
 [sub_resource type="Shortcut" id="shortcut_rest"]
@@ -38,10 +38,12 @@ action = &"explore_journal"
 [sub_resource type="Shortcut" id="shortcut_journal"]
 events = [SubResource("key_journal")]
 
-; Exploration HUD, FFT/MYZ/OAG layout (2026-09-28): room banner top centre, Wardstone and objective
-; top right, party face cards along the bottom, the floor plan in a round frame bottom right, and
-; the parchment party menu docked at the left edge, vertically centred. Development
-; controls sit top left and only show in the standalone test scene.
+; Exploration HUD (2026-10-01, after Mutant Year Zero, Our Adventurer Guild and Darkest Dungeon):
+; room banner top centre; the Party and Journal buttons top right where combat keeps its Journal,
+; with the Wardstone, objective and pack (potions, gold) under them; party face cards along the
+; bottom with the room's prompts (rest, and camp or the way on only when open) just above them;
+; the floor plan in a round frame bottom right. Travel is a click on a doorway, whose hover gives
+; the ward cost. Development controls sit top left and only show in the standalone test scene.
 
 [node name="DungeonHud" type="Control"]
 layout_mode = 3
@@ -76,6 +78,37 @@ offset_right = -16.0
 grow_horizontal = 0
 mouse_filter = 2
 theme_override_constants/separation = 6
+
+[node name="MenuBar" type="HBoxContainer" parent="Top"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="PartyRow" parent="Top/MenuBar" instance=ExtResource("14_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_type_variation = &"HudButton"
+shortcut = SubResource("shortcut_party")
+ActionText = "Party"
+InputAction = &"explore_party"
+LabelVariation = &"ChipLabel"
+DisabledLabelVariation = &"CaptionDisabled"
+CaptionIcon = ExtResource("15_party")
+
+[node name="JournalRow" parent="Top/MenuBar" instance=ExtResource("14_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_type_variation = &"HudButton"
+shortcut = SubResource("shortcut_journal")
+ActionText = "Journal"
+InputAction = &"explore_journal"
+LabelVariation = &"ChipLabel"
+DisabledLabelVariation = &"CaptionDisabled"
+CaptionIcon = ExtResource("16_journal")
 
 [node name="Expedition" type="PanelContainer" parent="Top"]
 unique_name_in_owner = true
@@ -145,6 +178,46 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HintRowLabel"
 
+[node name="Pack" type="HBoxContainer" parent="Top"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+mouse_filter = 2
+theme_override_constants/separation = 16
+
+[node name="Gold" type="HBoxContainer" parent="Top/Pack"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="GoldIcon" type="TextureRect" parent="Top/Pack/Gold"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("18_gold")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GoldValue" type="Label" parent="Top/Pack/Gold"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HintRowLabel"
+text = "0"
+
+[node name="Potion" parent="Top/Pack" instance=ExtResource("14_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_type_variation = &"HudButton"
+shortcut = SubResource("shortcut_potion")
+ActionText = "Potion"
+InputAction = &"explore_potion"
+LabelVariation = &"ChipLabel"
+DisabledLabelVariation = &"CaptionDisabled"
+CaptionIcon = ExtResource("17_potion")
+
 
 [node name="DevControls" type="HBoxContainer" parent="."]
 unique_name_in_owner = true
@@ -175,127 +248,59 @@ text = "New floor"
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="PartyMenu" type="PanelContainer" parent="."]
+[node name="Prompts" type="HBoxContainer" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 16.0
-offset_right = 16.0
-grow_vertical = 2
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -600.0
+offset_top = -184.0
+offset_right = 600.0
+offset_bottom = -136.0
+grow_horizontal = 2
+grow_vertical = 0
 mouse_filter = 2
-theme_type_variation = &"CommandMenu"
+theme_override_constants/separation = 12
+alignment = 1
 
-[node name="Rows" type="VBoxContainer" parent="PartyMenu"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 2
-
-[node name="MenuTitle" type="Label" parent="PartyMenu/Rows"]
-layout_mode = 2
-theme_type_variation = &"CommandTitle"
-text = "Party"
-
-[node name="TravelHint" parent="PartyMenu/Rows" instance=ExtResource("14_cap")]
+[node name="Rest" parent="Prompts" instance=ExtResource("14_cap")]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-tooltip_text = "Click a doorway to travel. Each doorway costs ward, backtracking included."
-focus_mode = 0
-theme_type_variation = &"CommandButton"
-FillRow = true
-KeycapVariation = &"CommandKeycap"
-LabelVariation = &"CommandLabel"
-DisabledLabelVariation = &"CommandLabelDisabled"
-KeyVariation = &"CommandKey"
-ActionText = "Travel"
-
-[node name="Camp" parent="PartyMenu/Rows" instance=ExtResource("14_cap")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-theme_type_variation = &"CommandButton"
-shortcut = SubResource("shortcut_camp")
-FillRow = true
-KeycapVariation = &"CommandKeycap"
-LabelVariation = &"CommandLabel"
-DisabledLabelVariation = &"CommandLabelDisabled"
-KeyVariation = &"CommandKey"
-ActionText = "Make camp"
-InputAction = &"explore_camp"
-
-[node name="Potion" parent="PartyMenu/Rows" instance=ExtResource("14_cap")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-theme_type_variation = &"CommandButton"
-shortcut = SubResource("shortcut_potion")
-FillRow = true
-KeycapVariation = &"CommandKeycap"
-LabelVariation = &"CommandLabel"
-DisabledLabelVariation = &"CommandLabelDisabled"
-KeyVariation = &"CommandKey"
-ActionText = "Drink potion"
-InputAction = &"explore_potion"
-
-[node name="Rest" parent="PartyMenu/Rows" instance=ExtResource("14_cap")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-theme_type_variation = &"CommandButton"
+theme_type_variation = &"HudButton"
 shortcut = SubResource("shortcut_rest")
-FillRow = true
-KeycapVariation = &"CommandKeycap"
-LabelVariation = &"CommandLabel"
-DisabledLabelVariation = &"CommandLabelDisabled"
-KeyVariation = &"CommandKey"
 ActionText = "Short rest"
 InputAction = &"explore_rest"
+LabelVariation = &"ChipLabel"
+DisabledLabelVariation = &"CaptionDisabled"
+CaptionIcon = ExtResource("19_rest")
 
-[node name="Stairs" parent="PartyMenu/Rows" instance=ExtResource("14_cap")]
+[node name="Camp" parent="Prompts" instance=ExtResource("14_cap")]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_type_variation = &"CommandButton"
+theme_type_variation = &"HudAccentButton"
+shortcut = SubResource("shortcut_camp")
+ActionText = "Make camp"
+InputAction = &"explore_camp"
+LabelVariation = &"ChipLabel"
+DisabledLabelVariation = &"CaptionDisabled"
+CaptionIcon = ExtResource("20_camp")
+
+[node name="Stairs" parent="Prompts" instance=ExtResource("14_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_type_variation = &"HudAccentButton"
 shortcut = SubResource("shortcut_stairs")
-FillRow = true
-KeycapVariation = &"CommandKeycap"
-LabelVariation = &"CommandLabel"
-DisabledLabelVariation = &"CommandLabelDisabled"
-KeyVariation = &"CommandKey"
 ActionText = "Descend stairs"
 InputAction = &"explore_descend"
-
-[node name="PartyRow" parent="PartyMenu/Rows" instance=ExtResource("14_cap")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-theme_type_variation = &"CommandButton"
-tooltip_text = "Every member's sheet and progression."
-shortcut = SubResource("shortcut_party")
-FillRow = true
-KeycapVariation = &"CommandKeycap"
-LabelVariation = &"CommandLabel"
-DisabledLabelVariation = &"CommandLabelDisabled"
-KeyVariation = &"CommandKey"
-ActionText = "Party"
-InputAction = &"explore_party"
-
-[node name="JournalRow" parent="PartyMenu/Rows" instance=ExtResource("14_cap")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-theme_type_variation = &"CommandButton"
-tooltip_text = "The bestiary and the unlock journal."
-shortcut = SubResource("shortcut_journal")
-FillRow = true
-KeycapVariation = &"CommandKeycap"
-LabelVariation = &"CommandLabel"
-DisabledLabelVariation = &"CommandLabelDisabled"
-KeyVariation = &"CommandKey"
-ActionText = "Journal"
-InputAction = &"explore_journal"
+LabelVariation = &"ChipLabel"
+DisabledLabelVariation = &"CaptionDisabled"
+CaptionIcon = ExtResource("21_exit")
 
 [node name="Plan" type="PanelContainer" parent="."]
 unique_name_in_owner = true
@@ -336,14 +341,7 @@ CellSize = Vector2(36, 28)
 Gap = 10.0
 IconSize = 20.0
 CurrentFrameWidth = 4.0
-Entrance = ExtResource("6_entrance")
-Fight = ExtResource("7_fight")
-Event = ExtResource("8_event")
-Lair = ExtResource("9_lair")
-Wayfarer = ExtResource("10_wayfarer")
-Refuge = ExtResource("11_refuge")
-Guardian = ExtResource("12_guardian")
-Unknown = ExtResource("13_unknown")
+Icons = ExtResource("6_icons")
 
 [node name="Bottom" type="VBoxContainer" parent="."]
 mouse_filter = 2
@@ -352,9 +350,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -600.0
-offset_top = -170.0
+offset_top = -236.0
 offset_right = 600.0
-offset_bottom = -132.0
+offset_bottom = -198.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 10

@@ -68,24 +68,9 @@ internal static class HeroSelectChecks
         panel.Journal.Close();
     }
 
-    /// <summary>Every roster card under the panel, so the spike reads the state the player sees.</summary>
-    internal static List<CampResident> Cards(Node node)
-    {
-        var found = new List<CampResident>();
-        Collect(node, found);
-        return found;
-    }
-
-    private static void Collect(Node node, List<CampResident> cards)
-    {
-        foreach (var child in node.GetChildren())
-        {
-            if (child is CampResident card) cards.Add(card);
-            Collect(child, cards);
-        }
-    }
-
-    internal static CampResident? Card(List<CampResident> cards, string id) => cards.Find(c => c.Id == id);
+    /// <summary>Who is at home in the village (picks stand at the line-up instead), so the spike reads what the player sees.</summary>
+    internal static List<string> Residents(HeroSelectPanel panel) =>
+        panel.Village.Residents.Figures.Select(f => f.Id).ToList();
 
     /// <summary>The confirmed payload is only right if <see cref="Party.Build"/> accepts it.</summary>
     internal static bool BuildsAParty(IReadOnlyList<string>? members)

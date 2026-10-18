@@ -21,7 +21,7 @@ public partial class UnlockJournalSpike : SpikeBase
         camp.Setup(campaign.Unlocks, campaign);
         _journal = camp.Recruitment;
         camp.OpenJournal(JournalScreen.UnlocksPage);
-        Check("normal camp has four residents", HeroSelectChecks.Cards(camp).Count == 4);
+        Check("normal camp has four residents", HeroSelectChecks.Residents(camp).Count == 4);
         _journal.SelectCharacter("aldric");
         Check("champion renamed without changing saved ID", CharacterCatalog.Find("aldric")?.DisplayName == "Sir Garran"
             && CharacterCatalog.Find("aldric")!.Builder(2).Name == "Sir Garran");
@@ -48,7 +48,7 @@ public partial class UnlockJournalSpike : SpikeBase
         camp.RecruitmentRequested += id => { campaign.BindAtOutpost(id); camp.RefreshRecruitment(); };
         await Capture("ready");
         _journal.GetNode<Button>("%StayButton").EmitSignal(Button.SignalName.Pressed);
-        Check("invitation adds one camp resident", campaign.Unlocks.IsUnlocked("aldric") && HeroSelectChecks.Cards(camp).Count == 5);
+        Check("invitation adds one camp resident", campaign.Unlocks.IsUnlocked("aldric") && HeroSelectChecks.Residents(camp).Count == 5);
         Check("empty ready filter clears detail page", _journal.SelectedId == null
             && _journal.GetNode<Label>("%JournalEmpty").Visible);
         _journal.SelectFilter(4);
@@ -57,6 +57,10 @@ public partial class UnlockJournalSpike : SpikeBase
         await Capture("joined");
         _journal.SelectFilter(0);
         Check("all filter restores every arc", _journal.GetNode<GridContainer>("%RecruitEntries").GetChildCount() == RecruitmentCatalog.All.Count);
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        Check("tile portraits draw at their whole-pixel size, not stretched", _journal.GetNode<GridContainer>("%RecruitEntries")
+            .GetChildren().OfType<RecruitmentEntry>().Select(e => e.GetNode<TextureRect>("%Portrait"))
+            .All(p => p.Texture != null && p.Size.IsEqualApprox(p.CustomMinimumSize)));
         layer.QueueFree();
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
     }

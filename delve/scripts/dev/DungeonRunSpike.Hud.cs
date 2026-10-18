@@ -30,8 +30,10 @@ public partial class DungeonRunSpike
         Check($"the Wardstone panel sits at the top right, clear of the strip ({top.GetGlobalRect()})",
             top.GetGlobalRect().End.X >= hud.Size.X - 24 && !top.GetGlobalRect().Intersects(strip.GetGlobalRect()));
         var ward = hud.GetNode<Control>("%Expedition").GetGlobalRect();
-        Check($"the Wardstone panel takes the initiative list's 368 px box ({ward})",
-            Mathf.Abs(ward.Size.X - 368) <= 1 && Mathf.Abs(ward.End.X - (hud.Size.X - 16)) <= 1 && Mathf.Abs(ward.Position.Y - 16) <= 1);
+        var bar = hud.MenuBar.GetGlobalRect();
+        Check($"the Wardstone panel takes the initiative list's 368 px box, under the Party and Journal buttons ({ward}, bar {bar})",
+            Mathf.Abs(ward.Size.X - 368) <= 1 && Mathf.Abs(ward.End.X - (hud.Size.X - 16)) <= 1
+            && Mathf.Abs(bar.Position.Y - 16) <= 1 && ward.Position.Y >= bar.End.Y && ward.Position.Y - bar.End.Y <= 12);
         var member = state.Party.Members[1];
         member.Health.SetCurrentHP(member.Health.MaxHP - 5);
         dungeon.RefreshHud();

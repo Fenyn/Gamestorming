@@ -9,8 +9,8 @@ extends Control
 ## disk that refuses the file never keeps the player from the title.
 signal saved(problem: String)
 
-const SAME_WORDS: String = "Choose two different words."
-const WEB_BODY: String = "Other players see this name when you play the desktop version online. The number after it is yours alone, and you can change the name later from the title screen."
+const SAME_WORDS: String = "A name needs two different words."
+const PREVIEW_HOVER: String = "Other players see this name and number in online duels. The number belongs to this install and does not change."
 
 @onready var scrim: ColorRect = %Scrim
 @onready var panel: PanelContainer = %Panel
@@ -18,7 +18,6 @@ const WEB_BODY: String = "Other players see this name when you play the desktop 
 @onready var first_pick: OptionButton = %First
 @onready var second_pick: OptionButton = %Second
 @onready var random_button: Button = %Random
-@onready var body: Label = %Body
 @onready var problem_label: Label = %Problem
 @onready var cancel_button: Button = %Cancel
 @onready var save_button: Button = %Save
@@ -29,8 +28,9 @@ var _tag: String = ""
 func _ready() -> void:
 	scrim.color = ZenithTheme.SCRIM_STRONG
 	panel.add_theme_stylebox_override("panel", MapArt.panel_box(36, ZenithTheme.FRAME))
-	if OnlineGate.is_web():
-		body.text = WEB_BODY
+	# The preview chip ignores the mouse by default; it takes it here only to show its hover.
+	preview.mouse_filter = Control.MOUSE_FILTER_STOP
+	preview.tooltip_text = PREVIEW_HOVER
 	for word in PlayerNames.firsts():
 		first_pick.add_item(word)
 	for word in PlayerNames.seconds():

@@ -96,7 +96,7 @@ public partial class ReactionPromptPanel : Control
                 label.Render(figure);
             }
         _figures.Visible = _figures.GetChildCount() > 0;
-        _descriptionLabel.Visible = !_figures.Visible;
+        _descriptionLabel.Visible = !_figures.Visible && view.Description.Length > 0;
         _descriptionLabel.Text = view.Description;
         // Collapse to the anchor so the grow directions re-fit the dock to this prompt's content.
         _panel.OffsetLeft = 0;

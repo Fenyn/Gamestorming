@@ -132,7 +132,7 @@ func _setup_online() -> void:
 
 func _copy_code() -> void:
 	DisplayServer.clipboard_set(Net.room_code)
-	copied_label.text = "copied again"
+	copied_label.text = "The code is on your clipboard."
 
 
 ## One word for whose seat this is: YOU against the AI or online, the AI's own seat, or the seat's
@@ -277,9 +277,9 @@ func _refresh() -> void:
 		else:
 			status_label.text = "Waiting for the other player to connect." if Net.room_code == "" else ""
 	elif _online and Session.locked[_seat]:
-		status_label.text = "Locked in. Waiting for the other player."
+		status_label.text = "Waiting for the other player."
 	elif Session.locked[_seat]:
-		status_label.text = "Both locked in."
+		status_label.text = "Both players are locked in."
 	else:
 		status_label.text = ""
 	# An empty line would still take the row's spacing and push the players strip off the grid.
@@ -355,7 +355,7 @@ func _filter_decks() -> void:
 		if Session.decks[index].custom:
 			yours += 1
 	count_label.text = "DECKS   /   %d OF %d%s" % [_visible_indices.size(), _tiles.size(),
-		"   ·   %d OF YOURS" % yours if yours > 0 else ""]
+		"   /   %d OF YOURS" % yours if yours > 0 else ""]
 	empty_label.visible = _visible_indices.is_empty()
 	reset_button.visible = query != "" or school != ""
 	roster_scroll.scroll_vertical = 0

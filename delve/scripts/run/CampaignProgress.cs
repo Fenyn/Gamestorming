@@ -16,6 +16,25 @@ public sealed class CampaignProgress
 
     public MonsterJournal Journal { get; private set; } = new();
 
+    public CampTimeOfDay CampTime { get; private set; } = CampTimeOfDay.Morning;
+
+    /// <summary>The highest town upgrade recorded; the camp starts at <see cref="TownTier.Camp"/>.</summary>
+    public TownTier TownTier =>
+        _outpost.Contains(TownMilestones.Hamlet) ? TownTier.Hamlet
+        : _outpost.Contains(TownMilestones.Outpost) ? TownTier.Outpost
+        : TownTier.Camp;
+
+    /// <summary>Record a town upgrade, and every tier below it. Returns whether the town grew.</summary>
+    public bool UpgradeTown(TownTier tier)
+    {
+        bool grew = false;
+        for (var step = TownTier.Outpost; step <= tier; step++) grew |= RecordOutpostProgress(TownMilestones.For(step));
+        return grew;
+    }
+
+    /// <summary>One step of the camp's day passes. Call once when a run ends.</summary>
+    public void AdvanceCampTime() => CampTime = TownMilestones.Next(CampTime);
+
     /// <summary>There is no run resume yet; only current-run encounter deduplication is needed.</summary>
     public void BeginRun() => _recordedEncounters.Clear();
 
@@ -100,13 +119,18 @@ public sealed class CampaignProgress
         Personal = _personal.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray()),
         Outpost = _outpost.ToArray(),
         Journal = Journal.Capture(),
+        CampTime = CampTime,
     };
 
     public static CampaignProgress Restore(CampaignProgressData data)
     {
         if (data.Version < 1 || data.Version > CampaignProgressData.CurrentVersion)
             throw new ArgumentException($"Unsupported campaign version {data.Version}.", nameof(data));
-        var result = new CampaignProgress { Journal = MonsterJournal.Restore(data.Journal) };
+        var result = new CampaignProgress
+        {
+            Journal = MonsterJournal.Restore(data.Journal),
+            CampTime = Enum.IsDefined(data.CampTime) ? data.CampTime : CampTimeOfDay.Morning,
+        };
         foreach (string id in data.UnlockedIds ?? Array.Empty<string>()) result.Unlocks.Unlock(id);
         foreach (var arc in RecruitmentCatalog.All)
             foreach (var step in arc.Steps)
@@ -123,12 +147,14 @@ public sealed class CampaignProgress
 
 public sealed class CampaignProgressData
 {
-    /// <summary>Version 2 adds <see cref="Journal"/>. A version 1 save loads with an empty journal.</summary>
-    public const int CurrentVersion = 2;
+    /// <summary>Version 2 adds <see cref="Journal"/>; version 3 adds <see cref="CampTime"/>. Older saves
+    /// load with an empty journal and a morning camp.</summary>
+    public const int CurrentVersion = 3;
     public int Version { get; set; } = CurrentVersion;
     public string[] UnlockedIds { get; set; } = Array.Empty<string>();
     public Dictionary<string, int> Recruitment { get; set; } = new();
     public Dictionary<string, string[]> Personal { get; set; } = new();
     public string[] Outpost { get; set; } = Array.Empty<string>();
     public Dictionary<string, JournalEntryData>? Journal { get; set; }
+    public CampTimeOfDay CampTime { get; set; } = CampTimeOfDay.Morning;
 }

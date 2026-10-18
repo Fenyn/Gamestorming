@@ -44,10 +44,14 @@ public partial class DamagePopup3D : Label3D
         return popup;
     }
 
+    /// <summary>Multiplier on the rise and fade; 1.25 plays them a quarter slower.</summary>
+    public float Pace { get; set; } = 1f;
+
     public override void _Ready()
     {
         var start = Position;
         var tween = CreateTween();
+        tween.SetSpeedScale(1f / Pace);
         tween.SetParallel(true);
         tween.TweenProperty(this, "position", start + new Vector3(0f, 0.9f, 0f), 0.8f).SetEase(Tween.EaseType.Out);
         tween.TweenProperty(this, "modulate:a", 0f, 0.8f).SetDelay(0.3f);

@@ -141,7 +141,7 @@ text = "COLLECTION"
 [node name="SwapHint" type="Label" parent="Margin/Column/Body/Right"]
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "Pick a deck card or a Duelist rung to see what could swap in"
+text = ""
 autowrap_mode = 3
 
 [node name="SwapScroll" type="ScrollContainer" parent="Margin/Column/Body/Right"]

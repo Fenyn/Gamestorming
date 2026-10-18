@@ -56,13 +56,19 @@ public partial class DyingBadge : Node3D
     /// value keeps its size, but it follows the bar's edge as the bar shrinks.</param>
     /// <param name="barPosition">The bar's centre this frame; the badge follows it when the plate
     /// layout lifts the bar clear of another unit's plate.</param>
-    public void Configure(ICharacter character, float barScreenWidth, System.Func<float> barZoom, System.Func<Vector3> barPosition)
+    /// <param name="shownHp">The HP the bar shows. The badge waits while the bar trails the live HP,
+    /// so it never appears while the roll that dropped the unit still plays.</param>
+    public void Configure(ICharacter character, float barScreenWidth, System.Func<float> barZoom, System.Func<Vector3> barPosition,
+        System.Func<int> shownHp)
     {
         _character = character;
         _barHalfPixels = barScreenWidth / 2;
         _barZoom = barZoom;
         _barPosition = barPosition;
+        _shownHp = shownHp;
     }
+
+    private System.Func<int>? _shownHp;
 
     private System.Func<Vector3>? _barPosition;
 
@@ -79,7 +85,9 @@ public partial class DyingBadge : Node3D
 
     public override void _Process(double delta)
     {
-        Value = _character?.Health?.IsDead == false ? _character.Conditions?.GetConditionValue(Condition.Dying) ?? 0 : 0;
+        bool barCaughtUp = _shownHp == null || _shownHp() <= (_character?.Health?.CurrentHP ?? 0);
+        Value = _character?.Health?.IsDead == false && barCaughtUp
+            ? _character.Conditions?.GetConditionValue(Condition.Dying) ?? 0 : 0;
         var camera = GetViewport()?.GetCamera3D();
         float height = GetViewport()?.GetVisibleRect().Size.Y ?? 0;
         Visible = Value > 0 && camera != null && height > 0;

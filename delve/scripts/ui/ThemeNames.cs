@@ -62,6 +62,9 @@ public static class ThemeNames
     public const string MapWardValue = "MapWardValue";
     public const string MapWardPreviewValue = "MapWardPreviewValue";
     public const string EventOption = "EventOption";
+    public const string EventOptionSelected = "EventOptionSelected";
+    public const string EventCaption = "EventCaption";
+    public const string EventBody = "EventBody";
     public const string PartyChip = "PartyChip";
     public const string PartyChipActive = "PartyChipActive";
     public const string ReactionReady = "ReactionReady";

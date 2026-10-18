@@ -760,7 +760,7 @@ func _ready_host() -> void:
 	if _tutorial == null:
 		hud.log_line("Seed %d" % Session.last_seed)
 	if online:
-		hud.log_line("Online duel. You are hosting as %s." % Session.player_names[viewer])
+		hud.log_line("You are hosting this online duel as %s." % Session.player_names[viewer])
 		_show_plates()
 		Net.command_received.connect(_on_net_command)
 	var updates: Array[SeatUpdate] = duel_host.start()
@@ -790,7 +790,7 @@ func _ready_joiner() -> void:
 	await faces.render_deck(Session.chosen[viewer], Session.library)
 	await faces.render_deck(Session.chosen[1 - viewer], Session.library, true)
 	hud.set_loading(false)
-	hud.log_line("Online duel. You are %s." % Session.player_names[viewer])
+	hud.log_line("You are playing this online duel as %s." % Session.player_names[viewer])
 	_show_plates()
 	if Net.resumed:
 		hud.log_line("You are back in the duel.")
@@ -923,7 +923,7 @@ func _present_prompt() -> void:
 			Net.forget_rejoin()
 		_game_winner = view.winner
 		_game_reason = view.win_reason
-		_rules_text = _reason_text(view.win_reason)
+		_rules_text = _reason_text(view.win_reason, view.winner)
 		_shown = true
 		_sync_result()
 		if _dev_autoplay:
@@ -2517,9 +2517,9 @@ func _replay_result_text() -> PackedStringArray:
 	var result: Dictionary = _cursor.record.result
 	var winner: int = int(result.get("winner", -1))
 	if winner < 0:
-		return PackedStringArray(["No winner", "The duel ended with no winner."])
+		return PackedStringArray(["No winner", _reason_text(str(result.get("reason", "")), winner)])
 	var loser: String = view.player(1 - winner).name
-	var reason: String = _reason_text(str(result.get("reason", "")))
+	var reason: String = _reason_text(str(result.get("reason", "")), winner)
 	match str(result.get("reason", "")):
 		"concede":
 			reason = "%s conceded." % loser
@@ -2904,7 +2904,7 @@ func _reconnecting() -> bool:
 		_awaiting_answer = false
 		_clear_highlights()
 		hud.clear_prompt()
-		hud.log_line("Connection lost. Reconnecting.")
+		hud.log_line("Your connection dropped and the game is reconnecting.")
 		if _dev_away_shot != "":
 			_dev_snap(_dev_away_shot.get_basename() + "_reconnecting.png", 2.0)
 	if now >= _reconnect_until:
@@ -2919,7 +2919,7 @@ func _keep_reconnecting() -> void:
 	if now >= _reconnect_until:
 		Net.forget_rejoin()
 		Net.leave()
-		_on_connection_failed("Could not get back into the duel in time.")
+		_on_connection_failed("You did not get back into the duel in time.")
 		return
 	hud.set_overlay(DuelHud.Overlay.RECONNECTING, _reconnect_until - now)
 	if _reconnect_next > 0 and now >= _reconnect_next:
@@ -3630,14 +3630,20 @@ func _clear_highlights() -> void:
 		v.set_highlight(false)
 
 
-func _reason_text(reason: String) -> String:
+## How a duel ended under the rules, naming the winner, or the loser for an emptied Life Deck.
+func _reason_text(reason: String, winner: int) -> String:
+	if reason == "survival_both":
+		return "Both Life Decks ran out at the same moment."
+	if winner < 0 or winner >= view.players.size():
+		return ""
 	match reason:
 		"ascension":
-			return "Full Ascension. The site answers to its Eidolarch."
+			return "%s reached Full Ascension." % view.player(winner).name
 		"seal":
-			return "All seven Seals carved. The gate opens for its Eidolarch."
-		_:
-			return "The rival's mind gives out."
+			return "%s carved all seven Seals." % view.player(winner).name
+		"survival":
+			return "%s's Life Deck ran out." % view.player(1 - winner).name
+	return ""
 
 
 # --- Dev driving ----------------------------------------------------------

@@ -180,6 +180,14 @@ explore_journal={
 ]
 }
 
+[importer_defaults]
+
+scene={
+"materials/extract": 1,
+"materials/extract_format": 0,
+"materials/extract_path": "res://assets/models/village/materials"
+}
+
 [layer_names]
 
 3d_render/layer_1="World"

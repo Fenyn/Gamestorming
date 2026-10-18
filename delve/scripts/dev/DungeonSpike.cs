@@ -181,17 +181,22 @@ public partial class DungeonSpike : SpikeBase
         var hud = host.GetNode<DungeonHud>("Screens/DungeonHud");
         Check("exploration shows full ward meter", hud.GetNode<ProgressBar>("%WardBar").Value == 100
             && hud.GetNode<Control>("%Expedition").Visible);
-        var menuRows = new[] { "%Camp", "%Potion", "%Rest", "%Stairs" }.Select(n => hud.GetNode<Button>(n)).ToArray();
-        Check("the party menu lists every command, greying the closed ones",
-            hud.PartyMenu.Visible && menuRows.All(b => b.Visible) && hud.GetNode<Button>("%Stairs").Disabled);
+        Check("the entrance prompts only Short rest; camp and the way on wait for their rooms",
+            hud.Prompts.Visible && hud.GetNode<Button>("%Rest").Visible
+            && !hud.GetNode<Button>("%Camp").Visible && !hud.GetNode<Button>("%Stairs").Visible);
+        Check("the Party and Journal buttons and the potion sit with the ward, top right",
+            hud.MenuBar.Visible && hud.GetNode<Button>("%PartyRow").Visible && hud.GetNode<Button>("%Potion").IsVisibleInTree());
         {
             await WaitSeconds(0.1f);
-            var menu = hud.PartyMenu.GetGlobalRect();
+            var prompts = hud.GetNode<Button>("%Rest").GetGlobalRect();
+            var strip = hud.PartyStrip.GetGlobalRect();
+            var top = hud.GetNode<Control>("%Top").GetGlobalRect();
             var hudRect = hud.GetGlobalRect();
-            var others = new[] { "%PartyStrip", "%Top", "%Plan" }.Select(n => hud.GetNode<Control>(n).GetGlobalRect());
-            Check($"the party menu docks at the left edge, clear of the other panels (menu {menu})",
-                menu.Position.X <= 32 && hudRect.Encloses(menu) && Mathf.Abs(menu.GetCenter().Y - hudRect.GetCenter().Y) < 2
-                && others.All(o => !o.Intersects(menu)));
+            Check($"the prompts sit just above the party cards, centred (rest {prompts}, cards {strip})",
+                hudRect.Encloses(prompts) && !prompts.Intersects(strip) && prompts.End.Y <= strip.Position.Y
+                && strip.Position.Y - prompts.End.Y < 32 && Mathf.Abs(prompts.GetCenter().X - strip.GetCenter().X) < 2);
+            Check($"the menu bar stays in the top right corner ({top})",
+                hudRect.Encloses(top) && top.End.X >= hudRect.End.X - 32 && top.Position.Y <= 32);
         }
         if (Capture)
         {
@@ -204,6 +209,7 @@ public partial class DungeonSpike : SpikeBase
         }
         for (float waited = 0; host.WalkingIn && waited < 8; waited += 0.1f) await WaitSeconds(0.1f);
         Check("the party finishes walking in", !host.WalkingIn);
+        CheckRoomFraming(host, hud, "the receiving hall");
         host.ResolveEvent(0, null);
         var completions = new List<int>();
         var entries = new List<(int Room, bool First)>();
@@ -224,6 +230,7 @@ public partial class DungeonSpike : SpikeBase
         await host.Travel(first.Side(0));
         await task;
         Check("duplicate click charges one crossing", host.State.Wardstone.Ward == 95 && host.Phase == DungeonPhase.Event);
+        Check($"the crossing's cost floats off the ward number ('{hud.LastWardFloat}')", hud.LastWardFloat == "−5");
         var wardBar = hud.GetNode<ProgressBar>("%WardBar");
         Check($"ward meter slides toward the crossing cost ({wardBar.Value:F1})", wardBar.Value > 95);
         Check($"an event room is named by its panel, and the last room's banner is gone ('{hud.RoomCardText}')",
@@ -239,12 +246,15 @@ public partial class DungeonSpike : SpikeBase
             .Where(c => c.IsVisibleInTree()).ToList();
         Check($"the room event docks left, on screen and clear of the HUD it leaves up ({eventRect})",
             eventRect.Position.X <= 40 && hud.GetViewportRect().Encloses(eventRect)
-            && clear.All(c => !c.GetGlobalRect().Intersects(eventRect)) && !hud.PartyMenu.Visible
+            && clear.All(c => !c.GetGlobalRect().Intersects(eventRect)) && !hud.Prompts.Visible && !hud.MenuBar.Visible
             && ModalStack.Instance?.Holds(eventPanel) != true && !eventPanel.CloseButton.Visible);
         if (Capture)
             await Shot("dungeon_happenstance.png");
+        await CheckEventFraming(host);
         host.ResolveEvent(0, null);
         host.CloseEvent();
+        await CheckEventUnframed(host);
+        CheckRoomFraming(host, hud, "the event room once cleared");
         int gold = host.State.Gold;
         var completed = host.Current;
         await host.Travel(first.Side(completed.Id));
@@ -352,6 +362,7 @@ public partial class DungeonSpike : SpikeBase
                 await Shot($"dungeon_combat_{size}.png");
         }
 
+        CheckZoomSlots(host);
         host.QueueFree();
         await WaitSeconds(0.1f);
     }

@@ -190,14 +190,14 @@ texture_filter = 1
 custom_minimum_size = Vector2(36, 36)
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "Mana, spent at Shops during this run"
+tooltip_text = "Mana buys cards at Shops. It is lost when the run ends."
 expand_mode = 1
 stretch_mode = 5
 
 [node name="ManaValue" type="Label" parent="Strip/Row/ManaBox"]
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "Mana, spent at Shops during this run"
+tooltip_text = "Mana buys cards at Shops. It is lost when the run ends."
 mouse_filter = 1
 theme_type_variation = &"HeaderLabel"
 text = "0"
@@ -297,21 +297,6 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("cloth_rule")
 
-[node name="Help" type="Label" parent="Cloth"]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -62.0
-offset_bottom = -26.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_type_variation = &"BodyLabel"
-text = "Click a card to buy it. It joins your deck at once."
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="Slots" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8
@@ -367,13 +352,6 @@ mouse_filter = 2
 [node name="Column" type="VBoxContainer" parent="Inspect/Center"]
 layout_mode = 2
 theme_override_constants/separation = 14
-mouse_filter = 2
-
-[node name="Hint" type="Label" parent="Inspect/Center/Column"]
-layout_mode = 2
-theme_type_variation = &"BodyLabel"
-text = "Click outside the card or press Esc to close."
-horizontal_alignment = 1
 mouse_filter = 2
 
 [node name="Face" parent="Inspect/Center/Column" instance=ExtResource("3_face")]

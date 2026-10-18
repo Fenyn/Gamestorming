@@ -215,8 +215,10 @@ Then put `<ip>:7777` into `zenith/net/duel_server` in `project.godot`, check `da
 
 ## Update in one step
 
+A release goes through `tools/release/release.ps1`, which deploys the server and pushes the itch.io builds together (README, "Shipping a build"). To update the server alone, for an urgent server-side fix that changes nothing a client checks:
+
 ```
-powershell -File zenith\tools\server\deploy.ps1
+powershell -File zenith\tools\server\deploy.ps1 -ServerOnly
 ```
 
 exports the server with the GDScript-only editor, uploads it with `scp`, re-runs `install.sh` over `ssh` with the host part of `-Server` as the host name (which restarts the service), prints the last journal lines, and copies the box's `dtls.crt` down to `zenith/data/net/duel_server.crt`, the file the project setting pins. It says whether the certificate changed; when it did, export the Windows client again, since a client built before it is refused by the new certificate. `-SkipExport` uploads the last export, `-Server root@host` and `-Port N` change the target, `-DataDir <path>` the data directory and `-HostName <name>` the certificate's name. It needs key-based SSH to root, so it never asks for a password. Every duel in progress ends when the service restarts; there is no drain yet. Export and deploy from the same commit as the clients you hand out, or they are refused at the greeting, and deploy before exporting the clients.

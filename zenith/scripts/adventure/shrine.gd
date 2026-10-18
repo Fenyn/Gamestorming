@@ -5,7 +5,6 @@ extends Control
 ## taking, leaving and saving go through Session.
 
 const CLAIM_TITLE: String = "Claim a Resonance"
-const CLAIM_SUBTITLE: String = "You beat an Elite. Take one Resonance, and it stays with you for the rest of the run."
 const CLAIM_LEAVE: String = "Take nothing"
 
 const ROW_SCENE: PackedScene = preload("res://scenes/adventure/resonance_row.tscn")
@@ -18,10 +17,8 @@ const ROW_SCENE: PackedScene = preload("res://scenes/adventure/resonance_row.tsc
 @onready var mote_icon: TextureRect = $Strip/Row/MotesBox/MoteIcon
 @onready var motes_label: Label = $Strip/Row/MotesBox/MotesValue
 @onready var title: Label = $Title
-@onready var subtitle: Label = $Subtitle
 @onready var held_panel: PanelContainer = $Row/Held
 @onready var held_list: VBoxContainer = $Row/Held/Column/Scroll/List
-@onready var empty_note: Label = $Row/Held/Column/Scroll/List/Empty
 @onready var leave_button: Button = $Row/Held/Column/Leave
 @onready var offers: Array[ShrineOffer] = [$Row/Offer0, $Row/Offer1, $Row/Offer2]
 
@@ -39,7 +36,6 @@ func _ready() -> void:
 	AdventureShrine.open(Session.run)
 	if AdventureShrine.is_claim(Session.run):
 		title.text = CLAIM_TITLE
-		subtitle.text = CLAIM_SUBTITLE
 		leave_button.text = CLAIM_LEAVE
 	var run_deck: DeckList = Session.run.deck()
 	MapArt.tint_for_school(run_deck.style if run_deck != null else "")
@@ -75,10 +71,8 @@ func _refresh() -> void:
 	mana_label.text = str(run.mana)
 	motes_label.text = str(Session.wallet.motes)
 	for child in held_list.get_children():
-		if child != empty_note:
-			held_list.remove_child(child)
-			child.queue_free()
-	empty_note.visible = run.resonances.is_empty()
+		held_list.remove_child(child)
+		child.queue_free()
 	for id in run.resonances:
 		var row: HBoxContainer = ROW_SCENE.instantiate() as HBoxContainer
 		held_list.add_child(row)

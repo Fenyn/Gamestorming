@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://dscl7swcrv1o"]
 
-[ext_resource type="Shader" uid="uid://ohxiwptvcpbt" path="res://PolyBlocks/EffectBlocks/source_files/shaders/god_rays.gdshader" id="1_gall0"]
+[ext_resource type="Shader" uid="uid://dcqktbjkuscpp" path="res://PolyBlocks/EffectBlocks/source_files/shaders/god_rays.gdshader" id="1_gall0"]
 
 [sub_resource type="Gradient" id="Gradient_dvdy8"]
 offsets = PackedFloat32Array(0, 0.586301, 1)

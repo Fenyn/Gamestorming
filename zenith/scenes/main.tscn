@@ -38,7 +38,7 @@ offset_right = 900.0
 offset_bottom = -24.0
 grow_vertical = 0
 theme_type_variation = &"MutedLabel"
-text = "Alpha build. Expect bugs and missing pieces."
+text = "Alpha build"
 vertical_alignment = 2
 
 [node name="Profile" parent="." instance=ExtResource("4_chip")]
@@ -81,12 +81,6 @@ stretch_mode = 5
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
 text = "Eidolarch"
-horizontal_alignment = 1
-
-[node name="Sub" type="Label" parent="Center/Column" unique_id=1423663103]
-layout_mode = 2
-theme_type_variation = &"CaptionLabel"
-text = "DUEL  AT  THE  GATE  BETWEEN  WORLDS"
 horizontal_alignment = 1
 
 [node name="Swirl" type="TextureRect" parent="Center/Column"]
@@ -150,7 +144,7 @@ visible = false
 custom_minimum_size = Vector2(540, 0)
 layout_mode = 2
 theme_type_variation = &"BodyLabel"
-text = "This browser version has Duel the AI and the tutorial. Download the full game from the itch.io page for everything else."
+text = "Greyed options need the full game from the itch.io page."
 horizontal_alignment = 1
 autowrap_mode = 3
 
@@ -373,8 +367,9 @@ text_overrun_behavior = 3
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 4
+tooltip_text = "F8 opens this form on any screen."
 theme_type_variation = &"CompactButton"
-text = "Report a bug or send feedback (F8)"
+text = "Report a bug or send feedback"
 
 [node name="Chapters" type="ColorRect" parent="."]
 visible = false
@@ -405,12 +400,6 @@ theme_override_constants/separation = 14
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 text = "Tutorial"
-horizontal_alignment = 1
-
-[node name="Sub" type="Label" parent="Chapters/Center/Panel/Column"]
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = "A training session between Emrys Rooke and Master Vale."
 horizontal_alignment = 1
 
 [node name="Lessons" type="HBoxContainer" parent="Chapters/Center/Panel/Column"]

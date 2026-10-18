@@ -27,7 +27,7 @@ public partial class RunPresentationSpike
         {
             Figures = figures,
             Members = CombatResults.Members(party.Members, start),
-            Notes = new[] { "Raven survived. Choose whether to swap a companion next." },
+            Notes = new[] { "Raven survived." },
             Progress = 100.0 * state.Xp / state.Leveling.XpPerLevel,
             Party = party.Members,
         });
@@ -46,6 +46,11 @@ public partial class RunPresentationSpike
             && hp.MaxText == $"/ {party.Members[0].Health.MaxHP}");
         Check($"every pending promotion row offers Choose feat ({rows.Count} rows)",
             rows.Count == party.Members.Count && rows.All(r => r.ChooseFeat.Visible));
+        Check($"the feat button names the level it fills ('{rows[0].ChooseFeat.Text}')",
+            rows.All(r => r.ChooseFeat.Text == $"Choose level {party.Level} feat"));
+        var memberBox = rows[0].GetParent();
+        Check("a thin rule bands each hero's row from the next",
+            memberBox.GetChildren().OfType<Panel>().Count() == rows.Count - 1);
         Check("notes come last and the dropdown is gone", victory.NotesText.Contains("Raven survived")
             && victory.GetNodeOrNull("%PartyMember") == null && victory.GetNodeOrNull("%DetailsButton") == null);
         rows[1].ChooseFeat.EmitSignal(Button.SignalName.Pressed);

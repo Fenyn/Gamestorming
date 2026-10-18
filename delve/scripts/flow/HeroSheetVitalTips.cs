@@ -30,7 +30,7 @@ internal static class HeroSheetVitalTips
             $"Score {score} · modifier {HeroSheetBuilder.Signed(modifier)}",
             HeroSheetTips.Ability(ability),
             Tag: key ? "KEY ABILITY" : null,
-            Footer: key ? $"Key ability for {characterClass!.ClassName} - sets the class DC." : null);
+            Footer: key ? $"Sets the {characterClass!.ClassName} class DC." : null);
     }
 
     /// <summary>Ancestry HP, then the class's per-level HP and Constitution at every level.</summary>
@@ -100,8 +100,7 @@ internal static class HeroSheetVitalTips
         var proficiency = characterClass?.GetPerceptionProficiency(stats.Level)
                           ?? ProficiencyLevel.Untrained;
         return new SheetTip("Perception", "",
-            "Perception measures your ability to be aware of your environment. It usually determines "
-            + "how quickly you spring into action in combat.",
+            "Rolled for initiative and to Seek hidden creatures.",
             Footer: Formula(stats, proficiency, AbilityScore.Wisdom, printed));
     }
 
@@ -120,7 +119,7 @@ internal static class HeroSheetVitalTips
     internal static SheetTip Speed(PF2eCharacter character, PF2eCharacterStats stats, int printed)
     {
         int penalty = StatsCalculator.GetArmorSpeedPenalty(character);
-        return new SheetTip("Speed", "", "How far one Stride action carries you.",
+        return new SheetTip("Speed", "", "Distance of one Stride.",
             Meta: penalty != 0
                 ? new[]
                 {
@@ -171,14 +170,12 @@ internal static class HeroSheetVitalTips
         _ => AbilityScore.Wisdom,
     };
 
-    // Save descriptions quoted from Archives of Nethys (2e.aonprd.com/Rules.aspx?ID=2296).
+    // What each save resists (2e.aonprd.com/Rules.aspx?ID=2296).
     private static string SaveRole(SavingThrow save) => save switch
     {
-        SavingThrow.Fortitude => "Fortitude saving throws allow you to reduce the effects of "
-            + "abilities and afflictions that can debilitate the body.",
-        SavingThrow.Reflex => "Reflex saving throws measure how well you can respond quickly to "
-            + "a situation and how gracefully you can avoid effects that have been thrown at you.",
-        _ => "Will saving throws measure how well you can resist attacks to your mind and spirit.",
+        SavingThrow.Fortitude => "Resists poison, disease and other effects on the body.",
+        SavingThrow.Reflex => "Avoids area effects, such as blasts and traps.",
+        _ => "Resists mental effects, such as fear and charms.",
     };
 
     private static string Capital(string word)

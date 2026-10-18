@@ -79,7 +79,7 @@ public partial class KnowledgeJournalSpike
             if (scene.IntroPlaying)
             {
                 hud._UnhandledInput(new InputEventAction { Action = InputNames.Journal, Pressed = true });
-                scene.GetNode<Button>("%JournalButton").EmitSignal(BaseButton.SignalName.Pressed);
+                scene.JournalButton.EmitSignal(BaseButton.SignalName.Pressed);
                 Check("neither J nor the button opens the journal over the encounter intro", !panel.Visible);
                 scene.SkipIntro();
                 for (int i = 0; i < 60 && scene.IntroPlaying; i++) await WaitSeconds(0.05f);
@@ -88,7 +88,7 @@ public partial class KnowledgeJournalSpike
             Check("J opens the Journal panel", panel.Visible);
             hud._UnhandledInput(new InputEventAction { Action = InputNames.UiCancel, Pressed = true });
             Check("Esc closes it", !panel.Visible);
-            scene.GetNode<Button>("%JournalButton").EmitSignal(BaseButton.SignalName.Pressed);
+            scene.JournalButton.EmitSignal(BaseButton.SignalName.Pressed);
             await WaitSeconds(0.3f);
             var rail = scene.GetNode<TurnOrderBar>("%TurnOrderBar").Row.GetGlobalRect();
             var rect = panel.GetGlobalRect();

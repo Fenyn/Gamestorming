@@ -290,8 +290,10 @@ func _select(index: int) -> void:
 
 # --- Pages --------------------------------------------------------------------
 
-## Picture (or none), name, a role caption, and the XP standing when there is one.
-func _page_header(name: String, identity: Color, role: String, standing: Dictionary, picture: Control) -> void:
+## Picture (or none), name, a role caption, and the XP standing when there is one. `hover` says how
+## the XP is earned, on the name, the level and the bar.
+func _page_header(name: String, identity: Color, role: String, standing: Dictionary, picture: Control,
+		hover: String = "") -> void:
 	var header: HBoxContainer = ProgressUI.hbox(ZenithTheme.GAP_L)
 	page.add_child(header)
 	if picture != null:
@@ -299,6 +301,9 @@ func _page_header(name: String, identity: Color, role: String, standing: Diction
 	var column: VBoxContainer = ProgressUI.vbox(ZenithTheme.GAP_XS)
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	if hover != "":
+		column.mouse_filter = Control.MOUSE_FILTER_STOP
+		column.tooltip_text = hover
 	header.add_child(column)
 	column.add_child(ProgressUI.line(role.to_upper(), "CaptionLabel"))
 	column.add_child(ProgressUI.line(name, "GroupLabel", identity))
@@ -310,6 +315,7 @@ func _page_header(name: String, identity: Color, role: String, standing: Diction
 	numbers.add_child(ProgressUI.line(ProgressUI.xp_numbers(standing), "BodyLabel", Color(0, 0, 0, 0), false))
 	var bar: ProgressBar = ProgressUI.xp_bar(12)
 	ProgressUI.set_standing(bar, standing)
+	bar.tooltip_text = hover
 	column.add_child(bar)
 
 
@@ -318,14 +324,14 @@ func _show_character(entry: Dictionary) -> void:
 	var main: bool = bool(entry["main"])
 	var progress: AdventureProgress = Session.progress
 	_page_header(character, Color(0, 0, 0, 0), "Your character" if main else "Ally or rival",
-		progress.personality_standing(character), ProgressUI.portrait(character, Session.library, PORTRAIT_PAGE, _locked(entry)))
-	page.add_child(ProgressUI.label(_xp_how(main), "CaptionLabel"))
+		progress.personality_standing(character), ProgressUI.portrait(character, Session.library, PORTRAIT_PAGE, _locked(entry)),
+		_xp_how(main))
 
 	var milestones: Array[Dictionary] = progress.milestones(character)
 	page.add_child(ProgressUI.section("Milestones"))
 	if milestones.is_empty():
 		var next: Dictionary = progress.next_milestone(character, Session.library, Session.collection, Session.unlocks)
-		page.add_child(ProgressUI.label("Each level: %s." % str(next["text"]) if not next.is_empty() else "Every milestone earned.", "BodyLabel"))
+		page.add_child(ProgressUI.label("Each level: %s." % str(next["text"]) if not next.is_empty() else "Every milestone is earned.", "BodyLabel"))
 	else:
 		var flow: HFlowContainer = _tile_flow()
 		var next_found: bool = false
@@ -355,8 +361,8 @@ func _show_character(entry: Dictionary) -> void:
 
 func _xp_how(main: bool) -> String:
 	if main:
-		return "Earns XP for every duel won as this character, more for bosses and a finished run."
-	return "Earns XP while in play beside you in a won duel, and when you beat them."
+		return "This character earns XP for every duel won with them, and more for a boss or a finished run."
+	return "This character earns XP while in play beside you in a won duel, and when you beat them."
 
 
 func _tile_flow() -> HFlowContainer:
@@ -452,8 +458,9 @@ func _step_portraits(achievement_id: String) -> Control:
 
 func _show_school(school: String) -> void:
 	var progress: AdventureProgress = Session.progress
-	_page_header(school.capitalize(), Palette.school_ui(school), "School", progress.school_standing(school), null)
-	page.add_child(ProgressUI.label("Earns XP for every run whose Mastery is %s. Each level adds cards of the school to your collection." % school.capitalize(), "CaptionLabel"))
+	_page_header(school.capitalize(), Palette.school_ui(school), "School", progress.school_standing(school), null,
+		"%s earns XP for every run whose Mastery is %s. Each level adds cards of the school to your collection." % [
+			school.capitalize(), school.capitalize()])
 	var library: Vector2i = AdventureProgress.school_library(school, Session.library, Session.collection)
 	page.add_child(ProgressUI.section("Library", "%d of %d cards" % [library.x, library.y]))
 	page.add_child(ProgressUI.label("Next level: %s." % progress.school_next_text(school, Session.library), "BodyLabel"))

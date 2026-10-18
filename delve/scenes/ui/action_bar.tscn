@@ -65,21 +65,19 @@ text = "AI takes turns"
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
-tooltip_text = "ON: this ally uses reactions automatically. OFF: ask with a prompt."
 text = "Automatic reactions"
 
 [node name="StageOrders" type="CheckBox" parent="Stack/ControlOptions/ToggleCol"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
-tooltip_text = "Stage a destination or single target before confirming. Escape cancels."
+tooltip_text = "Moves and single-target actions wait for a confirm before they resolve."
 text = "Plan orders"
 
 [node name="Overview" type="Button" parent="Stack/ControlOptions/ToggleCol"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
-tooltip_text = "Toggle the full battlefield view"
 text = "Overview"
 
 [node name="MenuRow" type="HBoxContainer" parent="Stack"]
@@ -235,8 +233,6 @@ focus_mode = 0
 theme_type_variation = &"CommandButton"
 text = "Control"
 toggle_mode = true
-tooltip_text = "Automation preferences, planned orders and the battlefield overview"
-
 [node name="Flyout" parent="Stack/MenuRow" instance=ExtResource("5_fly")]
 unique_name_in_owner = true
 visible = false

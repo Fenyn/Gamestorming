@@ -8,6 +8,29 @@ namespace Delve.Run;
 
 public static partial class ShortRest
 {
+    public const string NoFocusPool = "Has no focus pool.";
+    public const string FocusFull = "Focus is already full.";
+    public const string NoShield = "Nobody in the party carries a shield.";
+    public const string ShieldsWhole = "Every shield is whole.";
+    public const string NobodyHurt = "Nobody is hurt.";
+
+    /// <summary>Why an activity cannot help <paramref name="actor"/>'s party right now, or null when it
+    /// can. The rest screen greys these out with the reason on the hover, so the open choices are the
+    /// only ones in view. Resting quietly is always open.</summary>
+    public static string? WhyUnhelpful(ShortRestKind kind, PF2eCharacter actor, Party party) => kind switch
+    {
+        ShortRestKind.Refocus => actor.Spellcasting is not { MaxFocusPoints: > 0 } casting ? NoFocusPool
+            : casting.CurrentFocusPoints >= casting.MaxFocusPoints ? FocusFull : null,
+        ShortRestKind.RepairShield => party.Living().All(m => m.Equipment?.Shield?.EquippedShield == null) ? NoShield
+            : party.Living().All(m => m.Equipment?.Shield is not { EquippedShield: not null } shield || shield.CurrentShieldHP >= shield.MaxShieldHP)
+                ? ShieldsWhole : null,
+        ShortRestKind.TreatWounds => party.Living().All(m => m.Health.CurrentHP >= m.Health.MaxHP && !IsWounded(m)) ? NobodyHurt : null,
+        _ => null,
+    };
+
+    private static bool IsWounded(PF2eCharacter member)
+        => PF2e.Conditions.ConditionDatabase.Instance?.Wounded is { } wounded && member.Conditions?.GetConditionValue(wounded) > 0;
+
     /// <summary>
     /// The schedule a careful party would pick, so the rest screen never opens on a block that spends
     /// ward for nothing. The most wounded are treated first, each by the best free trained medic; the

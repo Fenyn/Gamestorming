@@ -55,25 +55,25 @@ public partial class HeroSelectSpike : SpikeBase
         AddChild(panel);
         panel.Confirmed += members => _membersSeen = members;
         await CampSelectChecks.Run(panel, Check);
+        _membersSeen = null;
 
         // ---------------------------------------------------- (1) the empty screen
         panel.Setup(new UnlockState());
         Check("(1) nothing is chosen", panel.SelectedIds.Count == 0);
         Check("(1) the outpost is a pause host, so Esc with no picks reaches Quit", panel.IsInGroup(Delve.UI.PauseMenu.HostGroup));
         Check("(1) Embark is disabled", !panel.CanEmbark);
-        Check($"(1) the hint asks for a character ({panel.HintText})",
-            panel.HintText.Contains("four companions", StringComparison.Ordinal));
+        string count = panel.GetNode<Label>("%PartyCount").Text;
+        Check($"(1) the party count reads empty ({count})", count.Contains("0 / 4", StringComparison.Ordinal));
         Check("(1) an id outside the catalog cannot be picked", !panel.CanPick(PresetCharacters.RecruitId));
         Check("(1) an unlocked character can join", panel.CanPick(PresetCharacters.ElaraId));
 
         panel.Pick(PresetCharacters.RecruitId);
         Check("(1) picking an unknown id chooses nobody", panel.SelectedIds.Count == 0);
 
-        var roster = HeroSelectChecks.Cards(panel);
+        var roster = HeroSelectChecks.Residents(panel);
         Check($"(1) the camp shows only unlocked residents ({roster.Count})",
             roster.Count == new UnlockState().UnlockedIds.Count);
-        Check("(1) a resident takes clicks",
-            HeroSelectChecks.Card(roster, PresetCharacters.PlayerId) is { Disabled: false });
+        Check("(1) a resident at home can be picked", roster.Contains(PresetCharacters.PlayerId) && panel.CanPick(PresetCharacters.PlayerId));
 
         // ---------------------------------------------------- (2) choosing one
         panel.Pick(PresetCharacters.ElaraId);
@@ -109,11 +109,9 @@ public partial class HeroSelectSpike : SpikeBase
         Check("(3) clicking a locked card chooses nobody", panel.SelectedIds.Count == 0);
         Check("(3) an unlocked card still works", panel.CanPick(PresetCharacters.PlayerId));
 
-        var locked = HeroSelectChecks.Cards(panel);
-        Check("(3) locked characters are absent from camp",
-            HeroSelectChecks.Card(locked, PresetCharacters.TharrId) == null);
-        Check("(3) an unlocked resident still takes clicks",
-            HeroSelectChecks.Card(locked, PresetCharacters.PlayerId) is { Disabled: false });
+        var locked = HeroSelectChecks.Residents(panel);
+        Check("(3) locked characters are absent from camp", !locked.Contains(PresetCharacters.TharrId));
+        Check("(3) an unlocked resident is still at home", locked.Contains(PresetCharacters.PlayerId));
 
         HeroSelectChecks.Recruitment(panel, Check);
 

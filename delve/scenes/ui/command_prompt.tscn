@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-; FFT prompts: a rounded instruction pill at the top centre ("Select a tile to move.") and a row of
+; FFT prompts: a rounded mode pill at the top centre ("Move") and a row of
 ; keycap hints along the bottom edge. Full-rect and click-through; CommandPromptView fills both.
 
 [ext_resource type="Script" path="res://scripts/ui/CommandPromptView.cs" id="1_view"]

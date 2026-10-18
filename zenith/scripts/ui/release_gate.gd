@@ -16,7 +16,7 @@ static func deck_builder() -> bool:
 	return bool(ProjectSettings.get_setting("zenith/release/deck_builder", false))
 
 
-## "Alpha build 0.1.0. Expect bugs and missing pieces.", from `application/config/version`.
+## "Alpha build 0.1.0", from `application/config/version`.
 static func alpha_text() -> String:
 	var version: String = str(ProjectSettings.get_setting("application/config/version", ""))
-	return "Alpha build %s. Expect bugs and missing pieces." % version if version != "" else "Alpha build. Expect bugs and missing pieces."
+	return "Alpha build %s" % version if version != "" else "Alpha build"

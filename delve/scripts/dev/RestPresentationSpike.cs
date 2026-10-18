@@ -45,8 +45,10 @@ public partial class RestPresentationSpike : SpikeBase
             token.UpdateHealthBar();
         };
         var rows = panel.GetNode<VBoxContainer>("%ActivityBox");
-        Check("one activity row per party member", rows.GetChildCount() == 4);
-        var controls = rows.GetChild<HBoxContainer>(0);
+        var heroRows = rows.GetChildren().OfType<HBoxContainer>().ToList();
+        Check($"one activity row per party member, a thin rule between each ({heroRows.Count} rows, {rows.GetChildren().OfType<Panel>().Count()} rules)",
+            heroRows.Count == 4 && rows.GetChildren().OfType<Panel>().Count() == 3);
+        var controls = heroRows[0];
         var activity = controls.GetChild<HBoxContainer>(1);
         var target = controls.GetChild<OptionButton>(2);
         var confirm = panel.GetNode<Button>("%ConfirmButton");
@@ -64,7 +66,11 @@ public partial class RestPresentationSpike : SpikeBase
         Check($"the schedule opens on a valid suggestion, not on four quiet rests ({string.Join(", ", opening.Select(a => a.Kind))})",
             !confirm.Disabled && opening.Any(a => a.Kind != ShortRestKind.Rest) && ShortRest.Validate(party, opening) == null);
         // The manual path below starts from quiet rests, as a player clearing the suggestion would.
-        for (int i = 0; i < rows.GetChildCount(); i++) panel.SetActivity(i, ShortRestKind.Rest);
+        var closed = heroRows.SelectMany(r => r.GetChild<HBoxContainer>(1).GetChildren().OfType<Button>()).Where(b => b.Disabled).ToList();
+        Check($"activities that cannot help grey out and say why ({string.Join(" | ", closed.Select(b => $"{b.Text}: {b.TooltipText}"))})",
+            closed.All(b => b.TooltipText is ShortRest.NoFocusPool or ShortRest.FocusFull or ShortRest.NoShield or ShortRest.ShieldsWhole or ShortRest.NobodyHurt)
+            && heroRows.All(r => !r.GetChild<HBoxContainer>(1).GetChild<Button>(0).Disabled));
+        for (int i = 0; i < heroRows.Count; i++) panel.SetActivity(i, ShortRestKind.Rest);
         panel.SetActivity(0, ShortRestKind.TreatWounds);
         panel.SetTarget(0, 0);
         Check("Treat Wounds reveals a required target", target.Visible && confirm.Disabled);

@@ -117,6 +117,34 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "Dice reveal"
 
+[node name="CombatSpeedRow" type="HBoxContainer" parent="Center/Frame/Pages/OptionsPage"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LabelInset" type="MarginContainer" parent="Center/Frame/Pages/OptionsPage/CombatSpeedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 12
+
+[node name="CombatSpeedLabel" type="Label" parent="Center/Frame/Pages/OptionsPage/CombatSpeedRow/LabelInset"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "Combat speed"
+
+[node name="CombatSpeed" type="OptionButton" parent="Center/Frame/Pages/OptionsPage/CombatSpeedRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 48)
+layout_mode = 2
+selected = 1
+item_count = 3
+popup/item_0/text = "Slow"
+popup/item_0/id = 0
+popup/item_1/text = "Normal"
+popup/item_1/id = 1
+popup/item_2/text = "Fast"
+popup/item_2/id = 2
+
 [node name="OptionsBack" type="Button" parent="Center/Frame/Pages/OptionsPage"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)

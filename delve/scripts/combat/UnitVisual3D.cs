@@ -178,7 +178,7 @@ public partial class UnitVisual3D : Node3D
         // every bar sliding in from empty reads as damage nobody dealt.
         UpdateHealthBar(instant: true);
         _character.Health.OnHealthChanged += OnLiveHealthChanged;
-        _dying.Configure(_character, _hpBar.ScreenWidth, () => _hpBar.Zoom, () => _hpBar.GlobalPosition);
+        _dying.Configure(_character, _hpBar.ScreenWidth, () => _hpBar.Zoom, () => _hpBar.GlobalPosition, () => ShownHp);
         _dying.Position = new Vector3(0, _hpBarY + BoardPlateLift, 0);
         _sprite.ApplyFacing();
     }
@@ -188,7 +188,17 @@ public partial class UnitVisual3D : Node3D
         if (_character?.Health != null) _character.Health.OnHealthChanged -= OnLiveHealthChanged;
     }
 
-    private void OnLiveHealthChanged(int current, int maximum) => UpdateHealthBar();
+    private void OnLiveHealthChanged(int current, int maximum)
+    {
+        if (FollowLiveHealth) UpdateHealthBar();
+    }
+
+    /// <summary>Off in combat: the engine applies damage before its roll and hit are presented, so
+    /// the presenter moves the bar when it reaches the hit instead.</summary>
+    public bool FollowLiveHealth { get; set; } = true;
+
+    /// <summary>The HP the bar last showed, for every other HP readout that must keep pace with it.</summary>
+    public int ShownHp { get; private set; }
 
     private void ConfigureSprite()
     {
@@ -219,7 +229,8 @@ public partial class UnitVisual3D : Node3D
     {
         if (_character.Health == null) return;
         int max = _character.Health.MaxHP;
-        _hpBar.SetRatio(max > 0 ? (float)_character.Health.CurrentHP / max : 0f, instant);
+        ShownHp = _character.Health.CurrentHP;
+        _hpBar.SetRatio(max > 0 ? (float)ShownHp / max : 0f, instant);
     }
 
     public void DisablePicking() => _pick.SetPickable(false);

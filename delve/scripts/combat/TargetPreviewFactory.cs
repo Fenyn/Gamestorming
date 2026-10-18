@@ -62,7 +62,7 @@ internal static class TargetPreviewFactory
         bool healing = spell.Spell.IsHealing;
         string amount = healing ? $"{variant?.GetEffectiveHealing(spell.Spell, spell.GetCastLevel(actor)) ?? spell.Spell.GetEffectiveHealing(spell.GetCastLevel(actor))}"
             : spell.Spell.IsDamaging ? $"{spell.Spell.GetEffectiveDamage(spell.GetCastLevel(actor))}" : "";
-        string effect = healing ? $"{amount} healing" : amount.Length > 0 ? $"{amount} damage" : "Applies to a valid target";
+        string effect = healing ? $"{amount} healing" : amount.Length > 0 ? $"{amount} damage" : "";
         var noRoll = View(actor, target, spell.ActionName, "No roll required", effect);
         return amount.Length == 0 ? noRoll
             : noRoll with { Figures = new[] { new FigureView(healing ? "Healing" : "Damage", amount) }, Tags = new[] { "No roll" } };

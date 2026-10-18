@@ -203,12 +203,12 @@ func _refresh_swap_panel() -> void:
 			swap_hint_label.text = "Collection Aspect cards that could go on top of the stack"
 			_swap_ids = AdventureLoadout.swappable_aspect(_deck, Session.library, Session.collection)
 		_:
-			swap_hint_label.text = ("Your whole collection. Pick a deck card or an Aspect tier to " +
-				"swap, or Add to fill an empty deck slot. Greyed cards do not fit this deck.")
+			swap_hint_label.text = ""
 			_swap_ids = Session.collection.all_ids()
+	swap_hint_label.visible = swap_hint_label.text != ""
 	swap_empty_label.visible = _swap_ids.is_empty()
-	swap_empty_label.text = ("Nothing in the collection yet. The vendor and the run-end screen are " +
-		"where cards come from.") if browsing else "Nothing in the collection can legally go here."
+	swap_empty_label.text = ("The collection is empty until you buy cards at the Vendor or keep them " +
+		"at a run's end.") if browsing else "Nothing in the collection can legally go here."
 	swap_scroll.visible = not _swap_ids.is_empty()
 	await _build_swap_cells(browsing)
 	_refresh_actions()
@@ -239,6 +239,7 @@ func _build_swap_cell(def: CardDef, greyed: bool) -> Control:
 	button.stretch_mode = TextureButton.STRETCH_SCALE
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.disabled = greyed
+	button.tooltip_text = "This card does not fit this deck." if greyed else ""
 	button.pressed.connect(func() -> void: _on_swap_target_picked(def.id))
 	wrap.add_child(button)
 	column.add_child(wrap)
@@ -334,7 +335,7 @@ func _refresh_actions() -> void:
 	else:
 		add_button.text = "Add (%d free)" % room if room > 0 else "Add"
 		add_button.disabled = room <= 0
-	add_button.tooltip_text = "" if room > 0 else "Every deck slot is filled. Buy one to add a card."
+	add_button.tooltip_text = "" if room > 0 else "Every deck slot is filled."
 
 	var aspect_room: bool = _deck.duelist_ids.size() < AdventureLoadout.aspect_cap(_deck)
 	var owned_next: bool = aspect_room and not AdventureLoadout.swappable_aspect(

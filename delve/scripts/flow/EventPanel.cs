@@ -1,52 +1,67 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Delve.Run;
 using Delve.Run.Events;
 using Delve.UI;
 using Godot;
 using PF2e.Core;
+using PF2e.Utilities;
 
 namespace Delve.Flow;
 
 /// <summary>
-/// A Happenstance node: title, body, one button per option and the result the resolver produced.
-/// The option buttons spell out their check ("Athletics DC 15") so the player never guesses what a
-/// choice rolls. Passive - the resolver runs in the flow layer, this only shows and signals.
+/// A Happenstance node, one decision at a time: the scene's prose, then its options with their
+/// chance at a glance ("Elara 55%" or "No roll"). Only the selected option opens below: the check,
+/// who tries (best suited first, already picked, any other member a click away) and what each degree
+/// does. Attempt, or the selected option pressed again, commits; where a bonus comes from is in
+/// hovers. Passive - the resolver runs in the flow layer, this only shows and signals.
 /// </summary>
 public partial class EventPanel : ScreenFrame
 {
     private readonly List<(PF2eCharacter Actor, Button Button)> _actors = new();
+    private readonly List<Button> _optionButtons = new();
 
-    private Label _body = null!;
+    private Label _body = null!, _heading = null!, _result = null!;
     private VBoxContainer _options = null!;
     private Container _actorRow = null!;
-    private Label _actorHeading = null!;
-    private Label _result = null!;
-    private Button _continue = null!;
+    private RuledRows _outcomes = null!;
+    private Button _attempt = null!, _continue = null!;
     private ButtonGroup _actorGroup = new();
     private EventDefinition? _definition;
     private Party? _party;
-    private Label _preview = null!;
-    private Label _previewHeading = null!;
-    private int _previewIndex;
+    private PF2eCharacter? _chosen;
+    private int _selected;
     private bool _resolved;
-    private readonly List<Button> _optionButtons = new();
 
     /// <summary>Option index plus the member the player named, or null to let the resolver pick.</summary>
     public event Action<int, PF2eCharacter?>? OptionPicked;
 
     public event Action? Continued;
 
+    /// <summary>The option whose details show, for spikes.</summary>
+    public int SelectedOption => _selected;
+
+    /// <summary>The outcome rows on show, "Success: Heal 10% of maximum HP" one per line, for spikes.</summary>
+    public string OutcomeText => _outcomes.Text;
+
+    /// <summary>Rules drawn between the outcome rows, for spikes.</summary>
+    public int OutcomeRules => _outcomes.Rules;
+
+    public Button AttemptButton => _attempt;
+    public IReadOnlyList<Button> OptionButtons => _optionButtons;
+
     public override void _Ready()
     {
         _body = GetNode<Label>("%BodyLabel");
         _options = GetNode<VBoxContainer>("%OptionBox");
+        _heading = GetNode<Label>("%PreviewHeading");
         _actorRow = GetNode<Container>("%ActorRow");
-        _actorHeading = GetNode<Label>("%ActorHeading");
+        _outcomes = GetNode<RuledRows>("%OutcomeRows");
         _result = GetNode<Label>("%ResultLabel");
+        _attempt = GetNode<Button>("%AttemptButton");
         _continue = GetNode<Button>("%ContinueButton");
-        _preview = GetNode<Label>("%CheckPreview");
-        _previewHeading = GetNode<Label>("%PreviewHeading");
+        _attempt.Pressed += Commit;
         _continue.Pressed += () => Continued?.Invoke();
         base._Ready();
     }
@@ -64,13 +79,13 @@ public partial class EventPanel : ScreenFrame
         base._Input(e);
     }
 
-    /// <summary>Show an event and let the player choose. Clears any previous result.</summary>
+    /// <summary>Show an event with its first option selected. Clears any previous result.</summary>
     public void Show(EventDefinition definition, RunState state)
     {
         _definition = definition;
         _party = state.Party;
         _resolved = false;
-        _previewIndex = 0;
+        _chosen = null;
         SetTitle(definition.Title);
         _body.Text = definition.Body;
         _body.Visible = true;
@@ -78,25 +93,27 @@ public partial class EventPanel : ScreenFrame
         _result.Text = "";
         _result.Visible = false;
         _continue.Visible = false;
+        _attempt.Visible = true;
         _options.Visible = true;
-        GetNode<Label>("%ChoiceHeading").Visible = true;
+        _outcomes.Visible = true;
 
-        BuildActors(definition, state.Party);
         BuildOptions(definition);
-        RefreshPreviews();
+        Select(0);
         if (!Visible) OpenFrame();
-        UiFocus.GrabFirst(_optionButtons);
+        UiFocus.Grab(_optionButtons[_selected]);
     }
 
-    /// <summary>Swap the options for the outcome text and the way back to the map.</summary>
+    /// <summary>Swap the options for the outcome text and the way back.</summary>
     public void ShowResult(EventResult result)
     {
         _resolved = true;
-        _preview.Visible = false;
-        _previewHeading.Text = "OUTCOME";
-        _previewHeading.Visible = true;
+        _heading.Text = "Outcome";
+        _heading.TooltipText = "";
+        _heading.Visible = true;
         _options.Visible = false;
-        GetNode<Label>("%ChoiceHeading").Visible = false;
+        _actorRow.Visible = false;
+        _outcomes.Visible = false;
+        _attempt.Visible = false;
         var text = new System.Text.StringBuilder();
         if (!result.Resolved && result.Reason != null)
             text.Append(result.Reason);
@@ -110,9 +127,7 @@ public partial class EventPanel : ScreenFrame
         _result.Visible = true;
         _continue.Visible = true;
         UiFocus.Grab(_continue);
-        SetOptionsEnabled(false);
-        _actorRow.Visible = false;
-        _actorHeading.Visible = false;
+        foreach (var button in _optionButtons) button.Disabled = true;
     }
 
     /// <summary>The pair-style report, when the scene carries one.</summary>
@@ -125,7 +140,7 @@ public partial class EventPanel : ScreenFrame
         SetTitle(title);
         if (Report != null) Report.Visible = true;
         _body.Visible = false;
-        _previewHeading.Visible = false;
+        _heading.Visible = false;
         _result.Visible = false;
         Report?.Render(figures, rows);
     }
@@ -134,127 +149,118 @@ public partial class EventPanel : ScreenFrame
     {
         FreeChildren(_options);
         _optionButtons.Clear();
-
         for (int i = 0; i < definition.Options.Count; i++)
         {
-            var option = definition.Options[i];
-            var button = new Button {
+            var button = new Button
+            {
                 Alignment = HorizontalAlignment.Left,
                 ThemeTypeVariation = ThemeNames.EventOption,
                 AutowrapMode = TextServer.AutowrapMode.WordSmart,
                 CustomMinimumSize = new Vector2(0, 48)
             };
             int index = i;
+            // A click selects; the selected option pressed again (a second click, or Enter on the
+            // focused option) commits, as Attempt does.
             button.Pressed += () =>
             {
                 if (_resolved || button.Disabled) return;
-                _resolved = true;
-                SetOptionsEnabled(false);
-                OptionPicked?.Invoke(index, SelectedActor());
+                if (index == _selected) Commit();
+                else Select(index);
             };
-            button.MouseEntered += () => ShowPreview(index);
-            button.FocusEntered += () => ShowPreview(index);
+            // Arrow keys move the selection with the focus; a mouse press selects through Pressed.
+            button.FocusEntered += () =>
+            {
+                if (!Input.IsMouseButtonPressed(MouseButton.Left)) Select(index);
+            };
             _options.AddChild(button);
             _optionButtons.Add(button);
         }
     }
 
-    private void RefreshPreviews()
+    /// <summary>Open one option's details and mark it selected; any member picked for another
+    /// option goes back to the best suited.</summary>
+    private void Select(int index)
+    {
+        if (_resolved || _definition == null || index >= _definition.Options.Count) return;
+        if (index != _selected) _chosen = null;
+        _selected = index;
+        for (int i = 0; i < _optionButtons.Count; i++)
+            _optionButtons[i].ThemeTypeVariation = i == index ? ThemeNames.EventOptionSelected : ThemeNames.EventOption;
+        BuildActors(_definition.Options[index]);
+        Refresh();
+    }
+
+    /// <summary>Option chances, the selected option's check, outcome rows and the Attempt button,
+    /// for whoever tries now.</summary>
+    private void Refresh()
     {
         if (_definition == null || _party == null || _resolved) return;
         for (int i = 0; i < _optionButtons.Count; i++)
         {
-            var option = _definition.Options[i];
+            var each = _definition.Options[i];
             var button = _optionButtons[i];
-            button.Text = option.Label + (option.Check == null ? "" : "\n" + EventCheckPreview.CheckLine(option, _party, SelectedActor()));
-            button.Disabled = option.Check is { } check && EventResolver.ActorFor(_party, check, SelectedActor()) == null;
-            button.TooltipText = option.Check == null ? "This choice needs no roll."
-                : "Base chance includes natural 1 and 20 degree shifts. Features that adjust a check when it resolves may change the result.";
+            button.Text = $"{each.Label}\n{EventCheckPreview.ChanceLine(each, _party, i == _selected ? _chosen : null)}";
+            button.Disabled = each.Check is { } c && EventResolver.ActorFor(_party, c, null) == null;
         }
-        ShowPreview(_previewIndex);
+
+        var option = _definition.Options[_selected];
+        var actor = option.Check is { } check ? EventResolver.ActorFor(_party, check, _chosen) : null;
+        bool picks = _actors.Count > 0;
+        _heading.Visible = true;
+        _heading.Text = EventCheckPreview.CheckCaption(option)
+            + (option.Check != null && !picks && actor != null ? $" · {EventCheckPreview.ChanceLine(option, _party, actor)}" : "");
+        _heading.TooltipText = actor != null ? EventCheckPreview.Breakdown(option, actor) : "";
+
+        _outcomes.Render(EventCheckPreview.Outcomes(option).Select(o => new RuledRow(o.Caption, o.Effects)));
+
+        bool possible = option.Check == null || actor != null;
+        _attempt.Disabled = !possible;
+        _attempt.Text = option.Check == null ? "Choose" : actor != null ? $"Attempt · {actor.Name}" : "Attempt";
     }
 
-    private void ShowPreview(int index)
-    {
-        if (_resolved || _definition == null || _party == null || index >= _definition.Options.Count) return;
-        _previewIndex = index;
-        RenderActorOdds(_definition.Options[index]);
-        _previewHeading.Text = _definition.Options[index].Check == null ? "WHAT HAPPENS · NO ROLL" : "CHECK & POSSIBLE OUTCOMES";
-        _preview.Text = EventCheckPreview.Details(_definition.Options[index], _party, SelectedActor());
-        _preview.Visible = true;
-        _previewHeading.Visible = true;
-    }
-
-    /// <summary>Actor toggles, shown only when an option lets the player name who tries.</summary>
-    private void BuildActors(EventDefinition definition, Party party)
+    /// <summary>Who tries, best suited first and already picked, when the option lets the player
+    /// name the member; nothing when it does not.</summary>
+    private void BuildActors(EventOption option)
     {
         FreeChildren(_actorRow);
         _actors.Clear();
         _actorGroup = new ButtonGroup();
-
-        bool allowed = false;
-        foreach (var option in definition.Options)
+        bool picks = option.Check is { AllowPickActor: true } && _party != null;
+        _actorRow.Visible = picks;
+        if (!picks) return;
+        var check = option.Check!;
+        var best = EventResolver.ActorFor(_party!, check, null);
+        var members = _party!.Members.Where(m => m.Health == null || !m.Health.IsDead)
+            .OrderByDescending(m => SkillCalculator.CalculateSkillBonus(m, check.Skill));
+        foreach (var member in members)
         {
-            if (option.Check is { AllowPickActor: true }) { allowed = true; break; }
-        }
-
-        _actorRow.Visible = allowed;
-        _actorHeading.Visible = allowed;
-        if (!allowed) return;
-
-        var automatic = new Button { Text = "Best suited", ToggleMode = true, ButtonGroup = _actorGroup,
-            Alignment = HorizontalAlignment.Left, SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        automatic.SetPressedNoSignal(true);
-        automatic.Toggled += pressed => { if (pressed) RefreshPreviews(); };
-        _actorRow.AddChild(automatic);
-
-        foreach (var member in party.Members)
-        {
-            if (member.Health != null && member.Health.IsDead) continue;
-
+            int bonus = SkillCalculator.CalculateSkillBonus(member, check.Skill);
             var button = new Button
             {
-                Text = member.Name,
+                Text = $"{member.Name} {EventCheckPreview.SuccessPercent(bonus, check.Dc)}%",
+                TooltipText = EventCheckPreview.Breakdown(option, member),
                 ToggleMode = true,
                 ButtonGroup = _actorGroup,
-                Alignment = HorizontalAlignment.Left,
-                SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            };
+            button.SetPressedNoSignal(member == (_chosen ?? best));
+            button.Toggled += pressed =>
+            {
+                if (!pressed) return;
+                _chosen = member == best ? null : member;
+                Refresh();
             };
             _actorRow.AddChild(button);
             _actors.Add((member, button));
-            button.Toggled += pressed => { if (pressed) RefreshPreviews(); };
         }
     }
 
-    /// <summary>Each member's odds on the previewed option ("Elara  +8 · 55%"), and who "Best
-    /// suited" would send.</summary>
-    private void RenderActorOdds(EventOption option)
+    private void Commit()
     {
-        foreach (var (actor, button) in _actors)
-        {
-            string odds = EventCheckPreview.ActorForecast(option, actor);
-            button.Text = odds.Length > 0 ? $"{actor.Name}  {odds}" : actor.Name;
-        }
-        if (_actorRow.GetChildCount() > 0 && _actorRow.GetChild(0) is Button automatic && _party != null)
-            automatic.Text = option.Check is { } check && EventResolver.ActorFor(_party, check, null) is { } best
-                ? $"Best suited: {best.Name}" : "Best suited";
-    }
-
-    private PF2eCharacter? SelectedActor()
-    {
-        foreach (var (actor, button) in _actors)
-        {
-            if (button.ButtonPressed) return actor;
-        }
-        return null;
-    }
-
-    private void SetOptionsEnabled(bool enabled)
-    {
-        foreach (var child in _options.GetChildren())
-        {
-            if (child is Button button) button.Disabled = !enabled;
-        }
+        if (_resolved || _definition == null || _attempt.Disabled) return;
+        _resolved = true;
+        foreach (var button in _optionButtons) button.Disabled = true;
+        _attempt.Disabled = true;
+        OptionPicked?.Invoke(_selected, _chosen);
     }
 
     private static void FreeChildren(Node parent)

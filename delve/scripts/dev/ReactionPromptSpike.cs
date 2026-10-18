@@ -60,8 +60,7 @@ public partial class ReactionPromptSpike : SpikeBase
                 && view.Figures[1].Caption == "Damage" && view.Figures[1].Value.Length > 0 && !view.Figures[0].IsChange);
             Check($"(4) the trigger line names the mover and the reactor ('{view.Trigger}')",
                 view.Trigger == $"{Delve.UI.CombatLogFormat.ShortName(goblin.Name)} leaves {vet.Name}'s reach.");
-            Check("(4) the hover sentence names the mover without a gendered pronoun",
-                view.Description.Contains(goblin.Name) && !System.Text.RegularExpressions.Regex.IsMatch(view.Description, @"\b(he|she|his|her|him)\b"));
+            Check($"(4) no hover sentence repeats the trigger line ('{view.Description}')", view.Description.Length == 0);
         }
         finally { session.Teardown(); }
     }

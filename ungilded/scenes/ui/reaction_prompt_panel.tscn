@@ -1,0 +1,96 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ReactionPromptPanel.cs" id="1_rpp"]
+[ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="2_cap"]
+[ext_resource type="PackedScene" path="res://scenes/ui/figure_label.tscn" id="3_fig"]
+
+[node name="ReactionPromptPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_rpp")
+FigureScene = ExtResource("3_fig")
+
+[node name="Backdrop" type="Panel" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+theme_type_variation = &"ModalVignette"
+
+[node name="Panel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_type_variation = &"ReactionPanel"
+
+[node name="Col" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="TitleRow" type="HBoxContainer" parent="Panel/Col"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="Panel/Col/TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_type_variation = &"TitleLabel"
+text = "Reaction?"
+
+[node name="UseButton" parent="Panel/Col/TitleRow" instance=ExtResource("2_cap")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"HudAccentButton"
+ActionText = "Use"
+InputAction = &"combat_confirm"
+
+[node name="SkipButton" parent="Panel/Col/TitleRow" instance=ExtResource("2_cap")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"HudButton"
+ActionText = "Skip"
+InputAction = &"combat_decline"
+
+[node name="TriggerLabel" type="Label" parent="Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HintLabel"
+text = "Goblin C leaves Aldric's reach."
+
+[node name="Figures" type="HBoxContainer" parent="Panel/Col"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 40
+
+[node name="DescriptionLabel" type="Label" parent="Panel/Col"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 2
+mouse_filter = 2
+autowrap_mode = 3

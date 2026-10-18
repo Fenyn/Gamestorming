@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; One-shot melee impact spark (see scripts/fx/HitSpark.cs). A bare Node3D root: the shard geometry is
+; generated and tweened per-instance in code from Tint/ImpactDirection/FxScale/Crit, which
+; GodotPresenter3D.SpawnHitSpark sets before AddChild. Do not author children here.
+
+[ext_resource type="Script" path="res://scripts/fx/HitSpark.cs" id="1_hitspark"]
+
+[node name="HitSpark" type="Node3D"]
+script = ExtResource("1_hitspark")

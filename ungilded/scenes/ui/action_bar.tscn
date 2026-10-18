@@ -1,0 +1,246 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ActionBar.cs" id="1_ab"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pip_row.tscn" id="2_pr"]
+[ext_resource type="PackedScene" path="res://scenes/ui/caption_button.tscn" id="3_cap"]
+[ext_resource type="PackedScene" path="res://scenes/ui/action_chip.tscn" id="4_chip"]
+[ext_resource type="PackedScene" path="res://scenes/ui/chip_flyout.tscn" id="5_fly"]
+[ext_resource type="Resource" path="res://assets/ui/spell_icons.tres" id="6_icons"]
+[ext_resource type="Resource" path="res://assets/ui/ability_icons.tres" id="7_icons"]
+[ext_resource type="PackedScene" path="res://scenes/ui/decision_slot.tscn" id="8_slot"]
+
+[node name="ActionBar" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_ab")
+SpellIcons = ExtResource("6_icons")
+AbilityIcons = ExtResource("7_icons")
+ResourcePipScene = ExtResource("2_pr")
+
+[node name="Stack" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1500.0
+offset_top = 400.0
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="DecisionSlot" parent="." instance=ExtResource("8_slot")]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_right = 300.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ControlOptions" type="PanelContainer" parent="Stack"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 0
+theme_type_variation = &"HudInset"
+
+[node name="ToggleCol" type="VBoxContainer" parent="Stack/ControlOptions"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AiToggle" type="CheckBox" parent="Stack/ControlOptions/ToggleCol"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "AI takes turns"
+
+[node name="AutoReactToggle" type="CheckBox" parent="Stack/ControlOptions/ToggleCol"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Automatic reactions"
+
+[node name="StageOrders" type="CheckBox" parent="Stack/ControlOptions/ToggleCol"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Moves and single-target actions wait for a confirm before they resolve."
+text = "Plan orders"
+
+[node name="Overview" type="Button" parent="Stack/ControlOptions/ToggleCol"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Overview"
+
+[node name="MenuRow" type="HBoxContainer" parent="Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="BarBlock" type="VBoxContainer" parent="Stack/MenuRow"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Bar" type="PanelContainer" parent="Stack/MenuRow/BarBlock"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+theme_type_variation = &"CommandMenu"
+
+[node name="Row" type="VBoxContainer" parent="Stack/MenuRow/BarBlock/Bar"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Header" type="PanelContainer" parent="Stack/MenuRow/BarBlock/Bar/Row"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"CommandHeader"
+
+[node name="TitleRow" type="HBoxContainer" parent="Stack/MenuRow/BarBlock/Bar/Row/Header"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="MenuTitle" type="Label" parent="Stack/MenuRow/BarBlock/Bar/Row/Header/TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"CommandTitle"
+text_overrun_behavior = 3
+
+[node name="Economy" type="VBoxContainer" parent="Stack/MenuRow/BarBlock/Bar/Row/Header/TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="ActionPips" parent="Stack/MenuRow/BarBlock/Bar/Row/Header/TitleRow/Economy" instance=ExtResource("2_pr")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+mouse_filter = 0
+PipSize = Vector2(14, 14)
+FilledVariation = &"CommandPipFilled"
+SpentVariation = &"CommandPipSpent"
+
+[node name="Resources" type="VBoxContainer" parent="Stack/MenuRow/BarBlock/Bar/Row/Header/TitleRow/Economy"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 0
+theme_override_constants/separation = 2
+
+[node name="MoveButton" parent="Stack/MenuRow/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_type_variation = &"CommandButton"
+FillRow = true
+KeycapVariation = &"CommandKeycap"
+ActionText = "Move"
+InputAction = &"combat_move"
+
+[node name="StrikeButton" parent="Stack/MenuRow/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_type_variation = &"CommandButton"
+FillRow = true
+KeycapVariation = &"CommandKeycap"
+ActionText = "Strike"
+InputAction = &"combat_action_1"
+
+[node name="ShieldButton" parent="Stack/MenuRow/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_type_variation = &"CommandButton"
+FillRow = true
+KeycapVariation = &"CommandKeycap"
+ActionText = "Shield"
+InputAction = &"combat_action_2"
+
+[node name="SpellsButton" parent="Stack/MenuRow/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_type_variation = &"CommandButton"
+toggle_mode = true
+FillRow = true
+KeycapVariation = &"CommandKeycap"
+ActionText = "Spells"
+InputAction = &"combat_spells"
+
+[node name="SkillsButton" parent="Stack/MenuRow/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_type_variation = &"CommandButton"
+toggle_mode = true
+FillRow = true
+KeycapVariation = &"CommandKeycap"
+ActionText = "Abilities"
+InputAction = &"combat_skills"
+
+[node name="SignatureActions" parent="Stack/MenuRow/BarBlock/Bar/Row" instance=ExtResource("5_fly")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"ClearPanel"
+ChipScene = ExtResource("4_chip")
+TextVariation = &"CommandKey"
+DisabledVariation = &"CommandChipLabelDisabled"
+Rows = true
+RowHeight = 52.0
+
+[node name="DelayButton" parent="Stack/MenuRow/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_type_variation = &"CommandButton"
+FillRow = true
+KeycapVariation = &"CommandKeycap"
+ActionText = "Delay"
+InputAction = &"combat_delay"
+
+[node name="EndButton" parent="Stack/MenuRow/BarBlock/Bar/Row" instance=ExtResource("3_cap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_type_variation = &"CommandButton"
+FillRow = true
+KeycapVariation = &"CommandKeycap"
+ActionText = "End Turn"
+InputAction = &"combat_end_turn"
+
+[node name="ControlButton" type="Button" parent="Stack/MenuRow/BarBlock/Bar/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+alignment = 0
+focus_mode = 0
+theme_type_variation = &"CommandButton"
+text = "Control"
+toggle_mode = true
+[node name="Flyout" parent="Stack/MenuRow" instance=ExtResource("5_fly")]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+size_flags_vertical = 0
+theme_type_variation = &"CommandMenu"
+ChipScene = ExtResource("4_chip")
+TextVariation = &"CommandKey"
+DisabledVariation = &"CommandChipLabelDisabled"
+Rows = true

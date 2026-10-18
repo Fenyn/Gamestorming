@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ChipFlyout.cs" id="1_cf"]
+
+[node name="ChipFlyout" type="PanelContainer"]
+theme_type_variation = &"HudInset"
+script = ExtResource("1_cf")
+
+[node name="Column" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/PipRow.cs" id="1_pr"]
+
+[node name="PipRow" type="HBoxContainer"]
+mouse_filter = 2
+theme_override_constants/separation = 3
+script = ExtResource("1_pr")

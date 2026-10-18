@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/props/TreeProp.cs" id="1_treeprop"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/trees/tree_bush.png" id="2_bush"]
+[ext_resource type="Shader" path="res://assets/shaders/tree_occluder.gdshader" id="3_occluder"]
+
+[node name="TreeBush" type="Node3D"]
+script = ExtResource("1_treeprop")
+Variants = [ExtResource("2_bush")]
+OccluderShader = ExtResource("3_occluder")
+PixelsPerTile = 80.0
+
+[node name="Sprite" type="Sprite3D" parent="."]
+unique_name_in_owner = true

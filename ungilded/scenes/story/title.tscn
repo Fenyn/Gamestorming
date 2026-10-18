@@ -1,0 +1,64 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/story/TitleScreen.cs" id="1_title"]
+[ext_resource type="Texture2D" path="res://assets/title/UngildedTitle.png" id="2_art"]
+[ext_resource type="Theme" path="res://assets/story/story_theme.tres" id="3_theme"]
+
+[node name="Title" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("3_theme")
+script = ExtResource("1_title")
+PrologueScenePath = "res://scenes/story/prologue.tscn"
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.054902, 0.070588, 0.082353, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Stack" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"StoryStack"
+
+[node name="Art" type="TextureRect" parent="Center/Stack"]
+custom_minimum_size = Vector2(900, 453)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("2_art")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Buttons" type="VBoxContainer" parent="Center/Stack"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Prologue" type="Button" parent="Center/Stack/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Prologue"
+
+[node name="Quit" type="Button" parent="Center/Stack/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quit"

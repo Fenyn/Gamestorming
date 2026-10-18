@@ -1,0 +1,42 @@
+[gd_scene load_steps=2 format=3]
+
+; FFT-style tile readout: "Height" beside the hovered tile's height in feet, then the surface name
+; on a thin rule. Sits at the top right above the log.
+
+[ext_resource type="Script" path="res://scripts/ui/TileReadout.cs" id="1_tile"]
+
+[node name="TileReadout" type="VBoxContainer"]
+mouse_filter = 2
+theme_override_constants/separation = 2
+script = ExtResource("1_tile")
+
+[node name="HeightRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+alignment = 2
+
+[node name="HeightCaption" type="Label" parent="HeightRow"]
+layout_mode = 2
+size_flags_vertical = 8
+theme_type_variation = &"TimelineTitle"
+text = "Height"
+
+[node name="HeightValue" type="Label" parent="HeightRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TileHeightValue"
+text = "0 ft"
+
+[node name="Rule" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"RuleLine"
+
+[node name="Surface" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"IntroSubtitle"
+text = ""
+horizontal_alignment = 2

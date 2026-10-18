@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/AttackAccent.cs" id="1"]
+
+[node name="SpiderBite" type="Node3D"]
+script = ExtResource("1")
+Bite = true
+Tint = Color(1, 0.94, 0.8, 0.9)
+Lifetime = 0.16
+HeightFraction = 0.30
+ForwardDistance = 1.05

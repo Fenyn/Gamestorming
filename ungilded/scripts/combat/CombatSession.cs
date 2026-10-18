@@ -1,0 +1,763 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Ungilded.Rules;
+using System.Threading;
+using System.Threading.Tasks;
+using Ungilded.Data;
+using PF2e;
+using PF2e.Actions;
+using PF2e.Actions.SkillActions;
+using PF2e.AI;
+using PF2e.Conditions;
+using PF2e.Core;
+using PF2e.Data;
+using PF2e.Events;
+using PF2e.Grid;
+using PF2e.TurnManagement;
+using PF2e.Utilities;
+using PF2eVec = PF2e.Vector2Int;
+
+namespace Ungilded.Combat;
+
+/// <summary>
+/// Owns a single tactical encounter: the grid, the shared BattleRunner, the TurnManager /
+/// CombatantRegistry lifecycle, the AI and player executors, spatial-delegate + reaction wiring,
+/// and the turn loop with victory checking. Plain C#; presentation subscribes via
+/// <see cref="SetPresenter"/> and the turn events.
+///
+/// Turn loop: while the encounter is active, the current combatant either runs engine AI
+/// (team 2, or an ally toggled to AI) or hands control to the player (awaiting an End-Turn / AI
+/// hand-off signal). After each turn <c>BattleSimulator.CheckVictory</c> decides whether to end.
+/// </summary>
+public sealed partial class CombatSession
+{
+    private enum PlayerTurnResolution { EndTurn, HandOffToAi, Delay }
+
+    // Engine surfaces (created in Setup).
+    public BattleGrid Grid { get; private set; } = null!;
+    public PlayerActionExecutor PlayerActions { get; private set; } = null!;
+
+    /// <summary>
+    /// The generated battle map this encounter runs on, or null for a flat board. Read by the scene to
+    /// decide whether to build terrain geometry and an elevation-aware view; the rules themselves need
+    /// nothing from it, because everything they ask about elevation is already baked into
+    /// <see cref="Grid"/>'s per-tile corner heights.
+    /// </summary>
+    public PF2e.MapGen.MapLayout? MapLayout { get; private set; }
+
+    private BattleRunner _runner = null!;
+    private TurnManager _turnManager = null!;
+    private AITurnExecutor _ai = null!;
+
+    /// <summary>
+    /// Every engine global this encounter claims, in one owner. Disposed by <see cref="Teardown"/>,
+    /// which is what keeps a late teardown from stripping a newer encounter's wiring.
+    /// </summary>
+    private EngineEncounterScope? _scope;
+
+    private readonly HashSet<ICharacter> _removed = new();
+    public event Action<ICharacter>? CombatantRemoved;
+
+    private readonly List<ICharacter> _team1 = new();
+    private readonly List<ICharacter> _team2 = new();
+    private readonly HashSet<ICharacter> _aiControlled = new();
+    private readonly HashSet<ICharacter> _commandable = new();
+    // Team 1 but not the party: they fight for free and their survival never decides the encounter.
+    private readonly List<EidolonLink> _eidolons = new();
+    private readonly HashSet<ICharacter> _allies = new();
+    private AllyAiRules _allyAi = AllyAiRules.Default;
+    // Allies toggled to auto-use reactions (skip the prompt). Default is empty = everyone PROMPTS.
+    private readonly HashSet<ICharacter> _autoReactions = new();
+
+    /// <summary>
+    /// Recall Knowledge attempts already spent this encounter, as (actor UniqueId, creature slug).
+    /// RAW gives each character ONE attempt per creature per encounter; the tracking is per-SPECIES
+    /// (the journal is), so studying one goblin closes the book on every goblin in the fight.
+    /// An instance field on purpose — it dies with the session, which is exactly the per-encounter
+    /// lifetime the rule wants (contrast the engine's static Battle Medicine tracker, reset below).
+    /// </summary>
+    private readonly HashSet<(int ActorId, string CreatureId)> _recallAttempts = new();
+
+    private TaskCompletionSource<PlayerTurnResolution>? _playerTurnTcs;
+    private bool _finished;
+
+    /// <summary>The combatant a pending Delay returns after.</summary>
+    private ICharacter? _pendingDelayAnchor;
+
+    // External presentation sink, wrapped so we can watch the shared event stream for mid-turn
+    // deaths. Decisive result latched here the instant it is detected; the turn loop's gate reads it.
+    private Func<BattleEvent, Task>? _presenter;
+    private BattleResult _pendingResult = BattleResult.InProgress;
+
+    // ---------------------------------------------------------------- Events
+    public event Action<ICharacter>? PlayerTurnStarted;
+    public event Action? PlayerTurnEnded;
+    public event Action<BattleResult>? EncounterFinished;
+    /// <summary>Fires whenever a new combatant's turn begins (player or AI) — for turn-order UI.</summary>
+    public event Action? TurnChanged;
+
+    /// <summary>
+    /// Raised when a party-side Recall Knowledge check in THIS encounter succeeded, with the studied
+    /// creature and the degree. The hosting scene forwards it to the journal; the session owns none.
+    /// Failures do not fire this (they still consume the attempt).
+    /// </summary>
+    public event Action<ICharacter, DegreeOfSuccess>? RecallKnowledgeLearned;
+
+    /// <summary>
+    /// Interactive reaction prompt seam, set by the scene. Given a UI view model, resolve true
+    /// (Use) or false (Skip) — typically by showing a modal panel and completing on click. While
+    /// the returned Task is pending the entire combat pipeline is suspended (the engine awaits it
+    /// through ReactionManager.PlayerReactionPolicy), including mid-enemy-turn prompts.
+    /// Null (headless / no UI wired) → auto-use, preserving the old behaviour safely.
+    /// </summary>
+    public Func<ReactionPromptView, Task<bool>>? ReactionPromptHandler { get; set; }
+
+    // ---------------------------------------------------------------- Pass-throughs
+    public ICharacter? CurrentActor => _turnManager?.CurrentTurn?.Character;
+    public IReadOnlyList<TurnEntry>? TurnOrder => _turnManager?.TurnOrder;
+    /// <summary>Combatants waiting out a Delay, in the order they delayed (see <see cref="TurnEntry.ReturnAfter"/>).</summary>
+    public IReadOnlyList<TurnEntry>? DelayedEntries => _turnManager?.Delayed;
+    public int RoundNumber => _turnManager?.RoundNumber ?? 0;
+    public IReadOnlyList<ICharacter> Team1 => _team1;
+    public IReadOnlyList<ICharacter> Team2 => _team2;
+    public EnemyLetters Letters { get; } = new();
+
+    // ---------------------------------------------------------------- Setup / teardown
+
+    /// <summary>Deployment corrections from <see cref="CombatSetup.Normalize"/> (empty when legal).</summary>
+    public IReadOnlyList<string> SetupCorrections { get; private set; } = Array.Empty<string>();
+
+    /// <param name="knowledge">The journal that masks unrevealed creature fields; null leaves them known.</param>
+    /// <param name="tutorial">Tutorial control hooks; null runs normal combat.</param>
+    public void Setup(CombatSetup setup, ICreatureKnowledgeProvider? knowledge = null,
+        Ungilded.Tutorial.TutorialHooks? tutorial = null)
+    {
+        Tutorial = tutorial;
+        _knowledge = knowledge;
+        // Ordering trap: SetupCore wires engine statics (TurnManager.Instance,
+        // CombatantRegistry.Instance) and global delegates (reactions, forced movement, step
+        // validation, spatial) incrementally. If it throws partway, those are left half-wired and
+        // would poison the next encounter. Teardown is null-tolerant (every step guards on null /
+        // identity), so it is safe to call on a partially-constructed session — unwind through it,
+        // then surface the fault.
+        try
+        {
+            SetupCore(setup);
+        }
+        catch
+        {
+            Teardown();
+            throw;
+        }
+    }
+
+    private void SetupCore(CombatSetup setup)
+    {
+        if (setup.RngSeed.HasValue)
+            Rng.Seed(setup.RngSeed.Value);
+
+        // Self-heal out-of-bounds/stacked anchors BEFORE placement; the scene surfaces these
+        // loudly so data/board mismatches never silently render units off the visible board.
+        SetupCorrections = setup.Normalize();
+
+        // The single grid swap point. A generated layout brings per-tile roles, corner heights, cover
+        // flags and climb DCs with it (MapLayoutGridBuilder), which is all the engine's movement,
+        // forced-movement and fall handling needs to become terrain-aware — no rule code changes here.
+        MapLayout = setup.Layout;
+        Grid = setup.Layout != null
+            ? PF2e.MapGen.MapLayoutGridBuilder.Build(setup.Layout)
+            : BattleGrid.CreateFlat(setup.GridWidth, setup.GridHeight);
+        _runner = new BattleRunner();
+
+        // One owner for every engine global this encounter claims: the TurnManager /
+        // CombatantRegistry singletons, grid + spatial delegates, the ReactionManager and its two
+        // static policies, forced movement, and Step validation. Player-team members (not toggled to
+        // AI) count as "player controlled" for reactions; the policy prompts through the
+        // scene-supplied handler unless the ally is toggled to auto-reactions.
+        _allyAi = setup.AllyAi;
+        _scope = new EngineEncounterScope(
+            Grid, IsPlayerControlled, DecidePlayerReaction, ValidateStepDestination, ShapeAiProfile,
+            movementGate: Tutorial != null ? TutorialMovementGate : null, knowledge: _knowledge);
+        _turnManager = _scope.Turns;
+        StrikeResolver.OnStrikeResolved += OnStrikeResolved;
+
+        // Battle Medicine's per-target immunity set is a STATIC in the engine, cleared only by
+        // CombatManager.OnClearFeatureState — and bulwark never constructs a CombatManager, so
+        // without this the set would leak across every encounter of the process: a medic who treated
+        // an ally in fight one could never Battle Medicine them again all session. Clearing at setup
+        // (not teardown) also covers a session that ended abnormally.
+        BattleMedicineAction.ResetImmunities();
+
+        _ai = new AITurnExecutor(_runner, Grid);
+        PlayerActions = new PlayerActionExecutor(_runner, Grid, PresetSpells.Get);
+        PlayerActions.HasRecallAttempted = HasRecallAttempted;
+        WireRecallKnowledge();
+
+        foreach (var (unit, pos) in setup.Party)
+        {
+            Grid.PlaceCreature(unit, pos);
+            _team1.Add(unit);
+            if (setup.Control.CanCommand(unit.Id)) _commandable.Add(unit);
+            else _aiControlled.Add(unit);
+        }
+        foreach (var (unit, pos) in setup.Allies)
+        {
+            Grid.PlaceCreature(unit, pos);
+            _team1.Add(unit);
+            _allies.Add(unit);
+            _aiControlled.Add(unit);
+        }
+        foreach (var (unit, pos) in setup.Enemies)
+        {
+            Grid.PlaceCreature(unit, pos);
+            _team2.Add(unit);
+        }
+        Letters.Assign(_team2);
+
+        foreach (var summoner in _team1.OfType<PF2eCharacter>().Where(c => WayfarerFeature.Find(c)?.Class == "Summoner").ToArray())
+        {
+            var link = new EidolonLink(summoner, Grid, _runner);
+            _scope.SharedHealth.Register(link);
+            _eidolons.Add(link); _team1.Add(link.Eidolon); _allies.Add(link.Eidolon);
+        }
+        // Ordering trap: components must be subscribed to the TurnManager (which now exists) so
+        // shield auto-lower and condition/cooldown ticking fire on turn boundaries.
+        foreach (var c in _team1) if (!_eidolons.Any(e => e.Eidolon == c)) SubscribeCharacter(c);
+        foreach (var c in _team2) SubscribeCharacter(c);
+        WayfarerFeature.PrepareEncounter(_team1);
+        FeatEncounter.Prepare(_team1);
+        StartTutorialWatch();
+
+        _turnManager.OnTurnStart += HandleTurnStart;
+        // A delayer coming back resumes rather than starts, so the engine raises this instead.
+        _turnManager.OnTurnResumed += HandleTurnResumed;
+
+        // Future hook: round-scoped buff ticking (consumable elixirs) subscribed OnRoundEnd here in bulwark.
+    }
+
+    // ---------------------------------------------------------------- Recall Knowledge
+
+    /// <summary>True when this actor has already spent their Recall Knowledge attempt on this
+    /// species during this encounter (the executor filters those foes out of the target set).</summary>
+    public bool HasRecallAttempted(int actorId, string creatureId)
+        => !string.IsNullOrEmpty(creatureId) && _recallAttempts.Contains((actorId, creatureId));
+
+    /// <summary>Record an actor's spent attempt against a species. Idempotent.</summary>
+    private void MarkRecallAttempted(int actorId, string creatureId)
+    {
+        if (!string.IsNullOrEmpty(creatureId))
+            _recallAttempts.Add((actorId, creatureId));
+    }
+
+    /// <summary>
+    /// Subscribe the engine's Recall Knowledge resolution event. It is STATIC, so the subscription
+    /// MUST be undone in <see cref="Teardown"/> — otherwise every past session's handler would still
+    /// be live and a single check would be recorded once per stale session.
+    /// </summary>
+    private void WireRecallKnowledge()
+        => RecallKnowledgeAction.OnKnowledgeResolved += OnKnowledgeResolved;
+
+    /// <summary>
+    /// One resolved Recall Knowledge. The ATTEMPT is spent on every degree — a failed check still
+    /// burns this actor's shot at this species for the fight — while only Success / Critical Success
+    /// teaches the party anything, which is what the journal event carries out.
+    /// </summary>
+    private void OnKnowledgeResolved(ICharacter actor, ICharacter target, DegreeOfSuccess degree)
+    {
+        // The event is static: a session torn down after a newer one started could otherwise see the
+        // new session's checks. Only ours count.
+        if (actor == null || (!_team1.Contains(actor) && !_team2.Contains(actor)))
+            return;
+
+        string? creatureId = target?.CreatureStats?.CreatureId;
+        if (string.IsNullOrEmpty(creatureId))
+            return;
+
+        MarkRecallAttempted(actor.UniqueId, creatureId!);
+
+        if (actor.TeamId == 1 && degree is DegreeOfSuccess.Success or DegreeOfSuccess.CriticalSuccess)
+            RecallKnowledgeLearned?.Invoke(target!, degree);
+    }
+
+    public void SetPresenter(Func<BattleEvent, Task> presenter)
+    {
+        _presenter = presenter;
+        _runner.SetPresenter(OnBattleEvent);
+    }
+
+    private void OnStrikeResolved(StrikeStatEvent strike)
+    {
+        if (_scope == null || !ReferenceEquals(CombatantRegistry.Instance, _scope.Registry)) return;
+        _watch?.NoteStrike(strike.Context);
+        // Ordinary strikes are presented by their executor. Reactions bypass those executors.
+        if (strike.Context.SourceAction?.IsReaction != true) return;
+        ReactionSuspension.Track(PresentReactionStrikeAsync(strike.Context));
+    }
+
+    private async Task PresentReactionStrikeAsync(StrikeContext ctx)
+    {
+        var events = new BattleEventEmitter(_runner);
+        await events.Emit(new BattleEvent
+        {
+            Type = BattleEventType.AttackRolled,
+            Source = ctx.Attacker,
+            Target = ctx.Defender,
+            Degree = ctx.Degree,
+            Description = $"{ctx.Attacker.Name} uses {ctx.SourceAction.ActionName} against {ctx.Defender.Name}"
+        });
+        if (ctx.Hit && ctx.DamageResult != null)
+            await events.EmitDamageAndDeath(ctx.Attacker, ctx.Defender, ctx.DamageResult.TotalDamage,
+                type: ctx.DamageResult.DamageType, degree: ctx.Degree, targetKilled: ctx.TargetKilled);
+    }
+
+    /// <summary>
+    /// Presenter shim: forwards every event to the real presentation sink, then — for a
+    /// <see cref="BattleEventType.CreatureDied"/> — evaluates victory immediately. If the encounter is
+    /// decided mid-turn, latch the result and unblock any in-progress player turn so the turn loop
+    /// reaches its single end-of-encounter gate at once (remaining player actions / AI plan stop).
+    /// The victory flow itself still fires exactly once, from the loop's gate — never here.
+    /// </summary>
+    private async Task OnBattleEvent(BattleEvent evt)
+    {
+        ReconcileOccupancy();
+        if (_watch != null) await _watch.BeforeEvent(evt);
+        if (_presenter != null)
+            await _presenter(evt);
+        if (_watch != null) await _watch.AfterEvent(evt);
+
+        // Watch both deaths (enemy slain → win) and damage (a PC dropped to Dying/Unconscious mid-turn
+        // → potential defeat, since dying emits no CreatureDied). Latch a decisive result the instant
+        // it appears so remaining player actions / AI plans stop; the victory flow still fires once,
+        // from the loop's gate.
+        if ((evt.Type == BattleEventType.CreatureDied || evt.Type == BattleEventType.DamageDealt)
+            && !_finished
+            && _pendingResult == BattleResult.InProgress)
+        {
+            var result = EvaluateEncounter();
+            if (result != BattleResult.InProgress)
+            {
+                _pendingResult = result;
+                _playerTurnTcs?.TrySetResult(PlayerTurnResolution.EndTurn);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Decide the encounter. Win when no enemy is alive (enemies die outright). Loss when NO
+    /// player-team member can still act — dying, unconscious, and dead all count as "down" (a dying
+    /// PC is Unconscious, not dead, so this can't rely on IsDead / CheckVictory alone).
+    /// </summary>
+    private BattleResult EvaluateEncounter()
+    {
+        bool anyEnemyAlive = false;
+        foreach (var c in _team2)
+            if (!_removed.Contains(c) && c.Health != null && c.Health.IsAlive) { anyEnemyAlive = true; break; }
+
+        bool anyPlayerActive = false;
+        foreach (var c in _team1)
+            if (!_removed.Contains(c) && !_allies.Contains(c) && IsConsciousAndAble(c)) { anyPlayerActive = true; break; }
+
+        if (!anyEnemyAlive && !anyPlayerActive) return BattleResult.Draw;
+        if (!anyEnemyAlive) return BattleResult.Team1Wins;
+        if (!anyPlayerActive) return BattleResult.Team2Wins;
+        return BattleResult.InProgress;
+    }
+
+    /// <summary>A combatant still in the fight: alive and not Unconscious (dying/knocked-out PCs are
+    /// Unconscious at 0 HP and cannot act).</summary>
+    private static bool IsConsciousAndAble(ICharacter c)
+        => c.Health != null && !c.Health.IsDead
+           && c.Conditions?.HasCondition(Condition.Unconscious) != true;
+
+    public void Teardown()
+    {
+        try
+        {
+            // A player turn parked on RunPlayerTurn's TCS would otherwise hang forever once the scene
+            // exits (nothing left to press End Turn / hand off to AI). Complete it as an EndTurn so the
+            // awaiting turn loop unwinds; after cancellation RunAsync's next boundary check bails out
+            // before an AI plan can start. TrySetResult is idempotent — harmless if already resolved or
+            // never created.
+            _playerTurnTcs?.TrySetResult(PlayerTurnResolution.EndTurn);
+
+            if (_turnManager != null)
+            {
+                _turnManager.OnTurnStart -= HandleTurnStart;
+                _turnManager.OnTurnResumed -= HandleTurnResumed;
+                foreach (var c in _team1) UnsubscribeCharacter(c);
+                foreach (var c in _team2) UnsubscribeCharacter(c);
+                if (_turnManager.IsEncounterActive)
+                    _turnManager.EndEncounter();
+            }
+
+            // Static engine event — leaving this subscribed would keep the whole session (and its teams)
+            // alive and let a later encounter's checks re-enter this dead one. Detaching a handler that
+            // was never attached (Setup faulted before WireRecallKnowledge) is a harmless no-op.
+            RecallKnowledgeAction.OnKnowledgeResolved -= OnKnowledgeResolved;
+            StrikeResolver.OnStrikeResolved -= OnStrikeResolved;
+
+            // Releases every engine global this encounter still owns, and only those: a session torn down
+            // after the next encounter began leaves the live fight's wiring alone.
+            foreach (var link in _eidolons) link.Dispose();
+            _eidolons.Clear();
+            _scope?.Dispose();
+            _scope = null;
+        }
+        finally
+        {
+            Letters.Restore();
+        }
+    }
+
+    // ---------------------------------------------------------------- Turn loop
+
+    /// <summary>
+    /// Runs the encounter to completion (or abort). CANCELLATION CONTRACT: the owner passes a token
+    /// whose source it cancels on scene exit (<c>CombatScene._ExitTree</c>, before/around Teardown).
+    /// Cancellation is cooperative and surfaces two ways — a boundary check between turns, and, mid-turn,
+    /// the presenter's pacing delays / tween waits observing the SAME token and throwing
+    /// <see cref="OperationCanceledException"/> up through the AI plan and Emit chain. Either path unwinds
+    /// the loop WITHOUT running the victory flow: a torn-down scene must not raise EncounterFinished or
+    /// touch freed nodes. A NON-cancel exception (AI-planning bug, Emit fault) is logged through the
+    /// engine <see cref="Log"/> and routed to an abort finish (Team2Wins) so the encounter still ends and
+    /// the owning scene can route out instead of soft-locking. The task therefore never faults for
+    /// cancellation; the fire-and-forget caller attaches a faulted continuation only as a last backstop.
+    /// </summary>
+    public async Task RunAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var all = new List<ICharacter>(_team1.Count + _team2.Count);
+            all.AddRange(_team1);
+            all.AddRange(_team2);
+            all.RemoveAll(c => _removed.Contains(c) || _eidolons.Any(e => e.Eidolon == c));
+
+            await _runner.Emit(BattleEventType.EncounterStarted);
+            _turnManager.StartEncounter(all);
+            foreach (var link in _eidolons) _scope!.Registry.Register(link.Eidolon);
+
+            while (_turnManager.IsEncounterActive && !_finished)
+            {
+                // Cooperative cancellation point between turns (scene exit). Throwing here unwinds to
+                // the OperationCanceledException handler below — no victory flow, no freed-node touches.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var current = _turnManager.CurrentTurn?.Character;
+                if (current == null) break;
+
+                await _runner.Emit(BattleEventType.TurnStarted, source: current);
+
+                // A dying character's recovery check ran at StartTurn (DyingSystem.OnTurnStart) and called
+                // TurnManager.RequestEndTurn — dying creatures can't act. Skip the turn body (mirrors
+                // BattleSimulator.RunEncounter). StartTurn clears the flag for the next character.
+                if (_turnManager.EndTurnRequested)
+                {
+                    await _runner.Emit(BattleEventType.TurnEnded, source: current);
+                    if (await EndIfDecided(cancellationToken))
+                        return;
+                    _turnManager.EndTurn();
+                    continue;
+                }
+
+                await TutorialTurnStarted(current, cancellationToken);
+
+                if (Tutorial?.AutoPassLine(current) is { } passLine)
+                {
+                    NarrationLogged?.Invoke(current, passLine);
+                }
+                else if (IsPlayerControlled(current))
+                {
+                    var resolution = await RunPlayerTurn(current, cancellationToken);
+                    // A Delay hands the order to the engine, which starts the next turn itself.
+                    if (resolution == PlayerTurnResolution.Delay
+                        && _pendingResult == BattleResult.InProgress
+                        && await TryDelay(current))
+                        continue;
+                    // A mid-turn death may have already decided the encounter; don't start an AI plan.
+                    if (resolution == PlayerTurnResolution.HandOffToAi
+                        && _pendingResult == BattleResult.InProgress)
+                        await RunAiTurn(current);
+                }
+                else if (Tutorial?.ScriptFor(current, RoundNumber) is { } script)
+                {
+                    await RunScriptedTurn(current, script, cancellationToken);
+                }
+                else
+                {
+                    await RunAiTurn(current);
+                }
+
+                await _runner.Emit(BattleEventType.TurnEnded, source: current);
+
+                if (await EndIfDecided(cancellationToken))
+                    return;
+
+                _turnManager.EndTurn();
+            }
+
+            if (!_finished)
+                Finish(EvaluateEncounter());
+        }
+        catch (OperationCanceledException)
+        {
+            // Scene torn down mid-encounter (pacing delay / tween wait / boundary check observed the
+            // token). Teardown — run from _ExitTree alongside the cancel — owns cleanup; the loop just
+            // stops. Deliberately NO Finish: the scene is gone, EncounterFinished must not fire.
+        }
+        catch (Exception e)
+        {
+            // Without this, a bug in AI planning or an Emit chain vanishes into this unobserved Task and
+            // combat soft-locks with no result / no EncounterFinished / no log. Log through the engine
+            // sink (plain C# — no GD.* here) and route to a defeat/abort finish so the encounter still
+            // ends and the owning scene routes out. Guarded by _finished so a fault raised during the
+            // end-of-encounter flow itself is a harmless no-op.
+            Log.Error($"[CombatSession] Encounter loop faulted, aborting encounter: {e}");
+            if (!_finished)
+                Finish(BattleResult.Team2Wins);
+        }
+    }
+
+    /// <summary>
+    /// The single victory gate: runs the end-of-encounter flow (EndEncounter, EncounterEnded event,
+    /// <see cref="Finish"/>) exactly once. Prefers a result already latched by a mid-turn death,
+    /// otherwise checks now. Returns true when the encounter ended.
+    /// </summary>
+    private async Task<bool> EndIfDecided(CancellationToken cancellationToken)
+    {
+        var result = _pendingResult != BattleResult.InProgress
+            ? _pendingResult
+            : EvaluateEncounter();
+        if (result == BattleResult.InProgress)
+            return false;
+
+        if (_turnManager.IsEncounterActive)
+            _turnManager.EndEncounter();
+        await _runner.Emit(BattleEventType.EncounterEnded, description: result.ToString());
+        await TutorialEncounterEnded(result, cancellationToken);
+        Finish(result);
+        return true;
+    }
+
+    /// <summary>
+    /// The player Delayed as their turn began: announce it, then let the engine pull them out of
+    /// the order and start the next turn. False when the engine refuses (the chosen anchor is no
+    /// longer an anchor); the turn then ends normally.
+    /// </summary>
+    private async Task<bool> TryDelay(ICharacter current)
+    {
+        var anchor = _pendingDelayAnchor;
+        _pendingDelayAnchor = null;
+        if (anchor == null || DelayBlockedReason(current) != null) return false;
+        if (!_turnManager.GetDelayAnchors().Contains(anchor)) return false;
+
+        await _runner.Emit(BattleEventType.TurnDelayed, source: current, target: anchor);
+        return _turnManager.DelayCurrentTurn(anchor);
+    }
+
+    private async Task<PlayerTurnResolution> RunPlayerTurn(ICharacter current, CancellationToken cancellationToken)
+    {
+        // Async continuations so a mid-turn CreatureDied (which completes this from inside an Emit
+        // call) doesn't reentrantly unwind the turn loop within that Emit's call stack.
+        _playerTurnTcs = new TaskCompletionSource<PlayerTurnResolution>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        PlayerTurnStarted?.Invoke(current);
+        // Scene exit while the turn is parked here would suspend this task forever (nothing left to
+        // press End Turn / hand off to AI). Completing the TCS as an EndTurn on cancellation unblocks
+        // it; the loop's next boundary check then throws before an AI plan starts. Teardown does the
+        // same as a backstop for a session with no live token. Register is disposed when the turn ends.
+        using (cancellationToken.Register(
+            static tcs => ((TaskCompletionSource<PlayerTurnResolution>)tcs!)
+                .TrySetResult(PlayerTurnResolution.EndTurn),
+            _playerTurnTcs))
+        {
+            var resolution = await _playerTurnTcs.Task;
+            _playerTurnTcs = null;
+            PlayerTurnEnded?.Invoke();
+            return resolution;
+        }
+    }
+
+    // ---------------------------------------------------------------- Player intents
+
+    public bool IsPlayerControlled(ICharacter character)
+        => character.TeamId == 1 && !_aiControlled.Contains(character);
+
+    public bool IsAiToggled(ICharacter character) => _aiControlled.Contains(character);
+
+    public bool CanCommand(ICharacter character) => _commandable.Contains(character);
+
+    /// <summary>A team-1 combatant outside the party. Never handed to the player.</summary>
+    public bool IsAlly(ICharacter character) => _allies.Contains(character);
+
+    /// <summary>Guests use the cautious profile. Party members keep their class AI profiles.</summary>
+    private AIProfile ShapeAiProfile(ICharacter character, AIProfile resolved)
+        => _allies.Contains(character) ? _allyAi.Apply(resolved) : resolved;
+
+    public void SetAiToggle(ICharacter character, bool aiControlled)
+    {
+        if (!aiControlled && !_commandable.Contains(character)) return;
+        if (aiControlled) _aiControlled.Add(character);
+        else _aiControlled.Remove(character);
+
+        // Hand off immediately if the toggled character's player turn is in progress.
+        if (aiControlled && character == CurrentActor)
+            _playerTurnTcs?.TrySetResult(PlayerTurnResolution.HandOffToAi);
+    }
+
+    public void RequestEndPlayerTurn()
+        => _playerTurnTcs?.TrySetResult(PlayerTurnResolution.EndTurn);
+
+    /// <summary>
+    /// Delay the parked player turn until after <paramref name="actAfter"/>'s turn. The choice is
+    /// final. "Before any action" is the controller's rule.
+    /// </summary>
+    public void RequestDelay(ICharacter actAfter)
+    {
+        _pendingDelayAnchor = actAfter;
+        _playerTurnTcs?.TrySetResult(PlayerTurnResolution.Delay);
+    }
+
+    public const string ResumedTurnReason = "A resumed turn cannot Delay again";
+
+    /// <summary>Why the current actor cannot Delay right now, or null when they can.</summary>
+    public string? DelayBlockedReason(ICharacter character)
+    {
+        if (_turnManager == null) return "Not this combatant's turn";
+        if (ReferenceEquals(character, _resumedActor)) return ResumedTurnReason;
+        return _turnManager.CanDelay(character, out string reason) ? null : reason;
+    }
+
+    /// <summary>Living combatants a Delay may return after, in acting order: the rest of this round,
+    /// then next round up to the actor's own slot.</summary>
+    public IReadOnlyList<ICharacter> GetDelayAnchors()
+        => _turnManager?.GetDelayAnchors() ?? new List<ICharacter>();
+
+    public bool IsDelayed(ICharacter character) => _turnManager?.IsDelayed(character) == true;
+
+    // ---------------------------------------------------------------- Reaction prompts
+
+    /// <summary>True when this ally auto-uses reactions (no prompt). Default false = prompt.</summary>
+    public bool IsAutoReactions(ICharacter character) => _autoReactions.Contains(character);
+
+    public void SetAutoReactions(ICharacter character, bool autoUse)
+    {
+        if (autoUse) _autoReactions.Add(character);
+        else _autoReactions.Remove(character);
+    }
+
+    /// <summary>
+    /// The engine's PlayerReactionPolicy. Runs for player-controlled reactors only (AI-toggled
+    /// allies and enemies use the feature's AI decision inside ReactionManager). Auto-toggled
+    /// allies — or a session with no UI handler — auto-use, matching the pre-prompt behaviour.
+    /// Otherwise the handler shows a modal prompt; combat stays suspended on this Task, even when
+    /// the trigger is inside an ENEMY's turn (goblin strike → Shield Block offer).
+    /// </summary>
+    private Task<bool> DecidePlayerReaction(ReactionPromptContext ctx)
+    {
+        if (ReactionPromptHandler == null || _autoReactions.Contains(ctx.Reactor))
+            return Task.FromResult(true);
+
+        return ReactionPromptHandler(ReactionPromptBuilder.Build(ctx));
+    }
+
+    private async Task RunAiTurn(ICharacter actor)
+    {
+        await ClassAi.Act(actor,PlayerActions);
+        if (actor.Health.IsAlive && actor.Actions.TotalActionsRemaining>0) await _ai.ExecuteTurn(actor);
+    }
+
+    // ---------------------------------------------------------------- Helpers
+
+    /// <summary>The actor whose delayed turn resumed. The resumed turn is the same turn, so it cannot Delay again.</summary>
+    private ICharacter? _resumedActor;
+
+    private void HandleTurnStart(ICharacter _)
+    {
+        _resumedActor = null;
+        ReconcileOccupancy();
+        TurnChanged?.Invoke();
+    }
+
+    private void HandleTurnResumed(ICharacter character)
+    {
+        ReconcileOccupancy();
+        _resumedActor = character;
+        TurnChanged?.Invoke();
+    }
+
+    /// <summary>Retire a despawned combatant from every encounter surface. Death calls this
+    /// synchronously, before another action can query its former footprint.</summary>
+    public void RemoveCombatant(ICharacter character)
+    {
+        if (!_team1.Contains(character) && !_team2.Contains(character)) return;
+        if (!_removed.Add(character)) return;
+        Grid.RemoveCreature(character);
+        bool wasCurrent = ReferenceEquals(CurrentActor, character);
+        _turnManager.RemoveCombatant(character);
+        _scope?.Registry.Unregister(character);
+        CombatantRemoved?.Invoke(character);
+        if (wasCurrent) _playerTurnTcs?.TrySetResult(PlayerTurnResolution.EndTurn);
+    }
+
+    /// <summary>Catch silent deaths and removals made directly through the engine registry.
+    /// Before initiative starts, the registry has not been populated yet.</summary>
+    public void ReconcileOccupancy()
+    {
+        if (_scope == null) return;
+        var registered = new HashSet<ICharacter>(_scope.Registry.All);
+        foreach (var c in _team1) Reconcile(c);
+        foreach (var c in _team2) Reconcile(c);
+        void Reconcile(ICharacter c)
+        {
+            if (c.Health?.IsDead == true || (_turnManager.IsEncounterActive && !registered.Contains(c)))
+                RemoveCombatant(c);
+        }
+    }
+
+    private void Finish(BattleResult result)
+    {
+        if (_finished) return;
+        _finished = true;
+        _scope?.ReleaseDiceOverrides();
+        EncounterFinished?.Invoke(result);
+    }
+
+    /// <summary>Engine hook for StepAction. The rule itself lives on the executor, so the action bar's
+    /// step tiles and the engine's own validation can never disagree.</summary>
+    private string? ValidateStepDestination(ICharacter actor, PF2eVec dest)
+        => PlayerActions.StepBlockedReason(actor, dest);
+
+    private readonly Dictionary<ICharacter, IDisposable> _classBindings = new();
+
+    private readonly Dictionary<ICharacter, IDisposable> _featBindings = new();
+
+    private void SubscribeCharacter(ICharacter c)
+    {
+        _featBindings[c] = FeatEncounter.Bind(c,_turnManager);
+        _classBindings[c] = Ungilded.Rules.WayfarerFeature.Bind(c, _turnManager);
+        if (c.Health != null) c.Health.OnDeath += RemoveCombatant;
+        c.Health?.SubscribeToTurnEvents(_turnManager);
+        c.Equipment?.Shield?.SubscribeToTurnEvents(_turnManager);
+        c.Conditions?.SubscribeToTurnEvents(_turnManager);
+        c.CooldownTracker?.SubscribeToTurnEvents(_turnManager);
+        // Dying PCs make their recovery check at turn start via the DyingSystem's OnTurnStart hook;
+        // it then calls TurnManager.RequestEndTurn (dying creatures can't act) — RunAsync honors that.
+        c.Health?.DyingSystem?.SubscribeToTurnEvents(_turnManager);
+    }
+
+    private void UnsubscribeCharacter(ICharacter c)
+    {
+        if (_classBindings.Remove(c, out var binding)) binding.Dispose();
+        if (_featBindings.Remove(c,out var featBinding)) featBinding.Dispose();
+        if (c.Health != null) c.Health.OnDeath -= RemoveCombatant;
+        c.Health?.UnsubscribeFromTurnEvents(_turnManager);
+        c.Equipment?.Shield?.UnsubscribeFromTurnEvents(_turnManager);
+        c.Conditions?.UnsubscribeFromTurnEvents(_turnManager);
+        c.CooldownTracker?.UnsubscribeFromTurnEvents();
+        // Detach the per-encounter turn wiring only. We deliberately do NOT Dispose() the DyingSystem:
+        // Dispose severs its permanent ConditionTracker wiring (dying/wounded/doomed), which the
+        // character keeps across encounters for cross-encounter attrition (carried damage/wounds).
+        c.Health?.DyingSystem?.UnsubscribeFromTurnEvents(_turnManager);
+    }
+}

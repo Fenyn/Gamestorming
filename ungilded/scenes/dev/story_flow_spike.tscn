@@ -1,0 +1,33 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/StoryFlowSpike.cs" id="1_spike"]
+[ext_resource type="Script" path="res://scripts/story/DialogueSequence.cs" id="2_seq"]
+[ext_resource type="Script" path="res://scripts/story/SpeakerPortraits.cs" id="3_portraits"]
+[ext_resource type="PackedScene" path="res://scenes/story/prologue.tscn" id="4_prologue"]
+[ext_resource type="PackedScene" path="res://scenes/story/title.tscn" id="5_title"]
+[ext_resource type="PackedScene" path="res://scenes/dev/combat_test.tscn" id="6_board"]
+[ext_resource type="Resource" path="res://assets/portraits/player_portraits.tres" id="p_player"]
+[ext_resource type="Resource" path="res://assets/portraits/friend_portraits.tres" id="p_friend"]
+[ext_resource type="Resource" path="res://assets/story/narrative_intro.tres" id="s_intro"]
+[ext_resource type="Resource" path="res://assets/story/scene1_sewer_banter.tres" id="s_1"]
+[ext_resource type="Resource" path="res://assets/story/scene2_rat_encounter.tres" id="s_2"]
+[ext_resource type="Resource" path="res://assets/story/scene3a_post_encounter1.tres" id="s_3a"]
+[ext_resource type="Resource" path="res://assets/story/scene3b_rats_appear.tres" id="s_3b"]
+[ext_resource type="Resource" path="res://assets/story/scene4_dead_truthseeker.tres" id="s_4"]
+[ext_resource type="Resource" path="res://assets/story/scene5_flanking.tres" id="s_5"]
+[ext_resource type="Resource" path="res://assets/story/scene6_post_encounter3.tres" id="s_6"]
+[ext_resource type="Resource" path="res://assets/story/scene7_boss_chamber.tres" id="s_7"]
+[ext_resource type="Resource" path="res://assets/story/encounter1_friend_strike.tres" id="s_e1"]
+[ext_resource type="Resource" path="res://assets/story/encounter4_half_hp.tres" id="s_e4_half"]
+[ext_resource type="Resource" path="res://assets/story/encounter4_quarter_hp.tres" id="s_e4_quarter"]
+[ext_resource type="Resource" path="res://assets/story/encounter4_victory.tres" id="s_e4_victory"]
+[ext_resource type="Resource" path="res://assets/story/encounter4_closing.tres" id="s_e4_closing"]
+
+[node name="StoryFlowSpike" type="Node"]
+script = ExtResource("1_spike")
+Sequences = Array[ExtResource("2_seq")]([ExtResource("s_intro"), ExtResource("s_1"), ExtResource("s_2"), ExtResource("s_3a"), ExtResource("s_3b"), ExtResource("s_4"), ExtResource("s_5"), ExtResource("s_6"), ExtResource("s_7"), ExtResource("s_e1"), ExtResource("s_e4_half"), ExtResource("s_e4_quarter"), ExtResource("s_e4_victory"), ExtResource("s_e4_closing")])
+Portraits = Array[ExtResource("3_portraits")]([ExtResource("p_player"), ExtResource("p_friend")])
+PrologueScene = ExtResource("4_prologue")
+TitleScene = ExtResource("5_title")
+BoardScene = ExtResource("6_board")
+ShotDirectory = "res://dev_shots"

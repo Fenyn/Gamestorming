@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/story/NarrationScreen.cs" id="1_narration"]
+[ext_resource type="Theme" path="res://assets/story/story_theme.tres" id="2_theme"]
+
+[node name="NarrationScreen" type="CanvasLayer"]
+layer = 21
+script = ExtResource("1_narration")
+
+[node name="Root" type="Control" parent="."]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="Background" type="ColorRect" parent="Root"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Page" type="Label" parent="Root"]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -640.0
+offset_top = -320.0
+offset_right = 640.0
+offset_bottom = 320.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"NarrationPage"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3

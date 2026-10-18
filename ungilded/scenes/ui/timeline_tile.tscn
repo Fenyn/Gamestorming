@@ -1,0 +1,82 @@
+[gd_scene format=3]
+
+; One FFT-style timeline row: the turn number, then a portrait tile framed in the team colour
+; with the HP strip under it. Condition marks sit beside the tile. The name is kept as a hidden
+; label: it feeds the tooltip and the spikes, and the unit card shows it on hover.
+
+[node name="TimelineTile" type="HBoxContainer"]
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Number" type="Label" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 0)
+layout_mode = 2
+theme_type_variation = &"TimelineNumberAlly"
+text = "1"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Frame" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"TurnChipAlly"
+
+[node name="Column" type="VBoxContainer" parent="Frame"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="Portrait" type="TextureRect" parent="Frame/Column"]
+unique_name_in_owner = true
+texture_filter = 1
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LetterBadge" type="PanelContainer" parent="Frame/Column/Portrait"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -18.0
+offset_top = -18.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_type_variation = &"LetterBadge"
+
+[node name="Letter" type="Label" parent="Frame/Column/Portrait/LetterBadge"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"LetterBadgeLabel"
+text = "A"
+horizontal_alignment = 1
+
+[node name="HpBar" type="ProgressBar" parent="Frame/Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 6)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HpBarAlly"
+show_percentage = false
+
+[node name="Marks" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Label" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"ChipLabel"

@@ -1,0 +1,230 @@
+using Godot;
+
+namespace Ungilded.UI;
+
+/// <summary>
+/// Code-side access to the palette authored in <c>assets/ui/ui_theme.tres</c> (synthetic theme
+/// type "Palette"). The .tres is the single source of color truth; scripts tint dynamic elements
+/// through this class and never carry color literals. Lazy-loaded — call only from _Ready/render
+/// paths, never a static initializer (the theme resource may not be importable yet during
+/// engine-side static setup).
+/// </summary>
+public static class UiColors
+{
+    private const string ThemePath = "res://assets/ui/ui_theme.tres";
+    private const string PaletteType = "Palette";
+
+    private static Theme? _theme;
+
+    private static Theme PaletteTheme => _theme ??= GD.Load<Theme>(ThemePath);
+
+    private static Color Get(string name) => PaletteTheme.GetColor(name, PaletteType);
+
+    /// <summary>Bone: active states, accent strips, default buttons, available pips.</summary>
+    public static Color Accent => Get("accent");
+
+    /// <summary>Pale blue for hover and keyboard focus, in panels and on world doorways.</summary>
+    public static Color Focus => Get("focus");
+
+    /// <summary>Wardstone teal, on every screen that shows the ward.</summary>
+    public static Color Ward => Get("ward");
+
+    /// <summary>Wardstone tint for an encounter threat upshift: teal, then warn, danger, critical.</summary>
+    public static Color WardTier(int upshift) => upshift switch
+    {
+        <= 0 => Ward,
+        1 => Get("ward_warn"),
+        2 => Get("ward_danger"),
+        _ => Get("ward_critical"),
+    };
+
+    /// <summary>
+    /// One character's personal accent, keyed by catalog id, for character surfaces: hero sheet,
+    /// roster cards and camp residents. Unknown ids take the base accent, so a new character is
+    /// never colourless.
+    /// </summary>
+    public static Color CharacterAccent(string id) => id switch
+    {
+        "player" => Get("char_player"),
+        "elara" => Get("char_elara"),
+        "tharr" => Get("char_tharr"),
+        "fenwick" => Get("char_fenwick"),
+        "raven" => Get("char_raven"),
+        "thistle" => Get("char_thistle"),
+        "arkus" => Get("char_arkus"),
+        "aldric" => Get("char_aldric"),
+        "spore" => Get("char_spore"),
+        "josen" => Get("char_josen"),
+        "grub" => Get("char_grub"),
+        "sera" => Get("char_sera"),
+        "oskar" => Get("char_oskar"),
+        "hazel" => Get("char_hazel"),
+        "wynn" => Get("char_wynn"),
+        "vasska" => Get("char_vasska"),
+        "hilde" => Get("char_hilde"),
+        "flick" => Get("char_flick"),
+        _ => Accent,
+    };
+
+    /// <summary>Ground tone of a floor's map backdrop, keyed by <c>FloorTheme.Id</c>. Unknown ids
+    /// take the first floor's tones, so a new stratum is never colourless.</summary>
+    public static Color MapBase(string themeId) => themeId switch
+    {
+        "deepforest" => Get("map_base_deepforest"),
+        "station" => Get("map_base_swamp"),
+        _ => Get("map_base_grassland"),
+    };
+
+    /// <summary>Fog tint of a floor's map backdrop, keyed by <c>FloorTheme.Id</c>.</summary>
+    public static Color MapFog(string themeId) => themeId switch
+    {
+        "deepforest" => Get("map_fog_deepforest"),
+        "station" => Get("map_fog_swamp"),
+        _ => Get("map_fog_grassland"),
+    };
+
+    /// <summary>Fill of a run-map medallion.</summary>
+    public static Color NodeFace => Get("node_face");
+
+    /// <summary>Fill of a hovered run-map medallion.</summary>
+    public static Color NodeFaceHover => Get("node_face_hover");
+
+    /// <summary>Ally (team 1) identity color.</summary>
+    public static Color Ally => Get("ally");
+
+    /// <summary>Enemy (team 2) identity color.</summary>
+    public static Color Enemy => Get("enemy");
+
+    /// <summary>Near-black: text outlines over open ground, deepest fills.</summary>
+    public static Color Ink => Get("ink");
+
+    /// <summary>Drawing colours for maps and marks on parchment surfaces (the minimap, menus).</summary>
+    public static Color ParchmentCell => Get("parchment_cell");
+    public static Color ParchmentCellHot => Get("parchment_cell_hot");
+    public static Color ParchmentInk => Get("parchment_ink");
+    public static Color ParchmentLine => Get("parchment_line");
+    public static Color ParchmentDim => Get("parchment_dim");
+
+    /// <summary>Standard translucent panel field.</summary>
+    public static Color Surface => Get("surface");
+
+    /// <summary>Recessed sub-panel field (ticker, preview card, tooltips).</summary>
+    public static Color Inset => Get("inset");
+
+    /// <summary>1 px borders and separators.</summary>
+    public static Color Line => Get("line");
+
+    /// <summary>Body text.</summary>
+    public static Color Text => Get("text");
+
+    /// <summary>Secondary text, detail log entries.</summary>
+    public static Color TextDim => Get("text_dim");
+
+    /// <summary>Disabled control text.</summary>
+    public static Color TextDisabled => Get("text_disabled");
+
+    /// <summary>Dark text on accent fills (active turn chip, accent buttons).</summary>
+    public static Color TextInverse => Get("text_inverse");
+
+    /// <summary>HP fill/text at ratio &gt; 0.5.</summary>
+    public static Color HpHigh => Get("hp_high");
+
+    /// <summary>HP fill/text at ratio &gt; 0.25.</summary>
+    public static Color HpMid => Get("hp_mid");
+
+    /// <summary>HP fill/text at ratio &lt;= 0.25.</summary>
+    public static Color HpLow => Get("hp_low");
+
+    /// <summary>Board damage popups: a miss, an untyped crit and a heal.</summary>
+    public static Color PopupMiss => Get("popup_miss");
+    public static Color PopupCrit => Get("popup_crit");
+    public static Color PopupHeal => Get("popup_heal");
+
+    /// <summary>Victory banner headline.</summary>
+    public static Color Victory => Get("victory");
+
+    /// <summary>Defeat banner headline.</summary>
+    public static Color Defeat => Get("defeat");
+
+    /// <summary>Full-screen backdrop behind modals.</summary>
+    public static Color ModalDim => Get("modal_dim");
+
+    private static Color[]? _logSeverity;
+    public static Color LogAlly => Get("log_ally");
+    public static Color LogEnemy => Get("log_enemy");
+
+    /// <summary>
+    /// Combat-log entry colors indexed by PF2e.Core.CombatLogSeverity ordinal (kept as ints so the
+    /// log Control stays engine-free). Order must match the engine enum: Info, Hit, CriticalHit,
+    /// Miss, CriticalMiss, Healing, ConditionApplied, ConditionRemoved, ActionHeader, Reaction.
+    /// </summary>
+    public static Color[] LogSeverity => _logSeverity ??= new[]
+    {
+        Get("log_info"),
+        Get("log_hit"),
+        Get("log_crit_hit"),
+        Get("log_miss"),
+        Get("log_crit_miss"),
+        Get("log_healing"),
+        Get("log_condition_applied"),
+        Get("log_condition_removed"),
+        Get("log_action_header"),
+        Get("log_reaction"),
+    };
+
+    /// <summary>Green→amber→red HP fill/text tint by remaining-HP ratio (0..1). Shared by every
+    /// spot that colors a value by HP fraction (action bar vitals, unit inspect, unit-token bars).</summary>
+    public static Color HpFillColor(float ratio)
+        => ratio > 0.5f ? HpHigh : ratio > 0.25f ? HpMid : HpLow;
+
+    // ---------------------------------------------------------------- Board overlays
+
+    /// <summary>Idle band fill of an adjacent tile a careful Step reaches (safe: no reactions).</summary>
+    public static Color BoardStep => Get("board_step");
+
+    /// <summary>Idle band fill for a tile <paramref name="actions"/> Strides away: distinct colours
+    /// for one and two actions, one faint colour for everything further (quickened included).</summary>
+    public static Color BoardStride(int actions) => actions switch
+    {
+        <= 1 => Get("board_stride_1"),
+        2 => Get("board_stride_2"),
+        _ => Get("board_stride_far"),
+    };
+
+    /// <summary>Frame around the hovered board tile.</summary>
+    public static Color BoardCursor => Get("board_cursor");
+
+    /// <summary>Tutorial guide tiles: the only tiles a restricted move accepts. The alpha is the
+    /// top of their pulse.</summary>
+    public static Color BoardGuide => Get("board_guide");
+
+    /// <summary>Path-preview dots.</summary>
+    public static Color BoardPath => Get("board_path");
+
+    /// <summary>The crystal that hovers over the unit whose turn it is.</summary>
+    public static Color BoardCrystal => Get("board_crystal");
+
+    /// <summary>Sprite flash on a landed hit, and on a shield taking one. Above 1, so they overbright.</summary>
+    public static Color BoardFlashHit => Get("board_flash_hit");
+    public static Color BoardFlashShield => Get("board_flash_shield");
+
+    /// <summary>The final tint of a dead unit's sprite.</summary>
+    public static Color BoardCorpse => Get("board_corpse");
+
+    /// <summary>Glowing threshold tile in a dungeon doorway, in ward teal; hot while hovered.</summary>
+    public static Color BoardDoor(bool hot) => Get(hot ? "board_door_hot" : "board_door");
+
+    /// <summary>Area-template fill while aiming an area spell.</summary>
+    public static Color BoardArea => Get("board_area");
+
+    /// <summary>Fill of a targeting-mode highlight, by kind.</summary>
+    public static Color BoardHighlight(Ungilded.Combat.HighlightKind kind) => kind switch
+    {
+        Ungilded.Combat.HighlightKind.Move => Get("board_move"),
+        Ungilded.Combat.HighlightKind.StrikeTarget => Get("board_strike"),
+        Ungilded.Combat.HighlightKind.SpellEnemyTarget => Get("board_spell_enemy"),
+        Ungilded.Combat.HighlightKind.AllyTarget => Get("board_ally_target"),
+        Ungilded.Combat.HighlightKind.AreaOrigin => Get("board_area_origin"),
+        _ => Get("board_move"),
+    };
+}

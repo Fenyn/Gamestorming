@@ -1,0 +1,152 @@
+using System;
+using System.Threading.Tasks;
+using Ungilded.Autoload;
+using Godot;
+using PF2e.Core;
+using PF2e.Events;
+
+namespace Ungilded.Dev;
+
+/// <summary>
+/// Shared harness for the headless dev spikes. <see cref="_Ready"/> is the template method every
+/// spike runs through: banner, DataManager resolution, the spike body, then the "SPIKE RESULT"
+/// banner that gates the process exit code (the line CI/tooling greps for). A spike only writes
+/// <see cref="RunSpikeAsync"/>.
+///
+/// The try/catch around the body is load-bearing: an exception thrown inside a fire-and-forget
+/// async void run used to leave the process alive with no result line at all, which reads as a
+/// hang. Now it prints FAIL and exits 1.
+/// </summary>
+public abstract partial class SpikeBase : Node
+{
+    private int _checks;
+    private int _failures;
+
+    /// <summary>Failures recorded so far (checks plus <see cref="Fail"/> calls).</summary>
+    protected int Failures => _failures;
+
+    /// <summary>Banner printed before the spike body. Override for a custom title.</summary>
+    protected virtual string Banner => $"==================== {GetType().Name} ====================";
+
+    /// <summary>Tag on the counts line. Defaults to the spike class name.</summary>
+    protected virtual string Tag => GetType().Name;
+
+    /// <summary>The spike body. The harness owns the banner, the DataManager check, error
+    /// handling and the exit; this only runs checks.</summary>
+    protected abstract Task RunSpikeAsync(DataManager data);
+
+    public sealed override void _Ready() => _ = RunAsync();
+
+    private async Task RunAsync()
+    {
+        GD.Print(Banner);
+
+        var data = DataManager.Instance;
+        if (data == null || !data.IsLoaded)
+        {
+            AbortFail($"[{Tag}] DataManager not loaded — aborting.");
+            return;
+        }
+
+        try
+        {
+            await RunSpikeAsync(data);
+        }
+        catch (Exception e)
+        {
+            GD.PushError($"[{Tag}] Unhandled exception: {e}");
+            Fail();
+        }
+
+        FinishAndQuit(Tag);
+    }
+
+    /// <summary>Record one check: prints "[PASS]/[FAIL] label" and counts a failure on false.</summary>
+    protected void Check(string label, bool ok)
+    {
+        _checks++;
+        if (!ok) _failures++;
+        GD.Print($"  [{(ok ? "PASS" : "FAIL")}] {label}");
+    }
+
+    /// <summary>Record a failure discovered outside a check (e.g. an unhandled exception path).</summary>
+    protected void Fail() => _failures++;
+
+    /// <summary>
+    /// Install the pass-through damage-reaction handler for the duration of a spike.
+    /// StrikeResolver / SpellCastAction throw when damage delivery finds no handler, and three
+    /// spikes each carried their own copy of this two-line install/remove pair.
+    /// </summary>
+    protected static IDisposable UsePassthroughReactions()
+    {
+        ReactionEvents.DamageReactionHandler handler =
+            (src, tgt, result, applyDamage) => { applyDamage(); return Task.CompletedTask; };
+        ReactionEvents.OnDamageReactionCheck += handler;
+        return new Scope(() => ReactionEvents.OnDamageReactionCheck -= handler);
+    }
+
+    /// <summary>True while the combat HUD's bottom-right hints offer Cancel (every targeting mode).</summary>
+    protected static bool CancelHinted(Node combatScene) =>
+        System.Linq.Enumerable.Contains(combatScene.GetNode<Ungilded.UI.CommandPromptView>("%CommandPrompt").HintLabels, "Cancel");
+
+    /// <summary>Save the viewport as a PNG. With hdr_2d on, the viewport texture holds linear
+    /// values; the root window's UseHdr2D does not reflect the project setting, so read the setting.
+    /// UNGILDED_SHOT_DIRECTORY, when set, replaces the directory of <paramref name="path"/>.
+    /// <paramref name="size"/> resizes the image before saving.</summary>
+    protected Error SaveViewportCapture(string path, Vector2I? size = null)
+    {
+        string directory = OS.GetEnvironment("UNGILDED_SHOT_DIRECTORY");
+        if (!string.IsNullOrEmpty(directory)) path = directory.PathJoin(path.GetFile());
+        DirAccess.MakeDirRecursiveAbsolute(ProjectSettings.GlobalizePath(path.GetBaseDir()));
+        using var image = GetViewport().GetTexture().GetImage();
+        image.Convert(Image.Format.Rgba8);
+        if (GetViewport().UseHdr2D || ProjectSettings.GetSetting("rendering/viewport/hdr_2d").AsBool())
+            image.LinearToSrgb();
+        if (size is { } target) image.Resize(target.X, target.Y, Image.Interpolation.Bilinear);
+        Error error = image.SavePng(path);
+        GD.Print($"[capture] {path.GetFile()}: {error} ({ProjectSettings.GlobalizePath(path)})");
+        return error;
+    }
+
+    /// <summary>Wait <paramref name="seconds"/> of real time, then one more frame so a capture reads
+    /// the pose that was just set.</summary>
+    protected async Task WaitSeconds(float seconds)
+    {
+        var timer = GetTree().CreateTimer(seconds);
+        await ToSignal(timer, SceneTreeTimer.SignalName.Timeout);
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+    }
+
+    /// <summary>True when the process runs without a window (<c>--headless</c>).</summary>
+    protected static bool Headless => DisplayServer.GetName() == "headless";
+
+    /// <summary>Print the counts + result banner and quit with the gating exit code.</summary>
+    protected void FinishAndQuit(string tag)
+    {
+        GD.Print("---------------------------------------------------------");
+        bool pass = _failures == 0;
+        GD.Print($"[{tag}] checks: {_checks}, failures: {_failures}");
+        GD.Print($"SPIKE RESULT: {(pass ? "PASS" : "FAIL")}");
+        // Finalize wrapper objects while the engine is alive. A Godot.Collections.Array finalizer
+        // that ran after shutdown crashed one smoke run with 0xC0000005.
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GetTree().Quit(pass ? 0 : 1);
+    }
+
+    /// <summary>Hard abort (missing content, broken precondition): error log, FAIL banner, exit 1.</summary>
+    protected void AbortFail(string message)
+    {
+        GD.PushError(message);
+        GD.Print("SPIKE RESULT: FAIL");
+        GetTree().Quit(1);
+    }
+
+    /// <summary>Run an action when the scope is disposed.</summary>
+    private sealed class Scope : IDisposable
+    {
+        private Action? _onDispose;
+        public Scope(Action onDispose) => _onDispose = onDispose;
+        public void Dispose() { _onDispose?.Invoke(); _onDispose = null; }
+    }
+}

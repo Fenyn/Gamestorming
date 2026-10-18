@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; One-shot defeat dissipation (see scripts/fx/DeathPoof.cs). A bare Node3D root: the puff geometry is
+; generated and tweened per-instance in code from Tint/FxScale/Lifetime, which GodotPresenter3D.SpawnFx
+; sets before AddChild. Do not author children here.
+
+[ext_resource type="Script" path="res://scripts/fx/DeathPoof.cs" id="1_deathpoof"]
+
+[node name="DeathPoof" type="Node3D"]
+script = ExtResource("1_deathpoof")

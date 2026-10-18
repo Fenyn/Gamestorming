@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; One-shot shield/block flash (see scripts/fx/ShieldFlash.cs). A bare Node3D root: the ring geometry is
+; generated and tweened per-instance in code from Tint/FxScale/BlockStrength, which GodotPresenter3D
+; sets before AddChild. Do not author children here.
+
+[ext_resource type="Script" path="res://scripts/fx/ShieldFlash.cs" id="1_shieldflash"]
+
+[node name="ShieldFlash" type="Node3D"]
+script = ExtResource("1_shieldflash")

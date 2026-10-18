@@ -1,0 +1,99 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/story/PrologueDirector.cs" id="1_director"]
+[ext_resource type="Script" path="res://scripts/story/PrologueBeat.cs" id="2_beat"]
+[ext_resource type="PackedScene" path="res://scenes/story/fade_overlay.tscn" id="3_fade"]
+[ext_resource type="PackedScene" path="res://scenes/story/narration.tscn" id="4_narration"]
+[ext_resource type="PackedScene" path="res://scenes/story/dialogue_box.tscn" id="5_dialogue"]
+[ext_resource type="PackedScene" path="res://scenes/story/tutorial_popup.tscn" id="6_popup"]
+[ext_resource type="Resource" path="res://assets/story/narrative_intro.tres" id="s_intro"]
+[ext_resource type="Resource" path="res://assets/story/scene1_sewer_banter.tres" id="s_1"]
+[ext_resource type="Resource" path="res://assets/story/scene2_rat_encounter.tres" id="s_2"]
+[ext_resource type="Resource" path="res://assets/story/scene3a_post_encounter1.tres" id="s_3a"]
+[ext_resource type="Resource" path="res://assets/story/scene3b_rats_appear.tres" id="s_3b"]
+[ext_resource type="Resource" path="res://assets/story/scene4_dead_truthseeker.tres" id="s_4"]
+[ext_resource type="Resource" path="res://assets/story/scene5_flanking.tres" id="s_5"]
+[ext_resource type="Resource" path="res://assets/story/scene6_post_encounter3.tres" id="s_6"]
+[ext_resource type="Resource" path="res://assets/story/scene7_boss_chamber.tres" id="s_7"]
+
+[sub_resource type="Resource" id="b01"]
+script = ExtResource("2_beat")
+Kind = 0
+Sequence = ExtResource("s_intro")
+
+[sub_resource type="Resource" id="b02"]
+script = ExtResource("2_beat")
+Kind = 1
+Sequence = ExtResource("s_1")
+
+[sub_resource type="Resource" id="b03"]
+script = ExtResource("2_beat")
+Kind = 1
+Sequence = ExtResource("s_2")
+
+[sub_resource type="Resource" id="b04"]
+script = ExtResource("2_beat")
+Kind = 2
+Encounter = 1
+
+[sub_resource type="Resource" id="b05"]
+script = ExtResource("2_beat")
+Kind = 1
+Sequence = ExtResource("s_3a")
+
+[sub_resource type="Resource" id="b06"]
+script = ExtResource("2_beat")
+Kind = 1
+Sequence = ExtResource("s_3b")
+
+[sub_resource type="Resource" id="b07"]
+script = ExtResource("2_beat")
+Kind = 2
+Encounter = 2
+
+[sub_resource type="Resource" id="b08"]
+script = ExtResource("2_beat")
+Kind = 1
+Sequence = ExtResource("s_4")
+
+[sub_resource type="Resource" id="b09"]
+script = ExtResource("2_beat")
+Kind = 1
+Sequence = ExtResource("s_5")
+
+[sub_resource type="Resource" id="b10"]
+script = ExtResource("2_beat")
+Kind = 2
+Encounter = 3
+
+[sub_resource type="Resource" id="b11"]
+script = ExtResource("2_beat")
+Kind = 1
+Sequence = ExtResource("s_6")
+
+[sub_resource type="Resource" id="b12"]
+script = ExtResource("2_beat")
+Kind = 1
+Sequence = ExtResource("s_7")
+
+[sub_resource type="Resource" id="b13"]
+script = ExtResource("2_beat")
+Kind = 2
+Encounter = 4
+
+[node name="Prologue" type="Node"]
+script = ExtResource("1_director")
+Beats = Array[ExtResource("2_beat")]([SubResource("b01"), SubResource("b02"), SubResource("b03"), SubResource("b04"), SubResource("b05"), SubResource("b06"), SubResource("b07"), SubResource("b08"), SubResource("b09"), SubResource("b10"), SubResource("b11"), SubResource("b12"), SubResource("b13")])
+TitleScenePath = "res://scenes/story/title.tscn"
+
+[node name="Fade" parent="." instance=ExtResource("3_fade")]
+unique_name_in_owner = true
+
+[node name="Narration" parent="." instance=ExtResource("4_narration")]
+unique_name_in_owner = true
+
+[node name="Dialogue" parent="." instance=ExtResource("5_dialogue")]
+unique_name_in_owner = true
+
+[node name="Popup" parent="." instance=ExtResource("6_popup")]
+unique_name_in_owner = true

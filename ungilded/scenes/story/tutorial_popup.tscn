@@ -1,0 +1,49 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/story/TutorialPopup.cs" id="1_popup"]
+[ext_resource type="Theme" path="res://assets/story/story_theme.tres" id="2_theme"]
+
+[node name="TutorialPopup" type="CanvasLayer"]
+layer = 23
+script = ExtResource("1_popup")
+
+[node name="Root" type="Control" parent="."]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="Panel" type="PanelContainer" parent="Root"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -520.0
+offset_top = 140.0
+offset_right = 520.0
+offset_bottom = 300.0
+grow_horizontal = 2
+theme_type_variation = &"ScreenFrame"
+
+[node name="Content" type="VBoxContainer" parent="Root/Panel"]
+layout_mode = 2
+theme_type_variation = &"StoryStack"
+
+[node name="Text" type="RichTextLabel" parent="Root/Panel/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"DialogueText"
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="Continue" type="Button" parent="Root/Panel/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+theme_type_variation = &"AccentButton"
+text = "Continue"

@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/looks/forest.tscn" id="forest"]
+
+[node name="FringeLook" instance=ExtResource("forest")]
+HaloDesaturate = 0.0
+HaloDarken = 0.0

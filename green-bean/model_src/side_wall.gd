@@ -26,9 +26,9 @@ const CASING_DEPTH := 0.039
 const DOOR_Z := 0.1
 const DOOR_HALF := 0.425
 const DOOR_Y := Vector2(0.1, 2.13)
-const DOOR_COLOR := Color(0.22, 0.42, 0.28)
+const DOOR_COLOR := Color(0.37, 0.41, 0.24)
 const INSIDE := Color(0.902, 0.835, 0.733)
-const OUTSIDE := Color(0.306, 0.388, 0.388)
+const OUTSIDE := Color(0.29, 0.27, 0.25)
 const TRIM := Color(0.898, 0.6, 0.392)
 
 static func build(side := 1, opening := "window") -> Node3D:

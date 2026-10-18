@@ -2,7 +2,7 @@ extends RefCounted
 
 ## Signage for the stand, one builder per piece:
 ## - roof_sign(): name board standing on the roof's front edge, 1.7 x 0.38 m,
-##   cream face in a dark green frame with a coffee bean and the stand's name.
+##   cream face in a dark olive frame with a coffee bean and the stand's name.
 ##   Origin: base centre on the roof deck. Faces +Z.
 ## - hanging_sign(text): 62 x 15 cm board on two chains, lettered both sides.
 ##   Origin: the hang point (top centre). Faces +Z.
@@ -14,7 +14,7 @@ extends RefCounted
 
 const MK := preload("res://model_src/model_kit.gd")
 
-const GREEN := Color(0.22, 0.42, 0.28)
+const OLIVE := Color(0.37, 0.41, 0.24)
 const CREAM := Color(0.95, 0.92, 0.84)
 const CHALK := Color(0.16, 0.18, 0.17)
 const CHALK_TEXT := Color(0.93, 0.92, 0.88)
@@ -35,7 +35,7 @@ static func roof_sign() -> Node3D:
 	root.name = "RoofSign"
 	var size := Vector3(1.7, 0.38, 0.05)
 	var lift := 0.06
-	var frame_color := GREEN.darkened(0.2)
+	var frame_color := OLIVE.darkened(0.2)
 	var frame: Material = MK.mat(frame_color, 0.0, 0.6)
 	for sx in [-1.0, 1.0]:
 		MK.box(root, "Leg", Vector3(0.05, lift + 0.15, 0.05), Vector3(float(sx) * 0.6, (lift + 0.15) * 0.5, -0.05), frame)
@@ -73,7 +73,7 @@ static func hanging_sign(text: String) -> Node3D:
 		MK.cyl(root, "Chain", 0.003, 0.003, drop, Vector3(float(sx) * 0.25, -drop * 0.5, 0), chain, 6)
 		MK.cyl(root, "Hook", 0.008, 0.008, 0.01, Vector3(float(sx) * 0.25, -0.005, 0), chain, 8)
 	var y := -drop - board.y * 0.5
-	MK.rounded_box(root, "Board", board, Vector3(0, y, 0), 0.01, MK.mat(GREEN, 0.0, 0.6))
+	MK.rounded_box(root, "Board", board, Vector3(0, y, 0), 0.01, MK.mat(OLIVE, 0.0, 0.6))
 	for face in [1.0, -1.0]:
 		var l := _text(root, text, Vector3(0, y, float(face) * (board.z * 0.5 + 0.002)), 72, 0.0012, CREAM)
 		if face < 0.0:

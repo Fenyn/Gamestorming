@@ -1,6 +1,6 @@
 extends RefCounted
 
-## Flat roof for the walk-up stand: dark membrane deck, green fascia all round,
+## Flat roof for the walk-up stand: dark membrane deck, olive fascia all round,
 ## wood plank soffits under the overhangs (1 m over the customers at the front),
 ## a cream ceiling inside, and a header beam over the open service window.
 ## Origin: top of the walls at the stand's centre (shop (0, 2.5, 0)), so x and z
@@ -14,14 +14,14 @@ const INNER := Rect2(-1.7, -1.2, 3.4, 2.45)
 const OUTER_WALL := Rect2(-1.8, -1.3, 3.6, 2.55)
 const DECK := 0.1
 const FASCIA_H := 0.2
-const GREEN := Color(0.22, 0.42, 0.28)
+const OLIVE := Color(0.37, 0.41, 0.24)
 const MEMBRANE := Color(0.28, 0.29, 0.3)
 const CEILING := Color(0.95, 0.93, 0.88)
 
 static func build() -> Node3D:
 	var root := Node3D.new()
 	root.name = "StandRoof"
-	var green: Material = MK.mat(GREEN, 0.0, 0.6)
+	var olive: Material = MK.mat(OLIVE, 0.0, 0.6)
 	MK.box(root, "Deck", Vector3(EAVE.size.x, DECK, EAVE.size.y), _at(EAVE, DECK * 0.5), MK.mat(MEMBRANE, 0.0, 0.9))
 	MK.box(root, "Ceiling", Vector3(INNER.size.x, 0.012, INNER.size.y), _at(INNER, -0.006), MK.mat(CEILING, 0.0, 0.9))
 
@@ -32,13 +32,13 @@ static func build() -> Node3D:
 			[Vector3(EAVE.size.x + 0.06, FASCIA_H, 0.03), Vector3(EAVE.get_center().x, fy, EAVE.position.y - 0.015)],
 			[Vector3(0.03, FASCIA_H, EAVE.size.y), Vector3(EAVE.end.x + 0.015, fy, EAVE.get_center().y)],
 			[Vector3(0.03, FASCIA_H, EAVE.size.y), Vector3(EAVE.position.x - 0.015, fy, EAVE.get_center().y)]]:
-		MK.box(root, "Fascia", side[0], side[1], green)
+		MK.box(root, "Fascia", side[0], side[1], olive)
 		MK.box(root, "DripEdge", Vector3(side[0].x + 0.01, 0.012, side[0].z + 0.01), side[1] + Vector3(0, FASCIA_H * 0.5 + 0.006, 0), drip)
 
 	_build_soffits(root)
 
 	# Header beam across the service window, under the ceiling line.
-	MK.box(root, "Header", Vector3(INNER.size.x + 0.36, 0.16, 0.12), Vector3(0, -0.08, INNER.end.y), green)
+	MK.box(root, "Header", Vector3(INNER.size.x + 0.36, 0.16, 0.12), Vector3(0, -0.08, INNER.end.y), olive)
 	return root
 
 ## Planks run across each overhang, outside the walls only.

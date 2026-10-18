@@ -28,8 +28,8 @@ static func umbrella() -> Node3D:
 	MK.cyl(root, "Pole", 0.02, 0.02, 2.2, Vector3(0, 1.1, 0), pole, 10)
 	MK.cyl(root, "Base", 0.22, 0.24, 0.06, Vector3(0, 0.03, 0), MK.mat(Color(0.25, 0.25, 0.26), 0.3, 0.6), 16)
 	var canvas: Material = MK.mat(Color(0.93, 0.9, 0.82), 0.0, 0.9)
-	var trim: Material = MK.mat(Color(0.22, 0.42, 0.28), 0.0, 0.8)
-	# Eight-panel canopy as a shallow cone with a green valance.
+	var trim: Material = MK.mat(Color(0.37, 0.41, 0.24), 0.0, 0.8)
+	# Eight-panel canopy as a shallow cone with an olive valance.
 	MK.cyl(root, "Canopy", 0.9, 0.04, 0.32, Vector3(0, 2.0, 0), canvas, 8)
 	MK.cyl(root, "Valance", 0.905, 0.905, 0.08, Vector3(0, 1.82, 0), trim, 8)
 	MK.sphere(root, "Finial", 0.035, Vector3(0, 2.2, 0), pole, 1.0, 8)

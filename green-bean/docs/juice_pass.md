@@ -74,7 +74,7 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
 - Two eyes on the front, so facing reads.
 - They turn toward where they walk, and toward the player while waiting.
 - They hop and waddle while walking and breathe while idle. Below 35% patience they start swaying.
-- Patience bars blend green to yellow to red. Below 25% the bar shakes and pulses.
+- Patience bars blend sage to amber to red. Below 25% the bar shakes and pulses.
 
 ## Tuning knobs
 

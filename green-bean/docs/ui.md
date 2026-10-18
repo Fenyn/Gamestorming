@@ -30,7 +30,7 @@ One theme for every screen: the HUD, the title screen, the end-of-day card, the 
 | `ROAST` | Panels and chips, translucent over the world |
 | `CREMA` | Main text on dark |
 | `STEAM` | Secondary text |
-| `GREEN`, `GREEN_DEEP` | The one accent (the roof sign's green): selection, money in, done |
+| `SAGE`, `OLIVE` | The one accent, the colours of raw coffee beans. Olive is also the stand's trim and sign frame. Selection, money in, done |
 | `AMBER` | Warnings and good reviews |
 | `RED` | Failures |
 | `PAPER`, `INK` | The cup ticket |

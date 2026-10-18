@@ -2,8 +2,8 @@ class_name UiStyle
 extends RefCounted
 
 ## Green Bean's UI tokens and the project theme built from them.
-## Palette: dark roast panels with crema text, the roof sign's green as the one
-## accent, amber for warnings, red for failures, receipt paper and ink for the
+## Palette: dark roast panels with crema text, the sage and olive of raw coffee
+## beans as the one accent (olive is also the stand's trim and sign frame), amber for warnings, red for failures, receipt paper and ink for the
 ## cup ticket. One family (Nunito) at a few weights. Sizes are for the
 ## 1920 x 1080 base viewport.
 ## Styleboxes come from godot_base's StyleFactory. tools/build_ui_theme.gd saves
@@ -17,8 +17,9 @@ const ROAST := Color("231915")
 const ROAST_RAISED := Color("3a2b22")
 const CREMA := Color("f3e9d7")
 const STEAM := Color("b5a491")
-const GREEN := Color("6aa877")
-const GREEN_DEEP := Color("386b47")
+## Sage and olive: the colour of unroasted (green) coffee beans.
+const SAGE := Color("a3a77b")
+const OLIVE := Color("5e683e")
 const AMBER := Color("e8a93f")
 const RED := Color("dc6249")
 const PAPER := Color("faf6ee")
@@ -152,7 +153,7 @@ static func build_theme() -> Theme:
 	_label_type(t, DISPLAY, SIZE_DISPLAY, W_BLACK, CREMA)
 	_label_type(t, TITLE, SIZE_HERO, W_BLACK, CREMA)
 
-	# Buttons: roast at rest, the sign green when hovered or pressed.
+	# Buttons: roast at rest, olive when hovered or pressed.
 	t.set_font(&"font", &"Button", font(W_BOLD))
 	t.set_font_size(&"font_size", &"Button", SIZE_LEAD)
 	t.set_color(&"font_color", &"Button", CREMA)
@@ -161,10 +162,10 @@ static func build_theme() -> Theme:
 	t.set_color(&"font_focus_color", &"Button", CREMA)
 	t.set_color(&"font_disabled_color", &"Button", Color(STEAM, 0.55))
 	t.set_stylebox(&"normal", &"Button", _panel(ROAST_RAISED, RADIUS_PANEL - 4, SPACE_XL, SPACE_S + 2))
-	t.set_stylebox(&"hover", &"Button", _panel(GREEN_DEEP, RADIUS_PANEL - 4, SPACE_XL, SPACE_S + 2))
-	t.set_stylebox(&"pressed", &"Button", _panel(GREEN_DEEP.darkened(0.2), RADIUS_PANEL - 4, SPACE_XL, SPACE_S + 2))
+	t.set_stylebox(&"hover", &"Button", _panel(OLIVE, RADIUS_PANEL - 4, SPACE_XL, SPACE_S + 2))
+	t.set_stylebox(&"pressed", &"Button", _panel(OLIVE.darkened(0.2), RADIUS_PANEL - 4, SPACE_XL, SPACE_S + 2))
 	t.set_stylebox(&"disabled", &"Button", _panel(Color(ROAST_RAISED, 0.5), RADIUS_PANEL - 4, SPACE_XL, SPACE_S + 2))
-	var focus := StyleFactory.flat(Color.TRANSPARENT, GREEN, 2, RADIUS_PANEL - 4, 0)
+	var focus := StyleFactory.flat(Color.TRANSPARENT, SAGE, 2, RADIUS_PANEL - 4, 0)
 	t.set_stylebox(&"focus", &"Button", focus)
 
 	# Tooltips

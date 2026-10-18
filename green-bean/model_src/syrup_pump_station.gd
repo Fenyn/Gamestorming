@@ -85,7 +85,7 @@ static func _build_tag(root: Node3D, c: Vector3) -> void:
 	var strand := MK.box(root, "TagString", Vector3(0.0012, run.length(), 0.0012), (from + card_top) * 0.5, cord)
 	strand.rotation.x = atan2(run.z, run.y)
 	MK.box(tag, "Card", Vector3(0.05, 0.03, 0.0008), Vector3.ZERO, MK.mat(Color(0.97, 0.95, 0.88), 0.0, 0.8))
-	MK.box(tag, "Edge", Vector3(0.052, 0.032, 0.0006), Vector3(0, 0, -0.0005), MK.mat(Color(0.22, 0.42, 0.28), 0.0, 0.8))
+	MK.box(tag, "Edge", Vector3(0.052, 0.032, 0.0006), Vector3(0, 0, -0.0005), MK.mat(Color(0.37, 0.41, 0.24), 0.0, 0.8))
 	var t := Label3D.new()
 	t.name = "Text"
 	t.text = "PUMPS"

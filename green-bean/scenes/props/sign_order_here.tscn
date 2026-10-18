@@ -33,8 +33,8 @@ height = 0.01
 radial_segments = 8
 rings = 1
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lnpdj"]
-albedo_color = Color(0.22, 0.42, 0.28, 1)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aae7j"]
+albedo_color = Color(0.37, 0.41, 0.24, 1)
 roughness = 0.6
 
 [sub_resource type="BoxMesh" id="BoxMesh_ygag7"]
@@ -71,59 +71,59 @@ height = 0.15
 radial_segments = 10
 rings = 1
 
-[node name="HangingSign" type="Node3D" unique_id=1608718989]
+[node name="HangingSign" type="Node3D" unique_id=7984118]
 
-[node name="Chain" type="MeshInstance3D" parent="." unique_id=1848277423]
+[node name="Chain" type="MeshInstance3D" parent="." unique_id=1077821404]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, -0.1, 0)
 material_override = SubResource("StandardMaterial3D_nhi7d")
 mesh = SubResource("CylinderMesh_o6f7g")
 
-[node name="Hook" type="MeshInstance3D" parent="." unique_id=1279238905]
+[node name="Hook" type="MeshInstance3D" parent="." unique_id=1336449910]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.25, -0.005, 0)
 material_override = SubResource("StandardMaterial3D_nhi7d")
 mesh = SubResource("CylinderMesh_3ggen")
 
-[node name="Chain2" type="MeshInstance3D" parent="." unique_id=1583465969]
+[node name="Chain2" type="MeshInstance3D" parent="." unique_id=924839743]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, -0.1, 0)
 material_override = SubResource("StandardMaterial3D_nhi7d")
 mesh = SubResource("CylinderMesh_cdes1")
 
-[node name="Hook2" type="MeshInstance3D" parent="." unique_id=1521688314]
+[node name="Hook2" type="MeshInstance3D" parent="." unique_id=1237241210]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, -0.005, 0)
 material_override = SubResource("StandardMaterial3D_nhi7d")
 mesh = SubResource("CylinderMesh_xcd3a")
 
-[node name="Board" type="MeshInstance3D" parent="." unique_id=1392877848]
+[node name="Board" type="MeshInstance3D" parent="." unique_id=1442719048]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.275, 0)
-material_override = SubResource("StandardMaterial3D_lnpdj")
+material_override = SubResource("StandardMaterial3D_aae7j")
 mesh = SubResource("BoxMesh_ygag7")
 
-[node name="BoardSides" type="MeshInstance3D" parent="." unique_id=730328716]
+[node name="BoardSides" type="MeshInstance3D" parent="." unique_id=1753947916]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.275, 0)
-material_override = SubResource("StandardMaterial3D_lnpdj")
+material_override = SubResource("StandardMaterial3D_aae7j")
 mesh = SubResource("BoxMesh_q30ua")
 
-[node name="BoardEdge" type="MeshInstance3D" parent="." unique_id=1954271741]
+[node name="BoardEdge" type="MeshInstance3D" parent="." unique_id=535385527]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, -0.275, 2.2351741e-10)
-material_override = SubResource("StandardMaterial3D_lnpdj")
+material_override = SubResource("StandardMaterial3D_aae7j")
 mesh = SubResource("CylinderMesh_c3cem")
 
-[node name="BoardEdge2" type="MeshInstance3D" parent="." unique_id=315437185]
+[node name="BoardEdge2" type="MeshInstance3D" parent="." unique_id=1179559643]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, -0.275, -2.2351741e-10)
-material_override = SubResource("StandardMaterial3D_lnpdj")
+material_override = SubResource("StandardMaterial3D_aae7j")
 mesh = SubResource("CylinderMesh_oaqbj")
 
-[node name="BoardEdge3" type="MeshInstance3D" parent="." unique_id=818200414]
+[node name="BoardEdge3" type="MeshInstance3D" parent="." unique_id=133491270]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.275, 2.2351741e-10)
-material_override = SubResource("StandardMaterial3D_lnpdj")
+material_override = SubResource("StandardMaterial3D_aae7j")
 mesh = SubResource("CylinderMesh_re83j")
 
-[node name="BoardEdge4" type="MeshInstance3D" parent="." unique_id=467286437]
+[node name="BoardEdge4" type="MeshInstance3D" parent="." unique_id=590376199]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.275, -2.2351741e-10)
-material_override = SubResource("StandardMaterial3D_lnpdj")
+material_override = SubResource("StandardMaterial3D_aae7j")
 mesh = SubResource("CylinderMesh_ayxtf")
 
-[node name="Text" type="Label3D" parent="." unique_id=303212141]
+[node name="Text" type="Label3D" parent="." unique_id=1510787442]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.275, 0.012)
 pixel_size = 0.0012
 modulate = Color(0.95, 0.92, 0.84, 1)
@@ -131,7 +131,7 @@ text = "ORDER HERE"
 font_size = 72
 outline_size = 0
 
-[node name="Text2" type="Label3D" parent="." unique_id=351357592]
+[node name="Text2" type="Label3D" parent="." unique_id=397946500]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, -0.275, -0.012)
 pixel_size = 0.0012
 modulate = Color(0.95, 0.92, 0.84, 1)

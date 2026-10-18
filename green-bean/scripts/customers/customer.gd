@@ -92,7 +92,7 @@ func _build_visual() -> void:
 	_speech_label.add_to_group("world_label")
 	add_child(_speech_label)
 
-	# Patience: a slim roast track with a fill that runs green, amber, red.
+	# Patience: a slim roast track with a fill that runs sage, amber, red.
 	_patience_bar_bg = CSGBox3D.new()
 	_patience_bar_bg.size = Vector3(0.5, 0.04, 0.02)
 	_patience_bar_bg.position = Vector3(0, 1.88, 0)
@@ -106,7 +106,7 @@ func _build_visual() -> void:
 	_patience_bar_fill.size = Vector3(0.5, 0.028, 0.03)
 	_patience_bar_fill.position = Vector3(0, 1.88, 0)
 	var fill_mat := StandardMaterial3D.new()
-	fill_mat.albedo_color = UiStyle.GREEN
+	fill_mat.albedo_color = UiStyle.SAGE
 	fill_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_patience_bar_fill.material = fill_mat
 	add_child(_patience_bar_fill)
@@ -449,8 +449,8 @@ func _update_patience_bar(ratio: float) -> void:
 		_patience_bar_fill.position.x = -0.25 * (1.0 - ratio) + _bar_shake
 		var mat := _patience_bar_fill.material as StandardMaterial3D
 		if mat:
-			# Smooth green -> amber -> red instead of three hard steps.
-			var green := UiStyle.GREEN
+			# Smooth sage -> amber -> red instead of three hard steps.
+			var green := UiStyle.SAGE
 			var yellow := UiStyle.AMBER
 			var red := UiStyle.RED
 			if ratio > 0.5:

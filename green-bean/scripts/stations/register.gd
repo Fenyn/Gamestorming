@@ -182,7 +182,7 @@ func _build_day_ui() -> void:
 	_day_root.add_child(status_box)
 	_status_title = _pos_label("", POS_LEAD, UiStyle.W_BOLD, UiStyle.STEAM)
 	_status_amount = _pos_label("", POS_BIG + 12, UiStyle.W_BLACK, UiStyle.CREMA)
-	_status_note = _pos_label("", POS_BODY, UiStyle.W_BOLD, UiStyle.GREEN)
+	_status_note = _pos_label("", POS_BODY, UiStyle.W_BOLD, UiStyle.SAGE)
 	for l in [_status_title, _status_amount, _status_note]:
 		(l as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		status_box.add_child(l)
@@ -200,7 +200,7 @@ func _build_day_ui() -> void:
 	_charge_btn.text = "Charge"
 	_charge_btn.position = Vector2(176, 292)
 	_charge_btn.size = Vector2(290, 54)
-	_style_button(_charge_btn, UiStyle.GREEN_DEEP, POS_LEAD)
+	_style_button(_charge_btn, UiStyle.OLIVE, POS_LEAD)
 	_charge_btn.pressed.connect(_charge_order)
 	_day_root.add_child(_charge_btn)
 
@@ -446,7 +446,7 @@ func _make_shop_button(item_name: String, cost_text: String) -> Button:
 	var n := _pos_label(item_name, POS_BODY, UiStyle.W_BOLD, UiStyle.CREMA)
 	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	n.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	var c := _pos_label(cost_text, POS_BODY, UiStyle.W_BLACK, UiStyle.GREEN)
+	var c := _pos_label(cost_text, POS_BODY, UiStyle.W_BLACK, UiStyle.SAGE)
 	c.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(n)
 	row.add_child(c)
@@ -474,7 +474,7 @@ func _refresh_shop() -> void:
 		var cost := btn.get_meta("cost_label") as Label
 		btn.disabled = owned
 		cost.text = "Owned" if owned else str(btn.get_meta("cost_text"))
-		cost.add_theme_color_override("font_color", UiStyle.STEAM if owned else UiStyle.GREEN)
+		cost.add_theme_color_override("font_color", UiStyle.STEAM if owned else UiStyle.SAGE)
 		btn.modulate = Color(1, 1, 1, 0.6) if owned else Color.WHITE
 
 	_rebuild_menu_tab()
@@ -505,7 +505,7 @@ func _rebuild_menu_tab() -> void:
 		box.custom_minimum_size = Vector2(20, 20)
 		box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		box.add_theme_stylebox_override("panel", StyleFactory.flat(UiStyle.GREEN_DEEP if active else Color.TRANSPARENT, UiStyle.GREEN if active else UiStyle.STEAM, 2, 5, 0))
+		box.add_theme_stylebox_override("panel", StyleFactory.flat(UiStyle.OLIVE if active else Color.TRANSPARENT, UiStyle.SAGE if active else UiStyle.STEAM, 2, 5, 0))
 		if active:
 			box.add_child(UiIcon.make(UiIcon.Kind.CHECK, UiStyle.CREMA, 16))
 		row.add_child(box)
@@ -624,8 +624,8 @@ func _select_sauce(sauce: int) -> void:
 func _highlight_selected(buttons: Array[Button], selected_value: int) -> void:
 	for btn in buttons:
 		var on: bool = btn.get_meta("value", -99) == selected_value
-		btn.add_theme_stylebox_override("normal", _pos_box(UiStyle.GREEN_DEEP if on else UiStyle.ROAST_RAISED))
-		btn.add_theme_stylebox_override("hover", _pos_box(UiStyle.GREEN_DEEP if on else UiStyle.ROAST_RAISED.lightened(0.08)))
+		btn.add_theme_stylebox_override("normal", _pos_box(UiStyle.OLIVE if on else UiStyle.ROAST_RAISED))
+		btn.add_theme_stylebox_override("hover", _pos_box(UiStyle.OLIVE if on else UiStyle.ROAST_RAISED.lightened(0.08)))
 
 func _clear_order() -> void:
 	_size_selected = -1
@@ -787,7 +787,7 @@ func _style_button(btn: Button, bg: Color, size: int) -> void:
 	btn.add_theme_font_size_override("font_size", size)
 	btn.add_theme_stylebox_override("normal", _pos_box(bg))
 	btn.add_theme_stylebox_override("hover", _pos_box(bg.lightened(0.08)))
-	btn.add_theme_stylebox_override("pressed", _pos_box(UiStyle.GREEN_DEEP))
+	btn.add_theme_stylebox_override("pressed", _pos_box(UiStyle.OLIVE))
 	btn.add_theme_stylebox_override("disabled", _pos_box(Color(bg, 0.6)))
 	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
@@ -798,7 +798,7 @@ func _make_pos_button(text: String) -> Button:
 	_style_button(btn, UiStyle.ROAST_RAISED, POS_LEAD)
 	return btn
 
-## Tabs are flat text; the open one is crema with a green underline.
+## Tabs are flat text; the open one is crema with a sage underline.
 func _make_tab_button(text: String, font_size: int = POS_BODY) -> Button:
 	var btn := Button.new()
 	btn.text = text
@@ -811,7 +811,7 @@ func _make_tab_button(text: String, font_size: int = POS_BODY) -> Button:
 	return btn
 
 func _set_tab_active(btn: Button, on: bool) -> void:
-	var box := StyleFactory.flat(Color.TRANSPARENT, UiStyle.GREEN if on else Color(UiStyle.STEAM, 0.25), 0, 0, 4)
+	var box := StyleFactory.flat(Color.TRANSPARENT, UiStyle.SAGE if on else Color(UiStyle.STEAM, 0.25), 0, 0, 4)
 	box.border_width_bottom = 3 if on else 1
 	for state in ["normal", "hover", "pressed"]:
 		btn.add_theme_stylebox_override(state, box)

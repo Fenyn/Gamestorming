@@ -2,13 +2,13 @@
 
 [ext_resource type="FontFile" path="res://assets/fonts/nunito/Nunito.ttf" id="1_fmcdn"]
 
-[sub_resource type="FontVariation" id="FontVariation_q4r4s"]
+[sub_resource type="FontVariation" id="FontVariation_fmcdn"]
 base_font = ExtResource("1_fmcdn")
 variation_opentype = {
 2003265652: 760
 }
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pxcak"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q4r4s"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -20,7 +20,7 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l64jj"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pxcak"]
 content_margin_left = 0.0
 content_margin_top = 0.0
 content_margin_right = 0.0
@@ -30,25 +30,25 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.41568628, 0.65882355, 0.46666667, 1)
+border_color = Color(0.6392157, 0.654902, 0.48235294, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2t3ff"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l64jj"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
 content_margin_bottom = 10.0
-bg_color = Color(0.21960784, 0.41960785, 0.2784314, 1)
+bg_color = Color(0.36862746, 0.40784314, 0.24313726, 1)
 border_color = Color(1, 1, 1, 0)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x27uq"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2t3ff"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
@@ -60,25 +60,25 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k4cr1"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x27uq"]
 content_margin_left = 24.0
 content_margin_top = 10.0
 content_margin_right = 24.0
 content_margin_bottom = 10.0
-bg_color = Color(0.17568628, 0.3356863, 0.2227451, 1)
+bg_color = Color(0.29490197, 0.3262745, 0.1945098, 1)
 border_color = Color(1, 1, 1, 0)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="FontVariation" id="FontVariation_g2k3a"]
+[sub_resource type="FontVariation" id="FontVariation_k4cr1"]
 base_font = ExtResource("1_fmcdn")
 variation_opentype = {
 2003265652: 920
 }
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jjarc"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g2k3a"]
 content_margin_left = 16.0
 content_margin_top = 6.0
 content_margin_right = 16.0
@@ -89,7 +89,7 @@ corner_radius_top_right = 22
 corner_radius_bottom_right = 22
 corner_radius_bottom_left = 22
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e1g2j"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jjarc"]
 content_margin_left = 24.0
 content_margin_top = 16.0
 content_margin_right = 24.0
@@ -101,7 +101,7 @@ corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_45kcn"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e1g2j"]
 content_margin_left = 9.0
 content_margin_top = 1.0
 content_margin_right = 9.0
@@ -114,7 +114,7 @@ corner_radius_top_right = 7
 corner_radius_bottom_right = 7
 corner_radius_bottom_left = 7
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q4rak"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_45kcn"]
 content_margin_left = 24.0
 content_margin_top = 16.0
 content_margin_right = 24.0
@@ -126,13 +126,13 @@ corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
 
-[sub_resource type="FontVariation" id="FontVariation_vsr3o"]
+[sub_resource type="FontVariation" id="FontVariation_q4rak"]
 base_font = ExtResource("1_fmcdn")
 variation_opentype = {
 2003265652: 560
 }
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_63028"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vsr3o"]
 content_margin_left = 18.0
 content_margin_top = 12.0
 content_margin_right = 18.0
@@ -145,7 +145,7 @@ shadow_color = Color(0, 0, 0, 0.28)
 shadow_size = 10
 shadow_offset = Vector2(0, 4)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_07ixe"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_63028"]
 content_margin_left = 12.0
 content_margin_top = 8.0
 content_margin_right = 12.0
@@ -158,7 +158,7 @@ corner_radius_bottom_right = 7
 corner_radius_bottom_left = 7
 
 [resource]
-default_font = SubResource("FontVariation_vsr3o")
+default_font = SubResource("FontVariation_q4rak")
 default_font_size = 21
 Button/colors/font_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 Button/colors/font_disabled_color = Color(0.70980394, 0.6431373, 0.5686275, 0.55)
@@ -166,22 +166,22 @@ Button/colors/font_focus_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 Button/colors/font_hover_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 Button/colors/font_pressed_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 Button/font_sizes/font_size = 26
-Button/fonts/font = SubResource("FontVariation_q4r4s")
-Button/styles/disabled = SubResource("StyleBoxFlat_pxcak")
-Button/styles/focus = SubResource("StyleBoxFlat_l64jj")
-Button/styles/hover = SubResource("StyleBoxFlat_2t3ff")
-Button/styles/normal = SubResource("StyleBoxFlat_x27uq")
-Button/styles/pressed = SubResource("StyleBoxFlat_k4cr1")
+Button/fonts/font = SubResource("FontVariation_fmcdn")
+Button/styles/disabled = SubResource("StyleBoxFlat_q4r4s")
+Button/styles/focus = SubResource("StyleBoxFlat_pxcak")
+Button/styles/hover = SubResource("StyleBoxFlat_l64jj")
+Button/styles/normal = SubResource("StyleBoxFlat_2t3ff")
+Button/styles/pressed = SubResource("StyleBoxFlat_x27uq")
 Display/base_type = &"Label"
 Display/colors/font_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 Display/font_sizes/font_size = 52
-Display/fonts/font = SubResource("FontVariation_g2k3a")
+Display/fonts/font = SubResource("FontVariation_k4cr1")
 Heading/base_type = &"Label"
 Heading/colors/font_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 Heading/font_sizes/font_size = 36
-Heading/fonts/font = SubResource("FontVariation_g2k3a")
+Heading/fonts/font = SubResource("FontVariation_k4cr1")
 HudChip/base_type = &"PanelContainer"
-HudChip/styles/panel = SubResource("StyleBoxFlat_jjarc")
+HudChip/styles/panel = SubResource("StyleBoxFlat_g2k3a")
 HudFloat/base_type = &"Label"
 HudFloat/colors/font_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 HudFloat/colors/font_shadow_color = Color(0, 0, 0, 0.55)
@@ -189,26 +189,26 @@ HudFloat/constants/shadow_offset_x = 0
 HudFloat/constants/shadow_offset_y = 2
 HudFloat/constants/shadow_outline_size = 6
 HudFloat/font_sizes/font_size = 21
-HudFloat/fonts/font = SubResource("FontVariation_q4r4s")
+HudFloat/fonts/font = SubResource("FontVariation_fmcdn")
 HudMuted/base_type = &"Label"
 HudMuted/colors/font_color = Color(0.70980394, 0.6431373, 0.5686275, 1)
 HudMuted/font_sizes/font_size = 17
-HudMuted/fonts/font = SubResource("FontVariation_q4r4s")
+HudMuted/fonts/font = SubResource("FontVariation_fmcdn")
 HudPanel/base_type = &"PanelContainer"
-HudPanel/styles/panel = SubResource("StyleBoxFlat_e1g2j")
+HudPanel/styles/panel = SubResource("StyleBoxFlat_jjarc")
 HudValue/base_type = &"Label"
 HudValue/colors/font_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 HudValue/font_sizes/font_size = 26
-HudValue/fonts/font = SubResource("FontVariation_g2k3a")
+HudValue/fonts/font = SubResource("FontVariation_k4cr1")
 KeyCap/base_type = &"PanelContainer"
-KeyCap/styles/panel = SubResource("StyleBoxFlat_45kcn")
+KeyCap/styles/panel = SubResource("StyleBoxFlat_e1g2j")
 KeyCapLabel/base_type = &"Label"
 KeyCapLabel/colors/font_color = Color(0.16862746, 0.14117648, 0.12156863, 1)
 KeyCapLabel/font_sizes/font_size = 17
-KeyCapLabel/fonts/font = SubResource("FontVariation_g2k3a")
+KeyCapLabel/fonts/font = SubResource("FontVariation_k4cr1")
 Label/colors/font_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 Label/constants/line_spacing = 2
-PanelContainer/styles/panel = SubResource("StyleBoxFlat_q4rak")
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_45kcn")
 PromptName/base_type = &"Label"
 PromptName/colors/font_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 PromptName/colors/font_shadow_color = Color(0, 0, 0, 0.55)
@@ -216,25 +216,25 @@ PromptName/constants/shadow_offset_x = 0
 PromptName/constants/shadow_offset_y = 2
 PromptName/constants/shadow_outline_size = 6
 PromptName/font_sizes/font_size = 17
-PromptName/fonts/font = SubResource("FontVariation_q4r4s")
+PromptName/fonts/font = SubResource("FontVariation_fmcdn")
 TicketCode/base_type = &"Label"
 TicketCode/colors/font_color = Color(0.16862746, 0.14117648, 0.12156863, 1)
 TicketCode/font_sizes/font_size = 52
-TicketCode/fonts/font = SubResource("FontVariation_g2k3a")
+TicketCode/fonts/font = SubResource("FontVariation_k4cr1")
 TicketMuted/base_type = &"Label"
 TicketMuted/colors/font_color = Color(0.6039216, 0.56078434, 0.5176471, 1)
 TicketMuted/font_sizes/font_size = 21
-TicketMuted/fonts/font = SubResource("FontVariation_vsr3o")
+TicketMuted/fonts/font = SubResource("FontVariation_q4rak")
 TicketPanel/base_type = &"PanelContainer"
-TicketPanel/styles/panel = SubResource("StyleBoxFlat_63028")
+TicketPanel/styles/panel = SubResource("StyleBoxFlat_vsr3o")
 TicketText/base_type = &"Label"
 TicketText/colors/font_color = Color(0.16862746, 0.14117648, 0.12156863, 1)
 TicketText/font_sizes/font_size = 21
-TicketText/fonts/font = SubResource("FontVariation_q4r4s")
+TicketText/fonts/font = SubResource("FontVariation_fmcdn")
 Title/base_type = &"Label"
 Title/colors/font_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 Title/font_sizes/font_size = 96
-Title/fonts/font = SubResource("FontVariation_g2k3a")
+Title/fonts/font = SubResource("FontVariation_k4cr1")
 TooltipLabel/colors/font_color = Color(0.9529412, 0.9137255, 0.84313726, 1)
 TooltipLabel/font_sizes/font_size = 17
-TooltipPanel/styles/panel = SubResource("StyleBoxFlat_07ixe")
+TooltipPanel/styles/panel = SubResource("StyleBoxFlat_63028")

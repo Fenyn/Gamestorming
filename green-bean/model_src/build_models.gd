@@ -14,6 +14,7 @@ const MODELS := {
 	"gooseneck_kettle": preload("res://model_src/gooseneck_kettle.gd"),
 	"shot_press": preload("res://model_src/shot_press.gd"),
 	"shot_press_station": preload("res://model_src/shot_press_station.gd"),
+	"stir_paddle": preload("res://model_src/stir_paddle.gd"),
 	"cone_dripper": preload("res://model_src/cone_dripper.gd"),
 	"pour_over_stand": preload("res://model_src/pour_over_stand.gd"),
 	"paper_cup_small": [preload("res://model_src/paper_cup.gd"), "small"],

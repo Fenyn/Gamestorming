@@ -23,15 +23,26 @@ var _cup_slot: Marker3D = null
 var _device_slot: Marker3D = null
 var _cup_spot := Vector3.ZERO
 var _device_rest := Vector3.ZERO
-var _gauge_anchor := Vector3.ZERO
 var _status_label: Label3D = null
+## Brew timer on the mat: counts the steep down, then flashes and counts the
+## over-extraction up.
+var _timer_display: Label3D = null
+var _timer_screen: MeshInstance3D = null
+var _timer_screen_mat: StandardMaterial3D = null
+var _last_beep_second := -1
+const SCREEN_COLOR := Color(0.62, 0.68, 0.58)
+const SCREEN_READY := Color(0.72, 0.92, 0.6)
+const SCREEN_OVER := Color(0.95, 0.55, 0.45)
+## Most the press leans (degrees) at the edge of the level, about its rim.
+const MAX_LEAN_DEG := 7.0
+var _lean := Vector2.ZERO
+var _spill: GPUParticles3D = null
 
 func _ready() -> void:
 	add_to_group("station")
 
 	_cup_spot = StationUtils.model_marker(self, "CupSpot", Vector3(-0.045, 0.005, 0.02))
 	_device_rest = StationUtils.model_marker(self, "DeviceRest", Vector3(0.09, 0.021, -0.02))
-	_gauge_anchor = StationUtils.model_marker(self, "GaugeAnchor", _cup_spot + Vector3(0.17, 0.26, 0.04))
 
 	_cup_slot = Marker3D.new()
 	_cup_slot.name = "CupSlot"
@@ -49,17 +60,21 @@ func _ready() -> void:
 		cam_xform = global_transform.affine_inverse() * view.global_transform
 	var cam_pos := cam_xform.origin
 	var cam_rot := cam_xform.basis.get_euler() * 180.0 / PI
+	var press_xform := Transform3D(Basis.from_euler(Vector3(deg_to_rad(-55), 0, 0)), _cup_spot + Vector3(0.03, 0.55, 0.25))
+	var press_view := get_node_or_null("Model/PressView") as Node3D
+	if press_view:
+		press_xform = global_transform.affine_inverse() * press_view.global_transform
 
 	_press_game = PressMiniGame.new()
 	_press_game.name = "PressMiniGame"
 	var cam1 := Marker3D.new()
 	cam1.name = "CameraPoint"
-	cam1.position = cam_pos
-	cam1.rotation_degrees = cam_rot
+	cam1.transform = press_xform
 	_press_game.add_child(cam1)
 	add_child(_press_game)
 	_press_game._camera_point = cam1
 	_press_game.mini_game_completed.connect(_on_press_complete)
+	_press_game.camera_fov = 45.0
 
 	_stir_game = StirMiniGame.new()
 	_stir_game.name = "StirMiniGame"
@@ -71,6 +86,7 @@ func _ready() -> void:
 	add_child(_stir_game)
 	_stir_game._camera_point = cam2
 	_stir_game.mini_game_completed.connect(_on_stir_complete)
+	_stir_game.camera_fov = 55.0
 
 	_water_game = PourMiniGame.new()
 	_water_game.name = "WaterPourMiniGame"
@@ -83,13 +99,21 @@ func _ready() -> void:
 	add_child(_water_game)
 	_water_game._camera_point = cam3
 	_water_game.mini_game_completed.connect(_on_water_complete)
+	_water_game.camera_fov = 55.0
 
-	# Mini-game gauges are positioned relative to the game node, so move the node.
-	_offset_game(_press_game, _gauge_anchor - Vector3(0, 0.2, 0.18))
-	_offset_game(_water_game, Vector3.ZERO)
-	_water_game._status_label.position = _gauge_anchor
-	_water_game._status_label.rotation_degrees = Vector3.ZERO
-	_water_game._status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_timer_display = get_node_or_null("Model/BrewTimer/Body/Display") as Label3D
+	_timer_screen = get_node_or_null("Model/BrewTimer/Body/Screen") as MeshInstance3D
+	if _timer_screen:
+		_timer_screen_mat = StandardMaterial3D.new()
+		_timer_screen_mat.albedo_color = SCREEN_COLOR
+		_timer_screen_mat.roughness = 0.3
+		_timer_screen_mat.emission_enabled = true
+		_timer_screen_mat.emission = Color.BLACK
+		_timer_screen.material_override = _timer_screen_mat
+
+	# Water running down the outside when the chamber is overfilled.
+	_spill = Fx.make_specks(Color(0.75, 0.85, 0.92, 0.8), 0.004, -3.0, 0.35, 24)
+	add_child(_spill)
 
 	_spawn_shelf_device()
 	_status_label = StationUtils.create_status_label(self, _cup_spot + Vector3(0.06, 0.36, 0.05))
@@ -130,14 +154,12 @@ func _return_to_stand(device: ShotPress) -> void:
 	StationUtils.set_item_collision(device, true)
 	_shelf_device = device
 
+## The stir game's origin is the liquid surface's centre.
 func _place_stir_game() -> void:
 	if not _placed_device:
 		return
-	var top := _device_on_cup_position(_placed_device).y + 0.0605
-	# The paddle's handle is drawn 0.33 above the stir node; dip it 1 cm in.
-	var offset := Vector3(_cup_spot.x, top - 0.01 - 0.33, _cup_spot.z)
-	_offset_game(_stir_game, offset)
-	_stir_game._status_label.position = _gauge_anchor - offset
+	var surface := _device_on_cup_position(_placed_device) + Vector3(0, _placed_device.liquid_surface_y(), 0)
+	_offset_game(_stir_game, surface)
 
 func _any_game_active() -> bool:
 	return _press_game.is_active() or _stir_game.is_active() or _water_game.is_active()
@@ -168,6 +190,7 @@ func interact(player: Player) -> void:
 				_pouring_player = player
 				_pour_kettle = held as Kettle
 				_pour_tween = StationUtils.start_kettle_pour(player, _pour_kettle, _placed_device.global_position, Vector3(0, 0.10, 0), _water_game.is_pouring)
+				_water_game.overflow_level = _placed_device.rim_ratio
 				_water_game.start(player)
 			elif _status_label:
 				_status_label.text = "Hold filled kettle!\n[E] Pour water"
@@ -259,7 +282,9 @@ func _recalculate_state() -> void:
 func _on_water_complete(quality: float) -> void:
 	if _placed_device:
 		_placed_device.has_water = true
-		_placed_device.set_liquid_level(1.0)
+		if _water_game.is_overflowed():
+			_spill_burst()
+		_placed_device.set_liquid_level(minf(_water_game.get_fill_level(), 1.0))
 	StationUtils.stop_kettle_pour(_pour_tween, _pour_kettle, _pouring_player)
 	_pour_tween = null
 	if _pour_kettle and is_instance_valid(_pour_kettle):
@@ -273,11 +298,12 @@ func _on_stir_complete(quality: float) -> void:
 	_stir_quality = quality
 	if _placed_device:
 		_placed_device.is_stirred = true
+		_placed_device.set_crust(0.0)
 	state = State.STEEPING
 	_press_game.start_steeping()
 	_update_label()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	match state:
 		State.STEEPING:
 			if _press_game.phase == PressMiniGame.Phase.READY:
@@ -286,18 +312,17 @@ func _process(_delta: float) -> void:
 			elif _press_game.phase == PressMiniGame.Phase.DEAD:
 				state = State.DEAD
 				_update_label()
-			elif _status_label:
-				_status_label.text = "Steeping... %.0fs" % maxf(_press_game.phase_timer, 0)
 		State.READY_TO_PRESS:
 			if _press_game.phase == PressMiniGame.Phase.DEAD:
 				state = State.DEAD
 				_update_label()
-			elif _press_game.phase == PressMiniGame.Phase.OVER_EXTRACTING:
-				if _status_label:
-					_status_label.text = "[E] PRESS NOW!\n(over-extracting!)"
+			elif _press_game.phase == PressMiniGame.Phase.OVER_EXTRACTING and _status_label and not _status_label.text.begins_with("[E] Press now"):
+				_status_label.text = "[E] Press now\nOver-extracting"
 		State.PRESSING:
 			if _placed_device:
 				_placed_device.set_plunger_progress(_press_game.press_progress)
+				if _placed_cup:
+					_placed_cup.set_fill(0.3 * _press_game.press_progress, Color(0.25, 0.15, 0.05))
 			if not _press_game.is_active():
 				if _placed_device:
 					_placed_device.hide_plunger()
@@ -305,12 +330,110 @@ func _process(_delta: float) -> void:
 					state = State.DEAD
 				elif _press_game.phase in [PressMiniGame.Phase.READY, PressMiniGame.Phase.OVER_EXTRACTING]:
 					state = State.READY_TO_PRESS
+					if _placed_cup:
+						_placed_cup.set_fill(0.0)
 				_update_label()
 
 	if state == State.READY_FOR_WATER and _water_game.is_active() and _placed_device:
-		_placed_device.set_liquid_level(_water_game._fill_level)
+		_placed_device.set_liquid_level(_water_game.get_fill_level())
+		_placed_device.set_crust(1.0)
+		_spill.global_position = _placed_device.global_position + Vector3(0.033, 0.055, 0.0)
+		_spill.emitting = _water_game.is_overflowed()
+	else:
+		_spill.emitting = false
+	if state == State.HAS_WATER and _stir_game.is_active() and _placed_device:
+		_placed_device.set_crust(1.0 - _stir_game.get_progress(), _stir_game.get_swirl())
 
+	_update_lean(delta)
+	_update_extraction_look()
+	_update_timer()
 	_check_removed_items()
+
+## While pressing, the press leans away from the bubble (the bubble sits on the
+## high side) about the point where its flange meets the cup rim.
+func _update_lean(delta: float) -> void:
+	if not _placed_device:
+		return
+	var target := Vector2.ZERO
+	if state == State.PRESSING and _press_game.is_active():
+		target = _press_game.get_lean()
+	elif _lean == Vector2.ZERO:
+		return
+	_lean = _lean.lerp(target, minf(delta * 12.0, 1.0))
+	if target == Vector2.ZERO and _lean.length() < 0.002:
+		_lean = Vector2.ZERO
+	var k := deg_to_rad(MAX_LEAN_DEG) / 0.5
+	var tilt := Basis(Vector3.BACK, _lean.x * k) * Basis(Vector3.RIGHT, _lean.y * k)
+	var pivot := Vector3(0, _placed_device.rim_rest_y, 0)
+	var local := Transform3D(tilt, Vector3.ZERO).translated_local(-pivot)
+	local.origin += pivot
+	_placed_device.global_transform = Transform3D(global_basis, to_global(_device_slot.position)) * local
+	var level := _placed_device.get_level()
+	var bubble := level.get_node_or_null("Bubble") as Node3D if level else null
+	if bubble:
+		var ring_r := float(level.get_meta("ring_radius", 0.0067))
+		var travel := float(bubble.get_meta("travel", 0.012))
+		var p := Vector2(_lean.x, -_lean.y) * (ring_r / PressMiniGame.ZONE_RADIUS)
+		p = p.limit_length(travel)
+		bubble.position.x = p.x
+		bubble.position.z = p.y
+
+## Coffee in the chamber darkens as the shot over-extracts and dulls once dead.
+func _update_extraction_look() -> void:
+	if not _placed_device or not _placed_device.has_water:
+		return
+	var color := ShotPress.LIQUID_COLOR
+	match _press_game.phase:
+		PressMiniGame.Phase.OVER_EXTRACTING:
+			var t := 1.0 - clampf(_press_game.phase_timer / PressMiniGame.OVER_EXTRACT_TIME, 0.0, 1.0)
+			color = color.lerp(Color(0.1, 0.06, 0.03), t)
+		PressMiniGame.Phase.PRESSING:
+			if _press_game._started_phase == PressMiniGame.Phase.OVER_EXTRACTING:
+				color = Color(0.12, 0.07, 0.03)
+		PressMiniGame.Phase.DEAD:
+			color = Color(0.2, 0.17, 0.14)
+	_placed_device.set_liquid_color(color)
+
+func _update_timer() -> void:
+	if not _timer_display:
+		return
+	var text := "0:%02d" % int(PressMiniGame.STEEP_TIME)
+	var screen := SCREEN_COLOR
+	var glow := 0.0
+	var phase := _press_game.phase
+	var blink := fmod(Time.get_ticks_msec() / 1000.0, 0.5) < 0.3
+	if state == State.IDLE or state == State.CUP_ONLY or state == State.DEVICE_ONLY or state == State.DONE:
+		phase = PressMiniGame.Phase.IDLE
+	match phase:
+		PressMiniGame.Phase.STEEPING:
+			var left := ceili(maxf(_press_game.phase_timer, 0.0))
+			text = "0:%02d" % left
+			if left != _last_beep_second and left <= 3 and left > 0:
+				SoundManager.play("timer_tick")
+			_last_beep_second = left
+		PressMiniGame.Phase.READY:
+			text = "0:00" if blink else ""
+			screen = SCREEN_READY
+			glow = 0.35
+		PressMiniGame.Phase.PRESSING:
+			text = "0:00"
+			screen = SCREEN_READY
+		PressMiniGame.Phase.OVER_EXTRACTING:
+			var over := int(PressMiniGame.OVER_EXTRACT_TIME - maxf(_press_game.phase_timer, 0.0))
+			text = "+0:%02d" % over if blink else ""
+			screen = SCREEN_OVER
+			glow = 0.5
+		PressMiniGame.Phase.DEAD:
+			text = "- - -"
+			screen = SCREEN_OVER.darkened(0.3)
+	_timer_display.text = text
+	if _timer_screen_mat:
+		_timer_screen_mat.albedo_color = screen
+		_timer_screen_mat.emission = screen * glow
+
+func _spill_burst() -> void:
+	if _placed_device:
+		Fx.splash(_placed_device.global_position + Vector3(0, 0.06, 0), Color(0.75, 0.85, 0.92), 16)
 
 func _check_removed_items() -> void:
 	if _shelf_device and StationUtils.is_item_removed(_shelf_device, to_global(_rest_position(_shelf_device)), 0.15):
@@ -388,12 +511,12 @@ func _update_label() -> void:
 		State.HAS_WATER:
 			_status_label.text = "[E] Stir"
 		State.STEEPING:
-			_status_label.text = "Steeping..."
+			_status_label.text = "Steeping"
 		State.READY_TO_PRESS:
-			_status_label.text = "[E] Press!"
+			_status_label.text = "[E] Press"
 		State.PRESSING:
-			_status_label.text = "Pressing..."
+			_status_label.text = ""
 		State.DONE:
 			_status_label.text = "[E] Pick up cup"
 		State.DEAD:
-			_status_label.text = "[E] Reset (dead)"
+			_status_label.text = "Shot went cold\n[E] Dump and reset"

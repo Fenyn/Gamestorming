@@ -5,7 +5,9 @@ extends RefCounted
 ##
 ## Read by hot_water_station.gd: Spout, FillPoint (cup or kettle is stood here to
 ## fill), KettleRest (its rotation turns the kettle spout-to-wall), CameraView,
-## Faucet/Lever (swung while water runs). Colliders are in scenes/stations/hot_water.tscn.
+## Faucet/Lever (swung while water runs), ControlPanel/Readout (LED Label3D the
+## station writes: water temperature, or volume while dispensing). Colliders are
+## in scenes/stations/hot_water.tscn.
 
 const MK := preload("res://model_src/model_kit.gd")
 
@@ -22,8 +24,8 @@ const SPOUT := Vector3(0, HEAD_BOTTOM - 0.04, 0.15)
 const FILL := Vector3(0, TRAY_TOP, 0.15)
 const KETTLE_REST := Vector3(0.175, 0.0, 0.12)
 ## Fill camera comes from the right because the steamer stands front-left.
-const CAMERA_OFFSET := Vector3(0.15, 0.14, 0.22)
-const CAMERA_LOOK_AT := Vector3(0, 0.1, 0)
+const CAMERA_OFFSET := Vector3(0.13, 0.27, 0.24)
+const CAMERA_LOOK_AT := Vector3(0, 0.09, 0)
 
 const SHELL := Color(0.78, 0.79, 0.81)
 const SHELL_DARK := Color(0.6, 0.61, 0.63)
@@ -71,13 +73,16 @@ static func _build_panel(root: Node3D) -> void:
 	var z := FRONT_Z + 0.001
 	MK.box(panel, "Panel", Vector3(WIDTH - 0.03, 0.12, 0.004), Vector3(0, 0.455, z), MK.mat(PANEL, 0.1, 0.4))
 	MK.box(panel, "Display", Vector3(0.07, 0.03, 0.003), Vector3(0, 0.48, z + 0.003), MK.mat(Color(0.05, 0.03, 0.03), 0.0, 0.2))
-	var led := StandardMaterial3D.new()
-	led.albedo_color = Color(1.0, 0.35, 0.15)
-	led.emission_enabled = true
-	led.emission = Color(1.0, 0.3, 0.1)
-	led.emission_energy_multiplier = 1.6
-	for i in range(3):
-		MK.box(panel, "Digit", Vector3(0.012, 0.018, 0.001), Vector3(-0.018 + i * 0.018, 0.48, z + 0.005), led)
+	var readout := Label3D.new()
+	readout.name = "Readout"
+	readout.text = "96°"
+	readout.font_size = 96
+	readout.pixel_size = 0.00022
+	readout.outline_size = 0
+	readout.modulate = Color(1.0, 0.45, 0.2)
+	readout.shaded = false
+	readout.position = Vector3(0, 0.48, z + 0.0048)
+	panel.add_child(readout)
 	for i in range(3):
 		MK.cyl(panel, "Button", 0.006, 0.006, 0.004, Vector3(-0.035 + i * 0.035, 0.428, z + 0.003), MK.mat(Color(0.75, 0.75, 0.77), 0.3, 0.4), 12, Vector3(90, 0, 0))
 	MK.box(panel, "Badge", Vector3(0.06, 0.012, 0.002), Vector3(0, 0.375, z), MK.mat(Color(0.9, 0.9, 0.92), 0.6, 0.3))

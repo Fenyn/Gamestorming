@@ -11,6 +11,11 @@ var _player: Player = null
 var _camera_point: Marker3D = null
 var _quality := 1.0
 var _start_frame := -1
+## True between complete(quality, linger) and the camera letting go.
+var _lingering := false
+var _session := 0
+## Camera field of view while playing; 0 keeps the player's.
+var camera_fov := 0.0
 
 func _ready() -> void:
 	if camera_point_path:
@@ -32,11 +37,13 @@ func start(player_ref: Player) -> void:
 	if not can_start(player_ref):
 		return
 	_active = true
+	_session += 1
+	_lingering = false
 	_start_frame = Engine.get_process_frames()
 	_player = player_ref
 	_quality = 1.0
 	if _camera_point:
-		_player.enter_mini_game(_camera_point.global_transform)
+		_player.enter_mini_game(_camera_point.global_transform, self, camera_fov)
 	_set_ui_visible(true)
 	EventBus.mini_game_started.emit(station_name)
 	_on_start()
@@ -45,6 +52,7 @@ func stop() -> void:
 	if not _active:
 		return
 	_active = false
+	_lingering = false
 	_set_ui_visible(false)
 	if _player:
 		_player.exit_mini_game()
@@ -52,13 +60,48 @@ func stop() -> void:
 	_on_stop()
 	_player = null
 
-func complete(quality: float) -> void:
+## linger keeps the camera on the finished result for that many seconds, with
+## input off, so the player sees it land before the view lets go.
+func complete(quality: float, linger: float = 0.0) -> void:
 	_quality = quality
+	if _player:
+		_player.shake(0.0025, 0.16)
 	mini_game_completed.emit(quality)
-	stop()
+	end_after(linger)
+
+## Stops after linger seconds with input off (at once if linger is 0).
+func end_after(linger: float) -> void:
+	if linger <= 0.0 or not _active:
+		stop()
+		return
+	_lingering = true
+	var session := _session
+	get_tree().create_timer(linger).timeout.connect(func() -> void:
+		if session == _session:
+			_lingering = false
+			stop())
+
+## Active and taking input (not lingering on a finished result).
+func is_playing() -> bool:
+	return _active and not _lingering
 
 func _on_start() -> void:
 	pass
+
+## Controls strip text for the HUD, for the current phase.
+func get_controls_hint() -> String:
+	return "[E] Leave"
+
+## Numbers for the optional assist readout; empty hides it.
+func get_assist_readout() -> String:
+	return ""
+
+## Joins control pairs into one strip line: hint(["Hold click", "pour"], ...).
+static func hint(pairs: Array) -> String:
+	var parts: PackedStringArray = []
+	for pair in pairs:
+		parts.append("[%s] %s" % [pair[0], pair[1]])
+	return "      ".join(parts)
 
 func _on_stop() -> void:
 	pass
@@ -76,7 +119,7 @@ func is_active() -> bool:
 	return _active
 
 func _input(event: InputEvent) -> void:
-	if not _active:
+	if not _active or _lingering:
 		return
 	if event.is_action_pressed("interact"):
 		if Engine.get_process_frames() != _start_frame:
@@ -88,7 +131,7 @@ func _handle_input(_event: InputEvent) -> void:
 	pass
 
 func _process(delta: float) -> void:
-	if not _active:
+	if not is_playing():
 		return
 	_update_mini_game(delta)
 

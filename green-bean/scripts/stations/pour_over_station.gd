@@ -36,6 +36,14 @@ const DRIPPER_GROUNDS_TOP := 0.008
 var _status_label: Label3D = null
 var _pour_tween: Tween = null
 var _drips: GPUParticles3D = null
+## Brew scale on the stand: time since the bloom pour began and grams of water.
+var _scale_readout: Label3D = null
+var _brew_time := 0.0
+var _timing := false
+## Water for a small cup at full saturation; larger cups scale with the pour game.
+const BREW_WATER_G := 250.0
+## How far from the bed's centre the stream can land.
+const AIM_RADIUS := 0.024
 
 func _ready() -> void:
 	add_to_group("station")
@@ -69,9 +77,11 @@ func _ready() -> void:
 	_pour_game._camera_point = cam
 	_cam_xform = cam_xform
 	_pour_game.mini_game_completed.connect(_on_pour_complete)
+	_pour_game.camera_fov = 42.0
 
+	_set_camera(cam_xform)
 	_spawn_shelf_dripper()
-	_place_pour_grid(_shelf_dripper)
+	_scale_readout = get_node_or_null("Model/BrewScale/Readout") as Label3D
 
 	_status_label = StationUtils.create_status_label(self, _ring_seat + Vector3(0.08, 0.12, 0.04))
 	_update_label()
@@ -96,13 +106,13 @@ func _rest_position(dripper: Node3D) -> Vector3:
 func _ring_position(dripper: Node3D) -> Vector3:
 	return _ring_seat - Vector3(0, _base_y(dripper), 0)
 
-## The saturation grid is drawn 0.24 above the game node: move the node so the
-## grid lies on the grounds, keeping the camera in place.
-func _place_pour_grid(dripper: Node3D) -> void:
-	var grounds_top := (dripper as Dripper).grounds_top_y if dripper is Dripper else DRIPPER_GROUNDS_TOP
-	var offset := _ring_position(dripper) + Vector3(0, grounds_top + 0.001 - 0.24, 0)
-	_pour_game.position = offset
-	_pour_game._camera_point.transform = Transform3D(_cam_xform.basis, _cam_xform.origin - offset)
+func _set_camera(xform: Transform3D) -> void:
+	_pour_game._camera_point.transform = xform
+
+## World offset of the stream's landing point from the bed centre, from the aim.
+func _aim_offset() -> Vector3:
+	var p := _pour_game.get_pour_position() * AIM_RADIUS
+	return global_basis * Vector3(p.x, 0, p.y)
 
 func _saucer_free() -> bool:
 	return _shelf_dripper == null or not is_instance_valid(_shelf_dripper)
@@ -151,31 +161,36 @@ func _try_start_bloom(player: Player) -> void:
 	if held is Kettle and (held as Kettle).has_water:
 		_pouring_player = player
 		_pour_kettle = held as Kettle
-		_start_pour_animation()
 		state = State.BLOOMING
 		_update_label()
 		_pour_game.start(player)
+		_start_pour_animation()
+		_brew_time = 0.0
+		_timing = true
 	elif _status_label:
-		_status_label.text = "Hold filled kettle!\n[E] Start bloom pour"
+		_status_label.text = "Hold a filled kettle\n[E] Bloom pour"
 
 func _try_start_main_pour(player: Player) -> void:
 	var held := player.get_held_item()
 	if held is Kettle and (held as Kettle).has_water:
 		_pouring_player = player
 		_pour_kettle = held as Kettle
-		_start_pour_animation()
 		state = State.MAIN_POUR
 		_update_label()
 		_pour_game.start(player)
+		_start_pour_animation()
 	elif _status_label:
-		_status_label.text = "Hold filled kettle!\n[E] Main pour"
+		_status_label.text = "Hold a filled kettle\n[E] Main pour"
 
 func _start_pour_animation() -> void:
 	if not _pour_kettle or not _pouring_player:
 		return
 	if _pour_tween and _pour_tween.is_valid():
 		_pour_tween.kill()
-	_pour_tween = StationUtils.start_kettle_pour(_pouring_player, _pour_kettle, _dripper_slot.global_position, Vector3(0, 0.09, 0), _pour_game.is_pouring, Vector3.LEFT)
+	var bed := _dripper_slot.global_position
+	if _placed_dripper:
+		bed = _placed_dripper.to_global(Vector3(0, _placed_dripper.grounds_top_y, 0))
+	_pour_tween = StationUtils.start_kettle_pour(_pouring_player, _pour_kettle, bed, Vector3(0, 0.1, 0), _pour_game.is_pouring, Vector3.LEFT, _aim_offset)
 
 func _stop_pour_animation() -> void:
 	StationUtils.stop_kettle_pour(_pour_tween, _pour_kettle, _pouring_player)
@@ -256,6 +271,26 @@ func _on_pour_complete(quality: float) -> void:
 	state = State.DRAINING
 	_update_label()
 
+## Bloom froth: builds with the bloom pour, peaks as the wait starts, settles.
+func _bloom_amount() -> float:
+	match state:
+		State.BLOOMING:
+			return clampf(_pour_game._get_avg_saturation() / PourMiniGame.BLOOM_TARGET, 0.0, 1.0)
+		State.BLOOM_WAIT:
+			return clampf(_pour_game.get_bloom_timer() / PourMiniGame.BLOOM_WAIT_TIME, 0.0, 1.0) * 0.8 + 0.2
+	return 0.0
+
+## Brew time and water poured, like a real brew scale.
+func _update_scale() -> void:
+	if not _scale_readout:
+		return
+	var grams := 0.0
+	if state in [State.BLOOMING, State.BLOOM_WAIT, State.MAIN_POUR, State.DRAINING, State.READY, State.STALE]:
+		var mult := DrinkData.get_size_multiplier(_placed_cup.cup_size) if _placed_cup else 1.0
+		grams = minf(_pour_game._get_avg_saturation() / PourMiniGame.MAIN_TARGET, 1.0) * BREW_WATER_G * mult
+	var t := int(_brew_time)
+	_scale_readout.text = "%d:%02d  %dg" % [t / 60, t % 60, roundi(grams)]
+
 func _process(_delta: float) -> void:
 	# Track bloom → bloom_wait transition
 	if state == State.BLOOMING and not _pour_game.is_active():
@@ -268,13 +303,9 @@ func _process(_delta: float) -> void:
 			_pouring_player = null
 			_update_label()
 
-	# Show bloom countdown while walking
-	if state == State.BLOOM_WAIT:
-		if _pour_game.is_ready_for_main_pour():
-			state = State.MAIN_POUR
-			_update_label()
-		elif _status_label:
-			_status_label.text = "Bloom... %.0fs\n[E] when ready (hold kettle)" % _pour_game.get_bloom_timer()
+	if state == State.BLOOM_WAIT and _pour_game.is_ready_for_main_pour():
+		state = State.MAIN_POUR
+		_update_label()
 
 	if _drips:
 		_drips.emitting = state == State.DRAINING
@@ -283,22 +314,22 @@ func _process(_delta: float) -> void:
 	if (state == State.READY or state == State.STALE) and _placed_cup:
 		_placed_cup.heat = _pour_game.get_coffee_freshness()
 
-	# Show drain countdown
-	if state == State.DRAINING:
-		if _pour_game.is_coffee_ready():
-			_finish_drip()
-		elif _status_label:
-			_status_label.text = "Draining... %.0fs" % maxf(_pour_game.phase_timer, 0)
+	if state == State.DRAINING and _pour_game.is_coffee_ready():
+		_finish_drip()
 
 	if state == State.READY:
 		if _pour_game.get_coffee_freshness() < 0.3:
 			state = State.STALE
 			_update_label()
 
-	# Update dripper saturation visual during active pours
-	if (state == State.BLOOMING or state == State.MAIN_POUR) and _pour_game.is_active() and _placed_dripper:
+	if _placed_dripper and state in [State.BLOOMING, State.BLOOM_WAIT, State.MAIN_POUR, State.DRAINING]:
 		_placed_dripper.set_saturation(_pour_game._get_avg_saturation())
+		_placed_dripper.set_saturation_map(_pour_game.get_saturation_image())
+		_placed_dripper.set_bloom(_bloom_amount())
 	_update_water_level()
+	if _timing:
+		_brew_time += _delta
+	_update_scale()
 
 	_check_removed_items()
 
@@ -308,19 +339,20 @@ func _update_water_level() -> void:
 	var level := 0.0
 	match state:
 		State.BLOOMING:
-			level = 0.25 * clampf(_pour_game._get_avg_saturation() / PourMiniGame.BLOOM_TARGET, 0.0, 1.0)
+			level = 0.15 * clampf(_pour_game._get_avg_saturation() / PourMiniGame.BLOOM_TARGET, 0.0, 1.0)
 		State.BLOOM_WAIT:
-			level = 0.25 * clampf(_pour_game.get_bloom_timer() / PourMiniGame.BLOOM_WAIT_TIME, 0.0, 1.0)
+			level = 0.15 * clampf(_pour_game.get_bloom_timer() / PourMiniGame.BLOOM_WAIT_TIME, 0.0, 1.0)
 		State.MAIN_POUR:
 			if _pour_game.is_active():
-				level = clampf(_pour_game._get_avg_saturation(), 0.0, 1.0) * 0.9
+				level = clampf(_pour_game._get_avg_saturation(), 0.0, 1.0) * 0.6
 		State.DRAINING:
-			level = 0.9 * clampf(_pour_game.phase_timer / PourMiniGame.DRAW_DOWN_TIME, 0.0, 1.0)
+			level = 0.6 * clampf(_pour_game.phase_timer / PourMiniGame.DRAW_DOWN_TIME, 0.0, 1.0)
 	_placed_dripper.set_water_level(level)
 
 func _finish_drip() -> void:
 	SoundManager.stop_loop("drip_loop")
 	SoundManager.play("drip_done")
+	_timing = false
 	if _placed_cup:
 		var freshness := _pour_game.get_coffee_freshness()
 		_placed_cup.has_pour_over_coffee = true
@@ -365,16 +397,16 @@ func _update_label() -> void:
 			var has_shelf := _shelf_dripper != null and is_instance_valid(_shelf_dripper)
 			_status_label.text = "[E] Pick up dripper" if has_shelf else "Bring dripper w/ grounds"
 		State.READY_TO_POUR:
-			_status_label.text = "[E] Bloom pour\n(hold filled kettle)"
+			_status_label.text = "[E] Bloom pour\nHold a filled kettle"
 		State.BLOOMING:
-			_status_label.text = "Blooming..."
+			_status_label.text = ""
 		State.BLOOM_WAIT:
-			_status_label.text = "Bloom wait..."
+			_status_label.text = "Blooming"
 		State.MAIN_POUR:
-			_status_label.text = "[E] Main pour\n(hold filled kettle)"
+			_status_label.text = "[E] Main pour\nHold a filled kettle"
 		State.DRAINING:
-			_status_label.text = "Draining..."
+			_status_label.text = "Draining"
 		State.READY:
-			_status_label.text = "Coffee ready!\n[E] Pick up cup"
+			_status_label.text = "[E] Pick up cup"
 		State.STALE:
-			_status_label.text = "Getting cold!\n[E] Pick up cup"
+			_status_label.text = "Going cold\n[E] Pick up cup"

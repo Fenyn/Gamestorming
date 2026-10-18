@@ -7,11 +7,14 @@ const SFX_PATHS := {
 	# Grinder
 	"grind_loop": "res://audio/sfx/grind_loop.ogg",
 	"grind_complete": "res://audio/sfx/grind_complete.ogg",
+	"grind_click": "res://audio/sfx/grind_click.ogg",
 
 	# Shot Press
 	"water_pour_loop": "res://audio/sfx/water_pour_loop.ogg",
 	"stir_loop": "res://audio/sfx/stir_loop.ogg",
 	"steep_tick": "res://audio/sfx/steep_tick.ogg",
+	"timer_tick": "res://audio/sfx/timer_tick.ogg",
+	"spill": "res://audio/sfx/spill.ogg",
 	"shot_ready": "res://audio/sfx/shot_ready.ogg",
 	"over_extract_warn": "res://audio/sfx/over_extract_warn.ogg",
 	"press_loop": "res://audio/sfx/press_loop.ogg",
@@ -28,6 +31,7 @@ const SFX_PATHS := {
 	"steam_hiss_good": "res://audio/sfx/steam_hiss_good.ogg",
 	"steam_screech": "res://audio/sfx/steam_screech.ogg",
 	"steam_texture_loop": "res://audio/sfx/steam_texture_loop.ogg",
+	"steam_roll": "res://audio/sfx/steam_roll.ogg",
 	"milk_ready": "res://audio/sfx/milk_ready.ogg",
 	"milk_scald": "res://audio/sfx/milk_scald.ogg",
 
@@ -42,6 +46,7 @@ const SFX_PATHS := {
 	"sauce_drizzle_loop": "res://audio/sfx/sauce_drizzle_loop.ogg",
 	"sauce_prep_loop": "res://audio/sfx/sauce_prep_loop.ogg",
 	"sauce_batch_done": "res://audio/sfx/sauce_batch_done.ogg",
+	"bag_tear": "res://audio/sfx/bag_tear.ogg",
 
 	# Lid
 	"lid_snap": "res://audio/sfx/lid_snap.ogg",

@@ -27,7 +27,9 @@ var _screen_pitch_center := 0.0
 var _saved_yaw := 0.0
 var _saved_pitch := 0.0
 var _screen_look_range := 0.35
-var _saved_fov := 75.0
+## Field of view outside close-up work; zooms always return to this.
+var _base_fov := 75.0
+var _fov_tween: Tween = null
 const STATUS_ALERT_MS := 3000
 var _exit_frame := -1
 const EXIT_COOLDOWN_FRAMES := 10
@@ -56,12 +58,25 @@ var _recipe_built_for := ""
 var _tooltip_panel: PanelContainer = null
 var _tooltip_label: Label = null
 var _end_panel: PanelContainer = null
+## Mini-game helper UI: controls strip and the optional assist readout. The
+## source is the mini-game (or station) that entered the camera lock; it answers
+## get_controls_hint() and get_assist_readout().
+var _hint_panel: PanelContainer = null
+var _hint_label: Label = null
+var _readout_label: Label = null
+var _hud_source: Object = null
+## Camera shake from shake(): lens offset that decays, so it never moves the
+## camera's transform (mini-game cameras are tweened).
+var _shake_amount := 0.0
+var _shake_time := 0.0
+var _shake_left := 0.0
 var _day_ended := false
 var _active_order: OrderData = null
 
 func _ready() -> void:
 	add_to_group("player")
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	_base_fov = camera.fov
 	_hover_material = ShaderMaterial.new()
 	_hover_material.shader = HOVER_SHADER
 	_build_hud()
@@ -235,6 +250,84 @@ func _build_hud() -> void:
 	_tooltip_label.add_theme_constant_override("line_spacing", 6)
 	_tooltip_panel.add_child(_tooltip_label)
 	hud.add_child(_tooltip_panel)
+	_build_mini_game_hud(hud)
+
+func _build_mini_game_hud(hud: Node) -> void:
+	_hint_panel = PanelContainer.new()
+	_hint_panel.anchor_left = 0.5
+	_hint_panel.anchor_right = 0.5
+	_hint_panel.anchor_top = 1.0
+	_hint_panel.anchor_bottom = 1.0
+	_hint_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_hint_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_hint_panel.offset_bottom = -28
+	_hint_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hint_panel.visible = false
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.05, 0.04, 0.55)
+	style.set_corner_radius_all(14)
+	style.content_margin_left = 18
+	style.content_margin_right = 18
+	style.content_margin_top = 6
+	style.content_margin_bottom = 7
+	_hint_panel.add_theme_stylebox_override("panel", style)
+	_hint_label = Label.new()
+	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint_label.add_theme_font_size_override("font_size", 20)
+	_hint_label.add_theme_color_override("font_color", Color(0.97, 0.94, 0.86, 0.92))
+	_hint_panel.add_child(_hint_label)
+	hud.add_child(_hint_panel)
+
+	_readout_label = Label.new()
+	_readout_label.anchor_left = 0.5
+	_readout_label.anchor_right = 0.5
+	_readout_label.anchor_top = 1.0
+	_readout_label.anchor_bottom = 1.0
+	_readout_label.offset_left = -300
+	_readout_label.offset_right = 300
+	_readout_label.offset_top = -110
+	_readout_label.offset_bottom = -72
+	_readout_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_readout_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	_readout_label.add_theme_font_size_override("font_size", 26)
+	_readout_label.add_theme_color_override("font_color", Color(1.0, 0.93, 0.7))
+	_readout_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	_readout_label.add_theme_constant_override("outline_size", 6)
+	_readout_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_readout_label.visible = false
+	hud.add_child(_readout_label)
+
+## Short camera jolt in metres of lens offset, for thumps and completions.
+func shake(amount: float = 0.004, duration: float = 0.18) -> void:
+	_shake_amount = maxf(_shake_amount if _shake_left > 0.0 else 0.0, amount)
+	_shake_time = duration
+	_shake_left = duration
+
+func _update_shake(delta: float) -> void:
+	if _shake_left <= 0.0:
+		return
+	_shake_left -= delta
+	var k := clampf(_shake_left / maxf(_shake_time, 0.001), 0.0, 1.0)
+	if _shake_left <= 0.0:
+		camera.h_offset = 0.0
+		camera.v_offset = 0.0
+		return
+	camera.h_offset = randf_range(-1.0, 1.0) * _shake_amount * k
+	camera.v_offset = randf_range(-1.0, 1.0) * _shake_amount * k
+
+func _update_mini_game_hud() -> void:
+	var source := _hud_source if _mode == InteractMode.MINI_GAME and is_instance_valid(_hud_source) else null
+	var hint := ""
+	var readout := ""
+	if source:
+		if GameSettings.control_hints and source.has_method("get_controls_hint"):
+			hint = str(source.call("get_controls_hint"))
+		if GameSettings.assist_readouts and source.has_method("get_assist_readout"):
+			readout = str(source.call("get_assist_readout"))
+	_hint_label.text = hint
+	_hint_panel.visible = hint != ""
+	_readout_label.text = readout
+	_readout_label.visible = readout != ""
 
 func _update_hud() -> void:
 	if _timer_label:
@@ -282,6 +375,8 @@ func _update_hud() -> void:
 			_interact_label.text = ""
 
 	_update_station_status()
+	_update_mini_game_hud()
+	_update_shake(get_physics_process_delta_time())
 	_update_recipe_display()
 	_process_info_hover()
 
@@ -297,6 +392,8 @@ func _update_station_status() -> void:
 				label.set_meta("alert_until", now + STATUS_ALERT_MS)
 			label.set_meta("last_text", label.text)
 		if _mode != InteractMode.FREE:
+			# Locked to a station: its gauges and the controls strip take over.
+			label.visible = false
 			continue
 		var show := label.text != "" and (label.get_parent() == looked_at or int(label.get_meta("alert_until", 0)) > now)
 		label.transparency = move_toward(label.transparency, 0.0 if show else 1.0, 0.12)
@@ -714,10 +811,14 @@ func _process_info_hover() -> void:
 	if not found_tip:
 		_tooltip_panel.visible = false
 
-func enter_mini_game(cam_transform: Transform3D) -> void:
+## hud_source answers get_controls_hint() and get_assist_readout() for the
+## helper UI. fov > 0 zooms the camera; it goes back on exit.
+func enter_mini_game(cam_transform: Transform3D, hud_source: Object = null, fov: float = 0.0) -> void:
 	if _mode != InteractMode.FREE:
 		return
 	_mode = InteractMode.MINI_GAME
+	_hud_source = hud_source
+	_tween_fov(fov if fov > 0.0 else _base_fov, CAMERA_ENTER_TIME)
 	_saved_yaw = _yaw
 	_saved_pitch = _pitch
 	_ease_camera_to(cam_transform)
@@ -728,9 +829,7 @@ func enter_screen_mode(look_target: Vector3, cam_pos: Vector3, look_range: float
 	if _mode != InteractMode.FREE:
 		return
 	_mode = InteractMode.SCREEN
-	_saved_fov = camera.fov
-	if fov > 0.0:
-		create_tween().tween_property(camera, "fov", fov, CAMERA_ENTER_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_tween_fov(fov if fov > 0.0 else _base_fov, CAMERA_ENTER_TIME)
 	_saved_yaw = _yaw
 	_saved_pitch = _pitch
 	_screen_look_range = look_range
@@ -748,6 +847,7 @@ func _restore_camera() -> void:
 	if _mode == InteractMode.FREE:
 		return
 	_mode = InteractMode.FREE
+	_hud_source = null
 	_exit_frame = Engine.get_process_frames()
 	_yaw = _saved_yaw
 	_pitch = _saved_pitch
@@ -760,9 +860,17 @@ func _restore_camera() -> void:
 	_kill_camera_tween()
 	_camera_tween = create_tween()
 	_camera_tween.tween_property(camera, "transform", rest, CAMERA_EXIT_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	if not is_equal_approx(camera.fov, _saved_fov):
-		_camera_tween.parallel().tween_property(camera, "fov", _saved_fov, CAMERA_EXIT_TIME)
+	_tween_fov(_base_fov, CAMERA_EXIT_TIME)
 	_set_world_labels_visible(true)
+
+func _tween_fov(fov: float, time: float) -> void:
+	if _fov_tween and _fov_tween.is_valid():
+		_fov_tween.kill()
+	_fov_tween = null
+	if is_equal_approx(camera.fov, fov):
+		return
+	_fov_tween = create_tween()
+	_fov_tween.tween_property(camera, "fov", fov, time).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 func _ease_camera_to(target: Transform3D) -> void:
 	_kill_camera_tween()

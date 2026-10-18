@@ -6,7 +6,16 @@ const FILL_CAM_ROT := Vector3(-25, 0, 0)
 
 var _shelf_kettle: Kettle = null
 var _status_label: Label3D = null
-var _fill_label: Label3D = null
+## LED on the dispenser: water temperature, or volume while it runs.
+var _readout: Label3D = null
+var _dispensed := 0.0
+var _spill: GPUParticles3D = null
+## Water a full kettle holds, for the volume readout.
+const KETTLE_LITRES := 0.9
+const CUP_POUR_LITRES := 0.25
+const WATER_TEMP := 96
+## Cup fill at the printed line, from paper_cup.gd.
+const CUP_FILL_LINE := 0.85
 
 var _pour_game: PourMiniGame = null
 var _player_ref: Player = null
@@ -46,25 +55,17 @@ func _ready() -> void:
 	cam.transform = cam_xform
 	_pour_game.add_child(cam)
 	add_child(_pour_game)
-	# The pour game lays its prompt flat for the pour-over; stand it up here.
-	_pour_game._status_label.position = fill_point + Vector3(-0.13, 0.16, 0.0)
-	_pour_game._status_label.rotation_degrees = Vector3.ZERO
-	_pour_game._status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_pour_game._camera_point = cam
+	_pour_game.camera_fov = 55.0
 	_pour_game.mini_game_completed.connect(_on_pour_complete)
 
 	_spawn_shelf_kettle()
 
 	_status_label = StationUtils.create_status_label(self, _fill_point + Vector3(0, 0.31, 0.1))
 
-	_fill_label = Label3D.new()
-	_fill_label.text = ""
-	_fill_label.font_size = 14
-	_fill_label.position = fill_point + Vector3(-0.13, 0.16, 0.0)
-	_fill_label.pixel_size = 0.001
-	_fill_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_fill_label.visible = false
-	add_child(_fill_label)
+	_readout = get_node_or_null("Model/ControlPanel/Readout") as Label3D
+	_spill = Fx.make_specks(Color(0.62, 0.45, 0.3, 0.85), 0.004, -3.0, 0.3, 24)
+	add_child(_spill)
 
 	_update_label()
 
@@ -156,8 +157,8 @@ func interact(player: Player) -> void:
 		_player_ref = player
 		_take_under_spout(player, kettle)
 		kettle.set_lid_open(true)
-		_player_ref.enter_mini_game(_fill_cam.global_transform)
-		_fill_label.visible = true
+		_player_ref.enter_mini_game(_fill_cam.global_transform, self, 55.0)
+		_dispensed = 0.0
 		SoundManager.play_loop("kettle_fill_loop")
 		return
 
@@ -167,16 +168,19 @@ func interact(player: Player) -> void:
 			_player_ref = player
 			_cup_start_fill = cup.get_fill()
 			_take_under_spout(player, cup)
+			# The pour's level 1 is the printed line; the rim is where it spills.
+			_pour_game.overflow_level = (1.0 - _cup_start_fill) / maxf(CUP_FILL_LINE - _cup_start_fill, 0.05)
+			_dispensed = 0.0
 			_pour_game.start(player)
 			return
 		if not cup.has_shot:
 			if _status_label:
-				_status_label.text = "Cup needs shot first!"
+				_status_label.text = "Pull a shot into it first"
 			return
 
 	if not held:
 		if _status_label:
-			_status_label.text = "Pick up kettle or\nhold cup with shot"
+			_status_label.text = "Hold the kettle or a cup with a shot"
 
 func _input(event: InputEvent) -> void:
 	if not _filling:
@@ -198,15 +202,19 @@ func _process(delta: float) -> void:
 		var target := _lever_rest + (LEVER_PULL_DEG if flowing else 0.0)
 		_lever.rotation_degrees.x = lerpf(_lever.rotation_degrees.x, target, minf(delta * 14.0, 1.0))
 	if _pour_game.is_active() and _under_spout is Cup:
-		var level := clampf(_pour_game._fill_level, 0.0, 1.0)
-		(_under_spout as Cup).set_fill(lerpf(_cup_start_fill, 0.85, level), Color(0.3, 0.2, 0.1))
+		var level := _pour_game.get_fill_level()
+		(_under_spout as Cup).set_fill(lerpf(_cup_start_fill, CUP_FILL_LINE, level), Color(0.3, 0.2, 0.1))
+		_dispensed = level * CUP_POUR_LITRES
+		_spill.global_position = _under_spout.global_position + Vector3(0, StationUtils.item_half_height(_under_spout), 0.03)
+	_spill.emitting = _pour_game.is_active() and _pour_game.is_overflowed()
+	_update_readout()
 	if _shelf_kettle and StationUtils.is_item_removed(_shelf_kettle, to_global(_rest_position(_shelf_kettle)), 0.15):
 		_shelf_kettle = null
 		_update_label()
 	if _filling and _filling_kettle and is_instance_valid(_filling_kettle):
+		var before := _filling_kettle.water_level
 		_filling_kettle.water_level = minf(_filling_kettle.water_level + FILL_RATE * delta, Kettle.MAX_WATER)
-		if _fill_label:
-			_fill_label.text = "Filling... %.0f%%\n[E] Stop" % _filling_kettle.get_level_percent()
+		_dispensed += (_filling_kettle.water_level - before) * KETTLE_LITRES
 		if _filling_kettle.water_level >= Kettle.MAX_WATER - 0.01:
 			_stop_filling()
 
@@ -218,12 +226,31 @@ func _stop_filling() -> void:
 	if _filling_kettle and is_instance_valid(_filling_kettle):
 		_filling_kettle.set_lid_open(false)
 	_filling_kettle = null
-	_fill_label.visible = false
 	_return_from_spout(_player_ref)
 	if _player_ref and is_instance_valid(_player_ref):
 		_player_ref.exit_mini_game()
 		_player_ref = null
 	_update_label()
+
+## LED shows the water temperature, and litres while water runs.
+func _update_readout() -> void:
+	if not _readout:
+		return
+	var flowing := _under_spout != null and (_filling or _pour_game.is_pouring())
+	if _filling or (_pour_game.is_active() and _dispensed > 0.0):
+		_readout.text = "%.2fL" % _dispensed
+	else:
+		_readout.text = "%d°" % WATER_TEMP
+	_readout.modulate = Color(1.0, 0.45, 0.2) if not flowing else Color(1.0, 0.6, 0.3)
+
+## Helper UI while the kettle fills (the dispenser is the HUD source then).
+func get_controls_hint() -> String:
+	return BaseMiniGame.hint([["E", "Stop filling"]])
+
+func get_assist_readout() -> String:
+	if _filling_kettle and is_instance_valid(_filling_kettle):
+		return "Kettle  %d%%" % roundi(_filling_kettle.get_level_percent())
+	return ""
 
 func _on_pour_complete(quality: float) -> void:
 	var held := _under_spout
@@ -232,7 +259,11 @@ func _on_pour_complete(quality: float) -> void:
 		cup.has_hot_water = true
 		if cup.order:
 			cup.order.pour_quality = quality
-		cup.set_fill(0.85, Color(0.3, 0.2, 0.1))
+		if _pour_game.is_overflowed():
+			cup.set_fill(1.0, Color(0.3, 0.2, 0.1))
+			Fx.splash(cup.global_position + Vector3(0, StationUtils.item_half_height(cup), 0), Color(0.55, 0.4, 0.28), 14)
+		else:
+			cup.set_fill(lerpf(_cup_start_fill, CUP_FILL_LINE, _pour_game.get_fill_level()), Color(0.3, 0.2, 0.1))
 	_update_label()
 
 func _update_label() -> void:
@@ -241,4 +272,4 @@ func _update_label() -> void:
 	if _kettle_on_rest():
 		_status_label.text = "[E] Pick up kettle"
 	else:
-		_status_label.text = "[E] Fill kettle / pour"
+		_status_label.text = "[E] Fill kettle or top up a shot"

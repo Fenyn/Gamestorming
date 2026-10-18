@@ -79,46 +79,73 @@ radial_segments = 10
 rings = 1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_so2li"]
+albedo_color = Color(0.97, 0.95, 0.88, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_gdpj0"]
+size = Vector3(0.05, 0.03, 0.0008)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sofi7"]
+albedo_color = Color(0.22, 0.42, 0.28, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_fd1b6"]
+size = Vector3(0.052, 0.032, 0.0006)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oa4da"]
+albedo_color = Color(0.75, 0.7, 0.6, 1)
+roughness = 0.9
+
+[sub_resource type="TorusMesh" id="TorusMesh_lfsrj"]
+inner_radius = 0.0145
+outer_radius = 0.0158
+rings = 20
+ring_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_copw1"]
+size = Vector3(0.0012, 0.021805959, 0.0012)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wi2ay"]
 albedo_color = Color(0.7, 0.71, 0.73, 1)
 metallic = 0.7
 roughness = 0.35
 
-[sub_resource type="BoxMesh" id="BoxMesh_gdpj0"]
+[sub_resource type="BoxMesh" id="BoxMesh_hkw35"]
 size = Vector3(0.1, 0.0072, 0.12)
 
-[sub_resource type="BoxMesh" id="BoxMesh_sofi7"]
+[sub_resource type="BoxMesh" id="BoxMesh_5f8ot"]
 size = Vector3(0.092, 0.004, 0.006)
 
-[sub_resource type="BoxMesh" id="BoxMesh_fd1b6"]
+[sub_resource type="BoxMesh" id="BoxMesh_5qp8a"]
 size = Vector3(0.092, 0.004, 0.006)
 
-[sub_resource type="BoxMesh" id="BoxMesh_oa4da"]
+[sub_resource type="BoxMesh" id="BoxMesh_bl0yd"]
 size = Vector3(0.092, 0.004, 0.006)
 
-[sub_resource type="BoxMesh" id="BoxMesh_lfsrj"]
+[sub_resource type="BoxMesh" id="BoxMesh_xoevy"]
 size = Vector3(0.092, 0.004, 0.006)
 
-[sub_resource type="BoxMesh" id="BoxMesh_copw1"]
+[sub_resource type="BoxMesh" id="BoxMesh_noeip"]
 size = Vector3(0.092, 0.004, 0.006)
 
-[node name="SyrupPumpStation" type="Node3D" unique_id=632797375]
+[node name="SyrupPumpStation" type="Node3D" unique_id=1229001257]
 
-[node name="Bottle" type="MeshInstance3D" parent="." unique_id=84788556]
+[node name="Bottle" type="MeshInstance3D" parent="." unique_id=53699995]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.045)
 material_override = SubResource("StandardMaterial3D_ploou")
 mesh = SubResource("ArrayMesh_gejq4")
 
-[node name="Syrup" type="MeshInstance3D" parent="." unique_id=1706479634]
+[node name="Syrup" type="MeshInstance3D" parent="." unique_id=973674834]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.084, -0.045)
 material_override = SubResource("StandardMaterial3D_c886u")
 mesh = SubResource("CylinderMesh_dji51")
 
-[node name="Label" type="MeshInstance3D" parent="." unique_id=1232052177]
+[node name="Label" type="MeshInstance3D" parent="." unique_id=2145148634]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, -0.045)
 material_override = SubResource("StandardMaterial3D_3pd3e")
 mesh = SubResource("CylinderMesh_bkdvh")
 
-[node name="NameLabel" type="Label3D" parent="." unique_id=848297932]
+[node name="NameLabel" type="Label3D" parent="." unique_id=937069763]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, -0.0075000003)
 pixel_size = 0.0004
 modulate = Color(0.25, 0.2, 0.15, 1)
@@ -126,68 +153,102 @@ text = "Syrup"
 font_size = 48
 outline_size = 0
 
-[node name="PumpCollar" type="MeshInstance3D" parent="." unique_id=1410945557]
+[node name="PumpCollar" type="MeshInstance3D" parent="." unique_id=491889412]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.279, -0.045)
 material_override = SubResource("StandardMaterial3D_wxdva")
 mesh = SubResource("CylinderMesh_fac0r")
 
-[node name="PumpHead" type="Node3D" parent="." unique_id=1020269592]
+[node name="PumpHead" type="Node3D" parent="." unique_id=377061038]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.29, -0.045)
 
-[node name="Stem" type="MeshInstance3D" parent="PumpHead" unique_id=345083993]
+[node name="Stem" type="MeshInstance3D" parent="PumpHead" unique_id=1065065372]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.005, 0)
 material_override = SubResource("StandardMaterial3D_5wapg")
 mesh = SubResource("CylinderMesh_3tqlk")
 
-[node name="Cap" type="MeshInstance3D" parent="PumpHead" unique_id=1291758582]
+[node name="Cap" type="MeshInstance3D" parent="PumpHead" unique_id=1103609373]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.019, 0)
 material_override = SubResource("StandardMaterial3D_wxdva")
 mesh = SubResource("CylinderMesh_0l418")
 
-[node name="Spout" type="MeshInstance3D" parent="PumpHead" unique_id=10508486]
+[node name="Spout" type="MeshInstance3D" parent="PumpHead" unique_id=549398875]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.022, 0.0475)
 material_override = SubResource("StandardMaterial3D_wxdva")
 mesh = SubResource("BoxMesh_jaql4")
 
-[node name="Tip" type="MeshInstance3D" parent="PumpHead" unique_id=906452146]
+[node name="Tip" type="MeshInstance3D" parent="PumpHead" unique_id=606286678]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.012, 0.092)
 material_override = SubResource("StandardMaterial3D_wxdva")
 mesh = SubResource("CylinderMesh_nkh4c")
 
-[node name="DripTray" type="MeshInstance3D" parent="." unique_id=262287515]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0036, 0.05)
+[node name="SpoutTip" type="Marker3D" parent="PumpHead" unique_id=686780770]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.004, 0.092)
+gizmo_extents = 0.03
+
+[node name="PumpTag" type="Node3D" parent="." unique_id=1111110559]
+transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 0.222, -0.0050000027)
+
+[node name="Card" type="MeshInstance3D" parent="PumpTag" unique_id=949142447]
 material_override = SubResource("StandardMaterial3D_so2li")
 mesh = SubResource("BoxMesh_gdpj0")
 
-[node name="Grate" type="MeshInstance3D" parent="." unique_id=1628335050]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.002000001)
-material_override = SubResource("StandardMaterial3D_so2li")
-mesh = SubResource("BoxMesh_sofi7")
-
-[node name="Grate2" type="MeshInstance3D" parent="." unique_id=1384598135]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.026)
-material_override = SubResource("StandardMaterial3D_so2li")
+[node name="Edge" type="MeshInstance3D" parent="PumpTag" unique_id=1952502027]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.0005)
+material_override = SubResource("StandardMaterial3D_sofi7")
 mesh = SubResource("BoxMesh_fd1b6")
 
-[node name="Grate3" type="MeshInstance3D" parent="." unique_id=1149547444]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.05)
-material_override = SubResource("StandardMaterial3D_so2li")
-mesh = SubResource("BoxMesh_oa4da")
+[node name="Text" type="Label3D" parent="PumpTag" unique_id=1878321131]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0006)
+pixel_size = 0.00022
+modulate = Color(0.2, 0.17, 0.14, 1)
+text = "PUMPS"
+outline_size = 0
+line_spacing = -4.0
 
-[node name="Grate4" type="MeshInstance3D" parent="." unique_id=1459606522]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.074)
-material_override = SubResource("StandardMaterial3D_so2li")
-mesh = SubResource("BoxMesh_lfsrj")
+[node name="TagCord" type="MeshInstance3D" parent="." unique_id=1331981036]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.248, -0.045)
+material_override = SubResource("StandardMaterial3D_oa4da")
+mesh = SubResource("TorusMesh_lfsrj")
 
-[node name="Grate5" type="MeshInstance3D" parent="." unique_id=976219090]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.098)
-material_override = SubResource("StandardMaterial3D_so2li")
+[node name="TagString" type="MeshInstance3D" parent="." unique_id=1245790460]
+transform = Transform3D(1, 0, 0, 0, -0.5966078, -0.8025329, 0, 0.8025329, -0.5966078, 0, 0.24149519, -0.021250002)
+material_override = SubResource("StandardMaterial3D_oa4da")
 mesh = SubResource("BoxMesh_copw1")
 
-[node name="CupSpot" type="Marker3D" parent="." unique_id=1394425035]
+[node name="DripTray" type="MeshInstance3D" parent="." unique_id=853010832]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0036, 0.05)
+material_override = SubResource("StandardMaterial3D_wi2ay")
+mesh = SubResource("BoxMesh_hkw35")
+
+[node name="Grate" type="MeshInstance3D" parent="." unique_id=758580437]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.002000001)
+material_override = SubResource("StandardMaterial3D_wi2ay")
+mesh = SubResource("BoxMesh_5f8ot")
+
+[node name="Grate2" type="MeshInstance3D" parent="." unique_id=328668863]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.026)
+material_override = SubResource("StandardMaterial3D_wi2ay")
+mesh = SubResource("BoxMesh_5qp8a")
+
+[node name="Grate3" type="MeshInstance3D" parent="." unique_id=614823822]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.05)
+material_override = SubResource("StandardMaterial3D_wi2ay")
+mesh = SubResource("BoxMesh_bl0yd")
+
+[node name="Grate4" type="MeshInstance3D" parent="." unique_id=1708406077]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.074)
+material_override = SubResource("StandardMaterial3D_wi2ay")
+mesh = SubResource("BoxMesh_xoevy")
+
+[node name="Grate5" type="MeshInstance3D" parent="." unique_id=1446035525]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.098)
+material_override = SubResource("StandardMaterial3D_wi2ay")
+mesh = SubResource("BoxMesh_noeip")
+
+[node name="CupSpot" type="Marker3D" parent="." unique_id=125599262]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.012, 0.05)
 gizmo_extents = 0.03
 
-[node name="CameraView" type="Marker3D" parent="." unique_id=2139290690]
-transform = Transform3D(1, 0, 0, 0, 0.88294756, 0.46947157, 0, -0.46947157, 0.88294756, 0, 0.43, 0.36)
+[node name="CameraView" type="Marker3D" parent="." unique_id=1064810725]
+transform = Transform3D(0.9847836, -0.07307164, 0.15767649, 0, 0.90730613, 0.4204707, -0.17378533, -0.41407266, 0.8935002, 0.06, 0.36, 0.36)
 gizmo_extents = 0.03

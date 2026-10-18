@@ -152,6 +152,36 @@ func sparkle_burst(world_pos: Vector3, color: Color = Color(1.0, 0.9, 0.4), coun
 	particles.emitting = true
 	get_tree().create_timer(particles.lifetime + 0.5).timeout.connect(particles.queue_free)
 
+## Droplets thrown up and out, for spills and splashes. Frees itself.
+func splash(world_pos: Vector3, color: Color, count: int = 12, size: float = 0.005, speed: float = 0.5) -> void:
+	var particles := GPUParticles3D.new()
+	particles.amount = count
+	particles.lifetime = 0.6
+	particles.one_shot = true
+	particles.explosiveness = 0.9
+	particles.local_coords = false
+	particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var pm := ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	pm.emission_sphere_radius = 0.01
+	pm.direction = Vector3.UP
+	pm.spread = 70.0
+	pm.initial_velocity_min = speed * 0.4
+	pm.initial_velocity_max = speed
+	pm.gravity = Vector3(0, -6.0, 0)
+	pm.scale_min = 0.6
+	pm.scale_max = 1.3
+	pm.color = color
+	particles.process_material = pm
+	var quad := QuadMesh.new()
+	quad.size = Vector2(size, size)
+	quad.material = particle_material(Color.WHITE)
+	particles.draw_pass_1 = quad
+	_scene_root().add_child(particles)
+	particles.global_position = world_pos
+	particles.emitting = true
+	get_tree().create_timer(particles.lifetime + 0.4).timeout.connect(particles.queue_free)
+
 ## Text that pops in, drifts up and fades out, e.g. "+$4.20". Frees itself.
 func float_text(world_pos: Vector3, text: String, color: Color = Color(0.55, 1.0, 0.55), font_size: int = 48) -> void:
 	var label := Label3D.new()

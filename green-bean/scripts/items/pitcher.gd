@@ -5,8 +5,10 @@ const LIQUID_SHADER := preload("res://assets/shaders/liquid.gdshader")
 const MILK_COLOR := Color(0.96, 0.95, 0.91)
 const HOT_MILK_COLOR := Color(0.97, 0.93, 0.85)
 const SCALDED_COLOR := Color(0.82, 0.68, 0.45)
-## Milk depth before foaming. Foam raises it by up to 60%.
-const MILK_HEIGHT := 0.04
+## Milk depth before foaming, and foam's extra height at foam 1 (as a fraction).
+## The model's etched lines are drawn from the same numbers (its metadata).
+var milk_height := 0.04
+var foam_rise := 0.6
 
 var has_milk := false:
 	set(value):
@@ -25,6 +27,10 @@ var _milk_mat: ShaderMaterial = null
 var _milk_floor := -0.043
 ## Inside wall of the model as (radius, y), low to high.
 var _inner_profile := PackedVector2Array([Vector2(0.034, -0.043), Vector2(0.0315, 0.0475)])
+var _needle: Node3D = null
+var _needle_zero := -135.0
+var _needle_per_c := 2.7
+var _needle_deg := -81.0
 
 func _ready() -> void:
 	add_to_group("carriable")
@@ -39,6 +45,13 @@ func _ready() -> void:
 		_milk_floor = floor_marker.position.y
 	if model.has_meta("inner_profile"):
 		_inner_profile = model.get_meta("inner_profile")
+	milk_height = float(model.get_meta("milk_height", milk_height))
+	foam_rise = float(model.get_meta("foam_rise", foam_rise))
+	_needle = model.get_node_or_null("Thermometer/Dial/Needle") as Node3D
+	if _needle:
+		_needle_zero = float(_needle.get_meta("zero_deg", _needle_zero))
+		_needle_per_c = float(_needle.get_meta("deg_per_c", _needle_per_c))
+	set_temperature(20.0, true)
 
 	_milk_mesh = CylinderMesh.new()
 	_milk_mesh.radial_segments = 20
@@ -53,7 +66,7 @@ func _ready() -> void:
 	_milk_visual.material_override = _milk_mat
 	_milk_visual.visible = has_milk
 	add_child(_milk_visual)
-	_set_milk_height(MILK_HEIGHT)
+	_set_milk_height(milk_height)
 
 	# Collider is authored in the model scene; a body needs it as a direct child.
 	var col := model.get_node_or_null("Collision") as CollisionShape3D
@@ -87,10 +100,35 @@ func update_milk_visual(heat_ratio: float, foam: float, scalded: bool) -> void:
 	_milk_mat.set_shader_parameter("liquid_color", color)
 	_milk_mat.set_shader_parameter("foam_fraction", clampf(foam * 0.7, 0.0, 0.7))
 	_milk_mat.set_shader_parameter("foam_color", Color(0.9, 0.82, 0.66) if scalded else Color(1.0, 0.99, 0.96))
-	var height := MILK_HEIGHT * (1.0 + clampf(foam, 0.0, 1.0) * 0.6)
+	var height := surface_height(foam)
 	if absf(height - _milk_mesh.height) < 0.0005:
 		return
 	_set_milk_height(height)
+
+## Milk surface above the pitcher floor at this much foam.
+func surface_height(foam: float) -> float:
+	return milk_height * (1.0 + clampf(foam, 0.0, 1.0) * foam_rise)
+
+## Local y of the milk surface.
+func surface_y(foam: float) -> float:
+	return _milk_floor + surface_height(foam)
+
+## Clip-on thermometer. The needle eases to the reading like a real bimetal dial.
+func set_temperature(celsius: float, snap: bool = false) -> void:
+	if not _needle:
+		return
+	var target := _needle_zero + _needle_per_c * clampf(celsius, 0.0, 100.0)
+	_needle_deg = target if snap else lerpf(_needle_deg, target, 0.15)
+	_needle.rotation.z = -deg_to_rad(_needle_deg)
+
+## Milk movement: swirl 0..1 spins a tilted surface (the steam vortex),
+## agitation 0..1 adds a choppy ripple.
+func set_agitation(swirl: float, agitation: float) -> void:
+	if not _milk_mat:
+		return
+	var t := Time.get_ticks_msec() / 1000.0 * 9.0
+	_milk_mat.set_shader_parameter("wobble", Vector2(cos(t), sin(t)) * 0.12 * swirl)
+	_milk_mat.set_shader_parameter("ripple", 0.0015 + 0.0035 * agitation)
 
 func _set_milk_height(height: float) -> void:
 	_milk_mesh.height = height
@@ -119,3 +157,5 @@ func reset_pitcher() -> void:
 	steam_quality = 0.0
 	foam_level = 0.0
 	update_milk_visual(0.0, 0.0, false)
+	set_agitation(0.0, 0.0)
+	set_temperature(20.0, true)

@@ -17,7 +17,11 @@ const MIN_MOTION := 3.0
 const ANGLE_SCALE := 0.5
 const JUG_CAPACITY := 5.0
 const BOTTLE_FILL_COST := 1.0
-const BAR_WIDTH := 0.2
+## Water and cocoa stand this high in the jug while whisking (fraction of full).
+const MIX_LEVEL := 0.6
+const POWDER_COLOR := Color(0.55, 0.38, 0.25)
+const SAUCE_COLOR := Color(0.25, 0.15, 0.08)
+const WHISK_ORBIT := 0.022
 
 var state := State.IDLE
 var jug_level := 0.0
@@ -38,9 +42,14 @@ var _jug_floor := Vector3(-0.08, 0.02, -0.01)
 var _jug_fill_height := 0.136
 var _bag_visual: Node3D = null
 var _cut_start := Vector3(0.025, 0.117, -0.03)
-var _cut_line: CSGBox3D = null
-var _stir_bar_bg: CSGBox3D = null
-var _stir_bar_fill: CSGBox3D = null
+## Slit opening across the bag's top as you cut.
+var _cut_line: MeshInstance3D = null
+var _cut_mesh: BoxMesh = null
+var _jug_fill_mat: StandardMaterial3D = null
+var _whisk: Node3D = null
+var _whisk_rest := Transform3D.IDENTITY
+var _whisk_angle := 0.0
+var _jug_radius := 0.054
 var _bottle_slot: Marker3D = null
 var _cam_point: Marker3D = null
 
@@ -79,39 +88,29 @@ func _ready() -> void:
 	_jug_fill = MeshInstance3D.new()
 	_jug_fill.name = "Batch"
 	_jug_fill.mesh = _jug_fill_mesh
-	var fmat := StandardMaterial3D.new()
-	fmat.albedo_color = Color(0.25, 0.15, 0.08)
-	fmat.roughness = 0.3
-	_jug_fill.material_override = fmat
+	_jug_radius = radius
+	_jug_fill_mat = StandardMaterial3D.new()
+	_jug_fill_mat.albedo_color = SAUCE_COLOR
+	_jug_fill_mat.roughness = 0.3
+	_jug_fill.material_override = _jug_fill_mat
 	_jug_fill.visible = false
 	add_child(_jug_fill)
 
-	_cut_line = CSGBox3D.new()
-	_cut_line.size = Vector3(0.001, 0.003, 0.003)
-	_cut_line.position = _cut_start
+	_cut_mesh = BoxMesh.new()
+	_cut_mesh.size = Vector3(0.001, 0.0025, 0.002)
+	_cut_line = MeshInstance3D.new()
+	_cut_line.name = "Cut"
+	_cut_line.mesh = _cut_mesh
 	var clmat := StandardMaterial3D.new()
-	clmat.albedo_color = Color(1, 1, 1)
-	_cut_line.material = clmat
+	clmat.albedo_color = Color(0.12, 0.08, 0.05)
+	_cut_line.material_override = clmat
+	_cut_line.position = _cut_start
 	_cut_line.visible = false
 	add_child(_cut_line)
 
-	_stir_bar_bg = CSGBox3D.new()
-	_stir_bar_bg.size = Vector3(BAR_WIDTH, 0.012, 0.012)
-	_stir_bar_bg.position = Vector3(0, 0.3, 0.12)
-	var sbg := StandardMaterial3D.new()
-	sbg.albedo_color = Color(0.2, 0.2, 0.2)
-	_stir_bar_bg.material = sbg
-	_stir_bar_bg.visible = false
-	add_child(_stir_bar_bg)
-
-	_stir_bar_fill = CSGBox3D.new()
-	_stir_bar_fill.size = Vector3(0.001, 0.012, 0.013)
-	_stir_bar_fill.position = Vector3(-BAR_WIDTH / 2.0, 0.3, 0.12)
-	var sbf := StandardMaterial3D.new()
-	sbf.albedo_color = Color(0.25, 0.15, 0.08)
-	_stir_bar_fill.material = sbf
-	_stir_bar_fill.visible = false
-	add_child(_stir_bar_fill)
+	_whisk = get_node_or_null("Model/Whisk") as Node3D
+	if _whisk:
+		_whisk_rest = _whisk.transform
 
 	_status_label = StationUtils.create_status_label(self)
 	_update_label()
@@ -138,7 +137,7 @@ func interact(player: Player) -> void:
 			_stir_game_active = true
 			_cut_progress = 0.0
 			_cut_line.visible = true
-			player.enter_mini_game(_cam_point.global_transform)
+			player.enter_mini_game(_cam_point.global_transform, self, 50.0)
 			state = State.CUTTING
 			_update_label()
 		State.CUTTING:
@@ -151,19 +150,17 @@ func interact(player: Player) -> void:
 			state = State.NEEDS_STIR
 			_stir_progress = 0.0
 			_has_prev = false
-			_stir_bar_bg.visible = true
-			_stir_bar_fill.visible = true
 			_update_label()
 			_player_ref = player
 			_stir_game_active = true
-			player.enter_mini_game(_cam_point.global_transform)
+			_whisk_in(true)
+			player.enter_mini_game(_cam_point.global_transform, self, 50.0)
 			SoundManager.play_loop("sauce_prep_loop")
 			state = State.STIRRING
 			_update_label()
 		State.STIRRING:
 			SoundManager.stop_loop("sauce_prep_loop")
-			_stir_bar_bg.visible = false
-			_stir_bar_fill.visible = false
+			_whisk_in(false)
 			_exit_cam()
 			state = State.NEEDS_STIR
 			_update_label()
@@ -182,9 +179,8 @@ func interact(player: Player) -> void:
 			_player_ref = player
 			_stir_game_active = true
 			_has_prev = false
-			_stir_bar_bg.visible = true
-			_stir_bar_fill.visible = true
-			player.enter_mini_game(_cam_point.global_transform)
+			_whisk_in(true)
+			player.enter_mini_game(_cam_point.global_transform, self, 50.0)
 			SoundManager.play_loop("sauce_prep_loop")
 			state = State.STIRRING
 			_update_label()
@@ -235,8 +231,7 @@ func _input(event: InputEvent) -> void:
 					_update_label()
 				State.STIRRING:
 					SoundManager.stop_loop("sauce_prep_loop")
-					_stir_bar_bg.visible = false
-					_stir_bar_fill.visible = false
+					_whisk_in(false)
 					_exit_cam()
 					state = State.NEEDS_STIR
 					_update_label()
@@ -247,10 +242,11 @@ func _input(event: InputEvent) -> void:
 			var mx := absf(event.relative.x)
 			if mx > 5.0:
 				_cut_progress += mx * 0.005
-				_cut_line.size.x = minf(_cut_progress * 0.08, 0.08)
-				_cut_line.position.x = _cut_start.x + _cut_line.size.x * 0.5
+				_cut_mesh.size.x = minf(_cut_progress * 0.08, 0.08)
+				_cut_line.position.x = _cut_start.x + _cut_mesh.size.x * 0.5
 				if _cut_progress >= 1.0:
 					_cut_line.visible = false
+					SoundManager.play("bag_tear")
 					_exit_cam()
 					state = State.NEEDS_DUMP
 					_update_label()
@@ -266,14 +262,13 @@ func _input(event: InputEvent) -> void:
 				while delta > PI: delta -= TAU
 				while delta < -PI: delta += TAU
 				_stir_progress += absf(delta) * ANGLE_SCALE / TAU
+				_whisk_angle += delta
 			_prev_angle = angle
 			_has_prev = true
-			_update_stir_bar()
 			if _stir_progress >= STIR_TARGET:
 				SoundManager.stop_loop("sauce_prep_loop")
 				SoundManager.play("sauce_batch_done")
-				_stir_bar_bg.visible = false
-				_stir_bar_fill.visible = false
+				_whisk_in(false)
 				_exit_cam()
 				jug_level = JUG_CAPACITY
 				_update_jug_visual()
@@ -281,17 +276,38 @@ func _input(event: InputEvent) -> void:
 				state = State.JUG_READY
 				_update_label()
 
-func _update_stir_bar() -> void:
-	if not _stir_bar_fill:
+## Whisk stood upright in the jug while mixing, back on the board after.
+func _whisk_in(into_jug: bool) -> void:
+	if not _whisk:
 		return
-	var ratio := clampf(_stir_progress / STIR_TARGET, 0.0, 1.0)
-	var w := BAR_WIDTH * ratio
-	_stir_bar_fill.size.x = maxf(w, 0.001)
-	_stir_bar_fill.position.x = -BAR_WIDTH / 2.0 + w / 2.0
+	if not into_jug:
+		_whisk.transform = _whisk_rest
+		_update_jug_visual()
+		return
+	_update_whisk()
+
+func _update_whisk() -> void:
+	if not _whisk:
+		return
+	var dir := Vector3(cos(_whisk_angle), 0, sin(_whisk_angle))
+	# Wires down: the whisk's +Y (handle to wires) points at the jug floor.
+	var basis := Basis(Vector3.RIGHT, PI) * Basis(Vector3.UP, _whisk_angle * 2.0)
+	basis = Basis(dir.cross(Vector3.UP).normalized(), deg_to_rad(-10.0)) * basis
+	var wires_at := _jug_floor + Vector3(0, 0.035, 0) + dir * WHISK_ORBIT
+	_whisk.transform = Transform3D(basis, wires_at - basis * Vector3(0, 0.035, 0))
+
+## Mixing: cocoa floats as a pale crust on the water and darkens to sauce.
+func _show_mix(progress: float) -> void:
+	_jug_fill.visible = true
+	var h := _jug_fill_height * MIX_LEVEL
+	_jug_fill_mesh.height = h
+	_jug_fill.position = _jug_floor + Vector3(0, h * 0.5, 0)
+	_jug_fill_mat.albedo_color = POWDER_COLOR.lerp(SAUCE_COLOR, clampf(progress, 0.0, 1.0))
 
 func _update_jug_visual() -> void:
 	if not _jug_fill:
 		return
+	_jug_fill_mat.albedo_color = SAUCE_COLOR
 	if jug_level <= 0.01:
 		_jug_fill.visible = false
 		return
@@ -301,7 +317,27 @@ func _update_jug_visual() -> void:
 	_jug_fill_mesh.height = h
 	_jug_fill.position = _jug_floor + Vector3(0, h * 0.5, 0)
 
+## Helper UI while the camera is locked here.
+func get_controls_hint() -> String:
+	match state:
+		State.CUTTING:
+			return BaseMiniGame.hint([["Swipe mouse sideways", "Cut the bag open"], ["E", "Leave"]])
+		State.STIRRING:
+			return BaseMiniGame.hint([["Circle mouse", "Whisk"], ["E", "Leave"]])
+	return ""
+
+func get_assist_readout() -> String:
+	match state:
+		State.CUTTING:
+			return "Cut  %d%%" % roundi(clampf(_cut_progress, 0.0, 1.0) * 100.0)
+		State.STIRRING:
+			return "Mixed  %d%%" % roundi(clampf(_stir_progress / STIR_TARGET, 0.0, 1.0) * 100.0)
+	return ""
+
 func _process(_delta: float) -> void:
+	if state == State.STIRRING:
+		_show_mix(_stir_progress / STIR_TARGET)
+		_update_whisk()
 	if _placed_bottle and StationUtils.is_item_removed(_placed_bottle, _bottle_position(_placed_bottle)):
 		_placed_bottle = null
 		_update_label()
@@ -309,30 +345,27 @@ func _process(_delta: float) -> void:
 func _update_label() -> void:
 	if not _status_label:
 		return
-	var jug_str := ""
-	if jug_level > 0.01:
-		jug_str = " (jug: %.0f%%)" % (jug_level / JUG_CAPACITY * 100)
 	match state:
 		State.IDLE:
 			_status_label.text = "[E] Start a mocha batch"
 		State.NEEDS_WATER:
-			_status_label.text = "Hold filled kettle\n[E] Add hot water"
+			_status_label.text = "Hold a filled kettle\n[E] Add hot water"
 		State.NEEDS_CUT:
-			_status_label.text = "[E] Cut open powder bag"
+			_status_label.text = "[E] Cut the bag open"
 		State.CUTTING:
-			_status_label.text = "Slash mouse across bag!"
+			_status_label.text = ""
 		State.NEEDS_DUMP:
-			_status_label.text = "[E] Dump powder + stir"
+			_status_label.text = "[E] Tip in the cocoa"
 		State.NEEDS_STIR:
-			_status_label.text = "[E] Stir with whisk"
+			_status_label.text = "[E] Whisk"
 		State.STIRRING:
-			_status_label.text = "Stir! Move mouse in circles\n%.0f%%" % (clampf(_stir_progress / STIR_TARGET, 0, 1) * 100)
+			_status_label.text = ""
 		State.JUG_READY:
 			if _placed_bottle and _placed_bottle.is_empty() and jug_level >= BOTTLE_FILL_COST:
-				_status_label.text = "Mocha ready%s\n[E] Fill bottle" % jug_str
+				_status_label.text = "[E] Fill the bottle"
 			elif _placed_bottle and _placed_bottle.is_filled():
-				_status_label.text = "Bottle full!%s\n[E] Pick up" % jug_str
+				_status_label.text = "[E] Pick up bottle"
 			else:
-				_status_label.text = "Mocha ready%s\nPlace empty bottle" % jug_str
+				_status_label.text = "[Click] Set down an empty bottle"
 		State.FILLING_BOTTLE:
-			_status_label.text = "Filling bottle..."
+			_status_label.text = ""

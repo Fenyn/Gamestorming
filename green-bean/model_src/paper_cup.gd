@@ -7,7 +7,8 @@ extends RefCounted
 ##
 ## Read by cup.gd: Collision (moved onto the item), Lid (shown when lidded),
 ## LiquidFloor, StickerSpot, and root metadata "inner_profile" (inside wall as
-## (radius, y), low to high) so the drink widens with the cup.
+## (radius, y), low to high) so the drink widens with the cup, and "fill_line"
+## (the drink fill, 0..1, that the printed FillLine ring inside marks).
 
 const MK := preload("res://model_src/model_kit.gd")
 
@@ -21,6 +22,8 @@ const PAPER := Color(0.96, 0.95, 0.92)
 const KRAFT := Color(0.62, 0.45, 0.3)
 const LID := Color(0.16, 0.13, 0.11)
 const WALL := 0.0012
+## Printed fill ring inside the cup, as cup.gd's fill amount (1 = 8 mm under the rim).
+const FILL_LINE := 0.85
 
 static func build(size_name := "medium") -> Node3D:
 	var dims: Array = SIZES[size_name]
@@ -55,6 +58,11 @@ static func build(size_name := "medium") -> Node3D:
 		Vector2(float(r_at.call(sleeve_high)) + 0.0022, sleeve_high), Vector2(float(r_at.call(sleeve_high)) + 0.0004, sleeve_high),
 	])
 	MK.lathe(root, "Sleeve", sleeve_profile, Vector3.ZERO, MK.mat(KRAFT, 0.0, 0.95), 32)
+
+	var line_y := floor_y + (rim_y - 0.008 - floor_y) * FILL_LINE
+	var line_r := float(r_at.call(line_y)) - WALL
+	MK.torus(root, "FillLine", line_r - 0.0008, line_r + 0.0001, Vector3(0, line_y, 0), MK.mat(Color(0.42, 0.36, 0.3), 0.0, 0.8), Vector3.ZERO, 32)
+	root.set_meta("fill_line", FILL_LINE)
 
 	_build_lid(root, top_r, rim_y)
 

@@ -14,7 +14,9 @@ var _pouch: Node3D = null
 var _pouch_rest := Transform3D()
 var _pouch_pour := Transform3D()
 var _pouch_tween: Tween = null
-
+var _stream: PourStream = null
+## Pouch spout tip in the pouch's space, from the model.
+const POUCH_SPOUT := Vector3(0.035, 0.124, 0)
 func _ready() -> void:
 	add_to_group("station")
 	add_to_group("sauce_prep")
@@ -51,7 +53,13 @@ func _ready() -> void:
 	add_child(_mini_game)
 	_mini_game._camera_point = cam
 	_mini_game.mini_game_completed.connect(_on_prep_complete)
-	_mini_game.set_sauce_color(DrinkData.get_sauce_color(sauce_type))
+	_mini_game.camera_fov = 55.0
+	if _pouch:
+		_stream = PourStream.new(DrinkData.get_sauce_color(sauce_type), 0.0035)
+		_stream.source = _pouch
+		_stream.source_offset = POUCH_SPOUT
+		_stream.flow_check = _sauce_flowing
+		add_child(_stream)
 
 	_status_label = StationUtils.create_status_label(self)
 	_update_label()
@@ -113,13 +121,23 @@ func _tip_pouch(over_bottle: bool) -> void:
 	_pouch_tween = create_tween()
 	_pouch_tween.tween_property(_pouch, "transform", _pouch_pour if over_bottle else _pouch_rest, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
+func _sauce_flowing() -> bool:
+	if not _mini_game.is_squeezing() or not _placed_bottle:
+		return false
+	_stream.target_point = _placed_bottle.to_global(Vector3(0, 0.06, 0))
+	return true
+
 func _end_prep_visuals() -> void:
 	_tip_pouch(false)
+	if _pouch:
+		_pouch.scale = Vector3.ONE
 	if _placed_bottle and is_instance_valid(_placed_bottle):
 		_placed_bottle._update_fill_visual()
 
 func _on_prep_complete(_quality: float) -> void:
 	_tip_pouch(false)
+	if _pouch:
+		_pouch.scale = Vector3.ONE
 	if _placed_bottle:
 		_placed_bottle.fill_with(sauce_type)
 	state = State.DONE
@@ -133,6 +151,9 @@ func _process(_delta: float) -> void:
 			_update_label()
 		elif _placed_bottle:
 			_placed_bottle.preview_level(sauce_type, _mini_game.progress())
+			# The pouch flattens as it empties.
+			if _pouch and _mini_game.prep_mode == SaucePrepMiniGame.PrepMode.SLEEVE_FILL:
+				_pouch.scale = Vector3(1.0, 1.0, lerpf(1.0, 0.45, _mini_game.progress()))
 	if _placed_bottle and StationUtils.is_item_removed(_placed_bottle, _bottle_position(_placed_bottle)):
 		_placed_bottle = null
 		state = State.IDLE
@@ -148,12 +169,12 @@ func _update_label() -> void:
 			_status_label.text = "Place an empty bottle"
 		State.BOTTLE_PLACED:
 			if _placed_bottle and _placed_bottle.is_filled():
-				_status_label.text = "Bottle filled!\n[E] Pick up"
+				_status_label.text = "[E] Pick up bottle"
 			elif is_mix:
-				_status_label.text = "[E] Mix powder + water"
+				_status_label.text = "[E] Mix %s" % sauce_name.to_lower()
 			else:
-				_status_label.text = "[E] Squeeze sleeve"
+				_status_label.text = "[E] Fill from the pouch"
 		State.PREPPING:
-			_status_label.text = "Prepping %s..." % sauce_name
+			_status_label.text = ""
 		State.DONE:
-			_status_label.text = "%s bottle filled!\n[E] Pick up" % sauce_name
+			_status_label.text = "[E] Pick up bottle"

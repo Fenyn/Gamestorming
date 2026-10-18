@@ -1,8 +1,15 @@
 class_name SauceMiniGame
 extends BaseMiniGame
 
+## Drizzle sauce over the drink: move the mouse to steer the bottle, hold to
+## squeeze. Coverage of the surface (a grid of cells hit by the line) and how
+## evenly it is spread across the four quarters set the quality. The cursor
+## drifts back toward the middle slowly. The station draws the bottle, the
+## stream and the sauce lines; nothing here is visual.
+
 const DRIZZLE_SPEED := 0.003
 const GRAVITY_PULL := 0.15
+## Cursor range and grid in the game's own units (the cup's radius is 0.4).
 const CUP_RADIUS := 0.4
 const CELL_SIZE := 0.08
 const DRIZZLE_WIDTH := 0.06
@@ -13,76 +20,30 @@ var _trail_cells: Array[Vector2] = []
 var _cell_hit: Dictionary = {}
 var _total_cells := 0
 
-var _cell_visuals: Array[CSGCylinder3D] = []
-var _cursor_visual: CSGCylinder3D = null
-var _trail_parent: Node3D = null
-var _count_label: Label3D = null
-var _sauce_color := Color(0.25, 0.15, 0.08)
-
 func _ready() -> void:
 	super._ready()
 	station_name = "sauce"
 	_build_grid()
-	_build_cursor()
-
-	_count_label = Label3D.new()
-	_count_label.text = ""
-	_count_label.font_size = 16
-	_count_label.pixel_size = 0.001
-	_count_label.position = Vector3(0, 0.30, 0.08)
-	_count_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	add_child(_count_label)
 
 func _build_grid() -> void:
-	_trail_parent = Node3D.new()
-	_trail_parent.name = "TrailCells"
-	add_child(_trail_parent)
-
 	_trail_cells.clear()
-	_cell_visuals.clear()
 	_cell_hit.clear()
 	_total_cells = 0
-
-	var step := CELL_SIZE
 	var r := CUP_RADIUS - CELL_SIZE * 0.5
 	for x_i in range(-5, 6):
 		for y_i in range(-5, 6):
-			var pos := Vector2(x_i * step, y_i * step)
+			var pos := Vector2(x_i * CELL_SIZE, y_i * CELL_SIZE)
 			if pos.length() > r:
 				continue
 			_trail_cells.append(pos)
-			var idx := _total_cells
-			_cell_hit[idx] = false
+			_cell_hit[_total_cells] = false
 			_total_cells += 1
-
-			var cell := CSGCylinder3D.new()
-			cell.radius = CELL_SIZE * 0.45
-			cell.height = 0.002
-			cell.position = Vector3(pos.x * 0.12, 0.18, pos.y * 0.12)
-			var mat := StandardMaterial3D.new()
-			mat.albedo_color = Color(0.15, 0.12, 0.1, 0.15)
-			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-			cell.material = mat
-			_trail_parent.add_child(cell)
-			_cell_visuals.append(cell)
-
-func _build_cursor() -> void:
-	_cursor_visual = CSGCylinder3D.new()
-	_cursor_visual.radius = DRIZZLE_WIDTH * 0.5 * 0.12
-	_cursor_visual.height = 0.005
-	_cursor_visual.position = Vector3(0, 0.19, 0)
-	var cmat := StandardMaterial3D.new()
-	cmat.albedo_color = _sauce_color
-	_cursor_visual.material = cmat
-	add_child(_cursor_visual)
 
 func _on_start() -> void:
 	_squeezing = false
 	_cursor_pos = Vector2.ZERO
 	for i in range(_total_cells):
 		_cell_hit[i] = false
-	_update_visuals()
-	_update_label()
 
 func _on_stop() -> void:
 	_squeezing = false
@@ -92,6 +53,12 @@ func _on_stop() -> void:
 	_quality = clampf(coverage * 0.5 + evenness * 0.5, 0.0, 1.0)
 	if coverage > 0.1:
 		mini_game_completed.emit(_quality)
+
+func get_controls_hint() -> String:
+	return hint([["Hold click", "Squeeze"], ["Move mouse", "Drizzle across the cup"], ["E", "Done"]])
+
+func get_assist_readout() -> String:
+	return "Covered  %d%%      Even  %d%%" % [roundi(_get_coverage() * 100.0), roundi(_calc_evenness() * 100.0)]
 
 func _handle_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
@@ -106,24 +73,24 @@ func _handle_input(event: InputEvent) -> void:
 		_cursor_pos.y += event.relative.y * DRIZZLE_SPEED
 
 func _update_mini_game(delta: float) -> void:
-	# Gravity: sauce drifts toward center slightly
+	# The hand drifts back toward the middle.
 	_cursor_pos = _cursor_pos.lerp(Vector2.ZERO, GRAVITY_PULL * delta)
-
-	# Clamp to cup radius
 	if _cursor_pos.length() > CUP_RADIUS:
 		_cursor_pos = _cursor_pos.normalized() * CUP_RADIUS
-
-	# Paint cells while squeezing
 	if _squeezing:
 		for i in range(_total_cells):
 			if _cell_hit[i]:
 				continue
-			var dist := _cursor_pos.distance_to(_trail_cells[i])
-			if dist <= DRIZZLE_WIDTH:
+			if _cursor_pos.distance_to(_trail_cells[i]) <= DRIZZLE_WIDTH:
 				_cell_hit[i] = true
 
-	_update_visuals()
-	_update_label()
+## Where the bottle points, as a fraction of the cup's radius (+x right, +y
+## toward the camera).
+func get_aim() -> Vector2:
+	return _cursor_pos / CUP_RADIUS
+
+func is_squeezing() -> bool:
+	return is_playing() and _squeezing
 
 func _get_coverage() -> float:
 	if _total_cells <= 0:
@@ -137,7 +104,7 @@ func _get_coverage() -> float:
 func _calc_evenness() -> float:
 	if _total_cells <= 0:
 		return 0.0
-	# Divide cup into 4 quadrants, score evenness across them
+	# Divide the cup into 4 quadrants and score how evenly they are covered.
 	var quad_counts := [0, 0, 0, 0]
 	var quad_totals := [0, 0, 0, 0]
 	for i in range(_total_cells):
@@ -156,8 +123,6 @@ func _calc_evenness() -> float:
 			ratios.append(float(quad_counts[q]) / float(quad_totals[q]))
 		else:
 			ratios.append(0.0)
-	if ratios.is_empty():
-		return 0.0
 	var avg := 0.0
 	for r in ratios:
 		avg += r
@@ -167,33 +132,3 @@ func _calc_evenness() -> float:
 		variance += (r - avg) * (r - avg)
 	variance /= ratios.size()
 	return clampf(1.0 - variance * 4.0, 0.0, 1.0)
-
-func _update_visuals() -> void:
-	for i in range(_total_cells):
-		if i >= _cell_visuals.size():
-			break
-		var mat := _cell_visuals[i].material as StandardMaterial3D
-		if mat:
-			if _cell_hit[i]:
-				mat.albedo_color = _sauce_color
-				mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
-			else:
-				mat.albedo_color = Color(0.15, 0.12, 0.1, 0.15)
-				mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-
-	if _cursor_visual:
-		_cursor_visual.position = Vector3(_cursor_pos.x * 0.12, 0.19, _cursor_pos.y * 0.12)
-		_cursor_visual.visible = _squeezing
-
-func _update_label() -> void:
-	if _count_label:
-		var pct := _get_coverage() * 100.0
-		if _squeezing:
-			_count_label.text = "Coverage: %.0f%%\nDrizzling..." % pct
-		else:
-			_count_label.text = "Coverage: %.0f%%\nHold click to drizzle" % pct
-
-func set_sauce_color(color: Color) -> void:
-	_sauce_color = color
-	if _cursor_visual:
-		(_cursor_visual.material as StandardMaterial3D).albedo_color = color

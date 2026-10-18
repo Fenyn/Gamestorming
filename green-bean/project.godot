@@ -24,6 +24,7 @@ GameManager="*res://scripts/autoload/game_manager.gd"
 StationUtils="*res://scripts/autoload/station_utils.gd"
 SoundManager="*res://scripts/autoload/sound_manager.gd"
 Fx="*res://scripts/autoload/fx.gd"
+GameSettings="*res://scripts/autoload/game_settings.gd"
 
 [display]
 

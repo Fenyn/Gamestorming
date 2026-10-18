@@ -5,7 +5,8 @@ extends RefCounted
 ## filters. Origin: base underside, on the counter at y = 0. Front faces +Z.
 ##
 ## Read by pour_over_station.gd: CupSpot, RingSeat (top of the ring), DripperRest,
-## CameraView. Colliders are in scenes/stations/pour_over.tscn.
+## CameraView, BrewScale/Readout (Label3D the station writes brew time and grams
+## into). Colliders are in scenes/stations/pour_over.tscn.
 
 const MK := preload("res://model_src/model_kit.gd")
 
@@ -57,13 +58,16 @@ static func _build_scale(root: Node3D, black: Material) -> void:
 	MK.box(scale, "Platform", Vector3(SCALE_SIZE.x - 0.012, 0.002, SCALE_SIZE.z - 0.03), c + Vector3(0, SCALE_SIZE.y * 0.5, -0.008), MK.mat(Color(0.2, 0.2, 0.21), 0.4, 0.35))
 	var front_z := c.z + SCALE_SIZE.z * 0.5
 	MK.box(scale, "Display", Vector3(0.05, 0.008, 0.001), Vector3(STAND_X, c.y, front_z + 0.0005), MK.mat(Color(0.04, 0.05, 0.05), 0.0, 0.2))
-	var lcd := StandardMaterial3D.new()
-	lcd.albedo_color = Color(0.55, 0.9, 1.0)
-	lcd.emission_enabled = true
-	lcd.emission = Color(0.4, 0.8, 1.0)
-	lcd.emission_energy_multiplier = 1.2
-	for i in range(4):
-		MK.box(scale, "Digit", Vector3(0.006, 0.0055, 0.0005), Vector3(STAND_X - 0.012 + float(i) * 0.0085, c.y, front_z + 0.0012), lcd)
+	var readout := Label3D.new()
+	readout.name = "Readout"
+	readout.text = "0:00  0g"
+	readout.font_size = 48
+	readout.pixel_size = 0.00011
+	readout.outline_size = 0
+	readout.modulate = Color(0.55, 0.9, 1.0)
+	readout.shaded = false
+	readout.position = Vector3(STAND_X, c.y, front_z + 0.0012)
+	scale.add_child(readout)
 	for sx in [-1.0, 1.0]:
 		MK.cyl(scale, "Button", 0.0035, 0.0035, 0.002, Vector3(STAND_X + float(sx) * 0.038, c.y, front_z + 0.001), MK.mat(Color(0.35, 0.35, 0.37), 0.2, 0.5), 10, Vector3(90, 0, 0))
 

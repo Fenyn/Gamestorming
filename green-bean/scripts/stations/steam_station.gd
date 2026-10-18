@@ -10,6 +10,15 @@ var _shelf_pitcher: Pitcher = null
 var _pitcher_slot: Marker3D = null
 var _status_label: Label3D = null
 var _steam_puffs: SteamPuffs = null
+var _tip: Node3D = null
+var _lever: Node3D = null
+var _lever_rest := 0.0
+const LEVER_OPEN_DEG := 40.0
+## Pitcher lift shown on screen, eased toward the game's.
+var _shown_lift := 0.0
+## Fine bubbles while stretching well; spray when the tip is at the surface.
+var _microfoam: GPUParticles3D = null
+var _spray: GPUParticles3D = null
 
 func _ready() -> void:
 	add_to_group("station")
@@ -35,6 +44,7 @@ func _ready() -> void:
 	add_child(_steam_game)
 	_steam_game._camera_point = cam
 	_steam_game.mini_game_completed.connect(_on_steam_complete)
+	_steam_game.camera_fov = 50.0
 
 	_spawn_shelf_pitcher()
 
@@ -42,8 +52,34 @@ func _ready() -> void:
 	_steam_puffs.position = StationUtils.model_marker(self, "SteamVent", Vector3(0, 0.22, 0))
 	add_child(_steam_puffs)
 
+	_tip = get_node_or_null("Model/Wand/TipEnd") as Node3D
+	_lever = get_node_or_null("Model/Head/Lever") as Node3D
+	if _lever:
+		_lever_rest = _lever.rotation_degrees.x
+	_microfoam = Fx.make_specks(Color(1.0, 1.0, 0.98, 0.9), 0.0025, 0.05, 0.35, 30)
+	add_child(_microfoam)
+	_spray = Fx.make_specks(Color(0.97, 0.96, 0.92, 0.9), 0.004, -4.0, 0.4, 24)
+	(_spray.process_material as ParticleProcessMaterial).direction = Vector3.UP
+	(_spray.process_material as ParticleProcessMaterial).spread = 50.0
+	(_spray.process_material as ParticleProcessMaterial).initial_velocity_min = 0.25
+	(_spray.process_material as ParticleProcessMaterial).initial_velocity_max = 0.5
+	add_child(_spray)
+
 	_status_label = StationUtils.create_status_label(self)
 	_update_label()
+
+## Tells the game how high the wand tip sits above fresh milk in this pitcher
+## while it stands on the tray, and how far foam lifts the surface.
+func _measure_wand(pitcher: Pitcher) -> void:
+	if not _tip:
+		return
+	# From where it stands on the pad, not where it is now (it may still be settling).
+	var surface := (_pitcher_home(pitcher) + global_basis.y * pitcher.surface_y(0.0)).y
+	_steam_game.tip_clearance = _tip.global_position.y - surface
+	_steam_game.foam_rise_m = pitcher.milk_height * pitcher.foam_rise
+
+func _pitcher_home(pitcher: Node3D) -> Vector3:
+	return _pitcher_slot.global_position + Vector3(0, StationUtils.item_half_height(pitcher), 0)
 
 func _spawn_shelf_pitcher() -> void:
 	_shelf_pitcher = Pitcher.new()
@@ -65,13 +101,15 @@ func interact(player: Player) -> void:
 			if _placed_pitcher and _placed_pitcher.has_milk:
 				var foam_target: float = _get_foam_target(player)
 				_steam_game.set_foam_target(foam_target)
+				_measure_wand(_placed_pitcher)
 				state = State.STRETCHING
 				_update_label()
 				_steam_game.start(player)
 			else:
 				_try_pickup_placed_pitcher(player)
 		State.STRETCHING:
-			pass
+			# Stepped away mid-stretch: pick up where it was.
+			_steam_game.start(player)
 		State.TEXTURING:
 			# Re-enter to check on milk
 			_steam_game.start(player)
@@ -158,19 +196,39 @@ func _process(_delta: float) -> void:
 		elif _steam_game.is_ready():
 			state = State.READY
 			_update_label()
-		elif not _steam_game.is_active() and _status_label:
-			var temp: float = _steam_game.get_temperature()
-			_status_label.text = "Texturing... %.0f C\n[E] Check milk" % temp
 
 	if state == State.READY and not _steam_game.is_active():
-		if _status_label:
-			_status_label.text = "%.0f C - READY!\n[E] Finish steaming" % _steam_game.get_temperature()
 		if _steam_game.is_scalded():
 			state = State.SCALDED
 			_update_label()
 
+	_update_pitcher_lift(_delta)
 	_update_steam_fx()
+	_update_lever(_delta)
 	_check_removed_items()
+
+## The pitcher rides up and down with the game's lift while stretching and
+## settles back on the tray after.
+func _update_pitcher_lift(delta: float) -> void:
+	if not _placed_pitcher:
+		_shown_lift = 0.0
+		return
+	var target := _steam_game.lift if state == State.STRETCHING and _steam_game.is_active() else 0.0
+	if target == 0.0 and _shown_lift == 0.0:
+		return
+	_shown_lift = lerpf(_shown_lift, target, minf(delta * 18.0, 1.0))
+	if target == 0.0 and _shown_lift < 0.0005:
+		_shown_lift = 0.0
+	_placed_pitcher.global_position = _pitcher_home(_placed_pitcher) + global_basis.y * _shown_lift
+
+func _steam_on() -> bool:
+	return _steam_game.is_steaming() or state == State.TEXTURING or state == State.READY
+
+func _update_lever(delta: float) -> void:
+	if not _lever:
+		return
+	var target := _lever_rest + (LEVER_OPEN_DEG if _steam_on() else 0.0)
+	_lever.rotation_degrees.x = lerpf(_lever.rotation_degrees.x, target, minf(delta * 16.0, 1.0))
 
 func _update_steam_fx() -> void:
 	var temp_ratio := clampf((_steam_game.get_temperature() - 20.0) / (SteamMiniGame.TARGET_TEMP - 20.0), 0.0, 1.0)
@@ -189,6 +247,37 @@ func _update_steam_fx() -> void:
 			_steam_puffs.set_level(0.0)
 	if _placed_pitcher and _placed_pitcher.has_milk and state != State.MILK_DONE:
 		_placed_pitcher.update_milk_visual(temp_ratio, _steam_game.foam_level, state == State.SCALDED)
+		_placed_pitcher.set_temperature(_steam_game.get_temperature())
+		_update_milk_motion()
+	else:
+		_microfoam.emitting = false
+		_spray.emitting = false
+
+## What the tip does to the milk: a spinning vortex when steaming, fine bubbles
+## at the right depth, spray and big bubbles when it is too shallow, a slow
+## roll when deep, and a hard boil once scalded.
+func _update_milk_motion() -> void:
+	var stretching := state == State.STRETCHING and _steam_game.is_steaming()
+	var depth := _steam_game.tip_depth()
+	var shallow := stretching and depth < SteamMiniGame.TIP_ZONE.x
+	var in_zone := stretching and not shallow and depth <= SteamMiniGame.TIP_ZONE.y
+	var swirl := 0.0
+	var agitation := 0.0
+	if stretching:
+		swirl = 0.6 if shallow else 1.0
+		agitation = 1.0 if shallow else (0.35 if in_zone else 0.15)
+	elif state == State.TEXTURING or state == State.READY:
+		swirl = 0.7
+		agitation = 0.2
+	elif state == State.SCALDED:
+		agitation = 1.0
+	_placed_pitcher.set_agitation(swirl, agitation)
+	var surface := _placed_pitcher.to_global(Vector3(0, _placed_pitcher.surface_y(_steam_game.foam_level), 0))
+	var at_tip := Vector3(_tip.global_position.x, surface.y, _tip.global_position.z) if _tip else surface
+	_microfoam.global_position = at_tip
+	_spray.global_position = at_tip
+	_microfoam.emitting = in_zone
+	_spray.emitting = shallow
 
 func _check_removed_items() -> void:
 	if _shelf_pitcher and StationUtils.is_item_removed(_shelf_pitcher, to_global(_rest_position(_shelf_pitcher)), 0.15):
@@ -229,14 +318,14 @@ func _update_label() -> void:
 			if _placed_pitcher and _placed_pitcher.has_milk:
 				_status_label.text = "[E] Start steaming"
 			else:
-				_status_label.text = "Needs milk!\n[E] Pick up pitcher"
+				_status_label.text = "No milk in it\n[E] Pick up pitcher"
 		State.STRETCHING:
-			_status_label.text = "Stretching..."
+			_status_label.text = ""
 		State.TEXTURING:
-			_status_label.text = "Texturing..."
+			_status_label.text = "Heating\n[E] Watch it"
 		State.READY:
-			_status_label.text = "READY! [E] Finish"
+			_status_label.text = "Milk's hot\n[E] Steam off"
 		State.MILK_DONE:
-			_status_label.text = "Milk done!\n[E] Pick up pitcher"
+			_status_label.text = "[E] Pick up pitcher"
 		State.SCALDED:
-			_status_label.text = "SCALDED!\n[E] Reset & dump"
+			_status_label.text = "Scalded\n[E] Dump and reset"

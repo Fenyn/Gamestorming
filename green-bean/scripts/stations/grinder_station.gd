@@ -20,6 +20,21 @@ var _pending_grounds: Grounds = null
 ## Crank angle while the cup is tipped, keeping the arm out of its way.
 const CRANK_PARK_ANGLE := PI * 0.5
 var _crank_turn := 0.0
+## After the last beans go through, the crank spins on freely for a moment.
+const FREE_SPIN_DECAY := 3.5
+var _crank_vel := 0.0
+var _last_crank_rotation := 0.0
+var _free_spin := 0.0
+var _adjust_ring: Node3D = null
+var _fine_deg := 35.0
+var _coarse_deg := -35.0
+var _ring_tween: Tween = null
+## Grounds piling up in the glass catch jar.
+var _jar_grounds: MeshInstance3D = null
+var _jar_mesh: CylinderMesh = null
+var _jar_fill_height := 0.03
+## Jar fill from the last grind, held until the jar is tipped out.
+var _jar_level := 0.0
 
 func _ready() -> void:
 	add_to_group("station")
@@ -31,6 +46,7 @@ func _ready() -> void:
 
 	_mini_game = GrindMiniGame.new()
 	_mini_game.name = "GrindMiniGame"
+	_mini_game.camera_fov = 45.0
 	var cam := Marker3D.new()
 	cam.name = "CameraPoint"
 	cam.position = Vector3(0, 0.4, 0.4)
@@ -39,6 +55,7 @@ func _ready() -> void:
 	add_child(_mini_game)
 	_mini_game._camera_point = cam
 	_mini_game.mini_game_completed.connect(_on_grind_complete)
+	_mini_game.grind_level_changed.connect(_on_grind_level_changed)
 
 	_build_fx()
 	_status_label = StationUtils.create_status_label(self, StationUtils.model_marker(self, "SpoutTip", Vector3(0, 0.17, 0.05)) + Vector3(0, 0.25, 0.02))
@@ -59,21 +76,66 @@ func _build_fx() -> void:
 		_cup_home = _catch_cup.transform
 		_cup_lip = _catch_cup.get_node_or_null("CupLip") as Node3D
 
-	# Gauges are positioned relative to the game node, so move the node to
-	# GaugeAnchor and pull its camera back by the same amount.
 	var cam: Marker3D = _mini_game._camera_point
 	var view := model.get_node_or_null("CameraView") as Node3D if model else null
 	if view:
 		cam.transform = global_transform.affine_inverse() * view.global_transform
-	var anchor := StationUtils.model_marker(self, "GaugeAnchor", Vector3(-0.2, 0.3, 0.06))
-	var offset := anchor - Vector3(0, 0.125, 0.18)
-	_mini_game.position = offset
-	cam.position -= offset
+
+	_adjust_ring = model.get_node_or_null("Body/AdjustRing") as Node3D if model else null
+	if model:
+		_fine_deg = float(model.get_meta("fine_deg", _fine_deg))
+		_coarse_deg = float(model.get_meta("coarse_deg", _coarse_deg))
+	_set_ring(_mini_game.grind_level, false)
+	var floor := _catch_cup.get_node_or_null("GroundsFloor") as Node3D if _catch_cup else null
+	if floor:
+		_jar_fill_height = float(floor.get_meta("fill_height", _jar_fill_height))
+		var r := float(floor.get_meta("inner_radius", 0.022))
+		_jar_mesh = CylinderMesh.new()
+		_jar_mesh.top_radius = r
+		_jar_mesh.bottom_radius = r
+		_jar_mesh.radial_segments = 24
+		_jar_mesh.rings = 1
+		_jar_grounds = MeshInstance3D.new()
+		_jar_grounds.name = "JarGrounds"
+		_jar_grounds.mesh = _jar_mesh
+		var gm := StandardMaterial3D.new()
+		gm.albedo_color = Color(0.3, 0.17, 0.08)
+		gm.roughness = 1.0
+		_jar_grounds.material_override = gm
+		_jar_grounds.visible = false
+		floor.add_child(_jar_grounds)
 
 	_dust = Fx.make_specks(Color(0.32, 0.2, 0.1), 0.006, -1.5, 0.45, 30)
 	add_child(_dust)
 	_dust.global_position = spout.global_position if spout else _device_slot.global_position + Vector3(0, 0.1, 0)
 	_dust.emitting = false
+
+## Turns the setting ring so the chosen word sits under the index mark.
+func _set_ring(level: DrinkData.GrindLevel, animate: bool) -> void:
+	if not _adjust_ring:
+		return
+	var deg := _fine_deg if level == DrinkData.GrindLevel.FINE else _coarse_deg
+	if _ring_tween and _ring_tween.is_valid():
+		_ring_tween.kill()
+	if not animate:
+		_adjust_ring.rotation_degrees.y = deg
+		return
+	_ring_tween = create_tween()
+	_ring_tween.tween_property(_adjust_ring, "rotation_degrees:y", deg, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _on_grind_level_changed(level: DrinkData.GrindLevel) -> void:
+	_set_ring(level, true)
+	SoundManager.play("grind_click")
+	_update_label()
+
+func _set_jar_level(level: float) -> void:
+	_jar_level = clampf(level, 0.0, 1.0)
+	if not _jar_grounds:
+		return
+	_jar_grounds.visible = _jar_level > 0.01
+	var h := maxf(_jar_fill_height * _jar_level, 0.0005)
+	_jar_mesh.height = h
+	_jar_grounds.position = Vector3(0, h * 0.5, 0)
 
 func interact(player: Player) -> void:
 	match state:
@@ -106,12 +168,15 @@ func receive_item(item: Node3D) -> bool:
 	if not (item is ShotPress or item is Dripper):
 		return false
 	_placed_device = item
+	_mini_game.reset_progress()
+	_set_jar_level(0.0)
 	StationUtils.place_at_slot(item, _device_slot.global_position + Vector3(0, StationUtils.item_half_height(item), 0))
 	state = State.DEVICE_PLACED
 	_update_label()
 	return true
 
 func _on_grind_complete(quality: float) -> void:
+	_free_spin = 1.0
 	if not _placed_device:
 		return
 	var g := Grounds.new()
@@ -142,6 +207,8 @@ func _start_dump() -> void:
 	var upright_over := Transform3D(_cup_home.basis, tipped.origin + Vector3(0.0, 0.01, 0.0))
 	var unscrewed := Transform3D(_cup_home.basis.rotated(Vector3.UP, -1.2), _cup_home.origin + Vector3(0, 0, 0.045))
 	_dump_tween = create_tween()
+	# Beat for the crank's free spin before the jar comes off.
+	_dump_tween.tween_interval(0.45)
 	_dump_tween.tween_property(_catch_cup, "transform", unscrewed, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	_dump_tween.tween_property(_catch_cup, "transform", upright_over, 0.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_dump_tween.tween_property(_catch_cup, "transform", tipped, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -152,7 +219,7 @@ func _start_dump() -> void:
 			_give_grounds(_pending_grounds)
 			state = State.DUMPING
 		_pending_grounds = null)
-	_dump_tween.tween_interval(0.6)
+	_dump_tween.tween_method(_set_jar_level, _jar_level, 0.0, 0.6)
 	_dump_tween.tween_callback(func() -> void:
 		if _dust:
 			_dust.emitting = false)
@@ -173,28 +240,28 @@ func _cancel_dump() -> void:
 		_catch_cup.transform = _cup_home
 	if _dust:
 		_dust.emitting = false
+	_set_jar_level(0.0)
 
 func _update_label() -> void:
 	if not _status_label:
 		return
 	match state:
 		State.IDLE:
-			_status_label.text = "Place device to grind\n[Click] with dripper/shot press"
+			_status_label.text = "[Click] Set down dripper or shot press"
 		State.DEVICE_PLACED:
-			var level_str := "FINE" if _mini_game.grind_level == DrinkData.GrindLevel.FINE else "COARSE"
-			_status_label.text = "[E] Start grinding (%s)\nRClick: toggle level" % level_str
+			var level_str := "fine" if _mini_game.grind_level == DrinkData.GrindLevel.FINE else "coarse"
+			_status_label.text = "[E] Grind (%s)\n[Right-click] Change setting" % level_str
 		State.GRINDING:
-			_status_label.text = "Move mouse to grind!\nE: stop"
+			_status_label.text = ""
 		State.DUMPING:
-			_status_label.text = "Tipping grounds in..."
+			_status_label.text = ""
 		State.GROUNDS_READY:
-			_status_label.text = "Done! [E] pick up device"
+			_status_label.text = "[E] Pick up device"
 
 func _input(event: InputEvent) -> void:
 	if state == State.DEVICE_PLACED and not _mini_game.is_active():
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			_mini_game.toggle_grind_level()
-			_update_label()
 
 func _process(delta: float) -> void:
 	if _dust and not _catch_cup:
@@ -203,13 +270,26 @@ func _process(delta: float) -> void:
 		_dust.global_position = _cup_lip.global_position
 	if _crank_pivot:
 		# A top crank turns once per mouse circle; a side wheel is geared down.
-		var turn := -_mini_game.get_crank_rotation() * (1.0 if _crank_axis == Vector3.UP else 0.35)
-		if state == State.DUMPING:
-			turn = CRANK_PARK_ANGLE
-			_crank_turn = lerp_angle(_crank_turn, turn, minf(delta * 8.0, 1.0))
+		var gear := 1.0 if _crank_axis == Vector3.UP else 0.35
+		var rot := _mini_game.get_crank_rotation()
+		var step := rot - _last_crank_rotation
+		_last_crank_rotation = rot
+		if delta > 0.0 and step > 0.0:
+			_crank_vel = lerpf(_crank_vel, step / delta, 0.4)
+		if _free_spin > 0.0:
+			# Beans gone: no resistance, so the crank coasts round on its own.
+			_free_spin = maxf(_free_spin - delta, 0.0)
+			_crank_vel *= exp(-FREE_SPIN_DECAY * delta)
+			_crank_turn -= maxf(_crank_vel, 6.0 * _free_spin) * gear * delta
+		elif state == State.DUMPING:
+			_crank_turn = lerp_angle(_crank_turn, CRANK_PARK_ANGLE, minf(delta * 8.0, 1.0))
+		elif step > 0.0:
+			_crank_turn -= step * gear
 		else:
-			_crank_turn = turn
+			_crank_vel = 0.0
 		_crank_pivot.basis = Basis(_crank_axis, _crank_turn) * _crank_rest
+	if state == State.GRINDING:
+		_set_jar_level(_mini_game.get_grind_ratio())
 
 	if state == State.GRINDING and not _mini_game.is_active():
 		state = State.DEVICE_PLACED

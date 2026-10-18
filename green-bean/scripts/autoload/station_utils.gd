@@ -126,8 +126,9 @@ var _pour_streams := {}
 
 ## Tilts the kettle so its spout tip sits at target_position + tip_offset, with
 ## the body toward body_side (pick the side away from walls). flow_check returns
-## true while water is flowing.
-func start_kettle_pour(player: Player, kettle: Node3D, target_position: Vector3, tip_offset: Vector3, flow_check: Callable = Callable(), body_side := Vector3.RIGHT) -> Tween:
+## true while water is flowing. aim, if set, returns a world offset that moves
+## the spout and where the stream lands (for aimed pours).
+func start_kettle_pour(player: Player, kettle: Node3D, target_position: Vector3, tip_offset: Vector3, flow_check: Callable = Callable(), body_side := Vector3.RIGHT, aim: Callable = Callable()) -> Tween:
 	player.detach_held_item()
 	var tip := _kettle_tip(kettle)
 	var tip_world := target_position + tip_offset
@@ -136,13 +137,14 @@ func start_kettle_pour(player: Player, kettle: Node3D, target_position: Vector3,
 	# Rotation about the spout tip keeps the stream on target as the kettle sways.
 	var rotation_at := func(deg: float) -> void:
 		var basis := yaw * Basis(Vector3.BACK, deg_to_rad(deg))
-		kettle.global_transform = Transform3D(basis, tip_world - basis * tip)
+		var offset: Vector3 = aim.call() if aim.is_valid() else Vector3.ZERO
+		kettle.global_transform = Transform3D(basis, tip_world + offset - basis * tip)
 	rotation_at.call(KETTLE_POUR_TILT)
 	var tween := player.create_tween().set_loops()
 	tween.tween_method(rotation_at, KETTLE_POUR_TILT, KETTLE_POUR_TILT + KETTLE_POUR_SWAY, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_method(rotation_at, KETTLE_POUR_TILT + KETTLE_POUR_SWAY, KETTLE_POUR_TILT - KETTLE_POUR_SWAY * 0.5, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_method(rotation_at, KETTLE_POUR_TILT - KETTLE_POUR_SWAY * 0.5, KETTLE_POUR_TILT, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_start_stream(kettle, target_position, flow_check)
+	_start_stream(kettle, target_position, flow_check, aim)
 	return tween
 
 func _kettle_tip(kettle: Node3D) -> Vector3:
@@ -159,7 +161,7 @@ func stop_kettle_pour(tween: Tween, kettle: Node3D, player: Player) -> void:
 		if player and is_instance_valid(player):
 			player.pickup_item(kettle)
 
-func _start_stream(kettle: Node3D, target_position: Vector3, flow_check: Callable) -> void:
+func _start_stream(kettle: Node3D, target_position: Vector3, flow_check: Callable, aim: Callable = Callable()) -> void:
 	_stop_stream(kettle)
 	# Drop entries whose stream already freed itself (its kettle was freed mid-pour).
 	for key in _pour_streams.keys():
@@ -170,6 +172,7 @@ func _start_stream(kettle: Node3D, target_position: Vector3, flow_check: Callabl
 	stream.source_offset = _kettle_tip(kettle)
 	stream.target_point = target_position
 	stream.flow_check = flow_check
+	stream.aim = aim
 	var parent: Node = get_tree().current_scene
 	if parent == null:
 		parent = get_tree().root

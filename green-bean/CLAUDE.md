@@ -612,10 +612,10 @@ All geometry is grey-boxed (untextured primitives). Solo espresso stand only. Co
 - In-world register with SubViewport POS screen (3 tabs: SIZE, DRINK, MODS), keyboard + crosshair click input
 - Syrup modifier system: vanilla syrup station with hold-to-pump mini-game, $0.60 upcharge, per-size pump targets
 - Cash transaction flow: charge → collect from customer → cash drawer change-making mini-game
-- Grinder mini-game (hand crank, grind level toggle, progress bar)
-- Shot Press flow: grounds → water pour (kettle animation) → stir (paddle visual) → steep (passive countdown) → press (2D pressure balance, plunger visual, liquid fill)
-- Pour-over flow: bloom pour (top-down saturation painting) → bloom wait (passive) → main pour → draw-down (passive countdown) → coffee ready
-- Milk steaming with drink-specific foam targets (stretching phase with sinking sweet spot → texturing phase passive → finish). Latte=35% foam, Cappuccino=75% foam
+- Grinder mini-game (hand crank, grind setting ring, grounds filling a glass catch jar)
+- Shot Press flow: grounds → water pour to the FILL line (kettle animation) → stir (paddle breaks up the grounds crust) → steep (brew timer on the mat) → press (bubble level on the plunger, press leans, liquid fill)
+- Pour-over flow: bloom pour (aimed stream wets the grounds bed) → bloom wait (passive, bed domes) → main pour → draw-down (brew scale shows time and grams) → coffee ready
+- Milk steaming with drink-specific foam targets (stretch: raise and lower the pitcher to keep the tip just under the rising surface → texturing phase passive, keeps heating to scald → finish). Latte=35% foam, Cappuccino=75% foam
 - Milk jug from fridge → pour into pitcher → steam → pour into cup
 - Hot water station with kettle fill (timed, camera-locked) and americano cup fill
 - Counter pad with 4 snap slots for temporary item storage
@@ -725,14 +725,14 @@ Once prefabs exist, swapping a grey box for a real model:
 - Grey-box espresso stand with all stations procedurally placed
 - 6 carriable item types: Cup, ShotPress, Dripper, Pitcher, Kettle, MilkJug
 - 11 station types: Register, CashDrawer, CupStack, Grinder, Shot Press, PourOver, HotWater, Steam, Fridge, HandOff, CounterPad
-- 5 mini-games: Grind (hand crank), Press (2D pressure balance), Pour (top-down saturation), Steam (sinking sweet spot), Stir (circular mouse)
+- 5 mini-games: Grind (hand crank), Press (bubble level), Pour (aimed saturation), Steam (pitcher height against a fixed wand), Stir (circular mouse)
 - Register with SubViewport POS, cash transaction flow, cash drawer change-making
 - Kettle water level system with per-use depletion
 - Milk jug → pitcher → steam → pour-into-cup physical flow
 - Bloom → bloom wait → main pour → draw-down pour-over flow
 - Passive phases: shot press steep, milk texturing, bloom wait, draw-down
 - Failure states: shot death, milk scald, coffee cooling
-- Visual feedback: progress bars, pressure balance, saturation painting, plunger/liquid animations, kettle pour tween
+- Visual feedback on the props themselves (see docs/art_pass.md "Mini-game feedback"); a HUD controls strip and an optional F1 numbers readout are the only screen aids
 - Customer AI with full state machine, dual patience, payment flow
 - Day timer, money tracking, letter grade, end-of-day panel
 - HUD: timer, money, interact prompts, recipe step tracker

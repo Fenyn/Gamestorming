@@ -173,6 +173,14 @@ func set_fill(amount: float, color: Color = Color(0.3, 0.2, 0.1)) -> void:
 func get_fill() -> float:
 	return _fill_level
 
+## Local y of the drink's surface, and its radius there.
+func surface_y() -> float:
+	var rim := _inner_profile[_inner_profile.size() - 1].y
+	return _liquid_floor + (rim - 0.008 - _liquid_floor) * _fill_level
+
+func surface_radius() -> float:
+	return _inner_radius(surface_y()) - 0.0005
+
 func pour_milk_from(pitcher: Pitcher) -> bool:
 	if not pitcher.is_steamed or not pitcher.has_milk:
 		return false

@@ -5,7 +5,9 @@ extends RefCounted
 ## y = -0.125). Front faces +Z.
 ##
 ## Read by steam_station.gd: PitcherPad, PitcherRest, SteamVent (markers), Wand
-## (pivots where it leaves the head; its -Y runs down the wand), CameraView.
+## (pivots where it leaves the head; its -Y runs down the wand) with Wand/TipEnd
+## at the steam holes, Head/Lever (swung forward about its X to open the steam),
+## CameraView.
 
 const BOTTOM := -0.125
 const WIDTH := 0.11
@@ -22,8 +24,9 @@ const VENT := Vector3(0, TRAY_TOP + 0.1, 0.042)
 const WAND_JOINT := Vector3(0.0, HEAD_BOTTOM - 0.004, 0.035)
 ## Forward lean puts the tip off-centre in the pitcher so the milk spins.
 const WAND_LEAN := 8.0
-## Long enough that the tip sits about 1 cm under the milk in a 12 oz pitcher.
-const WAND_LENGTH := 0.115
+## The tip clears a fresh 12 oz pitcher's milk by about 8 mm while the pitcher
+## rests on the tray, so steaming means lifting the pitcher onto the wand.
+const WAND_LENGTH := 0.097
 
 const SHELL := Color(0.93, 0.92, 0.89)
 const SHELL_SHADE := Color(0.84, 0.83, 0.8)
@@ -42,8 +45,10 @@ static func build() -> Node3D:
 	_add_marker(root, "SteamVent", VENT)
 	var cam := Marker3D.new()
 	cam.name = "CameraView"
-	cam.position = Vector3(0, 0.33, 0.62)
-	cam.rotation_degrees = Vector3(-21, 0, 0)
+	# Low and close, looking into the pitcher's mouth past the thermometer.
+	cam.position = Vector3(0.03, 0.13, 0.26)
+	var e := Basis.looking_at(Vector3(0.008, -0.05, 0.04) - cam.position).get_euler()
+	cam.rotation = e
 	root.add_child(cam)
 	return root
 
@@ -103,10 +108,13 @@ static func _build_head(root: Node3D) -> void:
 		ModelKit.cyl(root, "Button", 0.005, 0.005, 0.002, Vector3(x, top + 0.0035, HEAD_FRONT_Z - 0.019), ModelKit.mat(Color(0.75, 0.75, 0.78), 0.3, 0.4), 10)
 
 	var chrome := ModelKit.mat(ModelKit.STEEL, 0.6, 0.25)
-	var lever_pivot := Vector3(WIDTH * 0.5 + 0.002, HEAD_BOTTOM + head_h * 0.5, 0.03)
-	ModelKit.cyl(root, "LeverHub", 0.009, 0.009, 0.008, lever_pivot + Vector3(0.002, 0, 0), chrome, 12, Vector3(0, 0, 90))
-	ModelKit.box(root, "Lever", Vector3(0.006, 0.006, 0.04), lever_pivot + Vector3(0.008, -0.008, 0.016), chrome, Vector3(-25, 0, 0))
-	ModelKit.sphere(root, "LeverKnob", 0.007, lever_pivot + Vector3(0.008, -0.017, 0.034), ModelKit.mat(ModelKit.BLACK, 0.0, 0.5), 1.0, 8)
+	var lever := Node3D.new()
+	lever.name = "Lever"
+	lever.position = Vector3(WIDTH * 0.5 + 0.002, HEAD_BOTTOM + head_h * 0.5, 0.03)
+	root.add_child(lever)
+	ModelKit.cyl(lever, "LeverHub", 0.009, 0.009, 0.008, Vector3(0.002, 0, 0), chrome, 12, Vector3(0, 0, 90))
+	ModelKit.box(lever, "Arm", Vector3(0.006, 0.006, 0.04), Vector3(0.008, -0.008, 0.016), chrome, Vector3(-25, 0, 0))
+	ModelKit.sphere(lever, "LeverKnob", 0.007, Vector3(0.008, -0.017, 0.034), ModelKit.mat(ModelKit.BLACK, 0.0, 0.5), 1.0, 8)
 
 	ModelKit.box(root, "Badge", Vector3(0.03, 0.006, 0.002), Vector3(0, HEAD_BOTTOM + head_h * 0.45, HEAD_FRONT_Z + 0.001), ModelKit.metal(Color(0.85, 0.68, 0.36)))
 
@@ -135,6 +143,10 @@ static func _build_wand(root: Node3D) -> void:
 	ModelKit.cyl(wand, "Sleeve", 0.0065, 0.0065, 0.035, Vector3(0, -0.0255, 0), ModelKit.mat(Color(0.25, 0.25, 0.27), 0.0, 0.6), 10)
 	ModelKit.cyl(wand, "Pipe", 0.0045, 0.0045, WAND_LENGTH - 0.03, Vector3(0, -0.043 - (WAND_LENGTH - 0.03) * 0.5, 0), chrome, 10)
 	ModelKit.cyl(wand, "Tip", 0.0035, 0.0055, 0.01, Vector3(0, -0.043 - (WAND_LENGTH - 0.03) - 0.005, 0), dark, 10)
+	var tip_end := Marker3D.new()
+	tip_end.name = "TipEnd"
+	tip_end.position = Vector3(0, -0.043 - (WAND_LENGTH - 0.03) - 0.01, 0)
+	wand.add_child(tip_end)
 
 static func _build_rest(root: Node3D) -> void:
 	root = ModelKit.group(root, "PitcherMat")

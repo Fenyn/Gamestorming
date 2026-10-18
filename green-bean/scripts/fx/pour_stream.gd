@@ -12,6 +12,8 @@ var target_point := Vector3.ZERO
 var target_node: Node3D = null
 var target_offset := Vector3.ZERO
 var flow_check: Callable = Callable()
+## Optional world offset added to the landing point each frame (aimed pours).
+var aim: Callable = Callable()
 var radius := 0.003
 
 func _init(color: Color = Color(0.82, 0.9, 0.95, 0.75), stream_radius: float = 0.0045) -> void:
@@ -42,6 +44,8 @@ func _process(_delta: float) -> void:
 	var b := target_point
 	if target_node and is_instance_valid(target_node):
 		b = target_node.global_position + target_offset
+	if aim.is_valid():
+		b += aim.call()
 	var axis := b - a
 	if not flowing or axis.length() < 0.005:
 		visible = false

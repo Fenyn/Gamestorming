@@ -32,30 +32,441 @@ _surfaces = [{
 [sub_resource type="BoxMesh" id="BoxMesh_uhto7"]
 size = Vector3(0.013, 0.002, 0.011)
 
-[sub_resource type="CylinderShape3D" id="CylinderShape3D_y2ihq"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_y2ihq"]
+albedo_color = Color(0.44000003, 0.44550002, 0.4565, 1)
+metallic = 0.6
+roughness = 0.5
+
+[sub_resource type="TorusMesh" id="TorusMesh_pk2ye"]
+inner_radius = 0.034654997
+outer_radius = 0.035255
+rings = 32
+ring_segments = 8
+
+[sub_resource type="TorusMesh" id="TorusMesh_sva1a"]
+inner_radius = 0.032975
+outer_radius = 0.033575
+rings = 32
+ring_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_68xpv"]
+albedo_color = Color(0.75, 0.76, 0.78, 1)
+metallic = 0.7
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_kw7dv"]
+size = Vector3(0.006, 0.012, 0.004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3oi74"]
+size = Vector3(0.008, 0.002, 0.004)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_cb2tq"]
+top_radius = 0.0016
+bottom_radius = 0.0016
+height = 0.1005
+radial_segments = 8
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_favs1"]
+top_radius = 0.017
+bottom_radius = 0.017
+height = 0.008
+radial_segments = 24
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_offoh"]
+albedo_color = Color(0.97, 0.97, 0.95, 1)
+roughness = 0.5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_1f4py"]
+top_radius = 0.0152
+bottom_radius = 0.0152
+height = 0.0005
+radial_segments = 24
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2h8co"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_g1vjq"]
+size = Vector3(0.0006, 0.0028, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5ta7n"]
+size = Vector3(0.0006, 0.0028, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tygl8"]
+size = Vector3(0.0006, 0.0028, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cw03f"]
+size = Vector3(0.0006, 0.0028, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_2y371"]
+size = Vector3(0.0006, 0.0028, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_n5mnj"]
+size = Vector3(0.0006, 0.0028, 0.0004)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iar5d"]
+albedo_color = Color(0.2, 0.65, 0.3, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_swp66"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8flyk"]
+size = Vector3(0.0006, 0.0028, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bljjj"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jxd1i"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_c8xjs"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3l4tm"]
+size = Vector3(0.0006, 0.0028, 0.0004)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ffxf4"]
+albedo_color = Color(0.85, 0.2, 0.15, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_dn7et"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6adqe"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_d584t"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_imvtx"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vx7w8"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5l0lg"]
+size = Vector3(0.0006, 0.0028, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_84h7k"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tdhx2"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4awwm"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5f1au"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_p24yy"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_a61cd"]
+size = Vector3(0.0006, 0.0028, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_klnyb"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sys4a"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_x23fm"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_uarvg"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_baqry"]
+size = Vector3(0.0024, 0.003, 0.0004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ssj0s"]
+size = Vector3(0.0006, 0.0028, 0.0004)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2umwg"]
+albedo_color = Color(0.8, 0.12, 0.1, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_wd04t"]
+size = Vector3(0.0009, 0.012, 0.0004)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_8m8hw"]
+top_radius = 0.0016
+bottom_radius = 0.0016
+height = 0.001
+radial_segments = 10
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_h34mm"]
+transparency = 1
+albedo_color = Color(0.9, 0.95, 1, 0.12)
+roughness = 0.02
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_7xrkq"]
+top_radius = 0.0155
+bottom_radius = 0.0155
+height = 0.0006
+radial_segments = 24
+rings = 1
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_ws720"]
 height = 0.095
 radius = 0.039
 
-[node name="MilkPitcher" type="Node3D" unique_id=684693904]
+[node name="MilkPitcher" type="Node3D" unique_id=821701802]
 metadata/inner_profile = PackedVector2Array(0.034, -0.041, 0.037, -0.035, 0.0375, -0.02, 0.036, 0, 0.0325, 0.02, 0.03, 0.033, 0.03, 0.041, 0.0315, 0.0475)
+metadata/milk_height = 0.04
+metadata/foam_rise = 0.6
 
-[node name="Body" type="MeshInstance3D" parent="." unique_id=13652843]
+[node name="Body" type="MeshInstance3D" parent="." unique_id=2064845065]
 material_override = SubResource("StandardMaterial3D_d1653")
 mesh = SubResource("ArrayMesh_oxryn")
 
-[node name="Handle" type="Node3D" parent="." unique_id=758871618]
+[node name="Handle" type="Node3D" parent="." unique_id=663199353]
 
-[node name="Grip" type="MeshInstance3D" parent="Handle" unique_id=2029024557]
+[node name="Grip" type="MeshInstance3D" parent="Handle" unique_id=2051446136]
 material_override = SubResource("StandardMaterial3D_d1653")
 mesh = SubResource("ArrayMesh_n7mc8")
 
-[node name="ThumbRest" type="MeshInstance3D" parent="Handle" unique_id=1159650692]
+[node name="ThumbRest" type="MeshInstance3D" parent="Handle" unique_id=2052656095]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0395, 0.046)
 material_override = SubResource("StandardMaterial3D_d1653")
 mesh = SubResource("BoxMesh_uhto7")
 
-[node name="Collision" type="CollisionShape3D" parent="." unique_id=1791400662]
-shape = SubResource("CylinderShape3D_y2ihq")
+[node name="FoamLines" type="Node3D" parent="." unique_id=679957248]
 
-[node name="MilkFloor" type="Marker3D" parent="." unique_id=1840605778]
+[node name="Line" type="MeshInstance3D" parent="FoamLines" unique_id=1338757869]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0054, 0)
+material_override = SubResource("StandardMaterial3D_y2ihq")
+mesh = SubResource("TorusMesh_pk2ye")
+
+[node name="Name" type="Label3D" parent="FoamLines" unique_id=2062837719]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0079, -0.034454998)
+pixel_size = 0.00013
+modulate = Color(0.4, 0.405, 0.415, 1)
+text = "LATTE"
+font_size = 24
+outline_size = 0
+
+[node name="Line2" type="MeshInstance3D" parent="FoamLines" unique_id=1420063395]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 0)
+material_override = SubResource("StandardMaterial3D_y2ihq")
+mesh = SubResource("TorusMesh_sva1a")
+
+[node name="@Label3D@2" type="Label3D" parent="FoamLines" unique_id=535475569]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0175, -0.032775)
+pixel_size = 0.00013
+modulate = Color(0.4, 0.405, 0.415, 1)
+text = "CAP"
+font_size = 24
+outline_size = 0
+
+[node name="Thermometer" type="Node3D" parent="." unique_id=2058451802]
+
+[node name="Clip" type="MeshInstance3D" parent="Thermometer" unique_id=840832692]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.031, 0.0445, 0)
+material_override = SubResource("StandardMaterial3D_68xpv")
+mesh = SubResource("BoxMesh_kw7dv")
+
+[node name="ClipTop" type="MeshInstance3D" parent="Thermometer" unique_id=812054088]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0295, 0.0505, 0)
+material_override = SubResource("StandardMaterial3D_68xpv")
+mesh = SubResource("BoxMesh_3oi74")
+
+[node name="Stem" type="MeshInstance3D" parent="Thermometer" unique_id=93772772]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.026, 0.01525, 0)
+material_override = SubResource("StandardMaterial3D_68xpv")
+mesh = SubResource("CylinderMesh_cb2tq")
+
+[node name="Dial" type="Node3D" parent="Thermometer" unique_id=951164729]
+transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0.026, 0.0815, 0.003)
+
+[node name="Case" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1900015456]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_68xpv")
+mesh = SubResource("CylinderMesh_favs1")
+
+[node name="Face" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1424930549]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0.0042)
+material_override = SubResource("StandardMaterial3D_offoh")
+mesh = SubResource("CylinderMesh_1f4py")
+
+[node name="Tick" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=151922402]
+transform = Transform3D(-0.70710677, -0.70710677, 0, 0.70710677, -0.70710677, 0, 0, 0, 1, -0.009050966, -0.009050966, 0.0049)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("BoxMesh_g1vjq")
+
+[node name="Tick2" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1307299437]
+transform = Transform3D(-0.30901703, -0.9510565, 0, 0.9510565, -0.30901703, 0, 0, 0, 1, -0.012173523, -0.0039554173, 0.0049)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("BoxMesh_5ta7n")
+
+[node name="Tick3" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1624206129]
+transform = Transform3D(0.15643449, -0.98768836, 0, 0.98768836, 0.15643449, 0, 0, 0, 1, -0.012642411, 0.002002361, 0.0049)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("BoxMesh_tygl8")
+
+[node name="Tick4" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=519663919]
+transform = Transform3D(0.58778524, -0.809017, 0, 0.809017, 0.58778524, 0, 0, 0, 1, -0.010355418, 0.007523651, 0.0049)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("BoxMesh_cw03f")
+
+[node name="Tick5" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1209284985]
+transform = Transform3D(0.8910065, -0.45399052, 0, 0.45399052, 0.8910065, 0, 0, 0, 1, -0.005811078, 0.011404883, 0.0049)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("BoxMesh_2y371")
+
+[node name="Tick6" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=227508944]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0128, 0.0049)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("BoxMesh_n5mnj")
+
+[node name="Band" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=838289411]
+transform = Transform3D(0.8910065, 0.45399052, 0, -0.45399052, 0.8910065, 0, 0, 0, 1, 0.005811078, 0.011404883, 0.0047)
+material_override = SubResource("StandardMaterial3D_iar5d")
+mesh = SubResource("BoxMesh_swp66")
+
+[node name="Tick7" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=2026641251]
+transform = Transform3D(0.8910065, 0.45399052, 0, -0.45399052, 0.8910065, 0, 0, 0, 1, 0.005811078, 0.011404883, 0.0049)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("BoxMesh_8flyk")
+
+[node name="Band2" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1125767757]
+transform = Transform3D(0.8443279, 0.5358268, 0, -0.5358268, 0.8443279, 0, 0, 0, 1, 0.006858583, 0.010807397, 0.0047)
+material_override = SubResource("StandardMaterial3D_iar5d")
+mesh = SubResource("BoxMesh_bljjj")
+
+[node name="Band3" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1411571065]
+transform = Transform3D(0.79015505, 0.61290705, 0, -0.61290705, 0.79015505, 0, 0, 0, 1, 0.00784521, 0.010113983, 0.0047)
+material_override = SubResource("StandardMaterial3D_iar5d")
+mesh = SubResource("BoxMesh_jxd1i")
+
+[node name="Band4" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1667965439]
+transform = Transform3D(0.7289686, 0.6845471, 0, -0.6845471, 0.7289686, 0, 0, 0, 1, 0.008762203, 0.009330798, 0.0047)
+material_override = SubResource("StandardMaterial3D_iar5d")
+mesh = SubResource("BoxMesh_c8xjs")
+
+[node name="Tick8" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1123071757]
+transform = Transform3D(0.58778524, 0.809017, 0, -0.809017, 0.58778524, 0, 0, 0, 1, 0.010355418, 0.007523651, 0.0049)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("BoxMesh_3l4tm")
+
+[node name="Band5" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1595786978]
+transform = Transform3D(0.5090415, 0.860742, 0, -0.860742, 0.5090415, 0, 0, 0, 1, 0.011017498, 0.00651573, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_dn7et")
+
+[node name="Band6" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=285966822]
+transform = Transform3D(0.4257793, 0.90482706, 0, -0.90482706, 0.4257793, 0, 0, 0, 1, 0.011581786, 0.005449975, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_6adqe")
+
+[node name="Band7" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=486197509]
+transform = Transform3D(0.3387379, 0.9408808, 0, -0.9408808, 0.3387379, 0, 0, 0, 1, 0.012043274, 0.0043358454, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_d584t")
+
+[node name="Band8" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=391572734]
+transform = Transform3D(0.24868995, 0.96858317, 0, -0.96858317, 0.24868995, 0, 0, 0, 1, 0.012397864, 0.0031832305, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_imvtx")
+
+[node name="Band9" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1510402932]
+transform = Transform3D(0.15643449, 0.98768836, 0, -0.98768836, 0.15643449, 0, 0, 0, 1, 0.012642411, 0.002002361, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_vx7w8")
+
+[node name="Tick9" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=752874076]
+transform = Transform3D(0.15643449, 0.98768836, 0, -0.98768836, 0.15643449, 0, 0, 0, 1, 0.012642411, 0.002002361, 0.0049)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("BoxMesh_5l0lg")
+
+[node name="Band10" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1798324581]
+transform = Transform3D(0.0627905, 0.9980267, 0, -0.9980267, 0.0627905, 0, 0, 0, 1, 0.012774742, 0.00080371863, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_84h7k")
+
+[node name="Band11" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1489318702]
+transform = Transform3D(-0.031410817, 0.99950653, 0, -0.99950653, -0.031410817, 0, 0, 0, 1, 0.012793683, -0.0004020577, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_tdhx2")
+
+[node name="Band12" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1910828790]
+transform = Transform3D(-0.1253332, 0.9921147, 0, -0.9921147, -0.1253332, 0, 0, 0, 1, 0.0126990685, -0.0016042654, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_4awwm")
+
+[node name="Band13" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=461649379]
+transform = Transform3D(-0.21814325, 0.97591674, 0, -0.97591674, -0.21814325, 0, 0, 0, 1, 0.012491734, -0.0027922334, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_5f1au")
+
+[node name="Band14" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1043219002]
+transform = Transform3D(-0.30901703, 0.9510565, 0, -0.9510565, -0.30901703, 0, 0, 0, 1, 0.012173523, -0.0039554173, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_p24yy")
+
+[node name="Tick10" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1472863282]
+transform = Transform3D(-0.30901703, 0.9510565, 0, -0.9510565, -0.30901703, 0, 0, 0, 1, 0.012173523, -0.0039554173, 0.0049)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("BoxMesh_a61cd")
+
+[node name="Band15" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=245494086]
+transform = Transform3D(-0.39714786, 0.91775465, 0, -0.91775465, -0.39714786, 0, 0, 0, 1, 0.01174726, -0.005083493, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_klnyb")
+
+[node name="Band16" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1320222350]
+transform = Transform3D(-0.4817536, 0.8763067, 0, -0.8763067, -0.4817536, 0, 0, 0, 1, 0.011216725, -0.006166447, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_sys4a")
+
+[node name="Band17" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=970859625]
+transform = Transform3D(-0.5620833, 0.8270806, 0, -0.8270806, -0.5620833, 0, 0, 0, 1, 0.010586631, -0.0071946667, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_x23fm")
+
+[node name="Band18" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=213338173]
+transform = Transform3D(-0.637424, 0.77051324, 0, -0.77051324, -0.637424, 0, 0, 0, 1, 0.009862569, -0.0081590265, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_uarvg")
+
+[node name="Band19" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=1047281124]
+transform = Transform3D(-0.70710677, 0.70710677, 0, -0.70710677, -0.70710677, 0, 0, 0, 1, 0.009050966, -0.009050966, 0.0047)
+material_override = SubResource("StandardMaterial3D_ffxf4")
+mesh = SubResource("BoxMesh_baqry")
+
+[node name="Tick11" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=328679055]
+transform = Transform3D(-0.70710677, 0.70710677, 0, -0.70710677, -0.70710677, 0, 0, 0, 1, 0.009050966, -0.009050966, 0.0049)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("BoxMesh_ssj0s")
+
+[node name="Needle" type="Node3D" parent="Thermometer/Dial" unique_id=133001425]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0052)
+metadata/deg_per_c = 2.7
+metadata/zero_deg = -135.0
+
+[node name="Pointer" type="MeshInstance3D" parent="Thermometer/Dial/Needle" unique_id=1533599167]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.005, 0)
+material_override = SubResource("StandardMaterial3D_2umwg")
+mesh = SubResource("BoxMesh_wd04t")
+
+[node name="Hub" type="MeshInstance3D" parent="Thermometer/Dial/Needle" unique_id=1078683974]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_2h8co")
+mesh = SubResource("CylinderMesh_8m8hw")
+
+[node name="Lens" type="MeshInstance3D" parent="Thermometer/Dial" unique_id=847403574]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0.0062)
+material_override = SubResource("StandardMaterial3D_h34mm")
+mesh = SubResource("CylinderMesh_7xrkq")
+
+[node name="Collision" type="CollisionShape3D" parent="." unique_id=159457913]
+shape = SubResource("CylinderShape3D_ws720")
+
+[node name="MilkFloor" type="Marker3D" parent="." unique_id=1170894391]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.043, 0)

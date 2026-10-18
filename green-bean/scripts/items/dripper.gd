@@ -2,6 +2,9 @@ class_name Dripper
 extends RigidBody3D
 
 const MODEL := preload("res://scenes/props/cone_dripper.tscn")
+const BED_SHADER := preload("res://assets/shaders/grounds_bed.gdshader")
+## How far the bed domes up while blooming.
+const BLOOM_RISE := 0.004
 const DRY_COLOR := Color(0.55, 0.38, 0.22)
 const WET_COLOR := Color(0.2, 0.12, 0.06)
 
@@ -22,6 +25,11 @@ var _floor_y := -0.022
 var _grounds_bed: MeshInstance3D = null
 var _grounds_mat: StandardMaterial3D = null
 var _saturation := 0.0
+## Top surface of the bed, painted from the pour's saturation map.
+var _bed_top: MeshInstance3D = null
+var _bed_top_mat: ShaderMaterial = null
+var _bed_top_y := 0.0
+var _sat_texture: ImageTexture = null
 
 func _ready() -> void:
 	add_to_group("carriable")
@@ -68,6 +76,21 @@ func _ready() -> void:
 	_grounds_bed.visible = false
 	add_child(_grounds_bed)
 
+	var top := PlaneMesh.new()
+	top.size = Vector2(bed.top_radius, bed.top_radius) * 2.0
+	_bed_top = MeshInstance3D.new()
+	_bed_top.name = "GroundsTop"
+	_bed_top.mesh = top
+	_bed_top_mat = ShaderMaterial.new()
+	_bed_top_mat.shader = BED_SHADER
+	_bed_top_mat.set_shader_parameter("dry_color", DRY_COLOR)
+	_bed_top_mat.set_shader_parameter("wet_color", WET_COLOR)
+	_bed_top.material_override = _bed_top_mat
+	_bed_top_y = grounds_top_y + 0.0006
+	_bed_top.position.y = _bed_top_y
+	_bed_top.visible = false
+	add_child(_bed_top)
+
 	_cone_slope = float(model.get_meta("cone_slope", _cone_slope))
 	_cone_r_at_floor = float(model.get_meta("cone_radius_at_floor", _cone_r_at_floor))
 	_slurry_floor = grounds_top_y
@@ -79,7 +102,8 @@ func _ready() -> void:
 	_slurry.name = "Slurry"
 	_slurry.mesh = _slurry_mesh
 	var water := StandardMaterial3D.new()
-	water.albedo_color = Color(0.32, 0.19, 0.08, 0.85)
+	# Thin enough to see the bed's wet and dry patches through.
+	water.albedo_color = Color(0.32, 0.19, 0.08, 0.45)
 	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	water.roughness = 0.15
 	_slurry.material_override = water
@@ -101,10 +125,30 @@ func set_saturation(ratio: float) -> void:
 	_saturation = clampf(ratio, 0.0, 1.0)
 	_update_bed()
 
+## Wetness across the top of the bed, as a small greyscale map (see PourMiniGame).
+func set_saturation_map(img: Image) -> void:
+	if not _bed_top_mat:
+		return
+	if _sat_texture == null or _sat_texture.get_width() != img.get_width():
+		_sat_texture = ImageTexture.create_from_image(img)
+		_bed_top_mat.set_shader_parameter("saturation", _sat_texture)
+		_bed_top_mat.set_shader_parameter("grid_size", float(img.get_width()))
+	else:
+		_sat_texture.update(img)
+
+## 0..1 bloom: the bed domes up and froths while the grounds degas.
+func set_bloom(amount: float) -> void:
+	if not _bed_top_mat:
+		return
+	_bed_top_mat.set_shader_parameter("bloom", clampf(amount, 0.0, 1.0))
+	_bed_top.position.y = _bed_top_y + BLOOM_RISE * clampf(amount, 0.0, 1.0)
+
 func _update_bed() -> void:
 	if not _grounds_bed:
 		return
 	_grounds_bed.visible = grounds != null
+	if _bed_top:
+		_bed_top.visible = grounds != null
 	_grounds_mat.albedo_color = DRY_COLOR.lerp(WET_COLOR, _saturation)
 	_grounds_mat.roughness = lerpf(1.0, 0.45, _saturation)
 
@@ -133,3 +177,7 @@ func reset_device() -> void:
 	_saturation = 0.0
 	_update_bed()
 	set_water_level(0.0)
+	set_bloom(0.0)
+	if _sat_texture:
+		var blank := Image.create(_sat_texture.get_width(), _sat_texture.get_height(), false, Image.FORMAT_L8)
+		_sat_texture.update(blank)

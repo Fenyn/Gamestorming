@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/flow/RunEndPanel.cs" id="1_end"]
 [ext_resource type="Texture2D" path="res://assets/ui/kenney/rule_ornament.png" id="rule"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pair_report.tscn" id="report"]
+[ext_resource type="Script" path="res://scripts/ui/RuledRows.cs" id="rows"]
 
 [node name="RunEndPanel" instance=ExtResource("frame")]
 visible = false
@@ -45,6 +46,19 @@ theme_type_variation = &"TipBody"
 theme_override_constants/line_spacing = 10
 horizontal_alignment = 1
 autowrap_mode = 2
+
+[node name="CampaignCaption" type="Label" parent="Frame/Box/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"RowLabel"
+text = "CAMPAIGN PROGRESS"
+
+[node name="CampaignRows" type="VBoxContainer" parent="Frame/Box/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+script = ExtResource("rows")
+CaptionWidth = 120.0
 
 [node name="Footer" parent="Frame/Box" index="2"]
 alignment = 1

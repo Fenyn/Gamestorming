@@ -492,12 +492,11 @@ func _layout(snap: bool = false) -> void:
 			node.rotation.z = float(item["angle"])
 			node.scale = Vector3.ONE * float(item["scale"])
 	var pages: int = maxi(1, ceili(float(_items.size()) / _per_page))
-	_hint.text = "H · browse hand   Right-click · inspect" if pages == 1 else "Hand %d / %d   Wheel · browse   H · select" % [_page + 1, pages]
-	if not revealed:
-		_hint.text = "Hand %d  |  H" % hand_count()
+	# The page count of a hand too long for one fan.
+	_hint.text = "Hand %d / %d" % [_page + 1, pages]
 	_hint.pixel_size = units * 0.5
 	_hint.position = _camera.to_local(_camera.project_position(Vector2(_size.x * FAN_CENTRE, _size.y - 15.0), DEPTH - 0.25))
-	_hint.visible = revealed and not _items.is_empty() and _hovered < 0
+	_hint.visible = revealed and pages > 1 and _hovered < 0
 
 
 ## The hovered card stays in its fan slot for pointer tracking; a separate face stands above it,

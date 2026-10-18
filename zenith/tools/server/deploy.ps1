@@ -1,6 +1,7 @@
-# Exports the duel server and installs it on the box in one go. Run from anywhere:
-#   powershell -File zenith\tools\server\deploy.ps1            (export + upload + restart)
-#   powershell -File zenith\tools\server\deploy.ps1 -SkipExport (upload the last export)
+# Exports the duel server and installs it on the box in one go. A release runs it through
+# tools/release/release.ps1, so the itch builds go out with it; alone it needs -ServerOnly:
+#   powershell -File zenith\tools\server\deploy.ps1 -ServerOnly            (export + upload + restart)
+#   powershell -File zenith\tools\server\deploy.ps1 -ServerOnly -SkipExport (upload the last export)
 # Needs key-based SSH to root@<host> (see docs/duel_server.md) and the GDScript-only editor.
 # -DataDir is where the box keeps match records, their signing key and the DTLS key and
 # certificate; install.sh owns its modes. -HostName goes into the certificate the server makes on
@@ -12,9 +13,16 @@ param(
     [string]$DataDir = "/var/lib/eidolarch",
     [string]$HostName = "",
     [string]$Godot = "G:\Godot\Godot_v4.6.2-stable_win64_GDSCRIPTONLY.exe",
-    [switch]$SkipExport
+    [switch]$SkipExport,
+    # tools/release/release.ps1 passes this; it pushes the itch builds right after.
+    [switch]$FromRelease,
+    # Deploys the server alone, leaving players on itch out of step until the next release.
+    [switch]$ServerOnly
 )
 $ErrorActionPreference = "Stop"
+if (-not $FromRelease -and -not $ServerOnly) {
+    throw "Release with tools/release/release.ps1, which pushes the itch builds with the server so they stay in step. Pass -ServerOnly to deploy the server alone."
+}
 $zenith = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $binary = Join-Path $zenith "build\server\eidolarch_server.x86_64"
 $install = Join-Path $PSScriptRoot "install.sh"

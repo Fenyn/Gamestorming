@@ -59,6 +59,8 @@ public partial class TrailPassage : Node3D, IPassage
             new TreeMix(TreeScenes, TreeWeights, Array.Empty<float>()), new TreeMix(Array.Empty<PackedScene>(), Array.Empty<float>(), Array.Empty<float>()),
             new List<(int X, int Y)>());
         _tint = from.Shell?.WoodTint;
+        if (from.Shell is GladeShell glade)
+            foreach (var tree in fader.Trees) tree.GhostAlpha = glade.CanopyGhostAlpha;
         _decor = TileDecor.Build(BackdropThemes.Forest, layout, layout.Width, layout.Height, heights);
         if (_decor != null)
         {

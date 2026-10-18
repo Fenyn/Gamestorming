@@ -19,12 +19,16 @@ public partial class CombatScene
 
     public CombatJournalPanel JournalPanel => _journalPanel;
 
+    /// <summary>The Journal button in the log heading. An export, not a %-name: the button is added
+    /// inside the instanced log scene, and a unique name there is not found in an exported build.</summary>
+    [Export] public Button JournalButton { get; set; } = null!;
+
     /// <summary>The Journal button sits in the log heading and hides while a modal holds the HUD,
     /// because J is inert then. Neither opens the journal over the encounter intro.</summary>
     private void BuildJournal()
     {
         _journalPanel = GetNode<CombatJournalPanel>("%CombatJournal");
-        var button = GetNode<Button>("%JournalButton");
+        var button = JournalButton;
         var hud = GetNode<HudRoot>("%HudRoot");
         button.Pressed += () => { if (!hud.ModalActive && !hud.IntroPlaying) _journalPanel.Toggle(); };
         hud.ModalChanged += modal => button.Visible = !modal;

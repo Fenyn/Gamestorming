@@ -170,8 +170,9 @@ internal static class SkillActionCatalog
             {
                 ActionName = "Recall Knowledge", ActionCostCount = 1,
                 RequiresTarget = true, TargetMode = TargetMode.Enemies,
-                Description = "Study a foe to fill in its bestiary page. The skill follows the creature's "
-                    + "type; one attempt per species each encounter, win or lose.",
+                Description = "Reveals the next unknown field of the creature's bestiary page, or two on a "
+                    + "critical success. The skill depends on the creature's type, and each character gets "
+                    + "one attempt per species each fight.",
             },
             // 30 ft (the Demoralize precedent). RAW gives each character ONE attempt per creature per
             // encounter, and knowledge is per-SPECIES here, so a foe whose species this actor already

@@ -104,7 +104,7 @@ size_flags_horizontal = 3
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "Paste a deck code, a decklist form, a card list or an .o8d file"
+tooltip_text = "Reads a deck code, a decklist form as CSV, a list of quantities and names, or an .o8d deck file."
 text = "Import a list"
 
 [node name="NewDeck" type="Button" parent="Shelf/Column/Top"]
@@ -166,7 +166,6 @@ columns = 4
 custom_minimum_size = Vector2(420, 176)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-tooltip_text = "Start a deck: choose a Duelist, then a Mastery"
 
 [node name="Column" type="VBoxContainer" parent="Shelf/Column/Scroll/Content/MineGrid/NewTile"]
 layout_mode = 1
@@ -190,23 +189,10 @@ theme_type_variation = &"HeaderLabel"
 text = "New deck"
 horizontal_alignment = 1
 
-[node name="Hint" type="Label" parent="Shelf/Column/Scroll/Content/MineGrid/NewTile/Column"]
-layout_mode = 2
-theme_type_variation = &"CaptionLabel"
-text = "Choose a Duelist, then a Mastery"
-horizontal_alignment = 1
-
-[node name="MineEmpty" type="Label" parent="Shelf/Column/Scroll/Content"]
-visible = false
-layout_mode = 2
-theme_type_variation = &"BodyLabel"
-text = "No decks saved yet. Start a new one, copy a shipped deck below, or import a list."
-autowrap_mode = 3
-
 [node name="ShippedHeading" type="Label" parent="Shelf/Column/Scroll/Content"]
 layout_mode = 2
 theme_type_variation = &"GroupLabel"
-text = "Start from a shipped deck"
+text = "Shipped decks"
 
 [node name="ShippedGrid" type="GridContainer" parent="Shelf/Column/Scroll/Content"]
 layout_mode = 2
@@ -243,14 +229,12 @@ theme_override_constants/separation = 8
 layout_mode = 2
 size_flags_vertical = 4
 custom_minimum_size = Vector2(150, 48)
-tooltip_text = "Back to your decks (Esc)"
 text = "Your decks"
 
 [node name="NameEdit" type="LineEdit" parent="Editor/Column/TopBar"]
 custom_minimum_size = Vector2(380, 0)
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "The deck's name"
 placeholder_text = "Deck name"
 max_length = 40
 
@@ -269,14 +253,12 @@ size_flags_horizontal = 3
 layout_mode = 2
 size_flags_vertical = 4
 custom_minimum_size = Vector2(0, 48)
-tooltip_text = "Undo (Ctrl+Z)"
 text = "Undo"
 
 [node name="Redo" type="Button" parent="Editor/Column/TopBar"]
 layout_mode = 2
 size_flags_vertical = 4
 custom_minimum_size = Vector2(0, 48)
-tooltip_text = "Redo (Ctrl+Y)"
 text = "Redo"
 
 [node name="Gap" type="Control" parent="Editor/Column/TopBar"]
@@ -287,14 +269,14 @@ layout_mode = 2
 layout_mode = 2
 size_flags_vertical = 4
 custom_minimum_size = Vector2(0, 48)
-tooltip_text = "Replace this deck with a pasted list or code"
+tooltip_text = "Replaces this deck with the imported list."
 text = "Import"
 
 [node name="Share" type="Button" parent="Editor/Column/TopBar"]
 layout_mode = 2
 size_flags_vertical = 4
 custom_minimum_size = Vector2(0, 48)
-tooltip_text = "Copy a one-line deck code to share this deck. Import reads it back."
+tooltip_text = "Copies this deck as a one-line code that Import reads."
 text = "Copy code"
 
 [node name="Gap2" type="Control" parent="Editor/Column/TopBar"]
@@ -305,7 +287,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(110, 48)
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "Save, then play this deck"
+tooltip_text = "Play saves the deck first."
 text = "Play"
 flat = false
 
@@ -313,14 +295,14 @@ flat = false
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "Save these cards as a new deck and leave the original as it was"
+tooltip_text = "Saves these cards as a new deck and leaves the original unchanged."
 text = "Save as new"
 
 [node name="Save" type="Button" parent="Editor/Column/TopBar"]
 custom_minimum_size = Vector2(150, 48)
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "Save (Ctrl+S)"
+tooltip_text = "A saved deck can play any duel but Ranked."
 theme_type_variation = &"AccentButton"
 text = "Save"
 
@@ -344,8 +326,8 @@ theme_override_constants/separation = 10
 [node name="Search" type="LineEdit" parent="Editor/Column/Body/PoolPanel/Column/Tools"]
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Words match names and rules text. Narrow with type:art, school:storm, side:pact, kw:marked, blood:draconic or name:. Ctrl+F jumps here."
-placeholder_text = "Search names and rules (Ctrl+F)"
+tooltip_text = "Words match names and rules text. The terms type:art, school:storm, side:pact, kw:marked, blood:draconic and name:word narrow the search."
+placeholder_text = "Search names and rules"
 clear_button_enabled = true
 
 [node name="Sort" type="OptionButton" parent="Editor/Column/Body/PoolPanel/Column/Tools"]
@@ -354,7 +336,7 @@ layout_mode = 2
 
 [node name="ShowAll" type="CheckBox" parent="Editor/Column/Body/PoolPanel/Column/Tools"]
 layout_mode = 2
-tooltip_text = "Also show cards this deck cannot run or nobody in it can use, dimmed, with the reason on each."
+tooltip_text = "Shows the cards this deck cannot run or nobody in it can use, dimmed, with the reason on each."
 text = "Show unusable"
 
 [node name="TypeChips" type="HFlowContainer" parent="Editor/Column/Body/PoolPanel/Column"]
@@ -427,21 +409,20 @@ text = "ONLY"
 
 [node name="School" type="Button" parent="Editor/Column/Body/PoolPanel/Column/GroupRow"]
 layout_mode = 2
-tooltip_text = "Only the deck's own school"
 theme_type_variation = &"CompactButton"
 toggle_mode = true
 text = "School cards"
 
 [node name="Freestyle" type="Button" parent="Editor/Column/Body/PoolPanel/Column/GroupRow"]
 layout_mode = 2
-tooltip_text = "Only cards any deck can run"
+tooltip_text = "Freestyle cards belong to no school, and any deck can run them."
 theme_type_variation = &"CompactButton"
 toggle_mode = true
 text = "Freestyle"
 
 [node name="Signature" type="Button" parent="Editor/Column/Body/PoolPanel/Column/GroupRow"]
 layout_mode = 2
-tooltip_text = "Only cards that name a personality"
+tooltip_text = "Signature cards name a personality."
 theme_type_variation = &"CompactButton"
 toggle_mode = true
 text = "Signature"
@@ -519,7 +500,6 @@ text = "DUELIST"
 [node name="Duelist" parent="Editor/Column/Body/DeckPanel/Column/Identity/DuelistBox" instance=ExtResource("3_slot")]
 custom_minimum_size = Vector2(165, 231)
 layout_mode = 2
-tooltip_text = "Choose the Duelist"
 
 [node name="MasteryBox" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/Identity"]
 layout_mode = 2
@@ -533,7 +513,6 @@ text = "MASTERY"
 [node name="Mastery" parent="Editor/Column/Body/DeckPanel/Column/Identity/MasteryBox" instance=ExtResource("3_slot")]
 custom_minimum_size = Vector2(165, 231)
 layout_mode = 2
-tooltip_text = "Choose the Mastery"
 
 [node name="Info" type="VBoxContainer" parent="Editor/Column/Body/DeckPanel/Column/Identity"]
 layout_mode = 2
@@ -610,14 +589,12 @@ theme_override_constants/separation = 0
 [node name="Vigil" type="Button" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Side"]
 custom_minimum_size = Vector2(78, 36)
 layout_mode = 2
-tooltip_text = "Vigil side"
 toggle_mode = true
 text = "Vigil"
 
 [node name="Pact" type="Button" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Side"]
 custom_minimum_size = Vector2(78, 36)
 layout_mode = 2
-tooltip_text = "Pact side"
 toggle_mode = true
 text = "Pact"
 
@@ -632,7 +609,6 @@ text = "Legal"
 
 [node name="Reserve" type="Button" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Badges"]
 layout_mode = 2
-tooltip_text = "Open the Reserve"
 theme_type_variation = &"CompactButton"
 toggle_mode = true
 text = "Reserve"
@@ -640,7 +616,6 @@ text = "Reserve"
 [node name="Notes" type="Button" parent="Editor/Column/Body/DeckPanel/Column/Identity/Info/Badges"]
 visible = false
 layout_mode = 2
-tooltip_text = "Import notes"
 theme_type_variation = &"CompactButton"
 toggle_mode = true
 text = "Notes"
@@ -703,7 +678,7 @@ autowrap_mode = 3
 [node name="CopyMissing" type="Button" parent="Editor/Column/Body/DeckPanel/Column/NotesDrawer/Column/Header"]
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "Copy the lines with no Eidolarch parallel, to work through them outside the game"
+tooltip_text = "Copies the lines that have no Eidolarch parallel."
 theme_type_variation = &"CompactButton"
 text = "Copy missing"
 
@@ -819,13 +794,6 @@ layout_mode = 2
 theme_type_variation = &"GroupLabel"
 text = "Choose your Duelist"
 
-[node name="Help" type="Label" parent="DuelistPicker/Center/Panel/Row/Left"]
-custom_minimum_size = Vector2(1, 0)
-layout_mode = 2
-theme_type_variation = &"BodyLabel"
-text = "The Duelist leads the deck. Their bloodline, side and keywords decide which cards the library offers."
-autowrap_mode = 3
-
 [node name="Scroll" type="ScrollContainer" parent="DuelistPicker/Center/Panel/Row/Left"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -895,13 +863,6 @@ layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Note" type="Label" parent="DuelistPicker/Center/Panel/Row/Right"]
-custom_minimum_size = Vector2(1, 0)
-layout_mode = 2
-theme_type_variation = &"CaptionLabel"
-text = "Hover a card to read it. You can swap single Aspects for other printings after choosing."
-autowrap_mode = 3
-
 [node name="Buttons" type="HBoxContainer" parent="DuelistPicker/Center/Panel/Row/Right"]
 layout_mode = 2
 theme_override_constants/separation = 12
@@ -916,6 +877,7 @@ text = "Cancel"
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "The Duelist's bloodline, side and keywords decide which cards the library offers."
 theme_type_variation = &"AccentButton"
 text = "Choose"
 
@@ -962,13 +924,6 @@ theme_override_constants/separation = 10
 layout_mode = 2
 theme_type_variation = &"GroupLabel"
 text = "Choose your Mastery"
-
-[node name="Help" type="Label" parent="MasteryPicker/Center/Panel/Row/Left"]
-custom_minimum_size = Vector2(1, 0)
-layout_mode = 2
-theme_type_variation = &"BodyLabel"
-text = "The Mastery sets the deck's school: that school's cards and Freestyle cards stay in the library."
-autowrap_mode = 3
 
 [node name="Scroll" type="ScrollContainer" parent="MasteryPicker/Center/Panel/Row/Left"]
 layout_mode = 2
@@ -1018,6 +973,7 @@ text = "Decide later"
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "The Mastery sets the deck's school, and the library then offers that school's cards and Freestyle cards. A Freestyle Mastery allows no school cards."
 theme_type_variation = &"AccentButton"
 text = "Choose"
 
@@ -1052,11 +1008,6 @@ theme_override_constants/separation = 10
 [node name="Heading" type="Label" parent="AspectOverlay/Panel/Column"]
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
-
-[node name="Hint" type="Label" parent="AspectOverlay/Panel/Column"]
-layout_mode = 2
-theme_type_variation = &"CaptionLabel"
-text = "Pick the printing this Aspect uses."
 
 [node name="Options" type="HBoxContainer" parent="AspectOverlay/Panel/Column"]
 layout_mode = 2
@@ -1172,16 +1123,10 @@ layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 text = "Import a deck"
 
-[node name="Help" type="Label" parent="ImportDialog/Center/Panel/Column"]
-custom_minimum_size = Vector2(1, 0)
-layout_mode = 2
-theme_type_variation = &"BodyLabel"
-text = "Paste a deck code, a decklist form as CSV, a list of quantities and names, or an exported .o8d deck. Every card with an Eidolarch parallel comes in, and Import notes lists the rest so you can fill the gaps from the library."
-autowrap_mode = 3
-
 [node name="Paste" type="TextEdit" parent="ImportDialog/Center/Panel/Column"]
 layout_mode = 2
 size_flags_vertical = 3
+tooltip_text = "Reads a deck code, a decklist form as CSV, a list of quantities and names, or an .o8d deck file. Lines with no Eidolarch parallel are listed in Import notes."
 placeholder_text = "EIDO1:...
 3x Card name
 Card name,2"

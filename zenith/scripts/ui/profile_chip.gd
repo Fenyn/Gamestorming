@@ -34,7 +34,6 @@ func _ready() -> void:
 	if clickable:
 		focus_mode = Control.FOCUS_ALL
 		mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		tooltip_text = "Change your name"
 		add_theme_stylebox_override("focus", ZenithTheme.box(Color.TRANSPARENT, ZenithTheme.ACCENT, ZenithTheme.RADIUS, 2, 0, 0))
 		edit_rule.color = ZenithTheme.BORDER
 		# The handle brightens while the chip is hovered or focused, so it reads as the thing to press.

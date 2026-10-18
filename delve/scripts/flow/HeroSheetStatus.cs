@@ -25,16 +25,16 @@ public static class HeroSheetStatus
         if (wounded == 0 && doomed == 0 && !focusDown && !shieldDown) return entries;
 
         if (wounded > 0) entries.Add(new SheetEntry($"Wounded {wounded}", new SheetTip("Wounded",
-            $"Wounded {wounded}", "Gaining Dying adds this much more. A successful Treat Wounds removes it, "
+            $"Wounded {wounded}", "Adds its value whenever you gain Dying. A successful Treat Wounds removes it, "
             + "as does resting ten minutes at full HP.")));
         if (doomed > 0) entries.Add(new SheetEntry($"Doomed {doomed}", new SheetTip("Doomed",
-            $"Dies at Dying {DyingDeath - doomed}", "Death comes at a lower Dying value. A full night's rest lowers Doomed by 1.")));
+            $"Dies at Dying {DyingDeath - doomed}", "A full night's rest lowers Doomed by 1.")));
         if (casting is { MaxFocusPoints: > 0 }) entries.Add(new SheetEntry($"Focus {casting.CurrentFocusPoints}/{casting.MaxFocusPoints}",
             new SheetTip("Focus points", "", "Spent on focus spells. Refocus during a rest restores one.")));
         if (shield != null) entries.Add(new SheetEntry(
             $"Shield {shield.CurrentShieldHP}/{shield.MaxShieldHP} (BT {shield.ShieldInstance.ShieldDef.BrokenThreshold})",
-            new SheetTip("Shield", "", "Shield Block spends shield HP. At or below the Broken Threshold the shield is broken "
-                + "and gives no AC until repaired. Repair during a rest restores it.")));
+            new SheetTip("Shield", "", "Shield Block spends shield HP. At or below the Broken Threshold the shield gives no AC "
+                + "until Repair Shield restores it during a rest.")));
         return entries;
     }
 }

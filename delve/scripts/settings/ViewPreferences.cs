@@ -1,24 +1,21 @@
+using System.Collections.Generic;
+
 namespace Delve.Settings;
 
+/// <summary>Which camera a remembered zoom belongs to: combat and exploration keep their own.</summary>
+public enum CameraZoomSlot { Combat, Exploration }
+
 /// <summary>
-/// In-memory camera preference store for the combat proof. The zoom distance only survives within a
-/// session; nothing is written to disk. Grow into a real settings store when the meta-layer needs one.
+/// In-memory camera preference store. Each camera's zoom distance survives within a session;
+/// nothing is written to disk. Grow into a real settings store when the meta-layer needs one.
 /// </summary>
 public static class ViewPreferences
 {
-    private static float _combatCameraDistance;
+    private static readonly Dictionary<CameraZoomSlot, float> Distances = new();
 
-    /// <summary>True once combat has stored a camera distance this session.</summary>
-    public static bool HasStoredCombatCameraDistance { get; private set; }
+    /// <summary>The last zoom distance the player chose on this camera this session, if any.</summary>
+    public static bool TryGetCameraDistance(CameraZoomSlot slot, out float distance)
+        => Distances.TryGetValue(slot, out distance);
 
-    /// <summary>Last combat camera zoom distance. Writing marks it as stored.</summary>
-    public static float CombatCameraDistance
-    {
-        get => _combatCameraDistance;
-        set
-        {
-            _combatCameraDistance = value;
-            HasStoredCombatCameraDistance = true;
-        }
-    }
+    public static void SetCameraDistance(CameraZoomSlot slot, float distance) => Distances[slot] = distance;
 }

@@ -94,6 +94,8 @@ autowrap_mode = 3
 [node name="BestiaryKnown" type="Label" parent="BestiaryPage/PageColumn/PageRows/Info"]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Recall Knowledge in a fight reveals one unknown field, or two on a critical success."
+mouse_filter = 1
 theme_type_variation = &"HeadingLabel"
 
 [node name="BestiaryFacts" parent="BestiaryPage/PageColumn" instance=ExtResource("2")]
@@ -103,9 +105,3 @@ theme_override_constants/h_separation = 24
 theme_override_constants/v_separation = 20
 columns = 3
 
-[node name="BestiaryHint" type="Label" parent="BestiaryPage/PageColumn/PageRows/Info"]
-unique_name_in_owner = true
-layout_mode = 2
-autowrap_mode = 3
-theme_type_variation = &"ScreenHint"
-text = "Recall Knowledge in a fight reveals the next unknown field. A critical success reveals two."

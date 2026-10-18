@@ -53,33 +53,39 @@ public partial class UiShotSpike : SpikeBase
         panel.Setup(campaign.Unlocks, campaign);
         DirAccess.MakeDirRecursiveAbsolute(OutDir);
 
-        foreach (var def in CharacterCatalog.All)
-        {
-            if (!panel.CanPick(def.Id)) continue;
-            panel.Preview(def.Id);
-            await Settle();
-            Capture($"hero_select_{def.DisplayName.ToLowerInvariant()}.png");
-        }
-
+        await Wait(1.0);
+        Capture("camp_town.png");
+        panel.EnterAssembly();
+        await Wait(1.0);
+        Capture("camp_assembly_0.png");
         panel.Pick(PresetCharacters.ElaraId);
         panel.Pick(PresetCharacters.PlayerId);
+        await Wait(2.4);
+        Capture("camp_assembly_walk_in.png");
+        await Wait(1.4);
+        Capture("camp_assembly_2.png");
+        panel.OpenPicker(2);
+        await Settle();
+        Capture("camp_assembly_picker.png");
+        panel.Picker.Close();
         panel.Pick(PresetCharacters.TharrId);
         panel.Pick(PresetCharacters.FenwickId);
-        await Settle();
+        await Wait(3.8);
         Check("four selected members enable embark", panel.CanEmbark);
-        Capture("hero_select_formation.png");
+        Capture("camp_assembly_4.png");
         panel.Pick(PresetCharacters.PlayerId);
-        await Settle();
-        Capture("camp_companion_resting.png");
+        await Wait(0.8);
+        Capture("camp_assembly_walk_out.png");
         panel.Pick(PresetCharacters.PlayerId);
-        await ToSignal(GetTree().CreateTimer(0.2), SceneTreeTimer.SignalName.Timeout);
-        Capture("camp_getting_ready.png");
+        panel.LeaveAssembly();
+        await Wait(1.0);
+        Capture("camp_town_party_waiting.png");
         campaign.Unlocks.Unlock(PresetCharacters.RavenId);
         campaign.Unlocks.Unlock(PresetCharacters.ThistleId);
         panel.RefreshRecruitment();
         await Settle();
         Capture("camp_all_unlocked.png");
-        await CaptureCampCapacity(panel);
+        await CaptureFullHamlet(panel, campaign);
         panel.OpenJournal(JournalScreen.UnlocksPage);
         await Settle();
         Capture("hero_select_recruitment.png");
@@ -176,29 +182,20 @@ public partial class UiShotSpike : SpikeBase
         }
     }
 
-    private async Task CaptureCampCapacity(HeroSelectPanel panel)
+    /// <summary>Every roster member at home in the Hamlet, for the village's capacity at its largest.</summary>
+    private async Task CaptureFullHamlet(HeroSelectPanel panel, CampaignProgress campaign)
     {
-        var stage = panel.GetNode<CampStage>("%CampStage");
-        var roster = panel.GetNode<Control>("%RosterList");
-        var hint = panel.GetNode<Label>("%HintLabel");
-        string original = hint.Text;
-        hint.Text = "LAYOUT STUDY / 18 reserved places / placeholder art for future recruits";
-        var samples = new System.Collections.Generic.List<CampResident>();
-        for (int i = 6; i < stage.SeatIds.Length; i++)
-        {
-            string id = stage.SeatIds[i];
-            var def = CharacterCatalog.All[0] with { Id = id, DisplayName = id == "aldric" ? "Sir Garran*" : char.ToUpperInvariant(id[0]) + id[1..] };
-            var sample = panel.CardScene!.Instantiate<CampResident>();
-            roster.AddChild(sample);
-            sample.Setup(def, stage.AppearanceFor(i % 6), i);
-            sample.Position = stage.SeatPosition(i) - new Vector2(82, 160);
-            samples.Add(sample);
-        }
-        await Settle();
-        Capture("camp_capacity_study.png");
-        foreach (var sample in samples) { roster.RemoveChild(sample); sample.QueueFree(); }
-        hint.Text = original;
+        foreach (var def in CharacterCatalog.All) campaign.Unlocks.Unlock(def.Id);
+        panel.TownTierOverride = TownTier.Hamlet;
+        panel.Setup(campaign.Unlocks, campaign);
+        await Wait(1.0);
+        Check("the full roster finds room in the Hamlet", panel.Village.Residents.Unplaced.Count == 0);
+        Capture("camp_full_hamlet.png");
+        panel.TownTierOverride = null;
     }
+
+    private async Task Wait(double seconds) =>
+        await ToSignal(GetTree().CreateTimer(seconds), SceneTreeTimer.SignalName.Timeout);
 
     private void Capture(string file)
     {

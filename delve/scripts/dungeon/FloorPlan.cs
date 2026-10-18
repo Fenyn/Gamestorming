@@ -24,14 +24,7 @@ public partial class FloorPlan : Control
     /// <summary>Icon alpha for a visited room that is finished.</summary>
     [Export] public float ClearedAlpha { get; set; } = 0.5f;
 
-    [Export] public Texture2D Entrance { get; set; } = null!;
-    [Export] public Texture2D Fight { get; set; } = null!;
-    [Export] public Texture2D Event { get; set; } = null!;
-    [Export] public Texture2D Lair { get; set; } = null!;
-    [Export] public Texture2D Wayfarer { get; set; } = null!;
-    [Export] public Texture2D Refuge { get; set; } = null!;
-    [Export] public Texture2D Guardian { get; set; } = null!;
-    [Export] public Texture2D Unknown { get; set; } = null!;
+    [Export] public Delve.UI.RoomIconSet Icons { get; set; } = null!;
 
     /// <summary>A room next to the current one was clicked; the director travels there.</summary>
     public event System.Action<int>? CellPressed;
@@ -124,18 +117,6 @@ public partial class FloorPlan : Control
         };
     }
 
-    private Texture2D Icon(string key) => key switch
-    {
-        "entrance" => Entrance,
-        "fight" => Fight,
-        "lair" => Lair,
-        "wayfarer" => Wayfarer,
-        "refuge" => Refuge,
-        "guardian" => Guardian,
-        "event" => Event,
-        _ => Unknown,
-    };
-
     private Rect2 Cell(DungeonRoom room)
         => new(new Vector2(room.X * (CellSize.X + Gap), room.Y * (CellSize.Y + Gap)), CellSize);
 
@@ -177,7 +158,7 @@ public partial class FloorPlan : Control
             var tint = room.Discovered || room.Scouted ? Strong : Dim;
             if (room.Completed && !current) tint = tint with { A = ClearedAlpha };
             var icon = new Rect2(cell.GetCenter() - Vector2.One * IconSize / 2, Vector2.One * IconSize);
-            DrawTextureRect(Icon(IconKey(_floor, _state, room)), icon, false, tint);
+            DrawTextureRect(Icons.For(IconKey(_floor, _state, room)), icon, false, tint);
         }
     }
 

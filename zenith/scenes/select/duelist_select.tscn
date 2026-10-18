@@ -94,7 +94,6 @@ horizontal_alignment = 2
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "Build or change a deck of your own"
 text = "Deck builder"
 
 [node name="CodeBanner" type="PanelContainer" parent="Margin/Column"]
@@ -110,7 +109,7 @@ alignment = 1
 layout_mode = 2
 size_flags_vertical = 4
 theme_type_variation = &"BodyLabel"
-text = "Waiting for a player to join. Share this room code:"
+text = "Room code"
 
 [node name="Code" type="Label" parent="Margin/Column/CodeBanner/Row"]
 layout_mode = 2
@@ -128,13 +127,7 @@ custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 size_flags_vertical = 4
 theme_type_variation = &"MutedLabel"
-text = "on your clipboard"
-
-[node name="Subtitle" type="Label" parent="Margin/Column"]
-visible = true
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = "THE CONTEST OF EIDOLARCHS     /     Choose the power you will bring to the arena"
+text = "The code is on your clipboard."
 
 [node name="Body" type="HBoxContainer" parent="Margin/Column"]
 layout_mode = 2
@@ -184,19 +177,13 @@ theme_override_constants/v_separation = 12
 visible = false
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text = "No matching decks. Try another name or school."
+text = "No deck matches these filters."
 
 [node name="Reset" type="Button" parent="Margin/Column/Body/Library"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 0
 text = "Clear filters"
-
-[node name="Help" type="Label" parent="Margin/Column/Body/Library"]
-visible = false
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = "Browse with arrow keys   /   Enter to select a deck   /   Confirm when ready"
 
 [node name="Seat" parent="Margin/Column/Body" instance=ExtResource("2_seat")]
 custom_minimum_size = Vector2(1050, 0)

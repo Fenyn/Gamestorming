@@ -338,13 +338,13 @@ The suite's `test_seat_view_masks_hidden_cards` checks exactly which cards go ou
 
 ## Shipping a build
 
-In this order, because each client pins the certificate of the server it was exported against:
+One command, so the duel server and the itch.io builds never drift apart (an old client is refused by a new server, and the other way round):
 
-1. Run the suites with the .NET editor: `run_tests`, `tutorial_tests`, `ui_cleanup_tests`, `title_ui_tests`, `combat_presentation_tests`, `ui_redesign_smoke`, `network_regression_tests`.
-2. `powershell -File zenith\tools\server\deploy.ps1`: exports the Linux server, uploads it to the box, restarts `eidolarch.service` (any duel in progress ends) and copies the box's certificate to `data/net/duel_server.crt` (`docs/duel_server.md`).
-3. Export the Windows client with the GDScript-only editor: `--headless --path zenith --export-release "Windows Desktop" build/windows/eidolarch.exe`.
-4. `powershell -File zenith\tools\web\export_web.ps1`: exports the web build into `web-prebuilt/zenith/` (see "Web build").
-5. Commit, including `web-prebuilt/zenith/`, and push `main`; the Pages workflow publishes the site.
+`powershell -File G:/Godot/Gamestorming/zenith/tools/release/release.ps1` (the itch page defaults to `cursehound/eidolarch`; `-Target <user>/<game>` names another)
+
+It checks that butler can reach the itch page, runs the seven suites with the .NET editor and stops on any failure, exports the Windows client and the web build (into `web-prebuilt/zenith/`), and only then runs `tools/server/deploy.ps1`, which exports the Linux server, uploads it, restarts `eidolarch.service` (any duel in progress ends) and copies the box's certificate to `data/net/duel_server.crt` (`docs/duel_server.md`). Each client pins that certificate, so if it changed the script exports both clients again. Last, butler pushes `build/windows` to the `windows` channel and `web-prebuilt/zenith` to `html5`, both tagged with `application/config/version`. `-SkipTests` skips the suites and `-SkipItch` stops before the push. On a page's first push, mark the `html5` upload "This file will be played in the browser" on itch.io once.
+
+`deploy.ps1` alone refuses to run, so the server cannot go ahead of the itch builds by accident; `-ServerOnly` overrides that for an emergency fix to the server alone. After a release, commit and push `main`, including `web-prebuilt/zenith/`, and the Pages workflow publishes the site copy.
 
 A quick check that the live server takes this build: `& $godot --path zenith -- --dev-host-code --dev-server=198.44.38.215:7777 --dev-net-log` should print `net: connected, greeting with protocol 11` and a join code.
 

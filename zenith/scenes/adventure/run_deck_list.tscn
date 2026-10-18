@@ -50,7 +50,7 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 horizontal_alignment = 1
-text = "Hover or select a card"
+text = ""
 
 [node name="Face" type="TextureRect" parent="Preview"]
 custom_minimum_size = Vector2(340, 440)

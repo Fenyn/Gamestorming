@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+; A village resident: the figure runs its routine, the sprite draws it. Shaded, fixed-Y billboard:
+; the sun, lamps and fire light it (HD-2D); LitBillboards keeps its own shadow twin off it.
+
+[ext_resource type="Script" path="res://scripts/village/ResidentFigure.cs" id="1_figure"]
+[ext_resource type="Script" path="res://scripts/village/ResidentSprite.cs" id="2_sprite"]
+
+[node name="ResidentFigure" type="Node3D" node_paths=PackedStringArray("Sprite")]
+script = ExtResource("1_figure")
+Sprite = NodePath("Sprite")
+
+[node name="Sprite" type="Sprite3D" parent="." groups=["village_billboard"]]
+pixel_size = 0.05
+billboard = 2
+shaded = true
+texture_filter = 0
+alpha_cut = 1
+script = ExtResource("2_sprite")

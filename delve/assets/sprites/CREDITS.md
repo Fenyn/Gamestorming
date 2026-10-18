@@ -52,6 +52,20 @@
 - License (Winlu's standard terms): usable in commercial and non-commercial projects; do not
   redistribute or resell the assets themselves.
 
+## Village — Mana Seed Iconic Homestead, Gentle Forest; LimeZu Modern Farm
+- The camp village models (`assets/models/village/*.glb`, built by `tools/village_models/`) are
+  textured with small pixel crops baked into the GLBs:
+  - Mana Seed Iconic Homestead 2.1: walls, roofs (its four authored palette sheets), beams, doors,
+    windows (the lit window comes from the pack's `house 04` mockup), plinth stone.
+  - Mana Seed Gentle Forest 3.0a: bark, needles, leaf, water, grey stone.
+  - Winlu Fantasy Exterior (see above): the log band and log end grain, iron.
+  - LimeZu Modern Farm v1.2: crop plants.
+- `assets/sprites/village/*.png` are LimeZu Modern Farm v1.2 sprites: grass and flower tufts,
+  chicken sheets, the stone-oven smoke sheet, baskets and a bucket.
+- Mana Seed license as above: use commercially, do not redistribute or resell the source assets.
+  LimeZu Modern Farm license (pack LICENSE.txt): use and edit in commercial or non-commercial
+  projects; do not resell or redistribute the asset; credit appreciated (limezu.itch.io).
+
 ## Fringe creature additions
 
 Giant Viper, Giant Monitor Lizard, Dire Wolf, Grizzly Bear and Giant Stag Beetle use

@@ -223,11 +223,10 @@ static func add_card(deck: DeckList, in_id: String, library: CardLibrary,
 		problems.append("No deck to add to")
 		return {"deck": null, "problems": problems}
 	if ceiling_left(deck) <= 0:
-		problems.append("The deck is at the %d-card maximum" % (deck.total_cards()))
+		problems.append("The deck is at the %d-card maximum." % (deck.total_cards()))
 		return {"deck": null, "problems": problems}
 	if room_left(deck, upgrades) <= 0:
-		problems.append("The deck is full at %d cards; buy a deck slot to add another"
-			% size_cap(deck, upgrades))
+		problems.append("The deck is full at %d cards." % size_cap(deck, upgrades))
 		return {"deck": null, "problems": problems}
 	var trial: DeckList = _copy(deck)
 	trial.cards.append(in_id)
@@ -262,10 +261,10 @@ static func add_aspect(deck: DeckList, in_id: String, library: CardLibrary,
 		return {"deck": null, "problems": problems}
 	var next_tier: int = deck.duelist_ids.size() + 1
 	if next_tier > aspect_cap(deck):
-		problems.append("A stack holds at most %d Aspects" % aspect_cap(deck))
+		problems.append("A stack holds at most %d Aspects." % aspect_cap(deck))
 		return {"deck": null, "problems": problems}
 	if ceiling_left(deck) <= 0:
-		problems.append("The deck is at the %d-card maximum; take a Life Deck card out first" % deck.total_cards())
+		problems.append("The deck is at the %d-card maximum." % deck.total_cards())
 		return {"deck": null, "problems": problems}
 	var trial: DeckList = _copy(deck)
 	var stack: Array[String] = trial.duelist_ids.duplicate()
@@ -293,7 +292,7 @@ static func _finish(trial: DeckList, in_id: String, library: CardLibrary,
 		if taken > owned:
 			var def: CardDef = library.defs.get(in_id)
 			var title: String = def.title if def != null and def.title != "" else in_id
-			problems.append("You own %d %s of %s; the deck already takes that many from the collection"
+			problems.append("You own %d %s of %s, and the deck already uses all of them."
 				% [owned, "copy" if owned == 1 else "copies", title])
 			return {"deck": null, "problems": problems}
 	problems.append_array(DeckValidator.validate(trial, library))

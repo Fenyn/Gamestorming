@@ -35,6 +35,9 @@ public static class InputNames
     public const string ExploreJournal = "explore_journal";
     public const string ExploreParty = "explore_party";
 
+    /// <summary>Down into the dungeon; at the outpost, to the Delve trail and on into it.</summary>
+    public const string ExploreDescend = "explore_descend";
+
     /// <summary>Godot's built-in cancel action. Listed here so no script carries the literal.</summary>
     public const string UiCancel = "ui_cancel";
 

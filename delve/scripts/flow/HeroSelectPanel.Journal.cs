@@ -14,8 +14,8 @@ public partial class HeroSelectPanel
     public BestiaryPanel Bestiary => _journal.Bestiary;
     public RecruitmentPanel Recruitment => _journal.Unlocks;
 
-    /// <summary>A full-screen frame (the journal or a character sheet) holds the camp's input.</summary>
-    private bool OverlayOpen => _journal.Visible || _details.Visible;
+    /// <summary>A full-screen frame (the journal, a character sheet or the roster) holds the camp's input.</summary>
+    private bool OverlayOpen => _journal.Visible || _details.Visible || _picker.Visible;
 
     private void ReadyJournal()
     {
@@ -35,8 +35,8 @@ public partial class HeroSelectPanel
             if (campaign == null) button.TooltipText = "Unavailable: no campaign loaded";
         }
         if (campaign == null) return;
-        _bestiaryButton.TooltipText = "Every creature the expedition can meet, with what the party knows about the ones it has met";
-        _recruitmentButton.TooltipText = "Travelers who may join the outpost, and what each one is waiting for";
+        _bestiaryButton.TooltipText = "";
+        _recruitmentButton.TooltipText = "";
         _journal.Setup(campaign, name => DataManager.Instance?.FindCreature(name));
         var pool = BestiaryPanel.CampaignPool(campaign.Journal);
         _bestiaryButton.Text = $"Bestiary  {pool.Count(s => campaign.Journal.IsEncountered(s.Id))}/{pool.Count}";

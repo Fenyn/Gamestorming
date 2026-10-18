@@ -180,13 +180,13 @@ func _run() -> void:
 
 	# Failures
 	title.call("_on_failed", "This copy of the game speaks online version 8 and the duel server speaks version 9. Both need the same build of the game.")
-	_check(status.text == "This copy of the game is out of date. Update it to play online." and status.theme_type_variation == &"WarnLabel",
+	_check(status.text == "This copy of the game is out of date for online play." and status.theme_type_variation == &"WarnLabel",
 		"A protocol refusal reads as an out-of-date copy: %s" % status.text)
 	_check(_shown(title) == "idle_box,rejoin_row,adventure_button,vs_ai_button,hotseat_button,quit_button",
 		"and every way online is shut: %s" % _shown(title))
 	title.set("out_of_date", false)
 	title.call("_on_failed", "Your cards or decks differ from those on the duel server. Both need the same build of the game.")
-	_check(status.text == "This copy of the game is out of date. Update it to play online.", "and so does a data mismatch")
+	_check(status.text == "This copy of the game is out of date for online play.", "and so does a data mismatch")
 	title.call("_on_failed", "Could not reach the duel server. It may be offline, or this computer may not be connected.")
 	_check(status.text.begins_with("Could not reach"), "Other reasons show as they came")
 	var column: Control = title.get("column")
@@ -371,7 +371,7 @@ func _check_release(title: Node) -> void:
 	title.call("_refresh")
 	var note: Label = title.get("alpha_note")
 	var version: String = str(ProjectSettings.get_setting("application/config/version", ""))
-	_check(version != "" and note.visible and note.text == "Alpha build %s. Expect bugs and missing pieces." % version,
+	_check(version != "" and note.visible and note.text == "Alpha build %s" % version,
 		"The alpha note names the project version: %s" % note.text)
 
 

@@ -35,7 +35,7 @@ theme_type_variation = &"MutedLabel"
 text = "PLAYER 1"
 
 [node name="Name" type="LineEdit" parent="Row/Header"]
-custom_minimum_size = Vector2(160, 0)
+custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 size_flags_horizontal = 10
 text = "Player 1"
@@ -217,7 +217,7 @@ layout_mode = 2
 theme_type_variation = &"BodyLabel"
 theme_override_font_sizes/font_size = 18
 theme_override_constants/line_spacing = 6
-text = "Pick from the roster below."
+text = ""
 autowrap_mode = 3
 
 [node name="Blurb" type="Label" parent="Row/Scroll/Content/Tabs/Overview/Summary/IdentityScroll/Identity"]
@@ -334,13 +334,6 @@ layout_mode = 2
 disabled = true
 theme_type_variation = &"AccentButton"
 text = "Lock in"
-
-[node name="Hint" type="Label" parent="Row"]
-visible = false
-layout_mode = 2
-theme_type_variation = &"MutedLabel"
-text = ""
-autowrap_mode = 3
 
 [node name="MasteryZoom" type="TextureRect" parent="."]
 visible = false

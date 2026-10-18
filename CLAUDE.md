@@ -2,6 +2,40 @@
 
 Project-specific rules live in each project's own CLAUDE.md (`delve/CLAUDE.md`, `bulwark/`). This file governs everything in the repo, and above all how you write to me.
 
+## A screen is not a narrator (mandatory, every project)
+
+Before you write or change any text a player sees (a screen, a HUD, a menu, a tooltip):
+
+1. Keep only labels, values, characters speaking, events, and button text.
+2. Everything else is narration. Cut it if the player can already see it or will learn it by playing. If it is a rule they need but can't observe (a threshold, a multiplier, a hidden cause), move it to a hover on the thing it explains.
+3. Write hovers as one or two sentences of plain fact. No wordplay, no "fewer X, more Y", no reassurance, no "you should".
+
+This applies to new text and to any existing text you touch while editing a screen.
+
+## Pixel art is drawn by code (every project)
+
+This applies when you draw a sprite from scratch, and when you write a prompt asking an agent to draw one.
+
+1. Ask for code that draws the sprite, not for "an image". The code is either a palette-indexed array (one row of indices per pixel row) or explicit draw calls (Aseprite Lua, a PIL canvas).
+2. State the grid size in the prompt, for example 32×32.
+3. List every allowed colour in the prompt as a hex value. Index 0 is transparent. Nothing outside the list is allowed.
+4. After drawing, check the output's colours against the list. A colour that is not on the list fails the sprite.
+
+A model that picks its own colours drifts off-palette, and when it is asked for an image it produces pixels with no fixed grid. A locked grid and hex list give the same result every time.
+
+Pack art still comes first. Crop an authored sprite from a pack before drawing one. This rule covers only art drawn from scratch.
+
+### Aseprite
+
+We use Aseprite, and it can be scripted to build sprites and to inspect the results.
+
+- Executable: `E:\Program Files (x86)\Steam\steamapps\common\Aseprite\Aseprite.exe`.
+- Run a Lua script headless with `Aseprite.exe -b --script build.lua`. Pass values with `--script-param key=value` and read them from `app.params`.
+- Export a scaled preview to look at: `Aseprite.exe -b sprite.aseprite --scale 8 --save-as preview.png`. Look at the preview at full size before calling a sprite done.
+- For the palette check in step 4, a Lua script can walk `app.image` pixels and print every colour that is not in the hex list.
+- Claude also has the `aseprite` MCP server (`.mcp.json`, source in `G:\aseprite-mcp`). `run_lua_script`, `get_color_stats`, `export_sprite` and `get_pixels_rect` cover the same steps.
+- Existing Lua helpers and kit parts live in `F:\UnityNVME\Art\_Zenith\Kit\` and `F:\UnityNVME\Art\_Zenith\Tests\_scripts\`.
+
 ## Codex / Astra access
 
 The `codex@openai-codex` Claude plugin is enabled for this repo. Codex uses

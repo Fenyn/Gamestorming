@@ -50,5 +50,7 @@ public partial class ResultMemberRowView : HBoxContainer
                 label.Render(figure);
             }
         _chooseFeat.Visible = offerFeat && CombatResults.HasFeatChoice(row.Member);
+        if (_chooseFeat.Visible)
+            _chooseFeat.Text = $"Choose level {Delve.Run.CharacterPromotion.For(row.Member).ChoiceLevel(row.Member)} feat";
     }
 }

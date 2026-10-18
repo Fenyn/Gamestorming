@@ -69,7 +69,7 @@ public partial class ActionBar : Control
     private IReadOnlyList<SpellEntryView> _spells = Array.Empty<SpellEntryView>();
     private IReadOnlyList<SkillEntryView> _skills = Array.Empty<SkillEntryView>();
 
-    private const string DelayTooltip = "Wait and act later, this round or next. Pick whom to act after; the choice is final.";
+    private const string DelayTooltip = "Act after a combatant you pick, this round or next. The choice is final.";
 
     public DecisionSlot Decision { get; private set; } = null!;
     public Control BarPanel => _bar;
@@ -183,8 +183,8 @@ public partial class ActionBar : Control
     {
         _aiToggle.Disabled = !enabled;
         _autoReactToggle.Disabled = !enabled;
-        _aiToggle.TooltipText = enabled ? "Let the AI choose this ally's actions." : UnavailableTooltip("This combatant is AI controlled");
-        _autoReactToggle.TooltipText = enabled ? "Use available reactions automatically. Uncheck to decide each reaction." : UnavailableTooltip("This combatant is AI controlled");
+        _aiToggle.TooltipText = enabled ? "" : UnavailableTooltip("This combatant is AI controlled");
+        _autoReactToggle.TooltipText = enabled ? "" : UnavailableTooltip("This combatant is AI controlled");
     }
 
     public void SetAutoReactToggle(bool on)
@@ -199,7 +199,6 @@ public partial class ActionBar : Control
     public void Render(ActionBarState state)
     {
         _actionPips.SetActionEconomy(state.ActionsRemaining, state.MaxActions);
-        _actionPips.TooltipText = $"{state.ActionsRemaining} of {state.MaxActions} actions remaining";
         RenderResources(state);
         Decision.SetMoveRestriction(state.MoveRestriction);
 
@@ -220,8 +219,7 @@ public partial class ActionBar : Control
         _delayBtn.TooltipText = state.CanDelay ? DelayTooltip : UnavailableTooltip(state.DelayDisabledReason);
         _spellsBtn.TooltipText = "";
         _skillsBtn.TooltipText = "";
-        _endBtn.TooltipText = state.ActionsRemaining > 0
-            ? $"End this turn with {state.ActionsRemaining} unused actions." : "End this turn.";
+        _endBtn.TooltipText = "";
 
         bool actorChanged = state.ActorName != _lastActorName;
         _lastActorName = state.ActorName;

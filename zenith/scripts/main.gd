@@ -30,7 +30,7 @@ const CHAPTER_DONE: String = "Done"
 const CHAPTER_CONTINUE: String = "Continue here"
 const CHAPTER_OPEN: String = "Play"
 const CHAPTER_LOCKED: String = "Locked"
-const VERSION_TEXT: String = "This copy of the game is out of date. Update it to play online."
+const VERSION_TEXT: String = "This copy of the game is out of date for online play."
 const PROFILE_UNSAVED: String = "Your name could not be saved, so the game will ask again next time."
 ## The failure reasons that mean this build and the duel server's differ.
 const VERSION_MARKS: Array[String] = ["different version", "speaks online version", "Your cards or decks differ"]
@@ -389,7 +389,7 @@ func _show_chapters() -> void:
 		pane.text = "Lesson %d\n%s\n%s" % [int(c["n"]), str(c["title"]), str(c["state"])]
 		pane.disabled = not bool(c["open"])
 		if not bool(c["open"]):
-			pane.tooltip_text = "Reach this lesson to open it."
+			pane.tooltip_text = "This lesson opens when the tutorial reaches it."
 		elif str(c["state"]) == CHAPTER_CONTINUE:
 			pane.theme_type_variation = &"AccentButton"
 		pane.pressed.connect(_on_tutorial.bind(int(c["n"])))

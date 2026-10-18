@@ -35,6 +35,9 @@ public partial class DungeonDirector
         Frame();
         var target = _camera.Camera.GlobalTransform;
         float targetFov = _camera.Camera.Fov;
+        // The combat pose has no lens shift: start from none and glide into the room's own.
+        var composition = _camera.Composition;
+        _camera.Compose(Vector2.Zero, 0);
         Phase = DungeonPhase.Transition;
         _camera.ProcessMode = ProcessModeEnum.Disabled;
         RefreshHud();
@@ -49,6 +52,7 @@ public partial class DungeonDirector
         while (epoch == _epoch && IsInsideTree() && _returnTween.IsRunning())
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         if (epoch != _epoch || !IsInsideTree()) return;
+        _camera.Compose(composition, Instant ? 0 : HudRevealSeconds);
         ShowDoors();
         _hud.Modulate = Colors.Transparent;
         _returnTween = CreateTween();

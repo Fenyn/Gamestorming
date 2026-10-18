@@ -51,7 +51,7 @@ public sealed record ActiveCharacterView(string Id, string Name, int Hp, int Max
             string.Join(" · ", gear), string.Join(" · ", bonuses), hero)
         {
             Status = string.Join(" · ", status),
-            StatusTip = reactions.Length > 0 ? string.Join(", ", reactions) + "\nUse reactions when their trigger and requirements are met." : "",
+            StatusTip = reactions.Length > 0 ? string.Join(", ", reactions) : "",
             Reaction = ReactionOf(actor),
         };
     }

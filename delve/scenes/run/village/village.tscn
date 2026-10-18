@@ -1,0 +1,224 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/village/VillageStage.cs" id="1_stage"]
+[ext_resource type="PackedScene" path="res://scenes/run/village/town.tscn" id="2_town"]
+[ext_resource type="Resource" path="res://scenes/run/village/light_morning.tres" id="3_morning"]
+[ext_resource type="Resource" path="res://scenes/run/village/light_afternoon.tres" id="4_afternoon"]
+[ext_resource type="Resource" path="res://scenes/run/village/light_evening.tres" id="5_evening"]
+[ext_resource type="Material" path="res://assets/models/village/materials/px_ih_window.tres" id="6_glass"]
+[ext_resource type="Texture2D" path="res://assets/textures/village/ih_window.png" id="7_day"]
+[ext_resource type="Texture2D" path="res://assets/textures/village/ih_window_lit.png" id="8_lit"]
+[ext_resource type="Script" path="res://scripts/village/VillageCamera.cs" id="9_camera"]
+[ext_resource type="PackedScene" path="res://scenes/run/village/spots.tscn" id="10_spots"]
+[ext_resource type="Script" path="res://scripts/village/VillageResidents.cs" id="11_residents"]
+[ext_resource type="PackedScene" path="res://scenes/run/village/resident_figure.tscn" id="12_figure"]
+[ext_resource type="Resource" path="res://assets/sprites/camp/veteran/appearance.tres" id="13_veteran"]
+[ext_resource type="Resource" path="res://assets/sprites/camp/rogue/appearance.tres" id="14_rogue"]
+[ext_resource type="Resource" path="res://assets/sprites/camp/cleric/appearance.tres" id="15_cleric"]
+[ext_resource type="Resource" path="res://assets/sprites/camp/wizard/appearance.tres" id="16_wizard"]
+[ext_resource type="Resource" path="res://assets/sprites/camp/recruit/appearance.tres" id="17_recruit"]
+[ext_resource type="Script" path="res://scripts/village/VillageStation.cs" id="18_station"]
+[ext_resource type="Script" path="res://scripts/village/VillageLineup.cs" id="19_lineup"]
+[ext_resource type="Script" path="res://scripts/village/StationTags.cs" id="20_tags"]
+[ext_resource type="Script" path="res://scripts/village/VillageWalkable.cs" id="21_walkable"]
+
+[sub_resource type="BoxShape3D" id="trail_box"]
+size = Vector3(5, 3, 6)
+
+[sub_resource type="BoxShape3D" id="board_box"]
+size = Vector3(1.6, 2.2, 0.8)
+
+[sub_resource type="BoxShape3D" id="table_box"]
+size = Vector3(2.2, 1.4, 1.4)
+
+[sub_resource type="NavigationMesh" id="walkable"]
+cell_size = 0.1
+cell_height = 0.1
+agent_height = 1.4
+agent_radius = 0.3
+agent_max_climb = 0.1
+agent_max_slope = 40.0
+filter_baking_aabb = AABB(-26, -3, -22, 64, 16, 54)
+
+[sub_resource type="Environment" id="environment"]
+background_mode = 1
+background_color = Color(0.1, 0.15, 0.16, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.68, 0.72, 0.75, 1)
+ambient_light_energy = 0.75
+tonemap_mode = 2
+ssao_enabled = true
+ssao_radius = 1.0
+ssao_intensity = 1.5
+glow_enabled = true
+glow_intensity = 0.5
+fog_enabled = true
+fog_light_color = Color(0.16, 0.2, 0.22, 1)
+fog_light_energy = 0.6
+fog_density = 0.009
+
+[node name="VillageStage" type="Control" node_paths=PackedStringArray("Viewport", "Camera", "Sun", "World", "Ground", "Fire", "Firelight", "Stops", "Residents", "Lineup", "Stations", "Tags", "Walkable")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_stage")
+Viewport = NodePath("View/Viewport")
+Camera = NodePath("View/Viewport/Camera")
+Sun = NodePath("View/Viewport/Sun")
+World = NodePath("View/Viewport/WorldEnvironment")
+Ground = NodePath("View/Viewport/Town/Ground")
+Fire = NodePath("View/Viewport/Town/Props/Fire")
+Firelight = NodePath("View/Viewport/Town/Lamps/Firelight")
+Stops = NodePath("View/Viewport/Town/Stops")
+Residents = NodePath("View/Viewport/Residents")
+Lineup = NodePath("View/Viewport/Lineup")
+Stations = [NodePath("View/Viewport/Stations/Delve"), NodePath("View/Viewport/Stations/Unlocks"), NodePath("View/Viewport/Stations/Bestiary")]
+Tags = NodePath("Tags")
+Walkable = NodePath("View/Viewport/Walkable")
+Lights = Array[Resource]([ExtResource("3_morning"), ExtResource("4_afternoon"), ExtResource("5_evening")])
+Glass = ExtResource("6_glass")
+DayGlass = ExtResource("7_day")
+LitGlass = ExtResource("8_lit")
+
+[node name="View" type="SubViewportContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="View"]
+own_world_3d = true
+handle_input_locally = false
+physics_object_picking = true
+size = Vector2i(1920, 1080)
+render_target_update_mode = 4
+msaa_3d = 1
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="View/Viewport"]
+environment = SubResource("environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="View/Viewport"]
+rotation_degrees = Vector3(-42, -55, 0)
+light_color = Color(1, 0.9, 0.78, 1)
+light_energy = 0.95
+shadow_enabled = true
+shadow_bias = 0.03
+shadow_normal_bias = 0.4
+shadow_blur = 0.35
+directional_shadow_blend_splits = true
+directional_shadow_max_distance = 60.0
+
+[node name="Town" parent="View/Viewport" instance=ExtResource("2_town")]
+
+[node name="Spots" parent="View/Viewport" instance=ExtResource("10_spots")]
+
+[node name="Walkable" type="NavigationRegion3D" parent="View/Viewport" node_paths=PackedStringArray("Ground", "Obstacles")]
+script = ExtResource("21_walkable")
+Template = SubResource("walkable")
+Ground = NodePath("../Town/Terrain")
+Obstacles = [NodePath("../Town/Props"), NodePath("../Town/Buildings"), NodePath("../Town/Forest")]
+
+[node name="Lineup" type="Node3D" parent="View/Viewport" node_paths=PackedStringArray("Ground", "Slots", "Path")]
+script = ExtResource("19_lineup")
+FigureScene = ExtResource("12_figure")
+Ground = NodePath("../Town/Terrain")
+Slots = [NodePath("Slot1"), NodePath("Slot2"), NodePath("Slot3"), NodePath("Slot4")]
+Path = [NodePath("Entry"), NodePath("Bend"), NodePath("Trail")]
+
+[node name="Slot1" type="Marker3D" parent="View/Viewport/Lineup"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.55, 0, -11.17)
+
+[node name="Slot2" type="Marker3D" parent="View/Viewport/Lineup"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.04, 0, -11.84)
+
+[node name="Slot3" type="Marker3D" parent="View/Viewport/Lineup"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.52, 0, -12.52)
+
+[node name="Slot4" type="Marker3D" parent="View/Viewport/Lineup"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.99, 0, -13.19)
+
+[node name="Entry" type="Marker3D" parent="View/Viewport/Lineup"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0, -1.3)
+
+[node name="Bend" type="Marker3D" parent="View/Viewport/Lineup"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 0, -4.5)
+
+[node name="Trail" type="Marker3D" parent="View/Viewport/Lineup"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0, -8.5)
+
+[node name="Stations" type="Node3D" parent="View/Viewport"]
+
+[node name="Delve" type="Area3D" parent="View/Viewport/Stations"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 1.5, -15.4)
+input_ray_pickable = true
+monitoring = false
+script = ExtResource("18_station")
+Id = "delve"
+Title = "The Delve"
+Action = &"explore_descend"
+TagOffset = Vector3(0, 1.6, 0)
+PinToEdge = true
+
+[node name="Shape" type="CollisionShape3D" parent="View/Viewport/Stations/Delve"]
+shape = SubResource("trail_box")
+
+[node name="Unlocks" type="Area3D" parent="View/Viewport/Stations"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9, 1.1, 2)
+monitoring = false
+script = ExtResource("18_station")
+Id = "unlocks"
+Title = "Unlocks board"
+TagOffset = Vector3(0, 1.3, 0)
+
+[node name="Shape" type="CollisionShape3D" parent="View/Viewport/Stations/Unlocks"]
+shape = SubResource("board_box")
+
+[node name="Bestiary" type="Area3D" parent="View/Viewport/Stations"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.6, 0.7, 1.8)
+monitoring = false
+script = ExtResource("18_station")
+Id = "bestiary"
+Title = "Bestiary table"
+Action = &"explore_journal"
+TagOffset = Vector3(0, 0.9, 0)
+
+[node name="Shape" type="CollisionShape3D" parent="View/Viewport/Stations/Bestiary"]
+shape = SubResource("table_box")
+
+[node name="Residents" type="Node3D" parent="View/Viewport" node_paths=PackedStringArray("Ground", "Walkable", "Spots")]
+script = ExtResource("11_residents")
+FigureScene = ExtResource("12_figure")
+Ground = NodePath("../Town/Terrain")
+Walkable = NodePath("../Walkable")
+Spots = NodePath("../Spots")
+SeatedIds = PackedStringArray("player", "elara", "tharr", "fenwick", "raven", "thistle", "arkus", "aldric", "spore", "josen", "grub", "sera", "oskar", "hazel", "wynn", "vasska", "hilde", "flick")
+SeatedLooks = Array[Resource]([ExtResource("13_veteran"), ExtResource("14_rogue"), ExtResource("15_cleric"), ExtResource("16_wizard"), ExtResource("14_rogue"), ExtResource("17_recruit"), ExtResource("13_veteran"), ExtResource("13_veteran"), ExtResource("16_wizard"), ExtResource("17_recruit"), ExtResource("15_cleric"), ExtResource("16_wizard"), ExtResource("15_cleric"), ExtResource("14_rogue"), ExtResource("15_cleric"), ExtResource("16_wizard"), ExtResource("17_recruit"), ExtResource("16_wizard")])
+
+[node name="Camera" type="Camera3D" parent="View/Viewport" node_paths=PackedStringArray("PropRoots", "TreeRoots")]
+fov = 22.0
+current = true
+script = ExtResource("9_camera")
+PropRoots = [NodePath("../Town/Props"), NodePath("../Town/Buildings")]
+TreeRoots = [NodePath("../Town/Forest")]
+
+[node name="Tags" type="Control" parent="." node_paths=PackedStringArray("Camera", "Stations")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("20_tags")
+Camera = NodePath("../View/Viewport/Camera")
+Stations = [NodePath("../View/Viewport/Stations/Delve"), NodePath("../View/Viewport/Stations/Unlocks"), NodePath("../View/Viewport/Stations/Bestiary")]
+TagStyle = &"CampTag"
+HoverStyle = &"CampTagHover"

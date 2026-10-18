@@ -53,6 +53,11 @@ public partial class DiceRollPanel : PanelContainer
         set { _animationsEnabled = value; if (!value) ClearRoll(); }
     }
 
+    /// <summary>Multiplier on every beat, hold and fade: 1.25 plays them a quarter slower.</summary>
+    public float Pace { get; set; } = 1f;
+
+    private Tween NewTween() => CreateTween().SetSpeedScale(1f / Pace);
+
     /// <summary>True from the outcome's arrival until the row fades.</summary>
     public bool ResultShowing { get; private set; }
 
@@ -168,7 +173,7 @@ public partial class DiceRollPanel : PanelContainer
         Modulate = Modulate with { A = 1 };
         Visible = true;
         _phase = Phase.Beat;
-        _tween = CreateTween();
+        _tween = NewTween();
         switch (Beat.Pace)
         {
             case RollPace.Full when Hero != null: BuildFull(next.Roll, Beat); break;
@@ -211,7 +216,7 @@ public partial class DiceRollPanel : PanelContainer
         ShowSettledRow();
         Modulate = Modulate with { A = 1 };
         Arrive();
-        _tween = CreateTween();
+        _tween = NewTween();
         AppendHoldAndFade();
     }
 

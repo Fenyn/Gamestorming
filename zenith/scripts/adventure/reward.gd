@@ -505,7 +505,7 @@ func _refresh_footer() -> void:
 		return
 	var can_cut: bool = AdventureRewards.can_cut(Session.run)
 	cut_button.disabled = not can_cut
-	cut_button.tooltip_text = "" if can_cut else "The deck is already at its smallest legal size."
+	cut_button.tooltip_text = "" if can_cut else "The deck is at its smallest legal size."
 
 
 # --- Hover zoom, matching DeckInfo's key card zoom -------------------------
@@ -643,7 +643,7 @@ func _on_take() -> void:
 	_busy = true
 	if not AdventureRewards.apply_bundle(Session.run, Session.library, id):
 		_busy = false
-		status_label.text = "That bundle is no longer available. Choose another, skip, or cut."
+		status_label.text = "That bundle is no longer available."
 		return
 	await _advance()
 

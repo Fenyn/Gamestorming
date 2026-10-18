@@ -58,7 +58,7 @@ internal static class SheetFeatureSummaries
             Row("Requires", "Hold or wear a healer's toolkit."),
             Row("Check", "Medicine against a Treat Wounds DC. Higher DCs require the corresponding proficiency."),
             Row("Effect", "Restore HP for the check's result. Does not remove wounded."),
-            Row("Limits", "The target is immune to your Battle Medicine for 1 day. Treat Wounds remains separate."),
+            Row("Limits", "The target is immune to your Battle Medicine for 1 day. Treat Wounds is not affected."),
         },
         ["medic-dedication"] = new[]
         {
@@ -76,7 +76,7 @@ internal static class SheetFeatureSummaries
         },
         ["inspiring-marshal-stance"] = new[]
         {
-            Row("Check", "Diplomacy, usually against an easy DC for your level; circumstances can change the DC."),
+            Row("Check", "Diplomacy against an easy DC for your level."),
             Row("Success", "Your marshal's aura grants you and allies +1 status to attack rolls and saves against mental effects."),
             Row("Failure", "You don't enter the stance. On a critical failure, you also can't try again for 1 minute."),
         },

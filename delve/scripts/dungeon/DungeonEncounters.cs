@@ -60,13 +60,13 @@ public static partial class DungeonEncounters
         {
             Id = "dungeon-entrance",
             Title = "The abandoned expedition",
-            Body = "Cold bedrolls and a scratched inscription mark the entrance. Every doorway draws power from the Wardstone. What lies beyond is unknown.",
+            Body = "Cold bedrolls and a scratched inscription mark the entrance. Every doorway draws power from the Wardstone.",
             Options = new[]
             {
                 new EventOption
                 {
                     Label = "Raise the Wardstone and enter",
-                    Success = EventOutcome.Nothing("The stone lights the chamber. Choose a door to begin exploring.")
+                    Success = EventOutcome.Nothing("The stone lights the chamber.")
                 }
             }
         }

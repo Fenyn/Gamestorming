@@ -100,7 +100,7 @@ public partial class RunMapShotSpike : SpikeBase
             if (child is not MapNodeButton button || button.Disabled) continue;
             offered++;
             button.GrabFocus();
-            Check("keyboard focus shows travel details", panel.GetNode<Label>("%DetailState").Text == "Click to travel.");
+            Check("keyboard focus shows travel details", panel.GetNode<Label>("%DetailBody").Text.Length > 0);
             button.EmitSignal(BaseButton.SignalName.Pressed);
         }
         Check("only reachable destinations are enabled", offered == state.Reachable().Count);
@@ -187,7 +187,7 @@ public partial class RunMapShotSpike : SpikeBase
         await Settle();
         Check("a spent ward disables recovery and says why",
             rest.Disabled && rest.TooltipText.Contains("ward is out")
-            && costLabel.Text.Contains("ward is out"));
+            && costLabel.Text.Contains("Ward out"));
 
         var wardFill = (StyleBoxFlat)status.GetNode<ProgressBar>("%WardBar").GetThemeStylebox("fill");
         Check("map ward uses the ward token", wardFill.BgColor.IsEqualApprox(Delve.UI.UiColors.Ward));

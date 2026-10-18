@@ -1,26 +1,11 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/flow/HeroSelectPanel.cs" id="script"]
-[ext_resource type="PackedScene" path="res://scenes/run/camp_resident.tscn" id="resident"]
-[ext_resource type="PackedScene" path="res://scenes/run/camp_stage.tscn" id="camp"]
+[ext_resource type="PackedScene" path="res://scenes/run/village/village.tscn" id="village"]
 [ext_resource type="PackedScene" path="res://scenes/run/character_details_overlay.tscn" id="details"]
 [ext_resource type="PackedScene" path="res://scenes/run/journal_screen.tscn" id="journal"]
+[ext_resource type="PackedScene" path="res://scenes/run/roster_picker.tscn" id="picker"]
 [ext_resource type="PackedScene" path="res://scenes/ui/member_tile.tscn" id="tile"]
-[ext_resource type="Shader" path="res://assets/shaders/camp_mist.gdshader" id="mist"]
-[sub_resource type="FastNoiseLite" id="mist_noise"]
-seed = 37
-frequency = 0.006
-fractal_octaves = 3
-
-[sub_resource type="NoiseTexture2D" id="mist_texture"]
-width = 512
-height = 512
-seamless = true
-noise = SubResource("mist_noise")
-
-[sub_resource type="ShaderMaterial" id="mist_mat"]
-shader = ExtResource("mist")
-shader_parameter/noise_map = SubResource("mist_texture")
 
 [node name="HeroSelect" type="Control"]
 layout_mode = 1
@@ -30,39 +15,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("script")
-CardScene = ExtResource("resident")
 SquadTileScene = ExtResource("tile")
 
-[node name="CampStage" parent="." instance=ExtResource("camp")]
+[node name="Village" parent="." instance=ExtResource("village")]
 unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="Mist" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-material = SubResource("mist_mat")
-color = Color(1, 1, 1, 1)
-
-[node name="RosterList" type="Control" parent="."]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
 
 [node name="Header" type="VBoxContainer" parent="."]
 offset_left = 40.0
@@ -77,13 +34,6 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "THE OUTPOST"
 theme_type_variation = &"CampTitle"
-mouse_filter = 2
-
-[node name="HintLabel" type="Label" parent="Header"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"CampLabel"
-text = "Assemble your party."
 mouse_filter = 2
 
 [node name="RecruitmentButton" type="Button" parent="."]
@@ -110,40 +60,53 @@ grow_horizontal = 0
 text = "Bestiary"
 mouse_default_cursor_shape = 2
 
-[node name="Companion" type="PanelContainer" parent="."]
-anchor_top = 1.0
+[node name="Town" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 40.0
-offset_top = -180.0
-offset_right = 480.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Departure" type="VBoxContainer" parent="Town"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -350.0
+offset_top = -102.0
+offset_right = -40.0
 offset_bottom = -36.0
+grow_horizontal = 0
 grow_vertical = 0
-theme_type_variation = &"CampCompanion"
 
-[node name="Rows" type="VBoxContainer" parent="Companion"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="PreviewName" type="Label" parent="Companion/Rows"]
+[node name="AssembleButton" type="Button" parent="Town/Departure"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"HeadingLabel"
-
-[node name="PreviewRole" type="Label" parent="Companion/Rows"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"HintLabel"
-
-[node name="DetailsButton" type="Button" parent="Companion/Rows"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 0
-text = "Character details"
-theme_type_variation = &"CampLink"
+custom_minimum_size = Vector2(310, 66)
+text = "To the Delve  0/4"
+theme_type_variation = &"CampDepart"
 mouse_default_cursor_shape = 2
 
-[node name="Squad" type="HBoxContainer" parent="."]
+[node name="Assembly" type="Control" parent="."]
 unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Squad" type="HBoxContainer" parent="Assembly"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -157,41 +120,56 @@ grow_vertical = 0
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="Departure" type="VBoxContainer" parent="."]
+[node name="Departure" type="VBoxContainer" parent="Assembly"]
+layout_mode = 1
+anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -350.0
-offset_top = -194.0
+offset_top = -236.0
 offset_right = -40.0
 offset_bottom = -32.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_constants/separation = 8
 
-[node name="PartyCount" type="Label" parent="Departure"]
+[node name="PartyCount" type="Label" parent="Assembly/Departure"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"CampLabel"
 horizontal_alignment = 2
 text = "PARTY  0 / 4"
 
-[node name="EmbarkButton" type="Button" parent="Departure"]
+[node name="EmbarkButton" type="Button" parent="Assembly/Departure"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(310, 66)
-text = "Embark"
+text = "Enter the Delve"
 theme_type_variation = &"CampDepart"
 mouse_default_cursor_shape = 2
 
-[node name="ClearPartyButton" type="Button" parent="Departure"]
+[node name="ClearPartyButton" type="Button" parent="Assembly/Departure"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8
 text = "Clear party"
 theme_type_variation = &"CampLink"
 mouse_default_cursor_shape = 2
+
+[node name="BackToTownButton" type="Button" parent="Assembly/Departure"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Back to town  Esc"
+theme_type_variation = &"CampLink"
+mouse_default_cursor_shape = 2
+
+[node name="Picker" parent="." instance=ExtResource("picker")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
 
 [node name="Details" parent="." instance=ExtResource("details")]
 unique_name_in_owner = true

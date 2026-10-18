@@ -27,6 +27,7 @@
 [ext_resource type="PackedScene" path="res://scenes/dungeon/elite.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/dungeon/guardian.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/run/scene_transition.tscn" id="transition"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/door_sign.tscn" id="door_sign"]
 [ext_resource type="Resource" path="res://scenes/dungeon/crawls/station.tres" id="crawl_station"]
 [ext_resource type="Resource" path="res://scenes/dungeon/crawls/fringe.tres" id="crawl_fringe"]
 [ext_resource type="Resource" path="res://scenes/dungeon/crawls/deepwood.tres" id="crawl_deepwood"]
@@ -39,6 +40,7 @@ CombatPrefab = ExtResource("combat")
 EventPrefab = ExtResource("event")
 ShortRestPrefab = ExtResource("rest")
 UnitPrefab = ExtResource("unit")
+DoorSignScene = ExtResource("door_sign")
 RoomPrefabs = Array[PackedScene]([ExtResource("0"), ExtResource("1"), ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9")])
 SceneryByFloor = Dictionary[String, Resource]({
 "grassland": ExtResource("crawl_fringe"),

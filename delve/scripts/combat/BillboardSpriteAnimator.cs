@@ -252,37 +252,9 @@ public partial class BillboardSpriteAnimator : Sprite3D
         return _camera;
     }
 
-    /// <summary>Logical <see cref="Facing"/> resolved against the camera: X = screen right, Y = into
-    /// the screen (away from the viewer). The one place the camera-relative projection lives, shared
-    /// by the walk and stand frame picker and the swing clip row lookup.</summary>
-    private Vector2 ScreenFacing()
-    {
-        // Camera basis projected onto the ground plane.
-        Vector3 right = Vector3.Right, fwd = Vector3.Forward;
-        var camera = ResolveCamera();
-        if (camera != null)
-        {
-            var basis = camera.GlobalBasis;
-            fwd = -basis.Z; fwd.Y = 0f; fwd = fwd.LengthSquared() > 0.0001f ? fwd.Normalized() : Vector3.Forward;
-            right = basis.X; right.Y = 0f; right = right.LengthSquared() > 0.0001f ? right.Normalized() : Vector3.Right;
-        }
+    private Vector2 ScreenFacing() => CameraFacing.OnScreen(Facing, ResolveCamera());
 
-        Vector3 facing = new Vector3(Facing.X, 0f, Facing.Y);
-        if (facing.LengthSquared() < 0.0001f) facing = Vector3.Right;
-        facing = facing.Normalized();
-
-        return new Vector2(facing.Dot(right), facing.Dot(fwd));
-    }
-
-    /// <summary>4-direction snap on the dominant screen axis: S = toward viewer, N = away, E = screen
-    /// right, W = screen left (<see cref="ManaSeedSheet"/> facing rows).</summary>
-    private int FacingRow()
-    {
-        Vector2 s = ScreenFacing();
-        return Mathf.Abs(s.X) >= Mathf.Abs(s.Y)
-            ? (s.X >= 0f ? ManaSeedSheet.RowEast : ManaSeedSheet.RowWest)
-            : (s.Y >= 0f ? ManaSeedSheet.RowNorth : ManaSeedSheet.RowSouth);
-    }
+    private int FacingRow() => CameraFacing.Row(Facing, ResolveCamera());
 
     /// <summary>Pick the sprite row (hero) or the flip (enemy) from facing as the camera sees it.</summary>
     public void ApplyFacing()

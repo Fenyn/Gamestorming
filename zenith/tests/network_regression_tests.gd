@@ -1241,7 +1241,7 @@ func _queue_tests(net: Node, session: Node) -> void:
 		"A picking peer's command is refused")
 	inbox.clear()
 	net._on_queue_join(202, {})
-	_check(net._room_of(202) == room and not net.queue.has(202) and _first_args(inbox, 202, "_rpc_queue_state") == ["dropped", "Finish or leave your duel first.", 0],
+	_check(net._room_of(202) == room and not net.queue.has(202) and _first_args(inbox, 202, "_rpc_queue_state") == ["dropped", "You are still seated in a duel.", 0],
 		"A peer still picking cannot join the queue again")
 	net._on_lobby_pick(201, 3, deck_a, "Ada Secret", true)
 	var locked_at: int = Time.get_ticks_msec()

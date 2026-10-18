@@ -62,7 +62,7 @@ func _check_transform_pile() -> void:
 	pv.options = [play] as Array[OptionView]
 	hud._current_prompt = pv
 	await hud.show_pile(view, 0, &"discard")
-	_check("can be played with Transform" in hud.pile_hint.text, "The pile browser says a card in it can be played: %s" % hud.pile_hint.text)
+	_check(hud.pile_hint.text == "2 cards", "The pile browser counts its cards: %s" % hud.pile_hint.text)
 	var captions: Dictionary = {}
 	var faces: Dictionary = {}
 	for i in range(hud.pile_cards.get_child_count()):
@@ -753,9 +753,7 @@ func _check_relic_screens() -> void:
 	await _settle(screen)
 	var held: Control = screen.get_node("Row/Held")
 	_check(not (held.get_node("Column/Keep") as Button).visible, "A run with no Relic is not offered Keep")
-	_check((held.get_node("Column/Note") as Label).text.begins_with("You have no Relic yet."), "and the panel says it has none")
-	var subtitle: String = (screen.get_node("Subtitle") as Label).text
-	_check(subtitle == "Take one Relic and the Reserve cards that come with it.", "The subtitle drops the keep clause: %s" % subtitle)
+	_check(not screen.has_node("Subtitle") and not held.has_node("Column/Note"), "and the screen carries no narration")
 	for i in range(3):
 		var offer: RelicOffer = screen.get_node("Row/Offer%d" % i)
 		var cards: Array = run.relic_offers[i]["cards"]
@@ -863,7 +861,6 @@ func _check_shrine_screens() -> void:
 			names.append((row.get_node("Name") as Label).text)
 			_check((row.get_node("Sigil") as ResonanceSigil).resonance == "deep_well", "The held row carries its sigil")
 	_check(names == ["Deep Well"], "The held list names the run's Resonances: %s" % str(names))
-	_check(not (list.get_node("Empty") as Label).visible, "and hides the empty note")
 	for i in range(3):
 		var offer: ShrineOffer = screen.get_node("Row/Offer%d" % i)
 		var id: String = run.shrine_offers[i]
@@ -900,7 +897,7 @@ func _check_shrine_screens() -> void:
 	empty.set("_dev", true)
 	root.add_child(empty)
 	await _settle(empty)
-	_check((empty.get_node("Row/Held/Column/Scroll/List/Empty") as Label).visible, "A run holding none says so in a sentence")
+	_check((empty.get_node("Row/Held/Column/Scroll/List") as Control).get_child_count() == 0, "A run holding none lists nothing")
 	empty.free()
 	# Reached through the scene rather than by class name: the list's script reads autoloads.
 	var listing: Control = load("res://scenes/adventure/run_deck_list.tscn").instantiate()
@@ -994,7 +991,6 @@ func _check_elite_screens() -> void:
 	root.add_child(claim)
 	await _settle(claim)
 	_check((claim.get_node("Title") as Label).text == "Claim a Resonance", "The claim is titled Claim a Resonance")
-	_check((claim.get_node("Subtitle") as Label).text.ends_with("."), "under a full sentence")
 	var leave: Button = claim.get_node("Row/Held/Column/Leave")
 	_check(leave.text == "Take nothing", "and leaves through Take nothing")
 	for i in range(3):

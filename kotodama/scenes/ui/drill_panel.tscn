@@ -1,0 +1,110 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/drill_panel.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/stroke_canvas.tscn" id="2"]
+[ext_resource type="FontFile" path="res://assets/fonts/NotoSansJP-Bold.ttf" id="3"]
+
+[node name="DrillPanel" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.45)
+
+[node name="Panel" type="PanelContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+custom_minimum_size = Vector2(560, 0)
+theme_override_constants/separation = 8
+
+[node name="Kind" type="Label" parent="Panel/Margin/VBox"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+
+[node name="Item" type="Label" parent="Panel/Margin/VBox"]
+unique_name_in_owner = true
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 80
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Panel/Margin/VBox"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+
+[node name="InputBox" type="VBoxContainer" parent="Panel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+
+[node name="Romaji" type="LineEdit" parent="Panel/Margin/VBox/InputBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 0)
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="Kana" type="Label" parent="Panel/Margin/VBox/InputBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+
+[node name="Choices" type="GridContainer" parent="Panel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+columns = 2
+
+[node name="Choice1" type="Button" parent="Panel/Margin/VBox/Choices"]
+custom_minimum_size = Vector2(270, 48)
+size_flags_horizontal = 3
+
+[node name="Choice2" type="Button" parent="Panel/Margin/VBox/Choices"]
+custom_minimum_size = Vector2(270, 48)
+size_flags_horizontal = 3
+
+[node name="Choice3" type="Button" parent="Panel/Margin/VBox/Choices"]
+custom_minimum_size = Vector2(270, 48)
+size_flags_horizontal = 3
+
+[node name="Choice4" type="Button" parent="Panel/Margin/VBox/Choices"]
+custom_minimum_size = Vector2(270, 48)
+size_flags_horizontal = 3
+
+[node name="CanvasHolder" type="CenterContainer" parent="Panel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+
+[node name="Canvas" parent="Panel/Margin/VBox/CanvasHolder" instance=ExtResource("2")]
+unique_name_in_owner = true
+
+[node name="Answer" type="Label" parent="Panel/Margin/VBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+
+[node name="Parts" type="Label" parent="Panel/Margin/VBox"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+
+[node name="Shy" type="Label" parent="Panel/Margin/VBox"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+
+[node name="Continue" type="Button" parent="Panel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+size_flags_horizontal = 4
+text = "Continue"

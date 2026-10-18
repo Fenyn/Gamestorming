@@ -30,15 +30,15 @@ public partial class DiceRollPanel
 
     private int TumbleSteps(float seconds) => Mathf.Max(1, Mathf.RoundToInt(seconds / Mathf.Max(0.01f, TumbleStepSeconds)));
 
-    /// <summary>Seconds from the start of a beat until its gate opens.</summary>
+    /// <summary>Seconds from the start of a beat until its gate opens, at the panel's pace.</summary>
     public float GateSeconds(RollBeat beat)
     {
         if (beat.Pace == RollPace.Settled) return 0;
-        if (beat.Pace == RollPace.Short) return ShortStepSeconds * 3;
+        if (beat.Pace == RollPace.Short) return ShortStepSeconds * 3 * Pace;
         bool centre = beat.Stage == RollStage.CentreStage;
-        return TumbleSteps(centre ? CentreTumbleSeconds : TrackTumbleSeconds) * TumbleStepSeconds
+        return (TumbleSteps(centre ? CentreTumbleSeconds : TrackTumbleSeconds) * TumbleStepSeconds
             + (centre ? CentreLandSeconds : TrackLandSeconds) + (centre ? CountSeconds : SlideSeconds)
-            + WordSeconds + (beat.Freeze ? FreezeSeconds : 0);
+            + WordSeconds + (beat.Freeze ? FreezeSeconds : 0)) * Pace;
     }
 
     private void BuildFull(CombatRoll roll, RollBeat beat)

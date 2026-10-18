@@ -90,6 +90,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
+tooltip_text = "Game details are the build, your system and screen size, what was on screen and the recent game log. Nothing else about you is sent."
 button_pressed = true
 text = "Attach a screenshot and game details"
 
@@ -99,12 +100,6 @@ custom_minimum_size = Vector2(192, 108)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
-
-[node name="Note" type="Label" parent="Root/Center/Panel/Column"]
-layout_mode = 2
-theme_type_variation = &"CaptionLabel"
-text = "Game details are the build, your system and screen size, what was on screen and the recent game log. Nothing else about you is sent."
-autowrap_mode = 3
 
 [node name="Status" type="Label" parent="Root/Center/Panel/Column"]
 unique_name_in_owner = true

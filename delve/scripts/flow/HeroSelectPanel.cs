@@ -1,92 +1,107 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Delve.Autoload;
 using Delve.Run;
 using Delve.UI;
+using Delve.Village;
 using Godot;
 
 namespace Delve.Flow;
 
 /// <summary>
-/// Party formation at the outpost: choose four party members from residents in camp.
-/// Detailed sheets open on demand. Selection stays editable until embark.
+/// The outpost: the village at its town tier and time of day, with the unlocked residents at their
+/// day's work. Clicking the Delve trail (or G) enters party assembly, XCOM style: four slots at the
+/// trailhead, each filled from a roster, the pick walking in from offscreen. Esc goes back to town
+/// and keeps the picks. Selection stays editable until embark.
 ///
 /// Reads the roster from <see cref="CharacterCatalog"/> and the <see cref="UnlockState"/> handed to
 /// <see cref="Setup"/>, and signals the pick outward: it builds no party and starts no run.
 /// </summary>
 public partial class HeroSelectPanel : Control
 {
-    /// <summary>The selectable camp resident. Assigned in hero_select.tscn.</summary>
-    [Export] public PackedScene? CardScene { get; set; }
-
-    /// <summary>One slot of the squad strip over Embark: the picks as face tiles, XCOM style.</summary>
+    /// <summary>One party slot tile in assembly. Assigned in hero_select.tscn.</summary>
     [Export] public PackedScene? SquadTileScene { get; set; }
 
-    private readonly List<string> _selected = new();
-
-    private readonly List<CampResident> _cards = new();
+    private readonly string?[] _slots = new string?[Party.MaxSize];
     private readonly Dictionary<string, HeroSheetData> _sheets = new();
-
-    private Control _list = null!;
-    private Label _hint = null!;
 
     private Button _embark = null!;
     private Button _clearParty = null!;
-    private CampStage _camp = null!;
+    private Button _assemble = null!;
+    private Button _backToTown = null!;
+    private Control _assembly = null!;
+    private Control _town = null!;
+    private VillageStage _village = null!;
+    private RosterPicker _picker = null!;
     private CharacterDetailsOverlay _details = null!;
-    private Label _previewName = null!;
-    private readonly Dictionary<string, int> _seats = new();
     private Button _recruitmentButton = null!;
     private CampaignProgress? _campaign;
 
     private UnlockState _unlocks = new();
-
     private string? _hovered;
+    private int _pickerSlot = -1;
 
     /// <summary>The four distinct members selected for this run.</summary>
     public event Action<IReadOnlyList<string>>? Confirmed;
     public event Action<string>? RecruitmentRequested;
 
-    public IReadOnlyList<string> SelectedIds => _selected.AsReadOnly();
-    public bool CanEmbark => _selected.Count == Party.MaxSize;
+    /// <summary>The picks in slot order.</summary>
+    public IReadOnlyList<string> SelectedIds => _slots.OfType<string>().ToList();
+    public bool CanEmbark => _slots.All(s => s != null);
 
-    /// <summary>The gate line under the title - what the screen is waiting for.</summary>
-    public string HintText => _hint.Text;
+    /// <summary>True while the party is being assembled at the trailhead.</summary>
+    public bool Assembling { get; private set; }
+
+    /// <summary>Session-only town tier for testing the larger village; never saved.</summary>
+    public TownTier? TownTierOverride { get; set; }
+
+    public VillageStage Village => _village;
+    public RosterPicker Picker => _picker;
 
     public override void _Ready()
     {
-        _list = GetNode<Control>("%RosterList");
-        _hint = GetNode<Label>("%HintLabel");
         _embark = GetNode<Button>("%EmbarkButton");
         _clearParty = GetNode<Button>("%ClearPartyButton");
-        _camp = GetNode<CampStage>("%CampStage");
+        _assemble = GetNode<Button>("%AssembleButton");
+        _backToTown = GetNode<Button>("%BackToTownButton");
+        _assembly = GetNode<Control>("%Assembly");
+        _town = GetNode<Control>("%Town");
+        _village = GetNode<VillageStage>("%Village");
+        _picker = GetNode<RosterPicker>("%Picker");
         _details = GetNode<CharacterDetailsOverlay>("%Details");
         _details.PickRequested += id =>
         {
             TogglePick(id);
             _details.RefreshRoster();
         };
-        _previewName = GetNode<Label>("%PreviewName");
-        GetNode<Button>("%DetailsButton").Pressed += () => OpenDetails();
         _recruitmentButton = GetNode<Button>("%RecruitmentButton");
         ReadyJournal();
         _embark.Pressed += Embark;
         _clearParty.Pressed += Unpick;
-        // Esc with picks gives one back first; with none it reaches the pause menu and its Quit.
+        _assemble.Pressed += EnterAssembly;
+        _backToTown.Pressed += LeaveAssembly;
+        _picker.Chosen += ChooseFromPicker;
+        _picker.DetailsRequested += id => OpenDetails(id);
+        _picker.VacateRequested += VacatePickerSlot;
+        _picker.Closed += () => _pickerSlot = -1;
+        _village.StationPressed += OnStation;
+        // Esc in town reaches the pause menu and its Quit; in assembly it goes back to town.
         AddToGroup(PauseMenu.HostGroup);
     }
 
-    /// <summary>Build the roster. Safe to call again for a second run.</summary>
+    /// <summary>Build the village and the roster. Safe to call again for a second run.</summary>
     public void Setup(UnlockState unlocks, CampaignProgress? campaign = null)
     {
         _unlocks = unlocks;
         _campaign = campaign;
         _details.Close();
+        _picker.Close();
         SetupJournal(campaign);
-        _selected.Clear();
+        Array.Fill(_slots, null);
         _hovered = null;
-
-        BuildRoster();
+        ReadSheets();
+        SetupVillage();
         RefreshRecruitment();
     }
 
@@ -95,16 +110,19 @@ public partial class HeroSelectPanel : Control
         if (_campaign != null)
         {
             _journal.Unlocks.Setup(_campaign);
-            int ready = System.Linq.Enumerable.Count(RecruitmentCatalog.All, arc => _campaign.CanBindAtOutpost(arc.CharacterId));
+            int ready = RecruitmentCatalog.All.Count(arc => _campaign.CanBindAtOutpost(arc.CharacterId));
             _recruitmentButton.Text = ready > 0 ? $"Unlocks  {ready} ready" : "Unlocks";
         }
-        SyncResidents();
+        // Someone who just joined the outpost moves in.
+        foreach (string id in Residents())
+            if (!_slots.Contains(id) && _village.Residents.Figures.All(f => f.Id != id)) _village.Residents.Admit(id);
         Refresh();
     }
 
     /// <summary>
-    /// Choose one character, exactly as a click on that card would. Public so the flow can be
-    /// driven without synthetic input. Ignores an id the roster would not take.
+    /// Choose one character, as picking them from the roster would: into the open slot the roster
+    /// was opened for, else the first empty slot. Choosing someone already in the party takes them
+    /// out. Public so the flow can be driven without synthetic input; ignores an id the roster would not take.
     /// </summary>
     public void Pick(string id)
     {
@@ -115,7 +133,9 @@ public partial class HeroSelectPanel : Control
     private void TogglePick(string id)
     {
         if (!CanPick(id)) return;
-        if (!_selected.Remove(id)) _selected.Add(id);
+        int slot = Array.IndexOf(_slots, id);
+        if (slot >= 0) Vacate(slot);
+        else Fill(_pickerSlot >= 0 && _slots[_pickerSlot] == null ? _pickerSlot : Array.IndexOf(_slots, null), id);
         _hovered = id;
         Refresh();
     }
@@ -124,94 +144,58 @@ public partial class HeroSelectPanel : Control
     public void Unpick()
     {
         if (OverlayOpen) return;
-        _selected.Clear();
+        for (int slot = 0; slot < _slots.Length; slot++)
+            if (_slots[slot] != null) Vacate(slot);
         Refresh();
     }
 
-    /// <summary>Whether a click on that card would do anything right now.</summary>
+    /// <summary>Whether choosing that character would do anything right now.</summary>
     public bool CanPick(string id) => GateFor(id) == null;
-
-    /// <summary>Put one of the featured sheet's tooltips on screen with no pointer involved,
-    /// addressed by its title. The rendered shot uses it; nothing in the game does.</summary>
-    public bool ShowTipForTesting(string title) { InspectShown(); return Sheet.ShowTipForTesting(title); }
-
-    /// <summary>See <see cref="HeroSheet.ShowCardForTesting"/>.</summary>
-    public bool ShowCardForTesting(SheetTip tip) { InspectShown(); return Sheet.ShowCardForTesting(tip); }
-
-    /// <summary>Open the party screen on the resident the camp card shows, or turn it to them.</summary>
-    private void InspectShown()
-    {
-        if (!_details.Visible) OpenDetails();
-        else if (ShownId() is { } id && id != _details.CurrentId) { CloseDetails(); OpenDetails(id); }
-    }
 
     /// <summary>Signal a snapshot of the complete formation.</summary>
     public void Embark()
     {
-        if (CanEmbark && !OverlayOpen) Confirmed?.Invoke(_selected.ToArray());
+        if (CanEmbark && !OverlayOpen) Confirmed?.Invoke(SelectedIds.ToArray());
     }
 
-    public override void _Input(InputEvent @event)
+    // ---------------------------------------------------------------- Slots
+
+    private void Fill(int slot, string id)
     {
-        if (!IsVisibleInTree()) return;
-        if (OverlayOpen) return;
-
-        if (@event.IsActionPressed(InputNames.ExploreJournal)) OpenJournal(JournalScreen.BestiaryPage);
-        else if (@event.IsActionPressed(InputNames.UiDown)) Step(1);
-        else if (@event.IsActionPressed(InputNames.UiUp)) Step(-1);
-        else if (@event.IsActionPressed(InputNames.Confirm))
-        {
-            if (_embark.HasFocus()) Embark();
-            else if (_clearParty.HasFocus()) Unpick();
-            else if (_recruitmentButton.HasFocus() && !_recruitmentButton.Disabled) OpenJournal(JournalScreen.UnlocksPage);
-            else if (_bestiaryButton.HasFocus() && !_bestiaryButton.Disabled) OpenJournal(JournalScreen.BestiaryPage);
-            else if (GetNode<Button>("%DetailsButton").HasFocus()) OpenDetails();
-            else if (_hovered != null) Pick(_hovered);
-        }
-        else if (@event.IsActionPressed(InputNames.Decline) && _selected.Count > 0) Pick(_selected[^1]);
-        else return;
-
-        GetViewport().SetInputAsHandled();
+        if (slot < 0) return;
+        _slots[slot] = id;
+        _village.Residents.Release(id);
+        _village.Lineup.Call(id, slot, walk: Assembling && IsVisibleInTree());
     }
 
-    // ---------------------------------------------------------------- Build
-
-    private void BuildRoster()
+    private void Vacate(int slot)
     {
-        foreach (var card in _cards)
-        {
-            _list.RemoveChild(card);
-            card.QueueFree();
-        }
-        _cards.Clear();
-        if (CardScene == null)
-        {
-            GD.PushError("[HeroSelect] CardScene is not assigned.");
-            return;
-        }
-
-        _seats.Clear();
-        SyncResidents();
+        if (_slots[slot] is not { } id) return;
+        _slots[slot] = null;
+        _village.Lineup.Dismiss(id, walk: Assembling && IsVisibleInTree());
+        _village.Residents.Admit(id);
     }
 
-    private void SyncResidents()
+    /// <summary>Why choosing that character would do nothing, or null when it would work.</summary>
+    private string? GateFor(string id)
+    {
+        if (CharacterCatalog.Find(id) == null) return "not on the roster";
+        if (!_unlocks.IsUnlocked(id)) return "locked";
+        if (_slots.Contains(id)) return null;
+        return CanEmbark ? "remove a party member to make room" : null;
+    }
+
+    /// <summary>Unlocked roster members, in catalog order.</summary>
+    private IEnumerable<string> Residents() =>
+        CharacterCatalog.All.Where(def => _unlocks.IsUnlocked(def.Id)).Select(def => def.Id);
+
+    // ---------------------------------------------------------------- Sheets
+
+    private void ReadSheets()
     {
         bool dataReady = DataManager.Instance is { IsLoaded: true };
-        for (int seat = 0; seat < CharacterCatalog.All.Count; seat++)
-        {
-            var def = CharacterCatalog.All[seat];
+        foreach (var def in CharacterCatalog.All)
             if (!_sheets.ContainsKey(def.Id)) _sheets[def.Id] = ReadSheet(def, dataReady);
-            if (!_unlocks.IsUnlocked(def.Id) || _seats.ContainsKey(def.Id)) continue;
-            var resident = CardScene!.Instantiate<CampResident>();
-            _list.AddChild(resident);
-            int place = _camp.SeatFor(def.Id);
-            if (place < 0) place = seat;
-            resident.Setup(def, _camp.AppearanceFor(place), place);
-            resident.Clicked += Pick;
-            resident.Hovered += Preview;
-            _cards.Add(resident);
-            _seats[def.Id] = place;
-        }
     }
 
     /// <summary>
@@ -233,60 +217,13 @@ public partial class HeroSelectPanel : Control
         }
     }
 
-    // ---------------------------------------------------------------- Render
-
     /// <summary>
-    /// Repaint every card, the featured sheet and the Embark gate from the one choice. Each
-    /// disabled control names the gate that failed (design/ui_guidelines.md section 7).
+    /// Feature one character without choosing them: the resident Character details opens on.
+    /// Public so the flow can be driven without synthetic input.
     /// </summary>
-    private void Refresh()
-    {
-        foreach (var card in _cards)
-            card.SetState(_selected.Contains(card.Id), GateFor(card.Id));
-        _hint.Text = CanEmbark ? "Your companions are ready for the road."
-            : "Gather four companions around the fire.";
-        GetNode<Label>("%PartyCount").Text = $"PARTY  {_selected.Count} / {Party.MaxSize}";
-        _embark.Disabled = !CanEmbark;
-        _embark.TooltipText = CanEmbark ? "" : "Unavailable: choose four party members";
-        _clearParty.Disabled = _selected.Count == 0;
-        _clearParty.TooltipText = "Clear the assembled party";
-        RenderSheet();
-        RenderSquad();
-    }
-    /// <summary>Why a click on that card would do nothing, or null when it would work.</summary>
-    private string? GateFor(string id)
-    {
-        var def = CharacterCatalog.Find(id);
-        if (def == null) return "not on the roster";
-        if (!_unlocks.IsUnlocked(id)) return "locked";
-        if (_selected.Contains(id)) return null;
-        return CanEmbark ? "remove a party member to make room" : null;
-    }
+    public void Preview(string? id) => _hovered = id;
 
-    /// <summary>The sheet reads the hovered card, falls back to the choice, then to the first
-    /// character the player could take - the frame is never without a hero in it.</summary>
-    private void RenderSheet()
-    {
-        var def = ShownId() is { } id ? CharacterCatalog.Find(id) : null;
-        if (def == null) { _previewName.Text = "No companions at camp yet"; return; }
-        _previewName.Text = def.DisplayName;
-        GetNode<Label>("%PreviewRole").Text = def.Role;
-    }
-
-    /// <summary>The resident the camp card shows: the hovered one, then the first pick, then the
-    /// first one the player could take.</summary>
-    private string? ShownId() => _hovered ?? (_selected.Count > 0 ? _selected[0] : null) ?? FirstSelectable();
-
-    /// <summary>
-    /// Feature one character's sheet without choosing them - what hovering a roster card does.
-    /// Null gives the frame back to the choice. Public so the sheet can be read without synthetic
-    /// input; the roster wires its own hover straight to it.
-    /// </summary>
-    public void Preview(string? id)
-    {
-        // Retain the last resident while the pointer travels to Character details.
-        if (id == _hovered) return;
-        _hovered = id;
-        RenderSheet();
-    }
+    /// <summary>The resident Character details opens on: the previewed one, then the first pick,
+    /// then the first one the player could take.</summary>
+    private string? ShownId() => _hovered ?? SelectedIds.FirstOrDefault() ?? Residents().FirstOrDefault(CanPick) ?? Residents().FirstOrDefault();
 }

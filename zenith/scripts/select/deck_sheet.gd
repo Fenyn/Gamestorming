@@ -35,9 +35,6 @@ var _hovered: bool = false
 var _hover_tween: Tween = null
 var _flip_tween: Tween = null
 var _extra_chips: Array[Label] = []   # chips a caller added beside the sheet's own
-## The Aspect caption invites a click for the next Aspect; the screen turns it off where nothing
-## waits for one.
-var aspect_hint: bool = true
 
 
 func setup(index: int, faces: CardFaceCache) -> void:
@@ -163,10 +160,8 @@ func show_aspect(aspect: int, flip: bool = false) -> void:
 		portrait_caption.text = ""
 		return
 	_aspect = aspect
-	var aspects: Array[int] = _shown_aspects()
-	var last: bool = aspects.size() < 2 or not aspect_hint
 	# The rung says its tier and title, and its line only where the stack climbs through two.
-	portrait_caption.text = CardText.rung_label(duelist, CardText.stack_mixes_lines(stack)) + ("" if last else "  ·  click for the next aspect")
+	portrait_caption.text = CardText.rung_label(duelist, CardText.stack_mixes_lines(stack))
 	var face: Texture2D = await _faces.render_face(duelist, aspect, CardFace.mastery_backdrop(_deck, Session.library))
 	if _aspect != aspect:
 		return   # another click came in while the face rendered

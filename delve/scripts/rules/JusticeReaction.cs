@@ -16,7 +16,7 @@ public sealed class JusticeReaction : CharacterFeature, IDamageReaction
     public JusticeReaction()
     {
         FeatureId="retributive-strike"; DisplayName="Retributive Strike"; Category=FeatureCategory.ClassFeature;
-        Description="React to damage against an adjacent ally: resist 2 + your level, then Strike the attacker if within melee reach. Current engine protection radius: 5 feet.";
+        Description="React to damage against an adjacent ally: resist 2 + your level, then Strike the attacker if within melee reach.";
     }
     public bool CanProtectAlly => true;
     public int ReactionPriority => 5;

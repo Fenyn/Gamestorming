@@ -114,14 +114,14 @@ func limit_reason(id: String) -> String:
 		return ""
 	match def.type:
 		CardDef.Type.PERSONALITY:
-			return "Limit 1: one copy of each personality"
+			return "A deck runs one copy of each personality."
 		CardDef.Type.SEAL:
-			return "Limit 1: one of each Seal"
+			return "A deck runs one copy of each Seal."
 		CardDef.Type.MASTERY, CardDef.Type.RELIC:
-			return "Limit 1"
+			return "A deck runs one %s." % ("Mastery" if def.type == CardDef.Type.MASTERY else "Relic")
 	if n == DeckValidator.SIGNATURE_LIMIT:
-		return "Limit %d: it names your Duelist" % n
-	return "Limit %d, printed on the card" % n
+		return "A card that names your Duelist allows %d copies." % n
+	return "The card prints a limit of %d." % n
 
 
 ## Whether the library should show `def` for this deck: legal outside adventure, in the deck's
@@ -169,9 +169,9 @@ func legal_block(def: CardDef) -> String:
 			if held != "" and def.seal_set != held:
 				return "A deck runs one Seal set."
 	if def.school != "" and deck.mastery_id != "" and def.school != deck.style:
-		return "A %s card, and this deck is %s." % [CardText.school_name(def.school), CardText.school_name(deck.style)]
+		return "This is a %s card, and this deck is %s." % [CardText.school_name(def.school), CardText.school_name(deck.style)]
 	if head != null and not CardDef.side_allows(deck.alignment, def.alignment_only):
-		return "For %s decks only." % def.alignment_only.capitalize()
+		return "Only a %s deck can run this." % def.alignment_only.capitalize()
 	return ""
 
 
@@ -281,7 +281,7 @@ func _gate_block(gate: Dictionary, people: Array[CardDef]) -> String:
 				first = why
 		return first
 	if gate.has("alignment") and not CardDef.side_allows(deck.alignment, str(gate["alignment"])):
-		return "For %s decks only." % str(gate["alignment"]).capitalize()
+		return "Only a %s deck can run this." % str(gate["alignment"]).capitalize()
 	var head: CardDef = duelist()
 	if gate.has("duelist_character") and (head == null or head.character != str(gate["duelist_character"])):
 		return "Only %s can use this, as the Duelist." % str(gate["duelist_character"])
@@ -448,7 +448,7 @@ func add_block(id: String, to_reserve: bool = false) -> String:
 		return "The deck already runs %d, the most %s allows." % [limit(id), def.title]
 	if def.school != "" and def.school != deck.style:
 		if deck.style == "freestyle":
-			return "A Freestyle deck takes no school cards. Pick a %s Mastery first." % CardText.school_name(def.school)
+			return "%s is a %s card, and only a %s Mastery allows it." % [def.title, CardText.school_name(def.school), CardText.school_name(def.school)]
 		return "%s is a %s card and this deck is %s." % [def.title, CardText.school_name(def.school), CardText.school_name(deck.style)]
 	if not CardDef.side_allows(deck.alignment, def.alignment_only):
 		return "%s is for %s decks only." % [def.title, def.alignment_only.capitalize()]
@@ -508,7 +508,7 @@ func _joins_stack(def: CardDef) -> bool:
 func _stack_block(def: CardDef) -> String:
 	for id in deck.duelist_ids:
 		if (library.defs[id] as CardDef).aspect == def.aspect:
-			return "The Duelist already has an Aspect %d card. Remove it first." % def.aspect
+			return "The Duelist already has an Aspect %d card." % def.aspect
 	if deck.duelist_ids.size() >= DeckValidator.MAX_ASPECTS:
 		return "The Duelist already runs %d Aspects." % DeckValidator.MAX_ASPECTS
 	return ""

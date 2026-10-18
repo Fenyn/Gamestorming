@@ -170,6 +170,7 @@ public partial class RunDirector : Node
         _pendingXp = 0;
         _combatWon = false;
         _openEvent = null;
+        _heroSelect.TownTierOverride = TestTownTier > 0 ? (TownTier)TestTownTier : null;
         _heroSelect.Setup(_unlocks, _campaign);
         SetPhase(RunPhase.HeroSelect);
     }
@@ -196,7 +197,7 @@ public partial class RunDirector : Node
             wardRules: UseDungeonMap ? new WardstoneRules { NodeBurn = _dungeon!.CrossingBurn } : null, unlocks: _unlocks);
         if (UseDungeonMap)
         {
-            _ = PlayRunTransition(Delve.Dungeon.CrawlWordsTable.For(Delve.Data.FloorThemes.ForStratum(0).Id).ArrivalCaption, StartDungeonFloor, holdForInput: true);
+            _ = PlayRunTransition(Delve.Data.FloorThemes.ForStratum(0).DisplayName, StartDungeonFloor, holdForInput: true);
             return;
         }
         GD.Print($"[RunDirector] run seed {seed}, party level {StartLevel}, {_state.Map.Floors} floors.");
@@ -258,8 +259,12 @@ public partial class RunDirector : Node
     public void EndRun(RunOutcome outcome)
     {
         if (_state == null) return;
+        bool firstEnd = Phase != RunPhase.RunEnd;
         _combat.EndHostedEncounter();
         _state.Outcome = outcome;
+        // The camp's day moves on once per run: the party comes home to the next time of day.
+        if (firstEnd) _campaign.AdvanceCampTime();
+        SaveCampaign();
         _runEndPanel.Show(_state, UseDungeonMap, CampaignSummary.Describe(_campaignAtDeparture, _campaign));
         SetPhase(RunPhase.RunEnd);
     }

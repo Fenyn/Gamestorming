@@ -85,7 +85,7 @@ func setup(deck: DeckList, library: CardLibrary, problems: int, shipped: bool) -
 		status_label.text = "  ·  ".join(parts)
 		status_label.add_theme_color_override("font_color", ZenithTheme.TEXT_SOFT)
 	elif _legal:
-		status_label.text = "Legal. Ready to play."
+		status_label.text = "Legal"
 		status_label.add_theme_color_override("font_color", ZenithTheme.ENERGY)
 	else:
 		status_label.text = "%d %s to fix" % [problems, "problem" if problems == 1 else "problems"]
@@ -94,9 +94,8 @@ func setup(deck: DeckList, library: CardLibrary, problems: int, shipped: bool) -
 	play_button.visible = not shipped
 	play_button.text = "Play" if _legal else "Fix"
 	play_button.theme_type_variation = &"AccentButton" if _legal else &""
-	play_button.tooltip_text = "Duel the AI with this deck" if _legal else "Open it with its problems listed"
+	play_button.tooltip_text = "" if _legal else "Opens the deck with its problems listed."
 	more_button.visible = not shipped
-	tooltip_text = "Copy %s into a new deck" % deck.name if shipped else "Edit %s" % deck.name
 
 
 ## The tile of a deck just saved or copied glows for a moment.

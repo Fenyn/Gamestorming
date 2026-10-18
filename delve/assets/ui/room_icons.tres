@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="RoomIconSet" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/RoomIconSet.cs" id="1_set"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/flag_triangle.png" id="2_entrance"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/sword.png" id="3_fight"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/book_open.png" id="4_event"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/skull.png" id="5_lair"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/character.png" id="6_wayfarer"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/campfire.png" id="7_refuge"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/crown_a.png" id="8_guardian"]
+[ext_resource type="Texture2D" path="res://assets/ui/map_icons/hexagon_question.png" id="9_unknown"]
+
+[resource]
+script = ExtResource("1_set")
+Entrance = ExtResource("2_entrance")
+Fight = ExtResource("3_fight")
+Event = ExtResource("4_event")
+Lair = ExtResource("5_lair")
+Wayfarer = ExtResource("6_wayfarer")
+Refuge = ExtResource("7_refuge")
+Guardian = ExtResource("8_guardian")
+Unknown = ExtResource("9_unknown")

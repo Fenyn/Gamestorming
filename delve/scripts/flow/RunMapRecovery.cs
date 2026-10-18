@@ -29,18 +29,16 @@ public partial class RunMapRecovery : VBoxContainer
         var ward = state.Wardstone;
         int taken = state.Clock.ShortRestsToday;
         string day = $"Day {state.Clock.Day} · {taken} rest{(taken == 1 ? "" : "s")} taken";
-        _cost.Text = ward.IsSpent ? "The ward is out."
-            : ward.ShortRestWouldSpend ? "Rest unavailable: too little ward."
+        _cost.Text = ward.IsSpent ? "Ward out"
+            : ward.ShortRestWouldSpend ? "Rest unavailable: too little ward"
             : ward.UpshiftAfterShortRest > ward.Upshift
-                ? $"Rest raises encounter threat to +{ward.UpshiftAfterShortRest}." : "";
+                ? $"Danger after rest: +{ward.UpshiftAfterShortRest}" : "";
         _cost.Visible = _cost.Text.Length > 0;
         _cost.TooltipText = WardLines.RestPreview(ward);
         _restButton.Text = $"Short Rest · {ward.Rules.ShortRestBurn} ward";
         _restButton.Disabled = !ward.CanAffordShortRest;
         UpdatePreview();
-        _restButton.TooltipText = day + "\n" + (ward.CanAffordShortRest
-            ? "Assign one activity per character for a shared ten-minute rest. Opening this menu costs nothing."
-            : WardLines.RestUnavailable(ward));
+        _restButton.TooltipText = ward.CanAffordShortRest ? day : day + "\n" + WardLines.RestUnavailable(ward);
     }
 
     private void UpdatePreview() => RestPreviewChanged?.Invoke(

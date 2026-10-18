@@ -36,6 +36,11 @@ public partial class TurnOrderBar : VBoxContainer
 
     /// <summary>Timeline number (1 = acting now) by combatant id, as last rendered.</summary>
     public IReadOnlyDictionary<int, int> Numbers => _numbers;
+
+    private readonly Dictionary<int, int> _hps = new();
+
+    /// <summary>HP each tile shows, by combatant id, as last rendered.</summary>
+    public IReadOnlyDictionary<int, int> HpShown => _hps;
     [Export(PropertyHint.Range, "0,1,0.05")] public float DeadAlpha { get; set; } = 0.45f;
     [Export(PropertyHint.Range, "0,1,0.05")] public float DelayedAlpha { get; set; } = 0.7f;
 
@@ -68,12 +73,14 @@ public partial class TurnOrderBar : VBoxContainer
         }
 
         _numbers.Clear();
+        _hps.Clear();
         Visible = units.Count > 0;
         var rows = new List<Control>(units.Count + 1);
         for (int i = 0; i < units.Count; i++)
         {
             if (i == wrapIndex) rows.Add(Divider(nextRound));
             _numbers[units[i].Id] = i + 1;
+            _hps[units[i].Id] = units[i].Hp;
             rows.Add(Chip(units[i], i + 1));
         }
         if (BottomUp) rows.Reverse();

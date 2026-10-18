@@ -22,6 +22,7 @@ public partial class DungeonDirector
     private void ShowDoor(DoorSide? side)
     {
         CurrentView.SetHoveredDoor(side);
+        FocusDoorSign(side);
         AnnounceDoorFocus(side);
         if (side is not { } shown) { _hud.HideDoorTip(); return; }
         var door = Current.Doors.First(d => d.Side(Current.Id) == shown);

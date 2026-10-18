@@ -161,23 +161,21 @@ static func type_blurb(type: String) -> String:
 		"elite":
 			return "A duel against an opponent who holds Resonances. Win it to claim one of your own."
 		"key":
-			return "A meeting with a character the story wants you to reach."
+			return "A duel against a character from the story."
 		"boss":
-			return "The act's boss, with two lives."
+			return "A duel against the act's boss, who has two lives."
 		"twist":
 			return "A duel under a stated special rule."
 		"encounter":
 			return "A duel with an ally fighting beside you."
 		"relic":
-			return "Choose a Relic and a starting Reserve."
+			return "Offers a choice of Relics, each with a starting Reserve."
 		"shop":
-			return "Spend Mana on single cards for your deck."
+			return "Sells single cards for your deck, paid for in Mana."
 		"shrine":
-			return "Choose a Resonance to carry through the run."
+			return "Offers a choice of Resonances. The one you take lasts until the run ends."
 		"forge":
-			return "Cut cards from the deck, or copy one already in it."
-		"mystery":
-			return "Something waits here."
+			return "Cuts one card from your deck or copies one already in it."
 	return ""
 
 

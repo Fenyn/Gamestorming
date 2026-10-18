@@ -61,6 +61,10 @@ public partial class GladeShell : RoomShell
     [Export] public int GateBrambles { get; set; } = 4;
     [Export] public Color GateTint { get; set; } = new(0.62f, 0.42f, 0.40f);
 
+    /// <summary>Alpha of a tree ghosted because it stands between the camera and the glade; low,
+    /// so a row of them reads as a veil rather than a green smear.</summary>
+    [Export(PropertyHint.Range, "0,1,0.05")] public float CanopyGhostAlpha { get; set; } = 0.12f;
+
     private const int TreeSalt = 0x61AD;
 
     /// <summary>Interior from which a glade uses <see cref="WideZoneHalf"/>: front rows 8 tiles apart.</summary>
@@ -133,7 +137,11 @@ public partial class GladeShell : RoomShell
             wallTrees);
         if (trees != null) AddChild(trees);
         PlantBigTrees(room);
-        foreach (var tree in _fader.Trees) tree.Tint *= TreeTint;
+        foreach (var tree in _fader.Trees)
+        {
+            tree.Tint *= TreeTint;
+            tree.GhostAlpha = CanopyGhostAlpha;
+        }
         // The combat boards' ground cover: tufts, stones and flowers on open ground, scrub on brush.
         _decor = TileDecor.Build(BackdropThemes.Forest, render, m, m, heights, r);
         if (_decor == null) return;

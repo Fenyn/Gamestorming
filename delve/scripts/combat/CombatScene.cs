@@ -23,6 +23,23 @@ public partial class CombatScene : Node3D
     [Export] public bool DefeatBannerEnabled { get; set; } = true;
     private Tween? _introFade;
     [Export(PropertyHint.Range, "0,2,0.05")] public float AiActionDelaySeconds { get; set; } = 0.6f;
+
+    /// <summary>Multipliers on the presentation's timing for each Combat speed option: the beats between
+    /// board events, the AI's pause before each action, the dice beats, the damage numbers, the hit,
+    /// dodge and death juice and the HP bar's slide. 1 is the original pace; 1.25 plays them a quarter
+    /// slower. Walking, swing clips and the camera keep their own speed.</summary>
+    [Export(PropertyHint.Range, "0.5,2,0.05")] public float SlowPace { get; set; } = 1.5f;
+
+    [Export(PropertyHint.Range, "0.5,2,0.05")] public float NormalPace { get; set; } = 1.25f;
+    [Export(PropertyHint.Range, "0.5,2,0.05")] public float FastPace { get; set; } = 1f;
+
+    /// <summary>The pace the player's Combat speed option picks.</summary>
+    public float PresentationPace => Delve.Settings.UserSettings.CombatSpeed switch
+    {
+        Delve.Settings.CombatSpeed.Slow => SlowPace,
+        Delve.Settings.CombatSpeed.Fast => FastPace,
+        _ => NormalPace,
+    };
     private DiceRollPanel _dice = null!;
     /// <summary>The unit token (scenes/combat/unit_token.tscn); each unit is an instance whose
     /// per-unit visuals are applied by UnitVisual3D.Spawn.</summary>
@@ -187,7 +204,7 @@ public partial class CombatScene : Node3D
         else
             _terrain.SetLookActive(false);
 
-        _presenter = new GodotPresenter3D(_popupLayer, SurfaceHeights);
+        _presenter = new GodotPresenter3D(_popupLayer, SurfaceHeights) { Pace = PresentationPace };
         // Crits and deaths kick the camera through the rig's shake seam (rig > ShakePivot > Camera3D);
         // turn starts and walks move the rig itself through its focus seam.
         _presenter.Shake = _cameraRig.Shake;
@@ -210,7 +227,7 @@ public partial class CombatScene : Node3D
         _session.SetPresenter(async evt =>
         {
             if (evt.Source != null)
-                await AiActionPacing.Wait(tree, evt, session.IsPlayerControlled(evt.Source), AiActionDelaySeconds, presenter.CancellationToken);
+                await AiActionPacing.Wait(tree, evt, session.IsPlayerControlled(evt.Source), AiActionDelaySeconds * PresentationPace, presenter.CancellationToken);
             await _dice.WaitForResultsAsync(presenter.CancellationToken);
             logBridge.Present(evt);
             if (evt.Type is BattleEventType.AttackRolled or BattleEventType.SpellCast
@@ -221,6 +238,9 @@ public partial class CombatScene : Node3D
                     GridSpace.CreatureToWorld(evt.Target.GridPosition, evt.Target.TileWidth, SurfaceHeights));
             }
             await presenter.Present(evt);
+            if (evt.Type is BattleEventType.TurnStarted or BattleEventType.TurnEnded) SyncShownHealth();
+            else if (evt.Type is BattleEventType.DamageDealt or BattleEventType.Healed && evt.Target?.Health is { } hit)
+                SyncShownHealth(hit);
             if (evt.Type is BattleEventType.DamageDealt or BattleEventType.Healed
                 or BattleEventType.CreatureDied
                 || evt.Type == BattleEventType.AttackRolled && evt.Degree < PF2e.Data.DegreeOfSuccess.Success)
@@ -275,7 +295,15 @@ public partial class CombatScene : Node3D
             TaskContinuationOptions.OnlyOnFaulted);
     }
 
-    private void ApplyUserSettings() => _dice.AnimationsEnabled = Delve.Settings.UserSettings.DiceReveal;
+    /// <summary>The options apply at once, mid-fight included.</summary>
+    private void ApplyUserSettings()
+    {
+        _dice.AnimationsEnabled = Delve.Settings.UserSettings.DiceReveal;
+        float pace = PresentationPace;
+        _dice.Pace = pace;
+        if (_presenter != null) _presenter.Pace = pace;
+        foreach (var unit in _tacticalUnits.Values) unit.ApplyPace(pace);
+    }
 
     public override void _Process(double delta)
     {
@@ -292,11 +320,28 @@ public partial class CombatScene : Node3D
         foreach (var unit in _session.Team2) AddUnitVisual(unit);
     }
 
+    /// <summary>The board's HP bars follow the presenter, not the engine. HP that changes with no
+    /// event of its own (persistent damage as a turn ends) shows at the next turn boundary.</summary>
+    /// <param name="only">Sync only the bars on this pool: an eidolon shares its summoner's HP, so a
+    /// hit on one moves both bars.</param>
+    private void SyncShownHealth(PF2e.CharacterComponents.Health? only = null)
+    {
+        foreach (var unit in _tacticalUnits.Values)
+            if (unit.Character.Health is { } health && (only == null || ReferenceEquals(health, only))
+                && health.CurrentHP != unit.ShownHp) unit.UpdateHealthBar();
+    }
+
+    /// <summary>The HP the board shows for a unit, or null for one without a token.</summary>
+    private int? ShownHp(ICharacter character)
+        => _tacticalUnits.TryGetValue(character.UniqueId, out var unit) ? unit.ShownHp : null;
+
     private void AddUnitVisual(ICharacter character)
     {
         var visual = UnitVisual3D.Spawn(UnitTokenScene, character, EnemyFolderFor(character), _session.Letters.LetterFor(character));
         visual.Position = GridSpace.CreatureToWorld(character.GridPosition, character.TileWidth, SurfaceHeights);
         _unitLayer.AddChild(visual);
+        visual.FollowLiveHealth = false;
+        visual.ApplyPace(PresentationPace);
         visual.PlaceOnGround(character.GridPosition, SurfaceHeights);
         _presenter.RegisterUnit(character, visual);
         _tacticalUnits[character.UniqueId] = visual;

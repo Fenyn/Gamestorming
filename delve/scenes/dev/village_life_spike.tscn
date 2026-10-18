@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/VillageLifeSpike.cs" id="1_spike"]
+[ext_resource type="PackedScene" path="res://scenes/run/village/village.tscn" id="2_village"]
+
+[node name="VillageLifeSpike" type="Node"]
+script = ExtResource("1_spike")
+VillageScene = ExtResource("2_village")

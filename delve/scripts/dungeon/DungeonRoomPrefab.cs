@@ -208,6 +208,10 @@ public partial class DungeonRoomPrefab : Node3D
     [Export] public double ResolvedLightSeconds { get; set; } = 0.6;
 
 
+    /// <summary>Room-space position of the room's first focal prop (the shrine, the cache, the
+    /// collapse, the camp), the thing an event in this room is about; null in a room without one.</summary>
+    public Vector3? FocalPosition => _focals.Count > 0 ? _focals[0].Position : null;
+
     /// <summary>Every lamp's position in room space, for effects that rise from the lamps.</summary>
     public IReadOnlyList<Vector3> LampPositions => _lamps.Select(l => ToLocal(l.GlobalPosition)).ToArray();
 

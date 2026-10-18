@@ -11,7 +11,7 @@ public static class SquadMemberViews
         var detail = ActiveCharacterView.From(member);
         var conditions = ConditionMarks.For(member);
         string tooltip = detail?.Tooltip ?? member.Name;
-        if (promotionPending) tooltip += "\nA feat is ready to choose. Click to open the character sheet.";
+        if (promotionPending) tooltip += "\nPromotion available";
         return new SquadMemberView
         {
             Id = member.UniqueId,

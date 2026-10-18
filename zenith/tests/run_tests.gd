@@ -11387,7 +11387,7 @@ func test_the_collection_caps_at_three_four_or_one_and_dissolves_the_rest() -> v
 	eq(int(banked["motes"]), 2 * AdventureEconomy.dissolve_value(shipped.defs["freestyle_strike_06"]),
 		"paying the dissolve value per copy")
 	eq(wallet.motes, int(banked["motes"]), "into the wallet")
-	eq(AdventureCollection.report_line(banked), "2 copies dissolved for %d Motes" % int(banked["motes"]),
+	eq(AdventureCollection.report_line(banked), "2 copies past the collection limit were dissolved for %d Motes." % int(banked["motes"]),
 		"and the screen has a line to show")
 	eq(AdventureCollection.report_line({"copies": 0, "motes": 0}), "", "with nothing to say when nothing dissolved")
 	# A saved row above its cap (a card whose printed limit dropped) is trimmed on load, and the
@@ -11579,7 +11579,7 @@ func test_bought_deck_slots_raise_the_loadout_cap_at_a_rising_price() -> void:
 	eq(AdventureLoadout.room_left(deck, none), 0, "with no room to add")
 	var refused: Dictionary = AdventureLoadout.add_card(deck, "freestyle_strike_06", shipped, collection, none)
 	check(refused["deck"] == null, "so Add is refused at the cap")
-	check(swap_problem_mentions(refused, "buy a deck slot"), "and says what would open one")
+	check(swap_problem_mentions(refused, "The deck is full at %d cards." % printed), "and says the deck is full")
 	eq(AdventureLoadout.size_cap(deck, upgrades), printed + 1, "a bought slot raises the cap by one")
 	eq(AdventureLoadout.room_left(deck, upgrades), 1, "leaving one slot free")
 	check(AdventureLoadout.swappable_add(deck, shipped, collection, upgrades).has("freestyle_strike_06"),
@@ -13458,11 +13458,8 @@ func test_ranks_climb_with_the_best_rating_and_never_fall() -> void:
 		eq(Ranks.index_for(int(pair[0])), int(pair[1]), "a best rating of %d is rank %d" % [int(pair[0]), int(pair[1])])
 	eq(Ranks.rank_name(0), "Novice", "everyone starts a Novice")
 	eq(Ranks.rank_name(5), "Eidolarch", "and the top is the Eidolarch")
-	check(RankLadder.ladder_text(640, true).ends_with("Your best is 640, which makes you an Archmage, and Gatecarver opens at 800."),
-		"the ladder names the player's rank, the next one and where it opens: %s" % RankLadder.ladder_text(640, true))
-	check(RankLadder.ladder_text(250, true).contains("makes you an Adept"), "with the right article")
-	check(RankLadder.ladder_text(0, false).ends_with("Every player starts as a Novice."), "and a player never rated starts as a Novice")
-	check(RankLadder.ladder_text(1200, true).ends_with("the top of the ladder."), "and the top rank has nothing above it")
+	eq(RankLadder.ladder_text(640, true), "Best rating 640", "the ladder shows the best rating")
+	eq(RankLadder.ladder_text(0, false), "", "and nothing for a player never rated")
 	var store: RatingsStore = RatingsStore.new()
 	eq(int(store.get_or_new("a".repeat(64))["peak"]), 0, "a new player's best is 0")
 	var winner: String = "a".repeat(64)

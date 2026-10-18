@@ -117,7 +117,7 @@ public static class PresetClasses
         {
             FeatureId = "bravery",
             DisplayName = "Bravery",
-            Description = "Your training helps you resist fear; reduce Frightened by 1 and upgrade Will saves vs fear.",
+            Description = "Whenever you gain Frightened, reduce its value by 1. A success on a Will save against fear becomes a critical success.",
             Category = FeatureCategory.ClassFeature,
             LevelRequirement = 3,
         };
@@ -161,7 +161,7 @@ public static class PresetClasses
         {
             FeatureId = "shield-block",
             DisplayName = "Shield Block",
-            Description = "Ward off a blow with your raised shield, preventing damage up to its Hardness.",
+            Description = "Reduce the damage from an attack by your raised shield's Hardness.",
             Category = FeatureCategory.ClassFeature,
             LevelRequirement = 1,
         };
@@ -212,7 +212,7 @@ public static class PresetClasses
         {
             FeatureId = "sentinel-shield-focus",
             DisplayName = "Sentinel: Shield Focus",
-            Description = "Sentinel training in shield use.",
+            Description = "The Sentinel subclass. It has no effect of its own.",
             Category = FeatureCategory.ClassFeature,
             LevelRequirement = 1,
         };
@@ -231,7 +231,7 @@ public static class PresetClasses
         {
             FeatureId = "bastion-dedication",
             DisplayName = "Bastion Dedication",
-            Description = "You have trained to fight from behind a shield.",
+            Description = "Grants Reactive Shield.",
             Category = FeatureCategory.DedicationFeat,
             LevelRequirement = 2,
             ReactiveShieldFeature = BuildReactiveShield(),
@@ -678,7 +678,7 @@ public static class PresetClasses
         {
             FeatureId = "school-of-battle-magic",
             DisplayName = "School of Battle Magic",
-            Description = "Arcane study of war: curriculum spells and the Force Bolt focus spell.",
+            Description = "Grants the battle magic curriculum spells and the Force Bolt focus spell.",
             Category = FeatureCategory.ClassFeature,
             LevelRequirement = 1,
             School = BuildBattleMagicSchool(),
@@ -772,7 +772,7 @@ public static class PresetClasses
         {
             FeatureId = "dual-weapon-warrior-dedication",
             DisplayName = "Dual-Weapon Warrior Dedication",
-            Description = "You're exceptional in your use of two weapons.",
+            Description = "Grants Double Slice.",
             Category = FeatureCategory.DedicationFeat,
             LevelRequirement = 2,
             DoubleSliceFeature = BuildDoubleSlice(),
@@ -802,7 +802,7 @@ public static class PresetClasses
         {
             FeatureId = "marshal-dedication",
             DisplayName = "Marshal Dedication",
-            Description = "Your presence steadies your allies: +1 to saves against fear within 15 feet.",
+            Description = "You and allies within 15 feet gain +1 status to saves against fear.",
             Category = FeatureCategory.DedicationFeat,
             LevelRequirement = 2,
         };
@@ -819,7 +819,7 @@ public static class PresetClasses
         {
             FeatureId = "inspiring-marshal-stance",
             DisplayName = "Inspiring Marshal Stance",
-            Description = "A stance of dedication and poise: your marshal's aura grants you and "
+            Description = "Stance: your marshal's aura grants you and "
                 + "allies +1 status to attack rolls and saves against mental effects.",
             Category = FeatureCategory.DedicationFeat,
             LevelRequirement = 4,
@@ -835,7 +835,7 @@ public static class PresetClasses
         {
             FeatureId = "battle-medicine",
             DisplayName = "Battle Medicine",
-            Description = "Patch up wounds, even in combat (1 action).",
+            Description = "Restore HP to an adjacent ally with a Medicine check.",
             Category = FeatureCategory.SkillFeat,
             LevelRequirement = 1,
             GrantedActions = new List<PF2e.Actions.BaseAction>
@@ -857,7 +857,7 @@ public static class PresetClasses
         {
             FeatureId = "medic-dedication",
             DisplayName = "Medic Dedication",
-            Description = "You become an expert medical practitioner.",
+            Description = "Grants expert proficiency in Medicine.",
             Category = FeatureCategory.DedicationFeat,
             LevelRequirement = 2,
         };
@@ -871,7 +871,7 @@ public static class PresetClasses
         {
             FeatureId = "treat-condition",
             DisplayName = "Treat Condition",
-            Description = "Reduce an ally's Clumsy, Enfeebled, or Sickened condition with quick treatment.",
+            Description = "Reduce an ally's Clumsy, Enfeebled or Sickened condition.",
             Category = FeatureCategory.DedicationFeat,
             LevelRequirement = 4,
             GrantedActions = new List<PF2e.Actions.BaseAction>

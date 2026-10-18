@@ -57,7 +57,7 @@ theme_type_variation = &"MapWardRestSegment"
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MapHint"
-text = "The ward holds."
+text = "Danger: normal"
 autowrap_mode = 2
 
 [node name="RestDivider" type="HSeparator" parent="WardPanel/Content"]

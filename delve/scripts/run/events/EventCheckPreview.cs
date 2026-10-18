@@ -11,13 +11,50 @@ public static class EventCheckPreview
 {
     public const string NoEffect = "No effect";
 
-    public static string CheckLine(EventOption option, Party party, PF2eCharacter? selected)
+    public const string NoRoll = "No roll";
+    public const string NobodyCanTry = "Nobody is standing to try";
+
+    /// <summary>The option's chance at a glance: "Elara 55%" for whoever would try, or "No roll".</summary>
+    public static string ChanceLine(EventOption option, Party party, PF2eCharacter? selected)
     {
-        if (option.Check is not { } check) return "No check required";
+        if (option.Check is not { } check) return NoRoll;
         var actor = EventResolver.ActorFor(party, check, selected);
-        if (actor == null) return "Unavailable: nobody is standing to attempt this check.";
+        if (actor == null) return NobodyCanTry;
+        return $"{actor.Name} {SuccessPercent(SkillCalculator.CalculateSkillBonus(actor, check.Skill), check.Dc)}%";
+    }
+
+    /// <summary>"Thievery · DC 18", or "No roll".</summary>
+    public static string CheckCaption(EventOption option) => option.Check is { } check ? $"{check.Skill} · DC {check.Dc}" : NoRoll;
+
+    /// <summary>Where a member's bonus comes from, "Thievery +8: Dexterity +4 · Trained +4", for a hover.</summary>
+    public static string Breakdown(EventOption option, PF2eCharacter actor)
+    {
+        if (option.Check is not { } check) return "";
         int bonus = SkillCalculator.CalculateSkillBonus(actor, check.Skill);
-        return $"{actor.Name} · {check.Skill} {bonus:+0;-0;0} · DC {check.Dc} · {SuccessPercent(bonus, check.Dc)}% base success";
+        var ability = SkillAbilities.GetAbility(check.Skill);
+        int abilityBonus = actor.Stats.GetAbilityModifier(ability);
+        var rank = SkillCalculator.GetProficiency(actor, check.Skill);
+        int proficiency = ProficiencyCalculator.GetBonus(rank, actor.Stats.Level);
+        int other = bonus - abilityBonus - proficiency;
+        return $"{actor.Name}: {check.Skill} {bonus:+0;-0;0} vs DC {check.Dc}\n{ability} {abilityBonus:+0;-0;0} · {rank} {proficiency:+0;-0;0}"
+            + (other != 0 ? $" · equipment / conditions {other:+0;-0;0}" : "")
+            + "\nThe chance counts natural 1s and 20s.";
+    }
+
+    /// <summary>What each degree of the option does, as captioned figures: the critical rows only
+    /// where they differ from the plain ones, and a single row for an option with no roll.</summary>
+    public static IReadOnlyList<(string Caption, string Effects)> Outcomes(EventOption option)
+    {
+        if (option.Check == null) return new[] { ("Result", Describe(option.Success)) };
+        var rows = new List<(string, string)>();
+        var critical = EventResolver.OutcomeFor(option, DegreeOfSuccess.CriticalSuccess);
+        if (critical != option.Success) rows.Add(("Critical success", Describe(critical)));
+        rows.Add(("Success", Describe(option.Success)));
+        var failure = EventResolver.OutcomeFor(option, DegreeOfSuccess.Failure);
+        rows.Add(("Failure", Describe(failure)));
+        var criticalFailure = EventResolver.OutcomeFor(option, DegreeOfSuccess.CriticalFailure);
+        if (criticalFailure != failure) rows.Add(("Critical failure", Describe(criticalFailure)));
+        return rows;
     }
 
     /// <summary>One member's odds on an option's check, "+8 · 55%", so "Who tries?" is a
@@ -41,34 +78,6 @@ public static class EventCheckPreview
         return successes * 5;
     }
 
-    public static string Details(EventOption option, Party party, PF2eCharacter? selected)
-    {
-        var actor = option.Check is { } check ? EventResolver.ActorFor(party, check, selected) : selected;
-        var lines = new List<string>();
-        if (option.Check is { } c && actor != null)
-        {
-            int bonus = SkillCalculator.CalculateSkillBonus(actor, c.Skill);
-            var ability = SkillAbilities.GetAbility(c.Skill);
-            int abilityBonus = actor.Stats.GetAbilityModifier(ability);
-            var rank = SkillCalculator.GetProficiency(actor, c.Skill);
-            int proficiency = ProficiencyCalculator.GetBonus(rank, actor.Stats.Level);
-            int other = bonus - abilityBonus - proficiency;
-            lines.Add($"{ability} {abilityBonus:+0;-0;0} · {rank} {proficiency:+0;-0;0}"
-                + (other != 0 ? $" · equipment / conditions {other:+0;-0;0}" : ""));
-        }
-        lines.Add((option.Check == null ? "" : "Success: ") + Describe(option.Success));
-        if (option.Check != null)
-        {
-            var critical = EventResolver.OutcomeFor(option, DegreeOfSuccess.CriticalSuccess);
-            if (critical != option.Success) lines.Add("Critical success: " + Describe(critical));
-            lines.Add("Failure: " + Describe(EventResolver.OutcomeFor(option, DegreeOfSuccess.Failure)));
-            var criticalFailure = EventResolver.OutcomeFor(option, DegreeOfSuccess.CriticalFailure);
-            if (criticalFailure != EventResolver.OutcomeFor(option, DegreeOfSuccess.Failure))
-                lines.Add("Critical failure: " + Describe(criticalFailure));
-        }
-        return string.Join("\n", lines);
-    }
-
     /// <summary>What an outcome does, as figures only. The outcome's prose stays unread until the
     /// party commits, as Slay the Spire shows an event's effects but not its ending.</summary>
     private static string Describe(EventOutcome outcome)
@@ -79,7 +88,7 @@ public static class EventCheckPreview
             string text = effect.Kind switch
             {
                 EventEffectKind.HealFraction => $"Heal {effect.Value}% of maximum HP",
-                EventEffectKind.Damage => $"{effect.Value} damage (cannot reduce below 1 HP)",
+                EventEffectKind.Damage => $"{effect.Value} damage, never below 1 HP",
                 EventEffectKind.WoundedDelta => $"Wounded {effect.Value:+0;-0;0}",
                 EventEffectKind.GoldDelta => $"Gold {effect.Value:+0;-0;0}",
                 EventEffectKind.WardDelta => $"Ward {effect.Value:+0;-0;0}",

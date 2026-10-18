@@ -28,7 +28,6 @@ signal name_changed(seat: int, player_name: String)
 @onready var lock_button: Button = $Row/Lock
 @onready var countdown_label: Label = $Row/DetailsRow/Countdown
 @onready var details_button: Button = $Row/DetailsRow/Details
-@onready var hint_label: Label = $Row/Hint
 @onready var deck_list: RunDeckList = $Row/Scroll/Content/Tabs/Details
 
 @onready var mastery_box: Control = $Row/Scroll/Content/Tabs/Overview/Summary/Mastery
@@ -110,7 +109,7 @@ func show_deck(d: DeckList) -> void:
 	if not has:
 		_color = ZenithTheme.MUTED
 		deck_label.text = "Choose your deck"
-		tagline_label.text = "Select a deck to explore its duelist, playstyle, and cards."
+		tagline_label.text = ""
 		$Row/Scroll/Content/Tabs.current_tab = 0
 		_paint()
 		return
@@ -157,7 +156,7 @@ func show_aspect(aspect: int) -> void:
 	var aspects: Array[int] = _shown_aspects()
 	var mixed: bool = CardText.stack_mixes_lines(stack)
 	portrait.texture = CardFace.art_texture(duelist, aspect)
-	portrait.tooltip_text = "%s\n%s - click to preview next Aspect" % [
+	portrait.tooltip_text = "%s\n%s" % [
 		CardText.rung_label(duelist, mixed), CardText.personality_name(duelist)]
 	silhouette.visible = portrait.texture == null
 	silhouette.text = duelist.title.left(1)
@@ -217,12 +216,6 @@ func _paint() -> void:
 	if locked:
 		aura.confirm()
 	ZenithTheme.chip(stamp, _color, true)
-	if locked:
-		hint_label.text = "Locked in. Click Change to pick again."
-	elif deck != null:
-		hint_label.text = "Hover a card to read it." if $Row/Scroll/Content/Tabs.current_tab == 1 else "Click the portrait to preview the next Aspect."
-	else:
-		hint_label.text = ""
 
 
 ## Fits the whole portrait at a whole number of screen pixels per art pixel; a fractional scale

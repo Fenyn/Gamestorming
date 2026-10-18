@@ -75,10 +75,10 @@ public partial class RunMapStatus : VBoxContainer
                 ShowRestPreview(false);
             }));
         }
-        _wardHint.Text = ward.Upshift == 0 ? "The ward holds."
-            : $"Encounter threat +{ward.Upshift} {(ward.Upshift == 1 ? "tier" : "tiers")}.";
-        _wardHint.TooltipText = "As ward falls, skirmishes and lairs become more dangerous.\n"
-            + "Boss fights are unaffected. Defeating a floor boss fully restores ward.";
+        _wardHint.Text = ward.Upshift == 0 ? "Danger: normal"
+            : $"Danger: +{ward.Upshift} {(ward.Upshift == 1 ? "tier" : "tiers")}";
+        _wardHint.TooltipText = "Low ward makes skirmishes and lairs harder, but not boss fights.\n"
+            + "Defeating a floor boss refills the ward.";
         _level.Text = $"Level {state.Party.Level}  ·  {state.Party.Members.Count} / {Party.MaxSize} members";
         _level.TooltipText = $"Party experience: {state.Xp} / {state.Leveling.XpPerLevel}";
         foreach (var child in _party.GetChildren())

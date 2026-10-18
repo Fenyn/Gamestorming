@@ -6,8 +6,6 @@ extends HBoxContainer
 
 signal card_selected(id: String)
 
-const PREVIEW_HINT: String = "Hover or select a card"
-
 ## The cut dialog says how many copies the run holds; the View Deck modal has that in its stats.
 @export var show_copies: bool = false
 
@@ -276,7 +274,7 @@ func _revert_preview() -> void:
 func _clear_preview() -> void:
 	preview_face.texture = null
 	preview_count.visible = show_copies
-	preview_caption.text = PREVIEW_HINT
+	preview_caption.text = ""
 	preview_count.text = ""
 
 

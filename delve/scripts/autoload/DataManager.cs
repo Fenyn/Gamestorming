@@ -21,6 +21,9 @@ public partial class DataManager : Node
     /// <summary>Path used when the setting is missing (a project.godot that predates the entry).</summary>
     public const string DefaultPackPath = "F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e";
 
+    /// <summary>Folder beside an exported build's executable that holds its PF2e packs.</summary>
+    public const string BundledPackFolder = "pf2e";
+
     /// <summary>The one autoload instance. Set in <see cref="_Ready"/>, cleared on tree exit.
     /// Every consumer reads this instead of resolving "/root/DataManager" by string.</summary>
     public static DataManager Instance { get; private set; } = null!;
@@ -75,6 +78,10 @@ public partial class DataManager : Node
     /// globalized, so both a packaged path and a raw drive path work.</summary>
     private static string ResolvePackPath()
     {
+        // A packaged build carries its packs in a folder beside the executable; the pack reader
+        // uses plain file IO, which cannot read inside the .pck.
+        string bundled = OS.GetExecutablePath().GetBaseDir().PathJoin(BundledPackFolder);
+        if (OS.HasFeature("template") && DirAccess.DirExistsAbsolute(bundled)) return bundled;
         var setting = ProjectSettings.GetSetting(PackPathSetting, DefaultPackPath);
         string path = setting.AsString();
         if (string.IsNullOrWhiteSpace(path)) path = DefaultPackPath;

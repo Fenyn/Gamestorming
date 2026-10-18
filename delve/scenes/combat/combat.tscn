@@ -69,11 +69,12 @@ shader_parameter/color_a = Color(0.17, 0.18, 0.22, 1)
 shader_parameter/color_b = Color(0.12, 0.13, 0.16, 1)
 shader_parameter/line_color = Color(0.3, 0.32, 0.38, 1)
 
-[node name="Combat" type="Node3D" unique_id=101358353]
+[node name="Combat" type="Node3D" unique_id=101358353 node_paths=PackedStringArray("JournalButton")]
 process_priority = 1
 script = ExtResource("1_scene")
 BandGap = 8.0
 UnitTokenScene = ExtResource("unit_token")
+JournalButton = NodePath("HUD/HudRoot/RightRail/CombatLog/Col/Shell/Content/Heading/JournalButton")
 
 [node name="TerrainStage" type="Node3D" parent="." unique_id=1861684916]
 unique_name_in_owner = true
@@ -237,7 +238,6 @@ KeepHeading = true
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 10
-tooltip_text = "Creatures in this fight"
 theme_type_variation = &"HudButton"
 ActionText = "Journal"
 InputAction = &"combat_journal"
@@ -314,3 +314,5 @@ layout_mode = 1
 
 [node name="DestinationPreview" parent="." instance=ExtResource("destination")]
 unique_name_in_owner = true
+
+[editable path="HUD/HudRoot/RightRail/CombatLog"]

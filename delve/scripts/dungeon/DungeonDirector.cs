@@ -298,6 +298,7 @@ public partial class DungeonDirector : Node3D
         _hud.Instant = _fx.Instant = Instant;        foreach (var token in _tokens) token.UpdateHealthBar();
         foreach (var (id, view) in _rooms)
             view.SetTraversalActive(id == Current.Id && Phase == DungeonPhase.Doors);
+        RefreshDoorSigns();
         _hud.Render(Floor, State, Phase, Seed, ComparisonMode, ComparisonSize, ComparisonOpen, ComparisonEntry);
     }
     private static void Clear(Node n)

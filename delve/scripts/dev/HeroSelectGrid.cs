@@ -21,26 +21,12 @@ public static class HeroSelectGrid
     /// </summary>
     public static void Report(HeroSelectPanel panel, Vector2 canvas, Action<string, bool> check)
     {
-        var stage = panel.GetNode<CampStage>("%CampStage");
-        bool spaced = true;
-        for (int i = 0; i < stage.Seats.Length; i++)
-        {
-            var footprint = new Rect2(stage.SeatPosition(i) - new Vector2(65, 125), new Vector2(130, 170));
-            spaced &= footprint.Position.Y > 140 && footprint.End.Y < panel.Size.Y - 160;
-            spaced &= footprint.Position.X > 32 && footprint.End.X < panel.Size.X - 32;
-            for (int j = 0; j < i; j++)
-                spaced &= !footprint.Intersects(new Rect2(stage.SeatPosition(j) - new Vector2(65, 125), new Vector2(130, 170)));
-        }
-        check("full cast has clear sprite and label space between header and footer", spaced);
         var page = new Rect2(Vector2.Zero, canvas);
-        var camp = Rect(panel, "%CampStage");
-        var sheet = panel.Sheet.GetGlobalRect();
-        var embark = Rect(panel, "%EmbarkButton");
-        check("camp fills the selection viewport", camp.Size.IsEqualApprox(canvas));
-        check("embark stays inside the screen", page.Encloses(embark));
-        check("opened details fit inside the screen", page.Encloses(sheet));
-        check("camp residents stay inside the selection viewport",
-            HeroSelectChecks.Cards(panel).TrueForAll(c => page.Encloses(c.GetGlobalRect())));
+        check("the village fills the selection viewport", Rect(panel, "%Village").Size.IsEqualApprox(canvas));
+        check("the way to the Delve stays inside the screen", page.Encloses(Rect(panel, "%AssembleButton")));
+        check("embark stays inside the screen", page.Encloses(Rect(panel, "%EmbarkButton")));
+        check("the four slots stay inside the screen", page.Encloses(Rect(panel, "%Squad")));
+        check("opened details fit inside the screen", page.Encloses(panel.Sheet.GetGlobalRect()));
     }
 
     /// <summary>

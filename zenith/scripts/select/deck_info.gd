@@ -58,6 +58,7 @@ func _ready() -> void:
 	might_tile.draw.connect(_draw_might_crest)
 	might_tile.resized.connect(might_tile.queue_redraw)
 	might_tile.value_label.resized.connect(might_tile.queue_redraw)
+	reserve_tile.tooltip_text = "Before the duel, Reserve cards can swap into the Life Deck, each pushing a random Life Deck card out."
 	surge_tile.pips_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	surge_tile.pips_box.add_theme_constant_override("separation", 4)
 
@@ -219,7 +220,7 @@ func _hide_zoom() -> void:
 func _fill_stats(duelist: CardDef, d: DeckList) -> void:
 	_show_aspect_stats(_stack.lowest_aspect() if _stack != null and not _stack.is_empty() else 1)
 	life_tile.set_stat("Life Deck", "%d cards" % d.cards.size(), "", ZenithTheme.MUTED)
-	reserve_tile.set_stat("Reserve", "%d cards" % d.reserve.size(), "swap before play", ZenithTheme.MUTED)
+	reserve_tile.set_stat("Reserve", "%d cards" % d.reserve.size(), "", ZenithTheme.MUTED)
 
 
 func _show_aspect_stats(aspect: int) -> void:

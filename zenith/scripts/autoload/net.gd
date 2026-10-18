@@ -122,8 +122,8 @@ const UPDATE_MAX_BYTES: int = 4 * 1024 * 1024
 const RECORD_MAX_BYTES: int = 1024 * 1024
 ## A player-built deck's list on the wire, as JSON text. A full 90-card list is about 4 KB.
 const DECK_LIST_MAX_BYTES: int = 16 * 1024
-const CUSTOM_IN_RANKED: String = "Ranked matches use the shipped decks only. Pick one of those."
-const SERVER_UNREACHABLE: String = "Could not reach the duel server. It may be offline, or this computer may not be connected."
+const CUSTOM_IN_RANKED: String = "Ranked matches use the shipped decks only."
+const SERVER_UNREACHABLE: String = "Could not reach the duel server."
 const CODE_FORMAT: String = "Share codes are five letters or digits, like K7QMR."
 ## Server: how long a seat whose connection dropped is kept, and how long a duel with both seats
 ## away waits before it ends with no winner.
@@ -135,14 +135,14 @@ const PEER_TIMEOUT_MIN_MS: int = 5000
 const PEER_TIMEOUT_MAX_MS: int = 10000
 ## Client: the rejoin file's expiry is moved on at most this often (ms) while updates arrive.
 const REJOIN_RENEW_MS: int = 30000
-const REJOIN_GONE: String = "That duel is no longer on the server. It may have restarted."
+const REJOIN_GONE: String = "That duel is no longer on the server."
 const REJOIN_OVER: String = "That duel has ended."
 const STILL_CONNECTED: String = "The duel server still has your old connection."
 const SEAT_ELSEWHERE: String = "That seat belongs to another copy of the game."
 const NO_KEY: String = "The greeting did not carry this copy of the game's key. It is probably a different version from the duel server."
 const BAD_PROOF: String = "The duel server could not confirm this copy of the game's key. Try again, and if it keeps happening, delete identity.key from the game's data folder."
 const CERT_MISSING: String = "This copy of the game is missing the duel server's certificate, so it cannot connect safely."
-const CERT_MISMATCH: String = "The duel server's certificate is not the one this copy of the game trusts. It may be a different server, or this copy may be out of date."
+const CERT_MISMATCH: String = "The duel server's certificate is not the one this copy of the game trusts."
 ## Client: how long a give-up from a cut-off seat keeps trying to reach the server, and the wait
 ## after a "still connected" answer.
 const GIVE_UP_WINDOW_MS: int = 20000
@@ -160,11 +160,11 @@ const COOLDOWN_MAX_MS: int = 60 * 60 * 1000
 const QUEUE_OTHER_LEFT: String = "The other player left. Looking again."
 const QUEUE_OTHER_LATE: String = "The other player did not lock in a deck. Looking again."
 const QUEUE_LATE: String = "You did not lock in a deck in time."
-const QUEUE_NO_OPPONENT: String = "No opponent found. Try again later."
+const QUEUE_NO_OPPONENT: String = "No opponent was found."
 const QUEUE_FULL: String = "The server is full. Still looking."
 const QUEUE_NOBODY: String = "Nobody else is looking right now."
 const QUEUE_COOLDOWN: String = "You can look for a duel again in %s."
-const QUEUE_WARNED: String = "You left a match recently. Leaving another before a day has passed keeps you out of the queue for %d minutes."
+const QUEUE_WARNED: String = "Leaving another match within a day of the last keeps you out of the queue for %d minutes."
 const QUEUE_NEEDS_KEY: String = "Ranked play needs this copy of the game's key."
 const QUEUE_MODES: Array[String] = ["casual", "ranked"]
 const RANKED_BEST_OF: int = 3
@@ -451,7 +451,7 @@ static func clean_name(raw: String, seat: int) -> String:
 static func code_problem(code: String) -> String:
 	var c: String = code.strip_edges()
 	if c == "":
-		return "Type the share code the host gave you."
+		return "Join needs a share code."
 	if LanTransport.looks_like_address(c):
 		return "" if OS.is_debug_build() else CODE_FORMAT
 	return "" if DuelRoom.valid_code(c.to_upper()) else CODE_FORMAT
@@ -800,7 +800,7 @@ func _timeout_reason() -> String:
 		return SERVER_UNREACHABLE
 	if _stage == "greeting":
 		return "The duel server did not answer the greeting. It is probably running a different version of the game."
-	return "The duel server did not answer in time. Try again in a moment."
+	return "The duel server did not answer in time."
 
 
 ## Drop the connection and tell whoever listens why.
@@ -1285,9 +1285,9 @@ func _note_left(seat: int) -> void:
 	var who: String = str(lobby[seat]["name"])
 	lobby[seat] = DuelRoom.empty_pick(seat)
 	if room_code != "":
-		lobby_notice = "%s left the room. The code still works for a new player." % who
+		lobby_notice = "%s left the room, and the code still works for a new player." % who
 	else:
-		lobby_notice = "%s left. Waiting for another player." % who
+		lobby_notice = "%s left the room." % who
 
 
 ## Server and hosting client: one RPC to a peer that is still connected. A peer that already
@@ -1333,7 +1333,7 @@ func _on_room_request(sender: int, code: Variant) -> void:
 	elif not DuelRoom.valid_code(wanted):
 		problem = "That is not a share code. " + CODE_FORMAT
 	elif not rooms.has(wanted) or (rooms[wanted] as DuelRoom).kind == "queue":
-		problem = "No room has the code %s. Check the code, or ask the host for a new one." % wanted
+		problem = "No room has the code %s." % wanted
 	else:
 		room = rooms[wanted]
 		if room.phase != DuelRoom.Phase.LOBBY:
@@ -1652,7 +1652,7 @@ func _on_queue_join(sender: int, ticket: Variant) -> void:
 	var room: DuelRoom = _room_of(sender)
 	if room != null and room.phase != DuelRoom.Phase.OVER:
 		_refuse(room, sender, "a queue join from a seated player")
-		_tell(sender, &"_rpc_queue_state", ["dropped", "Finish or leave your duel first.", 0])
+		_tell(sender, &"_rpc_queue_state", ["dropped", "You are still seated in a duel.", 0])
 		return
 	var now_unix: int = int(Time.get_unix_time_from_system())
 	var wait_ms: int = conduct.cooldown_left_ms(who, now_unix) if conduct != null and who != "" else 0
@@ -2382,7 +2382,7 @@ func _on_lobby_pick(sender: int, deck_index: Variant, deck_name: Variant, player
 	if not _valid_lobby_pick(index, deck, locked, cards):
 		if index == DuelRoom.CUSTOM_PICK:
 			_refuse(room, sender, "a custom deck that is not legal here")
-			_tell(sender, &"_rpc_room_failed", ["%s did not accept your deck. Check it in the deck builder: it must be legal with the cards both sides have." % ("The duel server" if is_server() else "The host")])
+			_tell(sender, &"_rpc_room_failed", ["%s did not accept your deck, because it is not legal with the cards both sides have." % ("The duel server" if is_server() else "The host")])
 			return
 		_refuse(room, sender, "a deck that is not in the catalog")
 		_tell(sender, &"_rpc_room_failed", ["Your deck list differs from the one on %s. Both need the same build of the game." % ("the duel server" if is_server() else "the host")])

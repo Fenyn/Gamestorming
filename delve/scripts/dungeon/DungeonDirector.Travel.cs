@@ -18,13 +18,6 @@ public partial class DungeonDirector
         RefreshVisibility();
     }
 
-    private void Frame()
-    {
-        _camera.ProcessMode = ProcessModeEnum.Inherit;
-        _camera.Camera.Current = true;
-        _camera.FrameBoard(new(CurrentView.Width / 2f, 0, CurrentView.Width / 2f), CurrentView.Width, CurrentView.Width);
-    }
-
     /// <summary>Rooms drawn right now, for spikes.</summary>
     public int VisibleRoomCount => _rooms.Values.Count(r => r.Visible);
 
@@ -52,14 +45,17 @@ public partial class DungeonDirector
         Clear(_partyLayer);
         _tokens.Clear();
         _partyLayer.Visible = true;
-        int i = 0, n = CurrentView.Width;
-        foreach (var member in State.Party.Living())
+        int i = 0;
+        var living = State.Party.Living().ToList();
+        // The entrance's party stands where the walk in will bring it; elsewhere, in the middle.
+        var spots = PartySpots(CurrentView, CurrentView.Arrival?.Side, living.Count);
+        foreach (var member in living)
         {
             var token = UnitVisual3D.Spawn(UnitPrefab, member);
             _partyLayer.AddChild(token);
             token.UseExplorationMarkers();
             token.GetNode<UnitPickArea>("%PickArea").SetPickable(true);
-            var tile = useCombatPositions ? member.GridPosition : new PF2eVec(n / 2 + i % 2, n / 2 + i / 2);
+            var tile = useCombatPositions ? member.GridPosition : spots[i];
             token.Position = GridSpace.GridToWorld(tile, CurrentView.Heights);
             _tokens.Add(token);
             i++;
@@ -104,16 +100,17 @@ public partial class DungeonDirector
             var exitTile = RoomGeneration.Inside(oldView.Width, side);
             var endTile = RoomGeneration.Inside(nextView.Width, entry);
             var paths = new List<List<Vector3>>();
+            var spots = PartySpots(nextView, entry, _tokens.Count);
             for (int i = 0; i < _tokens.Count; i++)
             {
                 var path = RoomGeneration.Route(oldView.Generated.Layout, GridSpace.WorldToGrid(_tokens[i].Position), exitTile).Select(p => GridSpace.GridToWorld(p, oldView.Heights)).ToList();
                 path.Add(oldView.DoorPosition(side));
                 path.Add(offset + nextView.DoorPosition(entry));
                 path.Add(offset + GridSpace.GridToWorld(endTile, nextView.Heights));
-                var final = new PF2eVec(nextView.Width / 2 + i % 2, nextView.Width / 2 + i / 2);
-                path.AddRange(RoomGeneration.Route(nextView.Generated.Layout, endTile, final).Select(p => offset + GridSpace.GridToWorld(p, nextView.Heights)));
+                path.AddRange(RoomGeneration.Route(nextView.Generated.Layout, endTile, spots[i]).Select(p => offset + GridSpace.GridToWorld(p, nextView.Heights)));
                 paths.Add(path);
             }
+            bool firstVisit = !_entered.Contains(target.Id);
 
             // All failure-prone preparation precedes the one crossing charge.
             int wardBefore = State.Wardstone.Ward;
@@ -140,6 +137,10 @@ public partial class DungeonDirector
 
             LastCrossingSeconds = duration;
             _travelTween.TweenProperty(_camera, "global_position", offset + new Vector3(nextView.Width / 2f, 0, nextView.Width / 2f), Math.Max(0.1, duration)).SetTrans(Tween.TransitionType.Sine);
+            // A first visit pushes in along the trail, and the arrival pulls back to reveal the room.
+            if (firstVisit)
+                _travelTween.TweenMethod(Callable.From<float>(_camera.SetDolly), _camera.Dolly, ArrivalPushIn, Math.Max(0.1, duration))
+                    .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
             if (Instant) SkipBeat();
             while (epoch == _epoch && IsInsideTree() && GodotObject.IsInstanceValid(_travelTween) && _travelTween.IsRunning())
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -155,7 +156,9 @@ public partial class DungeonDirector
             if (!State.Advance(target.Id))
                 throw new InvalidOperationException("Dungeon connection is not in navigation graph.");
             Rebase();
-            Frame();
+            double settle = firstVisit ? ArrivalPullSeconds : FramingSeconds;
+            Frame(settle, _camera.Distance);
+            _camera.DollyTo(1f, Instant ? 0 : settle, Tween.EaseType.Out);
             Enter(entry);
         }
         catch (Exception e)
@@ -168,7 +171,7 @@ public partial class DungeonDirector
                 Frame();
                 SpawnTravelParty();
                 ShowDoors();
-                _hud.ShowNotice("Room preparation failed. Try another door.");
+                _hud.ShowNotice("Room preparation failed");
             }
         }
     }

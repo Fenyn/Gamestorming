@@ -27,7 +27,7 @@ public partial class RestPanel : Control
     /// <summary>Show the party's HP and Wounded before the night's rest.</summary>
     public void Show(RunState state)
     {
-        _clockLabel.Text = $"Day {state.Clock.Day} ends here.";
+        _clockLabel.Text = $"Day {state.Clock.Day}";
         _partyLabel.Text = string.Join("\n", PartyLines.Lines(state.Party));
         Visible = true;
     }

@@ -24,17 +24,13 @@ internal static class ReactionPromptBuilder
                     if (figures.Count > 0) accept = "Block";
                     break;
                 case ReactionTrigger.Movement:
-                    description = $"Strike {ctx.Source?.Name ?? "the enemy"} as they leave your reach.";
-                    accept = "Strike";
-                    AddStrikeFigures(ctx, figures);
-                    break;
                 case ReactionTrigger.Action:
-                    description = $"Strike {ctx.Source?.Name ?? "the enemy"} as they act within your reach.";
+                    description = "";
                     accept = "Strike";
                     AddStrikeFigures(ctx, figures);
                     break;
                 default:
-                    description = $"Spend your reaction to use {ctx.ReactionName}.";
+                    description = "";
                     break;
             }
         }
@@ -80,16 +76,11 @@ internal static class ReactionPromptBuilder
         int absorbed = Math.Min(shield?.Hardness ?? 0, incoming);
         int rest = incoming - absorbed;
         string target = (ctx.ProtectedAlly ?? ctx.Reactor).Name;
-        string attacker = ctx.Source?.Name ?? "An enemy";
-        string description = $"{attacker} hits {target} for {incoming} damage.\n"
-            + $"Blocking stops {absorbed}. {target} and the shield each take {rest}.";
+        string description = $"Blocking stops {absorbed}. {target} and the shield each take {rest}.";
         if (shield == null) return description;
 
         int after = Math.Max(0, shield.CurrentHP - rest);
         bool broken = after <= shield.BrokenThreshold;
-        description += after == 0 ? " The shield is destroyed."
-            : broken ? $" The shield breaks ({after} of {shield.MaxHP} HP)."
-            : $" The shield drops to {after} of {shield.MaxHP} HP.";
         figures.Add(new FigureView(target, rest.ToString()) { Before = incoming.ToString() });
         figures.Add(new FigureView(after == 0 ? "Shield destroyed" : broken ? "Shield breaks" : "Shield",
             after.ToString()) { Before = shield.CurrentHP.ToString() });

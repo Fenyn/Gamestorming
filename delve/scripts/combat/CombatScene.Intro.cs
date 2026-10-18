@@ -25,8 +25,8 @@ public partial class CombatScene
             if (EncounterIntroEnabled && DisplayServer.GetName() != "headless")
             {
                 var intro = GetNode<Control>("%EncounterIntro");
-                GetNode<Label>("%EncounterSubtitle").Text = $"{setup.Enemies.Count} {(setup.Enemies.Count == 1 ? "foe" : "foes")} ahead"
-                    + (setup.Allies.Count > 0 ? $"\n{setup.Allies[0].Unit.Name} fights beside you as an ally." : "");
+                GetNode<Label>("%EncounterSubtitle").Text = $"{setup.Enemies.Count} {(setup.Enemies.Count == 1 ? "foe" : "foes")}"
+                    + (setup.Allies.Count > 0 ? $"\nAlly: {setup.Allies[0].Unit.Name}" : "");
                 intro.Modulate = Colors.Transparent;
                 intro.Show();
                 _input.ProcessMode = ProcessModeEnum.Disabled;

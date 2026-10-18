@@ -80,8 +80,8 @@ public partial class ShortRestPanel : ScreenFrame
         CloseButton.Visible = true;
         var ward = state.Wardstone;
         _clockLabel.Text = $"Day {state.Clock.Day}   Ward {ward.Ward} → {ward.WardAfterShortRest}"
-            + (ward.UpshiftAfterShortRest > ward.Upshift ? $"   Threat +{ward.Upshift} → +{ward.UpshiftAfterShortRest}" : "");
-        _clockLabel.TooltipText = $"{ScheduleRules}\n{WardLines.RestPreview(ward)}";
+            + (ward.UpshiftAfterShortRest > ward.Upshift ? $"   Danger +{ward.Upshift} → +{ward.UpshiftAfterShortRest}" : "");
+        _clockLabel.TooltipText = "";
         // Both prices stay on offer: ward spent now may be refilled by the guardian, a banked rest is not.
         _confirm.Text = $"Rest · Ward {ward.Ward} → {ward.WardAfterShortRest}";
         _free.Visible = state.FreeRests > 0;
@@ -105,6 +105,8 @@ public partial class ShortRestPanel : ScreenFrame
         var suggested = ShortRest.Suggest(_state.Party);
         foreach (var member in living)
         {
+            // A thin rule bands each hero's row from the next, as the event outcomes and results do.
+            if (_activityBox.GetChildCount() > 0) _activityBox.AddChild(RuledRows.Rule());
             // One row per hero: name and HP, the activity, then the target when the activity needs one.
             var box = new HBoxContainer { CustomMinimumSize = new Vector2(0, RowHeight) };
             box.AddThemeConstantOverride("separation", 8);
@@ -132,10 +134,10 @@ public partial class ShortRestPanel : ScreenFrame
             var byKind = new Dictionary<ShortRestKind, Button>();
             foreach (var (kind, label) in Activities)
             {
-                var chip = new Button { Text = label, ToggleMode = true, ButtonGroup = group, TooltipText = ScheduleRules,
-                    CustomMinimumSize = new Vector2(0, RowHeight) };
-                chip.Disabled = kind == ShortRestKind.Refocus && member.Spellcasting?.MaxFocusPoints is not > 0
-                    || kind == ShortRestKind.RepairShield && !living.Any(m => m.Equipment?.Shield?.EquippedShield != null);
+                // An activity that cannot help anyone right now greys out and says why.
+                string? why = ShortRest.WhyUnhelpful(kind, member, _state.Party);
+                var chip = new Button { Text = label, ToggleMode = true, ButtonGroup = group, TooltipText = why ?? "",
+                    CustomMinimumSize = new Vector2(0, RowHeight), Disabled = why != null };
                 chips.AddChild(chip);
                 byKind[kind] = chip;
             }
@@ -163,8 +165,9 @@ public partial class ShortRestPanel : ScreenFrame
             foreach (var chip in byKind.Values) chip.Toggled += pressed => { if (pressed) ApplyActivity(); };
             target.ItemSelected += _ => ValidateSchedule();
             var pick = suggested.First(s => ReferenceEquals(s.Actor, member));
-            byKind[pick.Kind].SetPressedNoSignal(true);
-            if (pick.Target != null) target.Select(living.ToList().IndexOf(pick.Target) + 1);
+            bool open = !byKind[pick.Kind].Disabled;
+            byKind[open ? pick.Kind : ShortRestKind.Rest].SetPressedNoSignal(true);
+            if (open && pick.Target != null) target.Select(living.ToList().IndexOf(pick.Target) + 1);
             ApplyActivity();
         }
     }
@@ -242,9 +245,8 @@ public partial class ShortRestPanel : ScreenFrame
         _resultLabel.Visible = reason != null;
     }
 
-    /// <summary>The schedule's rules, on the header and dropdown hovers.</summary>
-    public const string ScheduleRules = "One activity per character. Everyone acts during the same ten minutes. "
-        + "Treat Wounds needs a patient. Repair Shield needs a shield owner. Receiving treatment does not use your activity.";
+    /// <summary>The one schedule rule the rows do not show, on the activity and target hovers.</summary>
+    public const string ScheduleRules = "Being treated does not use a character's activity.";
 
     [Export] public float RowHeight { get; set; } = 44;
     [Export] public float NameWidth { get; set; } = 268;
@@ -283,6 +285,6 @@ public partial class ShortRestPanel : ScreenFrame
     }
 
     public const string DoneTitle = "Rest done";
-    public const string NothingToDo = "Choose an activity for someone. Resting quietly alone recovers nothing and still costs ward.";
+    public const string NothingToDo = "No activity chosen";
     public PairReport Report => _report;
 }

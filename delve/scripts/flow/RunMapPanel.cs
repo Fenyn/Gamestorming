@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Delve.Data;
 using Delve.Run;
@@ -81,8 +82,8 @@ public partial class RunMapPanel : Control
         _floorTitle.Text = theme.DisplayName;
         _guardianTitle = state.Stratum == FloorThemes.Count - 1 ? "Depths Warden" : "Floor guardian";
         _status.Render(state);
-        _detailTitle.Text = "Choose your path";
-        _detailBody.Text = "Choose a lit destination to travel. Hover or focus a node to inspect it.";
+        _detailTitle.Text = "";
+        _detailBody.Text = "";
         _detailState.Text = "";
         _detailState.Visible = false;
 
@@ -158,7 +159,8 @@ public partial class RunMapPanel : Control
         if (_state?.Map.Node(nodeId) is not { } node || !CharacterPromotion.HasPending(_state.Party)) return true;
         if (node.Kind is not (NodeKind.Combat or NodeKind.Elite or NodeKind.Boss or NodeKind.Meeting)) return true;
         _detailTitle.Text = "Promotion available";
-        _detailBody.Text = "Open each marked character's sheet and confirm their promotion before the next encounter.";
+        _detailBody.Text = string.Join(", ", _state.Party.Living()
+            .Where(c => CharacterPromotion.For(c).PendingLevels(c) > 0).Select(c => c.Name));
         return false;
     }
 
@@ -168,11 +170,11 @@ public partial class RunMapPanel : Control
         _detailTitle.Text = node.Kind == NodeKind.Boss ? _guardianTitle : entry.DisplayName;
         _detailBody.Text = entry.Blurb;
         _detailState.Visible = true;
-        _detailState.Text = current ? "Your party is here."
-            : node.Visited ? "Already visited."
-            : reachable ? "Click to travel."
-            : live ? "Further along the path."
-            : "This route is no longer reachable.";
+        _detailState.Text = current ? "Current location"
+            : node.Visited ? "Visited"
+            : reachable || live ? ""
+            : "Unreachable";
+        _detailState.Visible = _detailState.Text.Length > 0;
     }
 
     /// <summary>Ids the run can still stand on: the current node and everything downstream of it

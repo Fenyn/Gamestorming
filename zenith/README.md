@@ -67,13 +67,13 @@ Client changes get a windowed screenshot, for example:
 
 ## Shipping a build
 
-In this order, because each client pins the certificate of the server it was exported against:
+One command ships the duel server and the itch.io builds together, so they never drift apart:
 
-1. Run the regular suites.
-2. `powershell -File zenith\tools\server\deploy.ps1` exports the Linux server, uploads it, restarts it and copies its certificate to `data/net/duel_server.crt`. Duels in progress end.
-3. Export the Windows client with the GDScript-only editor: `--headless --path zenith --export-release "Windows Desktop" build/windows/eidolarch.exe`.
-4. `powershell -File zenith\tools\web\export_web.ps1` exports the web build into `../web-prebuilt/zenith/`.
-5. Commit, including `web-prebuilt/zenith/`, and push `main`. The Pages workflow publishes the site.
+```powershell
+powershell -File G:/Godot/Gamestorming/zenith/tools/release/release.ps1
+```
+
+It runs the suites, exports the Windows and web clients, deploys the server (duels in progress end), re-exports the clients if the server's certificate changed, and pushes both to itch with butler. Then commit, including `web-prebuilt/zenith/`, and push `main` for the Pages copy. Details in `docs/dev_reference.md`, "Shipping a build". `tools/server/deploy.ps1` alone refuses unless given `-ServerOnly`.
 
 The web build is published prebuilt because the art packs are gitignored, so CI cannot export it. It runs the Compatibility renderer, greys out every online option ("Online play is only available in the desktop version."), and skips two heavy background effects.
 

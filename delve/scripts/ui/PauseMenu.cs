@@ -21,6 +21,7 @@ public partial class PauseMenu : CanvasLayer
 
     private Control _main = null!, _controls = null!, _options = null!, _quitConfirm = null!;
     private Button _resume = null!, _fullscreen = null!, _dice = null!;
+    private OptionButton _combatSpeed = null!;
 
     public bool IsOpen => Visible;
 
@@ -53,6 +54,13 @@ public partial class PauseMenu : CanvasLayer
         GetNode<Button>("%QuitConfirm").Pressed += () => GetTree().Quit();
         _fullscreen.Toggled += on => { UserSettings.Fullscreen = on; UserSettings.Save(); };
         _dice.Toggled += on => { UserSettings.DiceReveal = on; UserSettings.Save(); };
+        _combatSpeed = GetNode<OptionButton>("%CombatSpeed");
+        // Item ids are the CombatSpeed values.
+        _combatSpeed.ItemSelected += index =>
+        {
+            UserSettings.CombatSpeed = (CombatSpeed)_combatSpeed.GetItemId((int)index);
+            UserSettings.Save();
+        };
         UserSettings.Changed += ApplyWindowMode;
         if (SettingsPath.Length > 0) UserSettings.Load(SettingsPath);
         ApplyWindowMode();
@@ -77,6 +85,7 @@ public partial class PauseMenu : CanvasLayer
         if (Visible) return;
         _fullscreen.SetPressedNoSignal(UserSettings.Fullscreen);
         _dice.SetPressedNoSignal(UserSettings.DiceReveal);
+        _combatSpeed.Select(_combatSpeed.GetItemIndex((int)UserSettings.CombatSpeed));
         ModalStack.Instance?.Push(this);
         GetTree().Paused = true;
         Show();

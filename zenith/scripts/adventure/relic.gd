@@ -14,11 +14,9 @@ const PREVIEW_GAP: float = 14.0
 @onready var mote_icon: TextureRect = $Strip/Row/MotesBox/MoteIcon
 @onready var motes_label: Label = $Strip/Row/MotesBox/MotesValue
 @onready var title: Label = $Title
-@onready var subtitle: Label = $Subtitle
 @onready var held_panel: PanelContainer = $Row/Held
 @onready var held_face: TextureRect = $Row/Held/Column/Face
 @onready var held_reserve: Label = $Row/Held/Column/Reserve
-@onready var held_note: Label = $Row/Held/Column/Note
 @onready var keep_button: Button = $Row/Held/Column/Keep
 @onready var offers: Array[RelicOffer] = [$Row/Offer0, $Row/Offer1, $Row/Offer2]
 @onready var preview: Panel = $Preview
@@ -76,17 +74,12 @@ func _refresh() -> void:
 	mana_label.text = str(run.mana)
 	motes_label.text = str(Session.wallet.motes)
 	var held: CardDef = Session.library.defs.get(run.relic_id) if run.relic_id != "" else null
-	subtitle.text = "Take one Relic and the Reserve cards that come with it, or keep your own." if held != null \
-		else "Take one Relic and the Reserve cards that come with it."
 	held_face.visible = held != null
 	held_reserve.visible = held != null
 	keep_button.visible = held != null
 	if held != null:
 		held_reserve.text = "Reserve %d of %d" % [run.reserve.size(), held.reserve_size]
-		held_note.text = "Reserve cards swap into your Life Deck at the start of a duel."
 		held_face.texture = await faces.render_face(held)
-	else:
-		held_note.text = "You have no Relic yet.\n\nA Relic holds a Reserve: cards that swap into your Life Deck at the start of a duel."
 	for i in range(offers.size()):
 		await _fill_offer(i)
 

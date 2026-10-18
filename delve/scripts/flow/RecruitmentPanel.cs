@@ -71,7 +71,7 @@ public partial class RecruitmentPanel : HBoxContainer
             _filter.SetItemText(i, $"{Filters[i]} ({count})");
         }
         int joined = RecruitmentCatalog.All.Count(arc => _campaign.Unlocks.IsUnlocked(arc.CharacterId));
-        GetNode<Label>("%JournalSummary").Text = $"{joined} of {RecruitmentCatalog.All.Count} companions have joined. Progress carries between expeditions.";
+        GetNode<Label>("%JournalSummary").Text = $"Joined {joined} of {RecruitmentCatalog.All.Count}";
         var arcs = RecruitmentCatalog.All.Where(arc => _filter.Selected == 0 || Stage(arc, _campaign) == _filter.Selected)
             .OrderBy(arc => Stage(arc, _campaign) switch { 3 => 0, 2 => 1, 1 => 2, _ => 3 }).ToArray();
         foreach (var arc in arcs)
@@ -118,7 +118,7 @@ public partial class RecruitmentPanel : HBoxContainer
             : portrait.Texture.GetSize() * BestiaryPanel.WholeScale(portrait.Texture, PortraitHeight);
         GetNode<Label>("%UnknownPortrait").Visible = !known;
         GetNode<Label>("%JournalStory").Text = known ? BulwarkWayfarers.Find(def.Id)?.Introduction ?? arc.Title
-            : "An unfamiliar traveler may cross your path. Explore the dungeon to begin this journal entry.";
+            : "Not met yet";
         var visibleSteps = known ? arc.Steps : arc.Steps.Take(1);
         foreach (var step in visibleSteps)
         {
@@ -137,10 +137,7 @@ public partial class RecruitmentPanel : HBoxContainer
         }
         _stay.Visible = !joined;
         _stay.Disabled = !_campaign.CanBindAtOutpost(def.Id);
-        _stay.TooltipText = _stay.Disabled ? "Complete this traveler's objectives before inviting them to stay."
-            : "An overnight stay makes this companion available for future expeditions.";
-        GetNode<Label>("%JournalNext").Text = joined ? "At home in the outpost. Available for future expeditions."
-            : !_stay.Disabled ? "Your bond is strong enough. Invite this companion to make the outpost their home."
-            : known ? "Bring this companion into your party to continue their objectives." : "Further objectives appear after you meet.";
+        _stay.TooltipText = _stay.Disabled ? "Unavailable: objectives not complete"
+            : "Adds this companion to the outpost roster for every later expedition.";
     }
 }

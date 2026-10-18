@@ -72,7 +72,7 @@ func setup(pos: int, d: DeckList) -> void:
 		for i in range(5):
 			var pip: Panel = $Row/Stars/StarRow.get_child(i)
 			pip.add_theme_stylebox_override("panel", ZenithTheme.pip(i < filled, tint, true))
-		stars.tooltip_text = "How good a first pick this deck is: ease of play and how far it gets in a run."
+		stars.tooltip_text = "Rates the deck as a first pick, from its ease of play and how far it gets in a run."
 
 
 static func strength_color(cleared: float) -> Color:

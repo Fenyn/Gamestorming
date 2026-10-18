@@ -15,8 +15,8 @@ namespace Delve.Combat;
 /// consuming the motion. Left clicks are never consumed here. WASD pans the pivot and marks the turn
 /// as manually framed, so following stops until the next actor. Thin input adapter: holds only
 /// camera tunables and pose, no game rules.
-/// The rig reads <see cref="ViewPreferences.CombatCameraDistance"/> on _Ready and writes it back on
-/// every wheel zoom, so the zoom survives a re-encounter within the session.
+/// The rig remembers its wheel zoom in <see cref="ViewPreferences"/> under its <see cref="ZoomSlot"/>,
+/// so the zoom survives a re-encounter within the session and the crawl keeps its own.
 /// </summary>
 public partial class OrbitCameraRig : Node3D, ICameraFocus
 {
@@ -99,9 +99,12 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
 
     [Export] public float InitialYawDegrees { get; set; } = 45f;
     [Export] public float InitialPitchDegrees { get; set; } = 50f;
+    /// <summary>Which remembered zoom this camera reads and writes.</summary>
+    [Export] public CameraZoomSlot ZoomSlot { get; set; } = CameraZoomSlot.Combat;
+
     /// <summary>
     /// Start distance per tile of the board's longer side (1 tile = 1 m), used only until the player
-    /// has ever zoomed in combat — after that <see cref="ViewPreferences.CombatCameraDistance"/> wins.
+    /// has zoomed this camera — after that the remembered distance for <see cref="ZoomSlot"/> wins.
     /// Boards come in any size the biome rolls, so the framing is a ratio rather than a distance:
     /// 1.15 puts a 14-tile board at the 16 m the FX sprites were sized for.
     /// </summary>
@@ -171,8 +174,8 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
         _overviewCenter = worldPivot;
         _overviewDistance = framing;
         ZoomMax = Mathf.Max(ZoomMax, framing * ZoomOutFactor);
-        _distance = ViewPreferences.HasStoredCombatCameraDistance
-            ? Mathf.Clamp(ViewPreferences.CombatCameraDistance, ZoomMin, ZoomMax)
+        _distance = ViewPreferences.TryGetCameraDistance(ZoomSlot, out float stored)
+            ? Mathf.Clamp(stored, ZoomMin, ZoomMax)
             : Mathf.Clamp(PlanningDistanceCap > 0 ? Mathf.Min(framing, PlanningDistanceCap) : framing, ZoomMin, ZoomMax);
         KillFocus();
         _userPanned = false;
@@ -341,8 +344,9 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
     private void Zoom(float delta)
     {
         RestorePlanningView(true);
+        _distanceTween?.Kill();
         _distance = Mathf.Clamp(_distance + delta, ZoomMin, ZoomMax);
-        ViewPreferences.CombatCameraDistance = _distance;
+        ViewPreferences.SetCameraDistance(ZoomSlot, _distance);
         UpdateCameraPose();
     }
 
@@ -352,14 +356,16 @@ public partial class OrbitCameraRig : Node3D, ICameraFocus
 
         float pitchRad = Mathf.DegToRad(_pitch);
         float yawRad = Mathf.DegToRad(_yaw);
-        float horizontal = _distance * Mathf.Cos(pitchRad);
+        float distance = ViewDistance;
+        float horizontal = distance * Mathf.Cos(pitchRad);
 
         var offset = new Vector3(
             horizontal * Mathf.Sin(yawRad),
-            _distance * Mathf.Sin(pitchRad),
+            distance * Mathf.Sin(pitchRad),
             horizontal * Mathf.Cos(yawRad));
 
         _camera.Position = offset;
         _camera.LookAt(GlobalPosition, Vector3.Up);
+        ApplyComposition();
     }
 }

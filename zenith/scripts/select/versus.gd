@@ -50,8 +50,6 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back)
 	for i in range(2):
 		sheets[i].setup(i, faces)
-		# Nothing on a server room's matchup waits for a click, so the cards do not invite one.
-		sheets[i].aspect_hint = not (_online and Net.server_room())
 		sheets[i].show_deck(Session.chosen[i], _tag(i))
 		if _online:
 			var entry: Dictionary = Net.lobby[i]
@@ -152,7 +150,7 @@ func _refresh() -> void:
 		for p in Session.deck_problems(Session.chosen[i]):
 			problems.append("Player %d: %s" % [i + 1, p])
 	if _online and not Net.is_host() and problems.is_empty() and not Net.queue_room():
-		problems.append("Both locked in. The duel server deals in a moment." if Net.server_room() else "Waiting for the host to start the duel.")
+		problems.append("The duel server deals in a moment." if Net.server_room() else "Waiting for the host to start the duel.")
 	problems_label.text = "\n".join(problems)
 	start_button.disabled = not problems.is_empty()
 	if _online and Net.is_host() and not start_button.disabled and DevArgs.user_args().has("--dev-autoplay"):

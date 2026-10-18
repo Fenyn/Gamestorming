@@ -15,11 +15,11 @@ const THUMB_WIDTH: int = 192
 const CLOSE_DELAY: float = 1.4
 const DEV_OPEN_DELAY: float = 1.0      # `--dev-feedback` opens the form this long after start
 const SENDING: String = "Sending…"
-const SENT: String = "Sent. Thank you for the report."
-const NO_ADDRESS: String = "This build cannot send reports. Copy the report to share it another way."
-const UNSENT: String = "The report could not be sent (%s). It is saved on this computer, and Copy report puts it on your clipboard."
+const SENT: String = "The report was sent."
+const NO_ADDRESS: String = "This build cannot send reports, but the report is saved on this computer."
+const UNSENT: String = "The report could not be sent (%s), but it is saved on this computer."
 const COPIED: String = "The report is on your clipboard."
-const EMPTY: String = "Please write a title or a description first."
+const EMPTY: String = "A report needs a title or a description."
 
 @onready var root: Control = $Root
 @onready var bug_button: Button = %Bug

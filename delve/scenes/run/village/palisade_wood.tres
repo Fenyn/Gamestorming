@@ -1,0 +1,13 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/models/village/house_01_ih_logs.png" id="1"]
+
+[resource]
+resource_name = "palisade_wood"
+cull_mode = 2
+albedo_texture = ExtResource("1")
+roughness = 1.0
+uv1_scale = Vector3(0.3125, 0.3125, 0.3125)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 2

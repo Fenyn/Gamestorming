@@ -1,11 +1,14 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://blon6gpx1pmhb"]
 
 [ext_resource type="Script" path="res://scripts/flow/CampResident.cs" id="script"]
 [ext_resource type="Shader" path="res://assets/shaders/camp_resident.gdshader" id="shader"]
+
 [sub_resource type="ShaderMaterial" id="outline"]
 shader = ExtResource("shader")
+shader_parameter/selected = false
+shader_parameter/outline_color = Color(0.8, 0.6, 0.3, 1)
 
-[node name="CampResident" type="Button"]
+[node name="CampResident" type="Button" unique_id=729319555]
 custom_minimum_size = Vector2(164, 216)
 offset_right = 164.0
 offset_bottom = 216.0
@@ -13,28 +16,30 @@ mouse_default_cursor_shape = 2
 theme_type_variation = &"CampResident"
 script = ExtResource("script")
 PoseSeconds = 0.18
+IdlePeriod = null
+IdleBobPixels = null
 
-[node name="Sprite" type="Sprite2D" parent="."]
+[node name="Sprite" type="Sprite2D" parent="." unique_id=469689861]
 unique_name_in_owner = true
-position = Vector2(82, 112)
-scale = Vector2(4, 4)
 texture_filter = 1
 material = SubResource("outline")
+position = Vector2(82, 112)
+scale = Vector2(4, 4)
 
-[node name="NameLabel" type="Label" parent="."]
+[node name="NameLabel" type="Label" parent="." unique_id=138542327]
 unique_name_in_owner = true
+layout_mode = 0
 offset_top = 163.0
 offset_right = 164.0
 offset_bottom = 187.0
-mouse_filter = 2
-horizontal_alignment = 1
 theme_type_variation = &"CampLabel"
+horizontal_alignment = 1
 
-[node name="CaptionLabel" type="Label" parent="."]
+[node name="CaptionLabel" type="Label" parent="." unique_id=1088765680]
 unique_name_in_owner = true
+layout_mode = 0
 offset_top = 189.0
 offset_right = 164.0
 offset_bottom = 212.0
-mouse_filter = 2
-horizontal_alignment = 1
 theme_type_variation = &"HintLabel"
+horizontal_alignment = 1

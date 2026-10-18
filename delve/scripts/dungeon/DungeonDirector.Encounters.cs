@@ -124,7 +124,7 @@ public partial class DungeonDirector
         _fx.Rested();
         var before = PartyChangeSummary.Capture(State.Party);
         int ward = State.Wardstone.Ward;
-        _ = _transition.Play("The fire burns low.\nThe party rests until morning.", () =>
+        _ = _transition.Play($"Night, day {State.Clock.Day}", () =>
         {
             PartyRecovery.LongRest(State.Party, State.Clock, wardstone: State.Wardstone);
             var figures = new List<FigureView>();
@@ -232,19 +232,13 @@ public partial class DungeonDirector
         _camera.Camera.Current = true;
         _partyLayer.Visible = true;
         OpenShutters();
-        _camera.FocusOn(new Vector3(CurrentView.Width / 2f, 0, CurrentView.Width / 2f), 0.3f, false);
+        _camera.FocusOn(RoomCentre, Instant ? 0 : (float)FramingSeconds, false);
+        UnframeEvent();
         _focusedDoor = null;
         _announcedDoor = null;
         // Door keys (Tab, arrows, Enter) reach the room only while no button holds focus.
         if (IsInsideTree()) GetViewport().GuiReleaseFocus();
         RefreshHud();
-    }
-
-    private void FrameEventScenery()
-    {
-        // The event panel occupies the right third; move the room into the remaining view.
-        var center = new Vector3(CurrentView.Width / 2f, 0, CurrentView.Width / 2f);
-        _camera.FocusOn(center + _camera.Camera.GlobalBasis.X * CurrentView.Width * 0.3f, 0.3f, false);
     }
 
     private void OpenRest()

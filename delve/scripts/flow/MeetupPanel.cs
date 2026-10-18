@@ -53,11 +53,12 @@ public partial class MeetupPanel : Control
         _party = party;
         _sheet.Show(HeroSheetBuilder.Read(guest), HeroPortraits.For(guest.Id), UiColors.CharacterAccent(guest.Id));
         string introduction = BulwarkWayfarers.Find(guest.Id)?.Introduction ?? "";
-        _summary.Text = (introduction.Length > 0 ? introduction + "\n" : "") + $"{guest.Name} can join this expedition with {guest.Health?.CurrentHP}/{guest.Health?.MaxHP} HP. Choose a companion to send home.\n"
-            + "Joining does not permanently unlock a character.";
+        _summary.Text = introduction;
+        _summary.Visible = introduction.Length > 0;
         for (int i = 0; i < _slots.Length; i++)
         {
             _slots[i].Disabled = i >= party.MemberIds.Count;
+            _slots[i].TooltipText = $"{guest.Name} joins for this expedition only.";
             _slots[i].Text = i < party.MemberIds.Count ? $"Send {party.Members[i].Name} home ({party.Members[i].Health?.CurrentHP}/{party.Members[i].Health?.MaxHP} HP)" : "Empty slot";
         }
         // Enter must never send a companion home by accident.

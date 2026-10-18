@@ -53,7 +53,9 @@ internal static class UnitInspectFactory
         return modifiers == 0 ? $"AC {ac}" : $"AC {ac - modifiers} → {ac}";
     }
 
-    internal static UnitInspectView BuildInspectView(ICharacter c)
+    /// <param name="shownHp">The HP the board shows, which trails the live HP while a roll plays;
+    /// null reads the live HP.</param>
+    internal static UnitInspectView BuildInspectView(ICharacter c, int? shownHp = null)
     {
         var conditions = new List<string>(ConditionMarks.Labels(c));
         if (c.Equipment?.IsShieldRaised == true)
@@ -65,7 +67,7 @@ internal static class UnitInspectFactory
         bool acKnown = !isCreature || IsCreatureFieldKnown(creatureId, CreatureKnowledgeField.AC);
         bool hpKnown = !isCreature || IsCreatureFieldKnown(creatureId, CreatureKnowledgeField.MaxHP);
 
-        int hp = c.Health?.CurrentHP ?? 0;
+        int hp = shownHp ?? c.Health?.CurrentHP ?? 0;
         int maxHp = c.Health?.MaxHP ?? 0;
         int ac = StatsCalculator.CalculateAC(c);
 

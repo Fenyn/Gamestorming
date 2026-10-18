@@ -33,9 +33,6 @@ const SORT_NAME: int = 0
 const SORT_IN_DECK: int = 1
 const GROUP_FREESTYLE: String = "freestyle"
 const GROUP_SIGNATURE: String = "signature"
-const HINT_POOL: String = "Click to add   ·   Right-click to take one out\nShift-click for the Reserve   ·   Drag it to the deck"
-const HINT_STRIP: String = "Right-click or the minus button takes one out\nThe plus button adds one   ·   Drag to move it"
-const HINT_SLOT: String = "Click to change"
 
 @onready var faces: CardFaceCache = $CardFaceCache
 @onready var shelf: Control = $Shelf
@@ -49,7 +46,6 @@ const HINT_SLOT: String = "Click to change"
 @onready var restore_discard: Button = $Shelf/Column/Restore/Row/Discard
 @onready var mine_grid: GridContainer = $Shelf/Column/Scroll/Content/MineGrid
 @onready var new_tile: Button = $Shelf/Column/Scroll/Content/MineGrid/NewTile
-@onready var mine_empty: Label = $Shelf/Column/Scroll/Content/MineEmpty
 @onready var shipped_grid: GridContainer = $Shelf/Column/Scroll/Content/ShippedGrid
 @onready var editor: Control = $Editor
 @onready var back_button: Button = $Editor/Column/TopBar/Back
@@ -224,7 +220,6 @@ func _ready() -> void:
 	ZenithTheme.chip(unsaved_chip, ZenithTheme.WARN)
 	sort_button.add_item("Each group by name", SORT_NAME)
 	sort_button.add_item("Deck's cards first", SORT_IN_DECK)
-	sort_button.tooltip_text = "The library is grouped by school and card type; this orders each group."
 	var chip_types: Dictionary = {"Ally": CardDef.Type.PERSONALITY, "Strike": CardDef.Type.STRIKE, "Art": CardDef.Type.ART,
 		"Combat": CardDef.Type.COMBAT, "NonCombat": CardDef.Type.NON_COMBAT, "Drill": CardDef.Type.DRILL,
 		"Seal": CardDef.Type.SEAL, "Grounds": CardDef.Type.GROUNDS, "Relic": CardDef.Type.RELIC}
@@ -277,7 +272,7 @@ func _ready() -> void:
 	for slot: FrameSlot in aspect_slots + [duelist_slot, mastery_slot, relic_slot]:
 		slot.hovered.connect(func(over: bool) -> void:
 			if over and slot.card_id != "":
-				_show_preview(Session.library.defs[slot.card_id], slot, "", HINT_SLOT)
+				_show_preview(Session.library.defs[slot.card_id], slot)
 			else:
 				_hide_preview())
 	problems_button.pressed.connect(_open_problems)
@@ -326,7 +321,6 @@ func _ready() -> void:
 			Session.builder_deck_id = ""
 		if Session.builder_from_select:
 			back_button.text = "Back to deck select"
-			back_button.tooltip_text = "Save or leave this deck and go back to picking (Esc)"
 			shelf_back.text = "Back to deck select"
 	AdventureDev.screenshot(self)
 
@@ -418,7 +412,6 @@ func _show_shelf() -> void:
 	_highlight_id = ""
 	if glow != null:
 		glow.pulse.call_deferred()
-	mine_empty.visible = saved.is_empty()
 	for deck in Session.decks:
 		if deck.custom:
 			continue
@@ -455,7 +448,7 @@ func _settle_kept_draft() -> bool:
 	if kept == null or _draft_owned:
 		return true
 	var answer: int = await confirm.ask("Discard the unsaved \"%s\"?" % kept.name,
-		"Its changes were kept from your last visit. Opening another deck replaces them.",
+		"Opening another deck replaces its unsaved changes.",
 		["Discard them", "Keep editing it", "Cancel"] as Array[String], true)
 	match answer:
 		0:
@@ -473,7 +466,7 @@ func _discard_kept_draft() -> void:
 		restore_banner.visible = false
 		return
 	var answer: int = await confirm.ask("Discard the unsaved \"%s\"?" % kept.name,
-		"The changes kept from your last visit are lost. The saved deck, if any, stays as it was.",
+		"The saved deck, if there is one, stays as it was.",
 		["Discard them", "Keep them"] as Array[String], true)
 	if answer == 0:
 		CustomDecks.clear_draft()
@@ -516,7 +509,7 @@ func _copy_shipped(deck: DeckList) -> void:
 	_load(next)
 	_mark_dirty()
 	_show_editor()
-	_toast("A copy of %s. Save it to keep it." % deck.name, false, save_button.get_global_rect().get_center() + Vector2(-300, 40))
+	_toast("This is an unsaved copy of %s." % deck.name, false, save_button.get_global_rect().get_center() + Vector2(-300, 40))
 
 
 func _duplicate_saved(deck: DeckList) -> void:
@@ -527,7 +520,7 @@ func _duplicate_saved(deck: DeckList) -> void:
 	Session.reload_decks()
 	_highlight_id = copy.id
 	_show_shelf()
-	_toast("Duplicated as \"%s\"." % copy.name, false, shelf_new.get_global_rect().position + Vector2(-260, 60))
+	_toast("The copy is saved as \"%s\"." % copy.name, false, shelf_new.get_global_rect().position + Vector2(-260, 60))
 
 
 func _delete_saved(deck: DeckList) -> void:
@@ -625,7 +618,7 @@ func _build_pool() -> void:
 		tile.clicked.connect(_on_tile.bind(id))
 		tile.hovered.connect(func(over: bool) -> void:
 			if over:
-				_show_preview(def, tile, tile.reason, HINT_POOL)
+				_show_preview(def, tile, tile.reason)
 			else:
 				_hide_preview())
 		tile.set_drag_forwarding(_drag_card.bind("pool", id), Callable(), Callable())
@@ -745,10 +738,7 @@ func _filter() -> void:
 		chip.theme_type_variation = &"AccentButton" if chip.button_pressed else &"CompactButton"
 	var filtering: bool = not types.is_empty() or not groups.is_empty() or search.text.strip_edges() != ""
 	clear_filters.visible = filtering
-	var note: String = ""
-	if hidden_by_deck > 0:
-		note = "   ·   %d hidden: the deck cannot run them or nobody in it can use them (Show unusable)" % hidden_by_deck
-	footer.text = "%d cards%s" % [shown, note]
+	footer.text = "%d cards" % shown if hidden_by_deck == 0 else "%d cards, %d hidden" % [shown, hidden_by_deck]
 	for value: Variant in _sections.values():
 		(value as PoolSection).refresh_header(_group_label((value as PoolSection).group))
 	pool_empty.visible = shown == 0
@@ -794,7 +784,7 @@ func _group_label(group: String) -> String:
 func _pool_block(def: CardDef) -> String:
 	var head: CardDef = draft.duelist()
 	if def.type == CardDef.Type.PERSONALITY and head != null and def.character == head.character:
-		return "This is your Duelist. Change Aspects from the slots above the deck."
+		return "This is your Duelist."
 	return draft.fit_block(def)
 
 
@@ -1013,19 +1003,18 @@ func _refresh_deck() -> void:
 	range_label.add_theme_color_override("font_color", ZenithTheme.TEXT_SOFT)
 	problems_button.text = "Legal" if problems.is_empty() else "%d %s" % [problems.size(), "problem" if problems.size() == 1 else "problems"]
 	problems_button.add_theme_color_override("font_color", ZenithTheme.ENERGY if problems.is_empty() else ZenithTheme.WARN)
-	problems_button.tooltip_text = "Every deck rule is met." if problems.is_empty() else "See what to fix"
 	problems_text.text = "\n".join(problems)
 	play_button.disabled = not problems.is_empty()
 	save_as_button.disabled = head == null
-	play_button.tooltip_text = "Save, then play this deck" if problems.is_empty() else "Fix the deck's problems to play it"
+	play_button.tooltip_text = "Play saves the deck first." if problems.is_empty() else "A deck with problems cannot be played."
 	var relic: CardDef = Session.library.defs.get(deck.relic_id)
 	reserve_button.text = "Reserve %d/%d" % [deck.reserve.size(), relic.reserve_size] if relic != null else "No Reserve"
 	reserve_button.disabled = relic == null and deck.reserve.is_empty()
-	reserve_button.tooltip_text = "Open the Reserve" if relic != null else "A Relic holds a Reserve. Click the Relic slot to see the Relics."
+	reserve_button.tooltip_text = "" if relic != null else "A Reserve needs a Relic."
 	if reserve_button.disabled:
 		reserve_button.button_pressed = false
-	reserve_info.text = ("%s holds %d. Shift-click a library card or drag a strip here." % [relic.title, relic.reserve_size]) \
-		if relic != null else "No Relic, so no Reserve."
+	reserve_info.text = ("%s holds %d cards." % [relic.title, relic.reserve_size]) \
+		if relic != null else "A Reserve needs a Relic."
 	_fill_type_bar()
 	var flagged: Dictionary = draft.problem_ids()
 	_strips.clear()
@@ -1040,7 +1029,7 @@ func _fill_identity(head: CardDef) -> void:
 	if head == null:
 		duelist_slot.show_empty("Choose a Duelist")
 		duelist_name.text = "No Duelist yet"
-		duelist_line.text = "Click the Duelist slot to pick who leads the deck."
+		duelist_line.text = ""
 	else:
 		_show_slot(duelist_slot, deck.duelist_ids[deck.duelist_ids.size() - 1])
 		duelist_name.text = head.character
@@ -1054,7 +1043,7 @@ func _fill_identity(head: CardDef) -> void:
 		var slot: FrameSlot = aspect_slots[n]
 		if id == "":
 			slot.show_empty(str(n + 1))
-			slot.tooltip_text = "Aspect %d. Click to add it." % (n + 1) if head != null and n == height else ""
+			slot.tooltip_text = ""
 			slot.disabled = head == null or n > height
 		else:
 			_show_slot(slot, id)
@@ -1063,7 +1052,7 @@ func _fill_identity(head: CardDef) -> void:
 		slot.set_marked(id != "" and n == height - 1)
 	if deck.relic_id == "":
 		relic_slot.show_empty("R")
-		relic_slot.tooltip_text = "No Relic. Click to show the Relics in the library."
+		relic_slot.tooltip_text = ""
 	else:
 		_show_slot(relic_slot, deck.relic_id)
 		relic_slot.tooltip_text = ""
@@ -1133,7 +1122,7 @@ func _fill_type_bar() -> void:
 		block.mouse_filter = Control.MOUSE_FILTER_STOP
 		type_bar.add_child(block)
 		parts.append("%s %d" % [TYPE_PLURALS[type], n])
-	legend.text = "   ".join(parts) if not parts.is_empty() else "The Life Deck is empty. Click cards in the library to add them, or drag them here."
+	legend.text = "   ".join(parts)
 
 
 ## Strips by type, each type's strips with the deck's own school first, then Freestyle, then
@@ -1200,7 +1189,7 @@ func _fill_strips(list: VBoxContainer, ids: Array[String], pile: String, flagged
 			if def.type == CardDef.Type.PERSONALITY and draft.duelist() != null and def.character == draft.duelist().character:
 				why = "An Ally may not share the Duelist's character."
 			if why == "" and flagged.has(id):
-				why = "This card breaks a deck rule. Open the problems list."
+				why = "This card breaks a deck rule."
 			var strip: Button = _build_strip(def, ids.count(id), pile, why)
 			list.add_child(strip)
 			_strips["%s:%s" % [pile, id]] = strip
@@ -1313,7 +1302,7 @@ func _build_strip(def: CardDef, copies: int, pile: String, why: String) -> Butto
 			if block == "":
 				draft.add(id, pile == "reserve")
 			return block))
-	row.mouse_entered.connect(func() -> void: _show_preview(def, row, why, HINT_STRIP))
+	row.mouse_entered.connect(func() -> void: _show_preview(def, row, why))
 	row.mouse_exited.connect(_hide_preview)
 	row.set_drag_forwarding(_drag_card.bind(pile, id), _can_drop.bind(pile), _drop.bind(pile))
 	return row
@@ -1387,16 +1376,16 @@ func _fix_problems() -> void:
 	problems_overlay.visible = false
 	var before: int = draft.deck.cards.size() + draft.deck.reserve.size()
 	var fix: Callable = func() -> String:
-		return "" if draft.remove_illegal() > 0 else "No card can be taken out to fix these. Add cards or change the Duelist."
+		return "" if draft.remove_illegal() > 0 else "No card can be taken out to fix these."
 	if _mutate(fix):
 		var removed: int = before - draft.deck.cards.size() - draft.deck.reserve.size()
-		_toast("Took out %d %s. Undo puts them back." % [removed, "card" if removed == 1 else "cards"], false)
+		_toast("%d %s taken out." % [removed, "card was" if removed == 1 else "cards were"], false)
 
 
 func _open_problems() -> void:
 	var problems: Array[String] = draft.readable_problems()
 	if problems.is_empty():
-		_toast("Every deck rule is met. Save it and play it.", false, problems_button.get_global_rect().position + Vector2(-300, 40))
+		_toast("Every deck rule is met.", false, problems_button.get_global_rect().position + Vector2(-300, 40))
 		return
 	problems_text.text = "\n".join(problems)
 	var fixable: int = 0
@@ -1444,7 +1433,7 @@ func _show_preview(def: CardDef, anchor: Control, why: String = "", hint: String
 
 ## The card large beside `anchor`, never over it: to its right when there is room, else its left.
 ## Under the face: copies against the limit, the Reserve, the school and type, and why the deck
-## cannot use it, then the clicks it takes.
+## cannot use it, else `hint`.
 func _place_preview(def: CardDef, texture: Texture2D, anchor: Control, why: String, hint: String) -> void:
 	preview_face.texture = texture
 	var lines: PackedStringArray = PackedStringArray()
@@ -1800,7 +1789,7 @@ func _on_choose_duelist() -> void:
 			draft.choose_duelist(character, line)
 			return "")
 		if allies > 0:
-			_toast("%d %s of %s left the deck: an Ally may not share the Duelist's character." % [allies, "Ally" if allies == 1 else "Allies", character], false,
+			_toast("%d %s of %s left the deck, because an Ally may not share the Duelist's character." % [allies, "Ally" if allies == 1 else "Allies", character], false,
 				deck_panel.get_global_rect().position + Vector2(20, 240))
 	if draft.deck.mastery_id == "":
 		_open_mastery_picker()
@@ -1917,8 +1906,6 @@ func _pick_mastery(id: String) -> void:
 	var why: String = draft.fit_block(def)
 	var breaks: int = 0 if why != "" or draft.deck.cards.is_empty() else draft.illegal_after_mastery(id)
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("%s school. Its cards and Freestyle cards stay in the library." % CardText.school_name(def.school) \
-		if def.school != "" else "Freestyle: no school cards at all, every Freestyle card.")
 	if why != "":
 		lines.append(why)
 	elif breaks > 0:
@@ -1945,7 +1932,7 @@ func _on_choose_mastery() -> void:
 		draft.set_mastery(id)
 		return "")
 	if breaks > 0:
-		_toast("%d %s no longer fit this Mastery. The problems list can take them out." % [breaks, "card" if breaks == 1 else "cards"], true,
+		_toast("%d %s no longer fit this Mastery." % [breaks, "card" if breaks == 1 else "cards"], true,
 			problems_button.get_global_rect().position + Vector2(-420, 40))
 
 
@@ -1964,7 +1951,7 @@ func _open_aspect_popup(aspect: int) -> void:
 		return
 	var height: int = draft.deck.duelist_ids.size()
 	if aspect > height + 1:
-		_toast("Add Aspect %d first: a stack runs from Aspect 1 with no gaps." % (height + 1), true)
+		_toast("A stack runs from Aspect 1 with no gaps, so Aspect %d goes in first." % (height + 1), true)
 		return
 	_aspect_at = aspect
 	for child in aspect_options.get_children():
@@ -1994,7 +1981,6 @@ func _open_aspect_popup(aspect: int) -> void:
 			_hide_preview()
 			if not held:
 				_mutate(func() -> String: return "" if draft.set_aspect(id) else "That card cannot join this stack."))
-		button.tooltip_text = "In the deck now" if held else "Use this printing"
 		var hover_ring: Panel = ring
 		button.mouse_entered.connect(func() -> void: hover_ring.visible = true)
 		button.mouse_exited.connect(func() -> void: hover_ring.visible = held)
@@ -2090,14 +2076,12 @@ func _fill_import_notes() -> void:
 	var result: ImportResult = _last_import
 	if result == null:
 		return
-	var open_copies: int = 0
 	var open_lines: int = 0
 	for line in result.lines:
 		if line.status != ImportLine.MATCHED:
-			open_copies += line.qty
 			open_lines += 1
 	notes_button.text = "Notes (%d)" % open_lines if open_lines > 0 else "Notes"
-	notes_summary.text = "%d of %d copies came in. %d left to fill from the library." % [result.copies_matched(), result.copies_asked(), open_copies]
+	notes_summary.text = "%d of %d copies came in." % [result.copies_matched(), result.copies_asked()]
 	for line in result.choices():
 		notes_list.add_child(_note_row(line))
 	for line in result.refused():
@@ -2177,12 +2161,12 @@ func _note_row(line: ImportLine) -> Control:
 	why.theme_type_variation = &"CaptionLabel"
 	why.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	why.custom_minimum_size = Vector2(1, 0)
-	var where: String = "line %d" % line.row
+	var where: String = "Line %d" % line.row
 	match line.status:
 		ImportLine.REFUSED:
-			why.text = "Matched %s, but it stays out: %s (%s)" % [(Session.library.defs[line.id] as CardDef).title, line.reason, where]
+			why.text = "%s matched %s, which stays out. %s" % [where, (Session.library.defs[line.id] as CardDef).title, line.reason]
 		ImportLine.CHOOSE:
-			why.text = "Several Eidolarch cards parallel this one. Pick the one you want (%s)." % where
+			why.text = "%s parallels several Eidolarch cards." % where
 			why.add_theme_color_override("font_color", ZenithTheme.ACCENT)
 	box.add_child(why)
 	if line.status == ImportLine.CHOOSE:
@@ -2210,7 +2194,7 @@ func _note_row(line: ImportLine) -> Control:
 ## True when the deck is saved. A deck with no Duelist is not worth a file yet.
 func _on_save() -> bool:
 	if draft.duelist() == null:
-		_toast("Choose a Duelist before saving.", true, save_button.get_global_rect().position + Vector2(-260, 50))
+		_toast("A deck needs a Duelist before it can be saved.", true, save_button.get_global_rect().position + Vector2(-260, 50))
 		return false
 	draft.deck.name = CustomDecks.clean_name(name_edit.text)
 	name_edit.text = draft.deck.name
@@ -2226,7 +2210,7 @@ func _on_save() -> bool:
 	_highlight_id = draft.deck.id
 	Session.reload_decks()
 	var problems: int = draft.problems().size()
-	_toast("Saved. Ready for any duel but Ranked." if problems == 0 else "Saved. Fix its %d %s to play it." % [problems, "problem" if problems == 1 else "problems"],
+	_toast("The deck is saved." if problems == 0 else "The deck is saved with %d %s." % [problems, "problem" if problems == 1 else "problems"],
 		problems != 0, save_button.get_global_rect().position + Vector2(-330, 50))
 	_refresh_deck()
 	return true
@@ -2234,7 +2218,7 @@ func _on_save() -> bool:
 
 func _on_share() -> void:
 	DisplayServer.clipboard_set(CustomDecks.to_code(draft.deck))
-	_toast("Deck code copied. Paste it into Import to load this deck.", false, share_button.get_global_rect().position + Vector2(-260, 50))
+	_toast("The deck code is on the clipboard.", false, share_button.get_global_rect().position + Vector2(-260, 50))
 
 
 ## A copy of these cards under a new file; the deck that was open stays as it was saved.
@@ -2246,7 +2230,7 @@ func _on_save_as() -> void:
 	if not name_edit.text.ends_with("(copy)") and name_edit.text == original:
 		name_edit.text = CustomDecks.clean_name("%s (copy)" % original)
 	if _on_save():
-		_toast("Saved as a new deck, \"%s\". \"%s\" is unchanged." % [draft.deck.name, original], false,
+		_toast("\"%s\" is saved as a new deck, and \"%s\" is unchanged." % [draft.deck.name, original], false,
 			save_button.get_global_rect().position + Vector2(-520, 50))
 	else:
 		# The save failed: this is still the deck that was open.
@@ -2258,7 +2242,7 @@ func _on_save_as() -> void:
 ## hotseat (-1). The select screen's Back comes back here.
 func _on_play(ai_seat: int) -> void:
 	if not draft.problems().is_empty():
-		_toast("Fix the deck's problems to play it.", true)
+		_toast("A deck with problems cannot be played.", true)
 		return
 	if (_dirty or draft.deck.id == "") and not _on_save():
 		return
@@ -2375,7 +2359,7 @@ func _dev_flags() -> bool:
 		if int(strip_at) < rows.size():
 			var strip: Button = _strips[rows[int(strip_at)]]
 			var def: CardDef = Session.library.defs[str(rows[int(strip_at)]).trim_prefix("life:")]
-			_place_preview(def, await faces.render_face(def, def.aspect), strip, "", HINT_STRIP)
+			_place_preview(def, await faces.render_face(def, def.aspect), strip, "", "")
 			_pin_preview = true
 	# `--dev-builder-drag=<n>`: the nth visible library card held mid-drag over the Life Deck.
 	var drag_at: String = AdventureDev.flag("--dev-builder-drag=")
@@ -2404,7 +2388,7 @@ func _dev_flags() -> bool:
 				if n == 0:
 					var def: CardDef = Session.library.defs[tile.card_id]
 					tile._hover(true)
-					_place_preview(def, await faces.render_face(def, def.aspect), tile, tile.reason, HINT_POOL)
+					_place_preview(def, await faces.render_face(def, def.aspect), tile, tile.reason, "")
 					_pin_preview = true
 					break
 				n -= 1

@@ -70,4 +70,27 @@ public static class ManaSeedSheet
         Page = AxePage, RowOffset = 0, StartColumn = 0, ImpactFrame = 2,
         FrameTimes = new[] { 0.18f, 0.06f, 0.06f, 0.18f },
     };
+
+    /// <summary>Work page whose swing quadrant draws a hoe; its other quadrants are tool-free.</summary>
+    public const string HoePage = "p2";
+
+    /// <summary>Work page whose swing quadrant draws a pick.</summary>
+    public const string PickPage = "p2_mine";
+
+    /// <summary>
+    /// One of the four work quadrants on any page 2 (the pack's "animations, page 2" guide):
+    /// swing (hoe, chop, mine) top left, seed top right, water bottom left, lift bottom right.
+    /// Timings are the pack's: tilling 180/60/60/180, seeding 300/100/100/100, watering and
+    /// pulling up 400/240/180/300 ms.
+    /// </summary>
+    public static ManaSeedClip Work(string page, WorkMotion motion) => motion switch
+    {
+        WorkMotion.Swing => Chop with { Page = page },
+        WorkMotion.Seed => new() { Page = page, RowOffset = 0, StartColumn = 4, ImpactFrame = 1, FrameTimes = new[] { 0.3f, 0.1f, 0.1f, 0.1f } },
+        WorkMotion.Water => new() { Page = page, RowOffset = 4, StartColumn = 0, ImpactFrame = 2, FrameTimes = new[] { 0.4f, 0.24f, 0.18f, 0.3f } },
+        _ => new() { Page = page, RowOffset = 4, StartColumn = 4, ImpactFrame = 2, FrameTimes = new[] { 0.4f, 0.24f, 0.18f, 0.3f } },
+    };
 }
+
+/// <summary>The four work quadrants of a Mana Seed page 2.</summary>
+public enum WorkMotion { Swing, Seed, Water, Lift }

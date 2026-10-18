@@ -1,0 +1,11 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/ExploreReelSpike.cs" id="1_spike"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/forest_test.tscn" id="2_fringe"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/dungeon_test.tscn" id="3_station"]
+[ext_resource type="PackedScene" path="res://scenes/dungeon/deepwood_test.tscn" id="4_deep"]
+
+[node name="ExploreReelSpike" type="Node"]
+script = ExtResource("1_spike")
+Crawls = [ExtResource("2_fringe"), ExtResource("3_station"), ExtResource("4_deep")]
+Tags = PackedStringArray("fringe", "station", "deepwood")

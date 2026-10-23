@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+; Scenes 4 to 6: the Encounter 3 cistern, lit out along the east passage (the skeleton), the west
+; passage and the north passage, where the boys and the swarm walk.
+
+[ext_resource type="PackedScene" path="res://scenes/story/cutscene/cutscene_set.tscn" id="1_base"]
+
+[node name="CutsceneSet" instance=ExtResource("1_base")]
+Encounter = 3
+LitArea = Rect2i(-5, -2, 27, 15)
+Creatures = Dictionary[StringName, String]({
+&"rat_1": "sewer_rat",
+&"rat_2": "sewer_rat",
+&"rat_3": "sewer_rat",
+&"rat_4": "vicious_sewer_rat",
+&"rat_5": "sewer_rat"
+})

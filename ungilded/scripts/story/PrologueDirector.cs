@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using Godot.Collections;
@@ -8,7 +9,10 @@ namespace Ungilded.Story;
 /// <summary>
 /// Runs the Prologue's <see cref="Beats"/> in order. Narration and black-backdrop dialogue play with
 /// the black overlay up. A board-backdrop dialogue prepares the next encounter first and fades the
-/// black out over <see cref="BoardRevealSeconds"/>. An Encounter beat runs through the
+/// black out over <see cref="BoardRevealSeconds"/>. A set-backdrop dialogue builds its cutscene set
+/// behind the black the same way, plays each line's stage cues on it, and frees it after the beat
+/// unless the next beat uses the same set. A narration beat with a page that reveals the set builds
+/// the next beat's set first, so the page shows it behind the text. An Encounter beat runs through the
 /// <see cref="IEncounterRunner"/>, then the black comes back over <see cref="BlackoutSeconds"/> and
 /// the runner releases the board. A Defeat prepares and runs the same encounter again. After the
 /// last beat the director loads <see cref="TitleScenePath"/>.
@@ -25,6 +29,9 @@ public partial class PrologueDirector : Node
 
     /// <summary>Start <see cref="RunAsync"/> from _Ready.</summary>
     [Export] public bool AutoStart { get; set; } = true;
+
+    /// <summary>The beat the auto start begins at. The beats before it are fast-forwarded, not played.</summary>
+    [Export] public int StartBeat { get; set; }
 
     /// <summary>Black to board, before a board lead-in or a fight.</summary>
     [Export] public float BoardRevealSeconds { get; set; } = 1.5f;
@@ -45,8 +52,13 @@ public partial class PrologueDirector : Node
     public NarrationScreen Narration { get; private set; } = null!;
     public DialogueBox Dialogue { get; private set; } = null!;
     public TutorialPopup Popup { get; private set; } = null!;
+    public Letterbox Letterbox { get; private set; } = null!;
 
     public bool IsRunning { get; private set; }
+
+    /// <summary>Who carries or wears what for the whole run. The dialogue box reads and changes it; a
+    /// live set shows it as the glow on each speaker's actor.</summary>
+    public Wardrobe Wardrobe { get; } = new();
 
     private int _prepared;
 
@@ -56,6 +68,11 @@ public partial class PrologueDirector : Node
         Narration = GetNode<NarrationScreen>("%Narration");
         Dialogue = GetNode<DialogueBox>("%Dialogue");
         Popup = GetNode<TutorialPopup>("%Popup");
+        Letterbox = GetNode<Letterbox>("%Letterbox");
+        Dialogue.Wardrobe = Wardrobe;
+        Dialogue.WardrobeChanged += ShowWardrobe;
+        Dialogue.BeforeLine = PlayCues;
+        Narration.PageStarted += line => _ = PlayCues(line);
 
         if (EncounterRunnerNode is IEncounterRunner runner) Runner = runner;
         else
@@ -68,16 +85,19 @@ public partial class PrologueDirector : Node
         if (AutoStart) _ = RunLogged();
     }
 
-    /// <summary>Play every beat, then load the title scene when one is set.</summary>
-    public async Task RunAsync()
+    /// <summary>Play every beat from <paramref name="startBeat"/> on, then load the title scene when
+    /// one is set. The beats before <paramref name="startBeat"/> are fast-forwarded first.</summary>
+    public async Task RunAsync(int startBeat = 0)
     {
         if (IsRunning) return;
         IsRunning = true;
         Fade.SetOpaque(true);
         _prepared = 0;
+        startBeat = Math.Clamp(startBeat, 0, Beats.Count);
+        FastForward(startBeat);
         try
         {
-            for (int i = 0; i < Beats.Count; i++)
+            for (int i = startBeat; i < Beats.Count; i++)
             {
                 var beat = Beats[i];
                 BeatStarted?.Invoke(i, beat);
@@ -86,6 +106,7 @@ public partial class PrologueDirector : Node
         }
         finally
         {
+            FreeSet();
             IsRunning = false;
         }
         Finished?.Invoke();
@@ -94,8 +115,12 @@ public partial class PrologueDirector : Node
 
     private async Task RunLogged()
     {
-        try { await RunAsync(); }
-        catch (Exception e) { GD.PushError($"[Prologue] {e}"); }
+        try { await RunAsync(StartBeat); }
+        catch (Exception e)
+        {
+            // A scene change frees the director mid-beat; its abandoned awaits may throw on freed nodes.
+            if (IsInstanceValid(this) && IsInsideTree()) GD.PushError($"[Prologue] {e}");
+        }
     }
 
     private async Task PlayBeat(int index, PrologueBeat beat)
@@ -104,13 +129,23 @@ public partial class PrologueDirector : Node
         {
             case BeatKind.Narration when beat.Sequence != null:
                 await Fade.FadeIn(BlackoutSeconds);
-                await Narration.Play(beat.Sequence);
+                var revealed = beat.Sequence.Lines.Any(l => l.RevealsSet) ? SetAt(index + 1) : null;
+                if (revealed != null) await EnsureSet(revealed);
+                var pages = Narration.Play(beat.Sequence);
+                // The narration's own black covers the set until a page reveals it.
+                if (revealed != null) Fade.SetOpaque(false);
+                await pages;
                 break;
             case BeatKind.Dialogue when beat.Sequence != null:
                 if (beat.Sequence.Backdrop == DialogueBackdrop.Board)
                 {
                     int next = NextEncounter(index);
                     if (next > 0) await PrepareEncounter(next);
+                    await Fade.FadeOut(BoardRevealSeconds);
+                }
+                else if (beat.Sequence is { Backdrop: DialogueBackdrop.Set, CutsceneSet: { } set })
+                {
+                    await EnsureSet(set, beat.Sequence.Lines.FirstOrDefault());
                     await Fade.FadeOut(BoardRevealSeconds);
                 }
                 else await Fade.FadeIn(BlackoutSeconds);
@@ -123,6 +158,7 @@ public partial class PrologueDirector : Node
                 GD.PushError($"[Prologue] beat {index} ({beat.Kind}) has no sequence.");
                 break;
         }
+        await LeaveSet(index);
     }
 
     private async Task PlayEncounter(int encounter)
@@ -144,6 +180,7 @@ public partial class PrologueDirector : Node
     {
         if (_prepared == encounter) return;
         await Fade.FadeIn(BlackoutSeconds);
+        FreeSet();
         if (_prepared != 0) Runner.Release(_prepared);
         await Runner.Prepare(encounter);
         _prepared = encounter;

@@ -1,0 +1,90 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/sewer/sigil.png" id="1_sigil"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/sewer/sigil_glow.png" id="2_glow"]
+[ext_resource type="Script" path="res://scripts/props/SewerSigil.cs" id="3_sigil"]
+
+[sub_resource type="Animation" id="pulse"]
+resource_name = "pulse"
+length = 7.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Glow:modulate")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 3.5, 7),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0.04), Color(1, 1, 1, 0.38), Color(1, 1, 1, 0.04)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Light:light_energy")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 3.5, 7),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.05, 0.7, 0.05]
+}
+
+[sub_resource type="Animation" id="RESET"]
+resource_name = "RESET"
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Glow:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0.04)]
+}
+
+[sub_resource type="AnimationLibrary" id="library"]
+_data = {
+&"RESET": SubResource("RESET"),
+&"pulse": SubResource("pulse")
+}
+
+[node name="SewerSigil" type="Node3D"]
+script = ExtResource("3_sigil")
+
+[node name="Carving" type="Sprite3D" parent="."]
+cast_shadow = 0
+modulate = Color(0.8, 0.75, 0.75, 1)
+pixel_size = 0.0115
+shaded = true
+texture_filter = 0
+texture = ExtResource("1_sigil")
+
+[node name="Glow" type="Sprite3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.01)
+cast_shadow = 0
+modulate = Color(1, 1, 1, 0.04)
+pixel_size = 0.0115
+texture_filter = 0
+texture = ExtResource("2_glow")
+
+[node name="Light" type="OmniLight3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.6)
+light_color = Color(1, 0.3, 0.2, 1)
+light_energy = 0.05
+omni_range = 2.5
+
+[node name="Pulse" type="AnimationPlayer" parent="."]
+unique_name_in_owner = true
+libraries = {
+&"": SubResource("library")
+}
+autoplay = "pulse"

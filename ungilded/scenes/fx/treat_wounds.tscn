@@ -1,0 +1,448 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/TreatWounds.cs" id="1_k88x7"]
+[ext_resource type="Shader" path="res://assets/fx/treat_wounds/pixel_lit_flipbook.gdshader" id="2_pfieh"]
+[ext_resource type="Texture2D" path="res://assets/fx/treat_wounds/wrap.png" id="3_sbmyb"]
+[ext_resource type="Shader" path="res://assets/shaders/vfx/vfx_essential_pixel_mix.gdshader" id="4_unhdg"]
+[ext_resource type="Texture2D" path="res://assets/fx/treat_wounds/sparkle.png" id="5_cet2m"]
+[ext_resource type="Texture2D" path="res://assets/fx/treat_wounds/wrap_low.png" id="6_yio33"]
+
+[sub_resource type="Gradient" id="Gradient_tehen"]
+offsets = PackedFloat32Array(0, 0.77205884, 0.99264705, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_1iu5a"]
+gradient = SubResource("Gradient_tehen")
+width = 128
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_3o52f"]
+gravity = Vector3(0, 0, 0)
+color_ramp = SubResource("GradientTexture1D_1iu5a")
+anim_speed_min = 1.0
+anim_speed_max = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_plx1v"]
+render_priority = 1
+shader = ExtResource("2_pfieh")
+shader_parameter/frames = ExtResource("3_sbmyb")
+shader_parameter/h_frames = 17
+shader_parameter/depth_pull = 0.4
+
+[sub_resource type="QuadMesh" id="QuadMesh_1v8e3"]
+material = SubResource("ShaderMaterial_plx1v")
+size = Vector2(0.896, 2.016)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_g3fky"]
+emission_shape_offset = Vector3(0, 0.98, 0)
+emission_shape = 3
+emission_box_extents = Vector3(0.18, 0.06, 0.08)
+direction = Vector3(0, 1, 0)
+spread = 10.0
+initial_velocity_min = 0.1
+initial_velocity_max = 0.2
+gravity = Vector3(0, 0, 0)
+damping_min = 0.05
+damping_max = 0.1
+anim_speed_min = 1.0
+anim_speed_max = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_u36sc"]
+render_priority = 2
+shader = ExtResource("4_unhdg")
+shader_parameter/emission_scaler = 0.8
+shader_parameter/tint = null
+shader_parameter/saturation = null
+shader_parameter/contrast = null
+shader_parameter/phase_source = null
+shader_parameter/manual_phase = null
+shader_parameter/premultiply_in_shader = null
+shader_parameter/pixel_dither = null
+shader_parameter/depth_pull = 0.3
+shader_parameter/diffuse1 = ExtResource("5_cet2m")
+shader_parameter/diffuse1_channel = null
+shader_parameter/diffuse1_uv = null
+shader_parameter/diffuse1_wrap = 1
+shader_parameter/diffuse1_st = null
+shader_parameter/diffuse1_scroll = null
+shader_parameter/diffuse1_angle = null
+shader_parameter/diffuse1_spin = null
+shader_parameter/diffuse1_random_offset = null
+shader_parameter/diffuse1_distort = null
+shader_parameter/flipbook_enabled = true
+shader_parameter/flipbook_h_frames = 10
+shader_parameter/flipbook_v_frames = 2
+shader_parameter/flipbook_mode = 1
+shader_parameter/flipbook_loop = false
+shader_parameter/flipbook_blend = false
+shader_parameter/diffuse2_enabled = null
+shader_parameter/diffuse2_blend = null
+shader_parameter/diffuse2_channel = null
+shader_parameter/diffuse2_uv = null
+shader_parameter/diffuse2_wrap = null
+shader_parameter/diffuse2_st = null
+shader_parameter/diffuse2_scroll = null
+shader_parameter/diffuse2_angle = null
+shader_parameter/diffuse2_spin = null
+shader_parameter/diffuse2_random_offset = null
+shader_parameter/diffuse2_emission = null
+shader_parameter/diffuse2_intensity = null
+shader_parameter/diffuse2_intensity_drive = null
+shader_parameter/diffuse2_distort = null
+shader_parameter/mask_enabled = null
+shader_parameter/mask_channel = null
+shader_parameter/mask_uv = null
+shader_parameter/mask_wrap = null
+shader_parameter/mask_st = null
+shader_parameter/mask_scroll = null
+shader_parameter/mask_angle = null
+shader_parameter/mask_spin = null
+shader_parameter/mask_intensity = null
+shader_parameter/mask_distort = null
+shader_parameter/dissolve_enabled = null
+shader_parameter/dissolve_channel = null
+shader_parameter/dissolve_uv = null
+shader_parameter/dissolve_wrap = null
+shader_parameter/dissolve_st = null
+shader_parameter/dissolve_scroll = null
+shader_parameter/dissolve_angle = null
+shader_parameter/dissolve_spin = null
+shader_parameter/dissolve_random_offset = null
+shader_parameter/dissolve_range = null
+shader_parameter/dissolve_range_drive = null
+shader_parameter/dissolve_random = null
+shader_parameter/dissolve_smooth = null
+shader_parameter/dissolve_edge_width = null
+shader_parameter/dissolve_edge_mode = null
+shader_parameter/dissolve_edge_color = null
+shader_parameter/dissolve_mask_enabled = null
+shader_parameter/dissolve_mask_channel = null
+shader_parameter/dissolve_mask_intensity = null
+shader_parameter/dissolve_distort = null
+shader_parameter/distortion_enabled = null
+shader_parameter/distortion_mode = null
+shader_parameter/distortion_channel = null
+shader_parameter/distortion_channel_u = null
+shader_parameter/distortion_channel_v = null
+shader_parameter/distortion_intensity = null
+shader_parameter/distortion_intensity_drive = null
+shader_parameter/distortion_mid = null
+shader_parameter/distortion_direction = null
+shader_parameter/distortion_uv = null
+shader_parameter/distortion_wrap = null
+shader_parameter/distortion_st = null
+shader_parameter/distortion_scroll = null
+shader_parameter/distortion_angle = null
+shader_parameter/distortion_spin = null
+shader_parameter/distortion_mask_enabled = null
+shader_parameter/distortion_mask_channel = null
+shader_parameter/distortion_mask_intensity = null
+shader_parameter/offset_enabled = null
+shader_parameter/offset_channel = null
+shader_parameter/offset_uv = null
+shader_parameter/offset_wrap = null
+shader_parameter/offset_st = null
+shader_parameter/offset_scroll = null
+shader_parameter/offset_angle = null
+shader_parameter/offset_spin = null
+shader_parameter/offset_direction = null
+shader_parameter/offset_mid = null
+shader_parameter/offset_intensity = null
+shader_parameter/offset_intensity_drive = null
+shader_parameter/offset_axis_scale = null
+shader_parameter/offset_mask_enabled = null
+shader_parameter/offset_mask_channel = null
+shader_parameter/offset_mask_intensity = null
+shader_parameter/offset_distort = null
+shader_parameter/rim_enabled = null
+shader_parameter/rim_output = null
+shader_parameter/rim_color = null
+shader_parameter/rim_blend = null
+shader_parameter/rim_progress = null
+shader_parameter/rim_sharpness = null
+shader_parameter/rim_abs = null
+shader_parameter/rim_inverse = null
+shader_parameter/rim_intensity = null
+shader_parameter/soft_particles = null
+shader_parameter/depth_softness = null
+shader_parameter/depth_edge = null
+shader_parameter/depth_edge_color = null
+shader_parameter/depth_edge_contrast = null
+shader_parameter/depth_edge_blend = null
+shader_parameter/camera_fade = null
+shader_parameter/camera_fade_near = null
+shader_parameter/camera_fade_far = null
+shader_parameter/camera_fade_width = null
+
+[sub_resource type="QuadMesh" id="QuadMesh_sq8kc"]
+material = SubResource("ShaderMaterial_u36sc")
+size = Vector2(0.19600001, 0.19600001)
+
+[sub_resource type="Gradient" id="Gradient_inwhr"]
+offsets = PackedFloat32Array(0, 0.77205884, 0.99264705, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_e23qo"]
+gradient = SubResource("Gradient_inwhr")
+width = 128
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_h28hj"]
+gravity = Vector3(0, 0, 0)
+color_ramp = SubResource("GradientTexture1D_e23qo")
+anim_speed_min = 1.0
+anim_speed_max = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yprgc"]
+render_priority = 1
+shader = ExtResource("2_pfieh")
+shader_parameter/frames = ExtResource("6_yio33")
+shader_parameter/h_frames = 17
+shader_parameter/depth_pull = 0.4
+
+[sub_resource type="QuadMesh" id="QuadMesh_x4gir"]
+material = SubResource("ShaderMaterial_yprgc")
+size = Vector2(0.896, 1.232)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_kdgyj"]
+emission_shape_offset = Vector3(0, 0.35, 0)
+emission_shape = 3
+emission_box_extents = Vector3(0.2, 0.04, 0.08)
+direction = Vector3(0, 1, 0)
+spread = 10.0
+initial_velocity_min = 0.05
+initial_velocity_max = 0.1
+gravity = Vector3(0, 0, 0)
+damping_min = 0.05
+damping_max = 0.1
+anim_speed_min = 1.0
+anim_speed_max = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dvlk8"]
+render_priority = 2
+shader = ExtResource("4_unhdg")
+shader_parameter/emission_scaler = 0.8
+shader_parameter/tint = null
+shader_parameter/saturation = null
+shader_parameter/contrast = null
+shader_parameter/phase_source = null
+shader_parameter/manual_phase = null
+shader_parameter/premultiply_in_shader = null
+shader_parameter/pixel_dither = null
+shader_parameter/depth_pull = 0.3
+shader_parameter/diffuse1 = ExtResource("5_cet2m")
+shader_parameter/diffuse1_channel = null
+shader_parameter/diffuse1_uv = null
+shader_parameter/diffuse1_wrap = 1
+shader_parameter/diffuse1_st = null
+shader_parameter/diffuse1_scroll = null
+shader_parameter/diffuse1_angle = null
+shader_parameter/diffuse1_spin = null
+shader_parameter/diffuse1_random_offset = null
+shader_parameter/diffuse1_distort = null
+shader_parameter/flipbook_enabled = true
+shader_parameter/flipbook_h_frames = 10
+shader_parameter/flipbook_v_frames = 2
+shader_parameter/flipbook_mode = 1
+shader_parameter/flipbook_loop = false
+shader_parameter/flipbook_blend = false
+shader_parameter/diffuse2_enabled = null
+shader_parameter/diffuse2_blend = null
+shader_parameter/diffuse2_channel = null
+shader_parameter/diffuse2_uv = null
+shader_parameter/diffuse2_wrap = null
+shader_parameter/diffuse2_st = null
+shader_parameter/diffuse2_scroll = null
+shader_parameter/diffuse2_angle = null
+shader_parameter/diffuse2_spin = null
+shader_parameter/diffuse2_random_offset = null
+shader_parameter/diffuse2_emission = null
+shader_parameter/diffuse2_intensity = null
+shader_parameter/diffuse2_intensity_drive = null
+shader_parameter/diffuse2_distort = null
+shader_parameter/mask_enabled = null
+shader_parameter/mask_channel = null
+shader_parameter/mask_uv = null
+shader_parameter/mask_wrap = null
+shader_parameter/mask_st = null
+shader_parameter/mask_scroll = null
+shader_parameter/mask_angle = null
+shader_parameter/mask_spin = null
+shader_parameter/mask_intensity = null
+shader_parameter/mask_distort = null
+shader_parameter/dissolve_enabled = null
+shader_parameter/dissolve_channel = null
+shader_parameter/dissolve_uv = null
+shader_parameter/dissolve_wrap = null
+shader_parameter/dissolve_st = null
+shader_parameter/dissolve_scroll = null
+shader_parameter/dissolve_angle = null
+shader_parameter/dissolve_spin = null
+shader_parameter/dissolve_random_offset = null
+shader_parameter/dissolve_range = null
+shader_parameter/dissolve_range_drive = null
+shader_parameter/dissolve_random = null
+shader_parameter/dissolve_smooth = null
+shader_parameter/dissolve_edge_width = null
+shader_parameter/dissolve_edge_mode = null
+shader_parameter/dissolve_edge_color = null
+shader_parameter/dissolve_mask_enabled = null
+shader_parameter/dissolve_mask_channel = null
+shader_parameter/dissolve_mask_intensity = null
+shader_parameter/dissolve_distort = null
+shader_parameter/distortion_enabled = null
+shader_parameter/distortion_mode = null
+shader_parameter/distortion_channel = null
+shader_parameter/distortion_channel_u = null
+shader_parameter/distortion_channel_v = null
+shader_parameter/distortion_intensity = null
+shader_parameter/distortion_intensity_drive = null
+shader_parameter/distortion_mid = null
+shader_parameter/distortion_direction = null
+shader_parameter/distortion_uv = null
+shader_parameter/distortion_wrap = null
+shader_parameter/distortion_st = null
+shader_parameter/distortion_scroll = null
+shader_parameter/distortion_angle = null
+shader_parameter/distortion_spin = null
+shader_parameter/distortion_mask_enabled = null
+shader_parameter/distortion_mask_channel = null
+shader_parameter/distortion_mask_intensity = null
+shader_parameter/offset_enabled = null
+shader_parameter/offset_channel = null
+shader_parameter/offset_uv = null
+shader_parameter/offset_wrap = null
+shader_parameter/offset_st = null
+shader_parameter/offset_scroll = null
+shader_parameter/offset_angle = null
+shader_parameter/offset_spin = null
+shader_parameter/offset_direction = null
+shader_parameter/offset_mid = null
+shader_parameter/offset_intensity = null
+shader_parameter/offset_intensity_drive = null
+shader_parameter/offset_axis_scale = null
+shader_parameter/offset_mask_enabled = null
+shader_parameter/offset_mask_channel = null
+shader_parameter/offset_mask_intensity = null
+shader_parameter/offset_distort = null
+shader_parameter/rim_enabled = null
+shader_parameter/rim_output = null
+shader_parameter/rim_color = null
+shader_parameter/rim_blend = null
+shader_parameter/rim_progress = null
+shader_parameter/rim_sharpness = null
+shader_parameter/rim_abs = null
+shader_parameter/rim_inverse = null
+shader_parameter/rim_intensity = null
+shader_parameter/soft_particles = null
+shader_parameter/depth_softness = null
+shader_parameter/depth_edge = null
+shader_parameter/depth_edge_color = null
+shader_parameter/depth_edge_contrast = null
+shader_parameter/depth_edge_blend = null
+shader_parameter/camera_fade = null
+shader_parameter/camera_fade_near = null
+shader_parameter/camera_fade_far = null
+shader_parameter/camera_fade_width = null
+
+[sub_resource type="QuadMesh" id="QuadMesh_7hpty"]
+material = SubResource("ShaderMaterial_dvlk8")
+size = Vector2(0.19600001, 0.19600001)
+
+[sub_resource type="Animation" id="Animation_uu28l"]
+length = 0.9
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Light:light_energy")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.6, 0.9),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.3, 0.3, 0.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_vabuv"]
+_data = {
+&"play": SubResource("Animation_uu28l")
+}
+
+[node name="TreatWounds" type="Node3D" unique_id=1761884514]
+script = ExtResource("1_k88x7")
+Lifetime = 1.4
+
+[node name="Ground" type="Node3D" parent="." unique_id=1635565233]
+unique_name_in_owner = true
+
+[node name="Body" type="Node3D" parent="." unique_id=934128427]
+unique_name_in_owner = true
+
+[node name="Tall" type="Node3D" parent="Body" unique_id=1057951484]
+unique_name_in_owner = true
+
+[node name="Wrap" type="GPUParticles3D" parent="Body/Tall" unique_id=656584964]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.84, 0)
+cast_shadow = 0
+emitting = false
+amount = 1
+lifetime = 1.36
+one_shot = true
+explosiveness = 1.0
+local_coords = true
+transform_align = 1
+process_material = SubResource("ParticleProcessMaterial_3o52f")
+draw_pass_1 = SubResource("QuadMesh_1v8e3")
+
+[node name="Sparkles" type="GPUParticles3D" parent="Body/Tall" unique_id=2021503140]
+unique_name_in_owner = true
+cast_shadow = 0
+emitting = false
+amount = 4
+one_shot = true
+explosiveness = 0.7
+local_coords = true
+transform_align = 1
+process_material = SubResource("ParticleProcessMaterial_g3fky")
+draw_pass_1 = SubResource("QuadMesh_sq8kc")
+
+[node name="Low" type="Node3D" parent="Body" unique_id=1498741606]
+unique_name_in_owner = true
+visible = false
+
+[node name="WrapLow" type="GPUParticles3D" parent="Body/Low" unique_id=654245807]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, 0)
+cast_shadow = 0
+emitting = false
+amount = 1
+lifetime = 1.36
+one_shot = true
+explosiveness = 1.0
+local_coords = true
+transform_align = 1
+process_material = SubResource("ParticleProcessMaterial_h28hj")
+draw_pass_1 = SubResource("QuadMesh_x4gir")
+
+[node name="SparklesLow" type="GPUParticles3D" parent="Body/Low" unique_id=308680566]
+unique_name_in_owner = true
+cast_shadow = 0
+emitting = false
+amount = 2
+one_shot = true
+explosiveness = 0.7
+local_coords = true
+transform_align = 1
+process_material = SubResource("ParticleProcessMaterial_kdgyj")
+draw_pass_1 = SubResource("QuadMesh_7hpty")
+
+[node name="Light" type="OmniLight3D" parent="." unique_id=1620663615]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, 0)
+light_color = Color(1, 0.72, 0.42, 1)
+light_energy = 0.0
+omni_range = 1.1
+
+[node name="Anim" type="AnimationPlayer" parent="." unique_id=1042647540]
+unique_name_in_owner = true
+libraries/ = SubResource("AnimationLibrary_vabuv")

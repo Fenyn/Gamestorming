@@ -18,13 +18,15 @@ public static class GroundTextureBaker
     /// built once per map by the caller and shared with the mesh builder.
     /// <paramref name="worldOrigin"/> is the world XZ of the layout's tile (0,0) corner: the atlas
     /// is sampled relative to it, so a mesh translated away from the origin keeps its own cells.
+    /// <paramref name="sludgeFlow"/> is the world XZ velocity the sludge ripple drifts at.
     /// </summary>
     public static Material? Bake(
-        MapLayout layout, MapThemeDefinition theme, SurfaceType[] eff, Vector2 worldOrigin = default)
+        MapLayout layout, MapThemeDefinition theme, SurfaceType[] eff, Vector2 worldOrigin = default,
+        Vector2 sludgeFlow = default)
     {
         bool anyTexture = false;
         foreach (var style in theme.Surfaces.Values)
-            anyTexture |= style.HasTopTexture;
+            anyTexture |= style.HasTopTexture || style.HasCapTexture;
         if (!anyTexture) return null;
 
         var landmarks = new LandmarkTexturePainter(layout, theme.LandmarkStoneColor);
@@ -39,12 +41,16 @@ public static class GroundTextureBaker
             var surface = eff[y * w + x];
             var origin = new Vector2I(x * tilePx, y * tilePx);
 
-            var variants = TopTextures(theme, surface);
+            bool cap = layout.GetTile(x, y) == TileRole.Wall && theme.Style(surface) is { HasCapTexture: true };
+            var variants = cap ? theme.Style(surface)!.CapTextures : TopTextures(theme, surface);
+            // Wall tops are dry; the walkable floor carries the surface's wetness in the atlas alpha.
+            float wetness = cap ? 0f : theme.Style(surface)?.Wetness ?? 0f;
             if (variants == null)
             {
                 // Untextured surface (water, sand, …): flat theme colour keeps the sheet holeless.
-                board.FillRect(new Rect2I(origin, new Vector2I(tilePx, tilePx)),
-                    MapMaterials.ToGodot(theme.TopColor(surface)));
+                var flat = MapMaterials.ToGodot(theme.TopColor(surface));
+                flat.A = 1f - wetness;
+                board.FillRect(new Rect2I(origin, new Vector2I(tilePx, tilePx)), flat);
                 continue;
             }
 
@@ -57,7 +63,7 @@ public static class GroundTextureBaker
 
             // A texture larger than one tile is a field that spans several tiles: each tile takes its
             // own window of it by board position, so the painting runs on across tile edges.
-            var source = LoadTile(sources, pick, tilePx);
+            var source = LoadWet(sources, pick, tilePx, wetness);
             var window = new Vector2I(x * tilePx % Mathf.Max(tilePx, source.GetWidth()),
                 y * tilePx % Mathf.Max(tilePx, source.GetHeight()));
             board.BlitRect(source, new Rect2I(window, new Vector2I(tilePx, tilePx)), origin);
@@ -66,7 +72,7 @@ public static class GroundTextureBaker
 
         GroundTextureTransitions.Blend(board, layout, eff, tilePx);
 
-        var material = BuildGroundMaterial(board, w, h, worldOrigin);
+        var material = BuildGroundMaterial(board, w, h, worldOrigin, sludgeFlow);
         return material;
     }
 
@@ -89,6 +95,8 @@ public static class GroundTextureBaker
 
     private const string GroundShaderPath = "res://assets/shaders/terrain_ground.gdshader";
 
+    public const string SludgeFlowUniform = "sludge_flow";
+
     /// <summary>
     /// The board material: a straight top-down projection (terrain_ground.gdshader), NOT triplanar —
     /// on a steep slope triplanar fades toward the side projections, which sample the board-spanning
@@ -96,7 +104,7 @@ public static class GroundTextureBaker
     /// stretches a slope's own cell down the incline instead, the way RPG Maker cliff art behaves.
     /// Falls back to a triplanar StandardMaterial3D if the shader asset is missing.
     /// </summary>
-    private static Material BuildGroundMaterial(Image board, int w, int h, Vector2 worldOrigin)
+    private static Material BuildGroundMaterial(Image board, int w, int h, Vector2 worldOrigin, Vector2 sludgeFlow)
     {
         var texture = ImageTexture.CreateFromImage(board);
 
@@ -107,6 +115,7 @@ public static class GroundTextureBaker
             material.SetShaderParameter("ground_texture", texture);
             material.SetShaderParameter("board_inv_size", new Vector2(1f / w, 1f / h));
             material.SetShaderParameter("board_origin", worldOrigin);
+            material.SetShaderParameter(SludgeFlowUniform, sludgeFlow);
             return material;
         }
 
@@ -122,6 +131,27 @@ public static class GroundTextureBaker
             Roughness = 1f,
             Metallic = 0f,
         };
+    }
+
+    /// <summary>
+    /// A tile sheet with its alpha set to 1 - <paramref name="wetness"/>. The ground shader reads
+    /// the atlas alpha as wetness, so the value travels with the pixels through the transition
+    /// blend. Cached per path and wetness, so each source is rewritten once per bake.
+    /// </summary>
+    private static Image LoadWet(Dictionary<string, Image> cache, string path, int tilePx, float wetness)
+    {
+        var dry = LoadTile(cache, path, tilePx);
+        if (wetness <= 0f) return dry;
+
+        string key = $"{path}@wet{wetness:0.00}";
+        if (cache.TryGetValue(key, out var cached)) return cached;
+
+        byte alpha = (byte)Mathf.RoundToInt(Mathf.Clamp(1f - wetness, 0f, 1f) * 255f);
+        var data = dry.GetData();
+        for (int i = 3; i < data.Length; i += 4) data[i] = alpha;
+        var wet = Image.CreateFromData(dry.GetWidth(), dry.GetHeight(), false, Image.Format.Rgba8, data);
+        cache[key] = wet;
+        return wet;
     }
 
     /// <summary>Suffix on a tile path requesting the source art rotated 90° (bridge slats).</summary>

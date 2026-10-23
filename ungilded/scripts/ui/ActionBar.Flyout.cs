@@ -89,6 +89,7 @@ public partial class ActionBar
     /// <summary>A pressed chip fires the category's intent and folds the flyout away.</summary>
     private void OnChipPressed(ChipSpec spec)
     {
+        if (Blocked) return;
         if (_openCategory == FlyoutCategory.Spells)
             SpellChipPressed?.Invoke(spec.Id, spec.Variant);
         else if (_openCategory == FlyoutCategory.Skills)

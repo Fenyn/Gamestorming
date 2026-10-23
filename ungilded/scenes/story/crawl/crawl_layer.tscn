@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/story/DriftLayer.cs" id="1_layer"]
+
+[node name="Layer" type="TextureRect"]
+texture_repeat = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 1
+script = ExtResource("1_layer")
+
+[node name="LeftEdge" type="TextureRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+
+[node name="RightEdge" type="TextureRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1

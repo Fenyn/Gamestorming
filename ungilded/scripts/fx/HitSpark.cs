@@ -16,8 +16,8 @@ public partial class HitSpark : OneShotFx
 {
     public HitSpark()
     {
-        // Warm bright white: the neutral "steel on flesh or armor" spark.
-        Tint = new Color(1f, 0.92f, 0.75f);
+        // Blood red (#E6261F): the plain physical hit.
+        Tint = new Color(0.9f, 0.15f, 0.12f);
         Lifetime = 0.35f;
     }
 

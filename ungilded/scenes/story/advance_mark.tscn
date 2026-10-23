@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/story/AdvanceMark.cs" id="1_mark"]
+[ext_resource type="Texture2D" path="res://assets/ui/advance_mark.png" id="2_caret"]
+
+[node name="AdvanceMark" type="TextureRect"]
+visible = false
+mouse_filter = 2
+texture = ExtResource("2_caret")
+expand_mode = 1
+script = ExtResource("1_mark")
+PixelScale = 3
+BobArtPixels = 2
+BobSeconds = 0.9

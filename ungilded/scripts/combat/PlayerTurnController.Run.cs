@@ -43,7 +43,7 @@ public sealed partial class PlayerTurnController
     /// the action animates. A changed <see cref="_current"/> or a cancelled encounter means the state
     /// this continuation would publish belongs to a turn that is over — drop it.
     /// </summary>
-    private async void RunAction(Func<Task<bool>> action)
+    private async void RunAction(Func<Task<bool>> action, PlayerOrder order = default)
     {
         if (_busy || _current == null) return;
         var actor = _current;
@@ -54,6 +54,7 @@ public sealed partial class PlayerTurnController
 
         try
         {
+            BeforeCommand?.Invoke(order);
             if (await action()) _actedThisTurn = true;
             if (AfterAction != null && !CancellationToken.IsCancellationRequested) await AfterAction();
         }
@@ -76,7 +77,7 @@ public sealed partial class PlayerTurnController
         int remaining = _current?.Actions?.TotalActionsRemaining ?? 0;
         PublishState();
 
-        if (remaining <= 0 || !CanAct(actor))
+        if (!CanAct(actor) || remaining <= 0 && AutoEndTurn)
             EndTurnRequested?.Invoke();
     }
 }

@@ -13,17 +13,14 @@ config_version=5
 config/name="Ungilded"
 run/main_scene="res://scenes/story/title.tscn"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://icon.png"
 
 [autoload]
 
 DataManager="*res://scripts/autoload/DataManager.cs"
 ModalStack="*res://scripts/autoload/ModalStack.cs"
 PauseMenu="*res://scenes/ui/pause_menu.tscn"
-
-[ungilded]
-
-pf2e_pack_path="F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e"
+DevJumpMenu="*res://scenes/dev/dev_jump_menu.tscn"
 
 [display]
 
@@ -149,6 +146,11 @@ menu_next={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":69,"physical_keycode":0,"key_label":0,"unicode":101,"location":0,"echo":false,"script":null)
 ]
 }
+dev_jump_menu={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":4194340,"physical_keycode":0,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
 
 [layer_names]
 
@@ -173,3 +175,19 @@ look_halo={
 "type": "vec4",
 "value": Vector4(0, 0, 0, 0)
 }
+cutaway_map={
+"type": "sampler2D",
+"value": ""
+}
+cutaway_rect={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+cutaway_state={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+
+[ungilded]
+
+pf2e_pack_path="F:/dev/Pf2e.Core/Data/pf2e-source/packs/pf2e"

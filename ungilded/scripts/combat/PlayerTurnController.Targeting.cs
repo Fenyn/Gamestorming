@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using PF2eVec = PF2e.Vector2Int;
+
 namespace Ungilded.Combat;
 
-/// <summary>Spell and skill intents: each enters its target-selection mode or runs at once.</summary>
+/// <summary>Spell, skill and bomb intents: each enters its target-selection mode or runs at once.</summary>
 public sealed partial class PlayerTurnController
 {
     /// <summary>Begin casting a spell (or a cost-variant). Enters the matching selection mode, or
@@ -57,6 +60,12 @@ public sealed partial class PlayerTurnController
         if (!Ready()) return;
         ClearTransient();
 
+        if (PlayerActionExecutor.IsBombAction(actionId))
+        {
+            BeginBomb(actionId);
+            return;
+        }
+
         if (PlayerActionExecutor.IsSelfSkill(actionId))
         {
             RunAction(() => _exec.ExecuteSelfSkill(_current!, actionId));
@@ -74,12 +83,29 @@ public sealed partial class PlayerTurnController
         }
 
         var plan = _exec.GetSkillTargets(_current!, actionId);
+        if (TargetFilter != null)
+            plan.Tiles.RemoveWhere(tile => _exec.GetSpellTargetAt(tile) is { } creature && !Targetable(creature));
         if (plan.Tiles.Count == 0) { Cancel(); return; }
 
         _pendingSkillId = actionId;
         _skillTiles = plan.Tiles;
         SetMode(PlayerTurnMode.SelectingSkillTarget);
         HighlightsChanged?.Invoke(_skillTiles, HighlightFor(plan.Kind));
+    }
+
+    /// <summary>Light the foes in range of the bomb; the hover shows its splash, a click throws.</summary>
+    private void BeginBomb(string bombId)
+    {
+        foreach (var target in _exec.GetBombTargets(_current!, bombId))
+        {
+            if (!Targetable(target)) continue;
+            foreach (var tile in CreatureTargetTiles.For(target))
+                _bombTargets[tile] = target;
+        }
+        if (_bombTargets.Count == 0) { Cancel(); return; }
+        _pendingBombId = bombId;
+        SetMode(PlayerTurnMode.SelectingBombTarget);
+        HighlightsChanged?.Invoke(new List<PF2eVec>(_bombTargets.Keys), HighlightKind.SpellEnemyTarget);
     }
 
     /// <summary>Highlight colour a target-selection mode paints its legal tiles with.</summary>

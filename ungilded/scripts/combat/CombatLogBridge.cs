@@ -11,7 +11,7 @@ using PF2e.Events;
 namespace Ungilded.Combat;
 
 /// <summary>Encounter-owned subscriptions; supplements engine text with presentation outcomes.</summary>
-internal sealed class CombatLogBridge : IDisposable
+internal sealed partial class CombatLogBridge : IDisposable
 {
     private readonly CombatLogPanel _panel;
     private readonly HashSet<ICharacter> _units = new();
@@ -33,11 +33,12 @@ internal sealed class CombatLogBridge : IDisposable
         panel.SetEnemies(System.Linq.Enumerable.Select(enemies, unit => unit.Name));
         CombatLog.OnLogEntry += OnEntry;
         SpellCastAction.OnSpellResolved += OnSpell;
+        foreach (var unit in _units) WatchPersistentDamage(unit);
     }
 
     private void OnEntry(CombatLogEntry entry)
     {
-        if (_disposed || entry.Message is not { } line) return;
+        if (_disposed || entry.Message is not { } line || EngineSplash.IsMatch(line)) return;
         string? message = line;
         RollBreakdown? breakdown = null;
         if (!entry.IsDetail)
@@ -116,9 +117,11 @@ internal sealed class CombatLogBridge : IDisposable
             case BattleEventType.TurnDelayed when evt.Source != null && evt.Target != null:
                 _panel.AppendEntry($"{evt.Source.Name} delays until after {evt.Target.Name}.", 8, false);
                 break;
-            case BattleEventType.DamageDealt when evt.Target != null && evt.IntValue is int damage:
+            // A persistent tick has its own row with the HP pair (CombatLogBridge.Persistent.cs).
+            case BattleEventType.DamageDealt when evt.Target != null && evt.IntValue is int damage
+                && evt.Damage?.Cause != DamageCause.Persistent:
                 string type = evt.DamageType is { } damageType ? $" {damageType.ToString().ToLowerInvariant()}" : "";
-                _panel.AppendEntry($"{evt.Target.Name} takes {damage}{type} damage.", 0, true);
+                _panel.AppendEntry($"{evt.Target.Name} takes {damage}{type} damage{BombParts(evt)}.", 0, true);
                 break;
             case BattleEventType.Healed when evt.Target != null && evt.IntValue is int healing:
                 _panel.AppendEntry($"{evt.Target.Name} regains {healing} HP.", 5, true);
@@ -131,6 +134,20 @@ internal sealed class CombatLogBridge : IDisposable
                 break;
         }
     }
+
+    /// <summary>A bomb hit's parts: ": direct 1, splash 1, weakness 3", or ": splash 1".</summary>
+    private static string BombParts(BattleEvent evt)
+    {
+        if (evt.Extra == null || !evt.Extra.ContainsKey(BombEventKeys.Splash)) return "";
+        var parts = new List<string>();
+        if (evt.Get(BombEventKeys.Direct, 0) is int direct and > 0) parts.Add($"direct {direct}");
+        if (evt.Get(BombEventKeys.Splash, 0) is int splash and > 0) parts.Add($"splash {splash}");
+        if (evt.Get(BombEventKeys.Weakness, 0) is int weakness and > 0) parts.Add($"weakness {weakness}");
+        return parts.Count == 0 ? "" : ": " + string.Join(", ", parts);
+    }
+
+    /// <summary>The engine's own splash line; the DamageDealt row carries the same number with its parts.</summary>
+    private static readonly System.Text.RegularExpressions.Regex EngineSplash = new(@"^.+ takes \d+ [a-z]+ splash$");
 
     private static readonly System.Text.RegularExpressions.Regex EngineStride =
         new(@"^(.+) (Strides|Crawls) to \((\d+), (\d+)\)$");
@@ -176,5 +193,6 @@ internal sealed class CombatLogBridge : IDisposable
         _disposed = true;
         CombatLog.OnLogEntry -= OnEntry;
         SpellCastAction.OnSpellResolved -= OnSpell;
+        StopWatchingPersistentDamage();
     }
 }

@@ -48,8 +48,22 @@ public sealed partial class PlayerTurnController
         PlayerTurnMode.SelectingStrike => _strikeTargets.ContainsKey(tile),
         PlayerTurnMode.SelectingSpellTarget => _spellTiles.Contains(tile),
         PlayerTurnMode.SelectingSkillTarget => _skillTiles.Contains(tile),
+        PlayerTurnMode.SelectingBombTarget => _bombTargets.ContainsKey(tile),
         _ => false,
     };
+
+    /// <summary>Tutorial seam: false drops the creature from Strike, skill and bomb target sets.
+    /// Null keeps every legal target.</summary>
+    public Func<ICharacter, bool>? TargetFilter { get; set; }
+
+    /// <summary>False keeps the turn open at 0 actions until End Turn is chosen.</summary>
+    public bool AutoEndTurn { get; set; } = true;
+
+    /// <summary>Runs as the player commits an order (an action starts, or End Turn), after every
+    /// hover preview. A tutorial queues its forced dice here, read from the state the order runs in.</summary>
+    public Action<PlayerOrder>? BeforeCommand { get; set; }
+
+    private bool Targetable(ICharacter creature) => TargetFilter?.Invoke(creature) != false;
 
     /// <summary>An action was executed this turn. Delay is a free action as the turn BEGINS, so
     /// this closes it.</summary>
@@ -62,6 +76,8 @@ public sealed partial class PlayerTurnController
     private MovePlan? _plan;
     private HashSet<PF2eVec> _moveTiles = new();
     private readonly Dictionary<PF2eVec, ICharacter> _strikeTargets = new();
+    private readonly Dictionary<PF2eVec, ICharacter> _bombTargets = new();
+    private string _pendingBombId = "";
 
     // Pending spell/skill selection state.
     private readonly List<ICharacter> _selectedSpellTargets = new();
@@ -164,8 +180,11 @@ public sealed partial class PlayerTurnController
         if (!Ready()) return;
         ClearTransient();
         foreach (var t in _exec.GetStrikeTargets(_current!))
+        {
+            if (!Targetable(t)) continue;
             foreach (var tile in CreatureTargetTiles.For(t))
                 _strikeTargets[tile] = t;
+        }
         if (_strikeTargets.Count == 0) { Cancel(); return; }
         SetMode(PlayerTurnMode.SelectingStrike);
         HighlightsChanged?.Invoke(new List<PF2eVec>(_strikeTargets.Keys), HighlightKind.StrikeTarget);
@@ -181,6 +200,7 @@ public sealed partial class PlayerTurnController
     public void EndTurn()
     {
         if (_busy) return;
+        BeforeCommand?.Invoke(new PlayerOrder(PlayerOrderKind.EndTurn));
         EndTurnRequested?.Invoke();
     }
 
@@ -214,6 +234,8 @@ public sealed partial class PlayerTurnController
         _plan = null;
         _moveTiles = new();
         _strikeTargets.Clear();
+        _bombTargets.Clear();
+        _pendingBombId = "";
         _spellTiles = new();
         _selectedSpellTargets.Clear();
         _spellTargetLimit = 0;

@@ -47,6 +47,53 @@ public partial class UnitInspectPanel : PanelContainer
     public bool CalloutShown => _callout.Visible;
     public string CalloutText => _callout.Text;
 
+    /// <summary>The action squares, or null while the card does not draw them.</summary>
+    public Control? ActionPipsPart => Drawn(_actionPips);
+
+    /// <summary>The reaction diamond, or null while the card does not draw it.</summary>
+    public Control? ReactionPart => Drawn(_reactionSlot);
+
+    /// <summary>The reaction diamond's hover. The diamond's colour shows whether it is spent.</summary>
+    public const string ReactionTooltip = "1 reaction per round. It comes back at the start of your turn.";
+
+    /// <summary>The reaction diamond's hover text as set, for the spikes.</summary>
+    public string ReactionHover => _reactionSlot.TooltipText;
+
+    /// <summary>The name row (letter badge and name), or null while the card is hidden.</summary>
+    public Control? NamePart => Drawn(_nameLabel.GetParent<Control>());
+
+    /// <summary>The HP bar and, when it shows, the HP line above it.</summary>
+    public IEnumerable<Control> HpParts()
+    {
+        if (Drawn(_hpLabel) is { } label) yield return label;
+        if (Drawn(_hpBar) is { } bar) yield return bar;
+    }
+
+    /// <summary>The knowledge row whose label is <paramref name="label"/> ("AC", "Weakness"), or null.</summary>
+    public Control? KnowledgePart(string label)
+        => FindRow(label) is { } row && row.Index < row.Grid.GetChildCount()
+            ? Drawn(row.Grid.GetChild<Control>(row.Index)) : null;
+
+    private static Control? Drawn(Control control) => control.IsVisibleInTree() ? control : null;
+
+    /// <summary>Pulse the knowledge row whose label is <paramref name="field"/> ("Abilities"), with
+    /// no change to its text. False when the card shows no such row.</summary>
+    public bool PulseKnowledgeRow(string field)
+        => Visible && FindRow(field) is { } row && row.Grid.Pulse(row.Index);
+
+    /// <summary>The grid that draws the row labelled <paramref name="label"/>, and its index there.</summary>
+    private (JournalFactsGrid Grid, int Index)? FindRow(string label)
+    {
+        foreach (var (grid, texts) in new[] { (_knowledge, _shortTexts), (_knowledgeWide, _wideTexts) })
+            for (int i = 0; i < texts.Length; i++)
+                if (texts[i].StartsWith(label + " ", System.StringComparison.Ordinal)) return (grid, i);
+        return null;
+    }
+
+    private string[] _shortTexts = System.Array.Empty<string>();
+    private string[] _wideTexts = System.Array.Empty<string>();
+    private JournalFactsGrid _knowledgeWide = null!;
+
     public override void _Ready()
     {
         _portraitFrame = GetNode<PanelContainer>("%PortraitFrame");
@@ -65,6 +112,7 @@ public partial class UnitInspectPanel : PanelContainer
         _hpLabel = GetNode<Label>("%HpLabel");
         _conditionsLabel = GetNode<Label>("%ConditionsLabel");
         _knowledge = GetNode<JournalFactsGrid>("%KnowledgeGrid");
+        _knowledgeWide = GetNode<JournalFactsGrid>("%KnowledgeWide");
         _callout = GetNode<Label>("%HiddenCallout");
         Visible = false;
     }
@@ -99,9 +147,17 @@ public partial class UnitInspectPanel : PanelContainer
         _acLabel.Text = view.AcText;
         // The knowledge rows carry AC themselves, "???" included.
         _acLabel.Visible = !Masked(view.AcText) && view.KnowledgeRows.Count == 0;
-        _knowledge.Visible = view.KnowledgeRows.Count > 0;
-        _knowledge.Render(view.KnowledgeRows);
-        KnowledgeTexts = view.KnowledgeRows.Select(r => r.Text).ToArray();
+        // Short values share a grid; a long one (a weakness list, the strikes) gets its own line,
+        // so a revealed value never runs into the next column.
+        var shortRows = view.KnowledgeRows.Where(r => !r.Wide).ToArray();
+        var wideRows = view.KnowledgeRows.Where(r => r.Wide).ToArray();
+        _knowledge.Visible = shortRows.Length > 0;
+        _knowledge.Render(shortRows);
+        _knowledgeWide.Visible = wideRows.Length > 0;
+        _knowledgeWide.Render(wideRows);
+        _shortTexts = shortRows.Select(r => r.Text).ToArray();
+        _wideTexts = wideRows.Select(r => r.Text).ToArray();
+        KnowledgeTexts = _shortTexts.Concat(_wideTexts).ToArray();
         _callout.Text = view.HiddenCallout;
         _callout.Visible = view.HiddenCallout.Length > 0 && view.KnowledgeRows.Any(r => !r.Known);
         _portrait.Texture = UnitPortraits.For(view.HeroId, view.SpriteFolder);
@@ -114,7 +170,7 @@ public partial class UnitInspectPanel : PanelContainer
         RenderPips();
         _reactionSlot.Visible = view.Reaction != ReactionMark.None;
         _reaction.ThemeTypeVariation = view.Reaction == ReactionMark.Ready ? ThemeNames.ReactionReady : ThemeNames.ReactionSpent;
-        _reactionSlot.TooltipText = view.Reaction == ReactionMark.Ready ? "Reaction ready" : "Reaction spent";
+        _reactionSlot.TooltipText = ReactionTooltip;
 
         int maxHp = System.Math.Max(1, view.MaxHp);
         _hpBar.MaxValue = maxHp;

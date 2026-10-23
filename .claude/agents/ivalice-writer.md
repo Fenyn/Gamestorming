@@ -47,7 +47,9 @@ Cut or rewrite on sight:
   (narration states who, where and why in plain words);
 - em dashes, en dashes and hyphenated coinages; colons or semicolons used as a dramatic pause;
 - capitals, "?!" and "..." stacked in one line (one emphasis device per line);
-- the same verb meaning two things in teaching text (match the game's button words).
+- the same verb meaning two things in teaching text (match the game's button words);
+- everything in `.claude/skills/no-ai-tells/SKILL.md` (puffery, overused words, "serves as",
+  trailing "-ing" commentary). Run `python .claude/hooks/ai_tells.py <draft>` on your draft.
 
 ## Continuity
 

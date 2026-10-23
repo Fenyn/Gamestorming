@@ -1,0 +1,89 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/story/CrawlScenery.cs" id="1_scenery"]
+[ext_resource type="PackedScene" path="res://scenes/story/crawl/crawl_layer.tscn" id="2_layer"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/slum/sky.png" id="t_sky"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/slum/stars.png" id="t_stars"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/slum/capital.png" id="t_capital"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/slum/heap.png" id="t_heap"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/slum/haze.png" id="t_haze"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/slum/far.png" id="t_far"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/slum/mid.png" id="t_mid"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/slum/near.png" id="t_near"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/slum/fore.png" id="t_fore"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/slum/lamp.png" id="t_lamp"]
+
+[node name="Slum" type="Control" node_paths=PackedStringArray("Layers")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_scenery")
+Layers = [NodePath("Sky"), NodePath("Stars"), NodePath("Capital"), NodePath("Heap"), NodePath("Haze"), NodePath("Far"), NodePath("Mid"), NodePath("Near"), NodePath("Fore"), NodePath("Lamp")]
+
+[node name="Sky" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t_sky")
+Drift = Vector2(-7, 0)
+
+[node name="Stars" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t_stars")
+Drift = Vector2(-7, 0)
+Tiles = false
+
+[node name="Capital" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t_capital")
+Drift = Vector2(-21, 0)
+Tiles = false
+
+[node name="Heap" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t_heap")
+Drift = Vector2(-35, 0)
+
+[node name="Haze" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t_haze")
+Drift = Vector2(-42, 0)
+
+[node name="Far" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t_far")
+Drift = Vector2(-56, 0)
+
+[node name="Mid" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t_mid")
+Drift = Vector2(-77, 0)
+
+[node name="Near" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t_near")
+Drift = Vector2(-105, 0)
+
+[node name="Fore" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t_fore")
+Drift = Vector2(-140, 0)
+Tiles = false
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.0235294, 0.0196078, 0.0470588, 0.15)
+
+[node name="Lamp" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t_lamp")
+Drift = Vector2(-140, 0)
+Tiles = false

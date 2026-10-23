@@ -80,6 +80,9 @@ public partial class ActionBar : Control
 
     private bool Allowed(CaptionButton button) => Allowed(button.ActionText);
 
+    /// <summary>A modal (the reaction prompt, a story box or popup) holds the HUD: menu clicks do nothing.</summary>
+    private bool Blocked => _hud?.ModalActive == true;
+
     public DecisionSlot Decision { get; private set; } = null!;
     public Control BarPanel => _bar;
     public string ActorName => _lastActorName;
@@ -125,11 +128,11 @@ public partial class ActionBar : Control
         GetNode<Button>("%Overview").Pressed += () => OverviewPressed?.Invoke();
         _stageOrders.Toggled += _ => StagingChanged?.Invoke();
 
-        _moveBtn.Pressed += () => MovePressed?.Invoke();
-        _strikeBtn.Pressed += () => StrikePressed?.Invoke();
-        _shieldBtn.Pressed += () => RaiseShieldPressed?.Invoke();
-        _delayBtn.Pressed += () => DelayPressed?.Invoke();
-        _endBtn.Pressed += () => EndTurnPressed?.Invoke();
+        _moveBtn.Pressed += () => { if (!Blocked) MovePressed?.Invoke(); };
+        _strikeBtn.Pressed += () => { if (!Blocked) StrikePressed?.Invoke(); };
+        _shieldBtn.Pressed += () => { if (!Blocked) RaiseShieldPressed?.Invoke(); };
+        _delayBtn.Pressed += () => { if (!Blocked) DelayPressed?.Invoke(); };
+        _endBtn.Pressed += () => { if (!Blocked) EndTurnPressed?.Invoke(); };
         _spellsBtn.Toggled += on => SetFlyout(on ? FlyoutCategory.Spells : FlyoutCategory.None);
         _skillsBtn.Toggled += on => SetFlyout(on ? FlyoutCategory.Skills : FlyoutCategory.None);
         _aiToggle.Toggled += on => { if (!_suppressToggle) AiToggled?.Invoke(on); };

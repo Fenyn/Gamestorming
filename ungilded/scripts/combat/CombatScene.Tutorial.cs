@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Threading.Tasks;
 using Ungilded.Knowledge;
 using Ungilded.Terrain;
@@ -66,7 +65,7 @@ public partial class CombatScene
     {
         if (!IsInsideTree()) return;
         var hooks = _session?.Tutorial;
-        _moveBands.SetGuideTiles(hooks?.MoveTiles ?? NoTiles);
+        _moveBands.SetGuideTiles(hooks?.MoveTiles ?? NoTiles, hooks?.MoveTilesAreHint == true);
         _actionBar.RefreshCommandGate();
         _controller?.RefreshState();
         if (_session != null) RefreshCard();
@@ -76,11 +75,28 @@ public partial class CombatScene
 
     private void StopListeningToTutorial() => Listen(null);
 
-    /// <summary>The bar state with the tutorial's move hint in place of the engine's.</summary>
+    private bool _tutorialTipShowing;
+
+    /// <summary>True while a tutorial tip is on screen. The tip carries the move instruction then,
+    /// so the forecast slot drops the tutorial's move hint.</summary>
+    public bool TutorialTipShowing
+    {
+        get => _tutorialTipShowing;
+        set
+        {
+            if (_tutorialTipShowing == value) return;
+            _tutorialTipShowing = value;
+            _controller?.RefreshState();
+        }
+    }
+
+    /// <summary>The bar state with the tutorial's move hint in place of the engine's, or with no
+    /// hint while a tip says it.</summary>
     private ActionBarState WithTutorialHint(ActionBarState state)
-        => _session?.Tutorial?.MoveHint is { } hint && state.ActionsRemaining > 0
-            ? state with { MoveRestriction = hint }
-            : state;
+    {
+        if (_session?.Tutorial?.MoveHint is not { } hint || state.ActionsRemaining <= 0) return state;
+        return state with { MoveRestriction = _tutorialTipShowing ? null : hint };
+    }
 
     /// <summary>False when a tutorial restriction refuses the command the current mode belongs to,
     /// so a board click cannot finish an order the menu would not start.</summary>

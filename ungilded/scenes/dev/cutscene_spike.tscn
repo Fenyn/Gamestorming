@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/CutsceneSpike.cs" id="1_spike"]
+[ext_resource type="PackedScene" path="res://scenes/story/prologue.tscn" id="2_prologue"]
+[ext_resource type="Resource" path="res://assets/story/narrative_intro.tres" id="3_intro"]
+[ext_resource type="Resource" path="res://assets/story/scene1_sewer_banter.tres" id="4_scene1"]
+[ext_resource type="Resource" path="res://assets/story/scene3a_post_encounter1.tres" id="5_scene3a"]
+[ext_resource type="Resource" path="res://assets/story/scene4_dead_truthseeker.tres" id="6_scene4"]
+[ext_resource type="Resource" path="res://assets/story/scene5_flanking.tres" id="7_scene5"]
+[ext_resource type="Resource" path="res://assets/story/scene6_post_encounter3.tres" id="8_scene6"]
+[ext_resource type="Resource" path="res://assets/story/scene7_boss_chamber.tres" id="9_scene7"]
+
+[node name="CutsceneSpike" type="Node"]
+script = ExtResource("1_spike")
+PrologueScene = ExtResource("2_prologue")
+Intro = ExtResource("3_intro")
+Scene1 = ExtResource("4_scene1")
+Scene3a = ExtResource("5_scene3a")
+Scene4 = ExtResource("6_scene4")
+Scene5 = ExtResource("7_scene5")
+Scene6 = ExtResource("8_scene6")
+Scene7 = ExtResource("9_scene7")

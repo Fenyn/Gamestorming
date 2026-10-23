@@ -250,7 +250,10 @@ public partial class SpellCastSpike : SpikeBase
             PF2e.TurnManagement.TurnManager.Instance.StartEncounter(new List<ICharacter> { caster, large, other });
             large.Health.TakeDamage(new DamageResult { TotalDamage = 999, DamageType = DamageType.Slashing });
             Check("large death frees every footprint tile during encounter", footprint.TrueForAll(t => !session.Grid.IsTileOccupied(t)));
-            Check("dead creature leaves turn order", !new List<PF2e.TurnManagement.TurnEntry>(session.TurnOrder!).Exists(t => t.Character == large));
+            // Killed on its own turn, it keeps that turn until the turn ends.
+            bool ownTurn = session.CurrentActor == large && session.CurrentTurnRemoved;
+            Check("dead creature leaves turn order", ownTurn
+                || !new List<PF2e.TurnManagement.TurnEntry>(session.TurnOrder!).Exists(t => t.Character == large));
             CombatantRegistry.Instance.Unregister(other);
             session.ReconcileOccupancy();
             Check("external registry removal frees tile and initiative", !session.Grid.IsTileOccupied(other.GridPosition)

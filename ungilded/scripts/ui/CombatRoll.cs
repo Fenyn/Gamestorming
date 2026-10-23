@@ -1,6 +1,40 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Ungilded.UI;
+
+/// <summary>A hit's damage as the engine rolled it: the weapon dice, the flat modifier on them, the
+/// critical doubling, the damage added after the doubling (named bonus damage, fatal dice), then the
+/// target's weakness and resistance. <see cref="Total"/> is the damage dealt; temporary Hit Points
+/// that absorbed part of it are not taken off.</summary>
+public sealed record DamageRoll(IReadOnlyList<int> Faces, int Sides, int Flat, bool Doubled,
+    IReadOnlyList<(string Label, int Value)> Extras, int Weakness, int Resistance, int Total, PF2e.Data.DamageType Type)
+{
+    public int DiceSum => Faces.Sum();
+
+    /// <summary>The roll behind one damage instance, or null for damage with no dice or with a label
+    /// of its own (a persistent damage tick).</summary>
+    public static DamageRoll? From(PF2e.Data.DamageResult result)
+    {
+        if (result.DiceRolls is not { Count: > 0 } faces || result.DamageLabel != null) return null;
+        int flat = (result.Formula?.Modifier ?? 0) + result.AbilityModifier + result.ConditionModifier;
+        int rolled = result.PreMitigationDamage > 0 ? result.PreMitigationDamage : result.TotalDamage;
+        int total = rolled + result.WeaknessApplied - result.ResistanceApplied;
+        int extra = rolled - (faces.Sum() + flat) * (result.WasCritical ? 2 : 1);
+        var extras = new List<(string, int)>();
+        foreach (var bonus in result.BonusDamageEntries ?? new())
+            if (bonus.Total != 0) extras.Add((bonus.Source ?? "", bonus.Total));
+        if (result.CritBonusRolls is { Count: > 0 } fatal) extras.Add(("", fatal.Sum()));
+        if (extras.Sum(e => e.Item2) != extra)
+        {
+            extras.Clear();
+            if (extra != 0) extras.Add(("", extra));
+        }
+        return new(faces.ToArray(), result.Formula?.DieSize ?? 0, flat, result.WasCritical, extras,
+            result.WeaknessApplied, result.ResistanceApplied, total, result.DamageType);
+    }
+}
 
 /// <summary>An already resolved roll, read from the engine's combat log: a Strike line
 /// ("d20(19)+10=29 vs AC 17 → CriticalSuccess") or a skill check line

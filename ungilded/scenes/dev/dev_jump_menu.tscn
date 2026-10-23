@@ -1,0 +1,63 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/DevJumpMenu.cs" id="1_jump"]
+
+[node name="DevJumpMenu" type="CanvasLayer" node_paths=PackedStringArray("BeatTemplate")]
+process_mode = 3
+layer = 40
+visible = false
+script = ExtResource("1_jump")
+PrologueScenePath = "res://scenes/story/prologue.tscn"
+TitleScenePath = "res://scenes/story/title.tscn"
+BeatTemplate = NodePath("BeatTemplate")
+
+[node name="Dim" type="Panel" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"ModalDim"
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Frame" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(480, 0)
+layout_mode = 2
+theme_type_variation = &"ModalPanel"
+
+[node name="Rows" type="VBoxContainer" parent="Center/Frame"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Heading" type="Label" parent="Center/Frame/Rows"]
+layout_mode = 2
+text = "Jump"
+horizontal_alignment = 1
+theme_type_variation = &"TitleLabel"
+
+[node name="Entries" type="VBoxContainer" parent="Center/Frame/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Button" parent="Center/Frame/Rows/Entries"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Title"
+alignment = 0
+
+[node name="BeatTemplate" type="Button" parent="."]
+visible = false
+custom_minimum_size = Vector2(0, 40)
+offset_right = 8.0
+offset_bottom = 8.0
+alignment = 0

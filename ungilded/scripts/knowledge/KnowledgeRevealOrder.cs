@@ -3,7 +3,7 @@ using PF2e.Data;
 
 namespace Ungilded.Knowledge;
 
-/// <summary>One journal field: the stat-block field and its short label ("AC", "Weak").</summary>
+/// <summary>One journal field: the stat-block field and its short label ("AC", "Weakness").</summary>
 public sealed record KnowledgeFieldRow(CreatureKnowledgeField Field, string Label);
 
 /// <summary>The journal's tunables: the fixed order Recall Knowledge reveals a species' fields in,
@@ -13,7 +13,7 @@ public static class KnowledgeRevealOrder
     public static readonly IReadOnlyList<KnowledgeFieldRow> Fields = new KnowledgeFieldRow[]
     {
         new(CreatureKnowledgeField.AC, "AC"),
-        new(CreatureKnowledgeField.Weaknesses, "Weak"),
+        new(CreatureKnowledgeField.Weaknesses, "Weakness"),
         new(CreatureKnowledgeField.MaxHP, "HP"),
         new(CreatureKnowledgeField.Resistances, "Resist"),
         new(CreatureKnowledgeField.Immunities, "Immune"),

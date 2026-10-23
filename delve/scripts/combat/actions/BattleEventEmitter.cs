@@ -27,16 +27,15 @@ internal sealed class BattleEventEmitter
         => _runner.Emit(type, source, target, description);
 
     /// <summary>
-    /// Emit the shared DamageDealt → CreatureDied pair every damage source funnels through (strikes,
-    /// spell outcomes, HP-delta skills). The optional <paramref name="description"/> preserves each
-    /// caller's exact log text; the default is the plain HP-delta line. <paramref name="targetKilled"/>
-    /// lets the strike path honor its StrikeContext.TargetKilled latch in addition to Health.IsDead.
+    /// Emit the DamageDealt every damage source funnels through (strikes, spell outcomes, HP-delta
+    /// skills). The runner follows a lethal one with the CreatureDied. The optional
+    /// <paramref name="description"/> preserves each caller's exact log text. <paramref name="targetKilled"/>
+    /// is no longer read: the runner's journal records the death.
     /// </summary>
-    internal async Task EmitDamageAndDeath(ICharacter source, ICharacter target, int damage,
+    internal Task EmitDamageAndDeath(ICharacter source, ICharacter target, int damage,
         DamageType? type = null, DegreeOfSuccess? degree = null, string? description = null,
         bool targetKilled = false)
-    {
-        await _runner.Emit(new BattleEvent
+        => _runner.Emit(new BattleEvent
         {
             Type = BattleEventType.DamageDealt,
             Source = source,
@@ -46,17 +45,6 @@ internal sealed class BattleEventEmitter
             Degree = degree,
             Description = description ?? $"{target.Name} takes {damage} damage"
         });
-
-        if (targetKilled || target.Health?.IsDead == true)
-        {
-            await _runner.Emit(new BattleEvent
-            {
-                Type = BattleEventType.CreatureDied,
-                Source = target,
-                Description = $"{target.Name} is slain!"
-            });
-        }
-    }
 
     /// <summary>
     /// Emit Damage/Died or Healed events from a target's HP delta since <paramref name="preHp"/> —

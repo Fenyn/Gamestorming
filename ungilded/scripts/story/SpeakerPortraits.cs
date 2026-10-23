@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 
 namespace Ungilded.Story;
 
@@ -9,7 +10,10 @@ public enum PortraitSide
     Right,
 }
 
-/// <summary>One speaker's portrait per <see cref="Emotion"/>, and where the box shows it.</summary>
+/// <summary>
+/// One speaker's portrait animations and where the box shows them. Each <see cref="Emotion"/> names
+/// two animations in <see cref="Frames"/>: one while its text types out and one while it waits.
+/// </summary>
 [GlobalClass]
 public partial class SpeakerPortraits : Resource
 {
@@ -21,19 +25,24 @@ public partial class SpeakerPortraits : Resource
     /// <summary>Mirror the art so the face turns toward the centre of the box.</summary>
     [Export] public bool FlipH { get; set; }
 
-    [Export] public Texture2D? Neutral { get; set; }
-    [Export] public Texture2D? Angry { get; set; }
-    [Export] public Texture2D? Worried { get; set; }
-    [Export] public Texture2D? Amused { get; set; }
-    [Export] public Texture2D? Afraid { get; set; }
+    [Export] public SpriteFrames? Frames { get; set; }
 
-    /// <summary>The portrait for <paramref name="emotion"/>, falling back to Neutral when it is unset.</summary>
-    public Texture2D? For(Emotion emotion) => (emotion switch
-    {
-        Emotion.Angry => Angry,
-        Emotion.Worried => Worried,
-        Emotion.Amused => Amused,
-        Emotion.Afraid => Afraid,
-        _ => Neutral,
-    }) ?? Neutral;
+    /// <summary>Animation per emotion while the line waits. Neutral is the fallback.</summary>
+    [Export] public Dictionary<Emotion, StringName> Resting { get; set; } = new();
+
+    /// <summary>Animation per emotion while its text types out. Falls back to the resting one.</summary>
+    [Export] public Dictionary<Emotion, StringName> Talking { get; set; } = new();
+
+    /// <summary>Overlay frames per accessory id, with the same animation names as <see cref="Frames"/>.</summary>
+    [Export] public Dictionary<StringName, SpriteFrames> Accessories { get; set; } = new();
+
+    public StringName For(Emotion emotion) =>
+        Resting.TryGetValue(emotion, out var name) && !string.IsNullOrEmpty(name) ? name
+        : Resting.TryGetValue(Emotion.Neutral, out var neutral) ? neutral : "";
+
+    public StringName TalkingFor(Emotion emotion) =>
+        Talking.TryGetValue(emotion, out var name) && !string.IsNullOrEmpty(name) ? name : For(emotion);
+
+    /// <summary>True when <paramref name="animation"/> exists in <see cref="Frames"/>.</summary>
+    public bool Has(StringName animation) => Frames?.HasAnimation(animation) == true;
 }

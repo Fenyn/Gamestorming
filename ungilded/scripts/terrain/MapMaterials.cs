@@ -30,8 +30,9 @@ public static class MapMaterials
 {
     /// <summary>Identity of a shared material: what kind it is, which palette entry it dresses, and
     /// the colour it carries. Textured walls key on the theme id and surface, because their look
-    /// comes from the whole <see cref="MapSurfaceStyle"/> and not from one colour.</summary>
-    private readonly record struct MaterialKey(string Kind, string Id, MapColor Color);
+    /// comes from the whole <see cref="MapSurfaceStyle"/> and not from one colour. Water also keys
+    /// on its flow velocity, so boards that flow different ways never share one.</summary>
+    private readonly record struct MaterialKey(string Kind, string Id, MapColor Color, Vector2 Flow = default);
 
     /// <summary>Shared materials by identity. Static for the process: a terrain material is pure
     /// look, so it outlives the encounter that first asked for it.</summary>
@@ -69,11 +70,12 @@ public static class MapMaterials
     /// shader — its surface, its map-edge depth band and its under-bridge fill all share one material
     /// so they displace together and never open a seam. Every other top face is a flat palette
     /// colour: a textured surface never reaches here, because <see cref="GroundTextureBaker"/> bakes
-    /// all of them into one board-wide material.
+    /// all of them into one board-wide material. <paramref name="waterFlow"/> is the water's scroll
+    /// velocity (see <see cref="Water"/>).
     /// </summary>
-    public static Material Top(MapThemeDefinition theme, SurfaceType surface) =>
+    public static Material Top(MapThemeDefinition theme, SurfaceType surface, Vector2 waterFlow = default) =>
         surface == SurfaceType.Water
-            ? Water(theme.TopColor(surface))
+            ? Water(theme.TopColor(surface), theme.Style(surface)?.FlowTexture, waterFlow)
             : Build(theme.TopColor(surface), $"terrain_top_{surface}");
 
     /// <summary>The lip-anchored cliff shader (see terrain_wall.gdshader).</summary>
@@ -119,6 +121,13 @@ public static class MapMaterials
         material.SetShaderParameter("tint", ToGodot(style.WallTint));
         material.SetShaderParameter(
             DrapeDepthUniform, theme.HeightScale * TileCornerHeights.UnitsPerElevation);
+        if (style.CourseHeight > 0f && style.HasCapTexture
+            && ResourceLoader.Load<Texture2D>(style.CapTextures![0]) is { } course)
+        {
+            material.SetShaderParameter("course_texture", course);
+            material.SetShaderParameter("course_depth", style.CourseDepth);
+            material.SetShaderParameter("course_height", style.CourseHeight);
+        }
         return material;
     }
 
@@ -143,6 +152,54 @@ public static class MapMaterials
                 ? BaseMaterial3D.TransparencyEnum.Alpha
                 : BaseMaterial3D.TransparencyEnum.Disabled,
         };
+        Cache[key] = material;
+        return material;
+    }
+
+    /// <summary>The terrain overlay shader: <see cref="Overlay"/>'s look, plus the cutaway.</summary>
+    public const string OverlayShaderPath = "res://assets/shaders/terrain_overlay.gdshader";
+
+    /// <summary>The cut wall top (see cutaway_cap.gdshader).</summary>
+    public const string CutawayCapShaderPath = "res://assets/shaders/cutaway_cap.gdshader";
+
+    /// <summary>
+    /// Overlay for the terrain mesh's grid lines, lip strips and mortar bands: the same unshaded
+    /// translucent colour as <see cref="Overlay"/>, through a shader that drops it where the cutaway
+    /// removes the wall under it. Falls back to <see cref="Overlay"/> if the shader is missing.
+    /// </summary>
+    public static Material TerrainOverlay(MapColor color, string resourceName)
+    {
+        var key = new MaterialKey("terrain_overlay", resourceName, color);
+        if (Cache.TryGetValue(key, out var shared)) return shared;
+
+        var shader = LoadShader(OverlayShaderPath);
+        if (shader == null) return Overlay(color, resourceName);
+        var material = new ShaderMaterial { ResourceName = resourceName, Shader = shader, RenderPriority = 1 };
+        material.SetShaderParameter("overlay_color", ToGodot(color));
+        Cache[key] = material;
+        return material;
+    }
+
+    /// <summary>Stone trim in the cap shader: a cut wall's cap (<paramref name="always"/> false,
+    /// drawn only while cut, rimmed) or a channel kerb (always drawn). <paramref name="shade"/>
+    /// scales the theme's wall tint. Null when the theme has no textured stone.</summary>
+    public static Material? StoneTrim(MapThemeDefinition theme, string resourceName, float shade, bool always)
+    {
+        var key = new MaterialKey(resourceName, theme.BiomeId, new MapColor(shade, shade, shade));
+        if (Cache.TryGetValue(key, out var shared)) return shared;
+
+        var style = theme.Style(SurfaceType.Stone);
+        string? art = style?.HasCapTexture == true ? style.CapTextures![0]
+            : style?.TopTextures is { Length: > 0 } tops ? tops[0] : null;
+        var shader = LoadShader(CutawayCapShaderPath);
+        var texture = art == null ? null : ResourceLoader.Load<Texture2D>(art);
+        if (shader == null || texture == null) return null;
+
+        var material = new ShaderMaterial { ResourceName = resourceName, Shader = shader };
+        material.SetShaderParameter("cap_texture", texture);
+        var tint = style!.WallTint;
+        material.SetShaderParameter("tint", new Color(tint.R * shade, tint.G * shade, tint.B * shade));
+        material.SetShaderParameter("always_drawn", always);
         Cache[key] = material;
         return material;
     }
@@ -172,21 +229,41 @@ public static class MapMaterials
     /// <summary>
     /// Wave material for water tops: the theme's water colour driven through
     /// <see cref="WaterShaderPath"/>. Falls back to the flat translucent material if the shader is
-    /// missing, so a broken asset path costs the animation and not the map.
+    /// missing, so a broken asset path costs the animation and not the map. <paramref name="flow"/>
+    /// is the world XZ velocity the flow mask scrolls at; zero keeps the shader's default.
     /// </summary>
-    public static Material Water(MapColor color)
+    public static Material Water(MapColor color, string? flowTexture = null, Vector2 flow = default)
     {
         var shader = LoadShader(WaterShaderPath);
         if (shader == null) return Build(color, "terrain_top_Water");
 
-        var key = new MaterialKey("water", "terrain_water", color);
+        var key = new MaterialKey("water", flowTexture ?? "terrain_water", color, flow);
         if (Cache.TryGetValue(key, out var shared)) return shared;
 
         var material = new ShaderMaterial { ResourceName = "terrain_water", Shader = shader };
         material.SetShaderParameter(WaterColorUniform, ToGodot(color));
+        if (flow != Vector2.Zero) material.SetShaderParameter(FlowVelocityUniform, flow);
+        if (flowTexture != null)
+        {
+            var mask = ResourceLoader.Load<Texture2D>(flowTexture);
+            if (mask == null)
+                GD.PushError($"[MapMaterials] water flow texture missing at {flowTexture}; water stays flat.");
+            else
+            {
+                material.SetShaderParameter(FlowTextureUniform, mask);
+                material.SetShaderParameter(FlowStrengthUniform, FlowStrength);
+            }
+        }
         Cache[key] = material;
         return material;
     }
+
+    private const string FlowTextureUniform = "flow_texture";
+    private const string FlowStrengthUniform = "flow_strength";
+    public const string FlowVelocityUniform = "flow_velocity";
+
+    /// <summary>How far the flow mask brightens and darkens the water colour.</summary>
+    private const float FlowStrength = 0.55f;
 
     /// <summary>sRGB theme colour to engine colour. The single conversion point.</summary>
     public static Color ToGodot(MapColor color) => new(color.R, color.G, color.B, color.A);

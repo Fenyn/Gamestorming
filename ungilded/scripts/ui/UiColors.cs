@@ -179,11 +179,13 @@ public static class UiColors
 
     // ---------------------------------------------------------------- Board overlays
 
-    /// <summary>Idle band fill of an adjacent tile a careful Step reaches (safe: no reactions).</summary>
+    /// <summary>Idle band fill of an adjacent tile a careful Step reaches. The same blue as a
+    /// one-action Stride: every tile a unit can move to is one colour, and the hover readout
+    /// says Step or Stride.</summary>
     public static Color BoardStep => Get("board_step");
 
-    /// <summary>Idle band fill for a tile <paramref name="actions"/> Strides away: distinct colours
-    /// for one and two actions, one faint colour for everything further (quickened included).</summary>
+    /// <summary>Idle band fill for a tile <paramref name="actions"/> Strides away: one hue, full
+    /// for one action, fainter for two, faintest for everything further (quickened included).</summary>
     public static Color BoardStride(int actions) => actions switch
     {
         <= 1 => Get("board_stride_1"),

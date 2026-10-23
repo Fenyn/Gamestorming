@@ -150,8 +150,8 @@ public static class SpatialDelegates
             if (ally.TeamId != attacker.TeamId) continue;
             if (ally.Health == null || ally.Health.IsDead) continue;
 
-            int reach = CreatureSizeHelper.GetNaturalReachTiles(
-                ally.StatProvider?.Size ?? CreatureSize.Medium);
+            // The ally's strike reach, not its size reach: the Large Tyrant's Jaws reach 5 ft.
+            if (!MeleeThreatHelper.TryGetMeleeThreatReach(ally, out int reach)) continue;
             if (!FlankingCalculator.IsWithinReach(
                 ally.GridPosition, ally.TileWidth,
                 target.GridPosition, target.TileWidth, reach))

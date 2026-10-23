@@ -50,12 +50,25 @@ public partial class TurnOrderBar : VBoxContainer
 
     public Control Row => _row;
 
+    private Control _title = null!;
+
+    /// <summary>The drawn timeline, heading included. The bar itself spans the screen height.</summary>
+    public Rect2 ContentRect => _title.GetGlobalRect().Merge(_row.GetGlobalRect());
+
+    /// <summary>The hover on the timeline's heading.</summary>
+    public const string TitleTooltip = "Turn order. Each hero takes their own turn with 3 actions.";
+
     /// <summary>Hidden until the first render with combatants, so the intro shows no empty "Timeline".</summary>
     public override void _Ready()
     {
         _row = GetNode<VBoxContainer>("%Row");
+        _title = GetNode<Control>("%Title");
+        _title.TooltipText = TitleTooltip;
         Visible = false;
     }
+
+    /// <summary>The heading's hover text, for the spikes.</summary>
+    public string TitleHover => _title.TooltipText;
 
     /// <param name="wrapIndex">Index in <paramref name="units"/> where the next round starts; -1 for none.</param>
     public void Render(IReadOnlyList<UnitView> units, int wrapIndex = -1, int nextRound = 0)
@@ -86,6 +99,16 @@ public partial class TurnOrderBar : VBoxContainer
         if (BottomUp) rows.Reverse();
         foreach (var row in rows) _row.AddChild(row);
         Cap();
+    }
+
+    /// <summary>The condition icons on the combatant's row, or null when the row shows none.</summary>
+    public Control? MarksFor(int id)
+    {
+        foreach (var row in _row.GetChildren().OfType<Control>())
+            if (row.HasMeta(IdMeta) && row.GetMeta(IdMeta).AsInt32() == id
+                && row.GetNode<Control>("%Marks") is { } marks && marks.IsVisibleInTree())
+                return marks;
+        return null;
     }
 
     /// <summary>The rows in turn order, nearest turn first, whichever way they stack.</summary>

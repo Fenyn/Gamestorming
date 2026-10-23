@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3]
+
+; An emote bubble over an actor's head. The sheet is LimeZu Modern Interiors' thinking emotes, copied
+; by tools/art/import_emotes.py: 4 columns of 16x32 frames, row 0 the pop-in. Drawn over walls so a
+; reaction never hides.
+
+[ext_resource type="Script" path="res://scripts/story/cutscene/EmoteBubble.cs" id="1_bubble"]
+[ext_resource type="Texture2D" path="res://assets/sprites/emotes/emotes.png" id="2_sheet"]
+
+[node name="EmoteBubble" type="Sprite3D"]
+cast_shadow = 0
+pixel_size = 0.02
+billboard = 1
+shaded = false
+no_depth_test = true
+render_priority = 3
+texture_filter = 0
+texture = ExtResource("2_sheet")
+hframes = 4
+vframes = 7
+script = ExtResource("1_bubble")

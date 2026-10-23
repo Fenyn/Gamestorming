@@ -1,0 +1,71 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/story/CrawlScenery.cs" id="1_scenery"]
+[ext_resource type="PackedScene" path="res://scenes/story/crawl/crawl_layer.tscn" id="2_layer"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/mbg1/layer1.png" id="t1"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/mbg1/layer2.png" id="t2"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/mbg1/layer3.png" id="t3"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/mbg1/layer4.png" id="t4"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/mbg1/trees.png" id="t5"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/mbg1/layer6.png" id="t6"]
+[ext_resource type="Texture2D" path="res://assets/story/crawl/mbg1/layer7.png" id="t7"]
+
+[node name="Cage" type="Control" node_paths=PackedStringArray("Layers")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_scenery")
+Layers = [NodePath("Sky"), NodePath("City"), NodePath("Mist"), NodePath("Wall"), NodePath("Trees"), NodePath("Ground"), NodePath("Fog")]
+
+[node name="Sky" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t1")
+Drift = Vector2(-14, 0)
+Tiles = false
+
+[node name="City" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t2")
+Drift = Vector2(-35, 0)
+Tiles = false
+
+[node name="Mist" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t3")
+Drift = Vector2(-49, 0)
+
+[node name="Wall" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t4")
+Drift = Vector2(-63, 0)
+Tiles = false
+
+[node name="Trees" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t5")
+Drift = Vector2(-91, 0)
+Tiles = false
+
+[node name="Ground" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t6")
+Drift = Vector2(-119, 0)
+
+[node name="Fog" parent="." instance=ExtResource("2_layer")]
+layout_mode = 1
+texture = ExtResource("t7")
+Drift = Vector2(-140, 0)
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.0235294, 0.0196078, 0.0470588, 0.2)

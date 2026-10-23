@@ -4,9 +4,9 @@ using PF2e.Core;
 
 namespace Ungilded.Combat;
 
-/// <summary>The enemy-turn band on the centre axis: the attacker card left of the prompt, the target
-/// card right of it, and the roll row above the prompt. On turns that show the action bar the roll
-/// row sits above the bar's stack instead.</summary>
+/// <summary>The enemy-turn band on the centre axis: the attacker card bottom left, the target card
+/// bottom right, and the roll row between them, above a docked reaction prompt. On turns that show
+/// the action bar the roll row sits above the bar's stack instead.</summary>
 public partial class CombatScene
 {
     [Export] public float BandGap { get; set; } = 8;
@@ -36,19 +36,26 @@ public partial class CombatScene
             && _tacticalUnits.TryGetValue(rid, out var r) ? r.Character : null;
         bool band = reactor != null || EnemyTurnShowing && actor?.Health?.IsAlive == true;
         var left = reactor ?? actor;
-        _actorCard.Render(band ? InspectFor(left!) : null);
-        int? targetId = reactor != null ? _reactionSourceId ?? actor?.UniqueId
-            : band ? _actionTargetId ?? _reactorId : _playerTargetId ?? _hoveredId;
+        // A pinned hero card takes the left corner from the band's attacker card.
+        _actorCardUnit = band && _pinnedHero == null ? left : null;
+        _actorCard.Render(_actorCardUnit != null ? InspectFor(_actorCardUnit) : null);
+        int? targetId = _pinnedCreature?.UniqueId ?? (reactor != null ? _reactionSourceId ?? actor?.UniqueId
+            : band ? _actionTargetId ?? _reactorId : _playerTargetId ?? _hoveredId);
         ICharacter? target = targetId is { } id && _tacticalUnits.TryGetValue(id, out var unit) ? unit.Character : null;
-        _targetCard.Render(target != null && target != left && !_tacticalFinished ? InspectFor(target) : null);
+        _targetCardUnit = target != null && target != left && !_tacticalFinished ? target : null;
+        _targetCard.Render(_targetCardUnit != null ? InspectFor(_targetCardUnit) : null);
     }
+
+    /// <summary>The units the band's two cards show now, or null.</summary>
+    private ICharacter? _actorCardUnit, _targetCardUnit;
 
     private void LayoutBand()
     {
         float height = _tacticalHud.Size.Y;
         float bottom = height + _rollRestBottom;
         if (_actionBar.Visible) bottom = _actionBar.DecisionTop - BandGap;
-        else if (_reactionPrompt.Visible) bottom = _reactionPrompt.Dock.GetGlobalRect().Position.Y - BandGap;
+        // A prompt beside its trigger is up on the board; only a docked one takes the bottom centre.
+        else if (_reactionPrompt.Visible && !_reactionPrompt.Pointing) bottom = _reactionPrompt.BoxRect.Position.Y - BandGap;
         float offset = bottom - height;
         if (Mathf.IsEqualApprox(offset, _dice.OffsetBottom)) return;
         _dice.OffsetBottom = offset;
@@ -76,6 +83,8 @@ public partial class CombatScene
 
     private void ClearBand()
     {
+        _actorCardUnit = null;
+        _targetCardUnit = null;
         _actorCard.Render(null);
         _targetCard.Render(null);
     }

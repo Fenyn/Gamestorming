@@ -1,0 +1,51 @@
+[gd_scene load_steps=8 format=3]
+
+; A hero or creature on a cutscene set: the billboard sprite and the ground shadow of unit_token.tscn,
+; no HUD parts. No see-through silhouette overlay: the cutscene camera is authored, so walls may hide
+; the actors. The sprite sits under Body, which only the speaker hop moves, so the shadow stays down.
+; The hand lantern hangs on the sprite and shows only for its carrier.
+
+[ext_resource type="Script" path="res://scripts/story/cutscene/CutsceneActor.cs" id="1_actor"]
+[ext_resource type="PackedScene" path="res://scenes/combat/billboard_sprite.tscn" id="2_sprite"]
+[ext_resource type="PackedScene" path="res://scenes/story/cutscene/cutscene_glow.tscn" id="3_glow"]
+[ext_resource type="PackedScene" path="res://scenes/story/cutscene/emote_bubble.tscn" id="4_emote"]
+[ext_resource type="PackedScene" path="res://scenes/combat/hand_lantern.tscn" id="5_lantern"]
+
+[sub_resource type="Gradient" id="Gradient_shadow"]
+offsets = PackedFloat32Array(0, 0.55, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.85, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_shadow"]
+gradient = SubResource("Gradient_shadow")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[node name="CutsceneActor" type="Node3D"]
+script = ExtResource("1_actor")
+SecondsPerTile = 0.5
+EmoteScene = ExtResource("4_emote")
+
+[node name="Body" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="Sprite" parent="Body" instance=ExtResource("2_sprite")]
+unique_name_in_owner = true
+material_overlay = null
+
+[node name="Lantern" parent="Body/Sprite" instance=ExtResource("5_lantern")]
+unique_name_in_owner = true
+
+[node name="Shadow" type="Decal" parent="."]
+unique_name_in_owner = true
+size = Vector3(0.85, 1.2, 0.85)
+texture_albedo = SubResource("GradientTexture2D_shadow")
+modulate = Color(0, 0, 0, 0.8)
+upper_fade = 0.2
+lower_fade = 0.2
+cull_mask = 1
+
+[node name="Glow" parent="." instance=ExtResource("3_glow")]
+unique_name_in_owner = true

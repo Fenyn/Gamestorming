@@ -2,7 +2,8 @@ using Godot;
 
 namespace Ungilded.Data;
 
-/// <summary>Artist-authored animation library and placement for a side-view enemy.</summary>
+/// <summary>Artist-authored animation library and placement for a side-view unit: every enemy, and
+/// the heroes whose folder holds one (<see cref="HeroSpriteMap.IsAuthored"/>).</summary>
 [GlobalClass]
 public partial class EnemySpriteDefinition : Resource
 {
@@ -21,4 +22,10 @@ public partial class EnemySpriteDefinition : Resource
     /// Negative uses the canvas center. Set explicitly when a long tail makes the canvas asymmetric.</summary>
     [Export] public float GroundAnchorX { get; set; } = -1f;
     [Export] public bool FacesRight { get; set; } = true;
+    /// <summary>Head crop of the first idle frame for timeline tiles and unit cards. Empty uses the
+    /// square at the top of the figure.</summary>
+    [Export] public Rect2I FaceRect { get; set; }
+    /// <summary>Whole-figure crop of the first idle frame for party chips. Empty uses the figure's
+    /// opaque bounds.</summary>
+    [Export] public Rect2I PortraitRect { get; set; }
 }

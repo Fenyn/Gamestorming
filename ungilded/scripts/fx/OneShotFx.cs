@@ -3,13 +3,17 @@ using Godot;
 namespace Ungilded.Fx;
 
 /// <summary>
-/// Base for every one-shot combat effect in scripts/fx. The effect builds its geometry in code from a
-/// baked table, animates it on one Tween, and then frees itself. House style keeps the geometry to
-/// flat-colour, unshaded, alpha-blended <see cref="QuadMesh"/> billboards. No AnimationPlayer, no
-/// particle system, no textures or shaders.
+/// Base for every one-shot combat effect in scripts/fx: the effect runs on one Tween and frees itself
+/// when the tween ends. Two kinds exist. The early effects (HitSpark, ShieldFlash, AttackAccent)
+/// build flat-colour unshaded <see cref="QuadMesh"/> billboards in code from a baked table. HD-2D
+/// effects (AcidSplash, TreatWounds, DeathDust and later ones) are authored scenes: GPUParticles3D layers
+/// with pixel-art frames drawn by code on a locked palette, VFX Essential shader materials, a light on
+/// an AnimationPlayer, built by a script under tools/vfx and reviewed with the vfx-studio contact
+/// sheets. Their <see cref="Build"/> only starts the scene and holds the tween for
+/// <see cref="Lifetime"/>.
 ///
 /// The caller sets <see cref="Tint"/>, <see cref="FxScale"/> and <see cref="Lifetime"/> BEFORE
-/// AddChild, because <see cref="_Ready"/> reads them once to build the geometry. See
+/// AddChild, because <see cref="_Ready"/> reads them once to build or start the effect. See
 /// <c>Ungilded.Combat.GodotPresenter3D.SpawnFx</c>, which is the only caller today.
 /// </summary>
 public abstract partial class OneShotFx : Node3D

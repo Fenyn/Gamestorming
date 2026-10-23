@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/PrologueRunSpike.cs" id="1_spike"]
+[ext_resource type="PackedScene" path="res://scenes/story/title.tscn" id="2_title"]
+
+[node name="PrologueRunSpike" type="Node"]
+script = ExtResource("1_spike")
+TitleScene = ExtResource("2_title")
+ShotDirectory = "res://dev_shots"

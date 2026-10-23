@@ -1,0 +1,457 @@
+{
+  "scope": "Selected static PNGs only. Colors are measured, not a universal palette. Lowest opaque row aligns previews; runtime anchors are separate.",
+  "sprites": [
+    {
+      "label": "Rat",
+      "role": "rendering reference",
+      "path": "assets/sprites/enemies/rat_v1/idle_1.png",
+      "sha256": "fff1428315ae69367db7195b11f707dcb82f00492bbe889623684b3fcc2805c9",
+      "canvas": [
+        62,
+        44
+      ],
+      "bounds_xyxy_exclusive": [
+        14,
+        16,
+        51,
+        42
+      ],
+      "visible_size": [
+        37,
+        26
+      ],
+      "bottom_transparent_rows": 2,
+      "nontransparent_pixels": 447,
+      "partial_alpha_pixels": 0,
+      "used_rgb_count": 16,
+      "colors_by_frequency": [
+        {
+          "hex": "#5B5F69",
+          "pixels": 196
+        },
+        {
+          "hex": "#242424",
+          "pixels": 56
+        },
+        {
+          "hex": "#7C3B34",
+          "pixels": 44
+        },
+        {
+          "hex": "#D89891",
+          "pixels": 35
+        },
+        {
+          "hex": "#260908",
+          "pixels": 28
+        },
+        {
+          "hex": "#888B94",
+          "pixels": 25
+        },
+        {
+          "hex": "#0D130E",
+          "pixels": 20
+        },
+        {
+          "hex": "#AA5951",
+          "pixels": 13
+        },
+        {
+          "hex": "#CC9087",
+          "pixels": 7
+        },
+        {
+          "hex": "#EEE3E1",
+          "pixels": 6
+        },
+        {
+          "hex": "#140B0B",
+          "pixels": 5
+        },
+        {
+          "hex": "#FF527A",
+          "pixels": 4
+        },
+        {
+          "hex": "#7D1510",
+          "pixels": 3
+        },
+        {
+          "hex": "#D9C2C1",
+          "pixels": 2
+        },
+        {
+          "hex": "#FF2219",
+          "pixels": 2
+        },
+        {
+          "hex": "#FFC4BC",
+          "pixels": 1
+        }
+      ]
+    },
+    {
+      "label": "Goblin",
+      "role": "rendering reference",
+      "path": "assets/sprites/enemies/goblin_base/base.png",
+      "sha256": "a14f2c83701e514b2b7fee817166fa3e74bdc2c8e355d493f15e4ab1025207f8",
+      "canvas": [
+        56,
+        64
+      ],
+      "bounds_xyxy_exclusive": [
+        10,
+        6,
+        45,
+        58
+      ],
+      "visible_size": [
+        35,
+        52
+      ],
+      "bottom_transparent_rows": 6,
+      "nontransparent_pixels": 1137,
+      "partial_alpha_pixels": 0,
+      "used_rgb_count": 9,
+      "colors_by_frequency": [
+        {
+          "hex": "#849467",
+          "pixels": 552
+        },
+        {
+          "hex": "#4B593E",
+          "pixels": 314
+        },
+        {
+          "hex": "#29362C",
+          "pixels": 103
+        },
+        {
+          "hex": "#A77562",
+          "pixels": 86
+        },
+        {
+          "hex": "#594439",
+          "pixels": 32
+        },
+        {
+          "hex": "#202624",
+          "pixels": 25
+        },
+        {
+          "hex": "#B2BD8E",
+          "pixels": 22
+        },
+        {
+          "hex": "#EEE2C7",
+          "pixels": 2
+        },
+        {
+          "hex": "#FFCD6E",
+          "pixels": 1
+        }
+      ]
+    },
+    {
+      "label": "Kobold",
+      "role": "rendering reference",
+      "path": "assets/sprites/enemies/kobold_base/base.png",
+      "sha256": "50bd0f8496823d17b316f15e840d8fe927db79c608a7c1356d10bfd875f646fa",
+      "canvas": [
+        64,
+        64
+      ],
+      "bounds_xyxy_exclusive": [
+        6,
+        6,
+        58,
+        58
+      ],
+      "visible_size": [
+        52,
+        52
+      ],
+      "bottom_transparent_rows": 6,
+      "nontransparent_pixels": 1078,
+      "partial_alpha_pixels": 0,
+      "used_rgb_count": 10,
+      "colors_by_frequency": [
+        {
+          "hex": "#B27657",
+          "pixels": 436
+        },
+        {
+          "hex": "#3C2E29",
+          "pixels": 310
+        },
+        {
+          "hex": "#784934",
+          "pixels": 188
+        },
+        {
+          "hex": "#E0CFAA",
+          "pixels": 53
+        },
+        {
+          "hex": "#70513F",
+          "pixels": 48
+        },
+        {
+          "hex": "#493A32",
+          "pixels": 28
+        },
+        {
+          "hex": "#A08D73",
+          "pixels": 6
+        },
+        {
+          "hex": "#202624",
+          "pixels": 4
+        },
+        {
+          "hex": "#D49E77",
+          "pixels": 4
+        },
+        {
+          "hex": "#FFCD6E",
+          "pixels": 1
+        }
+      ]
+    },
+    {
+      "label": "Wolf",
+      "role": "rendering reference",
+      "path": "assets/sprites/enemies/wolf_base/base.png",
+      "sha256": "01ccdae3b55ca6b06705276da1676fe908e0a550913f8fad72cfa18ce30c5d73",
+      "canvas": [
+        72,
+        56
+      ],
+      "bounds_xyxy_exclusive": [
+        4,
+        14,
+        67,
+        52
+      ],
+      "visible_size": [
+        63,
+        38
+      ],
+      "bottom_transparent_rows": 4,
+      "nontransparent_pixels": 1098,
+      "partial_alpha_pixels": 0,
+      "used_rgb_count": 8,
+      "colors_by_frequency": [
+        {
+          "hex": "#747D85",
+          "pixels": 582
+        },
+        {
+          "hex": "#424B50",
+          "pixels": 178
+        },
+        {
+          "hex": "#C9C4AC",
+          "pixels": 149
+        },
+        {
+          "hex": "#252E2E",
+          "pixels": 96
+        },
+        {
+          "hex": "#ADB7B7",
+          "pixels": 43
+        },
+        {
+          "hex": "#959888",
+          "pixels": 31
+        },
+        {
+          "hex": "#181F21",
+          "pixels": 18
+        },
+        {
+          "hex": "#F3C063",
+          "pixels": 1
+        }
+      ]
+    },
+    {
+      "label": "Pack human body (study)",
+      "role": "construction study; not style approval",
+      "path": "design/race-identities/layers/human-03.png",
+      "sha256": "94f78dbe85d32391c9e134e852b859e41431252996cc1ddc3a735d73bb5ccc74",
+      "canvas": [
+        128,
+        96
+      ],
+      "bounds_xyxy_exclusive": [
+        43,
+        17,
+        84,
+        82
+      ],
+      "visible_size": [
+        41,
+        65
+      ],
+      "bottom_transparent_rows": 14,
+      "nontransparent_pixels": 920,
+      "partial_alpha_pixels": 0,
+      "used_rgb_count": 6,
+      "colors_by_frequency": [
+        {
+          "hex": "#9C7862",
+          "pixels": 443
+        },
+        {
+          "hex": "#795844",
+          "pixels": 203
+        },
+        {
+          "hex": "#5F402F",
+          "pixels": 138
+        },
+        {
+          "hex": "#412618",
+          "pixels": 94
+        },
+        {
+          "hex": "#B1986A",
+          "pixels": 40
+        },
+        {
+          "hex": "#000000",
+          "pixels": 2
+        }
+      ]
+    },
+    {
+      "label": "Pack human outfit (study)",
+      "role": "construction study; not style approval",
+      "path": "design/race-identities/previews/player-wardrobe.png",
+      "sha256": "aabecf0444f3a97df8e7e6c71edba969cad8c5a1d17b751c5a924d0c8fc7fce8",
+      "canvas": [
+        128,
+        96
+      ],
+      "bounds_xyxy_exclusive": [
+        43,
+        16,
+        84,
+        82
+      ],
+      "visible_size": [
+        41,
+        66
+      ],
+      "bottom_transparent_rows": 14,
+      "nontransparent_pixels": 1225,
+      "partial_alpha_pixels": 0,
+      "used_rgb_count": 25,
+      "colors_by_frequency": [
+        {
+          "hex": "#97887A",
+          "pixels": 297
+        },
+        {
+          "hex": "#302427",
+          "pixels": 174
+        },
+        {
+          "hex": "#5B543F",
+          "pixels": 150
+        },
+        {
+          "hex": "#1E1013",
+          "pixels": 116
+        },
+        {
+          "hex": "#412C2C",
+          "pixels": 102
+        },
+        {
+          "hex": "#564536",
+          "pixels": 60
+        },
+        {
+          "hex": "#9C7862",
+          "pixels": 51
+        },
+        {
+          "hex": "#30334E",
+          "pixels": 34
+        },
+        {
+          "hex": "#1D1F27",
+          "pixels": 28
+        },
+        {
+          "hex": "#1C131E",
+          "pixels": 26
+        },
+        {
+          "hex": "#3A5575",
+          "pixels": 26
+        },
+        {
+          "hex": "#271418",
+          "pixels": 24
+        },
+        {
+          "hex": "#5F402F",
+          "pixels": 21
+        },
+        {
+          "hex": "#412618",
+          "pixels": 20
+        },
+        {
+          "hex": "#795844",
+          "pixels": 19
+        },
+        {
+          "hex": "#45242C",
+          "pixels": 17
+        },
+        {
+          "hex": "#52444B",
+          "pixels": 16
+        },
+        {
+          "hex": "#68342B",
+          "pixels": 16
+        },
+        {
+          "hex": "#976444",
+          "pixels": 12
+        },
+        {
+          "hex": "#B1986A",
+          "pixels": 10
+        },
+        {
+          "hex": "#000000",
+          "pixels": 2
+        },
+        {
+          "hex": "#1A1411",
+          "pixels": 1
+        },
+        {
+          "hex": "#625D68",
+          "pixels": 1
+        },
+        {
+          "hex": "#9AAECB",
+          "pixels": 1
+        },
+        {
+          "hex": "#B7CBE9",
+          "pixels": 1
+        }
+      ]
+    }
+  ]
+}

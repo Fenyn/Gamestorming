@@ -32,6 +32,7 @@ public sealed class PlayerActionExecutor
     private readonly SpellActions _spells;
     private readonly SkillActions _skills;
     private readonly BattleGrid _grid;
+    private readonly BattleRunner _runner;
 
     /// <param name="resolveSpell">Spell lookup by id, injected so this type never names a content
     /// source. Null ids and unknown ids return null.</param>
@@ -39,12 +40,21 @@ public sealed class PlayerActionExecutor
         BattleRunner runner, BattleGrid grid, Func<string, SpellCastAction?> resolveSpell)
     {
         _grid = grid;
+        _runner = runner;
         var events = new BattleEventEmitter(runner);
         _movement = new MovementActions(grid, events);
         _planner = new MovementPlanner(grid, _movement);
         _strikes = new StrikeActions(events);
         _spells = new SpellActions(grid, events, resolveSpell);
         _skills = new SkillActions(grid, events, _movement);
+    }
+
+    /// <summary>Run an action, then play the HP changes and deaths its own events did not present.</summary>
+    private async Task<bool> Flushed(Task<bool> action)
+    {
+        bool done = await action;
+        await _runner.FlushAsync();
+        return done;
     }
 
     /// <summary>Stride, Step and the pathfinding queries the UI highlights them with.</summary>
@@ -96,15 +106,15 @@ public sealed class PlayerActionExecutor
 
     /// <summary>Stride to <paramref name="dest"/> (1 action).</summary>
     public Task<bool> ExecuteStride(ICharacter character, PF2eVec dest, bool triggersReactions = true)
-        => _movement.ExecuteStride(character, dest, triggersReactions);
+        => Flushed(_movement.ExecuteStride(character, dest, triggersReactions));
 
     /// <summary>Step to an adjacent tile (1 action, no reactions).</summary>
     public Task<bool> ExecuteStep(ICharacter character, PF2eVec dest)
-        => _movement.ExecuteStep(character, dest);
+        => Flushed(_movement.ExecuteStep(character, dest));
 
     /// <summary>Crawl to an adjacent tile while prone (1 action).</summary>
     public Task<bool> ExecuteCrawl(ICharacter character, PF2eVec dest)
-        => _movement.ExecuteCrawl(character, dest);
+        => Flushed(_movement.ExecuteCrawl(character, dest));
 
     /// <summary>Why the move bands are limited ("Immobilized: cannot move", "Prone: Crawl 5 ft or
     /// Stand"), or null when the character may Stride.</summary>
@@ -130,11 +140,11 @@ public sealed class PlayerActionExecutor
 
     /// <summary>Strike a target (1 action).</summary>
     public Task<bool> ExecuteStrike(ICharacter character, ICharacter target)
-        => _strikes.ExecuteStrike(character, target);
+        => Flushed(_strikes.ExecuteStrike(character, target));
 
     /// <summary>Raise a Shield (1 action). Emits a ShieldRaised battle event on success.</summary>
     public Task<bool> ExecuteRaiseShield(ICharacter character)
-        => _strikes.ExecuteRaiseShield(character);
+        => Flushed(_strikes.ExecuteRaiseShield(character));
 
     // ---------------------------------------------------------------- Spells
 
@@ -159,10 +169,10 @@ public sealed class PlayerActionExecutor
 
     public Task<bool> ExecuteCastTargets(ICharacter caster, string spellId, int variantIndex,
         IReadOnlyList<ICharacter> targets)
-        => _spells.ExecuteCast(caster, spellId, variantIndex, null, targets);
+        => Flushed(_spells.ExecuteCast(caster, spellId, variantIndex, null, targets));
 
     public Task<bool> ExecuteCast(ICharacter caster, string spellId, int variantIndex, PF2eVec? aim)
-        => _spells.ExecuteCast(caster, spellId, variantIndex, aim);
+        => Flushed(_spells.ExecuteCast(caster, spellId, variantIndex, aim));
 
     // ---------------------------------------------------------------- Skill actions
 
@@ -198,23 +208,23 @@ public sealed class PlayerActionExecutor
 
     /// <summary>Perform a skill action against the target on <paramref name="tile"/>.</summary>
     public Task<bool> ExecuteSkillAction(ICharacter actor, string actionId, PF2eVec tile)
-        => _skills.ExecuteSkillAction(actor, actionId, tile);
+        => Flushed(_skills.ExecuteSkillAction(actor, actionId, tile));
 
     /// <summary>Execute a self-targeted action that fires immediately (Parry, Reload).</summary>
     public Task<bool> ExecuteSelfSkill(ICharacter actor, string actionId)
-        => _skills.ExecuteSelfSkill(actor, actionId);
+        => Flushed(_skills.ExecuteSelfSkill(actor, actionId));
 
     /// <summary>Shielded Stride (feat move token, reaction-free, half-Speed cap).</summary>
     public Task<bool> ExecuteShieldedStride(ICharacter actor, PF2eVec dest)
-        => _skills.ExecuteShieldedStride(actor, dest);
+        => Flushed(_skills.ExecuteShieldedStride(actor, dest));
 
     /// <summary>Sudden Charge against the foe occupying <paramref name="tile"/>.</summary>
     public Task<bool> ExecuteSuddenChargeTile(ICharacter actor, PF2eVec tile)
-        => _skills.ExecuteSuddenChargeTile(actor, tile);
+        => Flushed(_skills.ExecuteSuddenChargeTile(actor, tile));
 
     /// <summary>Sudden Charge (2 actions, Flourish): Stride twice, then Strike a foe in reach.</summary>
     public Task<bool> ExecuteSuddenCharge(ICharacter actor, ICharacter target)
-        => _skills.ExecuteSuddenCharge(actor, target);
+        => Flushed(_skills.ExecuteSuddenCharge(actor, target));
 
     // ---------------------------------------------------------------- Inspect
 

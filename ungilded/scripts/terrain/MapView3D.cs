@@ -41,13 +41,20 @@ public partial class MapView3D : Node3D
     /// <paramref name="options"/> says where the layout sits and which tiles are gridded. This node
     /// is moved to the named world origin, so a skirted layout (board + halo) puts the BOARD's tile
     /// (0,0) back on the world origin and every grid-space call site keeps its meaning.
+    ///
+    /// <paramref name="pickLayout"/>, when given, is what the collider is built from instead: the
+    /// same tiles with the walls the camera may cut lowered to their stubs, so a click lands on the
+    /// tile it shows rather than on a wall that is not drawn.
     /// </summary>
-    public void Build(MapLayout? layout, MapThemeDefinition? theme, TerrainMeshOptions? options = null)
+    public void Build(MapLayout? layout, MapThemeDefinition? theme, TerrainMeshOptions? options = null,
+        MapLayout? pickLayout = null)
     {
         Clear();
         if (layout == null || theme == null) return;
 
         var built = TerrainMeshBuilder.Build(layout, theme, options);
+        var collision = pickLayout == null ? built.Collision
+            : TerrainMeshBuilder.Build(pickLayout, theme, (options ?? new TerrainMeshOptions()) with { CollisionOnly = true }).Collision;
         Vector2 origin = options?.WorldOrigin ?? Vector2.Zero;
         Position = new Vector3(origin.X, 0f, origin.Y);
 
@@ -68,7 +75,7 @@ public partial class MapView3D : Node3D
         body.AddChild(new CollisionShape3D
         {
             Name = ShapeNodeName,
-            Shape = built.Collision.CreateTrimeshShape(),
+            Shape = collision.CreateTrimeshShape(),
         });
         AddChild(body);
 

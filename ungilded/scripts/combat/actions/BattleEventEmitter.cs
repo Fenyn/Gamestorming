@@ -9,8 +9,9 @@ namespace Ungilded.Combat;
 /// <summary>
 /// The single BattleEvent seam for the player action executors. It owns the
 /// <see cref="BattleRunner"/> and holds the emission patterns that more than one executor needs
-/// (damage + death, HP deltas, position syncs), so player turns animate exactly like
-/// <c>AITurnExecutor</c>'s turns.
+/// (damage, HP deltas, position syncs), so player turns animate exactly like
+/// <c>AITurnExecutor</c>'s turns. Deaths are the runner's: it follows a lethal DamageDealt with the
+/// CreatureDied.
 /// </summary>
 internal sealed class BattleEventEmitter
 {
@@ -27,16 +28,15 @@ internal sealed class BattleEventEmitter
         => _runner.Emit(type, source, target, description);
 
     /// <summary>
-    /// Emit the shared DamageDealt → CreatureDied pair every damage source funnels through (strikes,
-    /// spell outcomes, HP-delta skills). The optional <paramref name="description"/> preserves each
-    /// caller's exact log text; the default is the plain HP-delta line. <paramref name="targetKilled"/>
-    /// lets the strike path honor its StrikeContext.TargetKilled latch in addition to Health.IsDead.
+    /// Emit the DamageDealt every damage source funnels through (strikes, spell outcomes, HP-delta
+    /// skills). <paramref name="result"/> claims that damage instance from the runner's journal;
+    /// without it the event claims every HP loss the target has waiting. The optional
+    /// <paramref name="description"/> preserves each caller's exact log text.
     /// </summary>
-    internal async Task EmitDamageAndDeath(ICharacter source, ICharacter target, int damage,
+    internal Task EmitDamage(ICharacter source, ICharacter target, int damage,
         DamageType? type = null, DegreeOfSuccess? degree = null, string? description = null,
-        bool targetKilled = false)
-    {
-        await _runner.Emit(new BattleEvent
+        DamageResult? result = null)
+        => _runner.Emit(new BattleEvent
         {
             Type = BattleEventType.DamageDealt,
             Source = source,
@@ -44,22 +44,12 @@ internal sealed class BattleEventEmitter
             IntValue = damage,
             DamageType = type,
             Degree = degree,
+            Damage = result,
             Description = description ?? $"{target.Name} takes {damage} damage"
         });
 
-        if (targetKilled || target.Health?.IsDead == true)
-        {
-            await _runner.Emit(new BattleEvent
-            {
-                Type = BattleEventType.CreatureDied,
-                Source = target,
-                Description = $"{target.Name} is slain!"
-            });
-        }
-    }
-
     /// <summary>
-    /// Emit Damage/Died or Healed events from a target's HP delta since <paramref name="preHp"/> —
+    /// Emit a DamageDealt or Healed event from a target's HP delta since <paramref name="preHp"/> —
     /// the animation seam for engine actions that apply their own damage/healing internally
     /// (skill actions, Sudden Charge). No delta, no events.
     /// </summary>
@@ -71,7 +61,7 @@ internal sealed class BattleEventEmitter
         int delta = preHp - target.Health.CurrentHP;
         if (delta > 0)
         {
-            await EmitDamageAndDeath(actor, target, delta);
+            await EmitDamage(actor, target, delta);
         }
         else if (delta < 0)
         {

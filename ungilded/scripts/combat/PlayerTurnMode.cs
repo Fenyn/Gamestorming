@@ -14,5 +14,7 @@ public enum PlayerTurnMode
     SelectingSpellTargets,
     SelectingAreaOrigin,
     SelectingSkillTarget,
-    SelectingDelaySlot
+    SelectingDelaySlot,
+    /// <summary>A carried bomb was picked: foes in range are lit, hover shows the splash.</summary>
+    SelectingBombTarget
 }

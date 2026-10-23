@@ -1,0 +1,76 @@
+[gd_scene load_steps=10 format=3]
+
+; Hand lantern hung on a hero body (HandLantern): the lit lantern sprite drawn a little toward the
+; camera so it covers the hip it hangs from, an additive glow over the flame, and a warm, short,
+; unshadowed light that keeps its carrier and the tiles around readable in a dark passage. The light
+; sits in front of the carrier's body, so a shadow from it would throw the carrier's whole
+; silhouette onto the wall behind.
+; Art: assets/sprites/decor/lantern.png, drawn by tools/art/draw_lantern.py. Normal page
+; lantern_n.png from tools/art/sprite_normals.py.
+
+[ext_resource type="Script" path="res://scripts/combat/HandLantern.cs" id="1_lantern"]
+[ext_resource type="Shader" path="res://assets/shaders/lit_sprite.gdshader" id="2_lit"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/lantern.png" id="3_tex"]
+[ext_resource type="Script" path="res://scripts/props/FlickerLight.cs" id="4_flicker"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/lantern_n.png" id="5_normal"]
+
+[sub_resource type="ShaderMaterial" id="Lit"]
+shader = ExtResource("2_lit")
+shader_parameter/sprite_tex = ExtResource("3_tex")
+shader_parameter/normal_tex = ExtResource("5_normal")
+shader_parameter/has_normal_tex = true
+shader_parameter/bend = 0.0
+shader_parameter/body_half_width = 0.4
+shader_parameter/toward_camera = 0.04
+
+[sub_resource type="Gradient" id="glow_gradient"]
+offsets = PackedFloat32Array(0, 0.18, 0.55, 1)
+colors = PackedColorArray(1, 0.88, 0.62, 1, 1, 0.62, 0.3, 0.45, 1, 0.48, 0.18, 0.08, 1, 0.42, 0.14, 0)
+
+[sub_resource type="GradientTexture2D" id="glow_texture"]
+gradient = SubResource("glow_gradient")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="glow_material"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1.5, 1.25, 1.05, 1)
+albedo_texture = SubResource("glow_texture")
+billboard_mode = 1
+
+[node name="HandLantern" type="Sprite3D" node_paths=PackedStringArray("Light", "Glow")]
+visible = false
+layers = 2
+material_override = SubResource("Lit")
+cast_shadow = 0
+pixel_size = 0.02
+billboard = 1
+texture_filter = 0
+texture = ExtResource("3_tex")
+script = ExtResource("1_lantern")
+HookPixel = Vector2i(47, 46)
+LightLead = Vector2(0.05, 0.3)
+FlameRow = 8
+Light = NodePath("Light")
+Glow = NodePath("Glow")
+
+[node name="Glow" type="Sprite3D" parent="."]
+material_override = SubResource("glow_material")
+cast_shadow = 0
+modulate = Color(1, 1, 1, 0.1)
+pixel_size = 0.005
+texture = SubResource("glow_texture")
+
+[node name="Light" type="OmniLight3D" parent="." node_paths=PackedStringArray("Glow")]
+light_color = Color(1, 0.72, 0.42, 1)
+light_energy = 0.6
+omni_range = 4.0
+omni_attenuation = 1.3
+script = ExtResource("4_flicker")
+Glow = NodePath("../Glow")

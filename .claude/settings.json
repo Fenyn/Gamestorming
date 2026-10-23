@@ -1,5 +1,19 @@
 {
   "enabledPlugins": {
     "codex@openai-codex": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/ai_tells.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
   }
 }

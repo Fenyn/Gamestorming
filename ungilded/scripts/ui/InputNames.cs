@@ -32,6 +32,9 @@ public static class InputNames
     public const string MenuPrev = "menu_prev";
     public const string MenuNext = "menu_next";
 
+    /// <summary>Debug builds: open or close the dev jump menu.</summary>
+    public const string DevJump = "dev_jump_menu";
+
     /// <summary>Godot's built-in cancel action. Listed here so no script carries the literal.</summary>
     public const string UiCancel = "ui_cancel";
 

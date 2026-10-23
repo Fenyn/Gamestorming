@@ -72,6 +72,7 @@ shader_parameter/line_color = Color(0.3, 0.32, 0.38, 1)
 [node name="Combat" type="Node3D" unique_id=101358353 node_paths=PackedStringArray("JournalButton")]
 process_priority = 1
 script = ExtResource("1_scene")
+RemovedTurnBeatSeconds = 0.5
 BandGap = 8.0
 UnitTokenScene = ExtResource("unit_token")
 JournalButton = NodePath("HUD/HudRoot/RightRail/CombatLog/Col/Shell/Content/Heading/JournalButton")

@@ -27,7 +27,9 @@ namespace Delve.Dev;
 /// reaction (vs an unraised control); (2) a foe striding out of the Veteran's reach provokes a
 /// Reactive Strike; (3) a PC dropped to 0 HP becomes Dying + Unconscious (not dead) while an ally
 /// stays up; (4) with every PC down the session reports defeat and ends; (5) Shove displaces a goblin
-/// and grid occupancy updates; (6) ForcedMovementExecutor is installed against the session grid.
+/// and grid occupancy updates; (6) ForcedMovementExecutor is installed against the session grid;
+/// (10) a foe killed by a Reactive Strike during its own strike stays the current actor through the
+/// beat, and its TurnEnded and end-of-turn effects come before the next initiative entry starts.
 /// </summary>
 public partial class ReactionDyingSpike : SpikeBase
 {
@@ -44,6 +46,8 @@ public partial class ReactionDyingSpike : SpikeBase
         await Check7_ReactionPresentationAndInterruption(data, playerMover: false);
         await Check7_ReactionPresentationAndInterruption(data, playerMover: true);
         await Check8_AiStopsQueuedActions(data);
+        await Check9_TurnAfterReactionKill(data);
+        await Check10_MidTurnKillHoldsTheTurn(data);
     }
 
     // ── (1) Shield Block reduces damage by hardness + consumes the reaction ──
@@ -416,6 +420,172 @@ public partial class ReactionDyingSpike : SpikeBase
             DiceRoller.ClearAllOverrides();
             session.Teardown();
         }
+    }
+
+    // ── (9) A Reactive Strike that kills the acting foe does not cost the next combatant its turn ──
+
+    private async Task Check9_TurnAfterReactionKill(DataManager data)
+    {
+        GD.Print("-------------------- (9) Turn after a reaction kill --------------------");
+        // The actor dies as its turn starts. Ending that turn must start the next combatant once,
+        // not skip or end the next turn.
+        var reactor = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
+        var ally = PresetCharacters.BuildTharr(2);
+        var victim = MakeGoblin(data);
+        var far = MakeGoblin(data);
+        var (session, _) = StartSession(data,
+            party: new() { (reactor, new PF2eVec(5, 5)), (ally, new PF2eVec(2, 2)) },
+            enemies: new() { (victim, new PF2eVec(6, 5)), (far, new PF2eVec(14, 12)) },
+            seed: 99, registerNow: false);
+        var turns = new HashSet<(ICharacter Unit, int Round)>();
+        using var stop = new System.Threading.CancellationTokenSource();
+        bool killed = false;
+        try
+        {
+            victim.Health.TakeDamage(new DamageResult { TotalDamage = victim.Health.MaxHP - 1, DamageType = DamageType.Slashing });
+            session.PlayerTurnStarted += _ => session.RequestEndPlayerTurn();
+            session.SetPresenter(async evt =>
+            {
+                if (evt.Type != BattleEventType.TurnStarted || evt.Source == null) return;
+                if (session.RoundNumber >= 3) { stop.Cancel(); return; }
+                turns.Add((evt.Source, session.RoundNumber));
+                if (killed || evt.Source != victim) return;
+                killed = true;
+                DiceRoller.EnqueueD20(20);
+                ReactionStrikeBridge.Execute(reactor, victim, isReactiveStrike: true);
+                await ReactionSuspension.Drain();
+            });
+
+            await session.RunAsync(stop.Token);
+
+            Check("(9) the Reactive Strike slew the acting foe during its turn", killed && victim.Health.IsDead);
+            var missing = new List<string>();
+            foreach (var unit in new[] { reactor, ally, far })
+                for (int round = 1; round <= 2; round++)
+                    if (unit.Health.IsAlive && !turns.Contains((unit, round))) missing.Add($"{unit.Name} r{round}");
+            Check($"(9) every living hero and foe had a turn in rounds 1 and 2 (missing: {string.Join(", ", missing)})",
+                missing.Count == 0);
+        }
+        finally
+        {
+            DiceRoller.ClearAllOverrides();
+            session.Teardown();
+        }
+    }
+
+    // ── (10) A foe killed during its own turn keeps that turn until it ends ──
+
+    private async Task Check10_MidTurnKillHoldsTheTurn(DataManager data)
+    {
+        GD.Print("-------------------- (10) Mid-turn kill holds the turn --------------------");
+        // The goblin strikes, and a Reactive Strike kills it while that strike resolves. Its turn
+        // stays current through the scene's beat; TurnEnded and the engine's end of turn come
+        // before the next initiative entry starts.
+        var reactor = PresetCharacters.BuildPlayer(level: 2, teamId: 1);
+        var ally = PresetCharacters.BuildTharr(2);
+        var victim = MakeGoblin(data);
+        var far = MakeGoblin(data);
+        var (session, _) = StartSession(data,
+            party: new() { (reactor, new PF2eVec(5, 5)), (ally, new PF2eVec(2, 2)) },
+            enemies: new() { (victim, new PF2eVec(6, 5)), (far, new PF2eVec(14, 12)) },
+            seed: 77, registerNow: false);
+        var timeline = new List<string>();
+        var starts = new Dictionary<(ICharacter, int), int>();
+        var beatIssues = new List<string>();
+        string? expectedNext = null;
+        int expectedRound = 0;
+        using var stop = new System.Threading.CancellationTokenSource();
+        bool killed = false;
+        try
+        {
+            victim.Health.TakeDamage(new DamageResult { TotalDamage = victim.Health.MaxHP - 1, DamageType = DamageType.Slashing });
+            var turns = PF2e.TurnManagement.TurnManager.Instance!;
+            turns.OnTurnStart += c => timeline.Add($"start {c.Name}");
+            turns.OnTurnEnd += c => timeline.Add($"end {c.Name}");
+            session.PlayerTurnStarted += c => { timeline.Add($"player {c.Name}"); session.RequestEndPlayerTurn(); };
+            session.RemovedTurnBeat = () =>
+            {
+                timeline.Add("beat");
+                if (!ReferenceEquals(session.CurrentActor, victim) || !session.CurrentTurnRemoved || session.PlayerTurnActive)
+                    beatIssues.Add($"actor {session.CurrentActor?.Name} removed {session.CurrentTurnRemoved} player {session.PlayerTurnActive}");
+                return Task.CompletedTask;
+            };
+            session.SetPresenter(async evt =>
+            {
+                switch (evt.Type)
+                {
+                    case BattleEventType.TurnStarted when evt.Source != null:
+                        if (session.RoundNumber >= 3) { stop.Cancel(); return; }
+                        timeline.Add($"TurnStarted {evt.Source.Name} r{session.RoundNumber}");
+                        var key = (evt.Source, session.RoundNumber);
+                        starts[key] = starts.TryGetValue(key, out int n) ? n + 1 : 1;
+                        if (evt.Source == victim && !killed)
+                        {
+                            var order = session.TurnOrder!;
+                            int index = IndexOf(order, victim);
+                            bool last = index == order.Count - 1;
+                            expectedNext = order[last ? 0 : index + 1].Character.Name;
+                            expectedRound = session.RoundNumber + (last ? 1 : 0);
+                            PF2e.TurnManagement.TurnEndCountdown.Register(victim, untilNextTurn: false,
+                                () => timeline.Add($"expired {victim.Name}"));
+                        }
+                        break;
+                    case BattleEventType.TurnEnded when evt.Source != null:
+                        timeline.Add($"TurnEnded {evt.Source.Name}");
+                        break;
+                    case BattleEventType.CreatureDied:
+                        timeline.Add($"Died {(evt.Target ?? evt.Source)?.Name}");
+                        break;
+                    case BattleEventType.AttackRolled when evt.Source == victim && !killed:
+                        killed = true;
+                        DiceRoller.EnqueueD20(20);
+                        ReactionStrikeBridge.Execute(reactor, victim, isReactiveStrike: true);
+                        await ReactionSuspension.Drain();
+                        break;
+                }
+            });
+
+            await session.RunAsync(stop.Token);
+
+            int died = timeline.IndexOf($"Died {victim.Name}");
+            int ownStart = died < 0 ? -1 : timeline.FindLastIndex(died, e => e.StartsWith("TurnStarted "));
+            Check($"(10) a Reactive Strike slew the goblin during its own turn ({(killed ? "during its strike" : "as it moved")})",
+                victim.Health.IsDead && ownStart >= 0 && timeline[ownStart].StartsWith($"TurnStarted {victim.Name} "));
+            int ended = died < 0 ? -1 : timeline.FindIndex(died, e => e == $"TurnEnded {victim.Name}");
+            int engineEnd = ended < 0 ? -1 : timeline.FindIndex(ended, e => e == $"end {victim.Name}");
+            int expired = timeline.IndexOf($"expired {victim.Name}");
+            int next = ended < 0 ? -1 : timeline.FindIndex(ended, e => e.StartsWith("TurnStarted "));
+            int engineNext = ended < 0 ? -1 : timeline.FindIndex(ended, e => e.StartsWith("start "));
+            bool quiet = died >= 0 && ended > died && !timeline.GetRange(died, ended - died)
+                .Exists(e => e.StartsWith("start ") || e.StartsWith("TurnStarted ") || e.StartsWith("player "));
+            Check($"(10) the dead goblin's turn held from its death to its TurnEnded, with one beat ({string.Join("; ", beatIssues)})",
+                quiet && timeline.GetRange(died, ended - died).FindAll(e => e == "beat").Count == 1 && beatIssues.Count == 0);
+            Check("(10) TurnEnded, then its end of turn and the 'until the end of its turn' expiry, then the next turn starts",
+                ended >= 0 && ended < engineEnd && engineEnd < expired && expired < engineNext && engineNext < next);
+            string nextLabel = next < 0 ? "none" : timeline[next];
+            Check($"(10) the next initiative entry acts next (expected {expectedNext} r{expectedRound}, got {nextLabel})",
+                nextLabel == $"TurnStarted {expectedNext} r{expectedRound}");
+            var wrong = new List<string>();
+            foreach (var unit in new[] { reactor, ally, far })
+                for (int round = 1; round <= 2; round++)
+                    if (unit.Health.IsAlive && (!starts.TryGetValue((unit, round), out int count) || count != 1))
+                        wrong.Add($"{unit.Name} r{round}");
+            Check($"(10) every living hero and foe started exactly one turn in rounds 1 and 2 (wrong: {string.Join(", ", wrong)})",
+                wrong.Count == 0);
+            GD.Print($"(10) timeline: {string.Join(" | ", timeline)}");
+        }
+        finally
+        {
+            DiceRoller.ClearAllOverrides();
+            session.Teardown();
+        }
+    }
+
+    private static int IndexOf(IReadOnlyList<PF2e.TurnManagement.TurnEntry> order, ICharacter character)
+    {
+        for (int i = 0; i < order.Count; i++)
+            if (order[i].Character == character) return i;
+        return -1;
     }
 
     private static DamageResult Physical(int amount) =>

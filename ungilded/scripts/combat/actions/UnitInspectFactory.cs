@@ -56,22 +56,40 @@ internal static class UnitInspectFactory
     {
         if (c.CreatureStats is not { } stats) return System.Array.Empty<JournalFact>();
         string? id = stats.CreatureId;
-        JournalFact Row(CreatureKnowledgeField field, string label, string? known = null)
+        JournalFact Row(CreatureKnowledgeField field, string label, bool wide, string? known = null)
         {
             bool isKnown = IsCreatureFieldKnown(id, field);
             string value = isKnown ? known ?? CreatureFacts.Value(field, stats.SourceDefinition, stats.Data) : HiddenMark;
-            return new JournalFact($"{label} {value}", isKnown);
+            return new JournalFact($"{label} {value}", isKnown, wide);
         }
         int ac = StatsCalculator.CalculateAC(c);
-        return new[]
+        var rows = new JournalFact[CardRows.Length];
+        for (int i = 0; i < CardRows.Length; i++)
         {
-            Row(CreatureKnowledgeField.AC, "AC", AcPair(c, ac)["AC ".Length..]),
-            Row(CreatureKnowledgeField.FortSave, "Fort"),
-            Row(CreatureKnowledgeField.RefSave, "Ref"),
-            Row(CreatureKnowledgeField.WillSave, "Will"),
-            Row(CreatureKnowledgeField.Weaknesses, "Weak"),
-            Row(CreatureKnowledgeField.Strikes, "Abilities"),
-        };
+            var (field, label, wide) = CardRows[i];
+            rows[i] = Row(field, label, wide, field == CreatureKnowledgeField.AC ? AcPair(c, ac)["AC ".Length..] : null);
+        }
+        return rows;
+    }
+
+    /// <summary>The card's knowledge rows in order, with their labels. Wide rows hold long values
+    /// (a weakness list, the strikes) and get a line each on the card.</summary>
+    private static readonly (CreatureKnowledgeField Field, string Label, bool Wide)[] CardRows =
+    {
+        (CreatureKnowledgeField.AC, "AC", false),
+        (CreatureKnowledgeField.FortSave, "Fort", false),
+        (CreatureKnowledgeField.RefSave, "Ref", false),
+        (CreatureKnowledgeField.WillSave, "Will", false),
+        (CreatureKnowledgeField.Weaknesses, "Weakness", true),
+        (CreatureKnowledgeField.Strikes, "Abilities", true),
+    };
+
+    /// <summary>The label of a field's row on the card ("Weakness"), or the field name when the card has no such row.</summary>
+    internal static string CardLabel(CreatureKnowledgeField field)
+    {
+        foreach (var (f, label, _) in CardRows)
+            if (f == field) return label;
+        return field.ToString();
     }
 
     /// <summary>"AC 16", or "AC 16 → 15" while conditions or a raised shield move it, so the change
@@ -115,6 +133,9 @@ internal static class UnitInspectFactory
             Conditions = conditions,
             AcText = acKnown ? AcPair(c, ac) : "AC ?",
             HpText = hpKnown ? $"{hp}/{maxHp}" : "?/?",
+            // Hidden creature facts are a rule wherever a journal is wired: the card lists them as ???.
+            KnowledgeRows = CreatureKnowledgeLocator.Instance != null
+                ? KnowledgeRows(c) : System.Array.Empty<JournalFact>(),
         };
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using PF2e.Core;
 using PF2e.MapGen;
 using Ungilded.Combat;
+using Ungilded.Terrain;
 using PF2eVec = PF2e.Vector2Int;
 
 namespace Ungilded.Content;
@@ -23,6 +24,10 @@ public sealed record PrologueBattle
 
     public required string Id { get; init; }
     public required MapLayout Layout { get; init; }
+
+    /// <summary>The authored halo around <see cref="Layout"/>, or null for a synthesized one.</summary>
+    public HaloPlan? Halo { get; init; }
+
     public string BiomeId { get; init; } = SewerBoard.BiomeId;
     public required IReadOnlyDictionary<string, PF2eVec> Anchors { get; init; }
     public required IReadOnlyList<PrologueSpawn> Enemies { get; init; }
@@ -48,7 +53,7 @@ public sealed record PrologueBattle
     {
         if (enemies.Count != Enemies.Count)
             throw new ArgumentException($"[PrologueBattle] {Id} expects {Enemies.Count} enemies, got {enemies.Count}.");
-        var setup = new CombatSetup { Layout = Layout, BiomeId = BiomeId, RngSeed = rngSeed };
+        var setup = new CombatSetup { Layout = Layout, Halo = Halo, BiomeId = BiomeId, RngSeed = rngSeed };
         setup.Party.Add((player, Anchor(PlayerAnchor)));
         setup.Party.Add((friend, Anchor(FriendAnchor)));
         for (int i = 0; i < enemies.Count; i++)

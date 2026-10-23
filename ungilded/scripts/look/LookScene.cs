@@ -35,8 +35,24 @@ public partial class LookScene : Node3D
     /// <summary>Metres past the board edge over which the halo treatment reaches full strength.</summary>
     [Export] public float HaloFalloffMetres { get; set; } = 6f;
 
-    /// <summary>Tint on unit sprites under this look. Sprites are drawn unshaded, so a dim interior
-    /// needs them dimmed by hand or they glow against the floor.</summary>
+    /// <summary>Metres per second the water's flow mask scrolls along a board's authored flow. 0
+    /// keeps the water shader's default scroll.</summary>
+    [Export] public float WaterFlowSpeed { get; set; }
+
+    /// <summary>Metres per second the sludge ripple drifts along a board's authored flow. 0 is a
+    /// standing ripple.</summary>
+    [Export] public float SludgeFlowSpeed { get; set; }
+
+    /// <summary>Props this look places on each board, or null for none.</summary>
+    [Export] public LookDressing? Dressing { get; set; }
+
+    /// <summary>Dress a freshly built board with this look's props.</summary>
+    public void Dress(DressingContext context) => Dressing?.Dress(context, HaloShade);
+
+    /// <summary>Remove the props of the last <see cref="Dress"/>.</summary>
+    public void Undress() => Dressing?.Clear();
+
+    /// <summary>Tint on unit sprites under this look, over the light they take from the scene.</summary>
     [Export] public Color SpriteTint { get; set; } = Colors.White;
 
     /// <summary>The <see cref="SpriteTint"/> of the look switched on last, white when none is on. A

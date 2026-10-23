@@ -5,10 +5,10 @@ using Godot;
 namespace Ungilded.UI;
 
 /// <summary>
-/// Card-sized portraits cut from the heroes' Mana Seed movement pages. The portrait is the
-/// south-facing stand frame (row <see cref="ManaSeedSheet.RowSouth"/>, column 0) cropped to the
-/// figure — the same frame the board draws while a hero idles, so a card and its token show the
-/// same character in the same pose.
+/// Card-sized portraits cut from the frame the board draws while a hero idles, so a card and its
+/// token show the same character in the same pose. An authored hero folder crops its first idle
+/// frame (<see cref="UnitPortraits"/>); a Mana Seed hero crops the south-facing stand frame
+/// (row <see cref="ManaSeedSheet.RowSouth"/>, column 0) of its movement page.
 ///
 /// One <see cref="AtlasTexture"/> per hero id, cached: the party strip and the roster card both ask
 /// for the same portrait, and neither should re-read the page.
@@ -23,7 +23,9 @@ public static class HeroPortraits
     public static Texture2D? Face(string characterId)
     {
         if (Faces.TryGetValue(characterId, out var cached)) return cached;
-        string path = ManaSeedSheet.SheetPath(HeroSpriteMap.FolderFor(characterId), ManaSeedSheet.WalkPage);
+        string folder = HeroSpriteMap.FolderFor(characterId);
+        if (HeroSpriteMap.IsAuthored(folder)) return Faces[characterId] = UnitPortraits.SpriteFace(folder);
+        string path = ManaSeedSheet.SheetPath(folder, ManaSeedSheet.WalkPage);
         var page = ResourceLoader.Exists(path) ? GD.Load<Texture2D>(path) : null;
         Texture2D? face = page == null ? null : new AtlasTexture
         {
@@ -42,7 +44,9 @@ public static class HeroPortraits
     {
         if (Cache.TryGetValue(characterId, out var cached)) return cached;
 
-        string path = ManaSeedSheet.SheetPath(HeroSpriteMap.FolderFor(characterId), ManaSeedSheet.WalkPage);
+        string folder = HeroSpriteMap.FolderFor(characterId);
+        if (HeroSpriteMap.IsAuthored(folder)) return Cache[characterId] = UnitPortraits.FigurePortrait(folder);
+        string path = ManaSeedSheet.SheetPath(folder, ManaSeedSheet.WalkPage);
         var page = ResourceLoader.Exists(path) ? GD.Load<Texture2D>(path) : null;
         Texture2D? portrait = page == null ? null : new AtlasTexture
         {

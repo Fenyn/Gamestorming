@@ -158,15 +158,16 @@ public static class TerrainMeshBuilder
         // here rather than inside Assemble so the build reads as its two steps: fill the buffers,
         // then bake the ground texture and assemble the meshes around it. Null (a theme with no
         // textured surfaces) keeps the per-surface flat-colour path.
-        var bakedGround = GroundTextureBaker.Bake(
-            layout, theme, ctx.EffectiveSurfaces, options?.WorldOrigin ?? Vector2.Zero);
+        bool collisionOnly = options?.CollisionOnly == true;
+        var bakedGround = collisionOnly ? null : GroundTextureBaker.Bake(
+            layout, theme, ctx.EffectiveSurfaces, options?.WorldOrigin ?? Vector2.Zero, options?.SludgeFlow ?? Vector2.Zero);
 
-        return Assemble(ctx, bakedGround);
+        return Assemble(ctx, bakedGround, collisionOnly, options?.WaterFlow ?? Vector2.Zero);
     }
 
     // ────────────────────────────── Mesh assembly ──────────────────────────────
 
-    private static Result Assemble(TerrainBuildContext ctx, Material? bakedGround)
+    private static Result Assemble(TerrainBuildContext ctx, Material? bakedGround, bool collisionOnly, Vector2 waterFlow)
     {
         var layout = ctx.Layout;
         var visual = new ArrayMesh { ResourceName = $"terrain_{layout.Name ?? "map"}" };
@@ -179,9 +180,9 @@ public static class TerrainMeshBuilder
         // baked materials follow the surviving order.
         foreach (var (key, buffer) in ctx.Palette.Buffers)
         {
-            if (buffer.IsEmpty) continue;
+            if (buffer.IsEmpty || collisionOnly) continue;
 
-            buffer.AppendTo(visual, MaterialFor(ctx.Theme, key, bakedGround));
+            buffer.AppendTo(visual, MaterialFor(ctx.Theme, key, bakedGround, waterFlow));
 
             vertexCount += buffer.VertexCount;
             triangleCount += buffer.TriangleCount;
@@ -200,13 +201,13 @@ public static class TerrainMeshBuilder
         };
     }
 
-    private static Material MaterialFor(MapThemeDefinition theme, PaletteKey key, Material? bakedGround) => key.Kind switch
+    private static Material MaterialFor(MapThemeDefinition theme, PaletteKey key, Material? bakedGround, Vector2 waterFlow) => key.Kind switch
     {
         FaceKind.Top when key.Surface != SurfaceType.Water && bakedGround != null => bakedGround,
-        FaceKind.Top => MapMaterials.Top(theme, key.Surface),
+        FaceKind.Top => MapMaterials.Top(theme, key.Surface, waterFlow),
         FaceKind.Wall => MapMaterials.Wall(theme, key.Surface),
-        FaceKind.TopGridLine => MapMaterials.Overlay(theme.TopGridLineColor, "terrain_grid_line"),
-        FaceKind.EdgeStrip => MapMaterials.Overlay(theme.EdgeStripColor, "terrain_edge_strip"),
-        _ => MapMaterials.Overlay(theme.CliffBandColor, "terrain_cliff_band"),
+        FaceKind.TopGridLine => MapMaterials.TerrainOverlay(theme.TopGridLineColor, "terrain_grid_line"),
+        FaceKind.EdgeStrip => MapMaterials.TerrainOverlay(theme.EdgeStripColor, "terrain_edge_strip"),
+        _ => MapMaterials.TerrainOverlay(theme.CliffBandColor, "terrain_cliff_band"),
     };
 }

@@ -18,6 +18,16 @@ public partial class UnitVisual3D
     [Export] public float DodgeLeanMetres { get; set; } = 0.12f;
     [Export] public Vector2 DodgeLeanSeconds { get; set; } = new(0.07f, 0.11f);
 
+    /// <summary>Direction a creature's death erosion moves on screen (x right, y down): down, so the
+    /// back goes first and the rising dust leaves into empty air instead of crossing the body.</summary>
+    [Export] public Vector2 DeathSweep { get; set; } = Vector2.Down;
+
+    /// <summary>Metres the eroding sprite moves on alternate frames, so the torches re-render its
+    /// shadow; small enough that no pixel moves on screen.</summary>
+    [Export] public float ShadowNudgeMetres { get; set; } = 0.0001f;
+
+    private Tween? _erosionTween;
+
     private float _pace = 1f;
 
     /// <summary>Stretch the hit, dodge and death beats and the HP bar's slide to <paramref name="pace"/>
@@ -113,7 +123,55 @@ public partial class UnitVisual3D
         _spriteMoveTween = CreateTween();
     }
 
+    /// <summary>A hero's death: the body stays and darkens to the corpse tint.</summary>
     public void PlayDeath()
+    {
+        Retire();
+        TintCorpse();
+    }
+
+    /// <summary>A creature's death: the body breaks into its own pixels over <paramref name="seconds"/>
+    /// (<see cref="BillboardSpriteAnimator.BeginErosion"/>) and hides at the end. Returns the erosion
+    /// for the <see cref="Ungilded.Fx.DeathDust"/> that lets the texels go, or null when the sprite cannot
+    /// erode, and the corpse tint plays instead.</summary>
+    public Ungilded.Fx.SpriteErosion? Disintegrate(float seconds)
+    {
+        Retire();
+        _sprite.Modulate = _restTint;
+        var erosion = _sprite.BeginErosion(DeathSweep, GD.Randi());
+        if (erosion == null)
+        {
+            TintCorpse();
+            return null;
+        }
+        _erosionTween = CreateTween();
+        _erosionTween.TweenMethod(Callable.From<float>(Erode), 0f, 1f, seconds);
+        _erosionTween.TweenCallback(Callable.From(_sprite.Hide));
+        return erosion;
+    }
+
+    /// <summary>True for a creature, which disintegrates; a hero keeps a corpse.</summary>
+    public bool Disintegrates => !_isHero;
+
+    /// <summary>The body's erosion: 0 whole, 1 gone.</summary>
+    public float DeathProgress => _sprite.ErosionProgress;
+
+    /// <summary>False once the eroded body has hidden.</summary>
+    public bool BodyShown => _sprite.Visible;
+
+    private int _erodedFrames;
+
+    private void Erode(float progress)
+    {
+        _sprite.ErosionProgress = progress;
+        // A shadowed light re-renders its shadow only when a caster moves; a still sprite would leave
+        // its whole silhouette on the floor while the body erodes.
+        _sprite.Position = _spriteRest + Vector3.Up * (ShadowNudgeMetres * (_erodedFrames++ & 1));
+    }
+
+    /// <summary>The death beat both deaths share: the bar, badge, plate, ring, shadow, crystal and
+    /// picking go, and the pose freezes.</summary>
+    private void Retire()
     {
         _dead = true;
         _hpBar.Visible = false;
@@ -121,18 +179,22 @@ public partial class UnitVisual3D
         _dying.Hide();
         _plate.Retire();
         _sprite.Frozen = true;
-        // The corpse tint is final, so it takes the modulate handle over from any flash still running
-        // (a killing blow FlashHit is always in flight when this lands) and _dead locks out the next.
+        // The death takes the modulate handle over from any flash still running (a killing blow
+        // FlashHit is always in flight when this lands) and _dead locks out the next.
         _modulateTween?.Kill();
+        _modulateTween = null;
         _spriteMoveTween?.Kill();
         _spriteMoveTween = null;
         _sprite.Position = _spriteRest;
-
-        _modulateTween = CreateTween();
-        _modulateTween.TweenProperty(_sprite, "modulate", Ungilded.UI.UiColors.BoardCorpse, DeathFadeDuration);
         _ring.FadeOut(DeathRingFadeDuration);
         FadeShadow(DeathRingFadeDuration);
         ShowCrystal(false);
         _pick.SetPickable(false);
+    }
+
+    private void TintCorpse()
+    {
+        _modulateTween = CreateTween();
+        _modulateTween.TweenProperty(_sprite, "modulate", Ungilded.UI.UiColors.BoardCorpse, DeathFadeDuration);
     }
 }

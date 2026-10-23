@@ -16,7 +16,9 @@ MaxHeight = 700.0
 DividerHeight = 24.0
 
 [node name="Title" type="Label" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 1
 theme_type_variation = &"TimelineTitle"
 text = "Timeline"
 

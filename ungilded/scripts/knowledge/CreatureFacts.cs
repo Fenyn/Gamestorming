@@ -8,9 +8,11 @@ using PF2e.Data;
 namespace Ungilded.Knowledge;
 
 /// <summary>One journal field as printed: "AC 16" when known, "AC ?" when not.</summary>
-public sealed record JournalFact(string Text, bool Known);
+/// <param name="Wide">True for a field whose value runs long (weaknesses, strikes): a card gives
+/// it a row of its own.</param>
+public sealed record JournalFact(string Text, bool Known, bool Wide = false);
 
-/// <summary>Journal fields as concise labelled values ("AC 16", "Fort +7", "Weak fire 5"), "?" when
+/// <summary>Journal fields as concise labelled values ("AC 16", "Fort +7", "Weakness fire 5"), "?" when
 /// unknown. Reads a stat block and its definition, so it serves live combatants and the outpost.</summary>
 public static class CreatureFacts
 {

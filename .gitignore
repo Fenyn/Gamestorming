@@ -34,7 +34,12 @@ Desktop.ini
 # --- Third-party addons kept local (godot_base stays tracked) ---
 /heirloom/addons/*
 !/heirloom/addons/godot_base
-/delve/design
+/delve/design/*
+!/delve/design/human_sprite_guidelines.md
+!/delve/design/sprite-style/
+/delve/design/sprite-style/*
+!/delve/design/sprite-style/README.md
+!/delve/design/sprite-style/reference-profile.json
 /zenith/docs/NewZ Starters
 zenith/docs/card_roster.csv
 zenith/docs/Card List (GBA)
@@ -53,3 +58,10 @@ zenith/docs/Card List (GBA)
 /delve/tools/village_models
 /zenith/store
 /ungilded/assets
+
+# Owned reference books, not for the repo
+docs/*.pdf
+/experiments
+/ungilded/design/artist-stills
+/ungilded/design
+/ungilded/dev_shots

@@ -23,14 +23,22 @@ public sealed class GodotPresenter3D
     private const float AttackDuration = 0.14f;
     private const float PauseDuration = 0.25f;
 
-    /// <summary>Gate held on CreatureDied. Kept short because <see cref="DeathPoof"/> covers
-    /// the beat: the poof outlives the gate on its own tween, so the pipeline does not have to wait
-    /// out the whole fade before the next unit acts.</summary>
+    /// <summary>Gate held on a hero's CreatureDied, while the corpse tint starts. A creature's gate is
+    /// its <see cref="DeathDust.SweepSeconds"/> instead (<see cref="Disintegrate"/>).</summary>
     private const float DeathDuration = 0.3f;
 
     /// <summary>Fraction of a unit's HP-bar height at which a blow is judged to land — the spark's
-    /// origin. Reading it off the bar is what makes one number work for a 1.75 m hero and a 0.9 m rat.</summary>
+    /// origin and the acid splash's impact height. Reading it off the bar is what makes one number
+    /// work for a 1.75 m hero and a 0.9 m rat.</summary>
     private const float ImpactHeightFraction = 0.6f;
+
+    /// <summary>Fraction of the thrower's body height a thrown flask leaves from.</summary>
+    private const float HandHeightFraction = 0.6f;
+
+    /// <summary>HP-bar height under which a heal plays <see cref="TreatWounds"/>' low (rat-sized)
+    /// wrap. The effect's author cut the two sets at a body height of about 0.85 m. The bar is read
+    /// instead of the body because a Mana Seed hero reports no body height.</summary>
+    private const float LowHealBarHeight = 0.85f;
 
     /// <summary>Height above a unit's own HP bar at which its damage number spawns, clearing the bar
     /// and the name label (which sits 0.22 m over the bar).</summary>
@@ -56,6 +64,10 @@ public sealed class GodotPresenter3D
     /// Optional for the same reason as <see cref="Shake"/>.
     /// </summary>
     public ICameraFocus? Focus { get; set; }
+
+    /// <summary>The board's wall cut, so an effect on the ground sits on the masonry as it is drawn
+    /// this frame. Optional: without it the terrain's own heights are used.</summary>
+    public TerrainCutaway? Cutaway { get; set; }
 
     /// <summary>Multiplier on the beats between board events and on the damage numbers: 1.25 plays
     /// them a quarter slower. Walking and a swing clip's impact frame keep their own timing.</summary>
@@ -84,13 +96,33 @@ public sealed class GodotPresenter3D
         _height = heightMap;
     }
 
-    public void RegisterUnit(ICharacter character, UnitVisual3D visual) => _units[character.UniqueId] = visual;
+    /// <summary>Raised as the engine applies a registered unit's damage, which happens while the
+    /// Strike resolves and before its events are presented. The dice panel shows the dice from it.</summary>
+    public event System.Action<Ungilded.UI.DamageRoll>? DamageRolled;
+
+    private readonly Dictionary<int, System.Action> _unwatch = new();
+
+    public void RegisterUnit(ICharacter character, UnitVisual3D visual)
+    {
+        _units[character.UniqueId] = visual;
+        if (_unwatch.ContainsKey(character.UniqueId) || character.Health is not { } health) return;
+        System.Action<PF2e.Events.DamageEvent> rolled = e =>
+        {
+            if (Ungilded.UI.DamageRoll.From(e.Result) is { } roll) DamageRolled?.Invoke(roll);
+        };
+        health.OnDamageTaken += rolled;
+        _unwatch[character.UniqueId] = () => health.OnDamageTaken -= rolled;
+    }
 
     /// <summary>How many unit visuals are registered. The reset spike asserts on it.</summary>
     public int UnitCount => _units.Count;
 
     /// <summary>Drop one unit's visual. Call before the node is freed.</summary>
-    public void UnregisterUnit(ICharacter character) => _units.Remove(character.UniqueId);
+    public void UnregisterUnit(ICharacter character)
+    {
+        _units.Remove(character.UniqueId);
+        if (_unwatch.Remove(character.UniqueId, out var unwatch)) unwatch();
+    }
 
     public void RetireUnit(ICharacter character)
     {
@@ -106,7 +138,12 @@ public sealed class GodotPresenter3D
     /// Drop every registration. The scene calls this when it resets for the next encounter, so the
     /// map never hands out a visual whose node was freed with the previous board.
     /// </summary>
-    public void ClearUnits() => _units.Clear();
+    public void ClearUnits()
+    {
+        _units.Clear();
+        foreach (var unwatch in _unwatch.Values) unwatch();
+        _unwatch.Clear();
+    }
 
     public async Task Present(BattleEvent evt)
     {
@@ -199,8 +236,13 @@ public sealed class GodotPresenter3D
                 }
                 // The clip's STRIKE frame keeps the clip's own time, or the spark would trail the bite.
                 await Delay(gate, paced: !clipGate);
+                // A bomb leaves the hand at the end of the lunge and the gate holds for its flight, so
+                // the miss reaction below and the DamageDealt splash both come as it lands.
                 if (TryGet(evt.Source, out var strikingUnit))
-                    PlayAttackAccent(strikingUnit, HorizontalDirection(evt.Source, evt.Target));
+                {
+                    if (evt.Get(BombEventKeys.Thrown, false)) await ThrowFlask(strikingUnit, evt.Target);
+                    else PlayAttackAccent(strikingUnit, HorizontalDirection(evt.Source, evt.Target));
+                }
 
                 // A whiff gets no spark — nothing connected. The defender ducks away on the frame the
                 // blow arrives and takes the MISS/FUMBLE callout instead.
@@ -219,14 +261,19 @@ public sealed class GodotPresenter3D
                 if (TryGet(evt.Target, out var hitUnit))
                 {
                     bool crit = evt.Degree == DegreeOfSuccess.CriticalSuccess;
-                    SpawnHitSpark(hitUnit, HorizontalDirection(evt.Source, evt.Target), evt.DamageType, crit);
+                    SpawnHitEffect(hitUnit, evt, crit);
                     hitUnit.FlashHit();
                     // A killing blow skips the flinch: the CreatureDied that follows immediately owns
                     // that beat, and a corpse jittering into its own death fade reads as a glitch.
                     if (hitUnit.Character.Health?.IsDead != true) hitUnit.PlayHurtShake();
-                    hitUnit.UpdateHealthBar();
-                    SpawnPopup(DamagePopup3D.Create(evt.IntValue ?? 0, evt.DamageType, evt.Degree), hitUnit);
+                    var popup = DamagePopup3D.Create(evt.IntValue ?? 0, evt.DamageType, evt.Degree,
+                        evt.Get<string>(BombEventKeys.PopupLabel));
+                    float drainAfter = popup.LandSeconds + popup.HitStopSeconds;
+                    SpawnPopup(popup, hitUnit);
                     if (crit) Shake?.AddTrauma(ShakePivot.CritTrauma);
+                    // The bar holds until the number has landed and the hit-stop has passed.
+                    await Delay(drainAfter);
+                    if (GodotObject.IsInstanceValid(hitUnit)) hitUnit.UpdateHealthBar();
                 }
                 await Delay(PauseDuration);
                 break;
@@ -234,7 +281,7 @@ public sealed class GodotPresenter3D
             case BattleEventType.Healed:
                 if (TryGet(evt.Target, out var healUnit))
                 {
-                    SpawnFx(FxLibrary.HealMotesScene.Instantiate<HealMotes>(), healUnit, healUnit.Position);
+                    SpawnTreatWounds(healUnit, evt.Source);
                     healUnit.UpdateHealthBar();
                     SpawnPopup(DamagePopup3D.CreateHeal(evt.IntValue ?? 0), healUnit);
                 }
@@ -259,10 +306,19 @@ public sealed class GodotPresenter3D
             case BattleEventType.CreatureDied:
                 if (TryGet(evt.Source, out var deadUnit))
                 {
-                    SpawnFx(FxLibrary.DeathPoofScene.Instantiate<DeathPoof>(), deadUnit, deadUnit.Position);
-                    deadUnit.PlayDeath();
+                    // A death with no damage before it (a disease stage, a failed recovery check)
+                    // still empties the bar.
+                    deadUnit.UpdateHealthBar();
                     Shake?.AddTrauma(ShakePivot.DeathTrauma);
-                    await Delay(DeathDuration);
+                    if (deadUnit.Disintegrates)
+                    {
+                        await Disintegrate(deadUnit);
+                    }
+                    else
+                    {
+                        deadUnit.PlayDeath();
+                        await Delay(DeathDuration);
+                    }
                 }
                 break;
 
@@ -355,8 +411,6 @@ public sealed class GodotPresenter3D
     private static float UnitSizeFactor(UnitVisual3D unit) =>
         Mathf.Max(0.66f, unit.HpBarHeight / UnitVisual3D.HeroHpBarY);
 
-    /// <summary>Burst a <see cref="HitSpark"/> at the struck unit's impact point — up its own
-    /// silhouette, tinted for the damage type, thrown away from the attacker, doubled on a crit.</summary>
     /// <summary>Motion accent at contact; damage sparks remain a separate hit-only effect.</summary>
     public void PlayAttackAccent(UnitVisual3D on, Vector3 direction)
     {
@@ -371,11 +425,94 @@ public sealed class GodotPresenter3D
             + Vector3.Up * on.HpBarHeight * accent.HeightFraction);
     }
 
+    /// <summary>The impact effect of one damage event. Acid gets an <see cref="AcidSplash"/>: the full
+    /// shatter where a flask struck the creature, the <see cref="AcidSplash.Minor"/> one for the splash
+    /// alone and any other acid. Every other type gets a <see cref="HitSpark"/>.</summary>
+    private void SpawnHitEffect(UnitVisual3D on, BattleEvent evt, bool crit)
+    {
+        if (evt.DamageType == DamageType.Acid) SpawnAcidSplash(on, minor: !IsDirectBombHit(evt));
+        else SpawnHitSpark(on, HorizontalDirection(evt.Source, evt.Target), evt.DamageType, crit);
+    }
+
+    /// <summary>True when a thrown bomb struck this creature: the event carries the bomb extras and
+    /// the creature took more than the splash.</summary>
+    private static bool IsDirectBombHit(BattleEvent evt)
+        => evt.Extra?.ContainsKey(BombEventKeys.Splash) == true && !evt.Get(BombEventKeys.SplashOnly, false);
+
+    /// <summary>Spawn an <see cref="AcidSplash"/> at the unit's feet, its body at the impact point.</summary>
+    private void SpawnAcidSplash(UnitVisual3D on, bool minor)
+    {
+        if (!GodotObject.IsInstanceValid(on)) return;
+        var splash = FxLibrary.AcidSplashScene.Instantiate<AcidSplash>();
+        splash.ImpactHeight = on.HpBarHeight * ImpactHeightFraction;
+        splash.Minor = minor;
+        SpawnFx(splash, on, on.Position);
+    }
+
+    /// <summary>Lob a <see cref="FlaskThrow"/> from the thrower's hand to the target's impact point, the
+    /// height the splash lands at, and hold for its flight at the effect's own speed. A missed throw
+    /// flies to the target too.</summary>
+    private async Task ThrowFlask(UnitVisual3D thrower, ICharacter? target)
+    {
+        if (!TryGet(target, out var struck) || !GodotObject.IsInstanceValid(struck)) return;
+        var flask = FxLibrary.FlaskThrowScene.Instantiate<FlaskThrow>();
+        flask.Aim(thrower.Position, struck.Position, thrower.GlowBodyHeight * HandHeightFraction,
+            struck.HpBarHeight * ImpactHeightFraction);
+        flask.BodyPixelSize = thrower.SpritePixelSize;
+        flask.SurfaceHeight = SurfaceY;
+        float flight = flask.FlightSeconds;
+        SpawnFx(flask, thrower, thrower.Position);
+        await Delay(flight, paced: false);
+    }
+
+    /// <summary>Height of the drawn board surface at a board-space point: the terrain triangle there,
+    /// or the top of the masonry where the wall cut takes it down this frame.</summary>
+    private float SurfaceY(Vector3 at)
+    {
+        var tile = GridSpace.WorldToGrid(at);
+        return Cutaway?.CutTopY(tile.x, tile.y) ?? _height.SampleY(tile, at.X - tile.x, at.Z - tile.y);
+    }
+
+    /// <summary>Spawn a <see cref="TreatWounds"/> at the healed unit's feet: the wrap on the sprite's own
+    /// pixel grid, the low set for a rat-sized unit, the light moved toward the healer.</summary>
+    private void SpawnTreatWounds(UnitVisual3D on, ICharacter? healer)
+    {
+        if (!GodotObject.IsInstanceValid(on)) return;
+        var wrap = FxLibrary.TreatWoundsScene.Instantiate<TreatWounds>();
+        wrap.BodyPixelSize = on.SpritePixelSize;
+        wrap.UseLowSet = on.HpBarHeight < LowHealBarHeight;
+        wrap.HealerDirection = ReferenceEquals(healer, on.Character)
+            ? Vector3.Zero
+            : HorizontalDirection(on.Character, healer);
+        SpawnFx(wrap, on, on.Position);
+    }
+
+    /// <summary>A slain creature breaks into its own pixels: the token erodes its sprite over the dust's
+    /// sweep, and a <see cref="DeathDust"/> at its feet lets each texel go as the shader discards it.
+    /// The beat holds for the sweep at the effect's own speed, so the next unit acts once the body is
+    /// gone; the dust's drift outlives the beat.</summary>
+    private async Task Disintegrate(UnitVisual3D unit)
+    {
+        var dust = FxLibrary.DeathDustScene.Instantiate<DeathDust>();
+        float sweep = dust.SweepSeconds;
+        dust.Erosion = unit.Disintegrate(sweep);
+        if (dust.Erosion == null)
+        {
+            dust.QueueFree();
+            await Delay(DeathDuration);
+            return;
+        }
+        SpawnFx(dust, unit, unit.Position);
+        await Delay(sweep, paced: false);
+    }
+
+    /// <summary>Burst a <see cref="HitSpark"/> at the struck unit's impact point — up its own
+    /// silhouette, tinted for the damage type, thrown away from the attacker, doubled on a crit.</summary>
     private void SpawnHitSpark(UnitVisual3D on, Vector3 impactDirection, DamageType? damageType, bool crit)
     {
         if (!GodotObject.IsInstanceValid(on)) return;
         var spark = FxLibrary.HitSparkScene.Instantiate<HitSpark>();
-        // An untyped hit keeps HitSpark's own warm-white default.
+        // An untyped or physical hit keeps HitSpark's own red default.
         if (DamageColors.For(damageType) is { } tint) spark.Tint = tint;
         spark.ImpactDirection = impactDirection;
         spark.Crit = crit;

@@ -28,10 +28,12 @@ public partial class TutorialHooksSpike : SpikeBase
     [Export] public PackedScene? CombatScene { get; set; }
     [Export(PropertyHint.Range, "1,10,1")] public int StartLevel { get; set; } = 2;
     [Export] public int CombatSeed { get; set; } = 1337;
-    [Export] public Vector2I HeroTile { get; set; } = new(4, 6);
-    [Export] public Vector2I FriendTile { get; set; } = new(3, 6);
-    [Export] public Vector2I RatATile { get; set; } = new(8, 6);
-    [Export] public Vector2I RatBTile { get; set; } = new(9, 8);
+    /// <summary>Rats start left of the heroes: the command menu opens to the hero's right, so the
+    /// gold tiles stay clear of it in the capture.</summary>
+    [Export] public Vector2I HeroTile { get; set; } = new(8, 6);
+    [Export] public Vector2I FriendTile { get; set; } = new(9, 6);
+    [Export] public Vector2I RatATile { get; set; } = new(4, 6);
+    [Export] public Vector2I RatBTile { get; set; } = new(3, 8);
     [Export] public string ShotPath { get; set; } = "";
     [Export] public Vector2I ShotSize { get; set; } = new(1600, 900);
     [Export] public float SettleSeconds { get; set; } = 2f;
@@ -51,9 +53,15 @@ public partial class TutorialHooksSpike : SpikeBase
     private readonly List<StrikeInfo> _strikes = new();
     private readonly List<CreatureKnowledgeField> _reveals = new();
     private readonly List<string> _turns = new();
+    private readonly HashSet<ICharacter> _studied = new();
+    private readonly HashSet<(ICharacter Unit, int Round)> _turnRounds = new();
+    private int _fleeRound;
     private int _thresholdFires, _wipes, _refusals, _finishes, _ratTurnsSeen;
     private bool _friendHadPlayerTurn, _wipeArmed, _heroRoundOneDone;
     private (ICharacter Rat, PF2eVec Tile)? _scriptedApproach;
+    private PF2eVec? _approachLanded;
+    private ICharacter? _fleeing;
+    private int _reactionStrikesAtGate = -1;
     private EnemyStride? _held;
     private TaskCompletionSource? _release;
     private BattleResult _result = BattleResult.InProgress;
@@ -112,6 +120,8 @@ public partial class TutorialHooksSpike : SpikeBase
         _hooks.OnEncounterFinished(_ => { _finishes++; return Task.CompletedTask; });
         _hooks.BeforeEnemyStride(async stride =>
         {
+            if (ReferenceEquals(stride.Unit, _fleeing))
+                _reactionStrikesAtGate = _strikes.Count(s => s.IsReaction && ReferenceEquals(s.Target, _fleeing));
             if (_held != null) return;
             _held = stride;
             _release = new TaskCompletionSource();
@@ -124,6 +134,9 @@ public partial class TutorialHooksSpike : SpikeBase
         var session = _scene.Session!;
         int round = session.RoundNumber;
         _turns.Add($"{unit.Name} r{round}");
+        _turnRounds.Add((unit, round));
+        if (_scriptedApproach is { } approach && _approachLanded == null && !ReferenceEquals(unit, approach.Rat))
+            _approachLanded = approach.Rat.GridPosition;
         if (ReferenceEquals(unit, _friend) && round >= 2) _hooks.ClearAutoPass(_friend);
         if (unit.TeamId == 1) return Task.CompletedTask;
 
@@ -140,7 +153,14 @@ public partial class TutorialHooksSpike : SpikeBase
             _hooks.ScriptEnemyTurn(unit, round, new ScriptedTurn().StrideTo(tile).Strike(_hero));
         }
         else if (round == 1)
+            _hooks.ScriptEnemyTurn(unit, round, new ScriptedTurn().EndTurn());
+        else if (_fleeing == null && Chebyshev(unit.GridPosition, _hero.GridPosition) == 1)
+        {
+            // A rat in the hero's reach flees: the gate must run before the Reactive Strike.
+            _fleeing = unit;
+            _fleeRound = round;
             _hooks.ScriptEnemyTurn(unit, round, new ScriptedTurn().StrideAwayFrom(_hero, 2));
+        }
         else
             _hooks.ScriptEnemyTurn(unit, round, new ScriptedTurn().EndTurn());
         return Task.CompletedTask;
@@ -186,7 +206,8 @@ public partial class TutorialHooksSpike : SpikeBase
             _heroRoundOneDone = true;
             await PlayHeroRoundOne(session);
         }
-        else if (session.RoundNumber >= 2 && _reveals.Count < 2 && !_wipeArmed)
+        // One Recall Knowledge attempt per hero per species each fight: only a hero who has not tried makes it.
+        else if (session.RoundNumber >= 2 && _reveals.Count < 2 && !_wipeArmed && _studied.Add(actor))
             await PlayRecallKnowledge(session, actor);
         if (_reveals.Count >= 2) _wipeArmed = true;
         if (ReferenceEquals(session.CurrentActor, actor) && _scene.IsPlayerTurn) session.RequestEndPlayerTurn();
@@ -212,17 +233,21 @@ public partial class TutorialHooksSpike : SpikeBase
         Check("restricted: the Move hotkey still works", moveKey && controller.Mode == PlayerTurnMode.Moving);
         controller.Cancel();
 
+        // As Encounter 1 does: the gold tiles are the far rat's free orthogonal neighbours in range.
         var reachable = exec.GetReachableTiles(_hero);
-        var rats = session.Team2.Where(r => r.Health.IsAlive).ToArray();
-        var allowed = reachable.Where(t => rats.Any(r => Chebyshev(t, r.GridPosition) == 1))
+        var gold = session.Team2.Where(r => r.Health.IsAlive)
+            .OrderByDescending(r => Chebyshev(r.GridPosition, _hero.GridPosition))
+            .Select(r => reachable.Where(t => Math.Abs(t.x - r.GridPosition.x) + Math.Abs(t.y - r.GridPosition.y) == 1)
+                .OrderBy(t => t.x).ThenBy(t => t.y).ToArray())
+            .FirstOrDefault(tiles => tiles.Length > 0) ?? Array.Empty<PF2eVec>();
+        var refused = reachable.Where(t => !gold.Contains(t))
             .OrderBy(t => t.x).ThenBy(t => t.y).Cast<PF2eVec?>().FirstOrDefault();
-        var refused = reachable.Where(t => !allowed.HasValue || !t.Equals(allowed.Value))
-            .OrderBy(t => t.x).ThenBy(t => t.y).Cast<PF2eVec?>().FirstOrDefault();
-        Check("a tile next to a rat is in Stride range", allowed != null && refused != null);
-        if (allowed is not { } goal || refused is not { } wrong) return;
+        Check($"tiles next to a rat are in Stride range ({gold.Length})", gold.Length > 0 && refused != null);
+        if (gold.Length == 0 || refused is not { } wrong) return;
+        var goal = gold[0];
 
-        _hooks.RestrictMoveTo(new[] { goal }, MoveHint);
-        Check("the board shows one gold tile", _scene.GuideTileCount == 1);
+        _hooks.RestrictMoveTo(gold, MoveHint);
+        Check($"the board shows {gold.Length} gold tiles", _scene.GuideTileCount == gold.Length);
         Check($"the forecast slot shows the move hint ('{bar.Decision.HintText}')", bar.Decision.HintText == MoveHint);
         if (!Headless && ShotPath.Length > 0)
         {
@@ -293,7 +318,7 @@ public partial class TutorialHooksSpike : SpikeBase
             _scene.HoverTile(rat.GridPosition);
             var card = _scene.TargetCard;
             Check($"the card shows ??? for unrevealed fields ({string.Join(" | ", card.KnowledgeTexts)})",
-                card.KnowledgeTexts.Contains("AC ???") && card.KnowledgeTexts.Contains("Weak ???")
+                card.KnowledgeTexts.Contains("AC ???") && card.KnowledgeTexts.Contains("Weakness ???")
                 && card.KnowledgeTexts.Contains("Abilities ???") && card.KnowledgeTexts.Contains("Fort ???"));
             Check("the callout shows beside the ??? rows", card.CalloutShown && card.CalloutText == Callout);
             _scene.HoverTile(null);
@@ -359,10 +384,18 @@ public partial class TutorialHooksSpike : SpikeBase
         if (_scriptedApproach is { } approach)
             Check($"the scripted rat strode to ({approach.Tile.x},{approach.Tile.y}) and struck",
                 _strikes.Any(s => ReferenceEquals(s.Attacker, approach.Rat) && ReferenceEquals(s.Target, _hero))
-                && (approach.Rat.GridPosition.Equals(approach.Tile) || approach.Rat.Health.IsDead));
+                && _approachLanded is { } landed && landed.Equals(approach.Tile));
         else
             Check("a rat had a scripted approach", false);
         Check("the stride gate ran", _held != null);
+        int reactions = _fleeing == null ? 0 : _strikes.Count(s => s.IsReaction && ReferenceEquals(s.Target, _fleeing));
+        Check($"a fleeing rat met the stride gate before the Reactive Strike (at gate {_reactionStrikesAtGate}, after {reactions})",
+            _fleeing != null && _reactionStrikesAtGate == 0 && reactions == 1);
+        // A rat slain mid-Stride by the Reactive Strike must not cost a hero the turn after it.
+        var missed = new[] { _hero, _friend }.Where(h => !_turnRounds.Contains((h, _fleeRound)))
+            .Select(h => $"{h.Name} r{_fleeRound}").ToArray();
+        Check($"every hero had a turn in the Reactive Strike round (missing: {string.Join(", ", missed)})",
+            _fleeRound > 0 && missed.Length == 0);
         Check("Recall Knowledge ran twice", _reveals.Count >= 2);
         Check("the HP threshold fired once", _thresholdFires == 1);
         Check($"the party wipe fired OnPartyWiped, then OnEncounterFinished ({_result})",

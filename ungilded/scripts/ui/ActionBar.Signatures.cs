@@ -46,6 +46,7 @@ public partial class ActionBar
         }
         var chosen = entries.OrderBy(e => e.Priority).ThenBy(e => e.Chip.Id, System.StringComparer.Ordinal)
             .Take(SignatureLimit).ToArray();
+        _signatureChipEnabled = chosen.Any(e => e.Chip.Enabled);
         if (chosen.Length > 0)
         {
             var flow = _signatures.AddFlow();

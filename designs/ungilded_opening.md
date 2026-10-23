@@ -542,6 +542,8 @@ HP arithmetic: Player hits for 8 then 6 (Rat 1 at 2 HP). Friend dagger 4 + Sneak
 | 16 | R2 Friend turn | (none) | | Unrestricted, all 3 actions free | Friend turn ends | |
 | 17 | R2 rat turns | (none) | | | each living rat's turn is ended after 2 frames with no action | |
 
+**Godot 2026-10-22.** The Godot build plays the PDF table (section 8), and round 3 is guided rather than scripted. See "Tutorial pacing pass (user, 2026-10-22)" in section 8.
+
 **Enemy scripting.**
 - Round 1: Rat 1 is dead and skipped. Rat 2 is diagonal to the Player ((3, 1) against (2, 0)) and strikes without moving; forced Miss. Rat 3 is moved with `Forced` semantics from (5, 0) to (4, 0), then waits 0.5 s.
 - Round 2: living rats do nothing.
@@ -636,7 +638,7 @@ After step 6 the script releases the enemy AI: the Tyrant and both Dire Rats are
 
 **PDF version (designer intent).**
 - Setup: about 12x12. Vast chamber with the sigil on the far wall. Two stone pillars mid-chamber. A three-tile-wide band of brackish sludge across the middle as difficult terrain.
-- Sewer Tyrant: mini boss, Weakness 3 to acid, one hidden "??? Ability" slot, HP about 4 to 5 times a Sewer Rat, AC and saves a step above the adds, dead-centre behind the sludge band in front of the sigil.
+- Sewer Tyrant: mini boss, Weakness 7 to acid, one hidden "??? Ability" slot, HP about 4 to 5 times a Sewer Rat, AC and saves a step above the adds, dead-centre behind the sludge band in front of the sigil.
 - Two Dire Sewer Rats: level 0, about 2 times Sewer Rat HP, standard bite. One in front of each pillar, guarding the flanking lanes.
 - Party at full HP from the post-Encounter 3 rest. Friend carries two fresh Acid Flasks.
 - Initiative Player, Friend, Tyrant, both Dire Rats.
@@ -774,12 +776,12 @@ Description: "A massive sewer rat, twice the size of its lesser kin. Its bite ca
 
 ### Sewer Tyrant (`Sewer Tyrant.asset`, id `sewer_tyrant`)
 
-Description: "A grotesquely mutated rat the size of a large dog. Its hide splits and reforms as it moves, and it reeks of alchemical corruption."
+Description: "A grotesquely mutated rat the size of a pony. Its hide splits and reforms as it moves, and it reeks of alchemical corruption."
 
 | Field | Value |
 |---|---|
 | Level | 1 |
-| Size | Medium |
+| Size | Medium (Large in the port, section 8) |
 | Speed | 25 ft |
 | AC | 17 |
 | Saves | Fort +7, Ref +4, Will +3 |
@@ -879,15 +881,48 @@ Where the Unity build and the PDF disagree, the PDF's encounter design wins and 
 - Encounter 2 plays the PDF version: two Recall Knowledge checks (Name, then AC), the rat's bite lands for about a quarter of the Player's HP, and Treat Wounds by the Friend happens between fights.
 - Encounter 3 plays the PDF version: five Sewer Rats, three rounds, the Friend's Acid Flask with splash, the Critical Hit on a flanked rat, the Critical Miss at -5 MAP, Vicious Bite on Rat 4 as a hidden ability giving 1d4 persistent bleed, and the DC 15 recovery check.
 - Encounter 4 keeps the live AI fight with the PDF's authored map: two pillars, a three-tile sludge band of difficult terrain, the Tyrant centred behind it, one Dire Sewer Rat before each pillar. The 25% lines fire when the Tyrant reaches 25% HP or the last Dire Rat falls. A party wipe reloads the encounter with the post-mortem popup.
-- Maps are authored layouts, not procedural: about 6x6 (E1), 8x8 (E2), 10x10 with two pillars (E3), 12x12 with pillars and sludge (E4).
+- Maps are fixed layouts, not procedural, and each board comes with its halo (the walls, passages and channels around it). E1 (8x5) is a stretch of ribbed barrel tunnel: walkway, a channel sunk a quarter metre with a stone kerb, a ledge and wall beyond it, a pier every third tile with niches between, and the tunnel running on both ways. E2 (8x8) is a junction further along the same tunnel, with side passages north and south, a footbridge in the west tunnel and outfall pipes. E3 (10x10) is an octagonal junction cistern with two pillars, a passage in the middle of each side with drain grates at its mouth, and a drain sump that empties south under an arch. The skeleton lies in the narrow passage behind the party. E4 (12x12) is a long hall running east to west, with buttress piers and bays along both long walls, the sludge band leaving through arched culverts, a neck where the climbing entry passage comes in behind the party, and a stepped apse whose back wall carries the sigil. The camera cuts the walls on its side of the board down to a one-tile stub with darkness beyond. Pillars are 0.625 m tall and drop to a stub while a unit stands right behind one.
 - Recall Knowledge reveals in a fixed order in the tutorial (Name, AC, then Weakness) by forcing the reveal, not by chance.
 - The journal beat in Scene 6 plays as narration lines, as Unity does. A readable journal screen is later work.
+- Tutorial popups were replaced by spotlight tips on 2026-10-20 (user). Each tip dims the screen, outlines the element it teaches (an action square, a command entry, a card row, tiles, units, the roll banner) and sits beside it with a pointer. A tip states why the step is needed and then the rule, with the numbers. Rule tips have a Continue button. Step tips ("Move next to the rat.") have none: they pass clicks only through the outlined area and close when the order is given. The wrong-tile hint is a step tip on the gold tiles that reads "Click a gold tile." Treat Wounds and the E4 post-mortem stay as centred boxes. The popup text in the section 3 tables is the Unity original, and the scripts in `ungilded/scripts/tutorial/encounters/` hold the current text.
+- The narrative intro has 6 pages: "And yet... hope is a persistent weed." from line 4 is its own page (user, 2026-10-18). The words are unchanged.
 
 Data fixes carried into the port:
 
-- Sewer Tyrant weakness is Acid 3. Acid Flask damage and splash are acid.
+- Sewer Tyrant weakness is Acid 7 (the PDF's 3 was raised to 10 on 2026-10-21, then lowered to 7 on 2026-10-22 because weakness applies to every persistent acid tick and 10 put the Tyrant near 25% HP in round 1). Acid Flask damage and splash are acid.
+- Sewer Tyrant is Large (user, 2026-10-20): a 2x2 space with its low corner on tile (1, 5) of E4, which centres it on the board's rows. Jaws keeps 5 ft reach, as for a long creature. The Unity asset is Medium.
 - Vicious Bite persistent damage is bleed.
 - The Friend carries 2 Acid Flasks in Encounter 4 and 2 in Encounter 3.
 - The Friend's lore is Alchemy Lore as authored, even though Criminal grants Underworld Lore.
 - Intimidating Prowess has a level 2 prerequisite. If the engine rejects it at level 1, the Player takes a legal level 1 general feat instead and the substitution is reported.
 - The dialogue box reads the Emotion field for the portrait. Where the Unity line's portrait sprite and Emotion disagree, Emotion wins.
+
+### Tutorial pacing pass (user, 2026-10-22)
+
+From a lens review (Flow 4/10, Feedback 5/10, Rules 5/10): the player made no free choice before Encounter 4, and several tips were wrong or carried two rules. Story findings are parked.
+
+**Encounter 3 round 3 is guided, not scripted.**
+
+- Both heroes' round 3 turns open with the full command menu, no target filter and no move lock. The flank tiles for the living rats show as gold hint tiles that do not lock movement (a hint mode beside the existing move restriction: gold tiles shown, every tile allowed, no wrong-tile tip).
+- One step tip per hero at turn start, beside the command menu, no dim. Player, `e3_20_free`: "Two rats are still up. The gold tiles flank them." Friend, `e3_24_free`, shown only while a rat lives: "Finish the last rat. The gold tile flanks it."
+- Forced rolls key to the committed order's target, not to the step. Every hero Strike in round 3 is forced to Hit. Damage dice: a Strike on Rat 4 rolls what kills it, a Player Strike on Rat 5 rolls 1 (leaves it low), a Friend Strike on Rat 5 rolls 2 and 3 (dagger plus Sneak Attack). The PDF table's outcome holds whatever order the player picks. `OnCommit` reads the order's target to choose the d20 and dice.
+- A turn ends on End Turn or at 0 actions. Turns past round 3 run free, as today.
+- Steps `e3_20` to `e3_26` are gone.
+
+**End Turn is taught once.** `CombatScene.AutoEndTurn` is on from Encounter 2 on (off in Encounter 1, where `e1_07_end_turn` teaches it). A scripted turn that stops with actions left (the Friend's round 1 in Encounter 3, after flask and Stride) is ended by the script once the last action has played, with no tip. Removed: `e2_05`, `e3_05`, `e3_08`, `e3_14`, `e3_19`, `e3_23`, `e3_26`.
+
+**Tip changes.** One rule per tip, PF2e terms, beside the element.
+
+- `e3_07_flank` splits. Rule tip `e3_07_flanking` on the rat and both heroes: "Allies on opposite sides of an enemy flank it. A flanked enemy is off-guard to its flankers: -2 AC against their attacks." (gold: flank, off-guard). Then step tip `e3_07_flank` on the gold tile: "Stride to the gold tile to flank the rat."
+- `e1_08_reaction`: "The Player has Reactive Strike: Strike an enemy that moves out of your reach. Use it on the fleeing rat." (gold: Reactive Strike). The reaction pip's hover reads "1 reaction per round. It comes back at the start of your turn."
+- `e3_11_crit`: "Beating AC by 10 or more is a critical hit: double damage." The natural 20 or 1 sentence is cut.
+- New `e3_12b_fumble` after the forced critical miss, on the roll banner: "A natural 1 drops the result one step: this miss is a critical miss." If the engine lands that fumble by margin rather than a natural 1, the text is "Missing AC by 10 or more is a critical miss."
+- `e3_12_strike_map` step text: "The first rat is down. Strike the next one. The -5 MAP still applies."
+- `e3_01_timeline` is cut. The timeline bar's hover reads "Turn order. Each hero takes their own turn with 3 actions."
+- `e2_02_learned` is cut; the outlined row shows the reveal.
+- `e3_06b_splash` keeps the numbers (what the flask hit and splashed) and drops the persistent damage sentence. Persistent damage is taught at `e3_15_bleed`. (Claude's call; the user asked for this tip on 2026-10-20.)
+- `e4_05_unlocked` shows right after `e4_03_weak`, beside the command menu, text unchanged.
+
+**Treat Wounds after Encounter 3.** The silent restore to full before Encounter 4 is gone. After Encounter 3's victory and before Scene 6, `TreatWoundsBeat` plays once per hero below full HP: the Friend treats the Player (`e3_27_treat_wounds`), then himself (`e3_28_treat_wounds`). `PrepareHeroes(4)` restores only a fallen or 0 HP hero.
+
+**Checks.** `prologue_run`: step id lists updated; round 3 opens with the full menu; each forced round 3 Strike hits its committed target; no End Turn step tip shows after Encounter 1; the popup log has no `e3_01`, `e2_02` or removed end-turn ids; both heroes enter Encounter 4 at full or full-minus-1 HP through the beat, not through a restore.

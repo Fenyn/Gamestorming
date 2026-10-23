@@ -4,7 +4,8 @@ using System.Text.RegularExpressions;
 
 namespace Ungilded.UI;
 
-/// <summary>The settled row: die, total vs target, outcome, then the die and its modifiers, and a thin
+/// <summary>The settled row: die, total vs target, outcome, the damage total on a hit with rolled
+/// damage, then the die and its modifiers, and a thin
 /// copy of the degree track once the defence is known.</summary>
 public partial class DiceRollPanel
 {
@@ -20,8 +21,9 @@ public partial class DiceRollPanel
     public string DetailText => Plain(_detail.GetParsedText() + (_applied.Visible ? "\n" + _applied.GetParsedText() : ""));
 
     /// <summary>Every row text is in place from the start of a beat; the beat only reveals it.</summary>
-    private void FillRow(CombatRoll roll)
+    private void FillRow(CombatRoll roll, DamageRoll? damage)
     {
+        FillDamage(damage);
         _die.Text = roll.Die.ToString();
         RollTone.PaintFace(_die, roll.Die);
         _outline.Rotation = 0;
@@ -49,12 +51,13 @@ public partial class DiceRollPanel
     {
         int gap = _row.GetThemeConstant("separation");
         return CustomMinimumSize.X - GetThemeStylebox("panel").GetMinimumSize().X - 3 * gap
-            - _face.GetCombinedMinimumSize().X - _math.GetContentWidth() - _outcome.GetMinimumSize().X;
+            - _face.GetCombinedMinimumSize().X - _math.GetContentWidth() - _outcome.GetMinimumSize().X
+            - (_damage.Visible ? gap + _damage.GetContentWidth() : 0);
     }
 
     private void ShowSettledRow()
     {
-        foreach (var node in new CanvasItem[] { _math, _detail, _applied, _outcome, _rowTrack })
+        foreach (var node in new CanvasItem[] { _math, _detail, _applied, _outcome, _damage, _rowTrack })
             node.Modulate = node.Modulate with { A = 1 };
         foreach (var node in new Control[] { _face, _outcome })
             node.Scale = Vector2.One;

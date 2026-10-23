@@ -63,7 +63,8 @@ internal static class ReactionPromptBuilder
         return ctx.Trigger switch
         {
             ReactionTrigger.Damage => $"{source} hits {(ctx.ProtectedAlly ?? ctx.Reactor).Name} for {ctx.Damage?.TotalDamage ?? 0}.",
-            ReactionTrigger.Movement => $"{source} leaves {reactor}'s reach.",
+            // PF2e: the move trigger is leaving a square within reach, not leaving reach.
+            ReactionTrigger.Movement => $"{source} leaves a square in {reactor}'s reach.",
             ReactionTrigger.Action => $"{source} acts within {reactor}'s reach.",
             _ => "",
         };

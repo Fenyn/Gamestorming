@@ -115,7 +115,7 @@ visible = false
 custom_minimum_size = Vector2(16, 16)
 layout_mode = 2
 size_flags_vertical = 4
-mouse_filter = 2
+mouse_filter = 1
 tooltip_text = "Reaction"
 
 [node name="Reaction" type="Panel" parent="Row/Col/ClassRow/ReactionSlot"]
@@ -162,7 +162,15 @@ show_percentage = false
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
+theme_override_constants/v_separation = 10
 columns = 3
+
+[node name="KnowledgeWide" parent="Row/Col" instance=ExtResource("3_facts")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/v_separation = 10
+columns = 1
 
 [node name="HiddenCallout" type="Label" parent="Row/Col"]
 unique_name_in_owner = true

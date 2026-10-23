@@ -22,23 +22,25 @@ namespace Ungilded.Combat;
 /// also writes, so the lunge restores <see cref="_lungeRest"/> rather than the current position.
 /// %Sprite local position is <see cref="_spriteMoveTween"/>, around the rest offset captured in
 /// <see cref="ConfigureSprite"/>. %Sprite modulate is <see cref="_modulateTween"/>: a newcomer resets
-/// to white first, so overlapping flashes cannot strand a tint, and <see cref="PlayDeath"/> latches
-/// <see cref="_dead"/> so nothing overwrites the corpse tint. The children own the rest.
+/// to white first, so overlapping flashes cannot strand a tint, and <see cref="PlayDeath"/> and
+/// <see cref="Disintegrate"/> latch <see cref="_dead"/> so nothing overwrites the death. The body's
+/// erosion and its frame nudges are <c>_erosionTween</c>, the one writer of %Sprite's position after a
+/// creature's death. The children own the rest.
 /// </summary>
 public partial class UnitVisual3D : Node3D
 {
-    /// <summary>A hero <see cref="HpBarHeight"/> — also the reference silhouette every unit-sized
-    /// effect is scaled against (see the presenter death-poof sizing).</summary>
+    /// <summary>A Mana Seed hero's <see cref="HpBarHeight"/> — also the reference silhouette every
+    /// unit-sized effect is scaled against (see the presenter's UnitSizeFactor).</summary>
     public const float HeroHpBarY = 1.75f;
 
-    /// <summary>Clearance (m) between an enemy body top and its HP bar. With the 0.9 m rat this
-    /// lands the bar where the old fixed constant put it.</summary>
-    private const float EnemyHpBarLift = 0.05f;
+    /// <summary>Clearance (m) between an authored sprite's body top and its HP bar. With the 0.9 m
+    /// rat this lands the bar where the old fixed constant put it.</summary>
+    private const float BodyHpBarLift = 0.05f;
 
     /// <summary>Enemy <see cref="HpBarHeight"/> when the sprite reports no body height.</summary>
     private const float EnemyHpBarFallbackY = 0.9f;
 
-    /// <summary>How long the corpse tint takes.</summary>
+    /// <summary>How long a hero's corpse tint takes.</summary>
     [Export] public float DeathFadeDuration { get; set; } = 0.5f;
 
     /// <summary>How long the ring takes to fade away on death.</summary>
@@ -78,8 +80,11 @@ public partial class UnitVisual3D : Node3D
 
     /// <summary>Height (m) above this unit feet at which its HP bar floats — the one size cue that
     /// separates a ~1.6 m hero from a ~0.7 m rat, so effects placed against the unit silhouette
-    /// (impact sparks, damage popups, death poofs) scale off it.</summary>
+    /// (impact sparks, damage popups) scale off it.</summary>
     public float HpBarHeight => _hpBarY;
+
+    /// <summary>Metres per pixel of this unit's sprite, for effects drawn on the sprite's own grid.</summary>
+    public float SpritePixelSize => _sprite.PixelSize;
 
     public ICharacter Character => _character;
 
@@ -164,6 +169,7 @@ public partial class UnitVisual3D : Node3D
         _ring.SetTeamColor(_character.TeamId == 1 ? UiColors.Ally : UiColors.Enemy);
         _ring.SetFootprint(_character.TileWidth);
         ConfigureSprite();
+        ConfigureLantern();
         _restTint = Ungilded.Look.LookScene.ActiveSpriteTint;
         _sprite.Modulate = _restTint;
         ConfigureMarkers();
@@ -203,17 +209,18 @@ public partial class UnitVisual3D : Node3D
     private void ConfigureSprite()
     {
         _sprite.Facing = _facing;
-        if (_isHero)
+        string? heroFolder = _isHero ? HeroSpriteMap.FolderFor(_character.Id) : null;
+        if (heroFolder != null && !HeroSpriteMap.IsAuthored(heroFolder))
         {
-            _sprite.ConfigureHero(HeroSpriteMap.FolderFor(_character.Id));
+            _sprite.ConfigureHero(heroFolder);
             _hpBarY = HeroHpBarY;
         }
         else
         {
-            _sprite.ConfigureEnemy(_enemyFolder ?? EnemySpriteMap.DefaultFolder);
+            _sprite.ConfigureEnemy(heroFolder ?? _enemyFolder ?? EnemySpriteMap.DefaultFolder);
             // Bar height follows the body, so a Large placeholder's bar sits above its head.
             _hpBarY = _sprite.BodyHeight > 0f
-                ? _sprite.BodyHeight + EnemyHpBarLift
+                ? _sprite.BodyHeight + BodyHpBarLift
                 : EnemyHpBarFallbackY;
         }
 

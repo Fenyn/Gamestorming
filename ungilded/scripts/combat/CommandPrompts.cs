@@ -44,6 +44,7 @@ public static class CommandPrompts
             [PlayerTurnMode.SelectingAreaOrigin] = new("Cast", new[] { new KeyHint(Click, "Cast", false), Cancel, Rotate }),
             [PlayerTurnMode.SelectingSkillTarget] = new("Skill", new[] { new KeyHint(Click, "Use", false), Cancel, Rotate }),
             [PlayerTurnMode.SelectingDelaySlot] = new("Delay", new[] { new KeyHint(Click, "Act after", false), Cancel }),
+            [PlayerTurnMode.SelectingBombTarget] = new("Throw", new[] { new KeyHint(Click, "Throw", false), Cancel, Rotate }),
         };
 
     public static CommandPrompt For(PlayerTurnMode mode) => Table.TryGetValue(mode, out var prompt) ? prompt : Idle;

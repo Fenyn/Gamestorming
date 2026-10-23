@@ -1,0 +1,77 @@
+[gd_scene load_steps=19 format=3]
+
+; A story stage on one Prologue board. The TerrainStage exports match scenes/combat/combat.tscn.
+; The camera's own attributes switch off the sewer look's depth of field, which is tuned for the
+; 16-24 m tactical camera and would blur close shots.
+; Grade multiplies the view under the letterbox and the dialogue box; a GradeCue tints it, white
+; (#FFFFFF) is neutral and hidden.
+
+[ext_resource type="Script" path="res://scripts/story/cutscene/CutsceneSet.cs" id="1_set"]
+[ext_resource type="Script" path="res://scripts/story/cutscene/CutsceneCamera.cs" id="2_camera"]
+[ext_resource type="Script" path="res://scripts/terrain/TerrainStage.cs" id="3_terrain"]
+[ext_resource type="PackedScene" path="res://scenes/story/cutscene/cutscene_actor.tscn" id="4_actor"]
+[ext_resource type="Shader" path="res://assets/shaders/combat_outskirts_mist.gdshader" id="5_mist"]
+[ext_resource type="PackedScene" path="res://scenes/looks/forest.tscn" id="look_forest"]
+[ext_resource type="PackedScene" path="res://scenes/looks/sewer.tscn" id="look_sewer"]
+[ext_resource type="PackedScene" path="res://scenes/looks/default.tscn" id="look_default"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_canopy.tscn" id="tree_canopy"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_conifer.tscn" id="tree_conifer"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_bush.tscn" id="tree_bush"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_dead.tscn" id="tree_dead"]
+[ext_resource type="PackedScene" path="res://scenes/props/tree_giant.tscn" id="tree_giant"]
+[ext_resource type="PackedScene" path="res://scenes/story/cutscene/cutscene_splash.tscn" id="6_splash"]
+[ext_resource type="PackedScene" path="res://scenes/story/cutscene/cutscene_dust.tscn" id="7_dust"]
+[ext_resource type="PackedScene" path="res://scenes/story/cutscene/torch_motes.tscn" id="8_motes"]
+[ext_resource type="Script" path="res://scripts/look/ScreenOverlay.cs" id="9_overlay"]
+
+[sub_resource type="CameraAttributesPractical" id="camera_attributes"]
+
+[sub_resource type="CanvasItemMaterial" id="grade_material"]
+blend_mode = 3
+
+[node name="CutsceneSet" type="Node3D"]
+script = ExtResource("1_set")
+Encounter = 1
+ActorScene = ExtResource("4_actor")
+LitArea = Rect2i(-2, -2, 15, 9)
+Speakers = Dictionary[String, StringName]({
+"The Friend": &"friend",
+"The Player": &"player"
+})
+SplashScene = ExtResource("6_splash")
+DustScene = ExtResource("7_dust")
+MoteScene = ExtResource("8_motes")
+
+[node name="Stage" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("3_terrain")
+OutskirtsMistShader = ExtResource("5_mist")
+Looks = Dictionary[String, PackedScene]({
+"forest": ExtResource("look_forest"),
+"sewer": ExtResource("look_sewer")
+})
+DefaultLook = ExtResource("look_default")
+HaloTreeScenes = [ExtResource("tree_canopy"), ExtResource("tree_conifer"), ExtResource("tree_bush"), ExtResource("tree_dead"), ExtResource("tree_giant")]
+BoardTreeScenes = [ExtResource("tree_canopy"), ExtResource("tree_conifer")]
+
+[node name="Camera" type="Camera3D" parent="."]
+unique_name_in_owner = true
+attributes = SubResource("camera_attributes")
+fov = 26.0
+far = 120.0
+script = ExtResource("2_camera")
+
+[node name="Actors" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="Props" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="GradeLayer" type="CanvasLayer" parent="."]
+layer = 0
+
+[node name="Grade" type="Node2D" parent="GradeLayer"]
+unique_name_in_owner = true
+visible = false
+material = SubResource("grade_material")
+script = ExtResource("9_overlay")

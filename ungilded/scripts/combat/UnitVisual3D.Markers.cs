@@ -3,7 +3,8 @@ using Godot;
 
 namespace Ungilded.Combat;
 
-/// <summary>The FFT ground and turn markers: a soft blob shadow and the active-turn crystal.</summary>
+/// <summary>The FFT ground and turn markers: a soft blob shadow and the active-turn crystal; and
+/// where a tutorial arrow over the unit points.</summary>
 public partial class UnitVisual3D
 {
     /// <summary>Blob shadow width per footprint tile, metres.</summary>
@@ -20,6 +21,13 @@ public partial class UnitVisual3D
 
     /// <summary>Crystal height above the HP bar, metres.</summary>
     [Export] public float CrystalLift { get; set; } = 0.8f;
+
+    /// <summary>The crystal's half width, metres (its mesh radius times its scale).</summary>
+    [Export] public float CrystalHalfWidth { get; set; } = 0.3f;
+
+    /// <summary>Screen pixels from the crystal's edge to the centre of a tutorial arrow beside it;
+    /// more than half the arrow's width, so the arrow does not touch the crystal.</summary>
+    [Export] public float CrystalArrowOffset { get; set; } = 22f;
 
     private Decal? _shadow;
     private ActiveCrystal? _crystal;
@@ -63,6 +71,27 @@ public partial class UnitVisual3D
         _ringHidden = true;
         _ring.Visible = false;
         _hpBar.Visible = false;
+    }
+
+    /// <summary>The canvas point a tutorial arrow over this unit points down at: the top of the HP
+    /// plate, or the top of the body while the plate layout has lifted the plate off it. While the
+    /// turn crystal shows, the point moves left beside the crystal. Null when the body top is
+    /// behind the camera.</summary>
+    public Vector2? TipArrowPoint(Camera3D camera)
+    {
+        var head = GlobalPosition + Vector3.Up * _hpBarY;
+        if (camera.IsPositionBehind(head)) return null;
+        var point = camera.UnprojectPosition(head);
+        if (_hpBar.IsVisibleInTree() && _hpBar.Nudge == 0)
+            point.Y = Mathf.Min(point.Y, _hpBar.ScreenRect(camera, 0).Position.Y);
+        if (_crystal != null && _crystal.IsVisibleInTree())
+        {
+            var centre = _crystal.GlobalPosition;
+            var edge = centre - camera.GlobalBasis.X * CrystalHalfWidth;
+            if (!camera.IsPositionBehind(centre) && !camera.IsPositionBehind(edge))
+                point.X = camera.UnprojectPosition(edge).X - CrystalArrowOffset;
+        }
+        return point;
     }
 
     private void ShowCrystal(bool active)

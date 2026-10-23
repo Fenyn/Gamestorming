@@ -28,4 +28,8 @@ public interface IEncounterRunner
 
     /// <summary>Free everything <see cref="Prepare"/> and <see cref="Run"/> made. The screen is black.</summary>
     void Release(int index);
+
+    /// <summary>Leave the state a won encounter <paramref name="index"/> leaves, without playing it.
+    /// The director calls this for each encounter before its start beat, in order.</summary>
+    void Skip(int index) { }
 }

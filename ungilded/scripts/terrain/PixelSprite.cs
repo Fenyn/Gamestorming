@@ -4,12 +4,13 @@ namespace Ungilded.Terrain;
 
 /// <summary>
 /// Pixel-art setup for a world-space <see cref="Sprite3D"/>. Every pixel sprite in the board — unit
-/// tokens and tile decor — must draw with the same rules: no lighting, no filtering, and a hard alpha
-/// cut. The rules live here once, so a change applies to all of them.
+/// tokens and tile decor — must draw with the same rules: no filtering and a hard alpha cut. The
+/// rules live here once, so a change applies to all of them. The sprite starts unshaded.
 ///
-/// The billboard mode and the shadow setting stay with the caller. Those are placement choices, not
-/// pixel-art rules: a token faces the camera on both axes, a grass tuft turns on Y only, and a flower
-/// patch lies flat.
+/// The billboard mode, the shadow setting and lighting stay with the caller. Those are placement
+/// choices, not pixel-art rules: a token faces the camera on both axes, a grass tuft turns on Y only,
+/// and a flower patch lies flat. Wall and floor props turn <see cref="SpriteBase3D.Shaded"/> on, and
+/// a unit body draws lit through the material override of billboard_sprite.tscn.
 /// </summary>
 public static class PixelSprite
 {

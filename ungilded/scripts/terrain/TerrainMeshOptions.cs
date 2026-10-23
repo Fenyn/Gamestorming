@@ -31,4 +31,15 @@ public sealed record TerrainMeshOptions
     /// the closed W/S boundary edges are drawn at the rectangle's own <c>X</c>/<c>Y</c>.
     /// </summary>
     public TileRect? GridLineRect { get; init; }
+
+    /// <summary>Build only the collision mesh: no ground bake, an empty visual mesh. For a pick
+    /// surface that differs from the drawn one (<see cref="MapView3D.Build"/>).</summary>
+    public bool CollisionOnly { get; init; }
+
+    /// <summary>World XZ metres per second the water's flow mask scrolls at. Zero keeps the water
+    /// shader's default scroll.</summary>
+    public Vector2 WaterFlow { get; init; }
+
+    /// <summary>World XZ metres per second the sludge ripple drifts at. Zero is a standing ripple.</summary>
+    public Vector2 SludgeFlow { get; init; }
 }

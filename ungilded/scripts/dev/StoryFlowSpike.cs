@@ -12,8 +12,10 @@ namespace Ungilded.Dev;
 /// Story layer check. Headless it loads every dialogue sequence and checks line counts against the
 /// spec, empty text, speaker names and narration flags; checks both portrait sets; runs the
 /// Prologue director through every beat with <see cref="StubEncounterRunner"/> and checks the beat
-/// order, the runner calls and the backdrop behind each line; and checks the tutorial popup queue.
-/// Rendered, it also saves the title, narration, dialogue and popup captures.
+/// order, the runner calls and the backdrop behind each line; checks who carries or wears the
+/// spectacles on each line; prepares Encounter 2 with the real runner and checks the glow on the
+/// hero tokens through Scene 3b; and checks the tutorial popup queue.
+/// Rendered, it also saves the title, narration, dialogue, token glow and popup captures.
 /// </summary>
 public partial class StoryFlowSpike : SpikeBase
 {
@@ -36,10 +38,10 @@ public partial class StoryFlowSpike : SpikeBase
     /// <summary>Seconds the combat harness gets to build and frame its board before a capture.</summary>
     [Export] public float BoardSettleSeconds { get; set; } = 6f;
 
-    /// <summary>Line counts per sequence id, from designs/ungilded_opening.md section 2.</summary>
+    /// <summary>Line counts per sequence id, from designs/ungilded_opening.md sections 2 and 8.</summary>
     private static readonly System.Collections.Generic.Dictionary<string, int> ExpectedLines = new()
     {
-        ["tutorial_narrative_intro"] = 5,
+        ["tutorial_narrative_intro"] = 6,
         ["tutorial_scene1_sewer_banter"] = 15,
         ["tutorial_scene2_rat_encounter"] = 4,
         ["tutorial_scene3_post_enc1"] = 11,
@@ -61,17 +63,17 @@ public partial class StoryFlowSpike : SpikeBase
     private static readonly string[] ExpectedTrace =
     {
         "narration:tutorial_narrative_intro",
-        "dialogue:tutorial_scene1_sewer_banter:black",
+        "dialogue:tutorial_scene1_sewer_banter:set",
         "dialogue:tutorial_scene2_rat_encounter:board", "prepare 1",
         "encounter:1", "run 1", "release 1",
-        "dialogue:tutorial_scene3_post_enc1:black",
+        "dialogue:tutorial_scene3_post_enc1:set",
         "dialogue:tutorial_scene3_rats_appear:board", "prepare 2",
         "encounter:2", "run 2", "release 2",
-        "dialogue:tutorial_scene4_dead_truthseeker:black",
-        "dialogue:tutorial_scene5_flanking:black",
+        "dialogue:tutorial_scene4_dead_truthseeker:set",
+        "dialogue:tutorial_scene5_flanking:set",
         "encounter:3", "prepare 3", "run 3", "release 3",
-        "dialogue:tutorial_scene6_post_enc3:black",
-        "dialogue:tutorial_scene7_boss_chamber:black",
+        "dialogue:tutorial_scene6_post_enc3:set",
+        "dialogue:tutorial_scene7_boss_chamber:set",
         "encounter:4", "prepare 4", "run 4", "release 4",
     };
 
@@ -90,6 +92,10 @@ public partial class StoryFlowSpike : SpikeBase
         CheckPortraits();
         CheckSceneLinks();
         await CheckDirectorRun();
+        await CheckStartBeats();
+        await CheckPagesFit();
+        await CheckAccessoryFrames();
+        await CheckTokenGlow();
         await CheckPopupQueue();
         if (!Headless) await SaveCaptures();
     }
@@ -122,7 +128,12 @@ public partial class StoryFlowSpike : SpikeBase
             Check($"{name} has a portrait set", set != null);
             if (set == null) continue;
             foreach (var emotion in System.Enum.GetValues<Emotion>())
-                Check($"{name} {emotion}: {set.For(emotion)?.ResourceName ?? "none"}", set.For(emotion) != null);
+            {
+                var talk = set.TalkingFor(emotion);
+                Check($"{name} {emotion}: rests on \"{set.For(emotion)}\", talks with \"{talk}\"",
+                    set.Has(set.For(emotion)) && set.Has(talk) && talk != set.For(emotion)
+                    && set.Frames!.GetFrameCount(talk) > 1 && set.Frames.GetAnimationLoop(talk));
+            }
         }
     }
 
@@ -162,13 +173,16 @@ public partial class StoryFlowSpike : SpikeBase
         director.Dialogue.LineStarted += _ =>
         {
             Count(linesShown, beat);
-            bool board = beat?.Sequence?.Backdrop == DialogueBackdrop.Board;
+            bool board = beat?.Sequence?.Backdrop is DialogueBackdrop.Board or DialogueBackdrop.Set;
             if (board ? !director.Fade.IsClear : !director.Fade.IsOpaque)
             {
                 backdropsRight = false;
                 GD.Print($"  backdrop wrong for {beat?.Describe()}");
             }
         };
+        RecordWardrobeAtBeats(director);
+        var wornFaces = RecordWornFaces(director, () => beat);
+        var carriers = RecordCarriers(director, () => beat);
         bool finished = false;
         director.Finished += () => finished = true;
 
@@ -189,10 +203,61 @@ public partial class StoryFlowSpike : SpikeBase
             linesShown.TryGetValue(b.Sequence!.Id, out int shown);
             Check($"{b.Sequence.Id}: {shown} of {b.Sequence.Lines.Count} lines shown", shown == b.Sequence.Lines.Count);
         }
+        CheckWornFaces(director, wornFaces);
+        CheckCarriers(carriers);
         Check("the screen is black after the last encounter", director.Fade.IsOpaque);
         Check("no story modal is left open", ModalStack.Instance?.Count == 0);
         director.QueueFree();
     }
+
+    /// <summary>Every page of every dialogue-box sequence fits the text area above the caret strip.</summary>
+    private async Task CheckPagesFit()
+    {
+        var director = PrologueScene!.Instantiate<PrologueDirector>();
+        director.AutoStart = false;
+        AddChild(director);
+        var box = director.Dialogue;
+        foreach (var sequence in Sequences.Where(s => !IsIntro(s)))
+        {
+            var clipped = new List<string>();
+            int pages = 0, wrongFaces = 0;
+            var play = box.Play(sequence);
+            while (!play.IsCompleted)
+            {
+                await NextFrame();
+                if (box.IsRevealing)
+                {
+                    if (!FaceMatches(box, talking: true)) wrongFaces++;
+                    box.Advance();
+                }
+                await NextFrame();
+                if (play.IsCompleted) break;
+                pages++;
+                if (!FaceMatches(box, talking: false)) wrongFaces++;
+                if (!box.PageFits)
+                    clipped.Add($"{box.PageText[..System.Math.Min(ClipQuoteLength, box.PageText.Length)]}... ({box.PageOverflow} px over)");
+                box.Advance();
+            }
+            Check($"{sequence.Id}: all {pages} pages fit the box", clipped.Count == 0);
+            Check($"{sequence.Id}: portraits talk while typing and rest after ({wrongFaces} wrong)", wrongFaces == 0);
+            foreach (var page in clipped) GD.Print($"  clipped: {page}");
+        }
+        director.QueueFree();
+        await NextFrame();
+    }
+
+    private const int ClipQuoteLength = 40;
+
+    private bool FaceMatches(DialogueBox box, bool talking)
+    {
+        var line = box.CurrentLine;
+        var set = line == null || line.IsNarration ? null : Portraits.FirstOrDefault(p => p.Speaker == line.Speaker);
+        if (set == null) return box.PortraitAnimation == "";
+        return box.PortraitAnimation == (talking ? set.TalkingFor(line!.Emotion) : set.For(line!.Emotion));
+    }
+
+    private static bool IsIntro(DialogueSequence sequence) =>
+        sequence.Backdrop == DialogueBackdrop.Black && sequence.Lines.All(l => l.IsNarration) && sequence.Lines.Count > 1;
 
     private static void Count(System.Collections.Generic.Dictionary<string, int> counts, PrologueBeat? beat)
     {
@@ -219,6 +284,24 @@ public partial class StoryFlowSpike : SpikeBase
         popup.Dismiss();
         await NextFrame();
         Check("the second dismiss closes the popup", second.IsCompleted && !popup.IsShowing);
+
+        var step = popup.OpenStep(new TipRequest("step", "Step tip."));
+        await NextFrame();
+        Check("a step tip shows without a modal",
+            popup.StepShowing && !popup.IsShowing && ModalStack.Instance?.Holds(popup) != true);
+        var rule = popup.ShowMessage("Rule over a step.");
+        await NextFrame();
+        Check("a rule tip covers the step tip and holds a modal", popup.IsShowing && !popup.StepShowing);
+        popup.Dismiss();
+        await NextFrame();
+        Check("the step tip returns after the rule tip", rule.IsCompleted && popup.StepShowing);
+        popup.Dismiss();
+        await NextFrame();
+        Check("dismiss leaves a step tip open", popup.StepShowing);
+        step.Dispose();
+        await NextFrame();
+        Check("disposing the handle closes the step tip",
+            !popup.StepShowing && popup.Current == null && popup.Records[^2].Closed);
         director.QueueFree();
         await NextFrame();
     }

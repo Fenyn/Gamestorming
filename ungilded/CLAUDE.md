@@ -22,6 +22,18 @@ On-screen text follows the repo rule "A screen is not a narrator" in `G:\Godot\G
 - Extract a shared helper on the second occurrence (`MeshBuffer`, `DamageColors`, `PixelSprite`).
 - Per-kind behaviour lives in one data table (`SkillActionCatalog`, `BiomeThemes`), not scattered switches.
 
+## Effects (HD-2D)
+
+- Combat effects match the sprites: pixel-art frames drawn by code on a locked palette at the sprites' pixel size, nearest filtering, lit and bloomed by the 3D look. Octopath Traveler and Triangle Strategy are the reference.
+- An effect is a scene under `scenes/fx/` written by a build script under `tools/vfx/<effect>/`, with its frames under `assets/fx/<effect>/` and a `NOTES.md` round log. Build with the `vfx-studio` skill: rebuild, audit, capture two contact sheets, score, repeat. No hand edits in the editor.
+- Layers are `GPUParticles3D` with the VFX Essential shaders in `assets/shaders/vfx/`; a light rides an `AnimationPlayer` named `Anim` with a `play` animation. Every node game code touches is a unique name.
+- The `OneShotFx` subclass only starts the scene and frees it after `Lifetime`. The presenter spawns it at the unit's feet and sets the impact height and unit scale before `AddChild`.
+- Textures import lossless, no mipmaps, no 3D compression.
+
+## Sprites
+
+- The style target is the shipped cast: the Player, the Friend and the 11 creature bases. `design/sprite-style/README.md` measures them, names the style axis by axis, lists every material ramp and gives the brief fields and checks. Read it before drawing or briefing any sprite, and build with the `aseprite-sprite-studio` skill.
+
 ## Godot
 
 - Structure and tunables in `.tscn` via `[Export]`. No `res://` strings or magic numbers in scripts.

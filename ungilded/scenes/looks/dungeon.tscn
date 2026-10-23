@@ -51,7 +51,6 @@ shader_parameter/grain_fps = 8.0
 script = ExtResource("look")
 Environment = NodePath("WorldEnvironment")
 Post = NodePath("Post")
-SpriteTint = Color(0.8, 0.76, 0.7, 1)
 
 [node name="Post" type="CanvasLayer" parent="."]
 layer = 0

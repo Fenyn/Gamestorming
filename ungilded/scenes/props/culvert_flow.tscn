@@ -1,0 +1,43 @@
+[gd_scene load_steps=6 format=3]
+
+[sub_resource type="Gradient" id="fade"]
+offsets = PackedFloat32Array(0, 0.2, 0.7, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0.7, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="fade_texture"]
+gradient = SubResource("fade")
+
+[sub_resource type="ParticleProcessMaterial" id="process"]
+resource_local_to_scene = true
+emission_shape = 3
+emission_box_extents = Vector3(1, 0.01, 0.3)
+direction = Vector3(0, 0, 1)
+spread = 6.0
+initial_velocity_min = 0.35
+initial_velocity_max = 0.6
+gravity = Vector3(0, 0, 0)
+scale_min = 0.6
+scale_max = 1.4
+color = Color(0.75, 0.85, 0.82, 0.55)
+color_ramp = SubResource("fade_texture")
+
+[sub_resource type="StandardMaterial3D" id="streak_material"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+cull_mode = 2
+
+[sub_resource type="QuadMesh" id="streak"]
+material = SubResource("streak_material")
+size = Vector2(0.06, 0.32)
+orientation = 1
+
+[node name="CulvertFlow" type="GPUParticles3D"]
+cast_shadow = 0
+amount = 22
+lifetime = 3.0
+preprocess = 3.0
+local_coords = true
+visibility_aabb = AABB(-3, -1, -1, 6, 2, 5)
+process_material = SubResource("process")
+draw_pass_1 = SubResource("streak")

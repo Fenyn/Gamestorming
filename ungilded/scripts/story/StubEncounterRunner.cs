@@ -27,6 +27,8 @@ public sealed class StubEncounterRunner : IEncounterRunner
 
     public void Release(int index) => Record($"release {index}");
 
+    public void Skip(int index) => Record($"skip {index}");
+
     private void Record(string call)
     {
         Calls.Add(call);

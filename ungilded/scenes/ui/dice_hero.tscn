@@ -1,8 +1,24 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/DiceHeroView.cs" id="1"]
 [ext_resource type="Texture2D" path="res://assets/ui/d20_outline.svg" id="2"]
 [ext_resource type="Script" path="res://scripts/ui/DegreeTrack.cs" id="3"]
+
+[sub_resource type="StyleBoxFlat" id="sb_damage_die"]
+content_margin_left = 8.0
+content_margin_top = 2.0
+content_margin_right = 8.0
+content_margin_bottom = 2.0
+bg_color = Color(0.078431, 0.101961, 0.121569, 0.97)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.321569, 0.380392, 0.419608, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [node name="DiceHero" type="Control"]
 top_level = true
@@ -31,27 +47,32 @@ offset_bottom = 72.0
 mouse_filter = 2
 theme_type_variation = &"RollHeroShade"
 
-[node name="Content" type="HBoxContainer" parent="."]
+[node name="Content" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="Main" type="HBoxContainer" parent="Content"]
+layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 24
 alignment = 1
 
-[node name="FaceBox" type="CenterContainer" parent="Content"]
+[node name="FaceBox" type="CenterContainer" parent="Content/Main"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Face" type="Control" parent="Content/FaceBox"]
+[node name="Face" type="Control" parent="Content/Main/FaceBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(176, 176)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Outline" type="TextureRect" parent="Content/FaceBox/Face"]
+[node name="Outline" type="TextureRect" parent="Content/Main/FaceBox/Face"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -62,7 +83,7 @@ texture = ExtResource("2")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Value" type="Label" parent="Content/FaceBox/Face"]
+[node name="Value" type="Label" parent="Content/Main/FaceBox/Face"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -73,26 +94,26 @@ theme_type_variation = &"BannerLabel"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Centre" type="VBoxContainer" parent="Content"]
+[node name="Centre" type="VBoxContainer" parent="Content/Main"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="Chip" type="PanelContainer" parent="Content/Centre"]
+[node name="Chip" type="PanelContainer" parent="Content/Main/Centre"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
 mouse_filter = 2
 theme_type_variation = &"Keycap"
 
-[node name="ChipText" type="Label" parent="Content/Centre/Chip"]
+[node name="ChipText" type="Label" parent="Content/Main/Centre/Chip"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"EmphasisLabel"
 
-[node name="CentreApplied" type="RichTextLabel" parent="Content/Centre"]
+[node name="CentreApplied" type="RichTextLabel" parent="Content/Main/Centre"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
@@ -103,59 +124,59 @@ fit_content = true
 scroll_active = false
 autowrap_mode = 0
 
-[node name="Numbers" type="HBoxContainer" parent="Content/Centre"]
+[node name="Numbers" type="HBoxContainer" parent="Content/Main/Centre"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 12
 
-[node name="CentreTotal" type="Label" parent="Content/Centre/Numbers"]
+[node name="CentreTotal" type="Label" parent="Content/Main/Centre/Numbers"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"BannerLabel"
 
-[node name="Versus" type="Label" parent="Content/Centre/Numbers"]
+[node name="Versus" type="Label" parent="Content/Main/Centre/Numbers"]
 layout_mode = 2
 theme_type_variation = &"IntroSubtitle"
 vertical_alignment = 1
 text = "vs"
 
-[node name="Target" type="Label" parent="Content/Centre/Numbers"]
+[node name="Target" type="Label" parent="Content/Main/Centre/Numbers"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"BannerLabel"
 text = "?"
 
-[node name="CentreWord" type="Label" parent="Content/Centre"]
+[node name="CentreWord" type="Label" parent="Content/Main/Centre"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"BannerLabel"
 
-[node name="TrackColumn" type="VBoxContainer" parent="Content"]
+[node name="TrackColumn" type="VBoxContainer" parent="Content/Main"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="TrackWord" type="Label" parent="Content/TrackColumn"]
+[node name="TrackWord" type="Label" parent="Content/Main/TrackColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"BannerLabel"
 horizontal_alignment = 2
 
-[node name="TrackRow" type="HBoxContainer" parent="Content/TrackColumn"]
+[node name="TrackRow" type="HBoxContainer" parent="Content/Main/TrackColumn"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 16
 
-[node name="Degree" type="Control" parent="Content/TrackColumn/TrackRow"]
+[node name="Degree" type="Control" parent="Content/Main/TrackColumn/TrackRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(480, 72)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("3")
 
-[node name="TrackTotal" type="Label" parent="Content/TrackColumn/TrackRow"]
+[node name="TrackTotal" type="Label" parent="Content/Main/TrackColumn/TrackRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
@@ -163,7 +184,7 @@ size_flags_vertical = 1
 theme_type_variation = &"BannerLabel"
 vertical_alignment = 1
 
-[node name="TrackApplied" type="RichTextLabel" parent="Content/TrackColumn"]
+[node name="TrackApplied" type="RichTextLabel" parent="Content/Main/TrackColumn"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
@@ -173,3 +194,106 @@ bbcode_enabled = true
 fit_content = true
 scroll_active = false
 autowrap_mode = 0
+
+[node name="DamageRow" type="HBoxContainer" parent="Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="DamageCaption" type="Label" parent="Content/DamageRow"]
+layout_mode = 2
+theme_type_variation = &"IntroSubtitle"
+vertical_alignment = 1
+text = "Damage"
+
+[node name="DamageDice" type="HBoxContainer" parent="Content/DamageRow"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="DamageDieTemplate" type="Label" parent="Content/DamageRow/DamageDice"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_type_variation = &"BannerLabel"
+theme_override_styles/normal = SubResource("sb_damage_die")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DamageFlat" type="PanelContainer" parent="Content/DamageRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="DamageFlatText" type="Label" parent="Content/DamageRow/DamageFlat"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"IntroSubtitle"
+
+[node name="DamageDouble" type="PanelContainer" parent="Content/DamageRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="DamageDoubleText" type="Label" parent="Content/DamageRow/DamageDouble"]
+layout_mode = 2
+theme_type_variation = &"IntroSubtitle"
+text = "×2"
+
+[node name="DamageExtra" type="PanelContainer" parent="Content/DamageRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="DamageExtraText" type="Label" parent="Content/DamageRow/DamageExtra"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"IntroSubtitle"
+
+[node name="DamageWeakness" type="PanelContainer" parent="Content/DamageRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="DamageWeaknessText" type="Label" parent="Content/DamageRow/DamageWeakness"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"IntroSubtitle"
+
+[node name="DamageResist" type="PanelContainer" parent="Content/DamageRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"Keycap"
+
+[node name="DamageResistText" type="Label" parent="Content/DamageRow/DamageResist"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"IntroSubtitle"
+
+[node name="DamageEquals" type="Label" parent="Content/DamageRow"]
+layout_mode = 2
+theme_type_variation = &"IntroSubtitle"
+vertical_alignment = 1
+text = "="
+
+[node name="DamageTotal" type="Label" parent="Content/DamageRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_type_variation = &"BannerLabel"
+vertical_alignment = 1

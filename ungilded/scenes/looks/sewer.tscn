@@ -1,29 +1,69 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://ptdj5tbryd7c"]
 
-[ext_resource type="Script" path="res://scripts/look/LookScene.cs" id="look"]
-[ext_resource type="Shader" path="res://assets/shaders/post_grain_vignette.gdshader" id="post"]
-[ext_resource type="Script" path="res://scripts/look/ScreenOverlay.cs" id="overlay"]
+[ext_resource type="PackedScene" path="res://scenes/props/channel_mist.tscn" id="channel_mist"]
+[ext_resource type="PackedScene" path="res://scenes/props/culvert_flow.tscn" id="culvert_flow"]
+[ext_resource type="Script" uid="uid://cnrquhlpnja0r" path="res://scripts/props/DecorSprite.cs" id="decor"]
+[ext_resource type="Script" uid="uid://c8ae6gtwm3ty0" path="res://scripts/props/SewerDressing.cs" id="dressing"]
+[ext_resource type="PackedScene" path="res://scenes/props/sewer_drips.tscn" id="drips"]
+[ext_resource type="Script" uid="uid://dsm01ur7q3ndp" path="res://scripts/look/LookScene.cs" id="look"]
+[ext_resource type="Script" uid="uid://cfnuc3sqlpqs8" path="res://scripts/look/ScreenOverlay.cs" id="overlay"]
+[ext_resource type="PackedScene" path="res://scenes/props/wall_pipe_sludge.tscn" id="pipe_sludge"]
+[ext_resource type="PackedScene" path="res://scenes/props/wall_pipe_water.tscn" id="pipe_water"]
+[ext_resource type="Shader" uid="uid://bv1nwqju63tys" path="res://assets/shaders/post_grain_vignette.gdshader" id="post"]
+[ext_resource type="PackedScene" path="res://scenes/props/sewer_sigil.tscn" id="sigil"]
+[ext_resource type="Texture2D" uid="uid://banmuomp4vb8g" path="res://assets/sprites/decor/sewer/block.png" id="tex_block"]
+[ext_resource type="Texture2D" uid="uid://fgcamyowp33" path="res://assets/sprites/decor/sewer/block_small.png" id="tex_block_small"]
+[ext_resource type="Texture2D" uid="uid://bq4q8f4qv2bxl" path="res://assets/sprites/decor/sewer/grate.png" id="tex_grate"]
+[ext_resource type="Texture2D" uid="uid://b27bookev20gu" path="res://assets/sprites/decor/sewer/puddle_large.png" id="tex_puddle_large"]
+[ext_resource type="Texture2D" uid="uid://cg17l7qb8prb0" path="res://assets/sprites/decor/sewer/puddle_small.png" id="tex_puddle_small"]
+[ext_resource type="Texture2D" uid="uid://o53cmtrim28n" path="res://assets/sprites/decor/sewer/rubble_pile.png" id="tex_rubble"]
+[ext_resource type="Texture2D" uid="uid://bsec8pk8pioyy" path="res://assets/sprites/decor/sewer/skeleton.png" id="tex_skeleton"]
+[ext_resource type="Texture2D" uid="uid://durx7dv83odrt" path="res://assets/sprites/decor/sewer/skull.png" id="tex_skull"]
+[ext_resource type="Texture2D" uid="uid://v6w78bnu80px" path="res://assets/sprites/decor/sewer/skull_pile.png" id="tex_skull_pile"]
+[ext_resource type="Texture2D" uid="uid://bky5re2asggo1" path="res://assets/sprites/decor/sewer/skull_ribs.png" id="tex_skull_ribs"]
+[ext_resource type="Texture2D" uid="uid://m5018nk3sui2" path="res://assets/sprites/decor/sewer/slime.png" id="tex_slime"]
+[ext_resource type="Texture2D" uid="uid://bgbthfrnuis8c" path="res://assets/sprites/decor/sewer/stones.png" id="tex_stones"]
+[ext_resource type="PackedScene" path="res://scenes/props/wall_torch.tscn" id="torch"]
 
-[sub_resource type="ProceduralSkyMaterial" id="sky_material"]
-sky_top_color = Color(0.02, 0.028, 0.03, 1)
-sky_horizon_color = Color(0.055, 0.075, 0.07, 1)
-ground_bottom_color = Color(0.02, 0.025, 0.025, 1)
-ground_horizon_color = Color(0.055, 0.075, 0.07, 1)
+[sub_resource type="Gradient" id="ambient_gradient"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.5, 0.56, 0.6, 1, 0.26, 0.29, 0.31, 1, 0.12, 0.09, 0.07, 1)
 
-[sub_resource type="Sky" id="sky"]
-sky_material = SubResource("sky_material")
+[sub_resource type="GradientTexture2D" id="ambient_texture"]
+gradient = SubResource("ambient_gradient")
+width = 4
+fill_to = Vector2(0, 1)
+
+[sub_resource type="PanoramaSkyMaterial" id="ambient_sky_material"]
+panorama = SubResource("ambient_texture")
+
+[sub_resource type="Sky" id="ambient_sky"]
+sky_material = SubResource("ambient_sky_material")
 
 [sub_resource type="Environment" id="environment"]
 resource_local_to_scene = true
-background_mode = 2
-sky = SubResource("sky")
-ambient_light_source = 2
-ambient_light_color = Color(0.42, 0.48, 0.48, 1)
-ambient_light_energy = 0.85
+background_mode = 1
+background_color = Color(0.012, 0.016, 0.016, 1)
+sky = SubResource("ambient_sky")
+ambient_light_source = 3
+ambient_light_energy = 0.5
+tonemap_mode = 2
+tonemap_exposure = 1.4
+ssao_enabled = true
+ssao_intensity = 1.0
+glow_enabled = true
+glow_levels/2 = 0.0
+glow_levels/3 = 1.0
+glow_levels/4 = 1.0
+glow_levels/5 = 1.0
+glow_intensity = 0.7
+glow_hdr_threshold = 1.2
 fog_enabled = true
-fog_light_color = Color(0.085, 0.115, 0.105, 1)
-fog_density = 0.03
-fog_sky_affect = 0.6
+fog_light_color = Color(0.03, 0.045, 0.045, 1)
+fog_density = 0.018
+fog_sky_affect = 0.0
+adjustment_enabled = true
+adjustment_contrast = 1.05
 
 [sub_resource type="CameraAttributesPractical" id="camera"]
 resource_local_to_scene = true
@@ -38,29 +78,149 @@ dof_blur_amount = 0.045
 [sub_resource type="ShaderMaterial" id="post_material"]
 shader = ExtResource("post")
 shader_parameter/vignette_color = Color(0, 0, 0, 1)
-shader_parameter/vignette_strength = 0.7
+shader_parameter/vignette_strength = 0.65
 shader_parameter/vignette_radius = 0.5
 shader_parameter/vignette_softness = 0.65
 shader_parameter/grain_strength = 0.0
+shader_parameter/grain_size = 1.5
+shader_parameter/grain_fps = 8.0
 
-[node name="SewerLook" type="Node3D" node_paths=PackedStringArray("Environment", "Post")]
+[sub_resource type="Resource" id="pipe_puddle"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_puddle_large")
+Size = 0.8
+Flat = true
+Wet = true
+
+[sub_resource type="Resource" id="slumped_skeleton"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_skeleton")
+Size = 0.8
+
+[sub_resource type="Resource" id="board_slime"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_slime")
+Size = 0.75
+Weight = 1.5
+Flat = true
+Wet = true
+
+[sub_resource type="Resource" id="board_puddle"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_puddle_small")
+Size = 0.55
+Weight = 3.0
+Flat = true
+Wet = true
+
+[sub_resource type="Resource" id="walk_puddle_large"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_puddle_large")
+Size = 0.9
+Weight = 1.2
+Flat = true
+Wet = true
+
+[sub_resource type="Resource" id="board_skull"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_skull")
+Size = 0.36
+Weight = 0.8
+Flat = true
+
+[sub_resource type="Resource" id="board_ribs"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_skull_ribs")
+Size = 0.6
+Weight = 0.8
+Flat = true
+
+[sub_resource type="Resource" id="walk_skull_pile"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_skull_pile")
+Size = 0.42
+Weight = 0.8
+
+[sub_resource type="Resource" id="walk_rubble"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_rubble")
+Size = 0.62
+Weight = 1.6
+
+[sub_resource type="Resource" id="walk_stones"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_stones")
+Size = 0.4
+Weight = 1.4
+
+[sub_resource type="Resource" id="walk_block"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_block")
+Size = 0.34
+
+[sub_resource type="Resource" id="walk_block_small"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_block_small")
+Size = 0.36
+
+[sub_resource type="Resource" id="wall_grate"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_grate")
+Size = 0.62
+
+[sub_resource type="Resource" id="board_grate"]
+script = ExtResource("decor")
+Texture = ExtResource("tex_grate")
+Size = 0.7
+Weight = 2.0
+Flat = true
+
+[node name="SewerLook" type="Node3D" unique_id=1017514640 node_paths=PackedStringArray("Environment", "Post", "Dressing")]
 script = ExtResource("look")
 Environment = NodePath("WorldEnvironment")
 Post = NodePath("Post")
+HaloDesaturate = 0.4
+HaloDarken = 0.9
+HaloFalloffMetres = 4.0
+WaterFlowSpeed = 0.2
+SludgeFlowSpeed = 0.05
+Dressing = NodePath("Dressing")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1218630323]
 environment = SubResource("environment")
 camera_attributes = SubResource("camera")
 
-[node name="Post" type="CanvasLayer" parent="."]
+[node name="Post" type="CanvasLayer" parent="." unique_id=174545924]
 layer = 0
 
-[node name="Overlay" type="Node2D" parent="Post"]
+[node name="Overlay" type="Node2D" parent="Post" unique_id=1567213962]
 material = SubResource("post_material")
 script = ExtResource("overlay")
 
-[node name="KeyLight" type="DirectionalLight3D" parent="."]
+[node name="KeyLight" type="DirectionalLight3D" parent="." unique_id=997140350]
 transform = Transform3D(0.766044, -0.567548, 0.301771, 0, 0.469472, 0.882948, -0.642788, -0.676377, 0.359636, 0, 12, 0)
-light_color = Color(0.75, 0.84, 0.82, 1)
-light_energy = 0.75
-shadow_enabled = true
+light_color = Color(0.62, 0.74, 0.8, 1)
+light_energy = 0.08
+light_indirect_energy = 0.552
+
+[node name="Dressing" type="Node3D" parent="." unique_id=1561665748]
+script = ExtResource("dressing")
+TorchesEnabled = false
+TorchScene = ExtResource("torch")
+SludgePipeScene = ExtResource("pipe_sludge")
+WaterPipeScene = ExtResource("pipe_water")
+SigilScene = ExtResource("sigil")
+DripsScene = ExtResource("drips")
+PipePuddle = SubResource("pipe_puddle")
+SlumpedSkeleton = SubResource("slumped_skeleton")
+SigilAnchor = "tyrant"
+PipeStain = SubResource("board_slime")
+ChannelMistScene = ExtResource("channel_mist")
+FlowScene = ExtResource("culvert_flow")
+BoardPuddles = [SubResource("board_puddle")]
+WalkwayPuddles = [SubResource("board_puddle"), SubResource("walk_puddle_large")]
+FloorSlime = SubResource("board_slime")
+BonePieces = [SubResource("board_skull"), SubResource("board_ribs"), SubResource("walk_skull_pile")]
+RubblePieces = [SubResource("walk_rubble"), SubResource("walk_stones"), SubResource("walk_block"), SubResource("walk_block_small")]
+WallGrate = SubResource("wall_grate")
+FloorGrate = SubResource("board_grate")

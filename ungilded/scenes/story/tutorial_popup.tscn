@@ -2,30 +2,87 @@
 
 [ext_resource type="Script" path="res://scripts/story/TutorialPopup.cs" id="1_popup"]
 [ext_resource type="Theme" path="res://assets/story/story_theme.tres" id="2_theme"]
+[ext_resource type="Script" path="res://scripts/story/SpotlightDim.cs" id="3_dim"]
+[ext_resource type="Shader" path="res://assets/shaders/tutorial_spotlight.gdshader" id="4_spot"]
+[ext_resource type="Script" path="res://scripts/story/TipPointer.cs" id="5_pointer"]
+[ext_resource type="Script" path="res://scripts/story/TipArrows.cs" id="6_arrows"]
+[ext_resource type="Texture2D" path="res://assets/ui/tip_arrow.png" id="7_arrow"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_spot"]
+shader = ExtResource("4_spot")
 
 [node name="TutorialPopup" type="CanvasLayer"]
+process_priority = 2
 layer = 23
 script = ExtResource("1_popup")
+TipWidth = 660.0
+Gap = 32.0
+ScreenMargin = 16.0
+PointerLength = 22.0
+PointerInset = 28.0
+SettleFrames = 3
+PlacementStep = 16.0
+PlacementMaxPush = 8
+PanelOverlapWeight = 100.0
+TextSlack = 8.0
 
 [node name="Root" type="Control" parent="."]
 unique_name_in_owner = true
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme = ExtResource("2_theme")
 
+[node name="Dim" type="ColorRect" parent="Root"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_spot")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_dim")
+DimAlpha = 0.8
+Feather = 6.0
+OutlineWidth = 4.0
+PulseRate = 1.0
+PulseLow = 0.35
+MaxQuads = 16
+
+[node name="Arrows" type="Control" parent="Root"]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("6_arrows")
+Art = ExtResource("7_arrow")
+ArtScale = 3
+Gap = 4.0
+BobPixels = 4.0
+BobPeriod = 1.0
+
 [node name="Panel" type="PanelContainer" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -520.0
-offset_top = 140.0
-offset_right = 520.0
+offset_left = -546.0
+offset_top = 141.0
+offset_right = 546.0
 offset_bottom = 300.0
 grow_horizontal = 2
-theme_type_variation = &"ScreenFrame"
+theme_type_variation = &"StoryPanel"
 
 [node name="Content" type="VBoxContainer" parent="Root/Panel"]
 layout_mode = 2
@@ -42,8 +99,20 @@ scroll_active = false
 
 [node name="Continue" type="Button" parent="Root/Panel/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 0)
+custom_minimum_size = Vector2(222, 0)
 layout_mode = 2
 size_flags_horizontal = 8
-theme_type_variation = &"AccentButton"
+theme_type_variation = &"StoryAccentButton"
 text = "Continue"
+
+[node name="Pointer" type="Control" parent="Root"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("5_pointer")
+BaseWidth = 30.0

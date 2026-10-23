@@ -2,7 +2,7 @@ using Godot;
 
 namespace Ungilded.Terrain;
 
-/// <summary>Two slow mist shelves in the forest halo, masked away from the playable board.</summary>
+/// <summary>Two slow mist shelves in the halo, masked away from the playable board.</summary>
 public static class OutskirtsMist
 {
     public static Node3D Build(Shader shader, int width, int height, int margin, BackdropThemeDefinition theme)
@@ -19,7 +19,8 @@ public static class OutskirtsMist
             root.AddChild(new MeshInstance3D
             {
                 Name = $"Mist{layer}",
-                Position = new Vector3(width / 2f, 1.3f + layer * 1.7f, height / 2f),
+                Position = new Vector3(width / 2f,
+                    theme.OutskirtsMistHeight + layer * theme.OutskirtsMistSpacing, height / 2f),
                 Mesh = new PlaneMesh { Size = new Vector2(width + 2 * margin, height + 2 * margin) },
                 MaterialOverride = material,
                 CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,

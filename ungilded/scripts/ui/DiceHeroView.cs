@@ -1,11 +1,16 @@
 using Godot;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Ungilded.UI;
 
 /// <summary>The transient hero roll above the roll row. Centre stage: a big die, the modifier
 /// counting into the total, "vs ?" and the outcome word. Degree track: a smaller die beside the
 /// track, whose marker slides from the die face to the total. Both stages print the named modifiers
-/// under their numbers when any applied. Display only; the panel drives it.</summary>
+/// under their numbers when any applied. A hit with rolled damage adds the damage row under them:
+/// one die per damage die, the flat, doubling, bonus, weakness and resistance chips, and the total
+/// dealt. Display only; the
+/// panel drives it.</summary>
 public partial class DiceHeroView : Control
 {
     [Export] public float CentreDieSize { get; set; } = 176;
@@ -29,7 +34,28 @@ public partial class DiceHeroView : Control
     private Label _trackTotal = null!;
     private RichTextLabel _centreApplied = null!;
     private RichTextLabel _trackApplied = null!;
+    private Control _damageRow = null!;
+    private Control _damageDice = null!;
+    private Label _damageTemplate = null!;
+    private Control _damageFlat = null!;
+    private Label _damageFlatText = null!;
+    private Control _damageDouble = null!;
+    private Control _damageExtra = null!;
+    private Label _damageExtraText = null!;
+    private Control _damageWeakness = null!;
+    private Label _damageWeaknessText = null!;
+    private Control _damageResist = null!;
+    private Label _damageResistText = null!;
+    private CanvasItem[] _damageChips = null!;
+    private Label _damageTotal = null!;
+    private readonly List<Label> _dice = new();
+    private int _diceLanded;
     private CombatRoll? _roll;
+
+    /// <summary>The damage the row shows, or null with no damage row.</summary>
+    public DamageRoll? Damage { get; private set; }
+    public IReadOnlyList<Label> DamageDice => _dice;
+    public Label DamageTotal => _damageTotal;
 
     /// <summary>The named modifiers as drawn on the showing stage.</summary>
     public string AppliedText => DiceRollPanel.Plain((Stage == RollStage.CentreStage ? _centreApplied : _trackApplied).GetParsedText());
@@ -60,6 +86,20 @@ public partial class DiceHeroView : Control
         _centreApplied = GetNode<RichTextLabel>("%CentreApplied");
         _trackApplied = GetNode<RichTextLabel>("%TrackApplied");
         Track = GetNode<DegreeTrack>("%Degree");
+        _damageRow = GetNode<Control>("%DamageRow");
+        _damageDice = GetNode<Control>("%DamageDice");
+        _damageTemplate = GetNode<Label>("%DamageDieTemplate");
+        _damageFlat = GetNode<Control>("%DamageFlat");
+        _damageFlatText = GetNode<Label>("%DamageFlatText");
+        _damageDouble = GetNode<Control>("%DamageDouble");
+        _damageExtra = GetNode<Control>("%DamageExtra");
+        _damageExtraText = GetNode<Label>("%DamageExtraText");
+        _damageWeakness = GetNode<Control>("%DamageWeakness");
+        _damageWeaknessText = GetNode<Label>("%DamageWeaknessText");
+        _damageResist = GetNode<Control>("%DamageResist");
+        _damageResistText = GetNode<Label>("%DamageResistText");
+        _damageChips = new CanvasItem[] { _damageFlat, _damageDouble, _damageExtra, _damageWeakness, _damageResist };
+        _damageTotal = GetNode<Label>("%DamageTotal");
         var shade = GetNode<Control>("%Shade");
         shade.OffsetLeft = -ShadeMargin.X;
         shade.OffsetRight = ShadeMargin.X;
@@ -98,8 +138,92 @@ public partial class DiceHeroView : Control
         Word.Scale = Vector2.One;
         Scale = Vector2.One;
         Modulate = Modulate with { A = 1 };
+        ClearDamage();
         Size = _content.GetCombinedMinimumSize();
         Visible = true;
+    }
+
+    /// <summary>Lay out the damage row hidden: a blank die per damage die, the chips that apply and
+    /// the total. The hero takes its full size here, before the beat reaches the row.</summary>
+    public void SetDamage(DamageRoll damage)
+    {
+        ClearDamage();
+        Damage = damage;
+        foreach (int _ in damage.Faces)
+        {
+            var die = (Label)_damageTemplate.Duplicate();
+            die.UniqueNameInOwner = false;
+            die.Visible = true;
+            die.Text = "";
+            _damageDice.AddChild(die);
+            _dice.Add(die);
+        }
+        _damageFlatText.Text = $"{damage.Flat:+0;-0}";
+        _damageFlat.Visible = damage.Flat != 0;
+        _damageDouble.Visible = damage.Doubled;
+        _damageExtraText.Text = string.Join("  ", damage.Extras.Select(e =>
+            e.Label.Length > 0 ? $"{e.Label} {e.Value:+0;-0}" : $"{e.Value:+0;-0}"));
+        _damageExtra.Visible = damage.Extras.Count > 0;
+        _damageWeaknessText.Text = $"Weakness +{damage.Weakness}";
+        _damageWeakness.Visible = damage.Weakness > 0;
+        _damageResistText.Text = $"Resist -{damage.Resistance}";
+        _damageResist.Visible = damage.Resistance > 0;
+        _damageTotal.Text = damage.Total.ToString();
+        RollTone.Paint(_damageTotal, Ungilded.Fx.DamageColors.For(damage.Type) ?? (damage.Doubled ? UiColors.PopupCrit : UiColors.Text));
+        foreach (var node in _damageChips.Append<CanvasItem>(_damageRow).Append(_damageTotal))
+            node.Modulate = node.Modulate with { A = 0 };
+        _damageRow.Visible = true;
+        Size = _content.GetCombinedMinimumSize();
+    }
+
+    public void ShowDamageRow() => _damageRow.Modulate = _damageRow.Modulate with { A = 1 };
+
+    /// <summary>One tumble step: every die that has not landed shows a random face of its size.</summary>
+    public void TumbleDamage(System.Random random)
+    {
+        if (Damage == null) return;
+        for (int i = _diceLanded; i < _dice.Count; i++)
+        {
+            int face = random.Next(1, Mathf.Max(2, Damage.Sides) + 1);
+            _dice[i].Text = face.ToString();
+            _dice[i].PivotOffset = _dice[i].Size * 0.5f;
+            _dice[i].RotationDegrees = (face % 5 - 2) * OutlineTilt;
+        }
+    }
+
+    public void LandDamageDie(int index)
+    {
+        if (Damage == null || index >= _dice.Count) return;
+        var die = _dice[index];
+        die.Text = Damage.Faces[index].ToString();
+        die.Rotation = 0;
+        die.PivotOffset = die.Size * 0.5f;
+        _diceLanded = index + 1;
+    }
+
+    /// <summary>The chips and the total appear, the total starting at the dice sum.</summary>
+    public void ShowDamageChips()
+    {
+        if (Damage == null) return;
+        _damageTotal.Text = Damage.DiceSum.ToString();
+        _damageTotal.PivotOffset = _damageTotal.Size * 0.5f;
+        foreach (var node in _damageChips.Append<CanvasItem>(_damageTotal))
+            node.Modulate = node.Modulate with { A = 1 };
+    }
+
+    public void CountDamage(float value) => _damageTotal.Text = Mathf.RoundToInt(value).ToString();
+
+    private void ClearDamage()
+    {
+        Damage = null;
+        _diceLanded = 0;
+        foreach (var die in _dice)
+        {
+            _damageDice.RemoveChild(die);
+            die.QueueFree();
+        }
+        _dice.Clear();
+        if (IsNodeReady()) _damageRow.Visible = false;
     }
 
     /// <summary>Centre above the roll row. The hero is top level, so this is canvas space.</summary>
@@ -130,28 +254,28 @@ public partial class DiceHeroView : Control
         if (Stage == RollStage.DegreeTrack) Track.MarkerValue = value;
     }
 
-    public void ShowWord()
+    /// <summary>The outcome word at its slam size, about to shrink onto its spot.</summary>
+    public void ShowWord(float slamScale)
     {
         if (_roll == null) return;
         Count(_roll.Total);
         if (Stage == RollStage.DegreeTrack) Track.LitZone = _roll.DegreeIndex;
-        Word.PivotOffset = Word.Size * 0.5f;
-        Word.Scale = Vector2.One * 0.7f;
-    }
-
-    /// <summary>Jump to the finished frame.</summary>
-    public void Finish()
-    {
-        Land();
-        ShowWord();
-        foreach (var node in new CanvasItem[] { _chip, Word, Total })
-            node.Modulate = node.Modulate with { A = 1 };
-        Word.Scale = Vector2.One;
+        // Scale about the text, not the label box, so the word lands where it rests.
+        float text = Word.GetMinimumSize().X;
+        float x = Word.HorizontalAlignment switch
+        {
+            HorizontalAlignment.Right => Word.Size.X - text / 2,
+            HorizontalAlignment.Center => Word.Size.X / 2,
+            _ => text / 2,
+        };
+        Word.PivotOffset = new Vector2(x, Word.Size.Y / 2);
+        Word.Scale = Vector2.One * slamScale;
     }
 
     public void Clear()
     {
         _roll = null;
+        ClearDamage();
         Visible = false;
     }
 }

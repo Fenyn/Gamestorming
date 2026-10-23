@@ -1,0 +1,44 @@
+[gd_scene load_steps=7 format=3]
+
+; Crawl scenery coverage at several window sizes (CrawlSpike). The sentinel shows through any gap.
+
+[ext_resource type="Script" path="res://scripts/dev/CrawlSpike.cs" id="1_spike"]
+[ext_resource type="PackedScene" path="res://scenes/story/crawl/crawl_glory.tscn" id="2_glory"]
+[ext_resource type="PackedScene" path="res://scenes/story/crawl/crawl_sunset.tscn" id="3_sunset"]
+[ext_resource type="PackedScene" path="res://scenes/story/crawl/crawl_cage.tscn" id="4_cage"]
+[ext_resource type="PackedScene" path="res://scenes/story/crawl/crawl_gates.tscn" id="5_gates"]
+[ext_resource type="PackedScene" path="res://scenes/story/crawl/crawl_slum.tscn" id="6_slum"]
+
+[node name="CrawlSpike" type="Node" node_paths=PackedStringArray("Holder", "Sentinel")]
+script = ExtResource("1_spike")
+Sceneries = [ExtResource("2_glory"), ExtResource("3_sunset"), ExtResource("4_cage"), ExtResource("5_gates"), ExtResource("6_slum")]
+WindowSizes = [Vector2i(1920, 1080), Vector2i(2560, 1080), Vector2i(1920, 1440), Vector2i(1280, 720)]
+Holder = NodePath("Stage/Holder")
+Sentinel = NodePath("Stage/Sentinel")
+ShotDirectory = "res://dev_shots"
+
+[node name="Stage" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Sentinel" type="ColorRect" parent="Stage"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 0, 1, 1)
+
+[node name="Holder" type="Control" parent="Stage"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+clip_contents = true

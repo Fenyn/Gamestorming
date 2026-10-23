@@ -1,16 +1,20 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 ; Billboarded pixel-art sprite: the drawn body of any 2.5D entity. Full camera-facing billboard,
 ; as FFT and HD-2D draw units: the sprite tilts back with the camera, so a high camera pitch
 ; never foreshortens the body (a fixed-Y billboard squashed it by cos(pitch)). The pixel-art draw rules
-; (unshaded, nearest filtering, alpha scissor) are applied in code by PixelSprite.Configure, which
-; tile decor shares, so the rules exist in one place. Only the billboard mode is authored here,
-; because it is the placement choice that makes this scene a token body rather than ground cover.
+; (nearest filtering, alpha scissor) are applied in code by PixelSprite.Configure, which tile decor
+; shares, so the rules exist in one place. The billboard mode and the lighting are authored here:
+; Lit (lit_sprite.gdshader) draws the body in the scene's lights, each pixel lit at its own height
+; on the body's axis, and casts the silhouette's shadow; BillboardSpriteAnimator binds the drawn page to it.
+; The death_* values are the look of a creature's death erosion (the threshold weights, the cluster
+; size, the edge colour); SpriteErosion and tools/vfx/death_dust/build_death_dust.gd read them here.
 ; Sheet, frames and pixel size are per-entity and come from BillboardSpriteAnimator.ConfigureHero /
 ; ConfigureEnemy.
 
 [ext_resource type="Script" path="res://scripts/combat/BillboardSpriteAnimator.cs" id="1_anim"]
 [ext_resource type="Shader" path="res://assets/shaders/creature_silhouette.gdshader" id="2_silhouette"]
+[ext_resource type="Shader" path="res://assets/shaders/lit_sprite.gdshader" id="3_lit"]
 
 [sub_resource type="ShaderMaterial" id="Silhouette"]
 render_priority = 1
@@ -19,9 +23,23 @@ shader_parameter/silhouette_color = Color(0.82, 0.88, 0.77, 0.3)
 shader_parameter/edge_opacity = 0.35
 shader_parameter/depth_bias = 0.025
 
+[sub_resource type="ShaderMaterial" id="Lit"]
+shader = ExtResource("3_lit")
+shader_parameter/bend = 0.6
+shader_parameter/body_half_width = 0.4
+shader_parameter/face_camera = 0.5
+shader_parameter/wrap = 0.35
+shader_parameter/light_on_axis = true
+shader_parameter/shadow_push = 0.1
+shader_parameter/death_mix = Vector3(0.65, 0.3, 0.05)
+shader_parameter/death_cell = 4.0
+shader_parameter/death_edge = Color(1, 0.7216, 0.4431, 1)
+shader_parameter/death_edge_energy = 0.64
+shader_parameter/death_edge_lead = 0.1
+
 [node name="BillboardSprite" type="Sprite3D"]
 layers = 2
-cast_shadow = 0
+material_override = SubResource("Lit")
 billboard = 1
 material_overlay = SubResource("Silhouette")
 script = ExtResource("1_anim")

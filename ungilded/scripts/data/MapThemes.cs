@@ -48,6 +48,27 @@ public sealed record MapSurfaceStyle
 
     /// <summary>Multiplied over <see cref="WallTexture"/>.</summary>
     public MapColor WallTint { get; init; } = new(1f, 1f, 1f);
+
+    /// <summary>A stone string course across the wall faces: its top this far below the wall's
+    /// lip, metres, and its height. A height of 0 draws none.</summary>
+    public float CourseDepth { get; init; }
+    public float CourseHeight { get; init; }
+
+    /// <summary>Top art for raised Wall tiles of this surface (pillar caps, the vault mass beyond
+    /// the board), in place of <see cref="TopTextures"/>. Null or empty uses the floor art.</summary>
+    public string[]? CapTextures { get; init; }
+
+    /// <summary>True when <see cref="CapTextures"/> names at least one variant.</summary>
+    public bool HasCapTexture => CapTextures is { Length: > 0 };
+
+    /// <summary>How wet the top face reads, 0 (matte) to 1 (sludge). The ground baker writes it
+    /// into the atlas alpha; the ground shader turns it into gloss, and above 0.6 into a slow
+    /// shimmer.</summary>
+    public float Wetness { get; init; }
+
+    /// <summary>Greyscale ripple mask the water shader scrolls across this surface's water. Only
+    /// read for <see cref="SurfaceType.Water"/>; null keeps the flat water colour.</summary>
+    public string? FlowTexture { get; init; }
 }
 
 /// <summary>
@@ -193,21 +214,46 @@ public static class MapThemes
         },
     };
 
-    /// <summary>Undercity drains: cold stone, mossy ledges, murky water.</summary>
+    /// <summary>Undercity drains: wet stone flags, brick walls, murky water, glossy sludge.</summary>
     public static readonly MapThemeDefinition Sewer = new()
     {
         BiomeId = "sewer",
         DisplayName = "Undercity Drain",
+        TilePx = 64,
+        TopGridLineColor = new(0f, 0f, 0f, 0.22f),
+        EdgeStripColor = new(0.85f, 0.9f, 1f, 0.08f),
+        CliffBandColor = new(0f, 0f, 0f, 0.2f),
         FallbackTop = new(0.40f, 0.41f, 0.43f),
         FallbackWall = new(0.24f, 0.25f, 0.27f),
         Surfaces = new Dictionary<SurfaceType, MapSurfaceStyle>
         {
             [SurfaceType.Grass] = Style(new(0.28f, 0.38f, 0.24f), new(0.17f, 0.24f, 0.15f)),
             [SurfaceType.Dirt] = Style(new(0.36f, 0.30f, 0.22f), new(0.22f, 0.18f, 0.13f)),
-            [SurfaceType.Stone] = Style(new(0.40f, 0.41f, 0.43f), new(0.24f, 0.25f, 0.27f)),
+            // Golden Skull flags and bricks (assets/textures/terrain/sewer/, gs/), imported by
+            // tools/art/import_sewer.py. The floor fields share one slab layout, so the per-tile
+            // pick changes slab shading while the joints stay on the board grid.
+            [SurfaceType.Stone] = Style(new(0.40f, 0.41f, 0.43f), new(0.24f, 0.25f, 0.27f)) with
+            {
+                TopTextures = Sw("floor_a", "floor_b", "floor_c"),
+                CapTextures = Sw("cap"),
+                WallTexture = Gs1("stone_wall"),
+                WallTint = new(0.82f, 0.86f, 0.9f),
+                CourseDepth = 0.55f,
+                CourseHeight = 0.14f,
+                Wetness = 0f,
+            },
             [SurfaceType.Wood] = Style(new(0.46f, 0.35f, 0.22f), new(0.29f, 0.21f, 0.13f)),
-            [SurfaceType.Water] = Style(new(0.17f, 0.32f, 0.28f, 0.8f), new(0.10f, 0.19f, 0.17f)),
-            [SurfaceType.Mud] = Style(new(0.26f, 0.22f, 0.16f), new(0.16f, 0.13f, 0.10f)),
+            [SurfaceType.Water] = Style(new(0.2f, 0.33f, 0.27f, 0.86f), new(0.10f, 0.19f, 0.17f)) with
+            {
+                FlowTexture = Sw1("water_flow"),
+            },
+            [SurfaceType.Mud] = Style(new(0.20f, 0.20f, 0.12f), new(0.16f, 0.13f, 0.10f)) with
+            {
+                TopTextures = Sw("sludge"),
+                WallTexture = Gs1("stone_wall"),
+                WallTint = new(0.82f, 0.86f, 0.9f),
+                Wetness = 1f,
+            },
             [SurfaceType.Sand] = Style(new(0.62f, 0.57f, 0.42f), new(0.44f, 0.40f, 0.29f)),
             [SurfaceType.Snow] = Style(new(0.78f, 0.81f, 0.84f), new(0.56f, 0.60f, 0.65f)),
             [SurfaceType.Lava] = Style(new(0.90f, 0.35f, 0.10f), new(0.42f, 0.13f, 0.05f)),
@@ -253,6 +299,15 @@ public static class MapThemes
     }
 
     private static string Gs1(string name) => Tex1($"gs/{name}");
+
+    private static string Sw1(string name) => Tex1($"sewer/{name}");
+
+    private static string[] Sw(params string[] names)
+    {
+        var paths = new string[names.Length];
+        for (int i = 0; i < names.Length; i++) paths[i] = Sw1(names[i]);
+        return paths;
+    }
 
     private static string[] Gs(params string[] names)
     {

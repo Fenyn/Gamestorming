@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Godot;
 using PF2e.Data;
 
 namespace Ungilded.Data;
@@ -39,7 +40,8 @@ public static class EnemySpriteMap
         ["sewer-rat"] = Root + "rat_v1",
         ["vicious-sewer-rat"] = Root + "rat_v1",
         ["dire-sewer-rat"] = Root + "rat_v3",
-        ["sewer-tyrant"] = Root + "rat_v2",
+        // Large: rat_v2 frames about two tiles long (PixelSize 0.046 against the Small rats' 0.02).
+        ["sewer-tyrant"] = Root + "tyrant_rat_v2",
         ["goblin-warrior"] = Root + "goblin_base",
         ["goblin-commando"] = Root + "goblin_base",
         ["goblin-war-chanter"] = Root + "goblin_base",
@@ -56,8 +58,22 @@ public static class EnemySpriteMap
         ["giant-stag-beetle"] = Root + "giant_stag_beetle_base",
     };
 
+    private static readonly Dictionary<string, EnemySpriteDefinition?> Definitions = new();
+
     /// <summary>The folder's authored animation and placement resource.</summary>
     public static string DefinitionPath(string folder) => $"{folder}/sprite.tres";
+
+    /// <summary>The folder's definition, loaded once and held. A definition loaded, dropped and
+    /// reloaded lets the engine free it while its old C# wrapper still waits for the finalizer,
+    /// which aborts the process ("gchandle.is_released").</summary>
+    public static EnemySpriteDefinition? Definition(string folder)
+    {
+        if (Definitions.TryGetValue(folder, out var cached)) return cached;
+        string path = DefinitionPath(folder);
+        var definition = ResourceLoader.Exists(path) ? ResourceLoader.Load<EnemySpriteDefinition>(path) : null;
+        Definitions[folder] = definition;
+        return definition;
+    }
 
     /// <summary>Resolve the sprite folder for a creature by display name (slugified), else the
     /// missing-art placeholder for its size.</summary>

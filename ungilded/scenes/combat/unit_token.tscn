@@ -1,8 +1,9 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 ; 2.5D combat token: a thin assembly. The billboard sprite, the team ring and the HP bar are their
 ; own scenes, so any entity can reuse them; this scene only puts them together, adds the name label
-; and the Dying badge, and gives the nodes unique names for UnitVisual3D. Everything that varies per unit at runtime
+; and the Dying badge, hangs the hand lantern on the sprite (shown only for its carrier), and gives
+; the nodes unique names for UnitVisual3D. Everything that varies per unit at runtime
 ; (sprite sheet and size, team colour, bar and name height) is applied in code by
 ; UnitVisual3D.Configure/_Ready, so this scene stays a structural skeleton. PickArea is the unit's
 ; click column (physics layer 2, "Units"); its box is sized in code from the footprint and body.
@@ -18,6 +19,8 @@
 [ext_resource type="Script" path="res://scripts/combat/NamePlate3D.cs" id="8_plate"]
 [ext_resource type="FontFile" uid="uid://bxrrn1mpgddao" path="res://assets/fonts/pixeloid/PixeloidSans-Bold.ttf" id="9_bold"]
 [ext_resource type="PackedScene" path="res://scenes/combat/active_crystal.tscn" id="10_crystal"]
+[ext_resource type="PackedScene" path="res://scenes/story/cutscene/cutscene_glow.tscn" id="11_glow"]
+[ext_resource type="PackedScene" path="res://scenes/combat/hand_lantern.tscn" id="12_lantern"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_dying"]
 
@@ -39,6 +42,9 @@ script = ExtResource("1_unit")
 [node name="Sprite" parent="." instance=ExtResource("2_sprite")]
 unique_name_in_owner = true
 
+[node name="Lantern" parent="Sprite" instance=ExtResource("12_lantern")]
+unique_name_in_owner = true
+
 [node name="Shadow" type="Decal" parent="."]
 unique_name_in_owner = true
 size = Vector3(0.85, 1.2, 0.85)
@@ -50,6 +56,14 @@ cull_mask = 1
 
 [node name="Crystal" parent="." instance=ExtResource("10_crystal")]
 unique_name_in_owner = true
+
+[node name="Glow" parent="." instance=ExtResource("11_glow")]
+unique_name_in_owner = true
+MaxEnergy = 0.7
+MaxHaloAlpha = 0.8
+
+[node name="Halo" parent="Glow" index="1"]
+pixel_size = 0.0045
 
 [node name="Ring" parent="." instance=ExtResource("3_ring")]
 unique_name_in_owner = true

@@ -1,0 +1,68 @@
+[gd_scene load_steps=10 format=3]
+
+; Wall torch: the flame sprite (unshaded), an additive glow over the flame that blooms past the
+; look's glow threshold, and the warm light. FlickerLight breathes the light and the glow together.
+
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/sewer/torch_0.png" id="1_t0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/sewer/torch_1.png" id="2_t1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decor/sewer/torch_2.png" id="3_t2"]
+[ext_resource type="Script" path="res://scripts/props/FlickerLight.cs" id="4_flicker"]
+
+[sub_resource type="SpriteFrames" id="frames"]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("1_t0")}, {"duration": 1.0, "texture": ExtResource("2_t1")}, {"duration": 1.0, "texture": ExtResource("3_t2")}],
+"loop": true,
+"name": &"burn",
+"speed": 7.0
+}]
+
+[sub_resource type="Gradient" id="glow_gradient"]
+offsets = PackedFloat32Array(0, 0.18, 0.55, 1)
+colors = PackedColorArray(1, 0.86, 0.6, 1, 1, 0.6, 0.28, 0.45, 1, 0.45, 0.16, 0.08, 1, 0.4, 0.12, 0)
+
+[sub_resource type="GradientTexture2D" id="glow_texture"]
+gradient = SubResource("glow_gradient")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="glow_material"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1.6, 1.3, 1.1, 1)
+albedo_texture = SubResource("glow_texture")
+billboard_mode = 1
+
+[node name="WallTorch" type="Node3D"]
+
+[node name="Sprite" type="AnimatedSprite3D" parent="."]
+cast_shadow = 0
+pixel_size = 0.0208
+texture_filter = 0
+alpha_cut = 1
+sprite_frames = SubResource("frames")
+animation = &"burn"
+autoplay = "burn"
+
+[node name="Glow" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0.02)
+material_override = SubResource("glow_material")
+cast_shadow = 0
+modulate = Color(1, 1, 1, 0.35)
+pixel_size = 0.008
+texture = SubResource("glow_texture")
+
+[node name="Light" type="OmniLight3D" parent="." node_paths=PackedStringArray("Glow")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0.3)
+light_color = Color(1, 0.6, 0.3, 1)
+light_energy = 3.5
+shadow_enabled = true
+shadow_blur = 2.0
+omni_range = 6.5
+omni_attenuation = 0.8
+script = ExtResource("4_flicker")
+Glow = NodePath("../Glow")

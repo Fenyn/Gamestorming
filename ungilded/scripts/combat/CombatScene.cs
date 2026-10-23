@@ -23,6 +23,9 @@ public partial class CombatScene : Node3D
     [Export] public bool DefeatBannerEnabled { get; set; } = true;
     private Tween? _introFade;
     [Export(PropertyHint.Range, "0,2,0.05")] public float AiActionDelaySeconds { get; set; } = 0.6f;
+    /// <summary>How long a turn stays current after its creature died mid-turn (a Reactive Strike
+    /// kill during its Stride), before the turn ends and the next combatant starts.</summary>
+    [Export(PropertyHint.Range, "0,2,0.05")] public float RemovedTurnBeatSeconds { get; set; } = 0.5f;
 
     /// <summary>Multipliers on the presentation's timing for each Combat speed option: the beats between
     /// board events, the AI's pause before each action, the dice beats, the damage numbers, the hit,
@@ -193,6 +196,7 @@ public partial class CombatScene : Node3D
         foreach (string correction in _session.SetupCorrections)
             GD.PushWarning($"[CombatScene] {correction}");
         _controller = new PlayerTurnController(_session.PlayerActions);
+        ApplyHostControls();
 
         // A restart reuses this scene, so the previous encounter's history must not bleed through.
         _log.ClearLog();
@@ -200,15 +204,19 @@ public partial class CombatScene : Node3D
         // Board surface first: everything below is positioned against it.
         _terrain.Visible = borrowedHeights == null;
         if (borrowedHeights == null)
-            _terrain.Build(_session.MapLayout, setup.BiomeId, setup.GridWidth, setup.GridHeight);
+            _terrain.Build(_session.MapLayout, setup.BiomeId, setup.GridWidth, setup.GridHeight, setup.Halo);
         else
             _terrain.SetLookActive(false);
 
+        // The HD-2D effects load here, as the board builds, and not in the frame of the first hit.
+        Ungilded.Fx.FxLibrary.PreloadEncounterEffects();
         _presenter = new GodotPresenter3D(_popupLayer, SurfaceHeights) { Pace = PresentationPace };
         // Crits and deaths kick the camera through the rig's shake seam (rig > ShakePivot > Camera3D);
         // turn starts and walks move the rig itself through its focus seam.
         _presenter.Shake = _cameraRig.Shake;
         _presenter.Focus = _cameraRig;
+        _presenter.Cutaway = borrowedHeights == null ? _terrain.Cutaway : null;
+        _presenter.DamageRolled += _dice.ShowDamage;
         _overlay.SetHeightMap(SurfaceHeights);
         _moveBands.SetHeightMap(SurfaceHeights);
 
@@ -237,6 +245,7 @@ public partial class CombatScene : Node3D
                 _cameraRig.FrameAction(GridSpace.CreatureToWorld(evt.Source.GridPosition, evt.Source.TileWidth, SurfaceHeights),
                     GridSpace.CreatureToWorld(evt.Target.GridPosition, evt.Target.TileWidth, SurfaceHeights));
             }
+            PulseHiddenAbility(evt);
             await presenter.Present(evt);
             if (evt.Type is BattleEventType.TurnStarted or BattleEventType.TurnEnded) SyncShownHealth();
             else if (evt.Type is BattleEventType.DamageDealt or BattleEventType.Healed && evt.Target?.Health is { } hit)
@@ -247,6 +256,7 @@ public partial class CombatScene : Node3D
                 _cameraRig.RestorePlanningView();
             RefreshCard();
         });
+        WatchHiddenAbilities();
         // Interactive reaction prompts: the session suspends combat on this Task until the modal
         // panel resolves (works mid-enemy-turn too — the enemy's strike awaits it). The roll that
         // raised the prompt plays the full beat.
@@ -254,8 +264,11 @@ public partial class CombatScene : Node3D
         {
             _dice.PromoteLatest();
             await _dice.WaitForResultsAsync(presenter.CancellationToken);
-            return await ShowReactionPrompt(view);
+            bool use = await ShowReactionPrompt(view);
+            if (use) _beforePlayerCommand?.Invoke(new PlayerOrder(PlayerOrderKind.Reaction, CombatantById(view.SourceId)));
+            return use;
         };
+        _session.RemovedTurnBeat = () => PausableDelay.Wait(tree, RemovedTurnBeatSeconds * PresentationPace, presenter.CancellationToken);
         _input.Setup(_cameraRig.Camera, setup.GridWidth, setup.GridHeight, SurfaceHeights);
         // One click-vs-drag threshold for the whole gesture: the rig's value wins.
         _input.DragThresholdPixels = _cameraRig.DragThresholdPixels;
@@ -309,10 +322,16 @@ public partial class CombatScene : Node3D
     public override void _Process(double delta)
     {
         _session?.ReconcileOccupancy();
+        if (_session != null && _terrain.Cutaway is { } cutaway)
+            cutaway.SetOccupied(_session.Team1.Concat(_session.Team2)
+                .Where(u => u.Health is not { IsDead: true })
+                .SelectMany(u => PF2e.Utilities.CreatureSizeHelper.GetOccupiedTiles(u.GridPosition, u.TileWidth))
+                .Select(t => (t.x, t.y)));
         RefreshTurnRowsThrottled(delta);
         LayoutBand();
         if (_session != null) LayoutPlates();
         AnchorCommandMenu();
+        LayoutReactionPrompt();
     }
 
     private void SpawnUnits()
@@ -331,6 +350,9 @@ public partial class CombatScene : Node3D
             if (unit.Character.Health is { } health && (only == null || ReferenceEquals(health, only))
                 && health.CurrentHP != unit.ShownHp) unit.UpdateHealthBar();
     }
+
+    /// <summary>The unit's token on the board, or null for one without a token.</summary>
+    public UnitVisual3D? UnitVisual(ICharacter character) => _tacticalUnits.GetValueOrDefault(character.UniqueId);
 
     /// <summary>The HP the board shows for a unit, or null for one without a token.</summary>
     private int? ShownHp(ICharacter character)

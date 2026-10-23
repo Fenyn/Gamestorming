@@ -9,9 +9,10 @@ namespace Ungilded.Terrain;
 /// board tile (x, y) is skirt tile (x + <see cref="Margin"/>, y + <see cref="Margin"/>) — and the
 /// halo tiles (skirt coordinates) where an open biome's tree scatter stands. Trees are SPOTS, not
 /// tiles: the ground under them is ordinary walkable-looking halo, and the renderer dresses each
-/// spot with a billboard tree prop. Enclosed biomes return no spots.</summary>
+/// spot with a billboard tree prop. Enclosed biomes return no spots. <see cref="Plan"/> is the
+/// authored halo the skirt was painted from, or null for a synthesized one.</summary>
 public readonly record struct SkirtResult(
-    MapLayout Layout, int Margin, IReadOnlyList<(int X, int Y)> Trees);
+    MapLayout Layout, int Margin, IReadOnlyList<(int X, int Y)> Trees, HaloPlan? Plan = null);
 
 /// <summary>
 /// Grows a halo of synthesized terrain around a generated battle map and hands back ONE layout that
@@ -27,6 +28,8 @@ public readonly record struct SkirtResult(
 ///
 /// Feature work is split three ways: this file owns the frame (margin, copy, ring geometry),
 /// <see cref="SkirtFeatures"/> owns what each halo tile IS, <see cref="SkirtHeights"/> owns how high.
+/// A board that brings its own <see cref="HaloPlan"/> skips both: <see cref="SkirtPlan"/> paints
+/// the authored halo instead.
 /// </summary>
 public static class SkirtLayout
 {
@@ -39,9 +42,10 @@ public static class SkirtLayout
     /// <summary>
     /// Build the skirt for <paramref name="board"/>. <paramref name="wallHeightUnits"/> is the
     /// biome's <c>BiomeDefinition.WallHeight</c> (forest 8, sewer 16): how far a tree or vault wall
-    /// tile rises above the ground it stands on.
+    /// tile rises above the ground it stands on. <paramref name="plan"/>, when given, is the board's
+    /// authored halo and replaces the synthesized one.
     /// </summary>
-    public static SkirtResult Build(MapLayout board, SkirtStyle style, int wallHeightUnits)
+    public static SkirtResult Build(MapLayout board, SkirtStyle style, int wallHeightUnits, HaloPlan? plan = null)
     {
         ArgumentNullException.ThrowIfNull(board);
         ArgumentNullException.ThrowIfNull(style);
@@ -56,6 +60,12 @@ public static class SkirtLayout
         skirt.Initialize(board.Width + 2 * margin, board.Height + 2 * margin);
 
         CopyBoard(board, skirt, margin);
+
+        if (plan != null)
+        {
+            SkirtPlan.Paint(skirt, board, plan, style, margin, wallHeightUnits);
+            return new SkirtResult(skirt, margin, Array.Empty<(int X, int Y)>(), plan);
+        }
 
         var waterUnits = new int[skirt.Width * skirt.Height];
         Array.Fill(waterUnits, NoWater);

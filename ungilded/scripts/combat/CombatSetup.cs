@@ -45,6 +45,10 @@ public sealed record CombatSetup
     /// </summary>
     public PF2e.MapGen.MapLayout? Layout { get; init; }
 
+    /// <summary>The authored halo around <see cref="Layout"/>, or null to let the biome synthesize
+    /// one. Scenery only: nothing in it is playable.</summary>
+    public Ungilded.Terrain.HaloPlan? Halo { get; init; }
+
     /// <summary>
     /// Registry id of the biome <see cref="Layout"/> was generated from ("forest", "sewer"), which is
     /// also the key its visual theme is looked up under. Null falls back to the default theme — a
@@ -72,6 +76,14 @@ public sealed record CombatSetup
 
     /// <summary>Optional deterministic RNG seed (applied via Rng.Seed before initiative).</summary>
     public int? RngSeed { get; init; }
+
+    /// <summary>Skip the initiative roll: turns run in setup order, party first, then allies, then
+    /// enemies.</summary>
+    public bool FixedInitiative { get; init; }
+
+    /// <summary>A successful Recall Knowledge does not use up the actor's attempt on that species,
+    /// so the actor can study it again for the next fact. A failed check still does.</summary>
+    public bool RecallAfterSuccess { get; init; }
 
     /// <summary>XP this fight awards on victory: the encounter's total, relative to the party's
     /// level at build time (PF2e RAW - the budget IS the award). 0 for spikes that never award.</summary>

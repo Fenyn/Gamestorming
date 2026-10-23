@@ -25,14 +25,19 @@ public partial class StoryFlowSpike
 
         var intro = Sequences.First(s => s.Backdrop == DialogueBackdrop.Black && IsNarrationOnly(s));
         var narration = director.Narration.Play(intro);
-        await WaitUntil(() => director.Narration.IsWaiting);
-        await WaitSeconds(CaptureSettleSeconds);
-        Capture("narration.png");
-        while (!narration.IsCompleted)
+        for (int page = 1; page <= intro.Lines.Count; page++)
         {
+            await WaitUntil(() => director.Narration.IsWaiting);
+            await WaitSeconds(CaptureSettleSeconds);
+            Check($"narration page {page}: the advance mark shows", director.Narration.ShowsAdvanceMark);
+            Check($"narration page {page}: text ends {director.Narration.GapAboveMark} px above the mark",
+                director.Narration.GapAboveMark > 0f);
+            Capture($"narration_{page}.png");
             director.Narration.Advance();
-            await NextFrame();
+            await WaitUntil(() => !director.Narration.IsWaiting);
         }
+        await WaitUntil(() => narration.IsCompleted);
+        Check("narration: every page advanced", narration.IsCompleted);
 
         var banter = SequenceOf("tutorial_scene1_sewer_banter");
         director.Fade.SetOpaque(true);
@@ -46,6 +51,9 @@ public partial class StoryFlowSpike
         director.Fade.SetOpaque(false);
         await ShowLineAndCapture(director, SequenceOf("tutorial_scene2_rat_encounter"),
             line => line.Speaker == "The Friend", "dialogue_board.png");
+        await PlayThrough(director.Dialogue, SequenceOf(RatsAppearId));
+        await ShowLineAndCapture(director, SequenceOf(AfterRatsAppearId),
+            line => line.Speaker == Player, "dialogue_spectacles.png");
 
         var popup = director.Popup;
         var message = popup.ShowMessage($"Each turn you have {popup.Highlight("3 actions")}. Every action you take in combat (moving, striking, raising a shield) costs 1 or more actions. Spend them wisely.");
@@ -75,6 +83,7 @@ public partial class StoryFlowSpike
         if (box.IsRevealing) box.Advance();
         await WaitSeconds(CaptureSettleSeconds);
         Check($"{file}: the box shows the chosen line", box.CurrentLine != null && pick(box.CurrentLine));
+        Check($"{file}: the advance mark shows", box.ShowsAdvanceMark);
         Capture(file);
         while (!play.IsCompleted)
         {

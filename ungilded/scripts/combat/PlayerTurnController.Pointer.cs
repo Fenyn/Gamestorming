@@ -61,8 +61,27 @@ public sealed partial class PlayerTurnController
                 AttackPreviewChanged?.Invoke(pos.HasValue
                     ? _exec.GetAbilityTargetPreview(_current, _pendingSkillId, pos.Value) : null);
                 break;
+
+            case PlayerTurnMode.SelectingBombTarget:
+                if (pos.HasValue && _bombTargets.TryGetValue(pos.Value, out var primary))
+                {
+                    AttackPreviewChanged?.Invoke(_exec.GetBombPreview(_current, _pendingBombId, primary));
+                    AreaPreviewChanged?.Invoke(_exec.GetSplashTiles(primary));
+                }
+                else
+                {
+                    AttackPreviewChanged?.Invoke(null);
+                    AreaPreviewChanged?.Invoke(Array.Empty<PF2eVec>());
+                }
+                break;
         }
     }
+
+    /// <summary>The Strike forecast against <paramref name="target"/> while Strike aims and it is a
+    /// legal target, else null.</summary>
+    public AttackPreviewView? StrikePreview(PF2e.Core.ICharacter target)
+        => _mode == PlayerTurnMode.SelectingStrike && _current != null && _strikeTargets.ContainsValue(target)
+            ? ActionBarStateBuilder.BuildPreview(_exec, _current, target) : null;
 
     public void TileClicked(PF2eVec pos)
     {
@@ -95,7 +114,16 @@ public sealed partial class PlayerTurnController
 
             case PlayerTurnMode.SelectingStrike:
                 if (_strikeTargets.TryGetValue(pos, out var target))
-                    RunAction(() => _exec.ExecuteStrike(_current!, target));
+                    RunAction(() => _exec.ExecuteStrike(_current!, target), new PlayerOrder(PlayerOrderKind.Strike, target));
+                break;
+
+            case PlayerTurnMode.SelectingBombTarget:
+                if (_bombTargets.TryGetValue(pos, out var bombTarget))
+                {
+                    string bombId = _pendingBombId;
+                    RunAction(() => _exec.ExecuteBombThrow(_current!, bombId, bombTarget),
+                        new PlayerOrder(PlayerOrderKind.Bomb, bombTarget));
+                }
                 break;
 
             case PlayerTurnMode.SelectingSpellTargets:

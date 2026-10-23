@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+; Scene 3a: the Encounter 1 tunnel lit a little past the board's west edge, where the boys walk on.
+; The next two rats come out of the dark beyond it.
+
+[ext_resource type="PackedScene" path="res://scenes/story/cutscene/cutscene_set.tscn" id="1_base"]
+
+[node name="CutsceneSet" instance=ExtResource("1_base")]
+Encounter = 1
+LitArea = Rect2i(-5, -2, 13, 9)
+Creatures = Dictionary[StringName, String]({
+&"rat_a": "sewer_rat",
+&"rat_b": "sewer_rat"
+})

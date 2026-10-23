@@ -23,6 +23,9 @@ public partial class CombatScene : Node3D
     [Export] public bool DefeatBannerEnabled { get; set; } = true;
     private Tween? _introFade;
     [Export(PropertyHint.Range, "0,2,0.05")] public float AiActionDelaySeconds { get; set; } = 0.6f;
+    /// <summary>How long a turn stays current after its creature died mid-turn (a Reactive Strike
+    /// kill during its Stride), before the turn ends and the next combatant starts.</summary>
+    [Export(PropertyHint.Range, "0,2,0.05")] public float RemovedTurnBeatSeconds { get; set; } = 0.5f;
 
     /// <summary>Multipliers on the presentation's timing for each Combat speed option: the beats between
     /// board events, the AI's pause before each action, the dice beats, the damage numbers, the hit,
@@ -256,6 +259,7 @@ public partial class CombatScene : Node3D
             await _dice.WaitForResultsAsync(presenter.CancellationToken);
             return await ShowReactionPrompt(view);
         };
+        _session.RemovedTurnBeat = () => PausableDelay.Wait(tree, RemovedTurnBeatSeconds * PresentationPace, presenter.CancellationToken);
         _input.Setup(_cameraRig.Camera, setup.GridWidth, setup.GridHeight, SurfaceHeights);
         // One click-vs-drag threshold for the whole gesture: the rig's value wins.
         _input.DragThresholdPixels = _cameraRig.DragThresholdPixels;

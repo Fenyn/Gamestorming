@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=3]
+
+; A drop falls for about 0.85 s (4 m at this speed and gravity). The lifetime is longer so drops
+; come one every lifetime / amount seconds; the fade ramp hides each drop after its fall.
+
+[sub_resource type="Gradient" id="fade"]
+offsets = PackedFloat32Array(0, 0.04, 0.24, 0.28)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="fade_texture"]
+gradient = SubResource("fade")
+
+[sub_resource type="ParticleProcessMaterial" id="process"]
+resource_local_to_scene = true
+emission_shape = 3
+emission_box_extents = Vector3(6, 0.05, 6)
+direction = Vector3(0, -1, 0)
+spread = 0.0
+initial_velocity_min = 0.5
+initial_velocity_max = 1.0
+gravity = Vector3(0, -9.8, 0)
+color_ramp = SubResource("fade_texture")
+
+[sub_resource type="StandardMaterial3D" id="drop_material"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.7, 0.8, 0.82, 0.35)
+billboard_mode = 2
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="drop"]
+material = SubResource("drop_material")
+size = Vector2(0.018, 0.16)
+
+[node name="SewerDrips" type="GPUParticles3D"]
+cast_shadow = 0
+amount = 2
+lifetime = 3.0
+process_material = SubResource("process")
+draw_pass_1 = SubResource("drop")

@@ -109,12 +109,26 @@ public partial class MoveBandOverlay3D : Node3D
         }
         for (int i = _fillUsed; i < _fillPool.Count; i++) _fillPool[i].Visible = false;
         for (int i = _edgeUsed; i < _edgePool.Count; i++) _edgePool[i].Visible = false;
+        ShowBands(!_guided);
     }
 
-    /// <summary>Pulsing gold tiles, each framed on all four sides: the only tiles a tutorial move
-    /// accepts. They draw over the bands and stay up while the bands come and go. Empty hides them.</summary>
-    public void SetGuideTiles(IReadOnlyCollection<PF2eVec> tiles)
+    /// <summary>Show or hide the placed band fills and strips without forgetting them.</summary>
+    private void ShowBands(bool shown)
     {
+        for (int i = 0; i < _fillUsed; i++) _fillPool[i].Visible = shown;
+        for (int i = 0; i < _edgeUsed; i++) _edgePool[i].Visible = shown;
+    }
+
+    private bool _guided;
+
+    /// <summary>Pulsing gold tiles, each framed on all four sides: the only tiles a tutorial move
+    /// accepts. While any show, the bands hide, so the gold tiles are the only move markers on the
+    /// board; the bands come back when the guide clears. Empty hides them. With
+    /// <paramref name="hint"/> the tiles are a suggestion over a free move and the bands stay.</summary>
+    public void SetGuideTiles(IReadOnlyCollection<PF2eVec> tiles, bool hint = false)
+    {
+        _guided = tiles.Count > 0 && !hint;
+        ShowBands(!_guided);
         _guideUsed = 0;
         foreach (var tile in tiles)
         {

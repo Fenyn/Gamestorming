@@ -15,7 +15,7 @@ namespace Ungilded.Combat;
 /// <summary>
 /// Query + command surface for the preset spell layer. The command side mirrors
 /// AITurnExecutor.ExecuteSpell EXACTLY (SpellCast event before the cast, subscribe
-/// SpellCastAction.OnSpellResolved for the duration, emit DamageDealt/CreatureDied/Healed from the
+/// SpellCastAction.OnSpellResolved for the duration, emit DamageDealt/Healed from the
 /// resolved per-target outcomes) so player and AI casts animate identically. The rules never run
 /// twice — the SpellCastAction owns cost + slot consumption.
 /// </summary>
@@ -246,10 +246,11 @@ internal sealed class SpellActions
 
             if (tr.DamageResult != null && tr.DamageResult.TotalDamage > 0)
             {
-                await _events.EmitDamageAndDeath(caster, target, tr.DamageResult.TotalDamage,
+                await _events.EmitDamage(caster, target, tr.DamageResult.TotalDamage,
                     type: tr.DamageResult.DamageType,
                     degree: tr.Degree,
-                    description: $"{target.Name} takes {tr.DamageResult.TotalDamage} {tr.DamageResult.DamageType} ({tr.Degree})");
+                    description: $"{target.Name} takes {tr.DamageResult.TotalDamage} {tr.DamageResult.DamageType} ({tr.Degree})",
+                    result: tr.DamageResult);
             }
 
             if (tr.HealingApplied > 0)

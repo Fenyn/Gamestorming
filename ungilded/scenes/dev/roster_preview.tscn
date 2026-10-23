@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dev/RosterPreviewScene.cs" id="1_preview"]
+[ext_resource type="PackedScene" path="res://scenes/combat/combat.tscn" id="2_combat"]
+
+[node name="RosterPreview" type="Node"]
+script = ExtResource("1_preview")
+CombatScene = ExtResource("2_combat")

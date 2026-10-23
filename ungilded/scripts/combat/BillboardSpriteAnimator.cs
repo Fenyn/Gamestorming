@@ -86,7 +86,49 @@ public partial class BillboardSpriteAnimator : Sprite3D
     public override void _Ready()
     {
         PixelSprite.Configure(this);
+        ConfigureLighting();
         ConfigureSilhouette();
+    }
+
+    private const string SpriteTextureParameter = "sprite_tex";
+    private const string FeetParameter = "feet_y";
+    private const string NormalTextureParameter = "normal_tex";
+    private const string HasNormalParameter = "has_normal_tex";
+    private ShaderMaterial? _lit;
+    private Texture2D? _litTexture;
+    private float _litFeet = float.NaN;
+
+    /// <summary>The authored material override draws the sprite lit (lit_sprite.gdshader). A
+    /// material override gets no texture from Sprite3D, so each sprite owns a copy and binds the
+    /// page it draws before every frame, with that page's normal page if it has one and the height
+    /// of the feet: the configure methods lift the sprite so the feet stand at the parent's
+    /// origin.</summary>
+    private void ConfigureLighting()
+    {
+        if (MaterialOverride is not ShaderMaterial authored) return;
+        _lit = (ShaderMaterial)authored.Duplicate();
+        MaterialOverride = _lit;
+        RenderingServer.FramePreDraw += RefreshLighting;
+        TreeExiting += () => RenderingServer.FramePreDraw -= RefreshLighting;
+        RefreshLighting();
+    }
+
+    private void RefreshLighting()
+    {
+        if (_lit == null) return;
+        if (_litTexture != Texture)
+        {
+            _litTexture = Texture;
+            _lit.SetShaderParameter(SpriteTextureParameter, Texture);
+            var normal = SpriteNormalPages.For(Texture);
+            _lit.SetShaderParameter(NormalTextureParameter, normal != null ? normal : default(Variant));
+            _lit.SetShaderParameter(HasNormalParameter, normal != null);
+        }
+        if (_litFeet != -Position.Y)
+        {
+            _litFeet = -Position.Y;
+            _lit.SetShaderParameter(FeetParameter, _litFeet);
+        }
     }
 
     // ------------------------------------------------------------------ Configure
@@ -121,7 +163,7 @@ public partial class BillboardSpriteAnimator : Sprite3D
 
     /// <summary>Load the folder's authored animation and placement resource.</summary>
     public void ConfigureEnemy(string folder)
-        => ConfigureEnemy(GD.Load<EnemySpriteDefinition>(EnemySpriteMap.DefinitionPath(folder)));
+        => ConfigureEnemy(EnemySpriteMap.Definition(folder));
 
     public void ConfigureEnemy(EnemySpriteDefinition? definition)
     {

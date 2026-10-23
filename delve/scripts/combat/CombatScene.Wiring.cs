@@ -14,6 +14,7 @@ public partial class CombatScene
             _tacticalUnits.Remove(character.UniqueId);
             if (_focusedMember == character.UniqueId) _focusedMember = null;
             _presenter.RetireUnit(character);
+            RefreshBarVisibility();
         };
         _controller.HighlightsChanged += (tiles, kind) => _overlay.SetHighlights(tiles, kind);
         _controller.MoveBandsChanged += bands =>
@@ -93,6 +94,7 @@ public partial class CombatScene
             _actionBar.SetInteractable(true);
             _actionBar.SetAiToggle(_session.IsAiToggled(character));
             _actionBar.SetAutoReactToggle(_session.IsAutoReactions(character));
+            RefreshBarVisibility();
         };
         _session.PlayerTurnEnded += () =>
         {
@@ -100,6 +102,7 @@ public partial class CombatScene
             // EndControl clears the overlay through the controller's own transient reset.
             _controller.EndControl();
             _actionBar.SetInteractable(false);
+            RefreshBarVisibility();
         };
         _session.TurnChanged += () => { if (ReferenceEquals(_session, session)) { ClearPartyFocus(); ClearBoardTargets(); RefreshTurnOrder(); } };
         _session.EncounterFinished += result => { if (ReferenceEquals(_session, session)) ShowResult(result); };

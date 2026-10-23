@@ -178,6 +178,12 @@ internal static class SkirtFeatures
     private static void Enclose(
         MapLayout skirt, MapLayout board, SkirtStyle style, int margin, int[] waterUnits)
     {
+        if (style.WalkwayRings > 0)
+        {
+            EncloseWithWalkway(skirt, board, style, margin, waterUnits);
+            return;
+        }
+
         int openRings = style.WallRings + 1;
 
         for (int sy = 0; sy < skirt.Height; sy++)
@@ -202,6 +208,72 @@ internal static class SkirtFeatures
                 waterUnits[sy * skirt.Width + sx] = SkirtLayout.NoWater;
             }
         }
+    }
+
+    /// <summary>
+    /// Enclosed biome with a walkway: <see cref="SkirtStyle.WalkwayRings"/> rings of floor around
+    /// the board, then solid wall to the rim. The wall line is the same distance from every side,
+    /// corners included, so the vault reads as one mass with one top. Culverts (narrow water runs
+    /// leaving the board) cross the walkway and cut <c>WallRings + 1</c> rings into the wall; any
+    /// other water in the walkway becomes floor.
+    /// </summary>
+    private static void EncloseWithWalkway(
+        MapLayout skirt, MapLayout board, SkirtStyle style, int margin, int[] waterUnits)
+    {
+        int walkway = style.WalkwayRings;
+        int culvertEnd = walkway + style.WallRings + 1;
+
+        for (int sy = 0; sy < skirt.Height; sy++)
+        {
+            for (int sx = 0; sx < skirt.Width; sx++)
+            {
+                int d = SkirtLayout.TileRing(sx, sy, margin, board);
+                if (d == 0) continue;
+
+                bool water = skirt.GetTile(sx, sy) == TileRole.Water;
+                bool culvert = water && d <= culvertEnd && IsCulvert(board, style, sx, sy, margin);
+                if (culvert) continue;
+
+                if (d <= walkway)
+                {
+                    if (water)
+                    {
+                        Set(skirt, sx, sy, TileRole.Ground, style.GroundSurface);
+                        waterUnits[sy * skirt.Width + sx] = SkirtLayout.NoWater;
+                    }
+                    continue;
+                }
+
+                Set(skirt, sx, sy, TileRole.Wall, style.WallSurface);
+                waterUnits[sy * skirt.Width + sx] = SkirtLayout.NoWater;
+            }
+        }
+    }
+
+    /// <summary>True when a halo tile on a straight side continues a board-edge water run no wider
+    /// than <see cref="SkirtStyle.CulvertMaxWidth"/>, measured along that edge.</summary>
+    private static bool IsCulvert(MapLayout board, SkirtStyle style, int sx, int sy, int margin)
+    {
+        if (!SkirtLayout.OnStraightSide(sx, sy, margin, board)) return false;
+        var (bx, by) = SkirtLayout.NearestBoardTile(sx, sy, margin, board);
+        if (board.GetTile(bx, by) != TileRole.Water) return false;
+
+        // West and east sides run along y; north and south sides along x.
+        bool alongY = sx < margin || sx >= margin + board.Width;
+        int run = 1;
+        for (int step = 1; ; step++)
+        {
+            int x = alongY ? bx : bx + step, y = alongY ? by + step : by;
+            if (!board.IsInBounds(x, y) || board.GetTile(x, y) != TileRole.Water) break;
+            run++;
+        }
+        for (int step = 1; ; step++)
+        {
+            int x = alongY ? bx : bx - step, y = alongY ? by - step : by;
+            if (!board.IsInBounds(x, y) || board.GetTile(x, y) != TileRole.Water) break;
+            run++;
+        }
+        return run <= style.CulvertMaxWidth;
     }
 
     // ─────────────────────────── helpers ───────────────────────────

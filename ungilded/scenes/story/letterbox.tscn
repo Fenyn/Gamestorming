@@ -1,0 +1,29 @@
+[gd_scene load_steps=2 format=3]
+
+; Cutscene bars (layer 19): under the black backdrop (20), the narration (21) and the dialogue box (22).
+; The bars are 30 px at 1080, under the 36 px gap below the dialogue box.
+
+[ext_resource type="Script" path="res://scripts/story/Letterbox.cs" id="1_letterbox"]
+
+[node name="Letterbox" type="CanvasLayer"]
+layer = 19
+visible = false
+script = ExtResource("1_letterbox")
+
+[node name="Top" type="ColorRect" parent="."]
+unique_name_in_owner = true
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 0.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Bottom" type="ColorRect" parent="."]
+unique_name_in_owner = true
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 0.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

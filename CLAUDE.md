@@ -12,6 +12,8 @@ Before you write or change any text a player sees (a screen, a HUD, a menu, a to
 
 This applies to new text and to any existing text you touch while editing a screen.
 
+Before you write any text a player or reader sees (screens, dialogue, card text, store pages, docs for me), use the `no-ai-tells` skill. The hook `.claude/hooks/ai_tells.py` checks the result after every write.
+
 ## Pixel art is drawn by code (every project)
 
 This applies when you draw a sprite from scratch, and when you write a prompt asking an agent to draw one.

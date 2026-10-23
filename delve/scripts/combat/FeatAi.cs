@@ -12,6 +12,7 @@ internal static class FeatAi
     {
         foreach(var id in new[]{"root-to-life","hunters-aim","deadly-aim","psi-strikes","renewed-vigor","spell-parry","reinforce-eidolon"})
         {
+            if (actor.Health?.IsAlive!=true) return;
             if (!RosterFeats.Has(actor,id)) continue;
             var action=new RosterFeatAction(id);
             if (!action.CanPerform(actor)) continue;

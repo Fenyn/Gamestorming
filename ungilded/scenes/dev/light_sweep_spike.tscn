@@ -1,0 +1,58 @@
+[gd_scene load_steps=6 format=3]
+
+; Light sweep for the sprite normal pages (LightSweepSpike). An orthographic camera at the combat
+; pitch draws the sprite at 4 screen pixels per sprite pixel.
+
+[ext_resource type="Script" path="res://scripts/dev/LightSweepSpike.cs" id="1_spike"]
+[ext_resource type="PackedScene" path="res://scenes/combat/billboard_sprite.tscn" id="2_sprite"]
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 1
+background_color = Color(0.04, 0.04, 0.05, 1)
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.12
+
+[sub_resource type="PlaneMesh" id="FloorMesh"]
+size = Vector2(8, 8)
+
+[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
+albedo_color = Color(0.42, 0.4, 0.37, 1)
+roughness = 1.0
+
+[node name="LightSweepSpike" type="Node" node_paths=PackedStringArray("Sprite", "Light", "Camera")]
+script = ExtResource("1_spike")
+Sprite = NodePath("Stage/Body/Sprite")
+Light = NodePath("Stage/Light")
+Camera = NodePath("Stage/Camera")
+Folder = "res://assets/sprites/heroes/player"
+NormalFolders = PackedStringArray("res://assets/sprites/heroes/player", "res://assets/sprites/heroes/friend", "res://assets/sprites/enemies/rat_v1", "res://assets/sprites/enemies/rat_v2", "res://assets/sprites/enemies/rat_v3", "res://assets/sprites/decor/lantern.png")
+ShotPath = "res://dev_shots/light_sweep.png"
+
+[node name="Stage" type="Node3D" parent="."]
+
+[node name="Environment" type="WorldEnvironment" parent="Stage"]
+environment = SubResource("Env")
+
+[node name="Floor" type="MeshInstance3D" parent="Stage"]
+mesh = SubResource("FloorMesh")
+surface_material_override/0 = SubResource("FloorMaterial")
+
+[node name="Body" type="Node3D" parent="Stage"]
+
+[node name="Sprite" parent="Stage/Body" instance=ExtResource("2_sprite")]
+
+[node name="Light" type="OmniLight3D" parent="Stage"]
+light_color = Color(1, 0.75, 0.5, 1)
+light_energy = 1.5
+shadow_enabled = true
+omni_range = 4.0
+
+[node name="Camera" type="Camera3D" parent="Stage"]
+position = Vector3(0, 6.336, 8.192)
+rotation_degrees = Vector3(-35, 0, 0)
+projection = 1
+size = 5.4
+near = 0.05
+far = 50.0
+current = true

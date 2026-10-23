@@ -5,11 +5,16 @@
 [ext_resource type="Resource" path="res://assets/portraits/player_portraits.tres" id="3_player"]
 [ext_resource type="Resource" path="res://assets/portraits/friend_portraits.tres" id="4_friend"]
 [ext_resource type="Theme" path="res://assets/story/story_theme.tres" id="5_theme"]
+[ext_resource type="PackedScene" path="res://scenes/story/advance_mark.tscn" id="6_mark"]
+[ext_resource type="Script" path="res://scripts/story/PortraitView.cs" id="7_view"]
 
 [node name="DialogueBox" type="CanvasLayer"]
 layer = 22
 script = ExtResource("1_box")
 Portraits = Array[ExtResource("2_portraits")]([ExtResource("3_player"), ExtResource("4_friend")])
+SpeechVariation = &"DialogueText"
+NarrationVariation = &"DialogueNarration"
+NarrationAlignment = 1
 
 [node name="Root" type="Control" parent="."]
 unique_name_in_owner = true
@@ -21,18 +26,20 @@ grow_vertical = 2
 theme = ExtResource("5_theme")
 
 [node name="Box" type="PanelContainer" parent="Root"]
-anchors_preset = 12
+unique_name_in_owner = true
+anchors_preset = 7
+anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = 200.0
-offset_top = -300.0
-offset_right = -200.0
-offset_bottom = -40.0
+offset_left = -786.0
+offset_top = -333.0
+offset_right = 786.0
+offset_bottom = -36.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
-theme_type_variation = &"SheetPanel"
+theme_type_variation = &"StoryPanel"
 
 [node name="Row" type="HBoxContainer" parent="Root/Box"]
 layout_mode = 2
@@ -41,15 +48,32 @@ theme_type_variation = &"DialogueRow"
 
 [node name="LeftFrame" type="PanelContainer" parent="Root/Box/Row"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(216, 216)
 layout_mode = 2
-size_flags_vertical = 4
+size_flags_vertical = 0
 mouse_filter = 2
 theme_type_variation = &"HudInset"
 
-[node name="LeftPortrait" type="TextureRect" parent="Root/Box/Row/LeftFrame"]
+[node name="LeftPortrait" type="TextureRect" parent="Root/Box/Row/LeftFrame" node_paths=PackedStringArray("Overlay")]
 unique_name_in_owner = true
+script = ExtResource("7_view")
+Overlay = NodePath("LeftOverlay")
 custom_minimum_size = Vector2(192, 192)
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LeftOverlay" type="TextureRect" parent="Root/Box/Row/LeftFrame/LeftPortrait"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
@@ -58,6 +82,7 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
+theme_type_variation = &"DialogueColumn"
 
 [node name="Name" type="Label" parent="Root/Box/Row/Column"]
 unique_name_in_owner = true
@@ -74,17 +99,54 @@ bbcode_enabled = true
 scroll_active = false
 visible_characters_behavior = 1
 
+[node name="CaretStrip" type="Control" parent="Root/Box/Row/Column"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="AdvanceMark" parent="Root/Box/Row/Column/CaretStrip" instance=ExtResource("6_mark")]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 0
+grow_vertical = 2
+
 [node name="RightFrame" type="PanelContainer" parent="Root/Box/Row"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(216, 216)
 layout_mode = 2
-size_flags_vertical = 4
+size_flags_vertical = 0
 mouse_filter = 2
 theme_type_variation = &"HudInset"
 
-[node name="RightPortrait" type="TextureRect" parent="Root/Box/Row/RightFrame"]
+[node name="RightPortrait" type="TextureRect" parent="Root/Box/Row/RightFrame" node_paths=PackedStringArray("Overlay")]
 unique_name_in_owner = true
+script = ExtResource("7_view")
+Overlay = NodePath("RightOverlay")
 custom_minimum_size = Vector2(192, 192)
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RightOverlay" type="TextureRect" parent="Root/Box/Row/RightFrame/RightPortrait"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5

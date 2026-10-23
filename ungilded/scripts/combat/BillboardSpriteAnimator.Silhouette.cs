@@ -40,7 +40,8 @@ public partial class BillboardSpriteAnimator
             _silhouetteTexture = Texture;
             _silhouette.SetShaderParameter("sprite_tex", Texture);
         }
-        float alpha = Texture == null ? 0 : Modulate.A;
+        // An eroding body has no see-through outline: the outline is drawn from the whole frame.
+        float alpha = Texture == null || Erosion != null ? 0 : Modulate.A;
         if (Mathf.IsEqualApprox(alpha, _silhouetteAlpha)) return;
         _silhouetteAlpha = alpha;
         _silhouette.SetShaderParameter("body_alpha", alpha);

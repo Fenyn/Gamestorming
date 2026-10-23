@@ -20,7 +20,7 @@ public static class PrologueBestiary
     public const string DireSewerRatId = "dire_sewer_rat";
     public const string SewerTyrantId = "sewer_tyrant";
 
-    public const int TyrantAcidWeakness = 3;
+    public const int TyrantAcidWeakness = 7;
 
     /// <summary>The definition for a creature id above, or null for an unknown id.</summary>
     public static EnemyDefinition? Find(string creatureId) => creatureId switch
@@ -59,6 +59,9 @@ public static class PrologueBestiary
     /// <summary>The Sewer Rat block plus Vicious Bite (1d4 persistent bleed on a Jaws hit). It
     /// shares the Sewer Rat's name, so the board shows no difference (spec section 3, Encounter 3
     /// Rat 4).</summary>
+    /// <summary>The persistent bleed a Vicious Sewer Rat's Jaws hit deals.</summary>
+    public static DiceFormula ViciousBleed => new(1, 4, 0);
+
     public static EnemyDefinition ViciousSewerRat()
     {
         var def = SewerRat();
@@ -73,7 +76,7 @@ public static class PrologueBestiary
                 Description = "A Jaws hit deals 1d4 persistent bleed damage.",
                 Category = FeatureCategory.CreatureAbility,
                 StrikeName = JawsName,
-                BleedDice = new DiceFormula(1, 4, 0),
+                BleedDice = ViciousBleed,
                 PersistentType = DamageType.Bleed,
             },
         };
@@ -96,10 +99,11 @@ public static class PrologueBestiary
     public static EnemyDefinition SewerTyrant()
     {
         var def = Define(SewerTyrantId, "Sewer Tyrant",
-            "A grotesquely mutated rat the size of a large dog. Its hide splits and reforms as it moves, and it reeks of alchemical corruption.",
+            "A grotesquely mutated rat the size of a pony. Its hide splits and reforms as it moves, and it reeks of alchemical corruption.",
             new CreatureStatBlockData
             {
-                CreatureLevel = 1, CreatureSize = CreatureSize.Medium,
+                // Large and long: a 2x2 space, and Jaws keeps the default 5 ft reach.
+                CreatureLevel = 1, CreatureSize = CreatureSize.Large,
                 SpeedInFeet = 25,
                 AC = 17, FortSave = 7, RefSave = 4, WillSave = 3, MaxHP = 35,
                 Str = 3, Dex = 1, Con = 3, Int = -4, Wis = 1, Cha = -2,

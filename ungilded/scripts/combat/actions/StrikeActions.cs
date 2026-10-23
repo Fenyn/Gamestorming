@@ -114,7 +114,8 @@ internal sealed class StrikeActions
         return true;
     }
 
-    /// <summary>The AttackRolled, DamageDealt and CreatureDied events of one resolved strike.</summary>
+    /// <summary>The AttackRolled and DamageDealt events of one resolved strike. The runner adds the
+    /// CreatureDied of a kill.</summary>
     private async Task EmitStrike(ICharacter character, ICharacter target, StrikeContext strikeCtx, string strikeName)
     {
         await _events.Emit(new BattleEvent
@@ -130,14 +131,14 @@ internal sealed class StrikeActions
         if (strikeCtx.Hit && strikeCtx.DamageResult != null)
         {
             int damage = strikeCtx.DamageResult.TotalDamage;
-            await _events.EmitDamageAndDeath(character, target, damage,
+            await _events.EmitDamage(character, target, damage,
                 type: strikeCtx.DamageResult.DamageType,
                 // The strike's degree rides along so the view can style a crit (bigger red number,
                 // crit spark ring, screen shake). Omitting it is what kept DamagePopup3D's crit path
                 // dead for every weapon strike while spells — which always passed theirs — showed it.
                 degree: strikeCtx.Degree,
                 description: $"{target.Name} takes {damage} {strikeCtx.DamageResult.DamageType} damage",
-                targetKilled: strikeCtx.TargetKilled);
+                result: strikeCtx.DamageResult);
         }
     }
 

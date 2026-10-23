@@ -24,7 +24,8 @@ public partial class PrologueBeat : Resource
     /// <summary>The encounter for an Encounter beat.</summary>
     [Export(PropertyHint.Range, "1,4,1")] public int Encounter { get; set; } = 1;
 
-    /// <summary>Short label for logs and checks: "narration:id", "dialogue:id:board", "encounter:2".</summary>
+    /// <summary>Short label for logs and checks: "narration:id", "dialogue:id:board",
+    /// "dialogue:id:set", "encounter:2".</summary>
     public string Describe() => Kind switch
     {
         BeatKind.Narration => $"narration:{Sequence?.Id}",

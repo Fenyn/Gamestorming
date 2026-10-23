@@ -23,6 +23,7 @@ internal static class ClassAi
         };
         foreach (string id in sequence)
         {
+            if (actor.Health?.IsAlive!=true) return;
             var action=new ClassAction(ClassActions.All.Single(a=>a.Id==id));
             if (action.Spec.Range==0)
             {

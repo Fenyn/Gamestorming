@@ -153,21 +153,27 @@ public partial class CombatScene
     {
         if (_session == null) { _inspectPanel.Render(null); ClearBand(); return; }
         ICharacter? shown = null;
-        if (_focusedMember is { } focused && _tacticalUnits.TryGetValue(focused, out var focusedUnit))
+        if (_pinnedHero != null)
+            shown = _pinnedHero;
+        else if (_focusedMember is { } focused && _tacticalUnits.TryGetValue(focused, out var focusedUnit))
             shown = focusedUnit.Character;
         else if (_session.CurrentActor is { TeamId: 1 } actor && actor.Health?.IsAlive == true)
             shown = actor;
-        _inspectPanel.Render(shown == null || EnemyTurnShowing || _promptOpen ? null : InspectFor(shown));
+        bool hidden = _pinnedHero == null && (EnemyTurnShowing || _promptOpen);
+        _inspectPanel.Render(shown == null || hidden ? null : InspectFor(shown));
         RefreshBand();
     }
 
-    /// <summary>The bar and its signature row hide on enemy turns and while the reaction prompt
-    /// holds the bottom centre.</summary>
+    /// <summary>The bar and its signature row show only while the player commands the current
+    /// actor, or watches a hero they toggled to AI (the bar holds the toggle): never on enemy
+    /// turns, during a dead creature's closing beat, while the reaction prompt is open, during the
+    /// intro or after the result.</summary>
     private void RefreshBarVisibility()
     {
         var current = _session?.CurrentActor;
-        bool enemyTurn = current != null && current.TeamId != 1;
-        _actionBar.Visible = !enemyTurn && !_promptOpen && !_tacticalFinished && !_introPlaying;
+        bool hero = current is { TeamId: 1 } && current.Health?.IsAlive == true && !_session!.CurrentTurnRemoved;
+        bool commanding = hero && (_session!.PlayerTurnActive || _session.IsAiToggled(current!) && _session.CanCommand(current!));
+        _actionBar.Visible = commanding && !_promptOpen && !_tacticalFinished && !_introPlaying;
         RefreshBand();
         RefreshCommandPrompt();
     }
@@ -207,8 +213,9 @@ public partial class CombatScene
         _actionTargetId = null;
     }
 
-    /// <summary>Name plates for the target and the reactor; a letter badge on every living enemy,
-    /// so the board matches the log ("Goblin B") while the timeline numbers change each turn.</summary>
+    /// <summary>Name plates for the target, the reactor and the creature that set the reaction off;
+    /// a letter badge on every living enemy, so the board matches the log ("Goblin B") while the
+    /// timeline numbers change each turn.</summary>
     private void RefreshPlates()
     {
         if (_session == null) return;
@@ -216,9 +223,9 @@ public partial class CombatScene
         foreach (var (id, visual) in _tacticalUnits)
         {
             bool target = id == _playerTargetId || id == _actionTargetId;
-            // FFT style: the crystal, the card and the timeline mark the actor, so only a target or
-            // a reactor carries its name over the board.
-            bool plate = target || id == _reactorId;
+            // FFT style: the crystal, the card and the timeline mark the actor, so only a target, a
+            // reactor or the trigger of an open reaction prompt carries its name over the board.
+            bool plate = target || id == _reactorId || _promptOpen && id == _reactionSourceId;
             // The enemy letter rides with the timeline number beside the HP bar ("3C"); the separate
             // badge shows only when the unit has no number (off the timeline).
             bool badge = visual.Character.TeamId != 1 && visual.Character.Health?.IsAlive == true
@@ -309,7 +316,9 @@ public partial class CombatScene
         RefreshCard();
         try
         {
-            return await _reactionPrompt.ShowAsync(view);
+            var choice = _reactionPrompt.ShowAsync(view);
+            LayoutReactionPrompt();
+            return await choice;
         }
         finally
         {

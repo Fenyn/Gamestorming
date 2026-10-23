@@ -34,6 +34,7 @@ public partial class CombatScene
     private void StopEncounter()
     {
         _logBridge?.Dispose();
+        StopWatchingHiddenAbilities();
         // Cancel the awaited pipeline before clearing dice can release its presentation gate.
         _encounterCts?.Cancel();
         _cameraRig?.CancelIntro();
@@ -67,6 +68,7 @@ public partial class CombatScene
         _session = null!;
 
         // Registrations first, nodes second: the map must never hand out a freed visual.
+        if (_presenter != null) _presenter.DamageRolled -= _dice.ShowDamage;
         _presenter?.ClearUnits();
         _presenter = null!;
 
@@ -82,6 +84,7 @@ public partial class CombatScene
         _victoryBanner.HideResult();
         _journalPanel.Hide();
         ResetTutorialPresentation();
+        ReleaseFocusHolds();
     }
 
     /// <summary>

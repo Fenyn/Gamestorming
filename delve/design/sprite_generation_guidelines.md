@@ -1,12 +1,18 @@
 # Sprite generation guidelines
 
-Use this guide for new Delve creature sprites and revisions to existing sprites. It records the lessons from the rat-to-goblin iteration. The target is clean, readable game art that belongs beside the existing sprites. More detail does not mean a better result.
+Use this guide for Delve character and creature sprites, revisions, clothing, equipment and animation. The target is clean, readable game art that belongs beside the existing sprites. More detail does not mean a better result.
+
+For humans or modular wardrobe work, also read [human sprite guidelines](human_sprite_guidelines.md). Use the [measured enemy reference sheet](sprite-style/README.md) to compare native pixels, palettes and proportions. Both documents apply before drawing. A technical pass alone does not approve visual style or anatomy.
+
+The repo's code-drawn pixel rule applies to new sprite work. Prefer suitable authored pack art. For newly drawn pixels, request a palette-indexed array or explicit draw calls with the native grid size and every allowed hex value. Index 0 is transparent. A generated concept may guide construction; sampling its pixels is not the default final-art workflow under the current repo rule. Historical generated assets below document earlier work and do not grant an exception.
 
 ## Reference hierarchy
 
 1. The user's latest direction determines what to change and what to preserve.
 2. The existing game sprites determine rendering style, pixel scale, perspective, and visual density.
 3. A generated image can help establish construction and pose. It does not replace the game's style reference.
+
+Human anatomy and rendering have separate references. Use the rat, goblin, kobold and wolf for broad planes, contour treatment and detail density. Use an adult construction reference for adult humans. The goblin's large head and short legs are species choices. Pack humans and Mana Seed studies are not automatically approved rendering references for this style.
 
 For the current enemy style, inspect [rat_v1 idle](../assets/sprites/enemies/rat_v1/idle_1.png) and the [enlarged rat reference](goblin-base/rat-reference-8x.png). The refined [goblin master](goblin-base/goblin-base.aseprite) and [PNG](goblin-base/goblin-base.png) show the resulting humanoid treatment. [Rat, goblin, and silhouette comparison](goblin-base/rat-and-silhouette-review.png) uses the same pixel scale and aligns the feet.
 
@@ -43,27 +49,23 @@ Exaggerated goblin proportions are valid when they are consistent. The failed ea
 
 Check the silhouette before polishing. It should communicate the creature and pose without internal detail. Negative spaces around arms and between legs should support the stance, not look like rectangular holes cut into the body.
 
-### 3. Use generation for the problem it can solve
+### 3. Resolve construction before final pixels
 
-The successful route here was a stronger generated construction reference followed by substantial Aseprite reconstruction and repainting. Repeated small edits to the weak initial pixel construction did not produce a convincing body.
+Use an authored pack figure or a joint-and-mass blockout to resolve anatomy. A generated construction image is optional. If used, identify the rat's role as rendering reference and the figure's role as anatomy reference. Save its exact prompt and provenance, and inspect it for inconsistent perspective or joints before using it.
 
-When generating, explicitly separate the image's roles: the rat supplies style; the new creature supplies anatomy and pose. Request one complete unarmed base pose, a limited palette, clear overlaps, and a simple background that can be removed. Preserve transparency when the generator supplies it; otherwise remove the chosen background completely during preparation.
+The earlier goblin iteration used a generated reference followed by substantial reconstruction. Its useful pose arrived with excessive shading and texture. That history supports checking anatomy and rendering separately; it does not make generated pixels exempt from the current repo rule.
 
-Inspect the result before importing it as a final asset. A good pose can arrive with the wrong rendering style. Our generated reference had excessive shading and texture even though the prompt asked for simplicity. Keep the useful pose and replace the unsuitable rendering.
+The final drawing brief must request code, state the exact native grid, list all allowed hex values, identify the chosen construction, and name the required layers. Use broad flat clusters, a main shadow plane, sparse deep overlaps, and short upper contour highlights. Reject dithering, mottled texture, gradients, scattered highlights, and continuous heavy outlines.
 
-Prompt starting point:
-
-> Create one [creature] base sprite for Delve. Use the supplied rat only as the rendering and pixel-scale reference. Use a coherent [view/facing] throughout the head, torso, pelvis, and feet, with clear near/far limb overlaps and a grounded [stance]. Keep [equipment state] and leave the body suitable for later gear layers. Use broad flat color clusters, one main shadow tone, sparse deep overlap shadows, and short highlights on upper contours. No dithering, mottled texture, scattered highlights, gradients, or continuous heavy outlines. Show one full-body pose with room around it. Prioritize construction and readability at the intended native resolution.
-
-This is a starting brief, not a guarantee of quality. Save the exact prompt and identify which tool produced the reference.
+Do not ask code to invent anatomy while placing final pixels. Record the joint landmarks and silhouette first, then use arrays or explicit Aseprite draw calls to encode that construction. A syntactically correct drawing program does not establish a convincing body.
 
 ### 4. Reconstruct on the native grid in Aseprite
 
 Choose a real working resolution based on the game and reference, not the generator's presentation dimensions. An enlarged image that resembles pixel art is not necessarily aligned to a uniform grid.
 
-Sample or redraw onto a fixed grid, remove the background, collapse texture colors into deliberate palette entries, and repair broken contours. Nearest-neighbor scaling preserves existing pixels; it does not fix poor source construction or noisy shading.
+For newly drawn art, encode the selected construction directly on the locked grid with palette-indexed arrays or explicit draw calls. For authored pack art, preserve the source pixels and registration unless the brief calls for a redraw. Use nearest-neighbor scaling for previews. It does not repair poor construction or noisy shading. Do not enlarge the working canvas to hide an unresolved proportion problem.
 
-The current goblin uses a 56 x 64 canvas with visible bounds of 35 x 52 pixels and nine opaque colors. These are facts about this asset, not mandatory dimensions or color counts for future creatures. Its taller canvas is not yet validated as an integrated combat asset.
+The current goblin uses a 56 x 64 canvas with visible bounds of 35 x 52 pixels and nine opaque colors. These are facts about this asset, not mandatory dimensions or color counts for future creatures. Its runtime placement is defined in `assets/sprites/enemies/goblin_base/sprite.tres`.
 
 ### 5. Paint flat planes, then add depth
 
@@ -103,9 +105,11 @@ Deliver an Aseprite master, transparent native PNG, integer-scale preview, and a
 
 Separate useful anatomical parts and removable clothing into named layers. Near/far order must match the pose. Continue the body underneath removable clothing and check it with that layer hidden. Do not claim complete hidden anatomy merely because the visible flattened render looks correct. Leave a practical place for equipment overlays and preserve hand registration.
 
+For reusable humanoids, the [layer and garment contract](human_sprite_guidelines.md#layer-ownership-and-hidden-anatomy) also applies. Removable shadows belong to their garment or equipment state. Split clothing across depth positions, record body revision and attachment coordinates, and test removal and replacement before expanding the wardrobe. Existing segmented creature masters are rendering examples; their layer names alone do not prove they meet this contract.
+
 Treat the master and rebuild script consistently. If the script is the source, encode the cleanup in it. If the master has manual edits, preserve them before rebuilding; the current goblin script overwrites its generated outputs. Do not deliver a script that silently recreates an older version.
 
-The current [Aseprite build script](../tools/draw_goblin_base.lua) contains reference sampling, deliberate flat-color repainting, layer assembly, previews, and a saved-master comparison. Reuse its workflow, not its creature-specific masks or sampling coordinates.
+The historical [Aseprite build script](../tools/draw_goblin_base.lua) contains reference sampling, deliberate flat-color repainting, layer assembly, previews, and a saved-master comparison. Reuse its named-layer assembly and saved-master comparison. Its reference sampling and creature-specific masks are not the starting method for new code-drawn sprites.
 
 ## Review before delivery
 
@@ -118,6 +122,10 @@ The current [Aseprite build script](../tools/draw_goblin_base.lua) contains refe
 - Reopen the saved Aseprite master and compare its rendered pixels with the exported PNG. Verify useful layers and the intended frame count.
 - For a shading-only revision, compare alpha masks to verify the silhouette stayed unchanged; compare palettes when palette preservation was intended.
 - State what was changed and show the result. Do not claim professional quality merely because the files exported or the checks passed.
+
+Run the palette check against every deliverable cel, including hidden wardrobe alternatives. Inspect layer/cel opacity and blend mode as well as stored pixel alpha. Audit detached pixels and holes as review findings: preserve deliberate eye/teeth pixels and limb gaps with recorded exceptions. A generic component-size threshold must not erase valid reference details.
+
+Record visual gates separately from technical checks. A style, construction, or modularity defect keeps that gate open. Deliver it as a study with the remaining defect stated until fresh comparisons show the repair. User review of a new direction does not replace the maker's own visual inspection.
 
 Single-pose asset work and game integration are separate scopes. Goblin, kobold, and wolf bases are now integrated with five-frame breathing and blink idles. The renderer uses each folder's `sprite.tres` and Godot `SpriteFrames`; there is no fixed eight-frame requirement. Author clip names, textures, FPS, per-frame durations, and looping in the resource. Set pixel scale, foot margin, and source-facing direction in the sprite definition. Keep the master canvas intact instead of trimming padding to satisfy renderer constants. See [runtime sprite instructions](../assets/sprites/enemies/README.md).
 

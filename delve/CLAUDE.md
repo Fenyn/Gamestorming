@@ -9,7 +9,7 @@ Godot 4.6 C# (.NET 8). Combat proof driven by the Pf2e.Core rules engine (`F:\de
 
 ## Composition
 
-- For creature sprite generation or revision, read [sprite generation guidelines](design/sprite_generation_guidelines.md) before starting. Use the existing rats as the style reference and the refined goblin as the humanoid example.
+- For character or creature sprite generation, revision, clothing, equipment, or animation, read [sprite generation guidelines](design/sprite_generation_guidelines.md) before starting. Use the [measured enemy references](design/sprite-style/README.md) for rendering style. For humans and modular parts, also read [human sprite guidelines](design/human_sprite_guidelines.md). The goblin supplies humanoid shading, not adult human proportions. A layered file must pass hidden-anatomy and equipment-removal review before it is called a reusable base.
 
 - Build objects from small child scenes. A unit token = sprite animator + HP bar + team ring.
 - One job per component. The sprite animator knows nothing about characters or HP.

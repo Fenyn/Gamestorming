@@ -81,18 +81,33 @@ public sealed partial class TutorialHooks
     public void RestrictMoveTo(IEnumerable<PF2eVec> tiles, string hint)
     {
         _moveTiles = new HashSet<PF2eVec>(tiles);
+        MoveTilesAreHint = false;
         MoveHint = hint;
+        Changed?.Invoke();
+    }
+
+    /// <summary>True when <see cref="MoveTiles"/> are only a suggestion: every tile accepts a move.</summary>
+    public bool MoveTilesAreHint { get; private set; }
+
+    /// <summary>Show <paramref name="tiles"/> as gold tiles over the move bands without restricting
+    /// the move: every tile accepts a click, and no wrong-tile tip shows.</summary>
+    public void HintMoveTo(IEnumerable<PF2eVec> tiles)
+    {
+        _moveTiles = new HashSet<PF2eVec>(tiles);
+        MoveTilesAreHint = true;
+        MoveHint = null;
         Changed?.Invoke();
     }
 
     public void ClearMoveRestriction()
     {
         _moveTiles = null;
+        MoveTilesAreHint = false;
         MoveHint = null;
         Changed?.Invoke();
     }
 
-    public bool IsMoveAllowed(PF2eVec tile) => _moveTiles == null || _moveTiles.Contains(tile);
+    public bool IsMoveAllowed(PF2eVec tile) => _moveTiles == null || MoveTilesAreHint || _moveTiles.Contains(tile);
 
     internal void RaiseMoveRefused(PF2eVec tile) => MoveRefused?.Invoke(tile);
 

@@ -93,6 +93,13 @@ public partial class TerrainStage : Node3D
     /// <summary>The occluder-fade pass over the spawned trees. Created once, reconfigured per build.</summary>
     private TreeFader? _fader;
 
+    /// <summary>The wall cutaway (a biome with <see cref="BackdropThemeDefinition.Cutaway"/>).
+    /// Created on first use, reconfigured per build, switched off by <see cref="Clear"/>.</summary>
+    private TerrainCutaway? _cutaway;
+
+    /// <summary>The wall cutaway of the current build, or null when the biome has none.</summary>
+    public TerrainCutaway? Cutaway => _cutaway?.Map != null ? _cutaway : null;
+
     /// <summary>Generated terrain for the current build. Null on a flat board.</summary>
     private MapView3D? _mapView;
 
@@ -136,7 +143,8 @@ public partial class TerrainStage : Node3D
     /// back to the default theme with a warning; ignored on a flat board.</param>
     /// <param name="width">Board width in tiles.</param>
     /// <param name="height">Board height in tiles.</param>
-    public void Build(MapLayout? layout, string? biomeId, int width, int height)
+    /// <param name="halo">The board's authored halo, or null to let the biome synthesize one.</param>
+    public void Build(MapLayout? layout, string? biomeId, int width, int height, HaloPlan? halo = null)
     {
         Clear();
 
@@ -156,7 +164,8 @@ public partial class TerrainStage : Node3D
             // so the BOARD's tile (0,0) still sits on the world origin: gameplay, camera and input
             // all keep board coordinates and never learn the halo exists.
             var backdrop = BackdropThemes.Get(id);
-            var skirt = SkirtLayout.Build(layout, backdrop.Skirt, WallHeightFor(id));
+            int wallHeight = WallHeightFor(id);
+            var skirt = SkirtLayout.Build(layout, backdrop.Skirt, wallHeight, halo);
 
             // A tree biome's Wall tiles become tree spots on the RENDER copy before the mesh is
             // built: the ground flattens, the crate-shaped block disappears, and a billboard tree
@@ -167,14 +176,23 @@ public partial class TerrainStage : Node3D
                 : new List<(int X, int Y)>();
 
             var origin = new Vector2(-skirt.Margin, -skirt.Margin);
+            var boardRect = new TileRect(skirt.Margin, skirt.Margin, layout.Width, layout.Height);
+            var cutaway = backdrop.Cutaway ? CutawayMap.Build(skirt.Layout, wallHeight, boardRect) : null;
+
+            // Board y runs along world z.
+            var (fx, fy) = halo?.Flow ?? default;
+            var flow = new Vector2(fx, fy);
 
             _mapView = new MapView3D { Name = MapViewName };
             AddChild(_mapView);
             _mapView.Build(skirt.Layout, theme, new TerrainMeshOptions
             {
                 WorldOrigin = origin,
-                GridLineRect = new TileRect(skirt.Margin, skirt.Margin, layout.Width, layout.Height),
-            });
+                GridLineRect = boardRect,
+                WaterFlow = flow * (_look?.WaterFlowSpeed ?? 0f),
+                SludgeFlow = flow * (_look?.SludgeFlowSpeed ?? 0f),
+            }, cutaway?.PickLayout(skirt.Layout));
+            if (cutaway != null) ApplyCutaway(cutaway, origin, theme, backdrop);
 
             Layout = layout;
             Skirt = skirt;
@@ -189,41 +207,15 @@ public partial class TerrainStage : Node3D
                 treeWallSpots,
                 _look == null ? null : ring => _look.HaloShade(ring));
             if (_trees != null) AddChild(_trees);
+
+            _look?.Dress(new DressingContext(layout, skirt, _skirtHeights, theme.HeightScale,
+                cutaway != null ? _cutaway : null));
         }
 
         ApplyBackdrop(layout != null ? id : null, width, height);
         ApplyFloor(width, height);
     }
 
-    /// <summary>Switch this stage's lighting setup on or off. A host that borrows another scene's
-    /// ground (a dungeon-hosted fight) turns it off so the other scene's look applies.</summary>
-    public void SetLookActive(bool active) => _look?.SetActive(active);
-
-    /// <summary>Instance the biome's lighting setup, reusing the current one when the biome maps to
-    /// the same scene, and fit its fog to the board.</summary>
-    private void ApplyLook(string? biomeId, int width, int height)
-    {
-        var source = biomeId != null && Looks.TryGetValue(biomeId, out var scene) ? scene : DefaultLook;
-        if (source != _lookSource)
-        {
-            _look?.SetActive(false);
-            _look?.QueueFree();
-            _look = source?.Instantiate<LookScene>();
-            _lookSource = source;
-            if (_look != null) AddChild(_look);
-        }
-        _look?.SetActive(true);
-        _look?.FitBoard(width, height);
-        // Board tile (0, 0) sits on the world origin; the halo shading starts past the far edge.
-        RenderingServer.GlobalShaderParameterSet(LookScene.BoardRectGlobal, new Vector4(0f, 0f, width, height));
-    }
-
-    private TreeFader AddFader()
-    {
-        var fader = new TreeFader { Name = "TreeFader" };
-        AddChild(fader);
-        return fader;
-    }
 
     /// <summary>
     /// Drop the built terrain and go back to the flat placeholder board. Idempotent and safe before
@@ -249,6 +241,8 @@ public partial class TerrainStage : Node3D
             _trees = null;
         }
         _fader?.Configure(default);
+        _cutaway?.Clear();
+        _look?.Undress();
 
         Layout = null;
         Skirt = null;
@@ -257,59 +251,4 @@ public partial class TerrainStage : Node3D
         if (_floor != null) _floor.Visible = true;
     }
 
-    /// <summary>
-    /// Dress the space around the board with far scenery. Reuses one backdrop node so a rebuild
-    /// never stacks backdrops.
-    /// </summary>
-    private void ApplyBackdrop(string? biomeId, int width, int height)
-    {
-        if (_backdrop == null)
-        {
-            _backdrop = new Backdrop { Name = BackdropName };
-            AddChild(_backdrop);
-        }
-        _backdrop.Apply(biomeId, Skirt, _skirtHeights, width, height, OutskirtsMistShader,
-            _look == null ? null : ring => _look.HaloShade(ring));
-    }
-
-    /// <summary>
-    /// How far a tree or vault wall rises in the halo: the biome's own <c>WallHeight</c>, so the
-    /// synthesized trees match the board's. An id the map-gen registry does not carry is a content
-    /// bug — say so and fall back rather than lose the scene.
-    /// </summary>
-    private static int WallHeightFor(string biomeId)
-    {
-        try
-        {
-            return MapGenRegistry.GetBiome(biomeId).WallHeight;
-        }
-        catch (Exception e) when (e is KeyNotFoundException or ArgumentException)
-        {
-            GD.PushWarning(
-                $"[TerrainStage] No map-gen biome '{biomeId}'; halo walls use {FallbackWallHeightUnits} units.");
-            return FallbackWallHeightUnits;
-        }
-    }
-
-    /// <summary>
-    /// Size, place and show the placeholder floor for a flat board; hide it once real terrain is up.
-    /// The floor mesh is sized from the board bounds so every dimension renders correctly — grid tile
-    /// (x, y) spans world x..x+1 / y..y+1, so a WxH plane sits at the board centre. The checker shader
-    /// works in world space and follows automatically.
-    /// </summary>
-    private void ApplyFloor(int width, int height)
-    {
-        if (_floor == null) return;
-
-        if (Layout != null)
-        {
-            _floor.Visible = false;
-            return;
-        }
-
-        if (_floor.Mesh is PlaneMesh floorPlane)
-            floorPlane.Size = new Vector2(width, height);
-        _floor.Position = GridSpace.BoardCenter(width, height);
-        _floor.Visible = true;
-    }
 }

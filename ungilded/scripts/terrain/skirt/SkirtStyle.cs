@@ -49,6 +49,17 @@ public sealed record SkirtStyle
     /// straight outward for <c>WallRings + 1</c> rings before being sealed off.</summary>
     public int WallRings { get; init; }
 
+    /// <summary>Enclosed halo only. Rings of open floor kept between the board and the vault wall,
+    /// so the wall stands back from the board and the mass beyond it is one uniform block. With a
+    /// walkway, the only corridors are culverts: water leaving the board through an edge run no
+    /// wider than <see cref="CulvertMaxWidth"/>. 0 keeps the corridor-only enclosure.</summary>
+    public int WalkwayRings { get; init; }
+
+    /// <summary>Widest board-edge water run that continues through the vault wall as a culvert.
+    /// A wider run lies along the edge rather than leaving through it, so the walkway beside it
+    /// stays floor.</summary>
+    public int CulvertMaxWidth { get; init; } = 2;
+
     /// <summary>How far, in tiles, a continued river may wander sideways by the outer rim. The
     /// meander is 0 at the first ring so the join with the board's own river is always straight.</summary>
     public float RiverMeander { get; init; }

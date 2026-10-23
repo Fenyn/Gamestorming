@@ -61,6 +61,12 @@ public sealed record BackdropThemeDefinition
     public float OutskirtsMistOpacity { get; init; }
     public MapColor OutskirtsMistColor { get; init; }
 
+    /// <summary>Height of the lower mist shelf above the ground plane, metres.</summary>
+    public float OutskirtsMistHeight { get; init; } = 1.3f;
+
+    /// <summary>Height of the upper shelf above the lower one, metres.</summary>
+    public float OutskirtsMistSpacing { get; init; } = 1.7f;
+
     // ── Generated skirt (the halo of synthesized tiles around the board) ──
 
     /// <summary>How the terrain OUTSIDE the board is grown: how wide the halo is, how its hills
@@ -80,6 +86,13 @@ public sealed record BackdropThemeDefinition
     /// of drawing the raised terrain block a stone pillar or vault wall wants. Gameplay never sees
     /// the difference — the tile keeps its Wall role and still blocks movement and sight.</summary>
     public bool WallsAreTrees { get; init; }
+
+    /// <summary>True when the camera cuts walls down to a stub wherever open floor lies behind
+    /// them (<see cref="CutawayMap"/>), so a full-height wall never hides a unit.</summary>
+    public bool Cutaway { get; init; }
+
+    /// <summary>Brightness of a cut wall's stone cap against the theme's wall tint.</summary>
+    public float CutawayCapShade { get; init; } = 1f;
 }
 
 /// <summary>
@@ -186,22 +199,35 @@ public static class BackdropThemes
     };
 
     /// <summary>
-    /// Undercity drain: no sky to see — a near-black green-tinged gradient buried under heavy fog
-    /// (high FogSkyAffect turns the sky into vault murk), dim cool light, high sun elevation for
-    /// grate-shaft shading. No horizon scenery on purpose: the enclosure IS the backdrop.
+    /// Undercity drain: no sky to see. A generated board gets one uniform mass of masonry two tiles
+    /// back from it, cut only by culverts where a channel leaves; an authored board brings its own
+    /// halo (<see cref="HaloPlan"/>). The look scene darkens the halo toward black and a low mist
+    /// shelf lies over the wall tops. The camera cuts every wall with open floor behind it.
+    /// Torches, pipes, clutter and drips come from the look's <c>SewerDressing</c>, not from this
+    /// table.
     /// </summary>
     public static readonly BackdropThemeDefinition Sewer = new()
     {
         BiomeId = "sewer",
         HasGroundPlane = true,
-        GroundPlaneColor = Shade(MapThemes.Sewer, SurfaceType.Stone, 0.91f),
-        // No sky and no hills down here: the halo is solid masonry around a few outgoing tunnels.
+        Cutaway = true,
+        // Nothing lies past the vault mass: the surround is the dark the halo fades into.
+        GroundPlaneColor = new(0.03f, 0.035f, 0.04f),
+        OutskirtsMistOpacity = 0.3f,
+        OutskirtsMistColor = new(0.16f, 0.2f, 0.19f),
+        // Just over the wall top (the sewer's WallHeight, 2 m), so the shelf hazes the mass and
+        // never slices the wall faces.
+        OutskirtsMistHeight = 2.15f,
+        OutskirtsMistSpacing = 1.2f,
         // Surfaces mirror the sewer biome's defaults (Stone / Mud / Stone).
         Skirt = new SkirtStyle
         {
+            Margin = SkirtStyle.MinMargin,
             HillAmplitudeElevations = 0f,
             WallRings = 2,
-            RiverMeander = 1f,
+            WalkwayRings = 2,
+            CulvertMaxWidth = 2,
+            RiverMeander = 0f,
             GroundSurface = SurfaceType.Stone,
             DifficultSurface = SurfaceType.Mud,
             WallSurface = SurfaceType.Stone,

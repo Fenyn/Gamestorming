@@ -161,13 +161,16 @@ public partial class CombatScene
         RefreshBand();
     }
 
-    /// <summary>The bar and its signature row hide on enemy turns and while the reaction prompt
-    /// holds the bottom centre.</summary>
+    /// <summary>The bar and its signature row show only while the player commands the current
+    /// actor, or watches a hero they toggled to AI (the bar holds the toggle): never on enemy
+    /// turns, during a dead creature's closing beat, while the reaction prompt holds the bottom
+    /// centre, during the intro or after the result.</summary>
     private void RefreshBarVisibility()
     {
         var current = _session?.CurrentActor;
-        bool enemyTurn = current != null && current.TeamId != 1;
-        _actionBar.Visible = !enemyTurn && !_promptOpen && !_tacticalFinished && !_introPlaying;
+        bool hero = current is { TeamId: 1 } && current.Health?.IsAlive == true && !_session!.CurrentTurnRemoved;
+        bool commanding = hero && (_session!.PlayerTurnActive || _session.IsAiToggled(current!) && _session.CanCommand(current!));
+        _actionBar.Visible = commanding && !_promptOpen && !_tacticalFinished && !_introPlaying;
         RefreshBand();
         RefreshCommandPrompt();
     }

@@ -86,6 +86,9 @@ internal sealed record SkillActionDefinition
 /// </summary>
 internal static class SkillActionCatalog
 {
+    /// <summary>A scan radius that covers the whole board, for a chip whose target filter decides.</summary>
+    private const int AnyRange = int.MaxValue;
+
     /// <summary>
     /// Every chip, basic actions first in action-bar order. Trip/Demoralize/Battle Medicine/Recall
     /// Knowledge (skills) and Shove/Tumble Through/Seek (maneuvers) target another creature;
@@ -174,20 +177,22 @@ internal static class SkillActionCatalog
                     + "critical success. The skill depends on the creature's type, and each character gets "
                     + "one attempt per species each fight.",
             },
-            // 30 ft (the Demoralize precedent). RAW gives each character ONE attempt per creature per
-            // encounter, and knowledge is per-SPECIES here, so a foe whose species this actor already
-            // studied this fight drops out of the target set — the Battle Medicine immunity filter is
-            // the same shape. With every species studied the plan is empty, which greys the chip out.
-            RangeTiles = _ => 6,
+            // No range: any foe the actor perceives (RecallKnowledgeAction.IsPerceivedBy). RAW gives
+            // each character ONE attempt per creature per encounter, and knowledge is per-SPECIES
+            // here, so a foe whose species this actor already studied this fight drops out of the
+            // target set. With every species studied the plan is empty, which greys the chip out.
+            RangeTiles = _ => AnyRange,
             TargetFilter = (skills, actor, t) =>
             {
+                if (!RecallKnowledgeAction.IsPerceivedBy(actor, t)) return false;
                 string? creatureId = t.CreatureStats?.CreatureId;
                 return string.IsNullOrEmpty(creatureId)
                     || skills.HasRecallAttempted?.Invoke(actor.UniqueId, creatureId!) != true;
             },
-            NoTargetReason = actor => CombatantQuery.AnyTargetInRange(actor, 6, enemies: true)
-                ? "Already attempted every species in range this fight"
-                : "No foes within 30 ft",
+            NoTargetReason = actor => CombatantQuery.ScanCombatants(actor, enemies: true,
+                    t => RecallKnowledgeAction.IsPerceivedBy(actor, t)).Any()
+                ? "Every perceived species studied this fight"
+                : "No perceived foes",
         },
         new SkillActionDefinition
         {

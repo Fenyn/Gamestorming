@@ -9,6 +9,8 @@ namespace Ungilded.UI;
 /// Shows each resolved d20 without rolling gameplay dice. A full beat plays the hero roll (centre
 /// stage while the defence is unknown, the degree track once it is known) and shrinks it into the
 /// row; a short beat fills the row directly; with the dice reveal off only the settled row shows.
+/// A hit's damage dice reach the panel from the presenter while the Strike resolves; the full beat
+/// rolls them after the outcome, and the row shows the damage total.
 /// Rolls queue, and the combat presenter awaits each outcome instead of estimating its duration.
 /// A click, Enter or Esc skips a beat to the settled row. The tumble uses its own display-only
 /// random source, so it can never touch combat RNG.
@@ -23,6 +25,7 @@ public partial class DiceRollPanel : PanelContainer
         public required string Context;
         public required TaskCompletionSource Result;
         public bool Reaction;
+        public DamageRoll? Damage;
     }
 
     [Export] public DiceHeroView? Hero { get; set; }
@@ -100,6 +103,7 @@ public partial class DiceRollPanel : PanelContainer
         _detail = GetNode<RichTextLabel>("%RollDetail");
         _applied = GetNode<RichTextLabel>("%RollApplied");
         _outcome = GetNode<Label>("%RollOutcome");
+        _damage = GetNode<RichTextLabel>("%RollDamage");
         _row = GetNode<Control>("%Row");
         _rowTrack = GetNode<DegreeTrack>("%RowTrack");
         ClearRoll();
@@ -118,6 +122,9 @@ public partial class DiceRollPanel : PanelContainer
         ResultShowing = false;
         while (_pending.TryDequeue(out var pending)) pending.Result.TrySetResult();
         _latestResult = Task.CompletedTask;
+        _last = null;
+        _awaitingDamage = false;
+        _hold = HoldKind.None;
         Visible = false;
     }
 
@@ -164,23 +171,26 @@ public partial class DiceRollPanel : PanelContainer
     private void Start(Pending next)
     {
         _current = next;
+        _last = next;
+        if (_hold == HoldKind.Reshown) _hold = HoldKind.None;
         Context = next.Context;
         Beat = RollBeat.For(next.Roll, AnimationsEnabled, next.Reaction);
         ResultShowing = false;
         Tumbling = false;
         Hero?.Clear();
-        FillRow(next.Roll);
+        FillRow(next.Roll, next.Damage);
         Modulate = Modulate with { A = 1 };
         Visible = true;
         _phase = Phase.Beat;
         _tween = NewTween();
+        _awaitingDamage = Beat.Pace == RollPace.Full && Hero != null;
         switch (Beat.Pace)
         {
-            case RollPace.Full when Hero != null: BuildFull(next.Roll, Beat); break;
-            case RollPace.Settled: ShowSettledRow(); Arrive(); break;
-            default: BuildShort(); break;
+            // The full beat appends its hold when its second chain is built.
+            case RollPace.Full when Hero != null: BuildFull(next.Roll, Beat, next.Damage); break;
+            case RollPace.Settled: ShowSettledRow(); Arrive(); AppendHoldAndFade(); break;
+            default: BuildShort(); AppendHoldAndFade(); break;
         }
-        AppendHoldAndFade();
     }
 
     /// <summary>The outcome has arrived: release the presenter.</summary>
@@ -213,6 +223,7 @@ public partial class DiceRollPanel : PanelContainer
         _tween?.Kill();
         Hero?.Clear();
         Tumbling = false;
+        _awaitingDamage = false;
         ShowSettledRow();
         Modulate = Modulate with { A = 1 };
         Arrive();

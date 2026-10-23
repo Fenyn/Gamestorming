@@ -1,2 +1,8 @@
 ﻿# Use Astra for Codex CLI and the Claude Codex plugin in this repository.
 model = "gpt-6-astra"
+
+# The elevated sandbox runs commands as the codexsandboxoffline user, and the
+# Steam build of Aseprite exits with code 1 before running a script under it.
+# Unelevated runs as the current user with a restricted token, so Aseprite works.
+[windows]
+sandbox = "unelevated"

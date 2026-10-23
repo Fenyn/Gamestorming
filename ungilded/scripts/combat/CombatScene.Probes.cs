@@ -84,8 +84,21 @@ public partial class CombatScene
     /// <summary>Dev use: hover a tile as if the mouse were there; null ends the hover.</summary>
     public void HoverTile(PF2e.Vector2Int? tile) => OnTileHovered(tile);
 
+    /// <summary>Dev use: a tile's centre on screen, in HUD pixels, or null behind the camera.</summary>
+    public Vector2? TileScreenPoint(PF2e.Vector2Int tile)
+    {
+        var world = GridSpace.GridToWorld(tile, SurfaceHeights);
+        return _cameraRig.Camera.IsPositionBehind(world) ? null : _cameraRig.Camera.UnprojectPosition(world);
+    }
+
     /// <summary>Dev use: the card that shows the hovered or targeted unit.</summary>
     public Ungilded.UI.UnitInspectPanel TargetCard => _targetCard;
+
+    /// <summary>Dev use: the hero card, with the action squares and the reaction diamond.</summary>
+    public Ungilded.UI.UnitInspectPanel InspectPanel => _inspectPanel;
+
+    /// <summary>Dev use: the timeline.</summary>
+    public Ungilded.UI.TurnOrderBar TurnBar => _turnBar;
 
     /// <summary>Dev use: how many gold tutorial tiles the board shows.</summary>
     public int GuideTileCount => _moveBands.GuideTileCount;

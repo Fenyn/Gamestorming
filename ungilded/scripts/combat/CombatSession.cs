@@ -79,6 +79,12 @@ public sealed partial class CombatSession
     /// </summary>
     private readonly HashSet<(int ActorId, string CreatureId)> _recallAttempts = new();
 
+    /// <summary>From <see cref="CombatSetup.RecallAfterSuccess"/>.</summary>
+    private bool _recallAfterSuccess;
+
+    /// <summary>From <see cref="CombatSetup.FixedInitiative"/>.</summary>
+    private bool _fixedInitiative;
+
     private TaskCompletionSource<PlayerTurnResolution>? _playerTurnTcs;
     private bool _finished;
 
@@ -96,6 +102,8 @@ public sealed partial class CombatSession
     public event Action<BattleResult>? EncounterFinished;
     /// <summary>Fires whenever a new combatant's turn begins (player or AI) — for turn-order UI.</summary>
     public event Action? TurnChanged;
+    /// <summary>Each battle event once the presenter has played it. Spikes read the event order.</summary>
+    public event Action<BattleEvent>? EventPresented;
 
     /// <summary>
     /// Raised when a party-side Recall Knowledge check in THIS encounter succeeded, with the studied
@@ -114,7 +122,20 @@ public sealed partial class CombatSession
     public Func<ReactionPromptView, Task<bool>>? ReactionPromptHandler { get; set; }
 
     // ---------------------------------------------------------------- Pass-throughs
+    /// <summary>The combatant whose turn it is. A creature killed during its own turn stays the
+    /// current actor until that turn ends (<see cref="CurrentTurnRemoved"/>).</summary>
     public ICharacter? CurrentActor => _turnManager?.CurrentTurn?.Character;
+
+    /// <summary>The current actor left the fight during its own turn; the turn has not ended yet.</summary>
+    public bool CurrentTurnRemoved => _turnManager?.CurrentTurnRemoved == true;
+
+    /// <summary>True from <see cref="PlayerTurnStarted"/> to <see cref="PlayerTurnEnded"/>: the
+    /// player is choosing commands for the current actor.</summary>
+    public bool PlayerTurnActive { get; private set; }
+
+    /// <summary>The pause after a mid-turn death, while that turn is still current. Set by the
+    /// scene; null ends the turn at once.</summary>
+    public Func<Task>? RemovedTurnBeat { get; set; }
     public IReadOnlyList<TurnEntry>? TurnOrder => _turnManager?.TurnOrder;
     /// <summary>Combatants waiting out a Delay, in the order they delayed (see <see cref="TurnEntry.ReturnAfter"/>).</summary>
     public IReadOnlyList<TurnEntry>? DelayedEntries => _turnManager?.Delayed;
@@ -192,6 +213,8 @@ public sealed partial class CombatSession
         _ai = new AITurnExecutor(_runner, Grid);
         PlayerActions = new PlayerActionExecutor(_runner, Grid, PresetSpells.Get);
         PlayerActions.HasRecallAttempted = HasRecallAttempted;
+        _recallAfterSuccess = setup.RecallAfterSuccess;
+        _fixedInitiative = setup.FixedInitiative;
         WireRecallKnowledge();
 
         foreach (var (unit, pos) in setup.Party)
@@ -225,6 +248,8 @@ public sealed partial class CombatSession
         // shield auto-lower and condition/cooldown ticking fire on turn boundaries.
         foreach (var c in _team1) if (!_eidolons.Any(e => e.Eidolon == c)) SubscribeCharacter(c);
         foreach (var c in _team2) SubscribeCharacter(c);
+        // After the summoners, so the shared pool's events name the summoner.
+        foreach (var link in _eidolons) _runner.Watch(link.Eidolon);
         WayfarerFeature.PrepareEncounter(_team1);
         FeatEncounter.Prepare(_team1);
         StartTutorialWatch();
@@ -274,9 +299,10 @@ public sealed partial class CombatSession
         if (string.IsNullOrEmpty(creatureId))
             return;
 
-        MarkRecallAttempted(actor.UniqueId, creatureId!);
+        bool learned = degree is DegreeOfSuccess.Success or DegreeOfSuccess.CriticalSuccess;
+        if (!learned || !_recallAfterSuccess) MarkRecallAttempted(actor.UniqueId, creatureId!);
 
-        if (actor.TeamId == 1 && degree is DegreeOfSuccess.Success or DegreeOfSuccess.CriticalSuccess)
+        if (actor.TeamId == 1 && learned)
             RecallKnowledgeLearned?.Invoke(target!, degree);
     }
 
@@ -307,8 +333,8 @@ public sealed partial class CombatSession
             Description = $"{ctx.Attacker.Name} uses {ctx.SourceAction.ActionName} against {ctx.Defender.Name}"
         });
         if (ctx.Hit && ctx.DamageResult != null)
-            await events.EmitDamageAndDeath(ctx.Attacker, ctx.Defender, ctx.DamageResult.TotalDamage,
-                type: ctx.DamageResult.DamageType, degree: ctx.Degree, targetKilled: ctx.TargetKilled);
+            await events.EmitDamage(ctx.Attacker, ctx.Defender, ctx.DamageResult.TotalDamage,
+                type: ctx.DamageResult.DamageType, degree: ctx.Degree, result: ctx.DamageResult);
     }
 
     /// <summary>
@@ -324,6 +350,7 @@ public sealed partial class CombatSession
         if (_watch != null) await _watch.BeforeEvent(evt);
         if (_presenter != null)
             await _presenter(evt);
+        EventPresented?.Invoke(evt);
         if (_watch != null) await _watch.AfterEvent(evt);
 
         // Watch both deaths (enemy slain → win) and damage (a PC dropped to Dying/Unconscious mid-turn
@@ -390,6 +417,7 @@ public sealed partial class CombatSession
                 if (_turnManager.IsEncounterActive)
                     _turnManager.EndEncounter();
             }
+            _runner?.ClearPending();
 
             // Static engine event — leaving this subscribed would keep the whole session (and its teams)
             // alive and let a later encounter's checks re-enter this dead one. Detaching a handler that
@@ -434,7 +462,8 @@ public sealed partial class CombatSession
             all.RemoveAll(c => _removed.Contains(c) || _eidolons.Any(e => e.Eidolon == c));
 
             await _runner.Emit(BattleEventType.EncounterStarted);
-            _turnManager.StartEncounter(all);
+            if (_fixedInitiative) _turnManager.StartEncounterWithFixedOrder(all);
+            else _turnManager.StartEncounter(all);
             foreach (var link in _eidolons) _scope!.Registry.Register(link.Eidolon);
 
             while (_turnManager.IsEncounterActive && !_finished)
@@ -453,10 +482,10 @@ public sealed partial class CombatSession
                 // BattleSimulator.RunEncounter). StartTurn clears the flag for the next character.
                 if (_turnManager.EndTurnRequested)
                 {
+                    await RemovedTurnPause();
                     await _runner.Emit(BattleEventType.TurnEnded, source: current);
-                    if (await EndIfDecided(cancellationToken))
+                    if (await EndIfDecided(cancellationToken) || await EndTurnAsync(cancellationToken))
                         return;
-                    _turnManager.EndTurn();
                     continue;
                 }
 
@@ -488,12 +517,16 @@ public sealed partial class CombatSession
                     await RunAiTurn(current);
                 }
 
+                await RemovedTurnPause();
                 await _runner.Emit(BattleEventType.TurnEnded, source: current);
 
                 if (await EndIfDecided(cancellationToken))
                     return;
 
-                _turnManager.EndTurn();
+                // Ends a turn whose creature died mid-turn too: its end-of-turn effects run, then the
+                // next initiative entry starts.
+                if (await EndTurnAsync(cancellationToken))
+                    return;
             }
 
             if (!_finished)
@@ -539,6 +572,15 @@ public sealed partial class CombatSession
         return true;
     }
 
+    /// <summary>The current actor died mid-turn: hold its turn for the scene's beat, unless the
+    /// death decided the encounter.</summary>
+    private async Task RemovedTurnPause()
+    {
+        if (!_turnManager.CurrentTurnRemoved || RemovedTurnBeat == null) return;
+        if (_pendingResult != BattleResult.InProgress || EvaluateEncounter() != BattleResult.InProgress) return;
+        await RemovedTurnBeat();
+    }
+
     /// <summary>
     /// The player Delayed as their turn began: announce it, then let the engine pull them out of
     /// the order and start the next turn. False when the engine refuses (the chosen anchor is no
@@ -561,6 +603,7 @@ public sealed partial class CombatSession
         // call) doesn't reentrantly unwind the turn loop within that Emit's call stack.
         _playerTurnTcs = new TaskCompletionSource<PlayerTurnResolution>(
             TaskCreationOptions.RunContinuationsAsynchronously);
+        PlayerTurnActive = true;
         PlayerTurnStarted?.Invoke(current);
         // Scene exit while the turn is parked here would suspend this task forever (nothing left to
         // press End Turn / hand off to AI). Completing the TCS as an EndTurn on cancellation unblocks
@@ -573,6 +616,7 @@ public sealed partial class CombatSession
         {
             var resolution = await _playerTurnTcs.Task;
             _playerTurnTcs = null;
+            PlayerTurnActive = false;
             PlayerTurnEnded?.Invoke();
             return resolution;
         }
@@ -672,7 +716,7 @@ public sealed partial class CombatSession
     /// <summary>The actor whose delayed turn resumed. The resumed turn is the same turn, so it cannot Delay again.</summary>
     private ICharacter? _resumedActor;
 
-    private void HandleTurnStart(ICharacter _)
+    private void HandleTurnStart(ICharacter character)
     {
         _resumedActor = null;
         ReconcileOccupancy();
@@ -737,6 +781,7 @@ public sealed partial class CombatSession
         _featBindings[c] = FeatEncounter.Bind(c,_turnManager);
         _classBindings[c] = Ungilded.Rules.WayfarerFeature.Bind(c, _turnManager);
         if (c.Health != null) c.Health.OnDeath += RemoveCombatant;
+        _runner.Watch(c);
         c.Health?.SubscribeToTurnEvents(_turnManager);
         c.Equipment?.Shield?.SubscribeToTurnEvents(_turnManager);
         c.Conditions?.SubscribeToTurnEvents(_turnManager);
@@ -751,6 +796,7 @@ public sealed partial class CombatSession
         if (_classBindings.Remove(c, out var binding)) binding.Dispose();
         if (_featBindings.Remove(c,out var featBinding)) featBinding.Dispose();
         if (c.Health != null) c.Health.OnDeath -= RemoveCombatant;
+        _runner?.Unwatch(c);
         c.Health?.UnsubscribeFromTurnEvents(_turnManager);
         c.Equipment?.Shield?.UnsubscribeFromTurnEvents(_turnManager);
         c.Conditions?.UnsubscribeFromTurnEvents(_turnManager);
